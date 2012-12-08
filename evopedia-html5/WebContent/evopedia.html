@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<title>Evopedia HTML5</title>
+<script type="text/javascript" src="bzip2-antimatter15.js"></script>
+</head>
+
+<body>
+<h1>Evopedia</h1>
+<br/>
+Blockstart : <input type="text" id="blockstart" value="0" />
+<br/>
+Blockoffset : <input type="text" id="blockoffset" value="0" />
+<br/>
+Length : <input type="text" id="length" value="8866" />
+<br/>
+<div id="openLocalFiles" style="visibility:hidden">
+Please pick the file wikipedia_00.dat from the wikipedia_small_2010-08-14 dump :<br>
+<input type="file" id="files" name="file" />
+</div>
+<br/>
+<input type="button" id="read" value="Read from dump" onclick="readArticleFromHtmlForm(file)" />
+<br/>
+<div id="articleContent">&nbsp;</div>
+<hr/>
+<pre id="rawArticleContent">&nbsp;</pre>
+
+<script type="text/javascript" src="evopedia.js"></script>
+</body>
+</html>
