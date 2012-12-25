@@ -43,6 +43,31 @@ function readIntegerFrom4Bytes(byteArray,firstIndex) {
 	return byteArray[firstIndex] + byteArray[firstIndex+1]*256 + byteArray[firstIndex+2]*65536 + byteArray[firstIndex+3]*16777216; 
 }
 
+/**
+ * Converts a UTF-8 byte array to JavaScript's 16-bit Unicode.
+ * @param {Array.<number>} bytes UTF-8 byte array.
+ * @return {string} 16-bit Unicode string.
+ * Copied from http://closure-library.googlecode.com/svn/docs/closure_goog_crypt.js.source.html (Apache License 2.0)
+ */
+function utf8ByteArrayToString(bytes,startIndex,endIndex) {
+  var out = [], pos = startIndex, c = 0;
+  while (pos < bytes.length && pos < endIndex) {
+    var c1 = bytes[pos++];
+    if (c1 < 128) {
+      out[c++] = String.fromCharCode(c1);
+    } else if (c1 > 191 && c1 < 224) {
+      var c2 = bytes[pos++];
+      out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
+    } else {
+      var c2 = bytes[pos++];
+      var c3 = bytes[pos++];
+      out[c++] = String.fromCharCode(
+          (c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+    }
+  }
+  return out.join('');
+};
+
 function readAllTitlesFromIndex(titleFile) {
 	if (titleFile) {
 		var reader = new FileReader();
@@ -88,18 +113,13 @@ function readAllTitlesFromIndex(titleFile) {
 				while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
 					newLineIndex++;
 				}
+				/*
 				for (var j=i+15;j<newLineIndex;j++) {
 					title += String.fromCharCode(byteArray[j]);
 				}
-				// TODO : Read the title properly with UTF-8 encoding
-				/*
-				var buf = new ArrayBuffer();
-				var bufView = new Uint16Array(buf);
-				for (var j=0;j<newLineIndex-i-15;j++) {
-					bufView[j]=byteArray[j+i+15];
-				}
-				title = String.fromCharCode(bufView);
 				*/
+				// TODO : Read the title properly with UTF-8 encoding
+				title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
 
 				comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
 				titleNumber++;
