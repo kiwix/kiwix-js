@@ -22,12 +22,11 @@ License:
     <http://www.gnu.org/licenses/>.
 
 */
+
 var dataFiles=document.getElementById('dataFiles').files;
 var titleFile=document.getElementById('titleFile').files[0];
 
 var storage = navigator.getDeviceStorage('music');
-//alert(storage);
-
 if (!storage) {
 	//alert("no device storage available");
 	document.getElementById('openLocalFiles').style.visibility="visible";
@@ -36,15 +35,11 @@ if (!storage) {
 }
 else {
 	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
-	//alert(filerequest);
 	filerequest.onsuccess = function() {
 		dataFiles[0] = filerequest.result;
-		//alert(dataFiles);
 		filerequest = storage.get('wikipedia_small_2010-08-14/titles.idx');
 		filerequest.onsuccess = function() {
 			titleFile = filerequest.result;
-			//alert(titleFile);
-			//readArticleFromHtmlForm(file);
 		};
 		filerequest.onerror = function() {
 			alert("error reading title file");
@@ -55,6 +50,9 @@ else {
 	};
 }
 
+/**
+ * Set the Offsets HTML fields from the selected title
+ */
 function updateOffsetsFromTitle(selectValue) {
 	var offsets=selectValue.split(/\|/);
 	document.getElementById("filenumber").value=offsets[0];
@@ -63,6 +61,9 @@ function updateOffsetsFromTitle(selectValue) {
 	document.getElementById("length").value=offsets[3];
 }
 
+/**
+ * Read an integer encoded in 4 bytes
+ */
 function readIntegerFrom4Bytes(byteArray,firstIndex) {
 	return byteArray[firstIndex] + byteArray[firstIndex+1]*256 + byteArray[firstIndex+2]*65536 + byteArray[firstIndex+3]*16777216; 
 }
@@ -92,6 +93,9 @@ function utf8ByteArrayToString(bytes,startIndex,endIndex) {
   return out.join('');
 };
 
+/**
+ * Read all the titles from the index file, and populate the dropdown list
+ */
 function readAllTitlesFromIndex(titleFile) {
 	if (titleFile) {
 		var reader = new FileReader();
@@ -123,7 +127,8 @@ function readAllTitlesFromIndex(titleFile) {
 				blockoffset = readIntegerFrom4Bytes(byteArray,i+7);
 				length = readIntegerFrom4Bytes(byteArray,i+11);
 				var newLineIndex = i+15;
-	
+
+				// Look for the index of NewLine	
 				while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
 					newLineIndex++;
 				}
@@ -148,6 +153,9 @@ function readAllTitlesFromIndex(titleFile) {
 	}
 }
 
+/**
+ * Decompress and read an article in dump files
+ */
 function readArticleFromHtmlForm(dataFiles) {
 	if (dataFiles && dataFiles.length>0) {
 		var filenumber = document.getElementById('filenumber').value;
@@ -155,6 +163,7 @@ function readArticleFromHtmlForm(dataFiles) {
 		var blockoffset = document.getElementById('blockoffset').value;
 		var length = document.getElementById('length').value;
 		var dataFile;
+		// Find the good dump file
 		for (var i=0; i<dataFiles.length; i++) {
 			var fileName = dataFiles[i].name;
 			var prefixedFileNumber = "";
@@ -185,6 +194,9 @@ function readArticleFromHtmlForm(dataFiles) {
 	}
 }
 
+/**
+ * Read an article in a dump file, based on given offsets
+ */
 function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 
 	var reader = new FileReader();
@@ -194,15 +206,12 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 	};
 	reader.onload = function(e) {
 		var compressedArticles = e.target.result;
-		//var htmlArticle = compressedArticles;
-		//alert(typeof compressedArticles);
 		//var htmlArticle = ArchUtils.bz2.decode(compressedArticles);
 		// TODO : should be improved by uncompressing the content chunk by chunk,
 		// until the length is reached, instead of uncompressing everything
 		var htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(compressedArticles)));
-		// Start reading at offset, and keep 2*length bytes (maximum size in bytes for length characters)
+		// Start reading at offset, and keep length characters
 		var htmlArticle = htmlArticles.substring(blockoffset,blockoffset+length);
-		
 		// Keep only length characters
 		htmlArticle = htmlArticle.substring(0,length);
 		// Decode UTF-8 encoding
@@ -210,11 +219,9 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 
 		document.getElementById('articleContent').innerHTML = htmlArticle;
 		// For testing purpose
-		//document.getElementById('rawArticleContent').innerHTML = htmlArticle.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-		//document.getElementById('rawArticleContent').value = decodeURIComponent(escape(htmlArticles));
+		//document.getElementById('rawArticleContent').value = htmlArticle;
 	};
 
-	//var blob = file;
 	// TODO : should be improved by reading the file chunks by chunks until the article is found,
 	// instead of reading the whole file starting at blockstart
 	var blob = dataFile.slice(blockstart);
