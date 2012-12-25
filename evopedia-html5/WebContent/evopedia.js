@@ -1,5 +1,28 @@
+/*
+Port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
+The original application is at http://www.evopedia.info/
+It uses wikipedia dumps located at http://dumpathome.evopedia.info/dumps/finished
 
-var dataFile=document.getElementById('dataFile').files[0];
+Author : Mossroy - mossroy@free.fr
+
+License:
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this program; if not, see
+    <http://www.gnu.org/licenses/>.
+
+*/
+var dataFiles=document.getElementById('dataFiles').files;
 var titleFile=document.getElementById('titleFile').files[0];
 
 var storage = navigator.getDeviceStorage('music');
@@ -8,15 +31,15 @@ var storage = navigator.getDeviceStorage('music');
 if (!storage) {
 	//alert("no device storage available");
 	document.getElementById('openLocalFiles').style.visibility="visible";
-	document.getElementById('dataFile').addEventListener('change', handleDataFileSelect, false);
+	document.getElementById('dataFiles').addEventListener('change', handleDataFileSelect, false);
 	document.getElementById('titleFile').addEventListener('change', handleTitleFileSelect, false);
 }
 else {
 	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
 	//alert(filerequest);
 	filerequest.onsuccess = function() {
-		dataFile = filerequest.result;
-		//alert(dataFile);
+		dataFiles[0] = filerequest.result;
+		//alert(dataFiles);
 		filerequest = storage.get('wikipedia_small_2010-08-14/titles.idx');
 		filerequest.onsuccess = function() {
 			titleFile = filerequest.result;
@@ -34,6 +57,7 @@ else {
 
 function updateOffsetsFromTitle(selectValue) {
 	var offsets=selectValue.split(/\|/);
+	document.getElementById("filenumber").value=offsets[0];
 	document.getElementById("blockstart").value=offsets[1];
 	document.getElementById("blockoffset").value=offsets[2];
 	document.getElementById("length").value=offsets[3];
@@ -99,29 +123,16 @@ function readAllTitlesFromIndex(titleFile) {
 				blockoffset = readIntegerFrom4Bytes(byteArray,i+7);
 				length = readIntegerFrom4Bytes(byteArray,i+11);
 				var newLineIndex = i+15;
-				/*
-				var buf = new ArrayBuffer();
-				var bufView = new Uint16Array(buf);
-			    var j=0;
-				while (byteArray[newLineIndex]!=128) {
-					bufView[j] = byteArray[newLineIndex];
-					j++
-					newLineIndex++;
-				}
-				title = String.fromCharCode(bufView);
-				*/
+	
 				while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
 					newLineIndex++;
 				}
-				/*
-				for (var j=i+15;j<newLineIndex;j++) {
-					title += String.fromCharCode(byteArray[j]);
-				}
-				*/
-				// TODO : Read the title properly with UTF-8 encoding
+
 				title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
 
-				comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
+				if (title) {
+					comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
+				}
 				titleNumber++;
 				i=newLineIndex-1;
 			}
@@ -129,7 +140,7 @@ function readAllTitlesFromIndex(titleFile) {
 		
 		var blob = titleFile;
 
-		// Read in the image file as a binary string.
+		// Read in the image file as a binary string
 		reader.readAsArrayBuffer(blob);
 	}
 	else {
@@ -137,15 +148,40 @@ function readAllTitlesFromIndex(titleFile) {
 	}
 }
 
-function readArticleFromHtmlForm(dataFile) {
-	if (dataFile) {
+function readArticleFromHtmlForm(dataFiles) {
+	if (dataFiles && dataFiles.length>0) {
+		var filenumber = document.getElementById('filenumber').value;
 		var blockstart = document.getElementById('blockstart').value;
 		var blockoffset = document.getElementById('blockoffset').value;
 		var length = document.getElementById('length').value;
+		var dataFile;
+		for (var i=0; i<dataFiles.length; i++) {
+			var fileName = dataFiles[i].name;
+			var prefixedFileNumber = "";
+			if (filenumber<10) {
+				prefixedFileNumber = "0"+filenumber;
+			}
+			else {
+				prefixedFileNumber = filenumber;
+			}
+			var expectedFileName = "wikipedia_"+prefixedFileNumber+".dat";
+			if (expectedFileName == fileName) {
+				dataFile = dataFiles[i];
+			}
+		}
+		if (!dataFile) {
+			if (filenumber==255) {
+				// TODO : handle redirects (filenumber==255)
+				alert("Redirects not implemented yet");
+			}
+			else {
+				alert("File number " + filenumber + " not found");
+			}
+		}		
 		readArticleFromOffset(dataFile, blockstart, blockoffset, length);
 	}
 	else {
-		alert("Data file not set");
+		alert("Data files not set");
 	}
 }
 
@@ -203,7 +239,7 @@ function errorHandler(evt) {
   }
 
 function handleDataFileSelect(evt) {
-	dataFile = evt.target.files[0];
+	dataFiles = evt.target.files;
 }
 
 function handleTitleFileSelect(evt) {

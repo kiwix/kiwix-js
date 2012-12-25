@@ -1,5 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE html>
+<!--
+Port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
+The original application is at http://www.evopedia.info/
+It uses wikipedia dumps located at http://dumpathome.evopedia.info/dumps/finished
+
+Author : Mossroy - mossroy@free.fr
+
+License:
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this program; if not, see
+    <http://www.gnu.org/licenses/>.
+
+-->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />   
@@ -11,15 +35,17 @@
 <h1>Evopedia</h1>
 <br/>
 <div id="openLocalFiles" style="visibility:hidden">
-Please pick the file titles.idx from the wikipedia_small_2010-08-14 dump :<br/>
+Please pick the file titles.idx :<br/>
 <input type="file" id="titleFile"/><br/>
-Please pick the file wikipedia_00.dat from the same dump :<br/>
-<input type="file" id="dataFile"/>
+Please pick the files wikipedia_*.dat from the same dump :<br/>
+<input type="file" id="dataFiles" multiple="true"/>
 </div>
 <br/>
 <input type="button" id="readTitle" value="Read title list from index" onclick="readAllTitlesFromIndex(titleFile)" />
 <br/>
 Choose a title : <select id="titleList" onchange="updateOffsetsFromTitle(this.value)"></select>
+<br/>
+File number : <input type="text" id="filenumber" value="0" />
 <br/>
 Blockstart : <input type="text" id="blockstart" value="0" />
 <br/>
@@ -27,7 +53,7 @@ Blockoffset : <input type="text" id="blockoffset" value="0" />
 <br/>
 Length : <input type="text" id="length" value="8866" />
 <br/>
-<input type="button" id="readData" value="Read article from dump" onclick="readArticleFromHtmlForm(dataFile)" />
+<input type="button" id="readData" value="Read article from dump" onclick="readArticleFromHtmlForm(dataFiles)" />
 <br/>
 <div id="articleContent">&nbsp;</div>
 <hr/>
