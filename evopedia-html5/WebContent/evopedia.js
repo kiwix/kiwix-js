@@ -91,7 +91,16 @@ function readAllTitlesFromIndex(titleFile) {
 				for (var j=i+15;j<newLineIndex;j++) {
 					title += String.fromCharCode(byteArray[j]);
 				}
-				
+				// TODO : Read the title properly with UTF-8 encoding
+				/*
+				var buf = new ArrayBuffer();
+				var bufView = new Uint16Array(buf);
+				for (var j=0;j<newLineIndex-i-15;j++) {
+					bufView[j]=byteArray[j+i+15];
+				}
+				title = String.fromCharCode(bufView);
+				*/
+
 				comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
 				titleNumber++;
 				i=newLineIndex-1;
@@ -135,13 +144,18 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 		// TODO : should be improved by uncompressing the content chunk by chunk,
 		// until the length is reached, instead of uncompressing everything
 		var htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(compressedArticles)));
-		var htmlArticle = htmlArticles.substring(blockoffset,length);
+		// Start reading at offset, and keep 2*length bytes (maximum size in bytes for length characters)
+		var htmlArticle = htmlArticles.substring(blockoffset,blockoffset+length);
+		
+		// Keep only length characters
+		htmlArticle = htmlArticle.substring(0,length);
 		// Decode UTF-8 encoding
 		htmlArticle = decodeURIComponent(escape(htmlArticle));
 
 		document.getElementById('articleContent').innerHTML = htmlArticle;
 		// For testing purpose
-		document.getElementById('rawArticleContent').innerHTML = htmlArticle.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+		//document.getElementById('rawArticleContent').innerHTML = htmlArticle.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+		//document.getElementById('rawArticleContent').value = decodeURIComponent(escape(htmlArticles));
 	};
 
 	//var blob = file;

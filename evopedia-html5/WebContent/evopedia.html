@@ -10,27 +10,29 @@
 <body>
 <h1>Evopedia</h1>
 <br/>
-Blockstart : <input type="text" id="blockstart" value="0" />
-<br/>
-Blockoffset : <input type="text" id="blockoffset" value="0" />
-<br/>
-Length : <input type="text" id="length" value="8866" />
-<br/>
 <div id="openLocalFiles" style="visibility:hidden">
-Please pick the file title.idx from the wikipedia_small_2010-08-14 dump :<br/>
+Please pick the file titles.idx from the wikipedia_small_2010-08-14 dump :<br/>
 <input type="file" id="titleFile"/><br/>
 Please pick the file wikipedia_00.dat from the same dump :<br/>
 <input type="file" id="dataFile"/>
 </div>
 <br/>
 <input type="button" id="readTitle" value="Read title list from index" onclick="readAllTitlesFromIndex(titleFile)" />
-<input type="button" id="readData" value="Read article from dump" onclick="readArticleFromHtmlForm(dataFile)" />
 <br/>
 Choose a title : <select id="titleList" onchange="updateOffsetsFromTitle(this.value)"></select>
 <br/>
+Blockstart : <input type="text" id="blockstart" value="0" />
+<br/>
+Blockoffset : <input type="text" id="blockoffset" value="0" />
+<br/>
+Length : <input type="text" id="length" value="8866" />
+<br/>
+<input type="button" id="readData" value="Read article from dump" onclick="readArticleFromHtmlForm(dataFile)" />
+<br/>
 <div id="articleContent">&nbsp;</div>
 <hr/>
-<pre id="rawArticleContent">&nbsp;</pre>
+<textarea id="rawArticleContent" cols="80" rows="20">&nbsp;</textarea>
+<!--<pre id="rawArticleContent">&nbsp;</pre>-->
 
 <script type="text/javascript" src="evopedia.js"></script>
 </body>
