@@ -182,9 +182,10 @@ var diacriticsMap = [
 ];
 
  
-
-for(var i=0; i<diacriticsMap.length; i++) {
-
-permalink = stringWithDiacritics.replace(diacriticsMap[i].letters, diacriticsMap[i].base);
-
+function normalizeString(string) {
+	var normalizedString=string;
+	for(var i=0; i<diacriticsMap.length; i++) {
+		normalizedString = normalizedString.replace(diacriticsMap[i].letters, diacriticsMap[i].base);
+	}
+	return normalizedString;
 }

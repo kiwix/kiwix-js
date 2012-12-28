@@ -131,6 +131,8 @@ function recursivePrefixSearch(titleFile, reader, prefix, lo, hi) {
 		reader.readAsArrayBuffer(blob);		
 	}
 	else {
+		// We found the closest title
+		//alert ("Found the closest title near index "+lo);
 		readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,lo);
 	}
 }
@@ -142,7 +144,7 @@ function recursivePrefixSearch(titleFile, reader, prefix, lo, hi) {
 function searchTitlesFromPrefix(titleFile, prefix) {
 	if (titleFile) {
 		var titleFileSize = titleFile.size;
-		// TODO : normalize the prefix (remove accents etc)
+		prefix = normalizeString(prefix);
 		
 		var reader = new FileReader();
 		reader.onerror = errorHandler;
@@ -156,77 +158,73 @@ function searchTitlesFromPrefix(titleFile, prefix) {
 	}
 }
 
-function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,index) {
-	// We found the closest title
-	alert ("Found the closest title at index "+index);
-	// TODO : read the following titles, stopping when the title does not start with the prefix any more (or at a maximum number of titles)
-}
-
 /**
- * Read all the titles from the index file, and populate the dropdown list
- * Warning : only usable on very small dumps. It is much too long on normal dumps
+ * Read the titles following the given index in the title file, until one of the following conditions is reached :
+ * - the title does not start with the prefix anymore
+ * - we already read the maximum number of titles
+ * and populate the dropdown list
  */
-function readAllTitlesFromIndex(titleFile) {
-	if (titleFile) {
-		var reader = new FileReader();
-		reader.onerror = errorHandler;
-		reader.onabort = function(e) {
-			alert('Title file read cancelled');
-		};
-		reader.onload = function(e) {
-			var binaryTitleFile = e.target.result;
-			var byteArray = new Uint8Array(binaryTitleFile);
+function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,startIndex) {
+	var reader = new FileReader();
+	reader.onerror = errorHandler;
+	reader.onabort = function(e) {
+		alert('Title file read cancelled');
+	};
+	reader.onload = function(e) {
+		var binaryTitleFile = e.target.result;
+		var byteArray = new Uint8Array(binaryTitleFile);
+		// Look for the index of the next NewLine
+		var newLineIndex=0;	
+		while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+			newLineIndex++;
+		}
+		var i = newLineIndex;
+		var titleNumber=-1;
+		var comboTitleList = document.getElementById('titleList');
+		while (i<byteArray.length && titleNumber<50) {
+			var filenumber = 0;
+			var blockstart = 0;
+			var blockoffset = 0;
+			var length = 0;
+			var title = "";
+
+			// TODO : interpret escape area
+			var escape1 = byteArray[i];
+			var escape2 = byteArray[i+1];
+			filenumber = byteArray[i+2];
 			
-			var i = 0;
-			var titleNumber=0;
-			var comboTitleList = document.getElementById('titleList');
+			blockstart = readIntegerFrom4Bytes(byteArray,i+3);
+			blockoffset = readIntegerFrom4Bytes(byteArray,i+7);
+			length = readIntegerFrom4Bytes(byteArray,i+11);
+			var newLineIndex = i+15;
 
-			while (i<byteArray.length) {
-				var filenumber = 0;
-				var blockstart = 0;
-				var blockoffset = 0;
-				var length = 0;
-				var title = "";
-
-				// TODO : interpret escape area
-				var escape1 = byteArray[i];
-				var escape2 = byteArray[i+1];
-				filenumber = byteArray[i+2];
-				
-				blockstart = readIntegerFrom4Bytes(byteArray,i+3);
-				blockoffset = readIntegerFrom4Bytes(byteArray,i+7);
-				length = readIntegerFrom4Bytes(byteArray,i+11);
-				var newLineIndex = i+15;
-
-				// Look for the index of NewLine	
-				while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
-					newLineIndex++;
-				}
-
-				title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
-
-				if (title) {
-					comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
-				}
-				titleNumber++;
-				i=newLineIndex-1;
+			// Look for the index of the next NewLine	
+			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+				newLineIndex++;
 			}
-		};
-		
-		var blob = titleFile;
-
-		// Read in the file as a binary string
-		reader.readAsArrayBuffer(blob);
-	}
-	else {
-		alert('Title file not set');
-	}
+			title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
+			// Skip the first title
+			if (titleNumber>=0 && title) {
+				// TODO : check if the title starts with prefix, and return if it does not
+				comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
+			}
+			titleNumber++;
+			i=newLineIndex-1;
+		}
+		// Run onchange on the combo, so that to read the value of the selected item (first one)
+		comboTitleList.onchange();
+	};
+	var blob = titleFile.slice(startIndex);
+	// Read in the file as a binary string
+	reader.readAsArrayBuffer(blob);
 }
+
 
 /**
  * Decompress and read an article in dump files
  */
 function readArticleFromHtmlForm(dataFiles) {
+	document.getElementById("articleContent").innerHTML="Loading article from dump...";
 	if (dataFiles && dataFiles.length>0) {
 		var filenumber = document.getElementById('filenumber').value;
 		var blockstart = document.getElementById('blockstart').value;
@@ -289,7 +287,7 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 
 		document.getElementById('articleContent').innerHTML = htmlArticle;
 		// For testing purpose
-		//document.getElementById('rawArticleContent').value = htmlArticle;
+		//document.getElementById('debugZone').value = htmlArticle;
 	};
 
 	// TODO : should be improved by reading the file chunks by chunks until the article is found,
@@ -321,4 +319,13 @@ function handleDataFileSelect(evt) {
 
 function handleTitleFileSelect(evt) {
 	titleFile = evt.target.files[0];
+}
+
+/**
+ * Handle Enter key in the prefix input zone
+ */
+function onKeyUpPrefix(evt) {
+	if (evt.keyCode == 13) {
+		document.getElementById("searchTitles").click();
+	}
 }
