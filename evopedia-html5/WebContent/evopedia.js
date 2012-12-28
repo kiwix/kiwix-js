@@ -94,7 +94,77 @@ function utf8ByteArrayToString(bytes,startIndex,endIndex) {
 };
 
 /**
+ * This function is recursively called after each asynchronous read,
+ * so that to find the closest index in titleFile to the given prefix
+ */
+function recursivePrefixSearch(titleFile, reader, prefix, lo, hi) {
+	if (lo < hi-1 ) {
+		var mid = Math.round((lo+hi)/2);
+		// TODO : improve the way we read this file : 256 bytes is arbitrary and might be too small
+		var blob = titleFile.slice(mid,mid+256);
+		reader.onload = function(e) {
+			var binaryTitleFile = e.target.result;
+			var byteArray = new Uint8Array(binaryTitleFile);
+			// Look for the index of the next NewLine
+			var newLineIndex=0;	
+			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+				newLineIndex++;
+			}
+			var i = newLineIndex-1;
+			newLineIndex = i+15;
+			// Look for the index of the next NewLine	
+			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+				newLineIndex++;
+			}
+			var title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
+			//alert("title found : "+title);
+			if (title.localeCompare(prefix)<0) {
+				lo = mid;
+			}
+			else {
+				hi = mid;
+			}
+			recursivePrefixSearch(titleFile, reader, prefix, lo, hi);
+		};
+		//alert("Reading the file from "+mid+" to "+(mid+256)+" because lo="+lo+" and hi="+hi);			
+		// Read the file as a binary string
+		reader.readAsArrayBuffer(blob);		
+	}
+	else {
+		readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,lo);
+	}
+}
+
+/**
+ * Search the index for titles that start with the given prefix
+ * (implemented with a binary search inside the index file)
+ */
+function searchTitlesFromPrefix(titleFile, prefix) {
+	if (titleFile) {
+		var titleFileSize = titleFile.size;
+		// TODO : normalize the prefix (remove accents etc)
+		
+		var reader = new FileReader();
+		reader.onerror = errorHandler;
+		reader.onabort = function(e) {
+			alert('Title file read cancelled');
+		};
+		recursivePrefixSearch(titleFile, reader, prefix, 0, titleFileSize);
+	}
+	else {
+		alert ("Title file not set");
+	}
+}
+
+function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,index) {
+	// We found the closest title
+	alert ("Found the closest title at index "+index);
+	// TODO : read the following titles, stopping when the title does not start with the prefix any more (or at a maximum number of titles)
+}
+
+/**
  * Read all the titles from the index file, and populate the dropdown list
+ * Warning : only usable on very small dumps. It is much too long on normal dumps
  */
 function readAllTitlesFromIndex(titleFile) {
 	if (titleFile) {
@@ -145,7 +215,7 @@ function readAllTitlesFromIndex(titleFile) {
 		
 		var blob = titleFile;
 
-		// Read in the image file as a binary string
+		// Read in the file as a binary string
 		reader.readAsArrayBuffer(blob);
 	}
 	else {

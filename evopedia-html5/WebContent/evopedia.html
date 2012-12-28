@@ -43,7 +43,9 @@ Please pick the files wikipedia_*.dat from the same dump :<br/>
 <input type="file" id="dataFiles" multiple="true"/>
 </div>
 <br/>
-<input type="button" id="readTitle" value="Read title list from index" onclick="readAllTitlesFromIndex(titleFile)" />
+Find a title : <input type="text" id="prefix" value="" />&nbsp;<input type="button" id="searchTitles" value="Search titles" onclick="searchTitlesFromPrefix(titleFile,document.getElementById('prefix').value)" />
+<br/>
+<input type="button" id="readTitle" value="Read all title list from index" onclick="readAllTitlesFromIndex(titleFile)" />
 <br/>
 Choose a title : <select id="titleList" onchange="updateOffsetsFromTitle(this.value)"></select>
 <br/>
@@ -57,6 +59,7 @@ Length : <input type="text" id="length" value="8866" />
 <br/>
 <input type="button" id="readData" value="Read article from dump" onclick="readArticleFromHtmlForm(dataFiles)" />
 <br/>
+<!-- TODO : add CSS styles -->
 <div id="articleContent">&nbsp;</div>
 <hr/>
 <textarea id="rawArticleContent" cols="80" rows="20">&nbsp;</textarea>
