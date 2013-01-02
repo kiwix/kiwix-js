@@ -254,6 +254,7 @@ function readArticleFromHtmlForm(dataFiles) {
 			else {
 				alert("File number " + filenumber + " not found");
 			}
+			document.getElementById("articleContent").innerHTML="";
 		}
 		else {
 			readArticleFromOffset(dataFile, blockstart, blockoffset, length);
