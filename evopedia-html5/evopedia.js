@@ -27,12 +27,7 @@ var dataFiles=document.getElementById('dataFiles').files;
 var titleFile=document.getElementById('titleFile').files[0];
 
 var storage = null;
-if (!(typeof navigator.getDeviceStorage == "function")) {
-	document.getElementById('openLocalFiles').style.display="block";
-	document.getElementById('dataFiles').addEventListener('change', handleDataFileSelect, false);
-	document.getElementById('titleFile').addEventListener('change', handleTitleFileSelect, false);
-}
-else {
+if (typeof navigator.getDeviceStorage == "function") {
 	storage = navigator.getDeviceStorage('music');
 }
 
@@ -51,6 +46,18 @@ if (storage != null) {
 	filerequest.onerror = function() {
 		alert("error reading data file");
 	};
+}
+else {
+	displayFileSelect();
+}
+
+/**
+ * Displays the zone to select files from the dump
+ */
+function displayFileSelect() {
+	document.getElementById('openLocalFiles').style.display="block";
+	document.getElementById('dataFiles').addEventListener('change', handleDataFileSelect, false);
+	document.getElementById('titleFile').addEventListener('change', handleTitleFileSelect, false);
 }
 
 var debugOn = false;
