@@ -26,13 +26,17 @@ License:
 var dataFiles=document.getElementById('dataFiles').files;
 var titleFile=document.getElementById('titleFile').files[0];
 
-if (!navigator.getDeviceStorage || !navigator.getDeviceStorage('music')) {
+var storage = null;
+if (!(typeof navigator.getDeviceStorage == "function")) {
 	document.getElementById('openLocalFiles').style.display="block";
 	document.getElementById('dataFiles').addEventListener('change', handleDataFileSelect, false);
 	document.getElementById('titleFile').addEventListener('change', handleTitleFileSelect, false);
 }
 else {
-	var storage = navigator.getDeviceStorage('music');
+	storage = navigator.getDeviceStorage('music');
+}
+
+if (storage != null) {
 	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
 	filerequest.onsuccess = function() {
 		dataFiles = [ filerequest.result ];
