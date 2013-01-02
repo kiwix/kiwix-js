@@ -34,7 +34,7 @@ if (typeof navigator.getDeviceStorage == "function") {
 if (storage != null) {
 	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
 	filerequest.onsuccess = function() {
-		dataFiles = new Array();
+		dataFiles = [];
 		dataFiles[0] = filerequest.result;
 		filerequest = storage.get('wikipedia_small_2010-08-14/titles.idx');
 		filerequest.onsuccess = function() {
@@ -333,7 +333,8 @@ function readArticleFromHtmlForm(dataFiles) {
 				prefixedFileNumber = filenumber;
 			}
 			var expectedFileName = "wikipedia_"+prefixedFileNumber+".dat";
-			if (expectedFileName == fileName) {
+			// Check if the fileName ends with the expected file name (in case of DeviceStorage usage, the fileName is prefixed by the directory)
+			if (fileName.match(expectedFileName+"$") == expectedFileName) {
 				dataFile = dataFiles[i];
 			}
 		}
