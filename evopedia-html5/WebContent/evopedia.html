@@ -38,10 +38,10 @@ License:
 <h1>Evopedia</h1>
 <br/>
 <div id="openLocalFiles" style="visibility:hidden">
-Please pick the file titles.idx :<br/>
+Please select the file titles.idx :<br/>
 <input type="file" id="titleFile"/><br/>
-Please pick the files wikipedia_*.dat from the same dump :<br/>
-<input type="file" id="dataFiles" multiple="true"/>
+Please select the files wikipedia_*.dat from the same dump :<br/>
+<input type="file" id="dataFiles" multiple/>
 </div>
 <br/>
 Find titles from the prefix : <input type="text" id="prefix" value="" onkeyup="onKeyUpPrefix(event)" />&nbsp;<input type="button" id="searchTitles" value="Search titles" onclick="searchTitlesFromPrefix(titleFile,document.getElementById('prefix').value)" />

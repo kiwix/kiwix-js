@@ -230,7 +230,7 @@ function readArticleFromHtmlForm(dataFiles) {
 		var blockstart = document.getElementById('blockstart').value;
 		var blockoffset = document.getElementById('blockoffset').value;
 		var length = document.getElementById('length').value;
-		var dataFile;
+		var dataFile = null;
 		// Find the good dump file
 		for (var i=0; i<dataFiles.length; i++) {
 			var fileName = dataFiles[i].name;
@@ -254,8 +254,10 @@ function readArticleFromHtmlForm(dataFiles) {
 			else {
 				alert("File number " + filenumber + " not found");
 			}
-		}		
-		readArticleFromOffset(dataFile, blockstart, blockoffset, length);
+		}
+		else {
+			readArticleFromOffset(dataFile, blockstart, blockoffset, length);
+		}
 	}
 	else {
 		alert("Data files not set");
