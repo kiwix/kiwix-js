@@ -21,7 +21,7 @@ License:
     License along with this program; if not, see
     <http://www.gnu.org/licenses/>.
 
-*/
+ */
 
 var dataFiles=document.getElementById('dataFiles').files;
 var titleFile=document.getElementById('titleFile').files[0];
@@ -59,6 +59,16 @@ function updateOffsetsFromTitle(selectValue) {
 	document.getElementById("blockstart").value=offsets[1];
 	document.getElementById("blockoffset").value=offsets[2];
 	document.getElementById("length").value=offsets[3];
+	if (offsets[0]==255) {
+		// It's a redirect : find out the real offsets (asynchronous read)
+		readRedirectOffsets(titleFile,offsets[1]);
+	}
+	else {
+		document.getElementById('redirectfilenumber').value = "";
+		document.getElementById('redirectblockstart').value = "";
+		document.getElementById('redirectblockoffset').value = "";
+		document.getElementById('redirectlength').value = "";
+	}
 }
 
 /**
@@ -75,22 +85,22 @@ function readIntegerFrom4Bytes(byteArray,firstIndex) {
  * Copied from http://closure-library.googlecode.com/svn/docs/closure_goog_crypt.js.source.html (Apache License 2.0)
  */
 function utf8ByteArrayToString(bytes,startIndex,endIndex) {
-  var out = [], pos = startIndex, c = 0;
-  while (pos < bytes.length && pos < endIndex) {
-    var c1 = bytes[pos++];
-    if (c1 < 128) {
-      out[c++] = String.fromCharCode(c1);
-    } else if (c1 > 191 && c1 < 224) {
-      var c2 = bytes[pos++];
-      out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
-    } else {
-      var c2 = bytes[pos++];
-      var c3 = bytes[pos++];
-      out[c++] = String.fromCharCode(
-          (c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
-    }
-  }
-  return out.join('');
+	var out = [], pos = startIndex, c = 0;
+	while (pos < bytes.length && pos < endIndex) {
+		var c1 = bytes[pos++];
+		if (c1 < 128) {
+			out[c++] = String.fromCharCode(c1);
+		} else if (c1 > 191 && c1 < 224) {
+			var c2 = bytes[pos++];
+			out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
+		} else {
+			var c2 = bytes[pos++];
+			var c3 = bytes[pos++];
+			out[c++] = String.fromCharCode(
+					(c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+		}
+	}
+	return out.join('');
 };
 
 /**
@@ -145,7 +155,7 @@ function searchTitlesFromPrefix(titleFile, prefix) {
 	if (titleFile) {
 		var titleFileSize = titleFile.size;
 		prefix = normalizeString(prefix);
-		
+
 		var reader = new FileReader();
 		reader.onerror = errorHandler;
 		reader.onabort = function(e) {
@@ -156,6 +166,38 @@ function searchTitlesFromPrefix(titleFile, prefix) {
 	else {
 		alert ("Title file not set");
 	}
+}
+
+/**
+ * Read the real offsets when a redirect was found, based on the redirectIndex provided
+ * The file read is asynchronous, and populates the html form as soon as the offsets are found
+ * @param titleFile
+ * @param redirectIndex
+ */
+function readRedirectOffsets(titleFile,redirectIndex) {
+	var reader = new FileReader();
+	reader.onerror = errorHandler;
+	reader.onabort = function(e) {
+		alert('Title file read cancelled');
+	};
+	reader.onload = function(e) {
+		var binaryTitleFile = e.target.result;
+		var byteArray = new Uint8Array(binaryTitleFile);
+		var filenumber = byteArray[2];
+
+		var blockstart = readIntegerFrom4Bytes(byteArray,3);
+		var blockoffset = readIntegerFrom4Bytes(byteArray,7);
+		var length = readIntegerFrom4Bytes(byteArray,11);
+
+		document.getElementById('redirectfilenumber').value = filenumber;
+		document.getElementById('redirectblockstart').value = blockstart;
+		document.getElementById('redirectblockoffset').value = blockoffset;
+		document.getElementById('redirectlength').value = length;
+	};
+	// Read only the 16 necessary bytes
+	var blob = titleFile.slice(redirectIndex,redirectIndex+16);
+	// Read in the file as a binary string
+	reader.readAsArrayBuffer(blob);
 }
 
 /**
@@ -192,7 +234,7 @@ function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,startInde
 			var escape1 = byteArray[i];
 			var escape2 = byteArray[i+1];
 			filenumber = byteArray[i+2];
-			
+
 			blockstart = readIntegerFrom4Bytes(byteArray,i+3);
 			blockoffset = readIntegerFrom4Bytes(byteArray,i+7);
 			length = readIntegerFrom4Bytes(byteArray,i+11);
@@ -230,6 +272,17 @@ function readArticleFromHtmlForm(dataFiles) {
 		var blockstart = document.getElementById('blockstart').value;
 		var blockoffset = document.getElementById('blockoffset').value;
 		var length = document.getElementById('length').value;
+		if (filenumber==255) {
+			// It's a redirect : use redirected offsets
+			filenumber = document.getElementById('redirectfilenumber').value;
+			blockstart = document.getElementById('redirectblockstart').value;
+			blockoffset = document.getElementById('redirectblockoffset').value;
+			length = document.getElementById('redirectlength').value;
+			if (!filenumber || filenumber=="") {
+				// TODO : better handle this case
+				alert("Redirect offsets not read yet");
+			}
+		}
 		var dataFile = null;
 		// Find the good dump file
 		for (var i=0; i<dataFiles.length; i++) {
@@ -247,13 +300,7 @@ function readArticleFromHtmlForm(dataFiles) {
 			}
 		}
 		if (!dataFile) {
-			if (filenumber==255) {
-				// TODO : handle redirects (filenumber==255)
-				alert("Redirects not implemented yet");
-			}
-			else {
-				alert("File number " + filenumber + " not found");
-			}
+			alert("File number " + filenumber + " not found");
 			document.getElementById("articleContent").innerHTML="";
 		}
 		else {
@@ -302,19 +349,19 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 }
 
 function errorHandler(evt) {
-    switch(evt.target.error.code) {
-      case evt.target.error.NOT_FOUND_ERR:
-        alert('File Not Found!');
-        break;
-      case evt.target.error.NOT_READABLE_ERR:
-        alert('File is not readable');
-        break;
-      case evt.target.error.ABORT_ERR:
-        break; // noop
-      default:
-        alert('An error occurred reading this file.');
-    };
-  }
+	switch(evt.target.error.code) {
+	case evt.target.error.NOT_FOUND_ERR:
+		alert('File Not Found!');
+		break;
+	case evt.target.error.NOT_READABLE_ERR:
+		alert('File is not readable');
+		break;
+	case evt.target.error.ABORT_ERR:
+		break; // noop
+	default:
+		alert('An error occurred reading this file.');
+	};
+}
 
 function handleDataFileSelect(evt) {
 	dataFiles = evt.target.files;

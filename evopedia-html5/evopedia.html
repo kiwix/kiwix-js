@@ -2,7 +2,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />   
+<meta http-equiv="Content-Type"
+	content="application/xhtml+xml; charset=UTF-8" />
 
 <!--
 Port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
@@ -35,34 +36,55 @@ License:
 </head>
 
 <body>
-<h1>Evopedia</h1>
-<br/>
-<div id="openLocalFiles" style="visibility:hidden">
-Please select the file titles.idx :<br/>
-<input type="file" id="titleFile"/><br/>
-Please select the files wikipedia_*.dat from the same dump :<br/>
-<input type="file" id="dataFiles" multiple/>
-</div>
-<br/>
-Find titles from the prefix : <input type="text" id="prefix" value="" onkeyup="onKeyUpPrefix(event)" />&nbsp;<input type="button" id="searchTitles" value="Search titles" onclick="searchTitlesFromPrefix(titleFile,document.getElementById('prefix').value)" />
-<br/>
-Choose a title from the filtered list : <select id="titleList" onchange="updateOffsetsFromTitle(this.value)"></select>
-<br/>
-File number : <input type="text" id="filenumber" value="0" />
-<br/>
-Blockstart : <input type="text" id="blockstart" value="0" />
-<br/>
-Blockoffset : <input type="text" id="blockoffset" value="0" />
-<br/>
-Length : <input type="text" id="length" value="8866" />
-<br/>
-<input type="button" id="readData" value="Read article from dump" onclick="readArticleFromHtmlForm(dataFiles)" />
-<br/>
-<!-- TODO : add CSS styles -->
-<div id="articleContent">&nbsp;</div>
-<hr/>
-<textarea id="debugZone" cols="80" rows="20">&nbsp;</textarea>
+	<h1>Evopedia</h1>
+	<br />
+	<div id="openLocalFiles" style="visibility: hidden">
+		Please select the file titles.idx :<br /> <input type="file"
+			id="titleFile" /><br /> Please select the files wikipedia_*.dat from
+		the same dump :<br /> <input type="file" id="dataFiles" multiple />
+	</div>
+	<br /> Find titles from the prefix :
+	<input type="text" id="prefix" value="" onkeyup="onKeyUpPrefix(event)" />&nbsp;
+	<input type="button" id="searchTitles" value="Search titles"
+		onclick="searchTitlesFromPrefix(titleFile,document.getElementById('prefix').value)" />
+	<br /> Choose a title from the filtered list :
+	<select id="titleList" onchange="updateOffsetsFromTitle(this.value)"></select>
+	<br />
+	<table>
+		<tr>
+			<th>&nbsp;</th>
+			<th>Original offsets</th>
+			<th>Redirect offsets</th>
+		</tr>
+		<tr>
+			<td>File number</td>
+			<td><input type="text" id="filenumber" value="" /></td>
+			<td><input type="text" id="redirectfilenumber" value="" /></td>
+		</tr>
+		<tr>
+			<td>Blockstart</td>
+			<td><input type="text" id="blockstart" value="" /></td>
+			<td><input type="text" id="redirectblockstart" value="" /></td>
+		</tr>
+		<tr>
+			<td>Blockoffset</td>
+			<td><input type="text" id="blockoffset" value="" /></td>
+			<td><input type="text" id="redirectblockoffset" value="" /></td>
+		</tr>
+		<tr>
+			<td>Length</td>
+			<td><input type="text" id="length" value="" /></td>
+			<td><input type="text" id="redirectlength" value="" /></td>
+		</tr>
+	</table>
+	<input type="button" id="readData" value="Read article from dump"
+		onclick="readArticleFromHtmlForm(dataFiles)" />
+	<br />
+	<!-- TODO : add CSS styles -->
+	<div id="articleContent">&nbsp;</div>
+	<hr />
+	<textarea id="debugZone" cols="80" rows="20">&nbsp;</textarea>
 
-<script type="text/javascript" src="evopedia.js"></script>
+	<script type="text/javascript" src="evopedia.js"></script>
 </body>
 </html>
