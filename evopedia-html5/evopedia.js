@@ -49,6 +49,32 @@ else {
 	};
 }
 
+var debugOn = false;
+
+/**
+ * Print the given string inside the debug zone
+ * @param string
+ */
+function debug(string) {
+	if (debugOn) {
+		document.getElementById("debugTextarea").value+=string+"\n";
+	}
+}
+
+/**
+ * Switch debug mode On/Off
+ */
+function switchDebugOnOff() {
+	if (debugOn == true) {
+		debugOn = false;
+		document.getElementById("debugZone").style.display="none";
+	}
+	else {
+		debugOn = true;
+		document.getElementById("debugZone").style.display="block";
+	}
+}
+
 /**
  * Set the Offsets HTML fields from the selected title
  */
@@ -126,7 +152,7 @@ function recursivePrefixSearch(titleFile, reader, prefix, lo, hi) {
 				newLineIndex++;
 			}
 			var title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
-			//alert("title found : "+title);
+			debug("title found : "+title);
 			if (title.localeCompare(prefix)<0) {
 				lo = mid;
 			}
@@ -135,13 +161,13 @@ function recursivePrefixSearch(titleFile, reader, prefix, lo, hi) {
 			}
 			recursivePrefixSearch(titleFile, reader, prefix, lo, hi);
 		};
-		//alert("Reading the file from "+mid+" to "+(mid+256)+" because lo="+lo+" and hi="+hi);			
+		debug("Reading the file from "+mid+" to "+(mid+256)+" because lo="+lo+" and hi="+hi);			
 		// Read the file as a binary string
 		reader.readAsArrayBuffer(blob);		
 	}
 	else {
 		// We found the closest title
-		//alert ("Found the closest title near index "+lo);
+		debug ("Found the closest title near index "+lo);
 		readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,lo);
 	}
 }
@@ -246,6 +272,7 @@ function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,startInde
 			title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
 			// Skip the first title
 			if (titleNumber>=0 && title) {
+				debug("Found title : escape1="+escape1+" escape2="+escape2+" filenumber="+filenumber+" blockstart="+blockstart+" blockoffset="+blockoffset+" length="+length+" title="+title);
 				// TODO : check if the title starts with prefix, and return if it does not
 				comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
 			}
@@ -335,8 +362,6 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 		htmlArticle = decodeURIComponent(escape(htmlArticle));
 
 		document.getElementById('articleContent').innerHTML = htmlArticle;
-		// For testing purpose
-		//document.getElementById('debugZone').value = htmlArticle;
 	};
 
 	// TODO : should be improved by reading the file chunks by chunks until the article is found,
