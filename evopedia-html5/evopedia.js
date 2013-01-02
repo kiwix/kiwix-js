@@ -34,7 +34,8 @@ if (typeof navigator.getDeviceStorage == "function") {
 if (storage != null) {
 	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
 	filerequest.onsuccess = function() {
-		dataFiles = [ filerequest.result ];
+		dataFiles = new Array();
+		dataFiles[0] = filerequest.result;
 		filerequest = storage.get('wikipedia_small_2010-08-14/titles.idx');
 		filerequest.onsuccess = function() {
 			titleFile = filerequest.result;
