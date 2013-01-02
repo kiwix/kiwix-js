@@ -35,7 +35,7 @@ else {
 	var storage = navigator.getDeviceStorage('music');
 	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
 	filerequest.onsuccess = function() {
-		dataFiles[0] = filerequest.result;
+		dataFiles = [ filerequest.result ];
 		filerequest = storage.get('wikipedia_small_2010-08-14/titles.idx');
 		filerequest.onsuccess = function() {
 			titleFile = filerequest.result;

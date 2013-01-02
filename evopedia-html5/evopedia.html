@@ -37,6 +37,19 @@ License:
 
 <body>
 	<h1>Evopedia</h1>
+	This is a preliminary work on the port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
+	<br />
+	The original application is at <a href="http://www.evopedia.info/">http://www.evopedia.info/</a>
+	<br />
+	<br />
+	To use it, you have to first download locally a dump from <a href="http://dumpathome.evopedia.info/dumps/finished">http://dumpathome.evopedia.info/dumps/finished</a>, and select some of the dowloaded files below.
+	<br />
+	Current status : I have tested it with the <a href="http://evopedia.info/dumps/wikipedia_small_2010-08-14.torrent">small dump (2010-08-14)</a>, the <a href="http://evopedia.info/dumps/wikipedia_fr_2012-02-03.torrent">French dump (2012-02-03)</a> and the <a href="http://evopedia.info/dumps/wikipedia_frwiktionary_2011-03-16.torrent">French wiktionary dump (2011-03-16)</a>. <b>It does NOT work on the English dump for now</b> (I'm working on it)
+	<br />
+	<br />
+	On desktops, it works at least on Firefox 17 and Chrome 23. I tested it on the Firefos OS simulator : it works but requires (for now) to put the small dump files in the "Music" folder of your device. It looks for wikipedia_small_2010-08-14/titles.idx in it. So far, I could not test it on a real Firefox OS device.
+	<br />
+	It's only a proof of concept sor far : there are certainly many many ways this could be enhanced (suggestions and patche are welcome). In particular, the performance can be optimized when reading an article, and the links inside an article do not work for now.
 	<div id="openLocalFiles" style="display: none;">
 		<br /> Please select the file titles.idx :<br /> <input type="file"
 			id="titleFile" /><br /> Please select the files wikipedia_*.dat
