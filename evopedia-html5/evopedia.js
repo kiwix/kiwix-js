@@ -40,12 +40,12 @@ if (storage != null) {
 		filerequest.onsuccess = function() {
 			titleFile = filerequest.result;
 		};
-		filerequest.onerror = function() {
-			alert("error reading title file");
+		filerequest.onerror = function(event) {
+			alert("error reading title file : " + event.target.error.name);
 		};
 	};
-	filerequest.onerror = function() {
-		alert("error reading data file");
+	filerequest.onerror = function(event) {
+		alert("error reading data file : " + event.target.error.name);
 	};
 }
 else {
