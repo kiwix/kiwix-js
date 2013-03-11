@@ -1,0 +1,23 @@
+{
+  "version": "0.1",
+  "name": "Evopedia",
+  "description": "Offline Wikipedia Reader",
+  "launch_path": "/index.html",
+  "icons": {
+    "16": "/img/icons/evopedia-16.png",
+    "48": "/img/icons/evopedia-48.png",
+    "128": "/img/icons/evopedia-128.png"
+  },
+  "developer": {
+    "name": "Mossroy <mossroy@free.fr>",
+    "url": "https://github.com/mossroy"
+  },
+  "installs_allowed_from": ["*"],
+  "appcache_path": "/cache.manifest",
+  "locales": {
+    "fr": {
+      "description": "Lecteur Wikipedia hors-connexion",
+    },
+  },
+  "default_locale": "en"
+}

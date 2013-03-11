@@ -1,0 +1,18 @@
+{
+  "name": "mortar",
+  "version": "0.0.1",
+  "dependencies": {
+    "volo-ghdeploy": "0.0.3",
+    "connect": "~2.4.4",
+    "less-middleware": "~0.1.5"
+  },
+  "amd": {},
+  "volo": {
+    "dependencies": {
+      "zepto": "github:madrobby/zepto/v0.8",
+      "bzip2": "https://raw.github.com/antimatter15/bzip2.js/master/bzip2.js",
+      "remove_diacritics": "https://gist.github.com/yeah/1283961/raw/1a00b482345b582319629fa58855da3c1c4636e1/remove_diacritics.js"
+    },
+    "baseUrl": "www/js/lib"
+  }
+}

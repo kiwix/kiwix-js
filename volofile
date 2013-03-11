@@ -1,0 +1,197 @@
+/*jslint regexp: true */
+/*global define, console, process */
+
+var crypto = require('crypto');
+var fs = require('fs');
+var path = require('path');
+var buildDir = 'www-built';
+var pagesDir = 'www-ghpages';
+
+try {
+    var ghdeploy = require('volo-ghdeploy')('www-built', 'www-ghdeploy');
+}
+catch(e) {
+    console.log("You don't have the volo-ghdeploy command installed.\n" +
+                'You must install this first:\n\n' +
+                'npm install -g volo-ghdeploy');
+    process.exit(1);
+}
+
+module.exports = {
+    //Builds the JS and CSS into one file each. If you want to do
+    //dynamic loading of scripts, pass -dynamic to the build, and
+    //require.js will be used to load scripts.
+    build: {
+        flags: {
+            //Does not print the build output.
+            'q': 'quiet'
+        },
+
+        depends: ['less'],
+        run: 'node tools/r.js -o tools/build.js'
+    },
+
+    //Generates an SHA1 digest that represents the contents of the
+    //a directory. Call it like so: "volo digest dir=path/to/directory"
+    digest: {
+        validate: function (namedArgs) {
+            var dir = namedArgs.dir;
+            if (!dir) {
+                return new Error('Please specify a target directory for ' +
+                                 'the digest');
+            }
+            if (!path.existsSync(dir)) {
+                return new Error('Target directory for digest does ' +
+                                 'not exist: ' + dir);
+            }
+            return undefined;
+        },
+
+        run: function (d, v, namedArgs) {
+            var q = v.require('q');
+            var dir = namedArgs.dir,
+            files = v.getFilteredFileList(dir),
+            digests = [],
+            i = 0;
+
+            function getDigest(fileName) {
+                var shaSum = crypto.createHash('sha1'),
+                d = q.defer(),
+                stream = fs.ReadStream(fileName);
+
+                stream.on('data', function(data) {
+                    shaSum.update(data);
+                });
+
+                stream.on('end', function() {
+                    d.resolve(shaSum.digest('base64'));
+                });
+
+                return d.promise;
+            }
+
+            function digestFile(fileName) {
+                getDigest(fileName).then(function (digest) {
+                    var shaSum;
+
+                    digests[i] = digest;
+                    i += 1;
+
+                    if (i < files.length) {
+                        digestFile(files[i]);
+                    } else {
+                        //All done, now generate the final digest,
+                        //using the combination of the other digests
+                        shaSum = crypto.createHash('sha1');
+                        shaSum.update(digests.join(','));
+                        d.resolve(shaSum.digest('base64'));
+                    }
+                });
+            }
+
+            digestFile(files[0]);
+        }
+    },
+
+    //Compile all the less files into css
+    less: function(d, v, namedArgs) {
+        var q = v.require('q');
+        var files = v.getFilteredFileList('www/css');
+
+        return q.all([
+            files.map(function (path) {
+                if (/\.less$/.test(path)) {
+                    var dest = path.replace(/\.less$/, '.css');
+                    return v.exec(['node tools/oneless.js ' + path + ' > ' + dest]);
+                }
+            })
+        ])
+            .then(function() {
+                d.resolve();
+            });
+    },
+
+    ghdeploy: ghdeploy,
+
+    //Runs less on the .less files in tools/less to generate the CSS files.
+    bootstrap_less: function (d, v, namedArgs) {
+        q.all([
+            v.exec('node tools/oneless.js tools/less/bootstrap.less > www/css/bootstrap.css'),
+            v.exec('node tools/oneless.js tools/less/responsive.less > www/css/bootstrap-responsive.css')
+        ])
+            .then(function () {
+                d.resolve();
+            })
+            .fail(d.reject);
+    },
+
+    appcache: function (d, v, namedArgs) {
+        var q = v.require('q');
+        var hasBuilt = v.exists(buildDir);
+
+        v.command('build')
+            .then(function () {
+                var manifest = v.read('tools/manifest.appcache'),
+                master = v.read(buildDir + '/index.html'),
+                appFiles;
+
+                appFiles = v.getFilteredFileList(buildDir);
+                appFiles = appFiles.map(function (file) {
+                    var start = file.indexOf('/' + buildDir + '/');
+                    start = (start !== -1) ? (start + 11) : 0;
+                    return file.substr(start, file.length);
+                });
+
+                master = master
+                    .replace(/<html\s?/, '<html manifest="manifest.appcache" ')
+                    .replace(/manifest\.appcache"\s>/, 'manifest.appcache">');
+                v.write(buildDir + '/index.html', master);
+
+                return v.command('digest', 'dir=' + buildDir)
+                    .then(function (stamp) {
+                        manifest = v.template(manifest, {
+                            files : appFiles.join('\n'),
+                            stamp : stamp
+                        });
+                        v.write(buildDir + '/manifest.appcache', manifest);
+                    });
+            })
+            .then(function () {
+                //Inform the user of the right mime type, but only do it if
+                //there was not a previous build done.
+                d.resolve(hasBuilt ? '': 'Be sure to set the mime type for ' +
+                          '.appcache files to be: text/cache-manifest');
+            })
+            .fail(d.reject);
+    },
+
+    serve: function(d, v, namedArgs, port) {
+        try {
+            var connect = require('connect');
+        }
+        catch(e) {
+            console.log('To use the `serve` command, you must ' +
+                        'install the connect module:\n\n' + 
+                        'npm install connect');
+            return;
+        }
+
+        var lessMiddleware = require('less-middleware');
+
+        var port = port || 8008;
+        var base = path.join(process.cwd(), namedArgs.base || 'www');
+        var middleware = [
+            lessMiddleware({ src: base }),
+            connect.static(base),
+            connect.directory(base),
+        ];
+
+        connect.logger.format("OpenWebApp",
+                              "[D] server :method :url :status " +
+                              ":res[content-length] - :response-time ms");
+        middleware.unshift(connect.logger("OpenWebApp"));
+
+        console.log("starting web server at http://localhost:" + port);
+        connect.apply(null, middleware).listen(port);
+    }
+};
