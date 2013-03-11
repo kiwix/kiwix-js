@@ -16,8 +16,8 @@
   "appcache_path": "/cache.manifest",
   "locales": {
     "fr": {
-      "description": "Lecteur Wikipedia hors-connexion",
-    },
+      "description": "Lecteur Wikipedia hors-connexion"
+    }
   },
   "default_locale": "en"
 }
