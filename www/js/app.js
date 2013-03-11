@@ -42,7 +42,7 @@ onKeyUpPrefix(e)
 
 var storage = null;
 if (typeof navigator.getDeviceStorage == "function") {
-	storage = navigator.getDeviceStorage('music');
+	storage = navigator.getDeviceStorage('sdcard');
 }
 
 if (storage != null) {

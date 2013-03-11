@@ -19,5 +19,12 @@
       "description": "Lecteur Wikipedia hors-connexion"
     }
   },
-  "default_locale": "en"
+  "default_locale": "en",
+  "permissions": {
+    "device-storage:sdcard": {
+      "description": "Required to read wikipedia dumps",
+      "access": "readonly"
+      }
+  },
+  "type": "privileged"
 }
