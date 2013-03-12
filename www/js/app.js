@@ -21,27 +21,31 @@ define(function(require) {
     var bzip2 = require('bzip2');
     var remove_diacritics = require('remove_diacritics');
 
+
 var dataFiles=document.getElementById('dataFiles').files;
 var titleFile=document.getElementById('titleFile').files[0];
 
+// Define behavior of HTML elements
 $('#searchTitles').on('click', function(e) {
-searchTitlesFromPrefix(titleFile,$('#prefix').val())
+searchTitlesFromPrefix(titleFile,$('#prefix').val());
 });
 $('#titleList').on('change', function(e) {
-updateOffsetsFromTitle(this.value)
+updateOffsetsFromTitle(this.value);
 });
 $('#toggleDebug').on('click', function(e) {
-switchDebugOnOff()
+switchDebugOnOff();
 });
 $('#readData').on('click', function(e) {
-readArticleFromHtmlForm(dataFiles)
+readArticleFromHtmlForm(dataFiles);
 });
 $('#prefix').on('keyup', function(e) {
-onKeyUpPrefix(e)
+onKeyUpPrefix(e);
 });
 
+
+// Detect if DeviceStorage is available
 var storage = null;
-if (typeof navigator.getDeviceStorage == "function") {
+if ($.isFunction(navigator.getDeviceStorage)) {
 	storage = navigator.getDeviceStorage('sdcard');
 }
 
@@ -70,7 +74,7 @@ else {
  * Displays the zone to select files from the dump
  */
 function displayFileSelect() {
-	document.getElementById('openLocalFiles').style.display="block";
+	$('#openLocalFiles').show();
 	document.getElementById('dataFiles').addEventListener('change', handleDataFileSelect, false);
 	document.getElementById('titleFile').addEventListener('change', handleTitleFileSelect, false);
 }
@@ -388,7 +392,30 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
 		// Decode UTF-8 encoding
 		htmlArticle = decodeURIComponent(escape(htmlArticle));
 
-		document.getElementById('articleContent').innerHTML = htmlArticle;
+		// Display the article inside the web page.		
+		$('#articleContent').html(htmlArticle);
+
+		// Convert links into javascript calls
+		$('#articleContent').find('a').each(function(){
+            // Store current link's url
+            var url = $(this).attr("href");
+            
+            if(url.slice(0, 1) == "#") {
+                // It's an anchor link : do nothing
+            }
+            else if (url.substring(0,4) === "http") {
+            	// It's an external link : do nothing
+            }
+            else {
+            	// It's a link to another article : add an onclick event to go to this article
+            	// instead of following the anchor
+            	$(this).on('click', function(e) {
+              	   goToArticle($(this).attr("href"));
+              	   return false;
+                 });
+            }
+
+        });
 	};
 
 	// TODO : should be improved by reading the file chunks by chunks until the article is found,
@@ -429,6 +456,18 @@ function onKeyUpPrefix(evt) {
 	if (evt.keyCode == 13) {
 		document.getElementById("searchTitles").click();
 	}
+}
+
+/**
+ * Replace article content with the one of the given title
+ */
+function goToArticle(title) {
+	// This is awful and does not work very well.
+	// It's just temporary before the algorithm is rewritten in an object-oriented way 
+	// TODO : rewrite this with a real article search and display
+	searchTitlesFromPrefix(titleFile,title);
+	updateOffsetsFromTitle($('#titleList').val());
+	document.getElementById("articleContent").innerHTML="";
 }
 
 });
