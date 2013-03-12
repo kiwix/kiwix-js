@@ -408,7 +408,7 @@ function readArticleFromOffset(dataFile, blockstart, blockoffset, length) {
             }
             else {
             	// It's a link to another article : add an onclick event to go to this article
-            	// instead of following the anchor
+            	// instead of following the link
             	$(this).on('click', function(e) {
               	   goToArticle($(this).attr("href"));
               	   return false;
