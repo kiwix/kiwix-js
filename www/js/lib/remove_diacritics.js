@@ -102,8 +102,6 @@ function normalizeString(string) {
 
 
     return {
-        normalizeString: function(string) {
-            return normalizeString(string);
-        }
+        normalizeString: normalizeString
     };
 });

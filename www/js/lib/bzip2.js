@@ -253,9 +253,9 @@ bzip2.decompress = function(bits, size, len){
 
 
     return {
-        array: function(bytes) { return bzip2.array(bytes);},
-	simple: function(bits) { return bzip2.simple(bits);},
-	header: function(bits) { return bzip2.header(bits);},
-	decompress: function(bits, size, len) { return bzip2.decompress(bits, size, len);}
+    	array: bzip2.array,
+    	simple: bzip2.simple,
+    	header: bzip2.header,
+    	decompress: bzip2.decompress
     };
 });

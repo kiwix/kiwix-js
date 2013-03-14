@@ -20,6 +20,7 @@ define(function(require) {
     // Evopedia javascript dependencies
     var bzip2 = require('bzip2');
     var remove_diacritics = require('remove_diacritics');
+    var evopedia = require('evopedia');
 
 
 var dataFiles=document.getElementById('dataFiles').files;
@@ -127,38 +128,6 @@ function updateOffsetsFromTitle(selectValue) {
 }
 
 /**
- * Read an integer encoded in 4 bytes
- */
-function readIntegerFrom4Bytes(byteArray,firstIndex) {
-	return byteArray[firstIndex] + byteArray[firstIndex+1]*256 + byteArray[firstIndex+2]*65536 + byteArray[firstIndex+3]*16777216; 
-}
-
-/**
- * Converts a UTF-8 byte array to JavaScript's 16-bit Unicode.
- * @param {Array.<number>} bytes UTF-8 byte array.
- * @return {string} 16-bit Unicode string.
- * Copied from http://closure-library.googlecode.com/svn/docs/closure_goog_crypt.js.source.html (Apache License 2.0)
- */
-function utf8ByteArrayToString(bytes,startIndex,endIndex) {
-	var out = [], pos = startIndex, c = 0;
-	while (pos < bytes.length && pos < endIndex) {
-		var c1 = bytes[pos++];
-		if (c1 < 128) {
-			out[c++] = String.fromCharCode(c1);
-		} else if (c1 > 191 && c1 < 224) {
-			var c2 = bytes[pos++];
-			out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
-		} else {
-			var c2 = bytes[pos++];
-			var c3 = bytes[pos++];
-			out[c++] = String.fromCharCode(
-					(c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
-		}
-	}
-	return out.join('');
-};
-
-/**
  * This function is recursively called after each asynchronous read,
  * so that to find the closest index in titleFile to the given prefix
  */
@@ -172,16 +141,16 @@ function recursivePrefixSearch(titleFile, reader, prefix, lo, hi) {
 			var byteArray = new Uint8Array(binaryTitleFile);
 			// Look for the index of the next NewLine
 			var newLineIndex=0;	
-			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
 				newLineIndex++;
 			}
-			var i = newLineIndex-1;
+			var i = newLineIndex+1;
 			newLineIndex = i+15;
 			// Look for the index of the next NewLine	
-			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
 				newLineIndex++;
 			}
-			var title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
+			var title = evopedia.utf8ByteArrayToString(byteArray,i+15,newLineIndex);
 			debug("title found : "+title);
 			if (title.localeCompare(prefix)<0) {
 				lo = mid;
@@ -240,9 +209,9 @@ function readRedirectOffsets(titleFile,redirectIndex) {
 		var byteArray = new Uint8Array(binaryTitleFile);
 		var filenumber = byteArray[2];
 
-		var blockstart = readIntegerFrom4Bytes(byteArray,3);
-		var blockoffset = readIntegerFrom4Bytes(byteArray,7);
-		var length = readIntegerFrom4Bytes(byteArray,11);
+		var blockstart = evopedia.readIntegerFrom4Bytes(byteArray,3);
+		var blockoffset = evopedia.readIntegerFrom4Bytes(byteArray,7);
+		var length = evopedia.readIntegerFrom4Bytes(byteArray,11);
 
 		document.getElementById('redirectfilenumber').value = filenumber;
 		document.getElementById('redirectblockstart').value = blockstart;
@@ -272,42 +241,35 @@ function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,startInde
 		var byteArray = new Uint8Array(binaryTitleFile);
 		// Look for the index of the next NewLine
 		var newLineIndex=0;	
-		while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+		while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
 			newLineIndex++;
 		}
 		var i = newLineIndex;
 		var titleNumber=-1;
 		var comboTitleList = document.getElementById('titleList');
 		while (i<byteArray.length && titleNumber<50) {
-			var filenumber = 0;
-			var blockstart = 0;
-			var blockoffset = 0;
-			var length = 0;
-			var title = "";
-
-			// TODO : interpret escape area
-			var escape1 = byteArray[i];
-			var escape2 = byteArray[i+1];
-			filenumber = byteArray[i+2];
-
-			blockstart = readIntegerFrom4Bytes(byteArray,i+3);
-			blockoffset = readIntegerFrom4Bytes(byteArray,i+7);
-			length = readIntegerFrom4Bytes(byteArray,i+11);
-			var newLineIndex = i+15;
-
-			// Look for the index of the next NewLine	
-			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=128) {
+			// Look for the index of the next NewLine
+			newLineIndex+=15;
+			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
 				newLineIndex++;
 			}
-			title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
+			
+			// Copy the encodedTitle in a new Array
+			var encodedTitle = new Uint8Array(newLineIndex-i);
+			for (var j = 0; j < newLineIndex-i; j++) {
+				encodedTitle[j] = byteArray[i+j];
+			}
+
+			var title = evopedia.Title.parseTitle(encodedTitle, new evopedia.LocalArchive(), i);
+			
 			// Skip the first title
 			if (titleNumber>=0 && title) {
-				debug("Found title : escape1="+escape1+" escape2="+escape2+" filenumber="+filenumber+" blockstart="+blockstart+" blockoffset="+blockoffset+" length="+length+" title="+title);
 				// TODO : check if the title starts with prefix, and return if it does not
-				comboTitleList.options[titleNumber] = new Option (title, filenumber+"|"+blockstart+"|"+blockoffset+"|"+length);
+				comboTitleList.options[titleNumber] = new Option (title.name, title.fileNr + "|" + title.blockStart + "|" + title.blockOffset + "|" + title.articleLength);
+				debug("Title : startIndex = " + i + " endIndex = " + newLineIndex + " title.name = " + title.name + " title.fileNr = " + title.fileNr + " title.blockStart = " + title.blockStart + " title.blockOffset = " + title.blockOffset + " title.articleLength = " + title.articleLength);
 			}
 			titleNumber++;
-			i=newLineIndex-1;
+			i=newLineIndex+1;
 		}
 		// Update the offsets, as if the first item of the list was selected by the user
 		updateOffsetsFromTitle($('#titleList').val());
