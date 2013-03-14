@@ -245,7 +245,7 @@ function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,startInde
 			newLineIndex++;
 		}
 		var i = newLineIndex;
-		var titleNumber=-1;
+		var titleNumber=0;
 		var comboTitleList = document.getElementById('titleList');
 		while (i<byteArray.length && titleNumber<50) {
 			// Look for the index of the next NewLine
@@ -262,13 +262,13 @@ function readTitlesBeginningAtIndexStartingWithPrefix(titleFile,prefix,startInde
 
 			var title = evopedia.Title.parseTitle(encodedTitle, new evopedia.LocalArchive(), i);
 			
-			// Skip the first title
-			if (titleNumber>=0 && title) {
-				// TODO : check if the title starts with prefix, and return if it does not
+			// Skip the titles that do not start with the prefix
+			// TODO use a normalizer to compare the strings
+			if (title && title.getReadableName().toLowerCase().indexOf(prefix.toLowerCase())==0) {
 				comboTitleList.options[titleNumber] = new Option (title.name, title.fileNr + "|" + title.blockStart + "|" + title.blockOffset + "|" + title.articleLength);
-				debug("Title : startIndex = " + i + " endIndex = " + newLineIndex + " title.name = " + title.name + " title.fileNr = " + title.fileNr + " title.blockStart = " + title.blockStart + " title.blockOffset = " + title.blockOffset + " title.articleLength = " + title.articleLength);
+				debug("Title : startIndex = " + i + " endIndex = " + newLineIndex + title.toString());
+				titleNumber++;
 			}
-			titleNumber++;
 			i=newLineIndex+1;
 		}
 		// Update the offsets, as if the first item of the list was selected by the user

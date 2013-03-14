@@ -38,7 +38,9 @@ define(function(require) {
 	 */
 	function LocalArchive() {
 		this.directory = null;
-		this.titleFile = null;	
+		this.titleFile = null;
+		this.date = null;
+		this.language = null;
 	}
 	
 	
@@ -54,6 +56,10 @@ define(function(require) {
 		this.archive = null;
 		this.titleOffset = null;
 		this.titleEntryLength = null;
+	};
+	
+	Title.prototype.getReadableName = function() {
+		return this.name.replace("_"," ");
 	};
 		
 
@@ -117,6 +123,13 @@ define(function(require) {
 			len--;
 		}
 		return utf8ByteArrayToString(encodedTitle, 15, len);
+	};
+	
+	Title.prototype.toStringId = function(){
+		return this.archive.language + "_" + this.archive.date + "_" + this.titleOffset;
+	};
+	Title.prototype.toString = function(){
+		return "title.id = " + this.toStringId() + "title.name = " + this.name + " title.fileNr = " + this.fileNr + " title.blockStart = " + this.blockStart + " title.blockOffset = " + this.blockOffset + " title.articleLength = " + this.articleLength;
 	};
 	
 	/**
