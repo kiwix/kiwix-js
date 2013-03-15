@@ -170,8 +170,13 @@ define(function(require) {
 	function readArticle(title) {
 		if ($.isArray(title)) {
 			title = title[0];
+			if (title.fileNr == 255) {
+				localArchive.resolveRedirect(title, readArticle);
+			}
 		}
-		localArchive.readArticle(title, displayArticleInForm);
+		else {
+			localArchive.readArticle(title, displayArticleInForm);
+		}
 	}
 
 	/**

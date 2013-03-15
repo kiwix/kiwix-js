@@ -53,12 +53,12 @@ define(function(require) {
 	 * so that to find the closest index in titleFile to the given prefix
 	 * When found, call the callbackFunction with the index
 	 * @param reader
-	 * @param prefix
+	 * @param normalizedPrefix
 	 * @param lo
 	 * @param hi
 	 * @param callbackFunction
 	 */
-	LocalArchive.prototype.recursivePrefixSearch = function(reader, prefix, lo, hi, callbackFunction) {
+	LocalArchive.prototype.recursivePrefixSearch = function(reader, normalizedPrefix, lo, hi, callbackFunction) {
 		if (lo < hi-1 ) {
 			var mid = Math.round((lo+hi)/2);
 			// TODO : improve the way we read this file : 128 bytes is arbitrary and might be too small
@@ -68,29 +68,44 @@ define(function(require) {
 				var binaryTitleFile = e.target.result;
 				var byteArray = new Uint8Array(binaryTitleFile);
 				// Look for the index of the next NewLine
-				var newLineIndex=0;	
+				var newLineIndex = 0;	
 				while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
 					newLineIndex++;
 				}
-				var i = newLineIndex+1;
-				newLineIndex = i+15;
-				// Look for the index of the next NewLine	
-				while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
-					newLineIndex++;
+				var startIndex = 0;
+				if (mid >0 ){
+					startIndex = newLineIndex + 16;
+					newLineIndex = startIndex;
+					// Look for the index of the next NewLine	
+					while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
+						newLineIndex++;
+					}					
 				}
-				var title = utf8ByteArrayToString(byteArray,i+15,newLineIndex);
-				if (title.localeCompare(prefix)<0) {
-					lo = mid;
-				}
-				else {
+				if (newLineIndex == startIndex) {
+					// Enf of file reached
 					hi = mid;
 				}
-				currentLocalArchiveInstance.recursivePrefixSearch(reader, prefix, lo, hi, callbackFunction);
+				else {
+					var normalizedTitle = remove_diacritics.normalizeString(utf8ByteArrayToString(byteArray,startIndex,newLineIndex));
+					//alert("normalizedTitle = " + normalizedTitle + "lo = "+lo+" hi="+hi);
+					//alert("normalizedPrefix = " + normalizedPrefix);
+					if (normalizedTitle.localeCompare(normalizedPrefix) < 0) {
+						lo = mid;
+					}
+					else {
+						hi = mid;
+					}					
+				}
+				currentLocalArchiveInstance.recursivePrefixSearch(reader, normalizedPrefix, lo, hi, callbackFunction);
 			};		
 			// Read the file as a binary string
 			reader.readAsArrayBuffer(blob);		
 		}
 		else {
+			if (lo > 0) {
+                // Let lo point to the start of an entry
+                lo++;
+            }
 			// We found the closest title at index lo
 			callbackFunction(lo);
 		}
@@ -128,7 +143,7 @@ define(function(require) {
 				newLineIndex++;
 			}
 			var i = newLineIndex;
-			var titleNumber=-1;
+			var titleNumber = -1;
 			var titleList = new Array();
 			while (i<byteArray.length && titleNumber<titleCount) {
 				// Look for the index of the next NewLine
@@ -175,7 +190,8 @@ define(function(require) {
 			alert('Title file read cancelled');
 		};
 		var currentLocalArchiveInstance = this;
-		this.recursivePrefixSearch(reader, titleName, 0, titleFileSize, function(titleOffset) {
+		var normalizedTitleName = remove_diacritics.normalizeString(titleName);
+		this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
 			currentLocalArchiveInstance.getTitleAtOffset(titleOffset, callbackFunction);
 		});
 	};
@@ -205,7 +221,8 @@ define(function(require) {
 			alert('Title file read cancelled');
 		};
 		var currentLocalArchiveInstance = this;
-		this.recursivePrefixSearch(reader, prefix, 0, titleFileSize, function(titleOffset) {
+		var normalizedPrefix = remove_diacritics.normalizeString(prefix).replace(" ","_");
+		this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
 			currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, callbackFunction);
 		});
 	};
