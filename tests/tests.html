@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Evopedia HTML5 Unit tests</title>
+
+	<link rel="stylesheet" href="qunit-1.11.0.css" />
+	<script src="qunit-1.11.0.js"></script>
+
+    <!-- Using require.js, a module system for javascript, include the
+         js files. This loads "main.js", which in turn can load other
+         files, all handled by require.js:
+         http://requirejs.org/docs/api.html#jsfiles -->
+    <script type="text/javascript"
+            data-main="init.js"
+            src="../www/js/lib/require.js"></script>
+            
+
+</head>
+<body>
+	Please select the file titles.idx from wikipedia_small_2010-08-14 (included with source code) :<br />
+	<input type="file" id="titleFile" />
+	<br />Please select the file wikipedia_00.dat from the same dump :<br />
+	<input type="file" id="dataFiles" multiple />
+	<br />
+	<input type="button" id="runTests" value="Run tests" />
+	<div id="qunit"></div>
+</body>
+</html>
