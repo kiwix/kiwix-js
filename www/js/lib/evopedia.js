@@ -405,12 +405,12 @@ define(function(require) {
 			var title = new Title();
 			var idParts = titleId.split("|");
 			title.archive = localArchive;
-			title.fileNr = idParts[2];
-			title.titleOffset = idParts[3];
+			title.fileNr = parseInt(idParts[2],10);
+			title.titleOffset = parseInt(idParts[3],10);
 			title.name = idParts[4];
-			title.blockStart = idParts[5];
-			title.blockOffset = idParts[6];
-			title.articleLength = idParts[7];
+			title.blockStart = parseInt(idParts[5],10);
+			title.blockOffset = parseInt(idParts[6],10);
+			title.articleLength = parseInt(idParts[7],10);
 			return title;
 	};
 	

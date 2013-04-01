@@ -7,22 +7,16 @@ define(function (require) {
 	// we can not read directly the files and run the unit tests
 	// The user has to select them manually, then launch the tests
 	$('#runTests').on('click', function(e) {
-		//QUnit.reset();  // should clear the DOM
-	    //QUnit.init();   // resets the qunit test environment
-	    //QUnit.start();  // allows for the new test to be captured.
     	runTests();
     });
 	
 	var runTests = function() {
 		
 		module("environment");
-		// Dummy test to check that qunit is properly configured
 		test("qunit test", function() {
-			equal("test", "test");
+			equal("test", "test", "QUnit is properly configured");
 		});
 		
-	
-		module("evopedia");
 		test("check title and data files are set", function(){
 			var titleFile = document.getElementById('titleFile').files[0];
 			var dataFiles = document.getElementById('dataFiles').files;
@@ -30,43 +24,66 @@ define(function (require) {
 			ok(dataFiles && dataFiles[0] && dataFiles[0].size>0,"First data file set and not empty");
 		});
 		
-		asyncTest("check getTitlesSartingAtOffset", function(){
+		// Create a localArchive from selected files, in order to run the following tests
+		var localArchive = new evopedia.LocalArchive();
+		localArchive.titleFile = document.getElementById('titleFile').files[0];
+		localArchive.dataFiles = document.getElementById('dataFiles').files;
+		localArchive.language = "small";
+		localArchive.date = "2010-08-14";
+		
+		module("evopedia");
+		asyncTest("check getTitlesStartingAtOffset 0", function(){
 			var callbackFunction = function(titleList) {
-				ok(titleList.length>0,"At least one title found");
+				equal(titleList.length, 4, "4 titles found, as requested");
+				var indexAbraham=-1;
+				for (var i=0; i<titleList.length; i++) {
+					if (titleList[i].name == "Abraham") {
+						indexAbraham=i;
+					}
+				}
+				ok(indexAbraham>-1,"Title 'Abraham' found");
 				var firstTitleName = titleList[0].name;
 				var secondTitleName = titleList[1].name;
-				// These tests do not work for now : the algorithm has to be fixed
+				// TODO : fix the algorithm, so that these tests can work
 				//equal(firstTitleName,"Abbasid_Caliphate","First article name is 'Abbasid_Caliphate'");
 				//equal(secondTitleName,"Abortion","Second article name is 'Abortion'");
 				start();
 			};
-				
-			var localArchive = new evopedia.LocalArchive();
-			localArchive.titleFile = document.getElementById('titleFile').files[0];
-			localArchive.dataFiles = document.getElementById('dataFiles').files;
-			localArchive.getTitlesStartingAtOffset(0, 2, callbackFunction);
+			localArchive.getTitlesStartingAtOffset(0, 4, callbackFunction);
+		});
+		
+		//TODO check findTitlesWithPrefix
+		
+		// Create a title instance for the Article 'Abraham'
+		var titleAbraham = new evopedia.Title();
+		titleAbraham.archive = localArchive;
+		titleAbraham.articleLength = 10071;
+		titleAbraham.blockOffset = 127640;
+		titleAbraham.blockStart = 2364940;
+		titleAbraham.fileNr = 0;
+		titleAbraham.name = "Abraham";
+		titleAbraham.titleOffset = 57;
+		
+		// TODO check parseTitle for Abraham, and for another one with escape characters
+		// TODO check getTitleByName
+		
+		test("check parseTitleFromId", function() {
+			var titleId = "small|2010-08-14|0|57|Abraham|2364940|127640|10071";
+			var title = evopedia.Title.parseTitleId(localArchive,titleId);
+			ok(title,"Title instance created");
+			deepEqual(title,titleAbraham,"Parsing from titleId gives Abraham title");
 		});
 		
 		asyncTest("check readArticle", function(){
 			var callbackFunction = function(htmlArticle) {
-				ok(htmlArticle.length>0,"Article not empty");
-				equal(htmlArticle.substring(0,3),"<h1","Article starts with <h1");
-				equal(htmlArticle.substring(htmlArticle.length - 7,htmlArticle.length - 1),"</div>","Article ends with </div>");
+				ok(htmlArticle && htmlArticle.length>0,"Article not empty");
+				// Remove new lines
+				htmlArticle = htmlArticle.replace(/[\r\n]/g, " ");
+				ok(htmlArticle.match("^[ \t]*<h1[^>]*>Abraham</h1>"),"'Abraham' title at the beginning");
+				ok(htmlArticle.match("</div>[ \t]$"),"</div> at the end");
 				start();
-			};
-				
-			var localArchive = new evopedia.LocalArchive();
-			localArchive.titleFile = document.getElementById('titleFile').files[0];
-			localArchive.dataFiles = document.getElementById('dataFiles').files;
-			var title = new evopedia.Title();
-			title.archive = localArchive;
-			title.articleLength = 10071;
-			title.blockOffset = 127640;
-			title.blockStart = 2364940;
-			title.fileNr = 0;
-			title.name = "Abraham";
-			title.titleOffset = 57;
-			localArchive.readArticle(title, callbackFunction);
+			};			
+			localArchive.readArticle(titleAbraham, callbackFunction);
 		});
 	};
 });
