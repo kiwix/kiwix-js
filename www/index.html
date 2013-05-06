@@ -54,10 +54,17 @@ License:
 	<ul>
 	<li>On desktops, it works on recent Firefox and Chrome, and maybe on other browsers</li>
 	<li>On the Firefos OS simulator, you have (for now) to put the small dump files in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). It looks for wikipedia_small_2010-08-14/titles.idx in it. You also need to install the application from the dashboard of the simulator instead of accessing via the browser (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
-	<li>I could not test it on a real Firefox OS device : if someone did, please let me know</li>
+	<li>On a real Firefox OS device, you also have (for now) to put the small dump files at the root of your sdcard, so that it finds a file /wikipedia_small_2010-08-14/titles.idx on it</li>
 	</ul>
 	<br />
-	It's only a proof of concept so far : there are many many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5">github</a>). In particular, the performance can be optimized when reading an article. I also know the searches are not always very accurate, and the links inside an article do not work well for now.
+	It's only a proof of concept so far : there are many many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5">github</a>). In particular :
+	<ul>
+	<li>The performance should be optimized when reading an article</li>
+	<li>Searches are not always very accurate</li>
+	<li>The links inside an article do not work well</li>
+	<li>On a real device (with small memory) and a normal dump, reading an article crashes because it loads too many things in memory</li>
+	<li>It is hardly usable on a device because the buttons and inputs are too small</li>
+	</ul>
 	<br />
 	<div id="openLocalFiles" style="display: none;">
 		<br /> Please select the file titles.idx :<br /> <input type="file"

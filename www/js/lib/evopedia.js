@@ -48,10 +48,57 @@ define(function(require) {
 		this.language = "zz";
 	};
 	
+
 	/**
-	 * This function is recursively called after each asynchronous read,
-	 * so that to find the closest index in titleFile to the given prefix
-	 * When found, call the callbackFunction with the index
+	 * Read the title File in the given directory, and assign it to the
+	 * current LocalArchive
+	 * 
+	 * @param storage
+	 * @param directory
+	 */
+	LocalArchive.prototype.readTitleFile = function(storage, directory) {
+		var currentLocalArchiveInstance = this;
+		var filerequest = storage.get(directory + '/titles.idx');
+		filerequest.onsuccess = function() {
+			currentLocalArchiveInstance.titleFile = filerequest.result;
+		};
+		filerequest.onerror = function(event) {
+			alert("error reading title file in directory " + directory + " : " + event.target.error.name);
+		};
+	};
+
+	/**
+	 * Read the data Files in the given directory (starting at given index), and
+	 * assign them to the current LocalArchive
+	 * 
+	 * @param storage
+	 * @param directory
+	 * @param index
+	 */
+	LocalArchive.prototype.readDataFiles = function(storage, directory, index) {
+		var currentLocalArchiveInstance = this;
+		// TODO fix for more than 10 data files
+		var filerequest = storage.get(directory + '/wikipedia_0' + index
+				+ '.dat');
+		filerequest.onsuccess = function() {
+			currentLocalArchiveInstance.dataFiles[index] = filerequest.result;
+			currentLocalArchiveInstance.readDataFiles(storage, directory,
+					index + 1);
+		};
+		filerequest.onerror = function(event) {
+			// TODO there must be a better to way to detect a FileNotFound
+			if (event.target.error.name != "NotFoundError") {
+				alert("error reading data file " + index + " in directory "
+						+ directory + " : " + event.target.error.name);
+			}
+		};
+	};
+	
+	/**
+	 * This function is recursively called after each asynchronous read, so that
+	 * to find the closest index in titleFile to the given prefix When found,
+	 * call the callbackFunction with the index
+	 * 
 	 * @param reader
 	 * @param normalizedPrefix
 	 * @param lo

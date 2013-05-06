@@ -43,23 +43,13 @@ define(function(require) {
     if ($.isFunction(navigator.getDeviceStorage)) {
     	storage = navigator.getDeviceStorage('sdcard');
     }
-
+    
     if (storage != null) {
-    	var filerequest = storage.get('wikipedia_small_2010-08-14/wikipedia_00.dat');
-    	filerequest.onsuccess = function() {
-    		localArchive = new evopedia.LocalArchive();
-    		localArchive.dataFiles[0] = filerequest.result;
-    		filerequest = storage.get('wikipedia_small_2010-08-14/titles.idx');
-    		filerequest.onsuccess = function() {
-    			localArchive.titleFile = filerequest.result;
-    		};
-    		filerequest.onerror = function(event) {
-    			alert("error reading title file : " + event.target.error.name);
-    		};
-    	};
-    	filerequest.onerror = function(event) {
-    		alert("error reading data file : " + event.target.error.name);
-    	};
+    	var directory = 'wikipedia_small_2010-08-14';
+    	//var directory = 'evopedia/wikipedia_fr_2012-02-03';
+    	localArchive = new evopedia.LocalArchive();
+    	localArchive.readTitleFile(storage, directory);
+    	localArchive.readDataFiles(storage, directory, 0);
     }
     else {
     	displayFileSelect();
