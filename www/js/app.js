@@ -22,7 +22,6 @@ define(function(require) {
 
 
     var localArchive = null;
-    setLocalArchiveFromFileSelect();
 
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
@@ -64,6 +63,7 @@ define(function(require) {
     }
     else {
     	displayFileSelect();
+    	setLocalArchiveFromFileSelect();
     }
 
     /**
