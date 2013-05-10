@@ -346,6 +346,10 @@ define(function(require) {
 		reader.onload = function(e) {
 			var binaryTitleFile = e.target.result;
 			var byteArray = new Uint8Array(binaryTitleFile);
+			
+			if (byteArray.length==0) {
+				throw "Unable to find redirected article : offset "+title.blockStart+" not found in title file";
+			}
 
 			var redirectedTitle = title;
 			redirectedTitle.fileNr = byteArray[2];

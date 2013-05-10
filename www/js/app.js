@@ -27,9 +27,6 @@ define(function(require) {
     $('#searchTitles').on('click', function(e) {
     	searchTitlesFromPrefix($('#prefix').val());
     });
-    $('#toggleDebug').on('click', function(e) {
-    	switchDebugOnOff();
-    });
     $('#readData').on('click', function(e) {
     	findTitleFromTitleIdAndLaunchArticleRead($('#titleList').val());
     });
@@ -63,32 +60,6 @@ define(function(require) {
 		$('#openLocalFiles').show();
 		$('#dataFiles').on('change', setLocalArchiveFromFileSelect);
 		$('#titleFile').on('change', setLocalArchiveFromFileSelect);
-	}
-
-	var debugOn = false;
-
-	/**
-	 * Print the given string inside the debug zone
-	 * 
-	 * @param string
-	 */
-	function debug(string) {
-		if (debugOn) {
-			document.getElementById("debugTextarea").value += string + "\n";
-		}
-	}
-
-	/**
-	 * Switch debug mode On/Off
-	 */
-	function switchDebugOnOff() {
-		if (debugOn == true) {
-			debugOn = false;
-			$('#debugZone').hide();
-		} else {
-			debugOn = true;
-			$('#debugZone').show();
-		}
 	}
 
 	function setLocalArchiveFromFileSelect() {

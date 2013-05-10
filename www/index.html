@@ -60,8 +60,8 @@ License:
 	It's only a proof of concept so far : there are many many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5">github</a>). In particular :
 	<ul>
 	<li>The performance should be optimized when reading an article</li>
-	<li>Searches are not always very accurate</li>
-	<li>The links inside an article do not work well</li>
+	<li>Some searches (starting with prefix "a" for example) do not give any result where they should</li>
+	<li>The links inside an article do not work very well</li>
 	<li>On a real device (with small memory) and a normal dump, reading an article crashes because it loads too many things in memory</li>
 	<li>It is hardly usable on a device because the buttons and inputs are too small</li>
 	</ul>
@@ -77,11 +77,7 @@ License:
 	<br /> Choose a title from the filtered list :
 	<select id="titleList"></select>
 	<br />
-	<input type="button" id="toggleDebug" value="Switch debug on/off" />
 	<input type="button" id="readData" value="Read article from dump" />
-	<div id="debugZone" style="display: none;">
-		<textarea id="debugTextarea" cols="80" rows="10">&nbsp;</textarea>
-	</div>
 	<div id="articleContent">&nbsp;</div>
 	<hr />
     
