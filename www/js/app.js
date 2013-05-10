@@ -127,6 +127,8 @@ define(function(require) {
 	 */
 	function populateDropDownListOfTitles(titleList) {
 		var comboTitleList = document.getElementById('titleList');
+		// Remove previous results
+		comboTitleList.options.length = 0;
 		for (var i=0; i<titleList.length; i++) {
 			var title = titleList[i];
 			comboTitleList.options[i] = new Option (title.name, title.toStringId());

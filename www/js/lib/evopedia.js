@@ -258,10 +258,17 @@ define(function(require) {
 		var currentLocalArchiveInstance = this;
 		var normalizedPrefix = remove_diacritics.normalizeString(prefix).replace(" ","_").toLowerCase();
 		this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
-			// TODO Skip the titles that do not start with the prefix
-			// TODO use a normalizer to compare the strings
-			//if (title && title.getReadableName().toLowerCase().indexOf(prefix.toLowerCase())==0) {
-			currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, callbackFunction);
+			currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, function(titleList){
+				var i = 0;
+				for (i=0; i<titleList.length;i++) {
+					var titleName = titleList[i].name;
+					var normalizedTitleName = remove_diacritics.normalizeString(titleName).toLowerCase();
+					if (normalizedTitleName.length<normalizedPrefix.length || normalizedTitleName.substring(0,normalizedPrefix.length)!=normalizedPrefix) {
+						break;
+					}
+				}
+				callbackFunction(titleList.slice(0,i));
+			});
 		});
 	};
 	

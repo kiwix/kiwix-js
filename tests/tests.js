@@ -76,8 +76,6 @@ define(function (require) {
 			localArchive.findTitlesWithPrefix("Am", callbackFunction);
 		});
 		
-		//TODO check findTitlesWithPrefix
-		
 		// Create a title instance for the Article 'Abraham'
 		var titleAbraham = new evopedia.Title();
 		titleAbraham.archive = localArchive;
@@ -89,7 +87,23 @@ define(function (require) {
 		titleAbraham.titleOffset = 57;
 		
 		// TODO check parseTitle for Abraham, and for another one with escape characters
-		// TODO check getTitleByName
+		
+		asyncTest("check getTitleByName with accents : Diego Velázquez", function() {
+			var callbackFunction = function(titleList) {
+				ok (titleList && titleList.length==1,"One title found");
+				equal(titleList[0].name,"Diego_Velázquez","Name of the title is correct");
+				start();
+			};
+			localArchive.getTitleByName("Diego Velázquez",callbackFunction);
+		});
+		asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
+			var callbackFunction = function(titleList) {
+				ok (titleList && titleList.length==1,"One title found");
+				equal(titleList[0].name,"Hundred_Years'_War","Name of the title is correct");
+				start();
+			};
+			localArchive.getTitleByName("Hundred Years' War",callbackFunction);
+		});
 		
 		test("check parseTitleFromId", function() {
 			var titleId = "small|2010-08-14|0|57|Abraham|2364940|127640|10071";
