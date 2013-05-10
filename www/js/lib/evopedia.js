@@ -133,7 +133,7 @@ define(function(require) {
 					hi = mid;
 				}
 				else {
-					var normalizedTitle = remove_diacritics.normalizeString(utf8ByteArrayToString(byteArray,startIndex,newLineIndex)).toLowerCase();
+					var normalizedTitle = remove_diacritics.normalizeString(utf8ByteArrayToString(byteArray,startIndex,newLineIndex));
 					if (normalizedTitle < normalizedPrefix) {
 						lo = mid + newLineIndex -1;
 					}
@@ -225,7 +225,7 @@ define(function(require) {
 			alert('Title file read cancelled');
 		};
 		var currentLocalArchiveInstance = this;
-		var normalizedTitleName = remove_diacritics.normalizeString(titleName).toLowerCase();
+		var normalizedTitleName = remove_diacritics.normalizeString(titleName);
 		this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
 			currentLocalArchiveInstance.getTitleAtOffset(titleOffset, callbackFunction);
 		});
@@ -256,13 +256,14 @@ define(function(require) {
 			alert('Title file read cancelled');
 		};
 		var currentLocalArchiveInstance = this;
-		var normalizedPrefix = remove_diacritics.normalizeString(prefix).replace(" ","_").toLowerCase();
+		var normalizedPrefix = remove_diacritics.normalizeString(prefix);
 		this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
 			currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, function(titleList){
+				// Keep only the titles with names starting with the prefix
 				var i = 0;
 				for (i=0; i<titleList.length;i++) {
 					var titleName = titleList[i].name;
-					var normalizedTitleName = remove_diacritics.normalizeString(titleName).toLowerCase();
+					var normalizedTitleName = remove_diacritics.normalizeString(titleName);
 					if (normalizedTitleName.length<normalizedPrefix.length || normalizedTitleName.substring(0,normalizedPrefix.length)!=normalizedPrefix) {
 						break;
 					}
