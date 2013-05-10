@@ -164,11 +164,10 @@ define(function(require) {
 			title = title[0];
 			if (title.fileNr == 255) {
 				localArchive.resolveRedirect(title, readArticle);
+				return;
 			}
 		}
-		else {
-			localArchive.readArticle(title, displayArticleInForm);
-		}
+		localArchive.readArticle(title, displayArticleInForm);
 	}
 
 	/**
@@ -189,6 +188,9 @@ define(function(require) {
 			}
 			else if (url.substring(0,4) === "http") {
 				// It's an external link : do nothing
+			}
+			else if (url.substring(0,2) === ".." || url.substring(0,4) === "./..") {
+				// It's a link to another language : TODO redirect to the online article?
 			}
 			else {
 				// It's a link to another article : add an onclick event to go to this article
