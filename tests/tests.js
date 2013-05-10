@@ -37,19 +37,43 @@ define(function (require) {
 				equal(titleList.length, 4, "4 titles found, as requested");
 				var indexAbraham=-1;
 				for (var i=0; i<titleList.length; i++) {
-					if (titleList[i].name == "Abraham") {
+					if (titleList[i] && titleList[i].name == "Abraham") {
 						indexAbraham=i;
 					}
 				}
 				ok(indexAbraham>-1,"Title 'Abraham' found");
-				var firstTitleName = titleList[0].name;
-				var secondTitleName = titleList[1].name;
-				// TODO : fix the algorithm, so that these tests can work
-				//equal(firstTitleName,"Abbasid_Caliphate","First article name is 'Abbasid_Caliphate'");
-				//equal(secondTitleName,"Abortion","Second article name is 'Abortion'");
+				var firstTitleName = "not found";
+				var secondTitleName = "not found";
+				if (titleList.length>=1 && titleList[0]) {
+					firstTitleName = titleList[0].name;
+				}
+				if (titleList.length>=2 && titleList[1]) {
+					secondTitleName = titleList[1].name;
+				}
+				equal(firstTitleName,"Abbasid_Caliphate","First article name is 'Abbasid_Caliphate'");
+				equal(secondTitleName,"Abortion","Second article name is 'Abortion'");
 				start();
 			};
 			localArchive.getTitlesStartingAtOffset(0, 4, callbackFunction);
+		});
+		
+		asyncTest("check findTitlesWithPrefix Am", function() {
+			var callbackFunction = function(titleList) {
+				ok(titleList && titleList.length>0,"At least one title is found");
+				var firstTitleName = "not found";
+				var secondTitleName = "not found";
+				if (titleList.length>=1 && titleList[0]) {
+					firstTitleName = titleList[0].name;
+				}
+				if (titleList.length>=2 && titleList[1]) {
+					secondTitleName = titleList[1].name;
+				}
+				equal(firstTitleName,"Amazon_River","First article name is 'Amazon_River'");
+				equal(secondTitleName,"American_Civil_War","Second article name is 'American_Civil_War'");
+				equal(titleList.length,4,"4 titles should be found");
+				start();
+			};
+			localArchive.findTitlesWithPrefix("Am", callbackFunction);
 		});
 		
 		//TODO check findTitlesWithPrefix

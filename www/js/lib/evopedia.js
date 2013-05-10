@@ -129,15 +129,13 @@ define(function(require) {
 					}					
 				}
 				if (newLineIndex == startIndex) {
-					// Enf of file reached
+					// End of file reached
 					hi = mid;
 				}
 				else {
-					var normalizedTitle = remove_diacritics.normalizeString(utf8ByteArrayToString(byteArray,startIndex,newLineIndex));
-					//alert("normalizedTitle = " + normalizedTitle + "lo = "+lo+" hi="+hi);
-					//alert("normalizedPrefix = " + normalizedPrefix);
-					if (normalizedTitle.localeCompare(normalizedPrefix) < 0) {
-						lo = mid;
+					var normalizedTitle = remove_diacritics.normalizeString(utf8ByteArrayToString(byteArray,startIndex,newLineIndex)).toLowerCase();
+					if (normalizedTitle < normalizedPrefix) {
+						lo = mid + newLineIndex -1;
 					}
 					else {
 						hi = mid;
@@ -151,7 +149,7 @@ define(function(require) {
 		else {
 			if (lo > 0) {
                 // Let lo point to the start of an entry
-                lo++;
+                lo++;lo++;
             }
 			// We found the closest title at index lo
 			callbackFunction(lo);
@@ -184,13 +182,9 @@ define(function(require) {
 		reader.onload = function(e) {
 			var binaryTitleFile = e.target.result;
 			var byteArray = new Uint8Array(binaryTitleFile);
-			// Look for the index of the next NewLine
-			var newLineIndex=0;	
-			while (newLineIndex<byteArray.length && byteArray[newLineIndex]!=10) {
-				newLineIndex++;
-			}
-			var i = newLineIndex;
-			var titleNumber = -1;
+			var i = 0;
+			var newLineIndex = 0;
+			var titleNumber = 0;
 			var titleList = new Array();
 			while (i<byteArray.length && titleNumber<titleCount) {
 				// Look for the index of the next NewLine
@@ -207,13 +201,7 @@ define(function(require) {
 
 				var title = Title.parseTitle(encodedTitle, currentLocalArchiveInstance, i);
 				
-				// Skip the titles that do not start with the prefix
-				// TODO use a normalizer to compare the strings
-				// TODO see why we need to skip the first title
-				//if (title && title.getReadableName().toLowerCase().indexOf(prefix.toLowerCase())==0) {
-				if (titleNumber>=0) {
-					titleList[titleNumber] = title;
-				}
+				titleList[titleNumber] = title;
 				titleNumber++;
 				i=newLineIndex+1;
 			}
@@ -237,7 +225,7 @@ define(function(require) {
 			alert('Title file read cancelled');
 		};
 		var currentLocalArchiveInstance = this;
-		var normalizedTitleName = remove_diacritics.normalizeString(titleName);
+		var normalizedTitleName = remove_diacritics.normalizeString(titleName).toLowerCase();
 		this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
 			currentLocalArchiveInstance.getTitleAtOffset(titleOffset, callbackFunction);
 		});
@@ -268,8 +256,11 @@ define(function(require) {
 			alert('Title file read cancelled');
 		};
 		var currentLocalArchiveInstance = this;
-		var normalizedPrefix = remove_diacritics.normalizeString(prefix).replace(" ","_");
+		var normalizedPrefix = remove_diacritics.normalizeString(prefix).replace(" ","_").toLowerCase();
 		this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
+			// TODO Skip the titles that do not start with the prefix
+			// TODO use a normalizer to compare the strings
+			//if (title && title.getReadableName().toLowerCase().indexOf(prefix.toLowerCase())==0) {
 			currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, callbackFunction);
 		});
 	};
