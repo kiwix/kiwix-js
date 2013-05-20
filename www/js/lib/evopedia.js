@@ -4,6 +4,9 @@ define(function(require) {
 	var remove_diacritics = require('remove_diacritics');
 	var bzip2 = require('bzip2');
 	
+	// Size of chunks read in the dump files : 128 KB
+	const CHUNK_SIZE = 131072; 
+	
 	/**
 	 * Read an integer encoded in 4 bytes
 	 */
@@ -273,64 +276,97 @@ define(function(require) {
 		});
 	};
 	
-	/**
-	 * Read an article from the title instance, and call the callbackFunction with the article HTML String
-	 * @param title
-	 * @param callbackFunction
-	 */
+
+		/**
+		 * Read an article from the title instance, and call the
+		 * callbackFunction with the article HTML String
+		 * 
+		 * @param title
+		 * @param callbackFunction
+		 */
 	LocalArchive.prototype.readArticle = function(title, callbackFunction) {
 		var dataFile = null;
 
 		var prefixedFileNumber = "";
-		if (title.fileNr<10) {
+		if (title.fileNr < 10) {
 			prefixedFileNumber = "0" + title.fileNr;
-		}
-		else {
+		} else {
 			prefixedFileNumber = title.fileNr;
 		}
-		var expectedFileName = "wikipedia_"+prefixedFileNumber+".dat";
+		var expectedFileName = "wikipedia_" + prefixedFileNumber + ".dat";
 
 		// Find the good dump file
-		for (var i=0; i<this.dataFiles.length; i++) {
+		for ( var i = 0; i < this.dataFiles.length; i++) {
 			var fileName = this.dataFiles[i].name;
-			// Check if the fileName ends with the expected file name (in case of DeviceStorage usage, the fileName is prefixed by the directory)
-			if (fileName.match(expectedFileName+"$") == expectedFileName) {
+			// Check if the fileName ends with the expected file name (in case
+			// of DeviceStorage usage, the fileName is prefixed by the
+			// directory)
+			if (fileName.match(expectedFileName + "$") == expectedFileName) {
 				dataFile = this.dataFiles[i];
 			}
 		}
 		if (!dataFile) {
 			throw "File number " + title.fileNr + " not found";
-		}
-		else {
+		} else {
 			var reader = new FileReader();
-			reader.onerror = errorHandler;
-			reader.onabort = function(e) {
-				alert('Data file read cancelled');
-			};
-			reader.onload = function(e) {
-				var compressedArticles = e.target.result;
-				//var htmlArticle = ArchUtils.bz2.decode(compressedArticles);
-				// TODO : should be improved by uncompressing the content chunk by chunk,
-				// until the length is reached, instead of uncompressing everything
-				var htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(compressedArticles)));
-				// Start reading at offset, and keep length characters
-				var htmlArticle = htmlArticles.substring(title.blockOffset,title.blockOffset + title.articleLength);
+			// Read the article in the dataFile, starting with a chunk of CHUNK_SIZE 
+			this.readArticleChunk(title, dataFile, reader, CHUNK_SIZE, callbackFunction);
+		}
+
+	};
+
+	/**
+	 * Read a chunk of the dataFile (of the given length) to try to read the
+	 * given article.
+	 * If the bzip2 algorithm works and articleLength of the article is reached,
+	 * call the callbackFunction with the article HTML String.
+	 * Else, recursively call this function with readLength + CHUNK_SIZE
+	 * 
+	 * @param title
+	 * @param dataFile
+	 * @param reader
+	 * @param readLength
+	 * @param callbackFunction
+	 */
+	LocalArchive.prototype.readArticleChunk = function(title, dataFile, reader,
+			readLength, callbackFunction) {
+		var currentLocalArchiveInstance = this;
+		reader.onerror = errorHandler;
+		reader.onabort = function(e) {
+			alert('Data file read cancelled');
+		};
+		reader.onload = function(e) {
+			var compressedArticles = e.target.result;
+			var htmlArticles;
+			try {
+				htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(
+						compressedArticles)));
+			} catch (e) {
+				// TODO : rethrow exception if we reach the end of the file
+				currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
+						callbackFunction);
+				return;
+			}
+			// Start reading at offset, and keep length characters
+			var htmlArticle = htmlArticles.substring(title.blockOffset,
+					title.blockOffset + title.articleLength);
+			if (htmlArticle.length >= title.articleLength) {
 				// Keep only length characters
-				htmlArticle = htmlArticle.substring(0,title.articleLength);
+				htmlArticle = htmlArticle.substring(0, title.articleLength);
 				// Decode UTF-8 encoding
 				htmlArticle = decodeURIComponent(escape(htmlArticle));
+				callbackFunction(htmlArticle);
+			} else {
+				// TODO : throw exception if we reach the end of the file
+				currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
+						callbackFunction);
+			}
+		};
+		var blob = dataFile.slice(title.blockStart, title.blockStart
+				+ readLength);
 
-				callbackFunction (htmlArticle);
-			};
-
-			// TODO : should be improved by reading the file chunks by chunks until the article is found,
-			// instead of reading the whole file starting at blockstart
-			var blob = dataFile.slice(title.blockStart);
-
-			// Read in the image file as a binary string.
-			reader.readAsArrayBuffer(blob);
-		}
-
+		// Read in the image file as a binary string.
+		reader.readAsArrayBuffer(blob);
 	};
 	
 	/**
@@ -361,7 +397,7 @@ define(function(require) {
 			callbackFunction(redirectedTitle);
 		};
 		// Read only the 16 necessary bytes, starting at title.blockStart
-		var blob = titleFile.slice(title.blockStart,title.blockStart+16);
+		var blob = this.titleFile.slice(title.blockStart,title.blockStart+16);
 		// Read in the file as a binary string
 		reader.readAsArrayBuffer(blob);
 	};

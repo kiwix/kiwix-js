@@ -42,8 +42,8 @@ define(function(require) {
     }
     
     if (storage != null) {
-    	var directory = 'wikipedia_small_2010-08-14';
-    	//var directory = 'evopedia/wikipedia_fr_2012-02-03';
+    	//var directory = 'evopedia/wikipedia_small_2010-08-14';
+    	var directory = 'evopedia/wikipedia_fr_2013-02-16';
     	localArchive = new evopedia.LocalArchive();
     	localArchive.readTitleFile(storage, directory);
     	localArchive.readDataFiles(storage, directory, 0);
