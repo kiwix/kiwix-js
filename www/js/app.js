@@ -28,7 +28,10 @@ define(function(require) {
     	searchTitlesFromPrefix($('#prefix').val());
     });
     $('#readData').on('click', function(e) {
-    	findTitleFromTitleIdAndLaunchArticleRead($('#titleList').val());
+    	var titleId = $('#titleList').val();
+    	findTitleFromTitleIdAndLaunchArticleRead(titleId);
+    	var title = evopedia.Title.parseTitleId(localArchive,titleId); 
+    	pushBrowserHistoryState(title.name);
     });
     $('#prefix').on('keyup', function(e) {
     	onKeyUpPrefix(e);
@@ -52,6 +55,12 @@ define(function(require) {
     	displayFileSelect();
     	setLocalArchiveFromFileSelect();
     }
+    
+    // Display the article when the user goes back in the browser history
+    window.onpopstate = function(event) {
+    	var titleName = event.state.titleName;
+    	goToArticle(titleName);
+    };
 
     /**
 	 * Displays the zone to select files from the dump
@@ -112,9 +121,9 @@ define(function(require) {
 	 * and call the function to read the corresponding article
 	 */
 	function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
-		$("#articleContent").html("Loading article from dump...");
 		if (localArchive.dataFiles && localArchive.dataFiles.length>0) {
 			var title = evopedia.Title.parseTitleId(localArchive,titleId);
+			$("#articleContent").html("Loading from dump article " + title.name + " ...");
 			if (title.fileNr == 255) {
 				localArchive.resolveRedirect(title, readArticle);
 			}
@@ -145,7 +154,7 @@ define(function(require) {
 	 * Display the the given HTML article in the web page,
 	 * and convert links to javascript calls
 	 */
-	function displayArticleInForm(htmlArticle) {
+	function displayArticleInForm(title, htmlArticle) {
 		// Display the article inside the web page.		
 		$('#articleContent').html(htmlArticle);
 		
@@ -167,20 +176,32 @@ define(function(require) {
 				// It's a link to another article : add an onclick event to go to this article
 				// instead of following the link
 				$(this).on('click', function(e) {
-					goToArticle(decodeURIComponent($(this).attr("href")));
+					var titleName = decodeURIComponent($(this).attr("href"));
+					pushBrowserHistoryState(titleName);
+					goToArticle(titleName);
 					return false;
 				});
 			}
 		});
+	}
+	
+	/**
+	 * Changes the URL of the browser page
+	 */
+	function pushBrowserHistoryState(titleName) {
+		if (titleName) {
+			var stateObj = { titleName: titleName};
+			window.history.pushState(stateObj,"Wikipedia Article : " + titleName,"#" + titleName);
+		}
 	}
 
 
 	/**
 	 * Replace article content with the one of the given title
 	 */
-	function goToArticle(title) {
-		$("#articleContent").html("Loading article from dump...");
-		localArchive.getTitleByName(title, readArticle);
+	function goToArticle(titleName) {
+		$("#articleContent").html("Loading from dump article " + titleName + " ...");
+		localArchive.getTitleByName(titleName, readArticle);
 	}
 
 });

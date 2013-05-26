@@ -362,7 +362,7 @@ define(function(require) {
 					htmlArticle = htmlArticle.substring(0, title.articleLength);
 					// Decode UTF-8 encoding
 					htmlArticle = decodeURIComponent(escape(htmlArticle));
-					callbackFunction(htmlArticle);
+					callbackFunction(title, htmlArticle);
 				} else {
 					// TODO : throw exception if we reach the end of the file
 					currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,

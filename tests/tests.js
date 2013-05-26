@@ -113,7 +113,7 @@ define(function (require) {
 		});
 		
 		asyncTest("check readArticle", function(){
-			var callbackFunction = function(htmlArticle) {
+			var callbackFunction = function(title, htmlArticle) {
 				ok(htmlArticle && htmlArticle.length>0,"Article not empty");
 				// Remove new lines
 				htmlArticle = htmlArticle.replace(/[\r\n]/g, " ");
