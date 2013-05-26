@@ -336,30 +336,41 @@ define(function(require) {
 			alert('Data file read cancelled');
 		};
 		reader.onload = function(e) {
-			var compressedArticles = e.target.result;
-			var htmlArticles;
 			try {
-				htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(
-						compressedArticles)));
-			} catch (e) {
-				// TODO : rethrow exception if we reach the end of the file
-				currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
-						callbackFunction);
-				return;
+				var compressedArticles = e.target.result;
+				var htmlArticles;
+				try {
+					htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(
+							compressedArticles)));
+				} catch (e) {
+					// TODO : there must be a better way to differentiate real exceptions
+					// and exceptions due to the fact that the article is too long to fit in the chunk
+					if (e != "No magic number found") {
+						currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
+								callbackFunction);
+						return;
+					}
+					else {
+						throw e;
+					}
+				}
+				// Start reading at offset, and keep length characters
+				var htmlArticle = htmlArticles.substring(title.blockOffset,
+						title.blockOffset + title.articleLength);
+				if (htmlArticle.length >= title.articleLength) {
+					// Keep only length characters
+					htmlArticle = htmlArticle.substring(0, title.articleLength);
+					// Decode UTF-8 encoding
+					htmlArticle = decodeURIComponent(escape(htmlArticle));
+					callbackFunction(htmlArticle);
+				} else {
+					// TODO : throw exception if we reach the end of the file
+					currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
+							callbackFunction);
+				}
 			}
-			// Start reading at offset, and keep length characters
-			var htmlArticle = htmlArticles.substring(title.blockOffset,
-					title.blockOffset + title.articleLength);
-			if (htmlArticle.length >= title.articleLength) {
-				// Keep only length characters
-				htmlArticle = htmlArticle.substring(0, title.articleLength);
-				// Decode UTF-8 encoding
-				htmlArticle = decodeURIComponent(escape(htmlArticle));
-				callbackFunction(htmlArticle);
-			} else {
-				// TODO : throw exception if we reach the end of the file
-				currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
-						callbackFunction);
+			catch (e) {
+				callbackFunction("Error : " + e);
 			}
 		};
 		var blob = dataFile.slice(title.blockStart, title.blockStart
