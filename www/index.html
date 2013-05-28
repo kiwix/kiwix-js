@@ -41,6 +41,8 @@ License:
     <!-- Write your application here -->
 
 	<h1>Evopedia</h1>
+	<input type="button" id="showHideAbout" value="About" />
+	<div id="about">
 	This is a preliminary work on the port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
 	<br />
 	The original application is at <a href="http://www.evopedia.info/">http://www.evopedia.info/</a>
@@ -67,12 +69,13 @@ License:
 	<li>Following the links in an article does not populate the history of the browser, which prevents the use of the back button</li>
 	</ul>
 	<br />
+	</div>
 	<div id="openLocalFiles" style="display: none;">
 		<br /> Please select the file titles.idx :<br /> <input type="file"
 			id="titleFile" /><br /> Please select the files wikipedia_*.dat
 		from the same dump :<br /> <input type="file" id="dataFiles" multiple />
 	</div>
-	<br /> Find titles from the prefix :
+	<br /> Find titles starting with :
 	<input type="text" id="prefix" value="" />&nbsp;
 	<input type="button" id="searchTitles" value="Search titles" />
 	<br /> Choose a title from the filtered list :

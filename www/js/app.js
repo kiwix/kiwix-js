@@ -24,6 +24,10 @@ define(function(require) {
     var localArchive = null;
 
     // Define behavior of HTML elements
+    $('#about').hide();
+    $('#showHideAbout').on('click', function(e) {
+    	$('#about').toggle();
+    });
     $('#searchTitles').on('click', function(e) {
     	searchTitlesFromPrefix($('#prefix').val());
     });
