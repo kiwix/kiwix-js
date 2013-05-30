@@ -80,8 +80,14 @@ define(function(require) {
 	 */
 	LocalArchive.prototype.readDataFiles = function(storage, directory, index) {
 		var currentLocalArchiveInstance = this;
-		// TODO fix for more than 10 data files
-		var filerequest = storage.get(directory + '/wikipedia_0' + index
+		
+		var prefixedFileNumber = "";
+		if (index < 10) {
+			prefixedFileNumber = "0" + index;
+		} else {
+			prefixedFileNumber = index;
+		}
+		var filerequest = storage.get(directory + '/wikipedia_' + prefixedFileNumber
 				+ '.dat');
 		filerequest.onsuccess = function() {
 			currentLocalArchiveInstance.dataFiles[index] = filerequest.result;
