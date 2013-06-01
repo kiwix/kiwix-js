@@ -49,13 +49,12 @@ define(function(require) {
     }
     
     if (storage != null) {
-    	//var directory = 'evopedia/wikipedia_small_2010-08-14';
-    	var directory = 'evopedia/wikipedia_fr_2013-02-16';
-    	localArchive = new evopedia.LocalArchive();
-    	localArchive.readTitleFile(storage, directory);
-    	localArchive.readDataFiles(storage, directory, 0);
+    	// If DeviceStorage is available, we look for archives in it
+    	var directory = 'evopedia';
+    	evopedia.LocalArchive.scanForArchives(storage,directory,selectFirstArchive);
     }
     else {
+    	// If DeviceStorage is not available, we display the file select components
     	displayFileSelect();
     	setLocalArchiveFromFileSelect();
     }
@@ -65,6 +64,15 @@ define(function(require) {
     	var titleName = event.state.titleName;
     	goToArticle(titleName);
     };
+    
+    /**
+     * Selects the first archive found on device storage
+     */
+    function selectFirstArchive(archiveDirectories) {
+    	localArchive = new evopedia.LocalArchive();
+    	localArchive.readTitleFile(storage, archiveDirectories[0]);
+    	localArchive.readDataFiles(storage, archiveDirectories[0], 0);
+    }
 
     /**
 	 * Displays the zone to select files from the dump

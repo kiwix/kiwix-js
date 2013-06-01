@@ -419,6 +419,47 @@ define(function(require) {
 		reader.readAsArrayBuffer(blob);
 	};
 	
+	/**
+	 *  Scans the DeviceStorage for archives
+	 * 
+	 * @param storage DeviceStorage instance
+	 * @param rootDirectory Directory from which to start scanning
+	 * @param callbackFunction Function to call with the list of directories where archives are found
+	 */
+	LocalArchive.scanForArchives = function(storage, rootDirectory, callbackFunction) {
+		var directories = [];
+		var cursor = storage.enumerate();
+		cursor.onerror = function() {
+			alert("Error scanning directory " + rootDirectory + " : " + cursor.error);
+		}
+		cursor.onsuccess = function() {
+			if (cursor.result) {
+				var file = cursor.result;
+				var fileName = file.name;
+				
+				// We look for files "titles.idx"
+				if (!endsWith(fileName,"titles.idx")) {
+					cursor.continue();
+					return;
+				}
+			
+				// We want to return the directory where titles.idx is stored
+				var directory = fileName.substring(0, fileName.lastIndexOf('/'));
+				console.log(directory);
+				directories.push(directory);
+				cursor.continue();
+			}
+			else {
+				callbackFunction(directories);
+			}
+		};
+	};
+
+	function endsWith(str, suffix) {
+		return str.indexOf(suffix, str.length - suffix.length) !== -1;
+	}
+
+	
 	
 	/**
 	 * Title class : defines the title of an article and some methods to manipulate it

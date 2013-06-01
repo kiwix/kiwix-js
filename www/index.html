@@ -55,8 +55,8 @@ License:
 	<br />
 	<ul>
 	<li>On desktops, it works on recent Firefox and Chrome, and maybe on other browsers</li>
-	<li>On the Firefos OS simulator, you have (for now) to put the French dump files in a "fake-sdcard/evopedia" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). It looks for evopedia/wikipedia_fr_2013-02-16/titles.idx in it. You also need to install the application from the dashboard of the simulator instead of accessing via the browser (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
-	<li>On a real Firefox OS device, you also have (for now) to put the French dump files in an "evopedia" directory at the root of your sdcard, so that it finds a file /evopedia/wikipedia_fr_2013-02-16/titles.idx on it</li>
+	<li>On the Firefos OS simulator, you have to put the archive files in a "fake-sdcard/evopedia" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). It looks for evopedia/*/titles.idx in it. You also need to install the application from the dashboard of the simulator instead of accessing via the browser (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
+	<li>On a real Firefox OS device, you also have to put the archive files in an "evopedia" directory at the root of your sdcard, so that it finds a file /evopedia/*/titles.idx on it</li>
 	</ul>
 	<br />
 	It's only a proof of concept so far : there are many many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5">github</a>). In particular :
