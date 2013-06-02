@@ -42,20 +42,17 @@ License:
 
 	<h1>Evopedia</h1>
 	<input type="button" id="showHideAbout" value="About" />
-	<div id="about">
+	<div id="about" style="display: none;">
 	This is a preliminary work on the port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
 	<br />
 	The original application is at <a href="http://www.evopedia.info/">http://www.evopedia.info/</a>
 	<br />
 	<br />
-	To use it, you have to first download locally a dump from <a href="http://dumpathome.evopedia.info/dumps/finished">http://dumpathome.evopedia.info/dumps/finished</a> (with a Bittorrent client), and select some of the dowloaded files below.
-	<br />
-	I have tested it with the <a href="http://evopedia.info/dumps/wikipedia_small_2010-08-14.torrent">small dump (2010-08-14)</a>, the <a href="http://evopedia.info/dumps/wikipedia_fr_2013-02-16.torrent">French dump (2013-02-16)</a>, the <a href="http://evopedia.info/dumps/wikipedia_frwiktionary_2011-03-16.torrent">French wiktionary dump (2011-03-16)</a> and the <a href="http://evopedia.info/dumps/wikipedia_en_2012-02-11.torrent">English dump (2012-02-11)</a>
-	<br />
+	To use it, you have to first download locally a dump from <a href="http://dumpathome.evopedia.info/dumps/finished">http://dumpathome.evopedia.info/dumps/finished</a> (with a Bittorrent client).
 	<br />
 	<ul>
-	<li>On desktops, it works on recent Firefox and Chrome, and maybe on other browsers</li>
-	<li>On the Firefos OS simulator, you have to put the archive files in a "fake-sdcard/evopedia" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). It looks for evopedia/*/titles.idx in it. You also need to install the application from the dashboard of the simulator instead of accessing via the browser (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
+	<li>On desktops, it works on recent Firefox and Chrome, and maybe on other browsers. In this case, you have to select manually some files from your dump</li>
+	<li>On the Firefos OS simulator, you have to put the archive files in a "fake-sdcard/evopedia" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). It looks for evopedia/*/titles.idx in it. You need to install the application from the dashboard of the simulator (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
 	<li>On a real Firefox OS device, you also have to put the archive files in an "evopedia" directory at the root of your sdcard, so that it finds a file /evopedia/*/titles.idx on it</li>
 	</ul>
 	<br />
@@ -64,7 +61,6 @@ License:
 	<li>The performance has to be optimized when reading an article</li>
 	<li>Some searches (for example with prefix "a" on the French dump) do not give any result even if they should</li>
 	<li>In some cases, the links inside an article do not work, or do not lead to the right article</li>
-	<li>On a real device, reading an article sometimes crashes because it loads too many things in memory</li>
 	<li>It is hardly usable on a device because the buttons and inputs are too small</li>
 	</ul>
 	<br />
@@ -73,6 +69,12 @@ License:
 		<br /> Please select the file titles.idx :<br /> <input type="file"
 			id="titleFile" /><br /> Please select the files wikipedia_*.dat
 		from the same dump :<br /> <input type="file" id="dataFiles" multiple />
+	</div>
+	<div id="scanningForArchives" style="display: none;">
+		<br /> Scanning your sdcard for archives... Please wait
+	</div>
+	<div id="chooseArchiveFromLocalStorage" style="display: none;">
+		<br /> Please select the archive you want to use : <select id="archiveList"></select>
 	</div>
 	<br /> Find titles starting with :
 	<input type="text" id="prefix" value="" />&nbsp;

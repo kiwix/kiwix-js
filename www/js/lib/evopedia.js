@@ -445,7 +445,6 @@ define(function(require) {
 			
 				// We want to return the directory where titles.idx is stored
 				var directory = fileName.substring(0, fileName.lastIndexOf('/'));
-				console.log(directory);
 				directories.push(directory);
 				cursor.continue();
 			}
@@ -455,10 +454,15 @@ define(function(require) {
 		};
 	};
 
+	/**
+	 * Utility function : return true if the given string ends with the suffix
+	 * @param str
+	 * @param suffix
+	 * @returns {Boolean}
+	 */
 	function endsWith(str, suffix) {
 		return str.indexOf(suffix, str.length - suffix.length) !== -1;
 	}
-
 	
 	
 	/**

@@ -50,8 +50,9 @@ define(function(require) {
     
     if (storage != null) {
     	// If DeviceStorage is available, we look for archives in it
+    	$('#scanningForArchives').show();
     	var directory = 'evopedia';
-    	evopedia.LocalArchive.scanForArchives(storage,directory,selectFirstArchive);
+    	evopedia.LocalArchive.scanForArchives(storage,directory,populateDropDownListOfArchives);
     }
     else {
     	// If DeviceStorage is not available, we display the file select components
@@ -65,13 +66,36 @@ define(function(require) {
     	goToArticle(titleName);
     };
     
+	/**
+	 * Populate the drop-down list of titles with the given list
+	 */
+	function populateDropDownListOfArchives(archiveDirectories) {
+		$('#scanningForArchives').hide();
+		$('#chooseArchiveFromLocalStorage').show();
+		var comboArchiveList = document.getElementById('archiveList');
+		comboArchiveList.options.length = 0;
+		for (var i=0; i<archiveDirectories.length; i++) {
+			var archiveDirectory = archiveDirectories[i];
+			comboArchiveList.options[i] = new Option (archiveDirectory, archiveDirectory);
+		}
+		$('#archiveList').on('change', setLocalArchiveFromArchiveList);
+		if (archiveDirectories.length>0) {
+			// Set the localArchive from the first result
+			setLocalArchiveFromArchiveList();
+		}
+		else {
+			alert("No Evopedia archive found in your sdcard. Please see 'About' for more info");
+		} 
+	}
+    
     /**
-     * Selects the first archive found on device storage
+     * Sets the localArchive from the selected archive in the drop-down list
      */
-    function selectFirstArchive(archiveDirectories) {
+    function setLocalArchiveFromArchiveList() {
+    	var archiveDirectory = $('#archiveList').val();
     	localArchive = new evopedia.LocalArchive();
-    	localArchive.readTitleFile(storage, archiveDirectories[0]);
-    	localArchive.readDataFiles(storage, archiveDirectories[0], 0);
+    	localArchive.readTitleFile(storage, archiveDirectory);
+    	localArchive.readDataFiles(storage, archiveDirectory, 0);
     }
 
     /**
@@ -83,6 +107,9 @@ define(function(require) {
 		$('#titleFile').on('change', setLocalArchiveFromFileSelect);
 	}
 
+	/**
+	 * Sets the localArchive from the File selects populated by user
+	 */
 	function setLocalArchiveFromFileSelect() {
 		dataFiles=document.getElementById('dataFiles').files;
 		titleFile=document.getElementById('titleFile').files[0];
