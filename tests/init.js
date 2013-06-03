@@ -1,5 +1,5 @@
 require.config({
-    baseUrl: '../www/js/lib'
+    baseUrl: '../js/lib'
 });
 
-requirejs(['../../../tests/tests']);
+requirejs(['../../tests/tests']);

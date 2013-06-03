@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <title>Evopedia</title>
+    <meta name="description" content="Offline wikipedia reader"> 
+    <meta name="viewport" content="width=device-width">
+<!--
+Port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
+The original application is at http://www.evopedia.info/
+It uses wikipedia dumps located at http://dumpathome.evopedia.info/dumps/finished
+
+Author : Mossroy - mossroy@free.fr
+
+License:
+
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of the GNU General Public License as published by the
+    Free Software Foundation; either version 3 of the License, or (at your
+    option) any later version.
+
+    This program is distributed in the hope that it will be useful, but
+    WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    General Public License for more details.
+
+    You should have received a copy of the GNU General Public
+    License along with this program; if not, see
+    <http://www.gnu.org/licenses/>.
+
+-->
+
+    <link rel="stylesheet" href="css/app.css">
+  </head>
+  <body>
+    <!-- Use this installation button to install locally without going
+         through the marketpace (see app.js) -->
+    <!-- <button id="install-btn">Install</button>  -->
+
+    <!-- Write your application here -->
+
+	<h1>Evopedia</h1>
+	<div id="content">
+	<input type="button" id="showHideAbout" value="About" />
+	<div id="about" style="display: none;">
+	This is a preliminary work on the port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
+	<br />
+	The original application is at <a href="http://www.evopedia.info/">http://www.evopedia.info/</a>
+	<br />
+	<br />
+	To use it, you have to first download locally a dump from <a href="http://dumpathome.evopedia.info/dumps/finished">http://dumpathome.evopedia.info/dumps/finished</a> (with a Bittorrent client).
+	<br />
+	<ul>
+	<li>On desktops, it works on recent Firefox and Chrome, and maybe on other browsers. In this case, you have to select manually some files from your dump</li>
+	<li>On the Firefos OS simulator, you have to put the archive files in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). It looks for file titles.idx in it. You need to install the application from the dashboard of the simulator (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
+	<li>On a real Firefox OS device, you simply have to put the archive files anywhere in your sdcard, so that it finds titles.idx on it</li>
+	</ul>
+	<br />
+	It's only a proof of concept so far : there are many many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5">github</a>). In particular :
+	<ul>
+	<li>The performance has to be optimized when reading an article</li>
+	<li>Some searches (for example with prefix "a" on the French dump) do not give any result even if they should</li>
+	<li>In some cases, the links inside an article do not work, or do not lead to the right article</li>
+	<li>It is hardly usable on a device because the buttons and inputs are too small</li>
+	</ul>
+	<br />
+	<button id="install-btn">Install</button> 
+	</div>
+	<div id="openLocalFiles" style="display: none;">
+		<br /> Please select the file titles.idx :<br /> <input type="file"
+			id="titleFile" /><br /> Please select the files wikipedia_*.dat
+		from the same dump :<br /> <input type="file" id="dataFiles" multiple />
+	</div>
+	<div id="scanningForArchives" style="display: none;">
+		<br /> Scanning your sdcard for archives... Please wait
+	</div>
+	<div id="chooseArchiveFromLocalStorage" style="display: none;">
+		<br /> Please select the archive you want to use : <select id="archiveList"></select>
+	</div>
+	<br /> Find titles starting with :
+	<input type="text" id="prefix" value="" />&nbsp;
+	<input type="button" id="searchTitles" value="Search titles" />
+	<br /> Choose a title from the filtered list :
+	<select id="titleList"></select>
+	<br />
+	<input type="button" id="readData" value="Read article from dump" />
+	<div id="articleContent">&nbsp;</div>
+	<hr />
+	</div>
+    
+    <!-- Using require.js, a module system for javascript, include the
+         js files. This loads "main.js", which in turn can load other
+         files, all handled by require.js:
+         http://requirejs.org/docs/api.html#jsfiles -->
+    <script type="text/javascript"
+            data-main="js/init.js"
+            src="js/lib/require.js"></script>
+  </body>
+</html>
