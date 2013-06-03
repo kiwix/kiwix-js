@@ -423,14 +423,13 @@ define(function(require) {
 	 *  Scans the DeviceStorage for archives
 	 * 
 	 * @param storage DeviceStorage instance
-	 * @param rootDirectory Directory from which to start scanning
 	 * @param callbackFunction Function to call with the list of directories where archives are found
 	 */
-	LocalArchive.scanForArchives = function(storage, rootDirectory, callbackFunction) {
+	LocalArchive.scanForArchives = function(storage, callbackFunction) {
 		var directories = [];
 		var cursor = storage.enumerate();
 		cursor.onerror = function() {
-			alert("Error scanning directory " + rootDirectory + " : " + cursor.error);
+			alert("Error scanning directory sd-card : " + cursor.error);
 		}
 		cursor.onsuccess = function() {
 			if (cursor.result) {

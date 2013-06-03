@@ -51,8 +51,7 @@ define(function(require) {
     if (storage != null) {
     	// If DeviceStorage is available, we look for archives in it
     	$('#scanningForArchives').show();
-    	var directory = 'evopedia';
-    	evopedia.LocalArchive.scanForArchives(storage,directory,populateDropDownListOfArchives);
+    	evopedia.LocalArchive.scanForArchives(storage,populateDropDownListOfArchives);
     }
     else {
     	// If DeviceStorage is not available, we display the file select components
