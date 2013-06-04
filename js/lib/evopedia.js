@@ -15,6 +15,13 @@ define(function(require) {
 	}
 	
 	/**
+	 * Read an integer encoded in 2 bytes
+	 */
+	function readIntegerFrom2Bytes(byteArray,firstIndex) {
+		return byteArray[firstIndex] + byteArray[firstIndex+1]*256; 
+	}
+	
+	/**
 	 * Converts a UTF-8 byte array to JavaScript's 16-bit Unicode.
 	 * @param {Array.<number>} bytes UTF-8 byte array.
 	 * @return {string} 16-bit Unicode string.
@@ -505,28 +512,22 @@ define(function(require) {
 		} else {
 			t.titleEntryLength = encodedTitle.length + 1;
 		}
-
-		// TODO : handle escapes
-		/*
-		int escapes = LittleEndianReader.readUInt16(encodedTitle, 0);
-		byte[] positionData = new byte[13];
-		System.arraycopy(encodedTitle, 2, positionData, 0, 13);
-
+		
+		var escapedEncodedTitle = new Uint8Array(encodedTitle);
+		var escapes = readIntegerFrom2Bytes(encodedTitle, 0);
 		if ((escapes & (1 << 14)) != 0)
 		    escapes |= '\n';
-
-		for (int i = 0; i < 13; i ++) {
+		for (var i = 0; i < 13; i ++) {
 		    if ((escapes & (1 << i)) != 0)
-		        positionData[i] = '\n';
+		    	escapedEncodedTitle[i+2] = 10; // Corresponds to \n
 		}
-		 */
 
-		t.fileNr = encodedTitle[2];
-		t.blockStart = readIntegerFrom4Bytes(encodedTitle, 3);
-		t.blockOffset = readIntegerFrom4Bytes(encodedTitle, 7);
-		t.articleLength = readIntegerFrom4Bytes(encodedTitle, 11);
+		t.fileNr = escapedEncodedTitle[2];
+		t.blockStart = readIntegerFrom4Bytes(escapedEncodedTitle, 3);
+		t.blockOffset = readIntegerFrom4Bytes(escapedEncodedTitle, 7);
+		t.articleLength = readIntegerFrom4Bytes(escapedEncodedTitle, 11);
 
-		t.name = Title.parseNameOnly(encodedTitle);
+		t.name = Title.parseNameOnly(escapedEncodedTitle);
 
 		return t;
 	};

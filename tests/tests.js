@@ -85,9 +85,7 @@ define(function (require) {
 		titleAbraham.fileNr = 0;
 		titleAbraham.name = "Abraham";
 		titleAbraham.titleOffset = 57;
-		
-		// TODO check parseTitle for Abraham, and for another one with escape characters
-		
+				
 		asyncTest("check getTitleByName with accents : Diego Velázquez", function() {
 			var callbackFunction = function(titleList) {
 				ok (titleList && titleList.length==1,"One title found");
@@ -122,6 +120,24 @@ define(function (require) {
 				start();
 			};			
 			localArchive.readArticle(titleAbraham, callbackFunction);
+		});
+
+		asyncTest("check getTitleByName and readArticle with escape bytes", function(){
+			var callbackArticleRead = function(title, htmlArticle) {
+				ok(htmlArticle && htmlArticle.length>0,"Article not empty");
+				// Remove new lines
+				htmlArticle = htmlArticle.replace(/[\r\n]/g, " ");
+				ok(htmlArticle.match("^[ \t]*<h1[^>]*>AIDS</h1>"),"'AIDS' title at the beginning");
+				ok(htmlArticle.match("</div>[ \t]$"),"</div> at the end");
+				start();
+			};
+			var callbackTitleList = function(titleList) {
+				ok (titleList && titleList.length==1,"One title found");
+				var title = titleList[0];
+				equal(title.name,"AIDS","Name of the title is correct");			
+				localArchive.readArticle(title, callbackArticleRead);
+			};
+			localArchive.getTitleByName("AIDS",callbackTitleList);
 		});
 	};
 });
