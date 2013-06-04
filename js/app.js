@@ -125,7 +125,7 @@ define(function(require) {
 	 */
 	function searchTitlesFromPrefix(prefix) {
 		if (localArchive.titleFile) {
-			localArchive.findTitlesWithPrefix(prefix, populateDropDownListOfTitles);
+			localArchive.findTitlesWithPrefix(prefix.trim(), populateDropDownListOfTitles);
 		} else {
 			alert("Title file not set");
 		}
