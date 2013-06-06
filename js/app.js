@@ -124,6 +124,7 @@ define(function(require) {
 	 * with a binary search inside the index file)
 	 */
 	function searchTitlesFromPrefix(prefix) {
+		$('#searchingForTitles').show();
 		if (localArchive.titleFile) {
 			localArchive.findTitlesWithPrefix(prefix.trim(), populateDropDownListOfTitles);
 		} else {
@@ -142,6 +143,7 @@ define(function(require) {
 			var title = titleList[i];
 			comboTitleList.options[i] = new Option (title.name, title.toStringId());
 		}
+		$('#searchingForTitles').hide();
 	}
 
 
@@ -152,7 +154,8 @@ define(function(require) {
 	function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
 		if (localArchive.dataFiles && localArchive.dataFiles.length>0) {
 			var title = evopedia.Title.parseTitleId(localArchive,titleId);
-			$("#articleContent").html("Loading from dump article " + title.name + " ...");
+			$("#readingArticle").show();
+			$("#articleContent").html("Loading article " + title.name);
 			if (title.fileNr == 255) {
 				localArchive.resolveRedirect(title, readArticle);
 			}
@@ -184,6 +187,8 @@ define(function(require) {
 	 * and convert links to javascript calls
 	 */
 	function displayArticleInForm(title, htmlArticle) {
+		$("#readingArticle").hide();
+		
 		// Display the article inside the web page.		
 		$('#articleContent').html(htmlArticle);
 		
@@ -229,7 +234,8 @@ define(function(require) {
 	 * Replace article content with the one of the given title
 	 */
 	function goToArticle(titleName) {
-		$("#articleContent").html("Loading from dump article " + titleName + " ...");
+		$("#readingArticle").show();
+		$("#articleContent").html("Loading article " + titleName);
 		localArchive.getTitleByName(titleName, readArticle);
 	}
 
