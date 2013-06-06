@@ -66,14 +66,14 @@ License:
 		from the same dump :<br /> <input type="file" id="dataFiles" multiple />
 	</div>
 	<div id="scanningForArchives" style="display: none;">
-		<br /> Scanning your sdcard for archives... Please wait
+		<br /><img src="img/spinner.gif" /> Scanning your sdcard for archives... Please wait
 	</div>
 	<div id="chooseArchiveFromLocalStorage" style="display: none;">
 		<br /> Please select the archive you want to use : <select id="archiveList"></select>
 	</div>
 	<br /> Find titles starting with :
 	<input type="text" id="prefix" value="" />&nbsp;
-	<input type="button" id="searchTitles" value="Search titles" />
+	<input type="button" id="searchTitles" value="Search titles" /><img id="searchingForTitles" src="img/spinner.gif"  style="display: none;"/>
 	<br /> Choose a title from the filtered list :
 	<select id="titleList"></select>
 	<br />
