@@ -223,7 +223,9 @@ define(function(require) {
 			}
 			callbackFunction(titleList);
 		};
-		var blob = this.titleFile.slice(titleOffset);
+		// 300 bytes is arbitrary : we actually do not really know how long the titles will be
+		// But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
+		var blob = this.titleFile.slice(titleOffset, titleOffset + titleCount * 300);
 		// Read in the file as a binary string
 		reader.readAsArrayBuffer(blob);
 	};
