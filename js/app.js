@@ -154,8 +154,9 @@ define(function(require) {
 	function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
 		if (localArchive.dataFiles && localArchive.dataFiles.length>0) {
 			var title = evopedia.Title.parseTitleId(localArchive,titleId);
+			$("#articleName").html(title.name);
 			$("#readingArticle").show();
-			$("#articleContent").html("Loading article " + title.name);
+			$("#articleContent").html("");
 			if (title.fileNr == 255) {
 				localArchive.resolveRedirect(title, readArticle);
 			}
@@ -234,8 +235,9 @@ define(function(require) {
 	 * Replace article content with the one of the given title
 	 */
 	function goToArticle(titleName) {
+		$("#articleName").html(titleName);
 		$("#readingArticle").show();
-		$("#articleContent").html("Loading article " + titleName);
+		$("#articleContent").html("");
 		localArchive.getTitleByName(titleName, readArticle);
 	}
 
