@@ -86,6 +86,7 @@ define(function(require) {
     	localArchive = new evopedia.LocalArchive();
     	localArchive.readTitleFile(storage, archiveDirectory);
     	localArchive.readDataFiles(storage, archiveDirectory, 0);
+    	localArchive.readMathFiles(storage, archiveDirectory);
     }
 
     /**
@@ -95,6 +96,8 @@ define(function(require) {
 		$('#openLocalFiles').show();
 		$('#dataFiles').on('change', setLocalArchiveFromFileSelect);
 		$('#titleFile').on('change', setLocalArchiveFromFileSelect);
+		$('#mathIndexFile').on('change', setLocalArchiveFromFileSelect);
+		$('#mathDataFile').on('change', setLocalArchiveFromFileSelect);
 	}
 
 	/**
@@ -103,9 +106,13 @@ define(function(require) {
 	function setLocalArchiveFromFileSelect() {
 		dataFiles=document.getElementById('dataFiles').files;
 		titleFile=document.getElementById('titleFile').files[0];
+		mathIndexFile=document.getElementById('mathIndexFile').files[0];
+		mathDataFile=document.getElementById('mathDataFile').files[0];
 		localArchive = new evopedia.LocalArchive();
 		localArchive.dataFiles = dataFiles;
 		localArchive.titleFile = titleFile;
+        localArchive.mathIndexFile = mathIndexFile;
+        localArchive.mathDataFile = mathDataFile;
 	}
 
 	/**
@@ -216,6 +223,17 @@ define(function(require) {
 					goToArticle(titleName);
 					return false;
 				});
+			}
+		});
+
+		// Load math images
+		$('#articleContent').find('img').each(function(){
+            var image = $(this);
+            var m;
+            if ((m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/))) {
+                localArchive.loadMathImage(m[1], function(data) {
+                    image.attr("src", 'data:image/png;base64,' + data);
+                });
 			}
 		});
 	}

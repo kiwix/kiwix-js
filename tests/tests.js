@@ -22,12 +22,18 @@ define(function (require) {
 			var dataFiles = document.getElementById('dataFiles').files;
 			ok(titleFile && titleFile.size>0,"Title file set and not empty");
 			ok(dataFiles && dataFiles[0] && dataFiles[0].size>0,"First data file set and not empty");
+			var mathIndexFile = document.getElementById('mathIndexFile').files[0];
+			var mathDataFile = document.getElementById('mathDataFile').files[0];
+			ok(mathIndexFile && mathIndexFile.size>0,"Math index file set and not empty");
+			ok(mathDataFile && mathDataFile.size>0,"Math data file set and not empty");
 		});
 		
 		// Create a localArchive from selected files, in order to run the following tests
 		var localArchive = new evopedia.LocalArchive();
 		localArchive.titleFile = document.getElementById('titleFile').files[0];
 		localArchive.dataFiles = document.getElementById('dataFiles').files;
+		localArchive.mathIndexFile = document.getElementById('mathIndexFile').files[0];
+		localArchive.mathDataFile = document.getElementById('mathDataFile').files[0];
 		localArchive.language = "small";
 		localArchive.date = "2010-08-14";
 		
@@ -138,6 +144,19 @@ define(function (require) {
 				localArchive.readArticle(title, callbackArticleRead);
 			};
 			localArchive.getTitleByName("AIDS",callbackTitleList);
+		});
+		
+		asyncTest("check loading a math image", function(){
+			var callbackFunction = function(data) {
+				ok(data && data.length>0,"Image not empty");
+				// edb3069b82c68d270f6642c171cc6293.png should give a "1 1/2" formula (can be found in "Rational_number" article)
+				equal(data,
+						"iVBORw0KGgoAAAANSUhEUgAAABUAAAApBAMAAAAogX9zAAAAMFBMVEX///8AAADm5uZAQEDMzMwWFhYiIiIwMDBQUFCenp62trZiYmIMDAwEBASKiop0dHRvDVFEAAAAb0lEQVQY02NggAAmAwY4cE2AM9VNEWwG9oFhcxgKN9HJhYyCQCBApgs5jYMVYCKrGdgOwNgGDCzSMLYwA4MYjH2cgeEawjgWCQSbQwjBdpyAYMch2f4Awd7HwAVj8n1g4Iaxl+7e3Q1jXxQUlGMAAJkfGS29Qu04AAAAAElFTkSuQmCC",
+						"Math image corresponds to '1 1/2' png");
+				start();
+			};
+			
+			localArchive.loadMathImage("edb3069b82c68d270f6642c171cc6293", callbackFunction);
 		});
 	};
 });

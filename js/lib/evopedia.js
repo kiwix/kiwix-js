@@ -45,6 +45,47 @@ define(function(require) {
 		}
 		return out.join('');
 	}
+
+	/**
+	 * Convert a Uint8Array to a lowercase hex string.
+	 */
+	function uint8ArrayToHex(byteArray) {
+        var s = '';
+        var hexDigits = '0123456789abcdef';
+        for (var i = 0; i < byteArray.length; i ++) {
+            var v = byteArray[i];
+            s += hexDigits[(v & 0xff) >> 4];
+            s += hexDigits[v & 0xf];
+        }
+        return s;
+	}
+	
+	/**
+	 * Convert a Uint8Array to base64.
+	 */
+	function uint8ArrayToBase64(byteArray) {
+        var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        var bits, h1, h2, h3, h4, i = 0;
+        var enc = "";
+
+        for (i = 0; i < byteArray.length; ) {
+            bits = byteArray[i++] << 16;
+            bits |= byteArray[i++] << 8;
+            bits |= byteArray[i++];
+
+            h1 = bits >> 18 & 0x3f;
+            h2 = bits >> 12 & 0x3f;
+            h3 = bits >> 6 & 0x3f;
+            h4 = bits & 0x3f;
+
+            enc += b64[h1] + b64[h2] + b64[h3] + b64[h4];
+        }
+
+        var r = byteArray.length % 3;
+
+        return (r > 0 ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
+	}
+	
 	
 	/**
 	 * LocalArchive class : defines a wikipedia dump on the filesystem
@@ -53,6 +94,8 @@ define(function(require) {
 	function LocalArchive() {
 		this.dataFiles = new Array();
 		this.titleFile = null;
+		this.mathIndexFile = null;
+		this.mathDataFile = null;
 		// TODO to be replaced by the real archive attributes
 		this.date = "2013-03-14";
 		this.language = "zz";
@@ -111,6 +154,31 @@ define(function(require) {
 	};
 	
 	/**
+	 * Read the math files (math.idx and math.dat) in the given directory, and assign it to the
+	 * current LocalArchive
+	 * 
+	 * @param storage
+	 * @param directory
+	 */
+	LocalArchive.prototype.readMathFiles = function(storage, directory) {
+		var currentLocalArchiveInstance = this;
+		var filerequest1 = storage.get(directory + '/math.idx');
+		filerequest1.onsuccess = function() {
+			currentLocalArchiveInstance.mathIndexFile = filerequest1.result;
+		};
+		filerequest1.onerror = function(event) {
+			alert("error reading math index file in directory " + directory + " : " + event.target.error.name);
+		};
+		var filerequest2 = storage.get(directory + '/math.dat');
+		filerequest2.onsuccess = function() {
+			currentLocalArchiveInstance.mathDataFile = filerequest2.result;
+		};
+		filerequest2.onerror = function(event) {
+			alert("error reading math data file in directory " + directory + " : " + event.target.error.name);
+		};
+	};
+
+	/**
 	 * This function is recursively called after each asynchronous read, so that
 	 * to find the closest index in titleFile to the given prefix When found,
 	 * call the callbackFunction with the index
@@ -123,7 +191,7 @@ define(function(require) {
 	 */
 	LocalArchive.prototype.recursivePrefixSearch = function(reader, normalizedPrefix, lo, hi, callbackFunction) {
 		if (lo < hi-1 ) {
-			var mid = Math.round((lo+hi)/2);
+			var mid = Math.floor((lo+hi)/2);
 			// TODO : improve the way we read this file : 128 bytes is arbitrary and might be too small
 			var blob = this.titleFile.slice(mid,mid+128);
 			var currentLocalArchiveInstance = this;
@@ -394,6 +462,73 @@ define(function(require) {
 		// Read in the image file as a binary string.
 		reader.readAsArrayBuffer(blob);
 	};
+	
+    /**
+     * Load the math image specified by the hex string and call the
+     * callbackFunction with a base64 encoding of its data.
+     * 
+     * @param hexString
+     * @param callbackFunction
+     */
+	LocalArchive.prototype.loadMathImage = function(hexString, callbackFunction) {
+        var entrySize = 16 + 4 + 4;
+        var lo = 0;
+        var hi = this.mathIndexFile.size / entrySize;
+        
+        var mathDataFile = this.mathDataFile;
+
+        this.findMathDataPosition(hexString, lo, hi, function(pos, length) {
+            var reader = new FileReader();
+            reader.onerror = errorHandler;
+            reader.onabort = function(e) {
+                alert('Math image file read cancelled');
+            };
+            var blob = mathDataFile.slice(pos, pos + length);
+            reader.onload = function(e) {
+                var byteArray = new Uint8Array(e.target.result);
+                callbackFunction(uint8ArrayToBase64(byteArray));
+            };
+            reader.readAsArrayBuffer(blob);
+        });
+    }
+
+	/**
+	 * Recursive algorithm to find the position of the Math image in the data file
+	 */
+    LocalArchive.prototype.findMathDataPosition = function(hexString, lo, hi, callbackFunction) {
+        var entrySize = 16 + 4 + 4;
+		if (lo >= hi) {
+            /* TODO error - not found */
+            return;
+        }
+        var reader = new FileReader();
+		reader.onerror = errorHandler;
+		reader.onabort = function(e) {
+			alert('Math image file read cancelled');
+		};
+        var mid = Math.floor((lo+hi)/2);
+        var blob = this.mathIndexFile.slice(mid * entrySize, (mid + 1) * entrySize);
+        var currentLocalArchiveInstance = this;
+        reader.onload = function(e) {
+            var byteArray = new Uint8Array(e.target.result);
+            var hash = uint8ArrayToHex(byteArray.subarray(0, 16));
+            if (hash == hexString) {
+                var pos = readIntegerFrom4Bytes(byteArray, 16);
+                var length = readIntegerFrom4Bytes(byteArray, 16 + 4);
+                callbackFunction(pos, length);
+                return;
+            } else if (hexString < hash) {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+
+            currentLocalArchiveInstance.findMathDataPosition(hexString, lo, hi, callbackFunction);
+        };		
+        // Read the file as a binary string
+        reader.readAsArrayBuffer(blob);		
+	};
+
 	
 	/**
 	 * Resolve the redirect of the given title instance, and call the callbackFunction with the redirected Title instance

@@ -12,6 +12,7 @@ The original application is at http://www.evopedia.info/
 It uses wikipedia dumps located at http://dumpathome.evopedia.info/dumps/finished
 
 Author : Mossroy - mossroy@free.fr
+Math image algorithm contributed by christian@evopedia.info
 
 License:
 
@@ -57,13 +58,16 @@ License:
 	<li>Some searches (for example with prefix "a" on the French dump) do not give any result even if they should</li>
 	<li>In some cases, the links inside an article do not work, or do not lead to the right article</li>
 	<li>It is not easy to use on the Peak device from Geeksphone because the buttons and inputs are too small</li>
-	<li>Some features of the original application still have to be implemented : in particular geolocation of articles and math formulas</li>
+	<li>Some features of the original application still have to be implemented : in particular geolocation of articles</li>
 	</ul>
 	</div>
 	<div id="openLocalFiles" style="display: none;">
 		<br /> Please select the file titles.idx :<br /> <input type="file"
 			id="titleFile" /><br /> Please select the files wikipedia_*.dat
 		from the same dump :<br /> <input type="file" id="dataFiles" multiple />
+		<br /> Please select the file math.idx from the same dump:<br /> <input type="file"
+        id="mathIndexFile" /><br /> Please select the file math.dat from the
+        same dump:<br /> <input type="file" id="mathDataFile" /><br />
 	</div>
 	<div id="scanningForArchives" style="display: none;">
 		<br /> Scanning your sdcard for archives... Please wait <img src="img/spinner.gif" />
