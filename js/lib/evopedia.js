@@ -423,8 +423,11 @@ define(function(require) {
 				var compressedArticles = e.target.result;
 				var htmlArticles;
 				try {
+					//var startTime = new Date();
 					htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(
 							compressedArticles)));
+					//var endTime = new Date();
+					//console.log("Time elapsed in bzip2 decompression of article " + title.name + " : " + (endTime - startTime) + " ms");
 				} catch (e) {
 					// TODO : there must be a better way to differentiate real exceptions
 					// and exceptions due to the fact that the article is too long to fit in the chunk
