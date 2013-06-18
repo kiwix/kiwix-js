@@ -201,6 +201,7 @@ define(function(require) {
 		$('#articleContent').html(htmlArticle);
 		
 		// Convert links into javascript calls
+		var regex = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
 		$('#articleContent').find('a').each(function(){
 			// Store current link's url
 			var url = $(this).attr("href");
@@ -212,7 +213,10 @@ define(function(require) {
 				// It's an external link : do nothing
 			}
 			else if (url.substring(0,2) === ".." || url.substring(0,4) === "./..") {
-				// It's a link to another language : TODO redirect to the online article?
+				// It's a link to another language : change the URL to the online version of wikipedia
+				// The regular expression extracts $1 as the language, and $2 as the title name
+				var onlineWikipediaUrl = url.replace(regex, "https://$1.wikipedia.org/wiki/$2");
+				$(this).attr("href",onlineWikipediaUrl);
 			}
 			else {
 				// It's a link to another article : add an onclick event to go to this article
