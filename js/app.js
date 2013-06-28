@@ -104,15 +104,15 @@ define(function(require) {
 	 * Sets the localArchive from the File selects populated by user
 	 */
 	function setLocalArchiveFromFileSelect() {
-		dataFiles=document.getElementById('dataFiles').files;
-		titleFile=document.getElementById('titleFile').files[0];
-		mathIndexFile=document.getElementById('mathIndexFile').files[0];
-		mathDataFile=document.getElementById('mathDataFile').files[0];
+		var dataFiles=document.getElementById('dataFiles').files;
+		var titleFile=document.getElementById('titleFile').files[0];
+		var mathIndexFile=document.getElementById('mathIndexFile').files[0];
+		var mathDataFile=document.getElementById('mathDataFile').files[0];
 		localArchive = new evopedia.LocalArchive();
 		localArchive.dataFiles = dataFiles;
 		localArchive.titleFile = titleFile;
-        localArchive.mathIndexFile = mathIndexFile;
-        localArchive.mathDataFile = mathDataFile;
+                localArchive.mathIndexFile = mathIndexFile;
+                localArchive.mathDataFile = mathDataFile;
 	}
 
 	/**
