@@ -5,7 +5,7 @@ define(function(require) {
 	var bzip2 = require('bzip2');
 	
 	// Size of chunks read in the dump files : 128 KB
-	const CHUNK_SIZE = 131072; 
+	var CHUNK_SIZE = 131072; 
 	
 	/**
 	 * Read an integer encoded in 4 bytes
