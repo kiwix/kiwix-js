@@ -21,30 +21,30 @@ define(function(require) {
         return byteArray[firstIndex] + byteArray[firstIndex + 1] * 256;
     }
 
-    /**
-     * Converts a UTF-8 byte array to JavaScript's 16-bit Unicode.
-     * @param {Array.<number>} bytes UTF-8 byte array.
-     * @return {string} 16-bit Unicode string.
-     * Copied from http://closure-library.googlecode.com/svn/docs/closure_goog_crypt.js.source.html (Apache License 2.0)
-     */
-    function utf8ByteArrayToString(bytes, startIndex, endIndex) {
-        var out = [], pos = startIndex, c = 0;
-        while (pos < bytes.length && pos < endIndex) {
-            var c1 = bytes[pos++];
-            if (c1 < 128) {
-                out[c++] = String.fromCharCode(c1);
-            } else if (c1 > 191 && c1 < 224) {
-                var c2 = bytes[pos++];
-                out[c++] = String.fromCharCode((c1 & 31) << 6 | c2 & 63);
-            } else {
-                var c2 = bytes[pos++];
-                var c3 = bytes[pos++];
-                out[c++] = String.fromCharCode(
-                        (c1 & 15) << 12 | (c2 & 63) << 6 | c3 & 63);
+    var utf8 = {}
+
+    utf8.toByteArray = function(str) {
+        var byteArray = [];
+        for (var i = 0; i < str.length; i++)
+            if (str.charCodeAt(i) <= 0x7F)
+                byteArray.push(str.charCodeAt(i));
+            else {
+                var h = encodeURIComponent(str.charAt(i)).substr(1).split('%');
+                for (var j = 0; j < h.length; j++)
+                    byteArray.push(parseInt(h[j], 16));
             }
-        }
-        return out.join('');
-    }
+        return byteArray;
+    };
+
+    utf8.parse = function(byteArray) {
+        var str = '';
+        for (var i = 0; i < byteArray.length; i++)
+            str += byteArray[i] <= 0x7F ?
+                    byteArray[i] === 0x25 ? "%25" : // %
+                    String.fromCharCode(byteArray[i]) :
+                    "%" + byteArray[i].toString(16).toUpperCase();
+        return decodeURIComponent(str);
+    };
 
     /**
      * Convert a Uint8Array to a lowercase hex string.
@@ -218,12 +218,17 @@ define(function(require) {
                     hi = mid;
                 }
                 else {
-                    var normalizedTitle = remove_diacritics.normalizeString(utf8ByteArrayToString(byteArray, startIndex, newLineIndex));
-                    if (normalizedTitle < normalizedPrefix) {
+                    var normalizedTitle =
+                            remove_diacritics.normalizeString(utf8.parse(byteArray.subarray(startIndex,
+                            newLineIndex)));
+                    var comparison =
+                            arrayCompare(utf8.toByteArray(normalizedTitle),
+                            utf8.toByteArray(normalizedPrefix));
+                    if (comparison < 0) {
                         lo = mid + newLineIndex - 1;
                     }
                     else {
-                        hi = mid;
+                            hi = mid;
                     }
                 }
                 currentLocalArchiveInstance.recursivePrefixSearch(reader, normalizedPrefix, lo, hi, callbackFunction);
@@ -241,6 +246,34 @@ define(function(require) {
             callbackFunction(lo);
         }
     };
+    
+    function arrayCompare(array1, array2) {
+        if (array1 == undefined || array1.length == 0) {
+            if (array2 == undefined || array2.length == 0) {
+                return 0;
+            }
+            else {
+                return -1;
+            }
+        }
+        if (array2 == undefined || array2.length == 0) {
+            return 1;
+        }
+        for (var i = 0; i < array1.length; i++) {
+            if (i > array2.length) {
+                return 1;
+            }
+            else {
+                if (array1[i] < array2[i]) {
+                    return -1;
+                }
+                if (array1[i] > array2[i]) {
+                    return 1;
+                }
+            }
+        }
+        return 0;
+    }
 
     /**
      * Look for a title in the title file at the given offset, and call the callbackFunction with this Title
@@ -686,7 +719,7 @@ define(function(require) {
         if (len > 15 && encodedTitle[len - 1] == '\n') {
             len--;
         }
-        return utf8ByteArrayToString(encodedTitle, 15, len);
+        return utf8.parse(encodedTitle.subarray(15, len));
     };
 
     /**
@@ -746,7 +779,7 @@ define(function(require) {
      */
     return {
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
-        utf8ByteArrayToString: utf8ByteArrayToString,
+        utf8: utf8,
         LocalArchive: LocalArchive,
         Title: Title
     };
