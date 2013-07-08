@@ -228,7 +228,14 @@ define(function(require) {
                         lo = mid + newLineIndex - 1;
                     }
                     else {
+                        if (comparison > 0) {
                             hi = mid;
+                        }
+                        else {
+                            // We found the exact title
+                            callbackFunction(mid + startIndex - 15);
+                            return;
+                        }
                     }
                 }
                 currentLocalArchiveInstance.recursivePrefixSearch(reader, normalizedPrefix, lo, hi, callbackFunction);
