@@ -3,6 +3,7 @@ define(function(require) {
     // Module dependencies
     var remove_diacritics = require('remove_diacritics');
     var bzip2 = require('bzip2');
+    var utf8 = require('utf8');
 
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
@@ -20,31 +21,6 @@ define(function(require) {
     function readIntegerFrom2Bytes(byteArray, firstIndex) {
         return byteArray[firstIndex] + byteArray[firstIndex + 1] * 256;
     }
-
-    var utf8 = {}
-
-    utf8.toByteArray = function(str) {
-        var byteArray = [];
-        for (var i = 0; i < str.length; i++)
-            if (str.charCodeAt(i) <= 0x7F)
-                byteArray.push(str.charCodeAt(i));
-            else {
-                var h = encodeURIComponent(str.charAt(i)).substr(1).split('%');
-                for (var j = 0; j < h.length; j++)
-                    byteArray.push(parseInt(h[j], 16));
-            }
-        return byteArray;
-    };
-
-    utf8.parse = function(byteArray) {
-        var str = '';
-        for (var i = 0; i < byteArray.length; i++)
-            str += byteArray[i] <= 0x7F ?
-                    byteArray[i] === 0x25 ? "%25" : // %
-                    String.fromCharCode(byteArray[i]) :
-                    "%" + byteArray[i].toString(16).toUpperCase();
-        return decodeURIComponent(str);
-    };
 
     /**
      * Convert a Uint8Array to a lowercase hex string.
@@ -201,7 +177,7 @@ define(function(require) {
                 var byteArray = new Uint8Array(binaryTitleFile);
                 // Look for the index of the next NewLine
                 var newLineIndex = 0;
-                while (newLineIndex < byteArray.length && byteArray[newLineIndex] != 10) {
+                while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
                     newLineIndex++;
                 }
                 var startIndex = 0;
@@ -209,11 +185,11 @@ define(function(require) {
                     startIndex = newLineIndex + 16;
                     newLineIndex = startIndex;
                     // Look for the index of the next NewLine	
-                    while (newLineIndex < byteArray.length && byteArray[newLineIndex] != 10) {
+                    while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
                         newLineIndex++;
                     }
                 }
-                if (newLineIndex == startIndex) {
+                if (newLineIndex === startIndex) {
                     // End of file reached
                     hi = mid;
                 }
@@ -221,14 +197,11 @@ define(function(require) {
                     var normalizedTitle =
                             remove_diacritics.normalizeString(utf8.parse(byteArray.subarray(startIndex,
                             newLineIndex)));
-                    var comparison =
-                            arrayCompare(utf8.toByteArray(normalizedTitle),
-                            utf8.toByteArray(normalizedPrefix));
-                    if (comparison < 0) {
+                    if (normalizedTitle < normalizedPrefix) {
                         lo = mid + newLineIndex - 1;
                     }
                     else {
-                        if (comparison > 0) {
+                        if (normalizedTitle !== normalizedPrefix) {
                             hi = mid;
                         }
                         else {
@@ -253,34 +226,6 @@ define(function(require) {
             callbackFunction(lo);
         }
     };
-    
-    function arrayCompare(array1, array2) {
-        if (array1 == undefined || array1.length == 0) {
-            if (array2 == undefined || array2.length == 0) {
-                return 0;
-            }
-            else {
-                return -1;
-            }
-        }
-        if (array2 == undefined || array2.length == 0) {
-            return 1;
-        }
-        for (var i = 0; i < array1.length; i++) {
-            if (i > array2.length) {
-                return 1;
-            }
-            else {
-                if (array1[i] < array2[i]) {
-                    return -1;
-                }
-                if (array1[i] > array2[i]) {
-                    return 1;
-                }
-            }
-        }
-        return 0;
-    }
 
     /**
      * Look for a title in the title file at the given offset, and call the callbackFunction with this Title
@@ -785,8 +730,6 @@ define(function(require) {
      * Functions and classes exposed by this module
      */
     return {
-        readIntegerFrom4Bytes: readIntegerFrom4Bytes,
-        utf8: utf8,
         LocalArchive: LocalArchive,
         Title: Title
     };
