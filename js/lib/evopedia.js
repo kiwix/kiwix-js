@@ -1,7 +1,7 @@
 define(function(require) {
 
     // Module dependencies
-    var remove_diacritics = require('remove_diacritics');
+    var normalize_string = require('normalize_string');
     var bzip2 = require('bzip2');
     var utf8 = require('utf8');
 
@@ -195,20 +195,13 @@ define(function(require) {
                 }
                 else {
                     var normalizedTitle =
-                            remove_diacritics.normalizeString(utf8.parse(byteArray.subarray(startIndex,
+                            normalize_string.normalizeString(utf8.parse(byteArray.subarray(startIndex,
                             newLineIndex)));
                     if (normalizedTitle < normalizedPrefix) {
                         lo = mid + newLineIndex - 1;
                     }
                     else {
-                        if (normalizedTitle !== normalizedPrefix) {
-                            hi = mid;
-                        }
-                        else {
-                            // We found the exact title
-                            callbackFunction(mid + startIndex - 15);
-                            return;
-                        }
+                        hi = mid;
                     }
                 }
                 currentLocalArchiveInstance.recursivePrefixSearch(reader, normalizedPrefix, lo, hi, callbackFunction);
@@ -298,7 +291,7 @@ define(function(require) {
             alert('Title file read cancelled');
         };
         var currentLocalArchiveInstance = this;
-        var normalizedTitleName = remove_diacritics.normalizeString(titleName);
+        var normalizedTitleName = normalize_string.normalizeString(titleName);
         this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
             currentLocalArchiveInstance.getTitleAtOffset(titleOffset, callbackFunction);
         });
@@ -320,7 +313,7 @@ define(function(require) {
     LocalArchive.prototype.findTitlesWithPrefix = function(prefix, callbackFunction) {
         var titleFileSize = this.titleFile.size;
         if (prefix) {
-            prefix = remove_diacritics.normalizeString(prefix);
+            prefix = normalize_string.normalizeString(prefix);
         }
 
         var reader = new FileReader();
@@ -329,14 +322,14 @@ define(function(require) {
             alert('Title file read cancelled');
         };
         var currentLocalArchiveInstance = this;
-        var normalizedPrefix = remove_diacritics.normalizeString(prefix);
+        var normalizedPrefix = normalize_string.normalizeString(prefix);
         this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
             currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, function(titleList) {
                 // Keep only the titles with names starting with the prefix
                 var i = 0;
                 for (i = 0; i < titleList.length; i++) {
                     var titleName = titleList[i].name;
-                    var normalizedTitleName = remove_diacritics.normalizeString(titleName);
+                    var normalizedTitleName = normalize_string.normalizeString(titleName);
                     if (normalizedTitleName.length < normalizedPrefix.length || normalizedTitleName.substring(0, normalizedPrefix.length) != normalizedPrefix) {
                         break;
                     }
