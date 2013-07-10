@@ -205,8 +205,16 @@ define(function(require) {
         $('#articleContent').find('a').each(function() {
             // Store current link's url
             var url = $(this).attr("href");
+            var cssClass = $(this).attr("class");
 
-            if (url.slice(0, 1) == "#") {
+            if (cssClass === "new") {
+                // It's a link to a missing article : display a message
+                $(this).on('click', function(e) {
+                    alert("Missing article in Wikipedia");
+                    return false;
+                });
+            }
+            else if (url.slice(0, 1) === "#") {
                 // It's an anchor link : do nothing
             }
             else if (url.substring(0, 4) === "http") {
@@ -221,8 +229,11 @@ define(function(require) {
             else {
                 // It's a link to another article : add an onclick event to go to this article
                 // instead of following the link
+                if (url.length>=2 && url.substring(0, 2) === "./") {
+                    url = url.substring(2,url.length-2);
+                }
                 $(this).on('click', function(e) {
-                    var titleName = decodeURIComponent($(this).attr("href"));
+                    var titleName = decodeURIComponent(url);
                     pushBrowserHistoryState(titleName);
                     goToArticle(titleName);
                     return false;
