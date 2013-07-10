@@ -230,7 +230,7 @@ define(function(require) {
                 // It's a link to another article : add an onclick event to go to this article
                 // instead of following the link
                 if (url.length>=2 && url.substring(0, 2) === "./") {
-                    url = url.substring(2,url.length-2);
+                    url = url.substring(2);
                 }
                 $(this).on('click', function(e) {
                     var titleName = decodeURIComponent(url);
