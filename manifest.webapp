@@ -13,7 +13,6 @@
     "url": "https://github.com/mossroy"
   },
   "installs_allowed_from": ["*"],
-  "appcache_path": "/cache.manifest",
   "locales": {
     "fr": {
       "description": "Lecteur Wikipedia hors-connexion"
