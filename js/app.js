@@ -31,7 +31,12 @@ define(function(require) {
     $('#prefix').on('keyup', function(e) {
         onKeyUpPrefix(e);
     });
-
+    $('#btnBack').on('click', function(e) {
+        history.back();
+    });
+    $('#btnForward').on('click', function(e) {
+        history.forward();
+    });
 
     // Detect if DeviceStorage is available
     var storage = null;

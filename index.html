@@ -33,6 +33,7 @@
         -->
 
         <link rel="stylesheet" href="css/mediawiki-main.css">
+        <link rel="stylesheet" href="css/app.css">
     </head>
     <body>
         <h1>Evopedia</h1>
@@ -79,15 +80,20 @@
         <input type="text" id="prefix" value="" />&nbsp;
         <input type="button" id="searchTitles" value="Search titles" />
         <img id="searchingForTitles" src="img/spinner.gif"  style="display: none;"/>
-        <br /> Choose a title from the filtered list :
+        <br /><br /> Choose a title from the filtered list :
         <select id="titleList"></select>
+        <br />
         <br />
         <input type="button" id="readData" value="Read article from dump" />
         <div id="readingArticle" style="display: none;">
             Reading article <span id="articleName"></span> from dump... Please wait <img src="img/spinner.gif" />
         </div>
         <div id="articleContent">&nbsp;</div>
-        <hr />
+        <br />
+        <div id="navigationButtons">
+            <input type="button" id="btnBack" value="Back"/>
+            <input type="button" id="btnForward" value="Forward"/>
+        </div>
 
         <!-- Using require.js, a module system for javascript, include the
              js files. This loads "main.js", which in turn can load other

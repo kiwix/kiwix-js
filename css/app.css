@@ -1,50 +1,17 @@
-/* Colors and the rest of appearance properties are defined in this file.
-We've added a few sample properties to get you started */
-
-* {
-    padding: 0;
-    margin: 0;
-    -moz-box-sizing: border-box;
-}
+/* Main CSS of the application */
 
 body {
+    /* Reset base size */
+    font-size: 16px;
+
+    /* Set font size relative to base size */
+    font-size: 1.4rem;
+
+    /* Remove spacing to avoid losing borders around the screen*/
     margin: 0;
-    font-family: sans-serif;
-    line-height: 1.6;
-    background: #fefefe;
+} 
 
-}
-
-h1 {
-    background: #444545;
-    color: #fff;
-    padding: 0.75rem 0.5rem;
-    text-shadow: 2px 2px 1px #111;
-    font-weight: normal;
-    border-bottom: 1px solid #444;
-}
-
-#content {
-    border-top: 1px solid #993;
-    padding: 1rem 0.5rem;
-}
-
-p {
-    margin: 1rem 0;
-}
-
-button {
-    height: 3.8rem;
-    margin: 0 0 1rem;
-    padding: 0 1.5rem;
-    background: #fafafa;
-    border: 0.1rem solid #a6a6a6;
-    border-radius: 0.2rem;
-    font-size: 1.6rem;
-    line-height: 3.8rem;
-    color: #333;
-    text-align: center;
-    text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-    text-decoration: none;
-    outline: none;
+input[type=text], textarea, select, input[type=button], input[type=file] {
+    /* Set font size in form elements too */
+    font-size: 1.3rem;
 }
