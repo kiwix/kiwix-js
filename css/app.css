@@ -1,17 +1,6 @@
 /* Main CSS of the application */
 
 body {
-    /* Reset base size */
-    font-size: 16px;
-
-    /* Set font size relative to base size */
-    font-size: 1.4rem;
-
     /* Remove spacing to avoid losing borders around the screen*/
     margin: 0;
 } 
-
-input[type=text], textarea, select, input[type=button], input[type=file] {
-    /* Set font size in form elements too */
-    font-size: 1.3rem;
-}
