@@ -89,9 +89,10 @@ define(function(require) {
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
         localArchive = new evopedia.LocalArchive();
-        localArchive.readTitleFile(storage, archiveDirectory);
-        localArchive.readDataFiles(storage, archiveDirectory, 0);
-        localArchive.readMathFiles(storage, archiveDirectory);
+        localArchive.readTitleFileFromStorage(storage, archiveDirectory);
+        localArchive.readDataFilesFromStorage(storage, archiveDirectory, 0);
+        localArchive.readMathFilesFromStorage(storage, archiveDirectory);
+        localArchive.readMetadataFileFromStorage(storage, archiveDirectory);
     }
 
     /**
@@ -103,6 +104,7 @@ define(function(require) {
         $('#titleFile').on('change', setLocalArchiveFromFileSelect);
         $('#mathIndexFile').on('change', setLocalArchiveFromFileSelect);
         $('#mathDataFile').on('change', setLocalArchiveFromFileSelect);
+        $('#metadataFile').on('change', setLocalArchiveFromFileSelect);
     }
 
     /**
@@ -113,11 +115,13 @@ define(function(require) {
         var titleFile = document.getElementById('titleFile').files[0];
         var mathIndexFile = document.getElementById('mathIndexFile').files[0];
         var mathDataFile = document.getElementById('mathDataFile').files[0];
+        var metadataFile = document.getElementById('metadataFile').files[0];
         localArchive = new evopedia.LocalArchive();
         localArchive.dataFiles = dataFiles;
         localArchive.titleFile = titleFile;
         localArchive.mathIndexFile = mathIndexFile;
         localArchive.mathDataFile = mathDataFile;
+        localArchive.readMetadataFile(metadataFile);
     }
 
     /**
@@ -205,11 +209,15 @@ define(function(require) {
         // Display the article inside the web page.		
         $('#articleContent').html(htmlArticle);
 
+        // Compile the regular expressions needed to modify links
+        var regexOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
+        var regexImageLink = /^.?\/?[^:]+:(.*)/;
+        
         // Convert links into javascript calls
-        var regex = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
         $('#articleContent').find('a').each(function() {
             // Store current link's url
             var url = $(this).attr("href");
+            var lowerCaseUrl = url.toLowerCase();
             var cssClass = $(this).attr("class");
 
             if (cssClass === "new") {
@@ -225,10 +233,19 @@ define(function(require) {
             else if (url.substring(0, 4) === "http") {
                 // It's an external link : do nothing
             }
-            else if (url.substring(0, 2) === ".." || url.substring(0, 4) === "./..") {
+            else if (url.match(regexOtherLanguage)) {
                 // It's a link to another language : change the URL to the online version of wikipedia
                 // The regular expression extracts $1 as the language, and $2 as the title name
-                var onlineWikipediaUrl = url.replace(regex, "https://$1.wikipedia.org/wiki/$2");
+                var onlineWikipediaUrl = url.replace(regexOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
+                $(this).attr("href", onlineWikipediaUrl);
+            }
+            else if (url.match(regexImageLink)
+                && (evopedia.endsWith(lowerCaseUrl, ".png")
+                    || evopedia.endsWith(lowerCaseUrl, ".svg")
+                    || evopedia.endsWith(lowerCaseUrl, ".jpg")
+                    || evopedia.endsWith(lowerCaseUrl, ".jpeg"))) {
+                // It's a link to a file of wikipedia : change the URL to the online version
+                var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+localArchive.language+".wikipedia.org/wiki/File:$1");
                 $(this).attr("href", onlineWikipediaUrl);
             }
             else {

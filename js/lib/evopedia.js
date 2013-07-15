@@ -72,11 +72,9 @@ define(function(require) {
         this.titleFile = null;
         this.mathIndexFile = null;
         this.mathDataFile = null;
-        // TODO to be replaced by the real archive attributes
-        this.date = "2013-03-14";
-        this.language = "zz";
-    }
-    ;
+        this.date = null;
+        this.language = null;
+    };
 
 
     /**
@@ -86,7 +84,7 @@ define(function(require) {
      * @param storage
      * @param directory
      */
-    LocalArchive.prototype.readTitleFile = function(storage, directory) {
+    LocalArchive.prototype.readTitleFileFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
         var filerequest = storage.get(directory + '/titles.idx');
         filerequest.onsuccess = function() {
@@ -105,7 +103,7 @@ define(function(require) {
      * @param directory
      * @param index
      */
-    LocalArchive.prototype.readDataFiles = function(storage, directory, index) {
+    LocalArchive.prototype.readDataFilesFromStorage = function(storage, directory, index) {
         var currentLocalArchiveInstance = this;
 
         var prefixedFileNumber = "";
@@ -118,7 +116,7 @@ define(function(require) {
                 + '.dat');
         filerequest.onsuccess = function() {
             currentLocalArchiveInstance.dataFiles[index] = filerequest.result;
-            currentLocalArchiveInstance.readDataFiles(storage, directory,
+            currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
                     index + 1);
         };
         filerequest.onerror = function(event) {
@@ -129,6 +127,43 @@ define(function(require) {
             }
         };
     };
+    
+    /**
+     * Read the metadata.txt file in the given directory, and store its content
+     * in the current instance
+     * 
+     * @param storage
+     * @param directory
+     */
+    LocalArchive.prototype.readMetadataFileFromStorage = function(storage, directory) {
+        var currentLocalArchiveInstance = this;
+
+        var filerequest = storage.get(directory + '/metadata.txt');
+        filerequest.onsuccess = function() {
+            var metadataFile = filerequest.result;
+            currentLocalArchiveInstance.readMetadataFile(metadataFile);
+        };
+        filerequest.onerror = function(event) {
+            alert("error reading metadata.txt file in directory "
+                        + directory + " : " + event.target.error.name);
+        };
+    };
+    
+    /**
+     * Read the metadata file, in order to populate its values in the current
+     * instance
+     * @param {File} file metadata.txt file
+     */
+    LocalArchive.prototype.readMetadataFile = function(file) {
+        var currentLocalArchiveInstance = this;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var metadata = e.target.result;
+            currentLocalArchiveInstance.language = /\nlanguage ?\= ?([^ \n]+)/.exec(metadata)[1];
+            currentLocalArchiveInstance.date = /\ndate ?\= ?([^ \n]+)/.exec(metadata)[1];
+        };
+        reader.readAsText(file);
+    };
 
     /**
      * Read the math files (math.idx and math.dat) in the given directory, and assign it to the
@@ -137,7 +172,7 @@ define(function(require) {
      * @param storage
      * @param directory
      */
-    LocalArchive.prototype.readMathFiles = function(storage, directory) {
+    LocalArchive.prototype.readMathFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
         var filerequest1 = storage.get(directory + '/math.idx');
         filerequest1.onsuccess = function() {
@@ -724,6 +759,7 @@ define(function(require) {
      */
     return {
         LocalArchive: LocalArchive,
-        Title: Title
+        Title: Title,
+        endsWith : endsWith
     };
 });

@@ -34,8 +34,8 @@ define(function(require) {
         localArchive.dataFiles = document.getElementById('dataFiles').files;
         localArchive.mathIndexFile = document.getElementById('mathIndexFile').files[0];
         localArchive.mathDataFile = document.getElementById('mathDataFile').files[0];
-        localArchive.language = "small";
-        localArchive.date = "2010-08-14";
+        var metadataFile = document.getElementById('metadataFile').files[0];
+        localArchive.readMetadataFile(metadataFile);
 
         module("evopedia");
         asyncTest("check getTitlesStartingAtOffset 0", function() {
