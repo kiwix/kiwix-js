@@ -22,20 +22,20 @@ define(function(require) {
     $('#searchTitles').on('click', function(e) {
         searchTitlesFromPrefix($('#prefix').val());
     });
-    $('#readData').on('click', function(e) {
-        var titleId = $('#titleList').val();
-        findTitleFromTitleIdAndLaunchArticleRead(titleId);
-        var title = evopedia.Title.parseTitleId(localArchive, titleId);
-        pushBrowserHistoryState(title.name);
+    $('#formTitleSearch').on('submit', function(e) {
+        document.getElementById("searchTitles").click();
+        return false;
     });
     $('#prefix').on('keyup', function(e) {
         onKeyUpPrefix(e);
     });
     $('#btnBack').on('click', function(e) {
         history.back();
+        return false;
     });
     $('#btnForward').on('click', function(e) {
         history.forward();
+        return false;
     });
 
     // Detect if DeviceStorage is available
@@ -125,14 +125,16 @@ define(function(require) {
     }
 
     /**
-     * Handle Enter key in the prefix input zone
+     * Handle key input in the prefix input zone
      */
     function onKeyUpPrefix(evt) {
-        if (evt.keyCode == 13) {
-            document.getElementById("searchTitles").click();
+        // Use a timeout, so that very quick typing does not cause a lot of overhead
+        // It is also necessary for the words suggestions to work inside Firefox OS
+        if(window.timeoutKeyUpPrefix) {
+            window.clearTimeout(window.timeoutKeyUpPrefix);
         }
+        window.timeoutKeyUpPrefix = window.setTimeout("document.getElementById('searchTitles').click()",500);
     }
-
 
 
     /**
@@ -141,25 +143,47 @@ define(function(require) {
      */
     function searchTitlesFromPrefix(prefix) {
         $('#searchingForTitles').show();
+        $('#articleContent').empty();
         if (localArchive.titleFile) {
-            localArchive.findTitlesWithPrefix(prefix.trim(), populateDropDownListOfTitles);
+            localArchive.findTitlesWithPrefix(prefix.trim(), populateListOfTitles);
         } else {
             alert("Title file not set");
         }
     }
 
+  
     /**
-     * Populate the drop-down list of titles with the given list
+     * Display the list of titles with the given array of titles
      */
-    function populateDropDownListOfTitles(titleList) {
-        var comboTitleList = document.getElementById('titleList');
+    function populateListOfTitles(titleArray) {
+        var titleListUl = $('#titleList');
         // Remove previous results
-        comboTitleList.options.length = 0;
-        for (var i = 0; i < titleList.length; i++) {
-            var title = titleList[i];
-            comboTitleList.options[i] = new Option(title.name, title.toStringId());
+        titleListUl.empty();
+        for (var i = 0; i < titleArray.length; i++) {
+            var title = titleArray[i];
+            var titleLi = document.createElement('li');
+            var titleA = document.createElement('a');
+            titleA.setAttribute("titleId", title.toStringId());
+            $(titleA).append(title.name);
+            $(titleA).on("click",handleTitleClick);
+            $(titleLi).append(titleA);
+            titleListUl.append(titleLi);
         }
         $('#searchingForTitles').hide();
+    }
+    
+    
+    /**
+     * Handles the click on a title
+     * @param {type} event
+     * @returns {undefined}
+     */
+    function handleTitleClick(event) {
+        var titleId = event.target.getAttribute("titleId");
+        $("#titleList").empty();
+        findTitleFromTitleIdAndLaunchArticleRead(titleId);
+        var title = evopedia.Title.parseTitleId(localArchive, titleId);
+        pushBrowserHistoryState(title.name);
     }
 
 

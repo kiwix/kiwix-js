@@ -82,27 +82,26 @@
             <br /> Please select the archive you want to use : <select id="archiveList"></select>
         </div>
         <br />
-        <form class="form-search">
+        <form id="formTitleSearch" class="form-search">
             <div class="input-append">
                 <input type="text" id="prefix" value="" placeholder="Find titles starting with..." class="input-medium search-query"/>&nbsp;
                 <a class="btn" id="searchTitles" href="#"><i class="icon-search"></i></a>
             </div>
             <img id="searchingForTitles" src="img/spinner.gif"  style="display: none;"/>
         </form>
-        <br /> Choose a title from the filtered list :
-        <select id="titleList"></select>
+        <!-- List of articles matching the typed prefix -->
+        <ul id="titleList">
+        </ul>
         <br />
-        <br />
-        <input type="button" id="readData" value="Read article from dump" class="btn"/>
         <div id="readingArticle" style="display: none;">
             Reading article <span id="articleName"></span> from dump... Please wait <img src="img/spinner.gif" />
         </div>
         <div id="articleContent">&nbsp;</div>
         <br />
         <div id="navigationButtons" class="btn-toolbar">
-             <a class="btn" id="btnBack" href="#"><i class="icon-arrow-left"></i></a>
-             <a class="btn" id="btnForward" href="#"><i class="icon-arrow-right"></i></a>
-             <a class="btn" id="btnAbout" href="#"><i class="icon-question-sign"></i></a>
+             <a class="btn" id="btnBack"><i class="icon-arrow-left"></i></a>
+             <a class="btn" id="btnForward"><i class="icon-arrow-right"></i></a>
+             <a class="btn" id="btnAbout"><i class="icon-question-sign"></i></a>
         </div>
 
         <!-- Using require.js, a module system for javascript, include the
