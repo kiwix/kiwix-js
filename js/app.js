@@ -16,8 +16,11 @@ define(function(require) {
 
     // Define behavior of HTML elements
     $('#about').hide();
-    $('#showHideAbout').on('click', function(e) {
+    $('#btnAbout').on('click', function(e) {
         $('#about').toggle();
+    });
+    $('#btnConfigure').on('click', function(e) {
+        $('#configuration').toggle();
     });
     $('#searchTitles').on('click', function(e) {
         searchTitlesFromPrefix($('#prefix').val());
@@ -53,12 +56,19 @@ define(function(require) {
         // If DeviceStorage is not available, we display the file select components
         displayFileSelect();
         setLocalArchiveFromFileSelect();
+        if (localArchive.dataFiles.length>0) {
+            // Hide the configuration elements if already set
+            $('#configuration').hide();
+        }
     }
+    
 
     // Display the article when the user goes back in the browser history
     window.onpopstate = function(event) {
-        var titleName = event.state.titleName;
-        goToArticle(titleName);
+        if (event.state) {
+            var titleName = event.state.titleName;
+            goToArticle(titleName);
+        }
     };
 
     /**
@@ -143,6 +153,7 @@ define(function(require) {
      */
     function searchTitlesFromPrefix(prefix) {
         $('#searchingForTitles').show();
+        $('#configuration').hide();
         $('#articleContent').empty();
         if (localArchive.titleFile) {
             localArchive.findTitlesWithPrefix(prefix.trim(), populateListOfTitles);
@@ -164,6 +175,7 @@ define(function(require) {
             var titleLi = document.createElement('li');
             var titleA = document.createElement('a');
             titleA.setAttribute("titleId", title.toStringId());
+            titleA.setAttribute("href", "#");
             $(titleA).append(title.name);
             $(titleA).on("click",handleTitleClick);
             $(titleLi).append(titleA);
@@ -184,6 +196,7 @@ define(function(require) {
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = evopedia.Title.parseTitleId(localArchive, titleId);
         pushBrowserHistoryState(title.name);
+        return false;
     }
 
 
@@ -255,22 +268,26 @@ define(function(require) {
                 // It's an anchor link : do nothing
             }
             else if (url.substring(0, 4) === "http") {
-                // It's an external link : do nothing
+                // It's an external link : open in a new tab
+                $(this).attr("target", "_blank");
             }
             else if (url.match(regexOtherLanguage)) {
                 // It's a link to another language : change the URL to the online version of wikipedia
                 // The regular expression extracts $1 as the language, and $2 as the title name
                 var onlineWikipediaUrl = url.replace(regexOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
                 $(this).attr("href", onlineWikipediaUrl);
+                // Open in a new tab
+                $(this).attr("target", "_blank");
             }
             else if (url.match(regexImageLink)
                 && (evopedia.endsWith(lowerCaseUrl, ".png")
                     || evopedia.endsWith(lowerCaseUrl, ".svg")
                     || evopedia.endsWith(lowerCaseUrl, ".jpg")
                     || evopedia.endsWith(lowerCaseUrl, ".jpeg"))) {
-                // It's a link to a file of wikipedia : change the URL to the online version
+                // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
                 var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+localArchive.language+".wikipedia.org/wiki/File:$1");
                 $(this).attr("href", onlineWikipediaUrl);
+                $(this).attr("target", "_blank");
             }
             else {
                 // It's a link to another article : add an onclick event to go to this article
@@ -290,8 +307,8 @@ define(function(require) {
         // Load math images
         $('#articleContent').find('img').each(function() {
             var image = $(this);
-            var m;
-            if ((m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/))) {
+            var m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/);
+            if (m) {
                 localArchive.loadMathImage(m[1], function(data) {
                     image.attr("src", 'data:image/png;base64,' + data);
                 });

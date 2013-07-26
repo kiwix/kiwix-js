@@ -1,6 +1,30 @@
 /* Main CSS of the application */
 
-body {
-    /* Remove spacing to avoid losing borders around the screen*/
-    margin: 0;
-} 
+
+[role=region] {
+  top: 0; right: 0; bottom: 0; left: 0;
+ 
+  position: fixed;
+  overflow-x: hidden;
+}
+[role=region] > header {
+  margin: .5rem 0 1rem 0;
+  text-align: center;
+}
+[role=region] > header > h1 {
+  margin: 0;
+  text-shadow: 0px 1px 1px rgba(0,0,0,.4);
+}
+[role=region] > .view-content {
+  margin: 0 1rem 4rem 1rem;
+}
+[role=region] > footer {
+  background: rgba(0,0,0,.2);
+  right: 0; bottom: 0; left: 0;
+  position: fixed;
+  text-align: center;
+}
+[role=region] > footer > menu[role=toolbar] {
+  margin: 0;
+  padding: 0;
+}
