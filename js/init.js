@@ -1,5 +1,17 @@
 require.config({
-    baseUrl: 'js/lib'
+    baseUrl: 'js/lib',
+    paths: {
+        'zepto': 'zepto',
+        'bootstrap': 'bootstrap'
+    },
+    shim: {
+        'zepto' : {
+            exports : '$'
+        },
+        'bootstrap': {
+            deps: ['zepto']
+        }
+    }
 });
 
-requirejs(['../app']);
+requirejs(['zepto', 'bootstrap', '../app']);
