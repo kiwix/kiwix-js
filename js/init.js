@@ -2,6 +2,7 @@ require.config({
     baseUrl: 'js/lib',
     paths: {
         'zepto': 'zepto',
+        'jquery': 'jquery-2.0.3',
         'bootstrap': 'bootstrap',
         'title': 'evopedia/title',
         'localArchive': 'evopedia/localArchive'
@@ -10,10 +11,13 @@ require.config({
         'zepto' : {
             exports : '$'
         },
+        'jquery' : {
+            exports : '$'
+        },
         'bootstrap': {
-            deps: ['zepto']
+            deps: ['jquery']
         }
     }
 });
 
-requirejs(['zepto', 'bootstrap', '../app']);
+requirejs(['bootstrap', '../app']);

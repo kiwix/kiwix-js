@@ -5,7 +5,7 @@
 
         <title>Evopedia</title>
         <meta name="description" content="Offline wikipedia reader"> 
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!--
         Port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
         The original application is at http://www.evopedia.info/
@@ -36,16 +36,37 @@
         <link rel="stylesheet" href="css/app.css">
         <!-- Bootstrap -->
         <link href="css/bootstrap.css" rel="stylesheet" media="screen">
+        <link href="css/bootstrap-glyphicons.css" rel="stylesheet" media="screen">
     </head>
     <body role="application">
         <section id="search-article" role="region">
             <header>
-                <h1>Evopedia</h1>
-                <br />
-                <form id="formTitleSearch" class="form-search">
-                    <div class="input-append">
-                        <input type="text" id="prefix" value="" placeholder="Find titles starting with..." class="input-medium search-query" />&nbsp;
-                        <a class="btn" id="searchTitles" href="#"><i class="icon-search"></i></a>
+                <div class="navbar">
+                    <div class="container">
+                        <!-- .navbar-toggle is used as the toggle for collapsed navbar content -->
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">Evopedia</a>
+                        <!-- Place everything within .navbar-collapse to hide it until above 768px -->
+                        <div class="nav-collapse collapse navbar-responsive-collapse">
+                            <ul class="nav navbar-nav">
+                                <li class="active"><a href="#">Home</a></li>
+                                <li><a href="#" id="btnConfigure">Configure</a></li>
+                                <li><a href="#" id="btnAbout">About</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="formTitleSearch" class="form-inline">
+                    <div class="input-group">
+                        <input type="text" id="prefix" placeholder="Find titles starting with..." class="form-control" />
+                        <span class="input-group-btn">
+                            <a class="btn btn-default" id="searchTitles" href="#"><span class="glyphicon glyphicon-search"></span></a>
+                        </span>                
                     </div>
                     <img id="searchingForTitles" src="img/spinner.gif"  style="display: none;"/>
                 </form>
@@ -95,7 +116,7 @@
                 
                 <!-- List of articles matching the typed prefix -->
                 <div class="container">
-                    <ul id="titleList" class="unstyled">
+                    <ul id="titleList" class="list-unstyled">
                     </ul>
                 </div>
                 <br />
@@ -107,11 +128,8 @@
             </article>
             <footer>
                 <div id="navigationButtons" class="btn-toolbar">
-                    <a class="btn" id="btnBack"><i class="icon-arrow-left"></i></a>
-                    <a class="btn" id="btnForward"><i class="icon-arrow-right"></i></a>
-                    &nbsp;
-                    <a class="btn" id="btnConfigure"><i class="icon-cog"></i></a>
-                    <a class="btn" id="btnAbout"><i class="icon-question-sign"></i></a>
+                    <a class="btn btn-large" id="btnBack" title="Back"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+                    <a class="btn btn-large" id="btnForward" title="Forward"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
                 </div>
             </footer>
         </section>

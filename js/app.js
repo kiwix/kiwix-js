@@ -3,10 +3,8 @@
 // http://requirejs.org/docs/api.html#define
 
 define(function(require) {
-    // Zepto provides nice js and DOM methods (very similar to jQuery,
-    // and a lot smaller):
-    // http://zeptojs.com/
-    var $ = require('zepto');
+
+    var $ = require('jquery');
 
     // Evopedia javascript dependencies
     var evopediaTitle = require('title');

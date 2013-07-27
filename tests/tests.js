@@ -1,6 +1,6 @@
 define(function(require) {
 
-    var $ = require('zepto');
+    var $ = require('jquery');
     var evopediaTitle = require('title');
     var evopediaArchive = require('localArchive');
 
