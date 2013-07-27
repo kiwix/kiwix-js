@@ -55,9 +55,9 @@ define(function(require) {
     else {
         // If DeviceStorage is not available, we display the file select components
         displayFileSelect();
-        setLocalArchiveFromFileSelect();
-        if (localArchive.dataFiles.length>0) {
-            // Hide the configuration elements if already set
+        if (document.getElementById('archiveFiles').files && document.getElementById('archiveFiles').files.length>0) {
+            // Archive files are already selected, 
+            setLocalArchiveFromFileSelect();
             $('#configuration').hide();
         }
     }
@@ -104,6 +104,8 @@ define(function(require) {
         localArchive.readMathFilesFromStorage(storage, archiveDirectory);
         localArchive.readMetadataFileFromStorage(storage, archiveDirectory);
         localArchive.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
+        // The archive is set : focus on the prefix field to start searching
+        document.getElementById("prefix").focus();
     }
 
     /**
@@ -120,6 +122,8 @@ define(function(require) {
     function setLocalArchiveFromFileSelect() {
         localArchive = new evopedia.LocalArchive();
         localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
+        // The archive is set : focus on the prefix field to start searching
+        document.getElementById("prefix").focus();
     }
 
     /**
