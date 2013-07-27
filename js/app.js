@@ -9,7 +9,9 @@ define(function(require) {
     var $ = require('zepto');
 
     // Evopedia javascript dependencies
-    var evopedia = require('evopedia');
+    var evopediaTitle = require('title');
+    var evopediaArchive = require('localArchive');
+    var util = require('util');
 
 
     var localArchive = null;
@@ -50,7 +52,7 @@ define(function(require) {
     if (storage !== null) {
         // If DeviceStorage is available, we look for archives in it
         $('#scanningForArchives').show();
-        evopedia.LocalArchive.scanForArchives(storage, populateDropDownListOfArchives);
+        evopediaArchive.LocalArchive.scanForArchives(storage, populateDropDownListOfArchives);
     }
     else {
         // If DeviceStorage is not available, we display the file select components
@@ -99,7 +101,7 @@ define(function(require) {
      */
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
-        localArchive = new evopedia.LocalArchive();
+        localArchive = new evopediaArchive.LocalArchive();
         localArchive.readTitleFilesFromStorage(storage, archiveDirectory);
         localArchive.readDataFilesFromStorage(storage, archiveDirectory, 0);
         localArchive.readMathFilesFromStorage(storage, archiveDirectory);
@@ -121,7 +123,7 @@ define(function(require) {
      * Sets the localArchive from the File selects populated by user
      */
     function setLocalArchiveFromFileSelect() {
-        localArchive = new evopedia.LocalArchive();
+        localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
         // The archive is set : focus on the prefix field to start searching
         document.getElementById("prefix").focus();
@@ -191,7 +193,7 @@ define(function(require) {
         var titleId = event.target.getAttribute("titleId");
         $("#titleList").empty();
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
-        var title = evopedia.Title.parseTitleId(localArchive, titleId);
+        var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
         pushBrowserHistoryState(title.name);
         return false;
     }
@@ -204,7 +206,7 @@ define(function(require) {
      */
     function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
         if (localArchive.dataFiles && localArchive.dataFiles.length > 0) {
-            var title = evopedia.Title.parseTitleId(localArchive, titleId);
+            var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
             $("#articleName").html(title.name);
             $("#readingArticle").show();
             $("#articleContent").html("");
@@ -281,10 +283,10 @@ define(function(require) {
                 $(this).attr("target", "_blank");
             }
             else if (url.match(regexImageLink)
-                && (evopedia.endsWith(lowerCaseUrl, ".png")
-                    || evopedia.endsWith(lowerCaseUrl, ".svg")
-                    || evopedia.endsWith(lowerCaseUrl, ".jpg")
-                    || evopedia.endsWith(lowerCaseUrl, ".jpeg"))) {
+                && (util.endsWith(lowerCaseUrl, ".png")
+                    || util.endsWith(lowerCaseUrl, ".svg")
+                    || util.endsWith(lowerCaseUrl, ".jpg")
+                    || util.endsWith(lowerCaseUrl, ".jpeg"))) {
                 // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
                 var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+localArchive.language+".wikipedia.org/wiki/File:$1");
                 $(this).attr("href", onlineWikipediaUrl);

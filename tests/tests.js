@@ -1,7 +1,8 @@
 define(function(require) {
 
     var $ = require('zepto');
-    var evopedia = require('evopedia');
+    var evopediaTitle = require('title');
+    var evopediaArchive = require('localArchive');
 
     // Due to security restrictions in the browsers,
     // we can not read directly the files and run the unit tests
@@ -24,7 +25,7 @@ define(function(require) {
         });
 
         // Create a localArchive from selected files, in order to run the following tests
-        var localArchive = new evopedia.LocalArchive();
+        var localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
 
         module("evopedia");
@@ -73,7 +74,7 @@ define(function(require) {
         });
 
         // Create a title instance for the Article 'Abraham'
-        var titleAbraham = new evopedia.Title();
+        var titleAbraham = new evopediaTitle.Title();
         titleAbraham.archive = localArchive;
         titleAbraham.articleLength = 10071;
         titleAbraham.blockOffset = 127640;
@@ -101,7 +102,7 @@ define(function(require) {
 
         test("check parseTitleFromId", function() {
             var titleId = "small|2010-08-14|0|57|Abraham|2364940|127640|10071";
-            var title = evopedia.Title.parseTitleId(localArchive, titleId);
+            var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
             ok(title, "Title instance created");
             deepEqual(title, titleAbraham, "Parsing from titleId gives Abraham title");
         });

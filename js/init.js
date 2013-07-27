@@ -2,7 +2,9 @@ require.config({
     baseUrl: 'js/lib',
     paths: {
         'zepto': 'zepto',
-        'bootstrap': 'bootstrap'
+        'bootstrap': 'bootstrap',
+        'title': 'evopedia/title',
+        'localArchive': 'evopedia/localArchive'
     },
     shim: {
         'zepto' : {
