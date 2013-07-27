@@ -15,13 +15,6 @@ define(function(require) {
     var localArchive = null;
 
     // Define behavior of HTML elements
-    $('#about').hide();
-    $('#btnAbout').on('click', function(e) {
-        $('#about').toggle();
-    });
-    $('#btnConfigure').on('click', function(e) {
-        $('#configuration').toggle();
-    });
     $('#searchTitles').on('click', function(e) {
         searchTitlesFromPrefix($('#prefix').val());
     });
@@ -40,6 +33,41 @@ define(function(require) {
         history.forward();
         return false;
     });
+    // Navigation bar :
+    $('#btnHome').on('click', function(e) {
+        $('#liHomeNav').attr("class","active");
+        $('#liConfigureNav').attr("class","");
+        $('#liAboutNav').attr("class","");
+        $('#about').hide();
+        $('#configuration').hide();
+        $('#formTitleSearch').show();
+        $('#titleList').show();
+        $('#articleContent').show();
+        return false;
+    });
+    $('#btnConfigure').on('click', function(e) {
+        $('#liHomeNav').attr("class","");
+        $('#liConfigureNav').attr("class","active");
+        $('#liAboutNav').attr("class","");
+        $('#about').hide();
+        $('#configuration').show();
+        $('#formTitleSearch').hide();
+        $('#titleList').hide();
+        $('#articleContent').hide();
+        return false;
+    });
+    $('#btnAbout').on('click', function(e) {
+        $('#liHomeNav').attr("class","");
+        $('#liConfigureNav').attr("class","");
+        $('#liAboutNav').attr("class","active");
+        $('#about').show();
+        $('#configuration').hide();
+        $('#formTitleSearch').hide();
+        $('#titleList').hide();
+        $('#articleContent').hide();
+        return false;
+    });
+    
 
     // Detect if DeviceStorage is available
     var storage = null;
@@ -49,6 +77,7 @@ define(function(require) {
 
     if (storage !== null) {
         // If DeviceStorage is available, we look for archives in it
+        $("#btnConfigure").click();
         $('#scanningForArchives').show();
         evopediaArchive.LocalArchive.scanForArchives(storage, populateDropDownListOfArchives);
     }
@@ -58,7 +87,9 @@ define(function(require) {
         if (document.getElementById('archiveFiles').files && document.getElementById('archiveFiles').files.length>0) {
             // Archive files are already selected, 
             setLocalArchiveFromFileSelect();
-            $('#configuration').hide();
+        }
+        else {
+            $("#btnConfigure").click();
         }
     }
     
@@ -106,6 +137,7 @@ define(function(require) {
         localArchive.readMetadataFileFromStorage(storage, archiveDirectory);
         localArchive.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
         // The archive is set : focus on the prefix field to start searching
+        $("#btnHome").click();
         document.getElementById("prefix").focus();
     }
 
@@ -124,6 +156,7 @@ define(function(require) {
         localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
         // The archive is set : focus on the prefix field to start searching
+        $("#btnHome").click();
         document.getElementById("prefix").focus();
     }
 

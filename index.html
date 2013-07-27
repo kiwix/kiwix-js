@@ -53,9 +53,9 @@
                         <!-- Place everything within .navbar-collapse to hide it until above 768px -->
                         <div class="nav-collapse collapse navbar-responsive-collapse">
                             <ul class="nav navbar-nav">
-                                <li class="active"><a href="#">Home</a></li>
-                                <li><a href="#" id="btnConfigure">Configure</a></li>
-                                <li><a href="#" id="btnAbout">About</a></li>
+                                <li id="liHomeNav" class="active"><a href="#" id="btnHome">Home</a></li>
+                                <li id="liConfigureNav"><a href="#" id="btnConfigure">Configure</a></li>
+                                <li id="liAboutNav"><a href="#" id="btnAbout">About</a></li>
                             </ul>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                 </div>
             </header>
             <article class="view-content">
-                <div id="about">
+                <div id="about" style="display: none;">
                     <h2>About</h2>
                     This is a port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
                     <br />
@@ -101,7 +101,7 @@
                     <br />
                 </div>
                 
-                <div id="configuration">
+                <div id="configuration" style="display: none;">
                     <h2>Configuration</h2>
                     <div id="openLocalFiles" style="display: none;">
                         <br /> Please select all the files inside the archive (wikipedia_*.dat, metadata.txt etc)<br />
