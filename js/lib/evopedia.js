@@ -44,7 +44,7 @@ define(function(require) {
         var bits, h1, h2, h3, h4, i = 0;
         var enc = "";
 
-        for (i = 0; i < byteArray.length; ) {
+        for (var i = 0; i < byteArray.length; ) {
             bits = byteArray[i++] << 16;
             bits |= byteArray[i++] << 8;
             bits |= byteArray[i++];
@@ -65,26 +65,27 @@ define(function(require) {
 
     /**
      * LocalArchive class : defines a wikipedia dump on the filesystem
-     * It's still minimal for now. TODO : complete implementation to handle maths and coordinates
      */
     function LocalArchive() {
         this.dataFiles = new Array();
+        this.coordinateFiles = new Array();
         this.titleFile = null;
         this.mathIndexFile = null;
         this.mathDataFile = null;
         this.date = null;
         this.language = null;
+        this.titleSearchFile = null;
     };
 
 
     /**
-     * Read the title File in the given directory, and assign it to the
+     * Read the title Files in the given directory, and assign them to the
      * current LocalArchive
      * 
      * @param storage
      * @param directory
      */
-    LocalArchive.prototype.readTitleFileFromStorage = function(storage, directory) {
+    LocalArchive.prototype.readTitleFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
         var filerequest = storage.get(directory + '/titles.idx');
         filerequest.onsuccess = function() {
@@ -92,6 +93,13 @@ define(function(require) {
         };
         filerequest.onerror = function(event) {
             alert("error reading title file in directory " + directory + " : " + event.target.error.name);
+        };
+        var filerequestSearch = storage.get(directory + '/titles_search.idx');
+        filerequestSearch.onsuccess = function() {
+            currentLocalArchiveInstance.titleSearchFile = filerequest.result;
+        };
+        filerequest.onerror = function(event) {
+            // Do nothing : this file is not mandatory in an archive
         };
     };
 
@@ -117,6 +125,39 @@ define(function(require) {
         filerequest.onsuccess = function() {
             currentLocalArchiveInstance.dataFiles[index] = filerequest.result;
             currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
+                    index + 1);
+        };
+        filerequest.onerror = function(event) {
+            // TODO there must be a better to way to detect a FileNotFound
+            if (event.target.error.name != "NotFoundError") {
+                alert("error reading data file " + index + " in directory "
+                        + directory + " : " + event.target.error.name);
+            }
+        };
+    };
+    
+    /**
+     * Read the coordinate Files in the given directory (starting at given index), and
+     * assign them to the current LocalArchive
+     * 
+     * @param storage
+     * @param directory
+     * @param index
+     */
+    LocalArchive.prototype.readCoordinateFilesFromStorage = function(storage, directory, index) {
+        var currentLocalArchiveInstance = this;
+
+        var prefixedFileNumber = "";
+        if (index < 10) {
+            prefixedFileNumber = "0" + index;
+        } else {
+            prefixedFileNumber = index;
+        }
+        var filerequest = storage.get(directory + '/coordinates_' + prefixedFileNumber
+                + '.idx');
+        filerequest.onsuccess = function() {
+            currentLocalArchiveInstance.coordinateFiles[index] = filerequest.result;
+            currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
         };
         filerequest.onerror = function(event) {
@@ -163,6 +204,53 @@ define(function(require) {
             currentLocalArchiveInstance.date = /\ndate ?\= ?([^ \n]+)/.exec(metadata)[1];
         };
         reader.readAsText(file);
+    };
+    
+    /**
+     * Initialize the localArchive from given archive files
+     * @param {type} archiveFiles
+     * @returns {undefined}
+     */
+    LocalArchive.prototype.initializeFromArchiveFiles = function(archiveFiles) {
+        var dataFileRegex = /^wikipedia_(\d\d).dat$/;
+        var coordinateFileRegex = /^coordinates_(\d\d).idx$/;
+        this.dataFiles = new Array();
+        this.coordinateFiles = new Array();
+        for (var i=0; i<archiveFiles.length; i++) {
+            var file = archiveFiles[i];
+            if (file) {
+                if (file.name === "metadata.txt") {
+                    this.readMetadataFile(file);
+                }
+                else if (file.name === "titles.idx") {
+                    this.titleFile = file;
+                }
+                else if (file.name === "titles_search.idx") {
+                    this.titleSearchFile = file;
+                }
+                else if (file.name === "math.idx") {
+                    this.mathIndexFile = file;
+                }
+                else if (file.name === "math.dat") {
+                    this.mathDataFile = file;
+                }
+                else {
+                    var coordinateFileNr = coordinateFileRegex.exec(file.name);
+                    if (coordinateFileNr && coordinateFileNr.length > 0) {
+                        var intFileNr = 1 * coordinateFileNr[1];
+                        this.coordinateFiles[intFileNr] = file;
+                    }
+                    else {
+                        var dataFileNr = dataFileRegex.exec(file.name);
+                        if (dataFileNr && dataFileNr.length > 0) {
+                            var intFileNr = 1 * dataFileNr[1];
+                            this.dataFiles[intFileNr] = file;
+                        }
+                    }
+                }
+            }
+        }
+        
     };
 
     /**

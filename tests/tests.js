@@ -17,25 +17,15 @@ define(function(require) {
             equal("test", "test", "QUnit is properly configured");
         });
 
-        test("check title and data files are set", function() {
-            var titleFile = document.getElementById('titleFile').files[0];
-            var dataFiles = document.getElementById('dataFiles').files;
-            ok(titleFile && titleFile.size > 0, "Title file set and not empty");
-            ok(dataFiles && dataFiles[0] && dataFiles[0].size > 0, "First data file set and not empty");
-            var mathIndexFile = document.getElementById('mathIndexFile').files[0];
-            var mathDataFile = document.getElementById('mathDataFile').files[0];
-            ok(mathIndexFile && mathIndexFile.size > 0, "Math index file set and not empty");
-            ok(mathDataFile && mathDataFile.size > 0, "Math data file set and not empty");
+        test("check archive files are selected", function() {
+            var archiveFiles = document.getElementById('archiveFiles').files;
+            ok(archiveFiles && archiveFiles[0] && archiveFiles[0].size > 0, "First archive file set and not empty");
+            ok(archiveFiles.length >= 5, "At least 5 files are selected");
         });
 
         // Create a localArchive from selected files, in order to run the following tests
         var localArchive = new evopedia.LocalArchive();
-        localArchive.titleFile = document.getElementById('titleFile').files[0];
-        localArchive.dataFiles = document.getElementById('dataFiles').files;
-        localArchive.mathIndexFile = document.getElementById('mathIndexFile').files[0];
-        localArchive.mathDataFile = document.getElementById('mathDataFile').files[0];
-        var metadataFile = document.getElementById('metadataFile').files[0];
-        localArchive.readMetadataFile(metadataFile);
+        localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
 
         module("evopedia");
         asyncTest("check getTitlesStartingAtOffset 0", function() {

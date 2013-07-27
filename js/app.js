@@ -99,10 +99,11 @@ define(function(require) {
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
         localArchive = new evopedia.LocalArchive();
-        localArchive.readTitleFileFromStorage(storage, archiveDirectory);
+        localArchive.readTitleFilesFromStorage(storage, archiveDirectory);
         localArchive.readDataFilesFromStorage(storage, archiveDirectory, 0);
         localArchive.readMathFilesFromStorage(storage, archiveDirectory);
         localArchive.readMetadataFileFromStorage(storage, archiveDirectory);
+        localArchive.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
     }
 
     /**
@@ -110,28 +111,15 @@ define(function(require) {
      */
     function displayFileSelect() {
         $('#openLocalFiles').show();
-        $('#dataFiles').on('change', setLocalArchiveFromFileSelect);
-        $('#titleFile').on('change', setLocalArchiveFromFileSelect);
-        $('#mathIndexFile').on('change', setLocalArchiveFromFileSelect);
-        $('#mathDataFile').on('change', setLocalArchiveFromFileSelect);
-        $('#metadataFile').on('change', setLocalArchiveFromFileSelect);
+        $('#archiveFiles').on('change', setLocalArchiveFromFileSelect);
     }
 
     /**
      * Sets the localArchive from the File selects populated by user
      */
     function setLocalArchiveFromFileSelect() {
-        var dataFiles = document.getElementById('dataFiles').files;
-        var titleFile = document.getElementById('titleFile').files[0];
-        var mathIndexFile = document.getElementById('mathIndexFile').files[0];
-        var mathDataFile = document.getElementById('mathDataFile').files[0];
-        var metadataFile = document.getElementById('metadataFile').files[0];
         localArchive = new evopedia.LocalArchive();
-        localArchive.dataFiles = dataFiles;
-        localArchive.titleFile = titleFile;
-        localArchive.mathIndexFile = mathIndexFile;
-        localArchive.mathDataFile = mathDataFile;
-        localArchive.readMetadataFile(metadataFile);
+        localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
     }
 
     /**
