@@ -47,7 +47,7 @@ define(function(require) {
         storage = navigator.getDeviceStorage('sdcard');
     }
 
-    if (storage != null) {
+    if (storage !== null) {
         // If DeviceStorage is available, we look for archives in it
         $('#scanningForArchives').show();
         evopedia.LocalArchive.scanForArchives(storage, populateDropDownListOfArchives);
@@ -73,6 +73,7 @@ define(function(require) {
 
     /**
      * Populate the drop-down list of titles with the given list
+     * @param {type} archiveDirectories
      */
     function populateDropDownListOfArchives(archiveDirectories) {
         $('#scanningForArchives').hide();
@@ -128,6 +129,8 @@ define(function(require) {
 
     /**
      * Handle key input in the prefix input zone
+     * @param {type} evt
+     * @returns {undefined}
      */
     function onKeyUpPrefix(evt) {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
@@ -142,6 +145,7 @@ define(function(require) {
     /**
      * Search the index for titles that start with the given prefix (implemented
      * with a binary search inside the index file)
+     * @param {type} prefix
      */
     function searchTitlesFromPrefix(prefix) {
         $('#searchingForTitles').show();
@@ -157,6 +161,7 @@ define(function(require) {
   
     /**
      * Display the list of titles with the given array of titles
+     * @param {type} titleArray
      */
     function populateListOfTitles(titleArray) {
         var titleListUl = $('#titleList');
@@ -195,6 +200,7 @@ define(function(require) {
     /**
      * Creates an instance of title from given titleId (including resolving redirects),
      * and call the function to read the corresponding article
+     * @param {type} titleId
      */
     function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
         if (localArchive.dataFiles && localArchive.dataFiles.length > 0) {
@@ -202,7 +208,7 @@ define(function(require) {
             $("#articleName").html(title.name);
             $("#readingArticle").show();
             $("#articleContent").html("");
-            if (title.fileNr == 255) {
+            if (title.fileNr === 255) {
                 localArchive.resolveRedirect(title, readArticle);
             }
             else {
@@ -216,11 +222,12 @@ define(function(require) {
 
     /**
      * Read the article corresponding to the given title
+     * @param {type} title
      */
     function readArticle(title) {
         if ($.isArray(title)) {
             title = title[0];
-            if (title.fileNr == 255) {
+            if (title.fileNr === 255) {
                 localArchive.resolveRedirect(title, readArticle);
                 return;
             }
@@ -231,6 +238,8 @@ define(function(require) {
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
+     * @param {type} title
+     * @param {type} htmlArticle
      */
     function displayArticleInForm(title, htmlArticle) {
         $("#readingArticle").hide();
@@ -310,6 +319,7 @@ define(function(require) {
 
     /**
      * Changes the URL of the browser page
+     * @param {type} titleName
      */
     function pushBrowserHistoryState(titleName) {
         if (titleName) {
@@ -321,6 +331,8 @@ define(function(require) {
 
     /**
      * Replace article content with the one of the given title
+     * @param {type} titleName
+     * @returns {undefined}
      */
     function goToArticle(titleName) {
         $("#articleName").html(titleName);

@@ -10,6 +10,9 @@ define(function(require) {
 
     /**
      * Read an integer encoded in 4 bytes
+     * @param {type} byteArray
+     * @param {type} firstIndex
+     * @returns {Number}
      */
     function readIntegerFrom4Bytes(byteArray, firstIndex) {
         return byteArray[firstIndex] + byteArray[firstIndex + 1] * 256 + byteArray[firstIndex + 2] * 65536 + byteArray[firstIndex + 3] * 16777216;
@@ -17,13 +20,18 @@ define(function(require) {
 
     /**
      * Read an integer encoded in 2 bytes
+     * @param {type} byteArray
+     * @param {type} firstIndex
+     * @returns {Number}
      */
     function readIntegerFrom2Bytes(byteArray, firstIndex) {
         return byteArray[firstIndex] + byteArray[firstIndex + 1] * 256;
     }
 
     /**
-     * Convert a Uint8Array to a lowercase hex string.
+     * Convert a Uint8Array to a lowercase hex string
+     * @param {type} byteArray
+     * @returns {String}
      */
     function uint8ArrayToHex(byteArray) {
         var s = '';
@@ -37,7 +45,9 @@ define(function(require) {
     }
 
     /**
-     * Convert a Uint8Array to base64.
+     * Convert a Uint8Array to base64
+     * @param {type} byteArray
+     * @returns {String}
      */
     function uint8ArrayToBase64(byteArray) {
         var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -453,7 +463,7 @@ define(function(require) {
                 for (i = 0; i < titleList.length; i++) {
                     var titleName = titleList[i].name;
                     var normalizedTitleName = normalize_string.normalizeString(titleName);
-                    if (normalizedTitleName.length < normalizedPrefix.length || normalizedTitleName.substring(0, normalizedPrefix.length) != normalizedPrefix) {
+                    if (normalizedTitleName.length < normalizedPrefix.length || normalizedTitleName.substring(0, normalizedPrefix.length) !== normalizedPrefix) {
                         break;
                     }
                 }
@@ -596,10 +606,15 @@ define(function(require) {
             };
             reader.readAsArrayBuffer(blob);
         });
-    }
+    };
+
 
     /**
      * Recursive algorithm to find the position of the Math image in the data file
+     * @param {type} hexString
+     * @param {type} lo
+     * @param {type} hi
+     * @param {type} callbackFunction
      */
     LocalArchive.prototype.findMathDataPosition = function(hexString, lo, hi, callbackFunction) {
         var entrySize = 16 + 4 + 4;
@@ -651,12 +666,12 @@ define(function(require) {
             var binaryTitleFile = e.target.result;
             var byteArray = new Uint8Array(binaryTitleFile);
 
-            if (byteArray.length == 0) {
+            if (byteArray.length === 0) {
                 throw "Unable to find redirected article : offset " + title.blockStart + " not found in title file";
             }
 
             var redirectedTitle = title;
-            redirectedTitle.fileNr = byteArray[2];
+            redirectedTitle.fileNr = 1 * byteArray[2];
             redirectedTitle.blockStart = readIntegerFrom4Bytes(byteArray, 3);
             redirectedTitle.blockOffset = readIntegerFrom4Bytes(byteArray, 7);
             redirectedTitle.articleLength = readIntegerFrom4Bytes(byteArray, 11);
@@ -680,7 +695,7 @@ define(function(require) {
         var cursor = storage.enumerate();
         cursor.onerror = function() {
             alert("Error scanning directory sd-card : " + cursor.error);
-        }
+        };
         cursor.onsuccess = function() {
             if (cursor.result) {
                 var file = cursor.result;
@@ -736,9 +751,13 @@ define(function(require) {
 
     /**
      * Creates a Title instance from an encoded title line from a title file
+     * @param {type} encodedTitle
+     * @param {type} archive
+     * @param {type} titleOffset
+     * @returns {_L1.Title}
      */
     Title.parseTitle = function(encodedTitle, archive, titleOffset) {
-        if (archive == null) {
+        if (archive === null) {
             throw "archive cannot be null";
         }
         if (titleOffset < 0) {
@@ -748,7 +767,7 @@ define(function(require) {
         t.archive = archive;
         t.titleOffset = titleOffset;
 
-        if (encodedTitle == null || encodedTitle.length < 15)
+        if (encodedTitle === null || encodedTitle.length < 15)
             return null;
 
         if (encodedTitle[encodedTitle.length - 1] == '\n') {
@@ -766,7 +785,7 @@ define(function(require) {
                 escapedEncodedTitle[i + 2] = 10; // Corresponds to \n
         }
 
-        t.fileNr = escapedEncodedTitle[2];
+        t.fileNr = 1 * escapedEncodedTitle[2];
         t.blockStart = readIntegerFrom4Bytes(escapedEncodedTitle, 3);
         t.blockOffset = readIntegerFrom4Bytes(escapedEncodedTitle, 7);
         t.articleLength = readIntegerFrom4Bytes(escapedEncodedTitle, 11);
@@ -792,6 +811,9 @@ define(function(require) {
 
     /**
      * Creates a title instance from a serialized id
+     * @param {type} localArchive
+     * @param {type} titleId
+     * @returns {_L1.Title}
      */
     Title.parseTitleId = function(localArchive, titleId) {
         var title = new Title();
@@ -825,6 +847,8 @@ define(function(require) {
 
     /**
      * ErrorHandler for FileReader
+     * @param {type} evt
+     * @returns {undefined}
      */
     function errorHandler(evt) {
         switch (evt.target.error.code) {
