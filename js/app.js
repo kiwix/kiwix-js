@@ -136,9 +136,8 @@ define(function(require) {
         localArchive.readMathFilesFromStorage(storage, archiveDirectory);
         localArchive.readMetadataFileFromStorage(storage, archiveDirectory);
         localArchive.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
-        // The archive is set : focus on the prefix field to start searching
+        // The archive is set : go back to home page to start searching
         $("#btnHome").click();
-        document.getElementById("prefix").focus();
     }
 
     /**
@@ -155,9 +154,8 @@ define(function(require) {
     function setLocalArchiveFromFileSelect() {
         localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
-        // The archive is set : focus on the prefix field to start searching
+        // The archive is set : go back to home page to start searching
         $("#btnHome").click();
-        document.getElementById("prefix").focus();
     }
 
     /**
