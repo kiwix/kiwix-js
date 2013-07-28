@@ -5,10 +5,12 @@ define(function(require) {
     
     // Module dependencies
     var normalize_string = require('normalize_string');
-    var bzip2 = require('bzip2');
     var utf8 = require('utf8');
     var evopediaTitle = require('title');
     var util = require('util');
+    
+    // Declare the webworker that can uncompress with bzip2 algorithm
+    var webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
     
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
@@ -486,39 +488,41 @@ define(function(require) {
         reader.onload = function(e) {
             try {
                 var compressedArticles = e.target.result;
-                var htmlArticles;
-                try {
-                    //var startTime = new Date();
-                    htmlArticles = bzip2.simple(bzip2.array(new Uint8Array(
-                            compressedArticles)));
-                    //var endTime = new Date();
-                    //console.log("Time elapsed in bzip2 decompression of article " + title.name + " : " + (endTime - startTime) + " ms");
-                } catch (e) {
-                    // TODO : there must be a better way to differentiate real exceptions
-                    // and exceptions due to the fact that the article is too long to fit in the chunk
-                    if (e != "No magic number found") {
-                        currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
-                                callbackFunction);
-                        return;
+                webworkerBzip2.onerror = function(event){
+                    throw new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
+                };
+                webworkerBzip2.onmessage = function(event){
+                    switch (event.data.cmd){
+                        case "result":
+                            var htmlArticles = event.data.msg;
+                            // Start reading at offset, and keep length characters
+                            var htmlArticle = htmlArticles.substring(title.blockOffset,
+                                    title.blockOffset + title.articleLength);
+                            if (htmlArticle.length >= title.articleLength) {
+                                // Keep only length characters
+                                htmlArticle = htmlArticle.substring(0, title.articleLength);
+                                // Decode UTF-8 encoding
+                                htmlArticle = decodeURIComponent(escape(htmlArticle));
+                                callbackFunction(title, htmlArticle);
+                            } else {
+                                // TODO : throw exception if we reach the end of the file
+                                currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
+                                        callbackFunction);
+                            }                
+                            break;
+                        case "recurse":
+                            currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE, callbackFunction);
+                            break;
+                        case "debug":
+                            console.log(event.data.msg);
+                            break;
+                        case "error":
+                            throw new Error(event.data.msg);
+                            break;
                     }
-                    else {
-                        throw e;
-                    }
-                }
-                // Start reading at offset, and keep length characters
-                var htmlArticle = htmlArticles.substring(title.blockOffset,
-                        title.blockOffset + title.articleLength);
-                if (htmlArticle.length >= title.articleLength) {
-                    // Keep only length characters
-                    htmlArticle = htmlArticle.substring(0, title.articleLength);
-                    // Decode UTF-8 encoding
-                    htmlArticle = decodeURIComponent(escape(htmlArticle));
-                    callbackFunction(title, htmlArticle);
-                } else {
-                    // TODO : throw exception if we reach the end of the file
-                    currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
-                            callbackFunction);
-                }
+                };
+                webworkerBzip2.postMessage({cmd : 'uncompress', msg : compressedArticles});
+                
             }
             catch (e) {
                 callbackFunction("Error : " + e);
