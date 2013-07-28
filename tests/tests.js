@@ -2,7 +2,7 @@ define(function(require) {
 
     var $ = require('jquery');
     var evopediaTitle = require('title');
-    var evopediaArchive = require('localArchive');
+    var evopediaArchive = require('archive');
 
     // Due to security restrictions in the browsers,
     // we can not read directly the files and run the unit tests

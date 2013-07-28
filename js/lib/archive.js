@@ -159,7 +159,6 @@ define(function(require) {
     /**
      * Initialize the localArchive from given archive files
      * @param {type} archiveFiles
-     * @returns {undefined}
      */
     LocalArchive.prototype.initializeFromArchiveFiles = function(archiveFiles) {
         var dataFileRegex = /^wikipedia_(\d\d).dat$/;
@@ -201,6 +200,19 @@ define(function(require) {
             }
         }
         
+    };
+    
+    /**
+     * Initialize the localArchive from given directory, using DeviceStorage
+     * @param {type} storage
+     * @param {type} archiveDirectory
+     */
+    LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory) {
+        this.readTitleFilesFromStorage(storage, archiveDirectory);
+        this.readDataFilesFromStorage(storage, archiveDirectory, 0);
+        this.readMathFilesFromStorage(storage, archiveDirectory);
+        this.readMetadataFileFromStorage(storage, archiveDirectory);
+        this.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
     };
 
     /**

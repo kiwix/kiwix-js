@@ -8,7 +8,7 @@ define(function(require) {
 
     // Evopedia javascript dependencies
     var evopediaTitle = require('title');
-    var evopediaArchive = require('localArchive');
+    var evopediaArchive = require('archive');
     var util = require('util');
 
 
@@ -131,11 +131,7 @@ define(function(require) {
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
         localArchive = new evopediaArchive.LocalArchive();
-        localArchive.readTitleFilesFromStorage(storage, archiveDirectory);
-        localArchive.readDataFilesFromStorage(storage, archiveDirectory, 0);
-        localArchive.readMathFilesFromStorage(storage, archiveDirectory);
-        localArchive.readMetadataFileFromStorage(storage, archiveDirectory);
-        localArchive.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
+        localArchive.initializeFromDeviceStorage(storage, archiveDirectory);
         // The archive is set : go back to home page to start searching
         $("#btnHome").click();
     }
@@ -269,8 +265,8 @@ define(function(require) {
                 return;
             }
         }
-        localArchive.readArticle(title, displayArticleInForm);
-    }
+            localArchive.readArticle(title, displayArticleInForm);
+        }
 
     /**
      * Display the the given HTML article in the web page,
