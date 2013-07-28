@@ -169,7 +169,13 @@ define(function(require) {
         if(window.timeoutKeyUpPrefix) {
             window.clearTimeout(window.timeoutKeyUpPrefix);
         }
-        window.timeoutKeyUpPrefix = window.setTimeout("document.getElementById('searchTitles').click()",500);
+        window.timeoutKeyUpPrefix = window.setTimeout(function() {
+            var prefix = $("#prefix").val();
+            if (prefix && prefix.length>0) {
+                $('#searchTitles').click();
+            }
+        }
+        ,500);
     }
 
 
