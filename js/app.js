@@ -25,6 +25,7 @@ define(function(require) {
     $('#prefix').on('keyup', function(e) {
         onKeyUpPrefix(e);
     });
+    // Bottome bar :
     $('#btnBack').on('click', function(e) {
         history.back();
         return false;
@@ -33,7 +34,11 @@ define(function(require) {
         history.forward();
         return false;
     });
-    // Navigation bar :
+    $('#btnHomeBottom').on('click', function(e) {
+        $('#btnHome').click();
+        return false;
+    });
+    // Top menu :
     $('#btnHome').on('click', function(e) {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","active");
