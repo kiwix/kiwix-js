@@ -43,6 +43,9 @@ define(function(require) {
         $('#formTitleSearch').show();
         $('#titleList').show();
         $('#articleContent').show();
+        if ($('#navbarToggle').is(":visible")) {
+            $('#navbarToggle').click();
+        }
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
@@ -54,6 +57,9 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $('#titleList').hide();
         $('#articleContent').hide();
+        if ($('#navbarToggle').is(":visible")) {
+            $('#navbarToggle').click();
+        }
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -65,6 +71,9 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $('#titleList').hide();
         $('#articleContent').hide();
+        if ($('#navbarToggle').is(":visible")) {
+            $('#navbarToggle').click();
+        }
         return false;
     });
     
@@ -101,7 +110,7 @@ define(function(require) {
             goToArticle(titleName);
         }
     };
-
+    
     /**
      * Populate the drop-down list of titles with the given list
      * @param {type} archiveDirectories
