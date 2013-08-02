@@ -378,7 +378,7 @@ define(function(require) {
     function pushBrowserHistoryState(titleName) {
         if (titleName) {
             var stateObj = {titleName: titleName};
-            window.history.pushState(stateObj, "Wikipedia Article : " + titleName, "#" + titleName);
+            window.history.pushState(stateObj, "Wikipedia Article : " + titleName, "?title=" + titleName);
         }
     }
 
