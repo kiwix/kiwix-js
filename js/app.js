@@ -46,6 +46,7 @@ define(function(require) {
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
+        $('#prefix').focus();
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
