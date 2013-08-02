@@ -246,6 +246,7 @@ define(function(require) {
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
         pushBrowserHistoryState(title.name);
+        $("#prefix").val("");
         return false;
     }
 
