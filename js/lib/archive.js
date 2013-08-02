@@ -489,6 +489,9 @@ define(function(require) {
             try {
                 var compressedArticles = e.target.result;
                 webworkerBzip2.onerror = function(event){
+                    // TODO can probably be replaced by some error handler at window level
+                    alert("An unexpected error occured. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.message="
+                            + event.message + " event.filename=" + event.filename + " event.lineno=" + event.lineno );
                     throw new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
                 };
                 webworkerBzip2.onmessage = function(event){
@@ -517,6 +520,9 @@ define(function(require) {
                             console.log(event.data.msg);
                             break;
                         case "error":
+                            // TODO can probably be replaced by some error handler at window level
+                            alert("An unexpected error occured. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.data.msg="
+                            + event.data.msg );
                             throw new Error(event.data.msg);
                             break;
                     }
