@@ -43,7 +43,7 @@ define(function(require) {
         $('#formTitleSearch').show();
         $('#titleList').show();
         $('#articleContent').show();
-        if ($('#navbarToggle').is(":visible")) {
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
         return false;
@@ -57,7 +57,7 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $('#titleList').hide();
         $('#articleContent').hide();
-        if ($('#navbarToggle').is(":visible")) {
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
         return false;
@@ -71,7 +71,7 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $('#titleList').hide();
         $('#articleContent').hide();
-        if ($('#navbarToggle').is(":visible")) {
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
         return false;
