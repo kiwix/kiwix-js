@@ -35,46 +35,56 @@ define(function(require) {
     });
     // Navigation bar :
     $('#btnHome').on('click', function(e) {
+        // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+        // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
         $('#formTitleSearch').show();
         $('#titleList').show();
         $('#articleContent').show();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        // Give the focus to the search field, and clean up the page contents
+        $("#prefix").val("");
         $('#prefix').focus();
+        $("#titleList").html("");
+        $("#articleContent").html("");
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
+        // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+        // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
         $('#formTitleSearch').hide();
         $('#titleList').hide();
         $('#articleContent').hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
         return false;
     });
     $('#btnAbout').on('click', function(e) {
+        // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+        // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
         $('#formTitleSearch').hide();
         $('#titleList').hide();
         $('#articleContent').hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
         return false;
     });
     
