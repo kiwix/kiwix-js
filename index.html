@@ -78,27 +78,27 @@
                     <h2>About</h2>
                     This is a port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
                     <br />
-                    The original application is at <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
+                    The original application (developed in Qt) is at <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
                     <br />
                     <br />
-                    To use it, you have to first download locally a dump from <a href="http://dumpathome.evopedia.info/dumps/finished" target="_blank">http://dumpathome.evopedia.info/dumps/finished</a> (with a Bittorrent client).
+                    To use it, you have to first download locally an archive from <a href="http://dumpathome.evopedia.info/dumps/finished" target="_blank">http://dumpathome.evopedia.info/dumps/finished</a> (with a Bittorrent client).
                     <br />
                     <ul>
-                        <li>On desktops, it works on recent Firefox and Chromium, and probably on some other browsers. In this case, you have to manually select the files from your dump (see the configuration section)</li>
+                        <li>On desktops, it works on recent Firefox and Chromium, and probably on some other browsers (it even seems to work on IE10). In this case, you have to manually select the files from your archive (see the configuration section)</li>
                         <li>On the Firefos OS simulator, you have to put the archive files anywhere in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). You need to install the application from the dashboard of the simulator (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
                         <li>On a real Firefox OS device, you simply have to put the archive files anywhere in your sdcard. For now, the application has to be installed manually (use the push feature of the Firefos OS Simulator)</li>
+                        <li>On Android, it does not seem to work for now (tried with internal browser, Chrome and Firefox) because you can not select all the files of an archive</li>
                     </ul>
                     <br />
                     It's still a beta version : there are many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5" target="_blank">github</a>). In particular :
                     <ul>
-                        <li>The User Interface is very young and can certainly be improved</li>
                         <li>In some rare cases, the links inside an article do not work, or do not lead to the right article</li>
                         <li>It is not easy to use on the Peak device from Geeksphone because the buttons and inputs are too small</li>
-                        <li>Some features of the original application still have to be implemented : in particular geolocation of articles</li>
+                        <li>Some features of the original application still have to be implemented : in particular the "Articles nearby" feature (geolocation)</li>
                     </ul>
-                    The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I also use it as my TODO-list/roadmap.
-                    <br />
-                    <br />
+                    The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I also use it as my roadmap.
+                    <br />Alternatively, you can send your feedback <a href="mailto:mossroy@free.fr?subject=Feedback%20about%20Evopedia%20HTML5">by email</a>.
+                    <br />In all cases, please give me as much detail as you can : which device or browser you are using, which archive, which articles etc.
                 </div>
                 
                 <div id="configuration" style="display: none;">
@@ -123,7 +123,7 @@
                     </ul>
                 </div>
                 <div id="readingArticle" style="display: none;">
-                    Reading article <span id="articleName"></span> from dump... Please wait <img src="img/spinner.gif" />
+                    Reading article <span id="articleName"></span> from archive... Please wait <img src="img/spinner.gif" />
                 </div>
                 <div id="articleContent">&nbsp;</div>
                 <br />

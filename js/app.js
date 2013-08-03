@@ -162,7 +162,7 @@ define(function(require) {
     }
 
     /**
-     * Displays the zone to select files from the dump
+     * Displays the zone to select files from the archive
      */
     function displayFileSelect() {
         $('#openLocalFiles').show();
