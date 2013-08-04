@@ -14,6 +14,9 @@ define(function(require) {
     
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
+    // The maximum number of titles that can have the same name after normalizing
+    // This is used by the algorithm that searches for a specific article by its name
+    var MAX_TITLES_WITH_SAME_NORMALIZED_NAME = 30;
     
     /**
      * LocalArchive class : defines a wikipedia dump on the filesystem
@@ -244,8 +247,8 @@ define(function(require) {
 
     /**
      * This function is recursively called after each asynchronous read, so that
-     * to find the closest index in titleFile to the given prefix When found,
-     * call the callbackFunction with the index
+     * to find the closest index in titleFile to the given prefix
+     * When found, call the callbackFunction with the index
      * 
      * @param reader
      * @param normalizedPrefix
@@ -308,15 +311,6 @@ define(function(require) {
     };
 
     /**
-     * Look for a title in the title file at the given offset, and call the callbackFunction with this Title
-     * @param titleOffset
-     * @param callbackFunction
-     */
-    LocalArchive.prototype.getTitleAtOffset = function(titleOffset, callbackFunction) {
-        this.getTitlesStartingAtOffset(titleOffset, 1, callbackFunction);
-    };
-
-    /**
      * Read the titles in the title file starting at the given offset (maximum titleCount), and call the callbackFunction with this list of Title instances
      * @param titleOffset
      * @param titleCount maximum number of titles to retrieve
@@ -367,6 +361,7 @@ define(function(require) {
 
     /**
      * Look for a title by its name, and call the callbackFunction with this Title
+     * If the title is not found, the callbackFunction is called with parameter null
      * @param titleName
      * @param callbackFunction
      */
@@ -380,7 +375,20 @@ define(function(require) {
         var currentLocalArchiveInstance = this;
         var normalizedTitleName = normalize_string.normalizeString(titleName);
         this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
-            currentLocalArchiveInstance.getTitleAtOffset(titleOffset, callbackFunction);
+            currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, MAX_TITLES_WITH_SAME_NORMALIZED_NAME, function(titleList) {
+                if (titleList !== null && titleList.length>0) {
+                    for (var i=0; i<titleList.length; i++) {
+                        var title = titleList[i];
+                        if (title.name === titleName) {
+                            // The title has been found
+                            callbackFunction(title);
+                            return;
+                        }
+                    }
+                }
+                // The title has not been found
+                callbackFunction(null);
+            });
         });
     };
 
@@ -393,11 +401,12 @@ define(function(require) {
     };
 
     /**
-     * Find the 50 titles that start with the given prefix, and call the callbackFunction with this list of Titles
+     * Find titles that start with the given prefix, and call the callbackFunction with this list of Titles
      * @param prefix
+     * @param maxSize Maximum number of titles to read
      * @param callbackFunction
      */
-    LocalArchive.prototype.findTitlesWithPrefix = function(prefix, callbackFunction) {
+    LocalArchive.prototype.findTitlesWithPrefix = function(prefix, maxSize, callbackFunction) {
         var titleFileSize = this.titleFile.size;
         if (prefix) {
             prefix = normalize_string.normalizeString(prefix);
@@ -411,7 +420,7 @@ define(function(require) {
         var currentLocalArchiveInstance = this;
         var normalizedPrefix = normalize_string.normalizeString(prefix);
         this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
-            currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, 50, function(titleList) {
+            currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, maxSize, function(titleList) {
                 // Keep only the titles with names starting with the prefix
                 var i = 0;
                 for (i = 0; i < titleList.length; i++) {

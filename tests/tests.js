@@ -34,7 +34,7 @@ define(function(require) {
                 equal(titleList.length, 4, "4 titles found, as requested");
                 var indexAbraham = -1;
                 for (var i = 0; i < titleList.length; i++) {
-                    if (titleList[i] && titleList[i].name == "Abraham") {
+                    if (titleList[i] && titleList[i].name === "Abraham") {
                         indexAbraham = i;
                     }
                 }
@@ -70,7 +70,7 @@ define(function(require) {
                 equal(titleList.length, 4, "4 titles should be found");
                 start();
             };
-            localArchive.findTitlesWithPrefix("Am", callbackFunction);
+            localArchive.findTitlesWithPrefix("Am", 10, callbackFunction);
         });
 
         // Create a title instance for the Article 'Abraham'
@@ -84,20 +84,20 @@ define(function(require) {
         titleAbraham.titleOffset = 57;
 
         asyncTest("check getTitleByName with accents : Diego Velázquez", function() {
-            var callbackFunction = function(titleList) {
-                ok(titleList && titleList.length == 1, "One title found");
-                equal(titleList[0].name, "Diego_Velázquez", "Name of the title is correct");
+            var callbackFunction = function(title) {
+                ok(title !== null, "Title found");
+                equal(title.name, "Diego_Velázquez", "Name of the title is correct");
                 start();
             };
-            localArchive.getTitleByName("Diego Velázquez", callbackFunction);
+            localArchive.getTitleByName("Diego_Velázquez", callbackFunction);
         });
         asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
-            var callbackFunction = function(titleList) {
-                ok(titleList && titleList.length == 1, "One title found");
-                equal(titleList[0].name, "Hundred_Years'_War", "Name of the title is correct");
+            var callbackFunction = function(title) {
+                ok(title !== null, "Title found");
+                equal(title.name, "Hundred_Years'_War", "Name of the title is correct");
                 start();
             };
-            localArchive.getTitleByName("Hundred Years' War", callbackFunction);
+            localArchive.getTitleByName("Hundred_Years'_War", callbackFunction);
         });
 
         test("check parseTitleFromId", function() {
@@ -128,13 +128,20 @@ define(function(require) {
                 ok(htmlArticle.match("</div>[ \t]$"), "</div> at the end");
                 start();
             };
-            var callbackTitleList = function(titleList) {
-                ok(titleList && titleList.length == 1, "One title found");
-                var title = titleList[0];
+            var callbackTitleFound = function(title) {
+                ok(title !== null, "Title found");
                 equal(title.name, "AIDS", "Name of the title is correct");
                 localArchive.readArticle(title, callbackArticleRead);
             };
-            localArchive.getTitleByName("AIDS", callbackTitleList);
+            localArchive.getTitleByName("AIDS", callbackTitleFound);
+        });
+        
+        asyncTest("check getTitleByName with a title name that does not exist in the archive", function() {
+            var callbackTitleFound = function(title) {
+                ok(title === null, "No title found because it does not exist in the archive");
+                start();
+            };
+            localArchive.getTitleByName("abcdef", callbackTitleFound);
         });
 
         asyncTest("check loading a math image", function() {

@@ -10,6 +10,9 @@ define(function(require) {
     var evopediaTitle = require('title');
     var evopediaArchive = require('archive');
     var util = require('util');
+    
+    // Maximum number of titles to display in a search
+    var MAX_SEARCH_RESULT_SIZE = 50;
 
 
     var localArchive = null;
@@ -210,7 +213,7 @@ define(function(require) {
         $('#configuration').hide();
         $('#articleContent').empty();
         if (localArchive.titleFile) {
-            localArchive.findTitlesWithPrefix(prefix.trim(), populateListOfTitles);
+            localArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
             alert("Title file not set");
         }
@@ -284,15 +287,13 @@ define(function(require) {
      * @param {type} title
      */
     function readArticle(title) {
-        if ($.isArray(title)) {
-            title = title[0];
-            if (title.fileNr === 255) {
-                localArchive.resolveRedirect(title, readArticle);
-                return;
-            }
+        if (title.fileNr === 255) {
+            localArchive.resolveRedirect(title, readArticle);
         }
+        else {
             localArchive.readArticle(title, displayArticleInForm);
         }
+    }
 
     /**
      * Display the the given HTML article in the web page,
@@ -314,6 +315,9 @@ define(function(require) {
         $('#articleContent').find('a').each(function() {
             // Store current link's url
             var url = $(this).attr("href");
+            if (url === null || url === undefined) {
+                return;
+            }
             var lowerCaseUrl = url.toLowerCase();
             var cssClass = $(this).attr("class");
 
@@ -396,8 +400,16 @@ define(function(require) {
     function goToArticle(titleName) {
         $("#articleName").html(titleName);
         $("#readingArticle").show();
-        $("#articleContent").html("");
-        localArchive.getTitleByName(titleName, readArticle);
+        localArchive.getTitleByName(titleName, function(title) {
+            if (title == null) {
+                $("#readingArticle").hide();
+                alert("Article with title " + titleName + " not found in the archive");
+            }
+            else {
+                $("#articleContent").html("");
+                readArticle(title);
+            }
+        });
     }
 
 });
