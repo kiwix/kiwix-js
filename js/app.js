@@ -26,7 +26,9 @@ define(function(require) {
         return false;
     });
     $('#prefix').on('keyup', function(e) {
-        onKeyUpPrefix(e);
+        if (localArchive !== null && localArchive.titleFile !== null) {
+            onKeyUpPrefix(e);
+        }
     });
     // Bottome bar :
     $('#btnBack').on('click', function(e) {
@@ -211,10 +213,11 @@ define(function(require) {
         $('#searchingForTitles').show();
         $('#configuration').hide();
         $('#articleContent').empty();
-        if (localArchive.titleFile) {
+        if (localArchive !== null && localArchive.titleFile !== null) {
             localArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
-            alert("Title file not set");
+            $('#searchingForTitles').hide();
+            alert("Archive not set : please select an archive in the 'Configure' section");
         }
     }
 
