@@ -17,6 +17,10 @@ define(function(require) {
     // The maximum number of titles that can have the same name after normalizing
     // This is used by the algorithm that searches for a specific article by its name
     var MAX_TITLES_WITH_SAME_NORMALIZED_NAME = 30;
+    // Maximum length of a title
+    // 300 bytes is arbitrary : we actually do not really know how long the titles will be
+    // But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
+    var MAX_TITLE_LENGTH = 300;
     
     /**
      * LocalArchive class : defines a wikipedia dump on the filesystem
@@ -259,8 +263,7 @@ define(function(require) {
     LocalArchive.prototype.recursivePrefixSearch = function(reader, normalizedPrefix, lo, hi, callbackFunction) {
         if (lo < hi - 1) {
             var mid = Math.floor((lo + hi) / 2);
-            // TODO : improve the way we read this file : 128 bytes is arbitrary and might be too small
-            var blob = this.titleFile.slice(mid, mid + 128);
+            var blob = this.titleFile.slice(mid, mid + MAX_TITLE_LENGTH);
             var currentLocalArchiveInstance = this;
             reader.onload = function(e) {
                 var binaryTitleFile = e.target.result;
@@ -352,9 +355,7 @@ define(function(require) {
             }
             callbackFunction(titleList);
         };
-        // 300 bytes is arbitrary : we actually do not really know how long the titles will be
-        // But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
-        var blob = this.titleFile.slice(titleOffset, titleOffset + titleCount * 300);
+        var blob = this.titleFile.slice(titleOffset, titleOffset + titleCount * MAX_TITLE_LENGTH);
         // Read in the file as a binary string
         reader.readAsArrayBuffer(blob);
     };
