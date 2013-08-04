@@ -43,4 +43,3 @@ build/config/buildinfo.properties
 
 www-built
 www-ghdeploy
-/push_to_gh_pages.sh
