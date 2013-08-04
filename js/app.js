@@ -185,7 +185,6 @@ define(function(require) {
     /**
      * Handle key input in the prefix input zone
      * @param {type} evt
-     * @returns {undefined}
      */
     function onKeyUpPrefix(evt) {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
@@ -398,14 +397,14 @@ define(function(require) {
      * @returns {undefined}
      */
     function goToArticle(titleName) {
-        $("#articleName").html(titleName);
-        $("#readingArticle").show();
         localArchive.getTitleByName(titleName, function(title) {
-            if (title == null) {
+            if (title === null || title === undefined) {
                 $("#readingArticle").hide();
                 alert("Article with title " + titleName + " not found in the archive");
             }
             else {
+                $("#articleName").html(titleName);
+                $("#readingArticle").show();
                 $("#articleContent").html("");
                 readArticle(title);
             }
