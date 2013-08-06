@@ -224,7 +224,11 @@ define(function(require) {
             localArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
             $('#searchingForTitles').hide();
-            alert("Archive not set : please select an archive in the 'Configure' section");
+            // We have to remove the focus from the search field,
+            // so that the keyboard does not stay above the message
+            $("#searchTitles").focus();
+            alert("Archive not set : please select an archive");
+            $("#btnConfigure").click();
         }
     }
 

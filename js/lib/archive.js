@@ -666,7 +666,9 @@ define(function(require) {
         var directories = [];
         var cursor = storage.enumerate();
         cursor.onerror = function() {
-            alert("Error scanning directory sd-card : " + cursor.error);
+            alert("Error scanning your SD card : " + cursor.error
+                    +". If you're using the Firefox OS Simulator, please put the archives in a 'fake-sdcard' directory inside your Firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard)");
+            callbackFunction(null);
         };
         cursor.onsuccess = function() {
             if (cursor.result) {
