@@ -10,6 +10,7 @@ define(function(require) {
     var evopediaTitle = require('title');
     var evopediaArchive = require('archive');
     var util = require('util');
+    var cookies = require('cookies');
     
     // Maximum number of titles to display in a search
     var MAX_SEARCH_RESULT_SIZE = 50;
@@ -19,6 +20,13 @@ define(function(require) {
 
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
+        if (localArchive.language === "small" && !cookies.getItem("warned_small_archive")) {
+            // The user selected the "small" archive, which is quite incomplete
+            // So let's display a warning to the user
+            alert("You selected the 'small' archive. This archive is OK for testing, but be aware that very few hyperlinks in the articles will work because it's only a very small subset of the English dump.");
+            // We will not display this warning again for one day
+            cookies.setItem("warned_small_archive",true,86400);
+        }
         searchTitlesFromPrefix($('#prefix').val());
     });
     $('#formTitleSearch').on('submit', function(e) {
