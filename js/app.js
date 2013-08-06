@@ -148,11 +148,16 @@ define(function(require) {
         }
         $('#archiveList').on('change', setLocalArchiveFromArchiveList);
         if (archiveDirectories.length > 0) {
-            // Set the localArchive from the first result
+            var lastSelectedArchive = cookies.getItem("lastSelectedArchive");
+            if (lastSelectedArchive) {
+                // Attempt to select the corresponding item in the list
+                $("#archiveList").val(lastSelectedArchive);
+            }
+            // Set the localArchive as the last selected (or the first one if it has never been selected)
             setLocalArchiveFromArchiveList();
         }
         else {
-            alert("No Evopedia archive found in your sdcard. Please see 'About' for more info");
+            alert("No Evopedia archive found in your sdcard. Please see 'About' for more info. Also check that your device is not connected to a computer through USB device storage (which locks the sdcard content)");
         }
     }
 
@@ -163,6 +168,7 @@ define(function(require) {
         var archiveDirectory = $('#archiveList').val();
         localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromDeviceStorage(storage, archiveDirectory);
+        cookies.setItem("lastSelectedArchive",archiveDirectory,Infinity);
         // The archive is set : go back to home page to start searching
         $("#btnHome").click();
     }
@@ -252,12 +258,12 @@ define(function(require) {
      * @returns {undefined}
      */
     function handleTitleClick(event) {
-        if (localArchive.language === "small" && !cookies.getItem("warned_small_archive")) {
+        if (localArchive.language === "small" && !cookies.getItem("warnedSmallArchive")) {
             // The user selected the "small" archive, which is quite incomplete
             // So let's display a warning to the user
             alert("You selected the 'small' archive. This archive is OK for testing, but be aware that very few hyperlinks in the articles will work because it's only a very small subset of the English dump.");
             // We will not display this warning again for one day
-            cookies.setItem("warned_small_archive",true,86400);
+            cookies.setItem("warnedSmallArchive",true,86400);
         }
 
         var titleId = event.target.getAttribute("titleId");
