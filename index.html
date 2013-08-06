@@ -81,12 +81,16 @@
                     The original application (developed in Qt) is at <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
                     <br />
                     <br />
-                    To use it, you have to first download locally an archive from <a href="http://dumpathome.evopedia.info/dumps/finished" target="_blank">http://dumpathome.evopedia.info/dumps/finished</a> (with a Bittorrent client).
+                    To use it, you have to first download locally an archive from <a href="http://dumpathome.evopedia.info/dumps/finished" target="_blank">http://dumpathome.evopedia.info/dumps/finished</a>, from a regular computer.
+                    <br />If you get a compressed archive (.zip, .tar.gz or .tar.bz2), you will have to decompress it.
+                    <br />For a quick test, you can start with the dump called <a href="http://evopedia.info/dumps/wikipedia_small_2010-08-14.tar.gz" target="_blank">"small"</a> : it can be downloaded through HTTP and contains a very small subset of the English archive (note that the hyperlinks between articles will rarely work, as a lot of articles are missing in it).
+                    <br />After that, you can download an archive in your language, through a Bittorrent client. Check its size : these archives take several GB each.
+                    <br />
                     <br />
                     <ul>
+                        <li>On a Firefox OS device, you simply have to put the archive files in any subdirectory of your sdcard (ex: /wikipedia_small_2010-08-14). The application needs to be installed to have the right to read the archive. For now, you have to install it manually (use the push feature of the Firefos OS Simulator). I hope it will soon be available in the MarketPlace</li>
+                        <li>On the Firefos OS simulator, you have to put the archive files in any subdirectory in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard/wikipedia_small_2010-08-14). You need to install the application from the dashboard of the simulator</li>
                         <li>On desktops, it works on recent Firefox and Chromium, and probably on some other browsers (it even seems to work on IE10). In this case, you have to manually select the files from your archive (see the configuration section)</li>
-                        <li>On the Firefos OS simulator, you have to put the archive files anywhere in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard). You need to install the application from the dashboard of the simulator (due to security restrictions in Firefox OS : only certified webapps can access the sdcard)</li>
-                        <li>On a real Firefox OS device, you simply have to put the archive files anywhere in your sdcard. For now, the application has to be installed manually (use the push feature of the Firefos OS Simulator)</li>
                         <li>On Android, it does not seem to work for now (tried with internal browser, Chrome and Firefox) because you can not select all the files of an archive</li>
                     </ul>
                     <br />
@@ -95,7 +99,7 @@
                         <li>It is not easy to use on the Peak device from Geeksphone because the buttons and inputs are too small</li>
                         <li>Some features of the original application still have to be implemented : in particular the "Articles nearby" feature (geolocation)</li>
                     </ul>
-                    The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I also use it as my roadmap.
+                    The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I use it as my roadmap.
                     <br />Alternatively, you can send your feedback <a href="mailto:mossroy@free.fr?subject=Feedback%20about%20Evopedia%20HTML5">by email</a>.
                     <br />In all cases, please give me as much detail as you can : which device or browser you are using, which archive, which articles etc.
                 </div>
@@ -114,6 +118,11 @@
                         <br /> Please select the archive you want to use : <select id="archiveList"></select>
                     </div>
                     <br />
+                </div>
+                
+                <div id="welcomeText" class="container">
+                    You can search the content of your Wikipedia archive by typing in the above search field.
+                    <br />It will propose articles starting with what you typed
                 </div>
                 
                 <!-- List of articles matching the typed prefix -->

@@ -21,6 +21,7 @@ define(function(require) {
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
         searchTitlesFromPrefix($('#prefix').val());
+        $("#welcomeText").hide();
     });
     $('#formTitleSearch').on('submit', function(e) {
         document.getElementById("searchTitles").click();
@@ -57,6 +58,7 @@ define(function(require) {
         $('#about').hide();
         $('#configuration').hide();
         $('#formTitleSearch').show();
+        $("#welcomeText").show();
         $('#titleList').show();
         $('#articleContent').show();
         // Give the focus to the search field, and clean up the page contents
@@ -78,6 +80,7 @@ define(function(require) {
         $('#about').hide();
         $('#configuration').show();
         $('#formTitleSearch').hide();
+        $("#welcomeText").hide();
         $('#titleList').hide();
         $('#articleContent').hide();
         return false;
@@ -94,6 +97,7 @@ define(function(require) {
         $('#about').show();
         $('#configuration').hide();
         $('#formTitleSearch').hide();
+        $("#welcomeText").hide();
         $('#titleList').hide();
         $('#articleContent').hide();
         return false;
@@ -157,7 +161,8 @@ define(function(require) {
             setLocalArchiveFromArchiveList();
         }
         else {
-            alert("No Evopedia archive found in your sdcard. Please see 'About' for more info. Also check that your device is not connected to a computer through USB device storage (which locks the sdcard content)");
+            alert("Welcome to Evopedia! This application needs a wikipedia archive in your SD-card. Please download one and put it on the SD-card (see About section). Also check that your device is not connected to a computer through USB device storage (which locks the SD-card content)");
+            $("#btnAbout").click();
         }
     }
 
