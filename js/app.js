@@ -127,7 +127,7 @@ define(function(require) {
             $("#btnConfigure").click();
         }
     }
-    
+
 
     // Display the article when the user goes back in the browser history
     window.onpopstate = function(event) {
@@ -148,14 +148,21 @@ define(function(require) {
         comboArchiveList.options.length = 0;
         for (var i = 0; i < archiveDirectories.length; i++) {
             var archiveDirectory = archiveDirectories[i];
-            comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
+            if (archiveDirectory === "/") {
+                alert("It looks like you have put some archive files at the root of your sdcard. Please move them in a subdirectory");
+            }
+            else {
+                comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
+            }
         }
         $('#archiveList').on('change', setLocalArchiveFromArchiveList);
-        if (archiveDirectories.length > 0) {
+        if (comboArchiveList.options.length > 0) {
             var lastSelectedArchive = cookies.getItem("lastSelectedArchive");
-            if (lastSelectedArchive) {
-                // Attempt to select the corresponding item in the list
-                $("#archiveList").val(lastSelectedArchive);
+            if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== "") {
+                // Attempt to select the corresponding item in the list, if it exists
+                if ($("#archiveList option[value='"+lastSelectedArchive+"']").length > 0) {
+                    $("#archiveList").val(lastSelectedArchive);
+                }
             }
             // Set the localArchive as the last selected (or the first one if it has never been selected)
             setLocalArchiveFromArchiveList();
@@ -267,9 +274,15 @@ define(function(require) {
      * @returns {undefined}
      */
     function handleTitleClick(event) {
-        if (localArchive.language === "small" && !cookies.getItem("warnedSmallArchive")) {
+        if (localArchive.language === "small" && !cookies.hasItem("warnedSmallArchive")) {
             // The user selected the "small" archive, which is quite incomplete
             // So let's display a warning to the user
+            
+            // If the focus is on the search field, we have to move it,
+            // else the keyboard hides the message
+            if ($("#prefix").is(":focus")) {
+                $("searchTitles").focus();
+            }
             alert("You selected the 'small' archive. This archive is OK for testing, but be aware that very few hyperlinks in the articles will work because it's only a very small subset of the English dump.");
             // We will not display this warning again for one day
             cookies.setItem("warnedSmallArchive",true,86400);

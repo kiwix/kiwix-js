@@ -46,14 +46,14 @@ define(function(require) {
      */
     LocalArchive.prototype.readTitleFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
-        var filerequest = storage.get(directory + '/titles.idx');
+        var filerequest = storage.get(directory + 'titles.idx');
         filerequest.onsuccess = function() {
             currentLocalArchiveInstance.titleFile = filerequest.result;
         };
         filerequest.onerror = function(event) {
             alert("error reading title file in directory " + directory + " : " + event.target.error.name);
         };
-        var filerequestSearch = storage.get(directory + '/titles_search.idx');
+        var filerequestSearch = storage.get(directory + 'titles_search.idx');
         filerequestSearch.onsuccess = function() {
             currentLocalArchiveInstance.titleSearchFile = filerequest.result;
         };
@@ -79,7 +79,7 @@ define(function(require) {
         } else {
             prefixedFileNumber = index;
         }
-        var filerequest = storage.get(directory + '/wikipedia_' + prefixedFileNumber
+        var filerequest = storage.get(directory + 'wikipedia_' + prefixedFileNumber
                 + '.dat');
         filerequest.onsuccess = function() {
             currentLocalArchiveInstance.dataFiles[index] = filerequest.result;
@@ -112,7 +112,7 @@ define(function(require) {
         } else {
             prefixedFileNumber = index;
         }
-        var filerequest = storage.get(directory + '/coordinates_' + prefixedFileNumber
+        var filerequest = storage.get(directory + 'coordinates_' + prefixedFileNumber
                 + '.idx');
         filerequest.onsuccess = function() {
             currentLocalArchiveInstance.coordinateFiles[index] = filerequest.result;
@@ -138,7 +138,7 @@ define(function(require) {
     LocalArchive.prototype.readMetadataFileFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
 
-        var filerequest = storage.get(directory + '/metadata.txt');
+        var filerequest = storage.get(directory + 'metadata.txt');
         filerequest.onsuccess = function() {
             var metadataFile = filerequest.result;
             currentLocalArchiveInstance.readMetadataFile(metadataFile);
@@ -233,14 +233,14 @@ define(function(require) {
      */
     LocalArchive.prototype.readMathFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
-        var filerequest1 = storage.get(directory + '/math.idx');
+        var filerequest1 = storage.get(directory + 'math.idx');
         filerequest1.onsuccess = function() {
             currentLocalArchiveInstance.mathIndexFile = filerequest1.result;
         };
         filerequest1.onerror = function(event) {
             alert("error reading math index file in directory " + directory + " : " + event.target.error.name);
         };
-        var filerequest2 = storage.get(directory + '/math.dat');
+        var filerequest2 = storage.get(directory + 'math.dat');
         filerequest2.onsuccess = function() {
             currentLocalArchiveInstance.mathDataFile = filerequest2.result;
         };
@@ -667,7 +667,7 @@ define(function(require) {
         var cursor = storage.enumerate();
         cursor.onerror = function() {
             alert("Error scanning your SD card : " + cursor.error
-                    +". If you're using the Firefox OS Simulator, please put the archives in a 'fake-sdcard' directory inside your Firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard)");
+                    +". If you're using the Firefox OS Simulator, please put the archives in a 'fake-sdcard' directory inside your Firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard/wikipedia_small_2010-08-14)");
             callbackFunction(null);
         };
         cursor.onsuccess = function() {
@@ -680,9 +680,17 @@ define(function(require) {
                     cursor.continue();
                     return;
                 }
-
-                // We want to return the directory where titles.idx is stored
-                var directory = fileName.substring(0, fileName.lastIndexOf('/'));
+                
+                // Handle the case of archive files at the root of the sd-card
+                // (without a subdirectory)
+                var directory = "/";
+                
+                if (fileName.lastIndexOf('/')!==-1) {
+                    // We want to return the directory where titles.idx is stored
+                    // We also keep the trailing slash
+                    directory = fileName.substring(0, fileName.lastIndexOf('/') + 1);
+                }
+                
                 directories.push(directory);
                 cursor.continue();
             }
