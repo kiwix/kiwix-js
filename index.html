@@ -41,25 +41,28 @@
     <body role="application">
         <section id="search-article" role="region">
             <header id="top">
-                <div class="navbar">
-                    <div class="container">
-                        <!-- .navbar-toggle is used as the toggle for collapsed navbar content -->
-                        <button type="button" id="navbarToggle" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <label class="navbar-brand">Evopedia</label>
-                        <!-- Place everything within .navbar-collapse to hide it until above 768px -->
-                        <div class="nav-collapse collapse navbar-responsive-collapse">
-                            <ul class="nav navbar-nav">
-                                <li id="liHomeNav" class="active"><a href="#" id="btnHome">Home</a></li>
-                                <li id="liConfigureNav"><a href="#" id="btnConfigure">Configure</a></li>
-                                <li id="liAboutNav"><a href="#" id="btnAbout">About</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                <nav class="navbar" role="navigation">
+                  <!-- Brand and toggle get grouped for better mobile display -->
+                  <div class="navbar-header">
+                    <button type="button" id="navbarToggle" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                      <span class="sr-only">Toggle navigation</span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand">Evopedia</a>
+                  </div>
+
+                  <!-- Collect the nav links, forms, and other content for toggling -->
+                  <div class="collapse navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                      <li id="liHomeNav" class="active"><a href="#" id="btnHome">Home</a></li>
+                      <li id="liConfigureNav"><a href="#" id="btnConfigure">Configure</a></li>
+                      <li id="liAboutNav"><a href="#" id="btnAbout">About</a></li>
+                    </ul>
+                  </div><!-- /.navbar-collapse -->
+                </nav>
+
 
                 <div class="container">
                 <form id="formTitleSearch" class="form-inline">
@@ -115,7 +118,7 @@
                         <br /> Scanning your sdcard for archives... Please wait <img src="img/spinner.gif" />
                     </div>
                     <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                        <br /> Please select the archive you want to use : <select id="archiveList"></select>
+                        <br /> Please select the archive you want to use : <select id="archiveList" class="form-control"></select>
                     </div>
                     <br />
                 </div>
@@ -142,10 +145,10 @@
                     to avoid the top button to be in the scrollbar area :
                     on a device, it can trigger a "page down" of the scrollbar -->
                     <div class="restrictedSize">
-                        <a class="btn btn-large pull-left" id="btnHomeBottom" title="Home"><span class="glyphicon glyphicon-home"></span></a>
-                        <a class="btn btn-large" id="btnBack" title="Back"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
-                        <a class="btn btn-large" id="btnForward" title="Forward"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
-                        <a class="btn btn-large pull-right" id="btnTop" title="Top" href="#top"><span class="glyphicon glyphicon-arrow-up"></span></a>
+                        <a class="btn btn-lg pull-left" id="btnHomeBottom" title="Home"><span class="glyphicon glyphicon-home"></span></a>
+                        <a class="btn btn-lg" id="btnBack" title="Back"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+                        <a class="btn btn-lg" id="btnForward" title="Forward"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
+                        <a class="btn btn-lg pull-right" id="btnTop" title="Top" href="#top"><span class="glyphicon glyphicon-arrow-up"></span></a>
                     </div>
                 </div>
             </footer>
