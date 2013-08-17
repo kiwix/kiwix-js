@@ -250,19 +250,18 @@ define(function(require) {
      * @param {type} titleArray
      */
     function populateListOfTitles(titleArray) {
-        var titleListUl = $('#titleList');
+        var titleListDiv = $('#titleList');
         // Remove previous results
-        titleListUl.empty();
+        titleListDiv.empty();
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
-            var titleLi = document.createElement('li');
             var titleA = document.createElement('a');
+            titleA.setAttribute("class","list-group-item");
             titleA.setAttribute("titleId", title.toStringId());
             titleA.setAttribute("href", "#");
-            $(titleA).append(title.name);
+            $(titleA).append(title.getReadableName());
             $(titleA).on("click",handleTitleClick);
-            $(titleLi).append(titleA);
-            titleListUl.append(titleLi);
+            titleListDiv.append(titleA);
         }
         $('#searchingForTitles').hide();
     }

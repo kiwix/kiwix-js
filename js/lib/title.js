@@ -23,7 +23,7 @@ define(function(require) {
     ;
 
     Title.prototype.getReadableName = function() {
-        return this.name.replace("_", " ");
+        return this.name.replace(/_/g, " ");
     };
 
 
