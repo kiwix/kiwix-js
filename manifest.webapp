@@ -16,7 +16,7 @@
   "default_locale": "en",
   "permissions": {
     "device-storage:sdcard": {
-      "description": "Required to read evopedia archives",
+      "description": "Required to read wikipedia archives",
       "access": "readonly"
       }
   },
