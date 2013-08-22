@@ -65,6 +65,7 @@ define(function(require) {
         $("#prefix").val("");
         $('#prefix').focus();
         $("#titleList").html("");
+        $("#readingArticle").hide();
         $("#articleContent").html("");
         return false;
     });
@@ -82,6 +83,7 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $("#welcomeText").hide();
         $('#titleList').hide();
+        $("#readingArticle").hide();
         $('#articleContent').hide();
         return false;
     });
@@ -99,6 +101,7 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $("#welcomeText").hide();
         $('#titleList').hide();
+        $("#readingArticle").hide();
         $('#articleContent').hide();
         return false;
     });
