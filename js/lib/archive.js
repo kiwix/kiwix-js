@@ -466,7 +466,10 @@ define(function(require) {
             }
         }
         if (!dataFile) {
-            throw "File number " + title.fileNr + " not found";
+            // TODO can probably be replaced by some error handler at window level
+            alert("Oops : some files seem to be missing in your archive. Please report it to us by email or through Github (see About section), with the name of the article and the following info : "
+                + "File number " + title.fileNr + " not found");
+            throw new Error("File number " + title.fileNr + " not found");
         } else {
             var reader = new FileReader();
             // Read the article in the dataFile, starting with a chunk of CHUNK_SIZE 
@@ -500,9 +503,9 @@ define(function(require) {
                 var compressedArticles = e.target.result;
                 webworkerBzip2.onerror = function(event){
                     // TODO can probably be replaced by some error handler at window level
-                    alert("An unexpected error occured. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.message="
+                    alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.message="
                             + event.message + " event.filename=" + event.filename + " event.lineno=" + event.lineno );
-                    throw new Error(event.message + " (" + event.filename + ":" + event.lineno + ")");
+                    throw new Error("Error during bzip2 decompression : " + event.message + " (" + event.filename + ":" + event.lineno + ")");
                 };
                 webworkerBzip2.onmessage = function(event){
                     switch (event.data.cmd){
@@ -531,9 +534,9 @@ define(function(require) {
                             break;
                         case "error":
                             // TODO can probably be replaced by some error handler at window level
-                            alert("An unexpected error occured. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.data.msg="
+                            alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.data.msg="
                             + event.data.msg );
-                            throw new Error(event.data.msg);
+                            throw new Error("Error during bzip2 decompression : " + event.data.msg);
                             break;
                     }
                 };
@@ -639,12 +642,15 @@ define(function(require) {
             var byteArray = new Uint8Array(binaryTitleFile);
 
             if (byteArray.length === 0) {
-                throw "Unable to find redirected article : offset " + title.blockStart + " not found in title file";
+                // TODO can probably be replaced by some error handler at window level
+                alert("Oops : there seems to be something wrong in your archive. Please report it to us by email or through Github (see About section), with the name of the article and the following info : "
+                    + "Unable to find redirected article for title " + title.name + " : offset " + title.blockStart + " not found in title file");
+                throw new Error("Unable to find redirected article for title " + title.name + " : offset " + title.blockStart + " not found in title file");
             }
 
             var redirectedTitle = title;
             redirectedTitle.fileNr = 1 * byteArray[2];
-            redirectedTitle.blockStart =util. readIntegerFrom4Bytes(byteArray, 3);
+            redirectedTitle.blockStart = util.readIntegerFrom4Bytes(byteArray, 3);
             redirectedTitle.blockOffset = util.readIntegerFrom4Bytes(byteArray, 7);
             redirectedTitle.articleLength = util.readIntegerFrom4Bytes(byteArray, 11);
 

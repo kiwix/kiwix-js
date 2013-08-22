@@ -36,10 +36,10 @@ define(function(require) {
      */
     Title.parseTitle = function(encodedTitle, archive, titleOffset) {
         if (archive === null) {
-            throw "archive cannot be null";
+            throw new Error("Error while parsing an encoded title line un title File : archive cannot be null");
         }
         if (titleOffset < 0) {
-            throw "titleOffset cannot be negative (was " + titleOffset + ")";
+            throw new Error("Error while parsing an encoded title line un title File : titleOffset cannot be negative (was " + titleOffset + ")");
         }
         var t = new Title();
         t.archive = archive;
