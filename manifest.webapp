@@ -1,7 +1,7 @@
 {
   "version": "1.0",
   "name": "Evopedia",
-  "description": "Offline Wikipedia Reader",
+  "description": "Offline Wikipedia Viewer",
   "launch_path": "/index.html",
   "icons": {
     "16": "/img/icons/evopedia-16.png",
@@ -12,7 +12,6 @@
     "name": "Mossroy <mossroy@free.fr>",
     "url": "https://github.com/mossroy"
   },
-  "installs_allowed_from": ["*"],
   "default_locale": "en",
   "permissions": {
     "device-storage:sdcard": {
@@ -20,5 +19,6 @@
       "access": "readonly"
       }
   },
-  "type": "privileged"
+  "type": "privileged",
+  "origin": "app://evopedia.info"
 }
