@@ -51,7 +51,7 @@ define(function(require) {
             currentLocalArchiveInstance.titleFile = filerequest.result;
         };
         filerequest.onerror = function(event) {
-            alert("error reading title file in directory " + directory + " : " + event.target.error.name);
+            alert("Error reading title file in directory " + directory + " : " + event.target.error.name);
         };
         var filerequestSearch = storage.get(directory + 'titles_search.idx');
         filerequestSearch.onsuccess = function() {
@@ -89,7 +89,7 @@ define(function(require) {
         filerequest.onerror = function(event) {
             // TODO there must be a better to way to detect a FileNotFound
             if (event.target.error.name != "NotFoundError") {
-                alert("error reading data file " + index + " in directory "
+                alert("Error reading data file " + index + " in directory "
                         + directory + " : " + event.target.error.name);
             }
         };
@@ -122,7 +122,7 @@ define(function(require) {
         filerequest.onerror = function(event) {
             // TODO there must be a better to way to detect a FileNotFound
             if (event.target.error.name != "NotFoundError") {
-                alert("error reading data file " + index + " in directory "
+                alert("Error reading coordinates file " + index + " in directory "
                         + directory + " : " + event.target.error.name);
             }
         };
@@ -144,7 +144,7 @@ define(function(require) {
             currentLocalArchiveInstance.readMetadataFile(metadataFile);
         };
         filerequest.onerror = function(event) {
-            alert("error reading metadata.txt file in directory "
+            alert("Error reading metadata.txt file in directory "
                         + directory + " : " + event.target.error.name);
         };
     };
@@ -238,14 +238,14 @@ define(function(require) {
             currentLocalArchiveInstance.mathIndexFile = filerequest1.result;
         };
         filerequest1.onerror = function(event) {
-            alert("error reading math index file in directory " + directory + " : " + event.target.error.name);
+            alert("Error reading math index file in directory " + directory + " : " + event.target.error.name);
         };
         var filerequest2 = storage.get(directory + 'math.dat');
         filerequest2.onsuccess = function() {
             currentLocalArchiveInstance.mathDataFile = filerequest2.result;
         };
         filerequest2.onerror = function(event) {
-            alert("error reading math data file in directory " + directory + " : " + event.target.error.name);
+            alert("Error reading math data file in directory " + directory + " : " + event.target.error.name);
         };
     };
 
