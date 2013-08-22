@@ -7,28 +7,29 @@
         <meta name="description" content="Offline wikipedia reader"> 
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!--
-        Port of Evopedia (offline wikipedia reader) in HTML5/Javascript, with Firefox OS as the primary target
-        The original application is at http://www.evopedia.info/
-        It uses wikipedia dumps located at http://dumpathome.evopedia.info/dumps/finished
-        
-        Author : Mossroy - mossroy@free.fr
+        Evopedia (offline wikipedia reader) - HTML5/Javascript version
+        Home page : http://www.evopedia.info/
+                
+        Main author of this application : Mossroy - mossroy@free.fr
         Math image algorithm contributed by christian@evopedia.info
+
+        Copyright 2013 Mossroy
+        License GPL v3:
         
-        License:
-        
-            This program is free software; you can redistribute it and/or modify it
-            under the terms of the GNU General Public License as published by the
-            Free Software Foundation; either version 3 of the License, or (at your
-            option) any later version.
-        
-            This program is distributed in the hope that it will be useful, but
-            WITHOUT ANY WARRANTY; without even the implied warranty of
-            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-            General Public License for more details.
-        
-            You should have received a copy of the GNU General Public
-            License along with this program; if not, see
-            <http://www.gnu.org/licenses/>.
+        This file is part of Evopedia.
+
+        Evopedia is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+
+        Evopedia is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
         
         -->
 
@@ -84,6 +85,7 @@
                     The original application (developed in Qt) is at <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
                     <br />
                     <br />
+                    <h3>Usage</h3>
                     To use it, you have to first download locally an archive from <a href="http://dumpathome.evopedia.info/dumps/finished" target="_blank">http://dumpathome.evopedia.info/dumps/finished</a>, from a regular computer.
                     <br />If you get a compressed archive (.zip, .tar.gz or .tar.bz2), you will have to decompress it.
                     <br />For a quick test, you can start with the dump called <a href="http://evopedia.info/dumps/wikipedia_small_2010-08-14.tar.gz" target="_blank">"small"</a> : it can be downloaded through HTTP and contains a very small subset of the English archive (note that the hyperlinks between articles will rarely work, as a lot of articles are missing in it).
@@ -97,6 +99,7 @@
                         <li>On Android, it does not seem to work for now (tried with internal browser, Chrome and Firefox) because you can not select all the files of an archive</li>
                     </ul>
                     <br />
+                    <h3>Feedback</h3>
                     It's still a beta version : there are many ways this could be enhanced (suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5" target="_blank">github</a>). In particular :
                     <ul>
                         <li>It is not easy to use on the Peak device from Geeksphone because the buttons and inputs are too small</li>
@@ -105,6 +108,42 @@
                     The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I use it as my roadmap.
                     <br />Alternatively, you can send your feedback <a href="mailto:mossroy@free.fr?subject=Feedback%20about%20Evopedia%20HTML5">by email</a>.
                     <br />In all cases, please give me as much detail as you can : which device or browser you are using, which archive, which articles etc.
+                    <br />
+                    <br />
+                    <h3>Credits</h3>
+                    Many thanks to christian@evopedia.info, leader of the Evopedia project. He originally developed the Qt application, designed the archive format, and organizes the updates of these archives
+                    <br />Christian also contributed some code on this application, for the math images.
+                    <br />Thank you mapilette for testing and supporting
+                    <br />
+                    <h3>License</h3>
+                    This application is licensed under the GPL v3 license :
+                    <br />
+                    <i>
+                    <br />Evopedia is free software: you can redistribute it and/or modify
+                    <br />it under the terms of the GNU General Public License as published by
+                    <br />the Free Software Foundation, either version 3 of the License, or
+                    <br />(at your option) any later version.
+                    <br /> 
+                    <br />Evopedia is distributed in the hope that it will be useful,
+                    <br />but WITHOUT ANY WARRANTY; without even the implied warranty of
+                    <br />MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                    <br />GNU General Public License for more details.
+                    <br />
+                    <br />You should have received a copy of the GNU General Public License
+                    <br />along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>
+                    </i>
+                    <br />
+                    <br /> Main libraries and ressources used :
+                    <ul>
+                        <li><a href="http://jquery.com/">jQuery</a> 2, released under the <a href="http://jquery.org/license">MIT license</a></li>
+                        <li><a href="http://getbootstrap.com/">Bootstrap</a> 3, released under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache license 2.0</a>, which includes icons from <a href="http://glyphicons.com/">Glyphicons</a></li>
+                        <li><a href="https://github.com/antimatter15/bzip2.js">bzip2.js</a>, released under the <a href="http://www.gnu.org/copyleft/lgpl.html">LGPL v2 license</a></li>
+                        <li><a href="http://www.requirejs.org/">RequireJS</a> 2, released under the <a href="https://github.com/jrburke/requirejs/blob/master/LICENSE">MIT license or new BSD license</a></li>
+                        <li><a href="http://zeptojs.com/">ZeptoJS</a> 2, released under the <a href="https://github.com/madrobby/zepto/blob/master/MIT-LICENSE">MIT license</a></li>
+                        <li><a href="http://qunitjs.com/">QUnit</a> 2, released under the <a href="http://jquery.org/license">MIT license</a></li>
+                        <li>Icon, algorithms and inspiration from <a href="https://github.com/evopedia/evopedia_qt/">Evopedia (Qt version)</a>, released under the <a href="https://www.gnu.org/licenses/">GPL v3 license</a></li>
+                        <li>Mediawiki CSS from <a href="http://wikidev.net/">Wikidev</a>, released under the <a href="http://www.gnu.org/copyleft/gpl.html">GPL license</a></li>
+                    </ul>
                 </div>
                 
                 <div id="configuration" style="display: none;">
