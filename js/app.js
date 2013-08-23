@@ -45,6 +45,9 @@ define(function(require) {
         searchTitlesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
         $("#readingArticle").hide();
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
     });
     $('#formTitleSearch').on('submit', function(e) {
         document.getElementById("searchTitles").click();
