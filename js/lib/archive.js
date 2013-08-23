@@ -486,7 +486,7 @@ define(function(require) {
         }
         if (!dataFile) {
             // TODO can probably be replaced by some error handler at window level
-            alert("Oops : some files seem to be missing in your archive. Please report it to us by email or through Github (see About section), with the name of the article and the following info : "
+            alert("Oops : some files seem to be missing in your archive. Please report this problem to us by email (see About section), with the names of the archive and article, and the following info : "
                 + "File number " + title.fileNr + " not found");
             throw new Error("File number " + title.fileNr + " not found");
         } else {
@@ -522,8 +522,8 @@ define(function(require) {
                 var compressedArticles = e.target.result;
                 webworkerBzip2.onerror = function(event){
                     // TODO can probably be replaced by some error handler at window level
-                    alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.message="
-                            + event.message + " event.filename=" + event.filename + " event.lineno=" + event.lineno );
+                    alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the names of the archive and article, and the following info : message="
+                            + event.message + " filename=" + event.filename + " line number=" + event.lineno );
                     throw new Error("Error during bzip2 decompression : " + event.message + " (" + event.filename + ":" + event.lineno + ")");
                 };
                 webworkerBzip2.onmessage = function(event){
@@ -553,7 +553,7 @@ define(function(require) {
                             break;
                         case "error":
                             // TODO can probably be replaced by some error handler at window level
-                            alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the name of the article and the following info : event.data.msg="
+                            alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the names of the archive and article, and the following info : message="
                             + event.data.msg );
                             throw new Error("Error during bzip2 decompression : " + event.data.msg);
                             break;
@@ -662,7 +662,7 @@ define(function(require) {
 
             if (byteArray.length === 0) {
                 // TODO can probably be replaced by some error handler at window level
-                alert("Oops : there seems to be something wrong in your archive. Please report it to us by email or through Github (see About section), with the name of the article and the following info : "
+                alert("Oops : there seems to be something wrong in your archive. Please report it to us by email or through Github (see About section), with the names of the archive and article and the following info : "
                     + "Unable to find redirected article for title " + title.name + " : offset " + title.blockStart + " not found in title file");
                 throw new Error("Unable to find redirected article for title " + title.name + " : offset " + title.blockStart + " not found in title file");
             }
