@@ -25,7 +25,7 @@
 // http://requirejs.org/docs/api.html#define
 
 define(function(require) {
-
+    
     var $ = require('jquery');
 
     // Evopedia javascript dependencies
@@ -44,6 +44,7 @@ define(function(require) {
     $('#searchTitles').on('click', function(e) {
         searchTitlesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
+        $("#readingArticle").hide();
     });
     $('#formTitleSearch').on('submit', function(e) {
         document.getElementById("searchTitles").click();
