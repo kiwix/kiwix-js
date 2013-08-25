@@ -321,7 +321,7 @@ define(function(require) {
                 + "The update to 1.1 should be soon automatically deployed by Geeksphone. "
                 + "NB : This message will not be displayed again");
             // We will not display this warning any more
-            cookies.setItem("warnedPeak101",true);
+            cookies.setItem("warnedPeak101", true, Infinity);
         }
     }
     
