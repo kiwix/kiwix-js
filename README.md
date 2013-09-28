@@ -14,5 +14,6 @@ It uses wikipedia archives located at http://dumpathome.evopedia.info/dumps/fini
 You have to first download one of them (with a Bittorrent client) and store it on your SD-card.
 
 This application is released under the GPL v3 license. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
+The source code can be found at https://github.com/mossroy/evopedia-html5
 
 Unit tests can be run by opening tests.html file
