@@ -232,15 +232,46 @@ define(function(require) {
     
     /**
      * Initialize the localArchive from given directory, using DeviceStorage
-     * @param {type} storage
+     * @param {type} storages List of DeviceStorages available
      * @param {type} archiveDirectory
      */
-    LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory) {
-        this.readTitleFilesFromStorage(storage, archiveDirectory);
-        this.readDataFilesFromStorage(storage, archiveDirectory, 0);
-        this.readMathFilesFromStorage(storage, archiveDirectory);
-        this.readMetadataFileFromStorage(storage, archiveDirectory);
-        this.readCoordinateFilesFromStorage(storage, archiveDirectory, 0);
+    LocalArchive.prototype.initializeFromDeviceStorage = function(storages, archiveDirectory) {
+        // First, we have to find which DeviceStorage has been selected by the user
+        // It is the prefix of the archive directory
+        var storageNameRegex = /^\/([^\/]+)\//;
+        var regexResults = storageNameRegex.exec(archiveDirectory);
+        var selectedStorage = null;
+        if (regexResults && regexResults.length>0) {
+            var selectedStorageName = regexResults[1];
+            for (var i=0; i<storages.length; i++) {
+                var storage = storages[i];
+                if (selectedStorageName === storage.storageName) {
+                    // We found the selected storage
+                    selectedStorage = storage;
+                }
+            }
+            if (selectedStorage === null) {
+                alert("Unable to find which device storage corresponds to directory " + archiveDirectory);
+            }
+        }
+        else {
+            // This happens with FxOS 1.0
+            // In this case, we use the first storage of the list
+            // (there should be only one)
+            if (storages.length === 1) {
+                selectedStorage = storages[0];
+            }
+            else {
+                alert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                    + archiveDirectory + ", but there were " + storages.length
+                    + " storages found with getDeviceStorages instead of 1");
+            }
+        }
+        this.readTitleFilesFromStorage(selectedStorage, archiveDirectory);
+        this.readDataFilesFromStorage(selectedStorage, archiveDirectory, 0);
+        this.readMathFilesFromStorage(selectedStorage, archiveDirectory);
+        this.readMetadataFileFromStorage(selectedStorage, archiveDirectory);
+        this.readCoordinateFilesFromStorage(selectedStorage, archiveDirectory, 0);
     };
 
     /**
@@ -684,12 +715,12 @@ define(function(require) {
     /**
      *  Scans the DeviceStorage for archives
      * 
-     * @param storage DeviceStorage instance
+     * @param storages List of DeviceStorage instances
      * @param callbackFunction Function to call with the list of directories where archives are found
      */
-    LocalArchive.scanForArchives = function(storage, callbackFunction) {
+    LocalArchive.scanForArchives = function(storages, callbackFunction) {
         var directories = [];
-        var cursor = storage.enumerate();
+        var cursor = util.enumerateAll(storages);
         cursor.onerror = function() {
             alert("Error scanning your SD card : " + cursor.error
                     +". If you're using the Firefox OS Simulator, please put the archives in a 'fake-sdcard' directory inside your Firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard/wikipedia_small_2010-08-14)");

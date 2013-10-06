@@ -134,16 +134,27 @@ define(function(require) {
     
 
     // Detect if DeviceStorage is available
-    var storage = null;
+    var storages = [];
     if ($.isFunction(navigator.getDeviceStorage)) {
-        storage = navigator.getDeviceStorage('sdcard');
+        if ($.isFunction(navigator.getDeviceStorages)) {
+            // The method getDeviceStorages is available (FxOS>=1.1)
+            // We have to scan all the DeviceStorages, because getDeviceStorage
+            // only returns the default Device Storage.
+            // See https://bugzilla.mozilla.org/show_bug.cgi?id=885753
+            storages = navigator.getDeviceStorages("sdcard");
+        }
+        else {
+            // The method getDeviceStorages is not available (FxOS 1.0)
+            // The fallback is to use getDeviceStorage
+            storages[0] = navigator.getDeviceStorage("sdcard");
+        }
     }
 
-    if (storage !== null) {
+    if (storages !== null) {
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
-        evopediaArchive.LocalArchive.scanForArchives(storage, populateDropDownListOfArchives);
+        evopediaArchive.LocalArchive.scanForArchives(storages, populateDropDownListOfArchives);
     }
     else {
         // If DeviceStorage is not available, we display the file select components
@@ -208,7 +219,7 @@ define(function(require) {
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
         localArchive = new evopediaArchive.LocalArchive();
-        localArchive.initializeFromDeviceStorage(storage, archiveDirectory);
+        localArchive.initializeFromDeviceStorage(storages, archiveDirectory);
         cookies.setItem("lastSelectedArchive",archiveDirectory,Infinity);
         // The archive is set : go back to home page to start searching
         $("#btnHome").click();
