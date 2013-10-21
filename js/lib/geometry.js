@@ -389,6 +389,25 @@ define(function(require) {
             this.width = decimals ? this.width.toFixed(decimals) : round(this.width);
             this.height = decimals ? this.height.toFixed(decimals) : round(this.height);
             return this;
+        },
+        // Returns a normalized rectangle; i.e., a rectangle that has a non-negative width and height.
+        // If width < 0 the function swaps the left and right corners,
+        // and it swaps the top and bottom corners if height < 0
+        // like in http://harmattan-dev.nokia.com/docs/library/html/qt4/qrectf.html#normalized
+        normalized: function() {
+            var newx = this.x;
+            var newy = this.y;
+            var newwidth = this.width;
+            var newheight = this.height;
+            if (this.width < 0) {
+                newx = this.x + this.width;
+                newwidth = - this.width;
+            }
+            if (this.height < 0) {
+                newy = this.y + this.height;
+                newheight = - this.height;
+            }
+            return new rect(newx, newy, newwidth, newheight);
         }
     };
 

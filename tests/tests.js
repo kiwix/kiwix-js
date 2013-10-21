@@ -212,5 +212,38 @@ define(function(require) {
             ok(!rect1.containsPoint(point4), "rect1 does not contain point4");
             ok(rect1.containsPoint(point5), "rect1 contains point5");
         });
+        test("check normalization of a rectangle", function() {
+            var rect1 = new geometry.rect(2,3,4,5);
+            var normalizedRect1 = rect1.normalized();
+            ok(rect1.x===normalizedRect1.x
+                && rect1.y===normalizedRect1.y
+                && rect1.width===normalizedRect1.width
+                && rect1.height===normalizedRect1.height, "rect1 is the same after normalization");
+            var rect2 = new geometry.rect(6,3,-4,5);
+            var normalizedRect2 = rect2.normalized();
+            //alert("normalizedRect2 = " + normalizedRect2);
+            ok(normalizedRect2.x===2
+                && normalizedRect2.y===3
+                && normalizedRect2.width===4
+                && normalizedRect2.height===5, "rect2 successfully normalized by switching top left and top right corners");
+            var rect3 = new geometry.rect(2,8,4,-5);
+            var normalizedRect3 = rect3.normalized();
+            ok(normalizedRect3.x===2
+                && normalizedRect3.y===3
+                && normalizedRect3.width===4
+                && normalizedRect3.height===5, "rect3 successfully normalized by switching top left and botton left corners");
+            var rect4 = new geometry.rect(6,8,-4,-5);
+            var normalizedRect4 = rect4.normalized();
+            ok(normalizedRect4.x===2
+                && normalizedRect4.y===3
+                && normalizedRect4.width===4
+                && normalizedRect4.height===5, "rect4 successfully normalized by switching bottom right and top left corners");
+            var rect5 = new geometry.rect(12,2,-4,-1);
+            var normalizedRect5 = rect5.normalized();
+            ok(normalizedRect5.x===8
+                && normalizedRect5.y===1
+                && normalizedRect5.width===4
+                && normalizedRect5.height===1, "rect5 successfully normalized by switching bottom right and top left corners");
+        });
     };
 });
