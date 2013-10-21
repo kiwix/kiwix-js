@@ -24,6 +24,7 @@ define(function(require) {
     var $ = require('jquery');
     var evopediaTitle = require('title');
     var evopediaArchive = require('archive');
+    var geometry = require('geometry');
 
     // Due to security restrictions in the browsers,
     // we can not read directly the files and run the unit tests
@@ -176,6 +177,40 @@ define(function(require) {
             };
 
             localArchive.loadMathImage("edb3069b82c68d270f6642c171cc6293", callbackFunction);
+        });
+        
+        module("geometry");
+        test("check rectangle intersection", function() {
+            var rect1 = new geometry.rect(0,0,2,2);
+            var rect2 = new geometry.rect(1,1,2,2);
+            var rect3 = new geometry.rect(2,2,2,2);
+            var rect4 = new geometry.rect(1,1,1,1);
+            var rect5 = new geometry.rect(3,3,2,2);
+            var rect6 = new geometry.rect(2,0,1,10);
+            ok(rect1.intersect(rect2), "rect1 intersects rect2");
+            ok(rect2.intersect(rect1), "rect2 intersects rect1");
+            ok(rect2.intersect(rect3), "rect1 intersects rect3");
+            ok(!rect1.intersect(rect3), "rect1 does not intersect rect3");
+            ok(!rect4.intersect(rect3), "rect4 does not intersect rect3");
+            ok(rect4.intersect(rect2), "rect4 intersects rect2");
+            ok(!rect5.intersect(rect1), "rect5 does not intersect rect1");
+            ok(!rect1.intersect(rect5), "rect1 does not intersect rect5");
+            ok(rect6.intersect(rect2), "rect6 intersects rect2");
+            ok(rect6.intersect(rect3), "rect6 intersects rect3");
+            ok(!rect6.intersect(rect5), "rect6 intersects rect5");
+        });
+        test("check rectangle contains a point", function() {
+            var rect1 = new geometry.rect(2,3,4,5);
+            var point1 = new geometry.point(1,1);
+            var point2 = new geometry.point(2,3);
+            var point3 = new geometry.point(4,4);
+            var point4 = new geometry.point(7,9);
+            var point5 = new geometry.point(4,6);
+            ok(!rect1.containsPoint(point1), "rect1 does not contain point1");
+            ok(!rect1.containsPoint(point2), "rect1 does not contain point2");
+            ok(rect1.containsPoint(point3), "rect1 contains point3");
+            ok(!rect1.containsPoint(point4), "rect1 does not contain point4");
+            ok(rect1.containsPoint(point5), "rect1 contains point5");
         });
     };
 });
