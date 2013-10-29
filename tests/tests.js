@@ -245,5 +245,25 @@ define(function(require) {
                 && normalizedRect5.width===4
                 && normalizedRect5.height===1, "rect5 successfully normalized by switching bottom right and top left corners");
         });
+        
+        module("articles_nearby");
+        asyncTest("check articles found nearby France and Germany", function() {
+            var callbackTitlesNearbyFound = function(titles) {
+                ok(titles !== null, "Some titles should ne found");
+                ok(titles.length === 3, "3 titles should be found");
+                var titleAlps;
+                for (var i=0; i<titles.length; i++) {
+                    var title = titles[i];
+                    if (title.name === "Alps") {
+                        titleAlps = title[i];
+                    }
+                }
+                ok(titleAlps !== null, "The title 'Alps' should be found");
+                // TODO : check the coordinates of title Alps?
+                start();
+            };
+            var rectFranceGermany = new geometry.rect(40,50,-10,10);
+            localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
+        });
     };
 });
