@@ -249,8 +249,8 @@ define(function(require) {
         module("articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
             var callbackTitlesNearbyFound = function(titles) {
-                ok(titles !== null, "Some titles should ne found");
-                ok(titles.length === 3, "3 titles should be found");
+                ok(titles !== null, "Some titles should be found");
+                equal(titles.length, 3, "3 titles should be found");
                 var titleAlps;
                 for (var i=0; i<titles.length; i++) {
                     var title = titles[i];
