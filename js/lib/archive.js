@@ -137,7 +137,7 @@ define(function(require) {
         var filerequest = storage.get(directory + 'coordinates_' + prefixedFileNumber
                 + '.idx');
         filerequest.onsuccess = function() {
-            currentLocalArchiveInstance.coordinateFiles[index] = filerequest.result;
+            currentLocalArchiveInstance.coordinateFiles[index - 1] = filerequest.result;
             currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
         };
@@ -218,7 +218,7 @@ define(function(require) {
                     var coordinateFileNr = coordinateFileRegex.exec(file.name);
                     if (coordinateFileNr && coordinateFileNr.length > 0) {
                         var intFileNr = 1 * coordinateFileNr[1];
-                        this.coordinateFiles[intFileNr] = file;
+                        this.coordinateFiles[intFileNr - 1] = file;
                     }
                     else {
                         var dataFileNr = dataFileRegex.exec(file.name);
@@ -725,69 +725,110 @@ define(function(require) {
     LocalArchive.prototype.getTitlesInCoords = function(rect, maxTitles, callbackFunction) {
         var normalizedRectangle = rect.normalized();
         var i = 0;
-        LocalArchive.getTitlesInCoordsInt(this, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, new Array(), callbackFunction, this.callbackGetTitlesInCoordsInt);
+        LocalArchive.getTitlesInCoordsInt(this, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, new Array(), callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
     };
     
     LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlesFound, i, maxTitles, normalizedRectangle, callbackFunction) {
         i++;
         if (titlesFound.length < maxTitles && i < localArchive.coordinateFiles.length) {
-            LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlesFound, callbackFunction, this.callbackGetTitlesInCoordsInt);
+            LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlesFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
         }
         else {
             callbackFunction(titlesFound);
         }
     };
-        
+    
+    /**
+     * Reads 4 bytes in given byteArray, starting at startIndex, and convert
+     * these 4 bytes into latitude and longitude (each uses 2 bytes, little endian)
+     * @param {type} byteArray
+     * @param {type} startIndex
+     * @returns {_L23.geometry.point}
+     */
+    readCoordinates = function(byteArray, startIndex) {
+      var lat = byteArray[startIndex] + 256 * byteArray[startIndex + 1];
+      var long = byteArray[startIndex + 2] + 256 * byteArray[startIndex + 3];
+      var point = new geometry.point(long, lat);
+      return point;
+    };
+    
     LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt) {
-        // TODO : as reading a file is asynchronous, this function needs to be split
-        // into several callback functions
-        
-        // read this.coordinateFiles[coordinateFileIndex] at coordFilePos
-        // retrieve selector
-        var selector;
-        // 0xFFFF = 65535 in decimal
-        if (selector === 65535) {
-            // not enough articles, further subdivision needed
-            // read coordinates in coordinateFile
-            // compute the 4 rectangles and 4 positions
-            var rectSW;
-            var pos0;
-            var rectSE;
-            var pos1;
-            var rectNW;
-            var pos2;
-            var rectNE;
-            var pos3;
-            if (targetRect.intersects(rectSW)) {
-                LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
-            }
-            if (targetRect.intersects(rectSE)) {
-                LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectSE, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
-            }
-            if (targetRect.intersects(rectNW)) {
-                LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectNW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
-            }
-            if (targetRect.intersects(rectNE)) {
-                LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
-            }
-        }
-        else {
-            for (var i = 0; i < selector; i ++) {
-                // Read position (in title file) in coordinateFile
-                var title_pos;
-                if (!targetRect.contains(c)) {
-                    continue;
+        var reader = new FileReader();
+        reader.onerror = errorHandler;
+        reader.onabort = function(e) {
+            alert('Coordinate file read cancelled');
+        };
+
+        reader.onload = function(e) {
+            var binaryTitleFile = e.target.result;
+            var byteArray = new Uint8Array(binaryTitleFile);
+            // Compute selector
+            var selector = byteArray[0] + 256 * byteArray[1];
+            
+            // 0xFFFF = 65535 in decimal
+            if (selector === 65535) {
+                // not enough articles, further subdivision needed
+                var center = readCoordinates(byteArray, 2);
+                var lensw = byteArray[10] + 256 * byteArray[11] + 256 * 256 * byteArray[12] + 256 * 256 * 256 * byteArray[13];
+                var lense = byteArray[14] + 256 * byteArray[15] + 256 * 256 * byteArray[16] + 256 * 256 * 256 * byteArray[17];
+                var lennw = byteArray[18] + 256 * byteArray[19] + 256 * 256 * byteArray[20] + 256 * 256 * 256 * byteArray[21];
+                // compute the 4 positions
+                var pos0 = coordFilePos + 22;
+                var pos1 = pos0 + lensw;
+                var pos2 = pos1 + lense;
+                var pos3 = pos2 + lennw;
+                // compute the 4 rectangles
+                var rectSW = new geometry.rect(thisRect.origin(), center);
+                var rectSE = (new geometry.rect(thisRect.topRight(), center)).normalized();
+                var rectNW = (new geometry.rect(thisRect.bottomLeft(), center)).normalized();
+                var rectNE = (new geometry.rect(thisRect.corner(), center)).normalized();
+                if (targetRect.intersect(rectSW)) {
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                // read title at title_pos in title file
-                var title;
-                titlesFound.push(title);
-                if (maxTitles >= 0 && titlesFound.length >= maxTitles) {
-                    LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
-                    return;
+                if (targetRect.intersect(rectSE)) {
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectSE, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                }
+                if (targetRect.intersect(rectNW)) {
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectNW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                }
+                if (targetRect.intersect(rectNE)) {
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
             }
-            LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
-        }
+            else {
+                // TODO this part needs to be reworked and does not work as is
+                // I can not push titles found in the list with a simple for loop because of the asynchronous read
+                // Maybe I should split that in 2 parts : first gather all the title positions with the loop
+                // and then read all the titles
+                for (var i = 0; i < selector; i ++) {
+                    var indexInByteArray = 2 + i * 8;
+                    // Read position (in title file) in coordinateFile
+                    var c = readCoordinates(byteArray, indexInByteArray);
+                    var title_pos = byteArray[indexInByteArray + 2] + 256 * byteArray[indexInByteArray + 3] + 256 * 256 * byteArray[indexInByteArray + 4] + 256 * 256 * 256 * byteArray[indexInByteArray + 5];
+                    if (!targetRect.containsPoint(c)) {
+                        continue;
+                    }
+                    // read title at title_pos in title file
+                    localArchive.getTitlesStartingAtOffset(title_pos, 1, function(titles) {
+                        titlesFound.push(titles[0]);
+                        if (maxTitles >= 0 && titlesFound.length >= maxTitles) {
+                            LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                            // TODO : this "return" does not exit from the right function
+                            // I need to find a way to make it return from the onLoad above
+                            return;
+                        }
+                    });
+                }
+                LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+            }
+
+        };
+        // Read 22 bytes in the coordinate files, at coordFilePos index, in order to read the selector and the coordinates
+        // 2 + 4 + 4 + 3 * 4 = 22
+        var blob = localArchive.coordinateFiles[coordinateFileIndex].slice(coordFilePos, coordFilePos + 22);
+        // Read in the file as a binary string
+        reader.readAsArrayBuffer(blob);
+
     };
 
     /**

@@ -259,11 +259,22 @@ define(function(require) {
             h = x.height;
             x = x.x;        
         }
-        this.x = x;
-        this.y = y;
-        this.width = w;
-        this.height = h;
-    }
+        if (w === undefined && h === undefined) {
+            // The rectangle is built from topLeft and bottomRight points
+            var topLeft = x;
+            var bottomRight = y;
+            this.x = topLeft.x;
+            this.y = topLeft.y;
+            this.width = bottomRight.x - topLeft.x;
+            this.height = bottomRight.y - topLeft.y;
+        }
+        else {
+            this.x = x;
+            this.y = y;
+            this.width = w;
+            this.height = h;
+        }
+    }    
     
     rect.prototype = {
         toString: function() {
@@ -330,6 +341,49 @@ define(function(require) {
 	        return true;
 	    }
 	    return false;
+        },
+        // Algorithm copied from java.awt.Rectangle from OpenJDK
+        // @return {bool} true if rectangle r is inside me
+        contains: function(r) {
+            var nr = r.normalized();
+            var W = nr.width;
+            var H = nr.height;
+            var X = nr.x;
+            var Y = nr.y;
+            var w = this.width;
+            var h = this.height;
+            if ((w | h | W | H) < 0) {
+                // At least one of the dimensions is negative...
+                return false;
+            }
+            // Note: if any dimension is zero, tests below must return false...
+            var x = this.x;
+            var y = this.y;
+            if (X < x || Y < y) {
+                return false;
+            }
+            w += x;
+            W += X;
+            if (W <= X) {
+                // X+W overflowed or W was zero, return false if...
+                // either original w or W was zero or
+                // x+w did not overflow or
+                // the overflowed x+w is smaller than the overflowed X+W
+                if (w >= x || W > w) return false;
+            } else {
+                // X+W did not overflow and W was not zero, return false if...
+                // original w was zero or
+                // x+w did not overflow and x+w is smaller than X+W
+                if (w >= x && W > w) return false;
+            }
+            h += y;
+            H += Y;
+            if (H <= Y) {
+                if (h >= y || H > h) return false;
+            } else {
+                if (h >= y && H > h) return false;
+            }
+            return true;
         },
         // @return {point} a point on my boundary nearest to p
         // @see Squeak Smalltalk, Rectangle>>pointNearestTo:

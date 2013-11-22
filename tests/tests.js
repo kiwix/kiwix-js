@@ -245,17 +245,43 @@ define(function(require) {
                 && normalizedRect5.width===4
                 && normalizedRect5.height===1, "rect5 successfully normalized by switching bottom right and top left corners");
         });
+        test("check rectangle constructor from top-left and bottom-right points", function() {
+            var topLeft = new geometry.point(2,3);
+            var bottomRight = new geometry.point(5,5);
+            var rect = new geometry.rect(topLeft, bottomRight);
+            equal(rect.x, 2 , "rect.x should be 2");
+            equal(rect.y, 3 , "rect.y should be 3");
+            equal(rect.width, 3 , "rect.width should be 3");
+            equal(rect.height, 2 , "rect.height should be 2");
+        });
+        test("check rectangle contains another rectangle", function() {
+            var rect1 = new geometry.rect(2,3,4,4);
+            var rect2 = new geometry.rect(3,4,1,1);
+            var rect3 = new geometry.rect(1,1,1,1);
+            var rect4 = new geometry.rect(3,1,2,4);
+            var rect5 = new geometry.rect(3,1,6,4);
+            var rect6 = new geometry.rect(2,3,3,2);
+            var rect7 = new geometry.rect(5,6,-3,-2); // same as rect7 but not normalized
+            ok(rect1.contains(rect2), "rect1 should contain rect2");
+            ok(!rect2.contains(rect1), "rect2 should not contain rect1");
+            ok(!rect1.contains(rect3), "rect1 should not contain rect3");
+            ok(!rect1.contains(rect4), "rect1 should not contain rect4");
+            ok(!rect1.contains(rect5), "rect1 should not contain rect5");
+            ok(rect1.contains(rect1), "rect1 should contain rect1");
+            ok(rect1.contains(rect6), "rect1 should contain rect6");
+            ok(rect1.contains(rect7), "rect1 should contain rect7");
+        });
         
         module("articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
             var callbackTitlesNearbyFound = function(titles) {
                 ok(titles !== null, "Some titles should be found");
                 equal(titles.length, 3, "3 titles should be found");
-                var titleAlps;
+                var titleAlps = null;
                 for (var i=0; i<titles.length; i++) {
                     var title = titles[i];
-                    if (title.name === "Alps") {
-                        titleAlps = title[i];
+                    if (title && title.name === "Alps") {
+                        titleAlps = title;
                     }
                 }
                 ok(titleAlps !== null, "The title 'Alps' should be found");
