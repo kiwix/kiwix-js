@@ -306,35 +306,6 @@ define(function(require) {
         $('#searchingForTitles').hide();
     }
     
-    /**
-     * Checks if the device is a Peak
-     * If it is, display a warning message about the size of text if the version of Firefox OS is 1.0.1
-     */
-    function checkPeakDevice() {
-        // We only test the screen resolution : it is higly unreliable, I know...
-        // But it's only a warning message. So, at worst, a false positive is not a big deal
-        // Among the Firefox OS devices on the market, it is, AFAIK, the only one with this resolution for now
-        // I will update this application with this message removed, as soon as Firefox OS 1.1 is deployed OTA on Peak
-        if (!cookies.hasItem("warnedPeak101") && 
-            ((screen.width===540 && screen.height===960)
-            || (screen.width===960 && screen.height===540))) {
-        
-            // If the focus is on the search field, we have to move it,
-            // else the keyboard hides the message
-            if ($("#prefix").is(":focus")) {
-                $("searchTitles").focus();
-            }
-            
-            alert("Your screen resolution suggests you might using the 'Peak' device from Geeksphone. "
-                + "If it is the case, please check you're using the 1.1 version of Firefox OS (or later). "
-                + "If you're still using version 1.0.1, the application will work but the text will be very small, "
-                + "and hyperlinks difficult to click. "
-                + "The update to 1.1 should be soon automatically deployed by Geeksphone. "
-                + "NB : This message will not be displayed again");
-            // We will not display this warning any more
-            cookies.setItem("warnedPeak101", true, Infinity);
-        }
-    }
     
     /**
      * Checks if the small archive is in use
@@ -366,9 +337,6 @@ define(function(require) {
         // If we use the small archive, a warning should be displayed to the user
         checkSmallArchive();
         
-        // If the device is a Peak, a warning should be displayed to the user about version 1.0.1 of Firefox OS
-        checkPeakDevice();
-
         var titleId = event.target.getAttribute("titleId");
         $("#titleList").empty();
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
