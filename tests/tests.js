@@ -280,7 +280,7 @@ define(function(require) {
                 var titleAlps = null;
                 for (var i=0; i<titles.length; i++) {
                     var title = titles[i];
-                    if (title && title.name === "Alps") {
+                    if (title && title.name && title.name === "Alps") {
                         titleAlps = title;
                     }
                 }

@@ -734,6 +734,7 @@ define(function(require) {
             LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlesFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
         }
         else {
+            // TODO convert title_positions in titles
             callbackFunction(titlesFound);
         }
     };
@@ -746,8 +747,8 @@ define(function(require) {
      * @returns {_L23.geometry.point}
      */
     readCoordinates = function(byteArray, startIndex) {
-      var lat = byteArray[startIndex] + 256 * byteArray[startIndex + 1];
-      var long = byteArray[startIndex + 2] + 256 * byteArray[startIndex + 3];
+      var lat = util.readIntegerFrom2Bytes(byteArray, startIndex);
+      var long = util.readIntegerFrom2Bytes(byteArray, startIndex + 2);
       var point = new geometry.point(long, lat);
       return point;
     };
@@ -763,15 +764,15 @@ define(function(require) {
             var binaryTitleFile = e.target.result;
             var byteArray = new Uint8Array(binaryTitleFile);
             // Compute selector
-            var selector = byteArray[0] + 256 * byteArray[1];
+            var selector = util.readIntegerFrom2Bytes(byteArray, 0);
             
             // 0xFFFF = 65535 in decimal
             if (selector === 65535) {
                 // not enough articles, further subdivision needed
                 var center = readCoordinates(byteArray, 2);
-                var lensw = byteArray[10] + 256 * byteArray[11] + 256 * 256 * byteArray[12] + 256 * 256 * 256 * byteArray[13];
-                var lense = byteArray[14] + 256 * byteArray[15] + 256 * 256 * byteArray[16] + 256 * 256 * 256 * byteArray[17];
-                var lennw = byteArray[18] + 256 * byteArray[19] + 256 * 256 * byteArray[20] + 256 * 256 * 256 * byteArray[21];
+                var lensw = util.readIntegerFrom4Bytes(byteArray, 10);
+                var lense = util.readIntegerFrom4Bytes(byteArray, 14);
+                var lennw = util.readIntegerFrom4Bytes(byteArray, 18);
                 // compute the 4 positions
                 var pos0 = coordFilePos + 22;
                 var pos1 = pos0 + lensw;
@@ -802,22 +803,19 @@ define(function(require) {
                 // and then read all the titles
                 for (var i = 0; i < selector; i ++) {
                     var indexInByteArray = 2 + i * 8;
-                    // Read position (in title file) in coordinateFile
-                    var c = readCoordinates(byteArray, indexInByteArray);
-                    var title_pos = byteArray[indexInByteArray + 2] + 256 * byteArray[indexInByteArray + 3] + 256 * 256 * byteArray[indexInByteArray + 4] + 256 * 256 * 256 * byteArray[indexInByteArray + 5];
-                    if (!targetRect.containsPoint(c)) {
+                    
+                    var articleCoordinates = readCoordinates(byteArray, indexInByteArray);
+                    // Read position (in title file) of title
+                    var title_pos = util.readIntegerFrom4Bytes(byteArray, indexInByteArray + 2);
+                    if (!targetRect.containsPoint(articleCoordinates)) {
                         continue;
                     }
-                    // read title at title_pos in title file
-                    localArchive.getTitlesStartingAtOffset(title_pos, 1, function(titles) {
-                        titlesFound.push(titles[0]);
-                        if (maxTitles >= 0 && titlesFound.length >= maxTitles) {
-                            LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
-                            // TODO : this "return" does not exit from the right function
-                            // I need to find a way to make it return from the onLoad above
-                            return;
-                        }
-                    });
+                    // TODO also add the coordinates of each title
+                    titlesFound.push(title_pos);
+                    if (maxTitles >= 0 && titlesFound.length >= maxTitles) {
+                        LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                        return;
+                    }
                 }
                 LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
             }
@@ -825,7 +823,11 @@ define(function(require) {
         };
         // Read 22 bytes in the coordinate files, at coordFilePos index, in order to read the selector and the coordinates
         // 2 + 4 + 4 + 3 * 4 = 22
-        var blob = localArchive.coordinateFiles[coordinateFileIndex].slice(coordFilePos, coordFilePos + 22);
+        // As there can be up to 65535 different coordinates, we have to read 22*65535 bytes = 1.44MB
+        // TODO : This should be improved by reading the file in 2 steps :
+        // - first read the selector
+        // - the read the coordinates (reading only the exact necessary bytes)
+        var blob = localArchive.coordinateFiles[coordinateFileIndex].slice(coordFilePos, coordFilePos + 22*65535);
         // Read in the file as a binary string
         reader.readAsArrayBuffer(blob);
 
