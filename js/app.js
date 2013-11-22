@@ -150,7 +150,7 @@ define(function(require) {
         }
     }
 
-    if (storages !== null) {
+    if (storages !== null && storages.length > 0) {
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
