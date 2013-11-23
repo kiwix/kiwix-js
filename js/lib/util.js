@@ -31,24 +31,41 @@ define(function(require) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
     
-        /**
-     * Read an integer encoded in 4 bytes
+    /**
+     * Read an integer encoded in 4 bytes, little endian
      * @param {type} byteArray
      * @param {type} firstIndex
      * @returns {Number}
      */
     function readIntegerFrom4Bytes(byteArray, firstIndex) {
-        return byteArray[firstIndex] + byteArray[firstIndex + 1] * 256 + byteArray[firstIndex + 2] * 65536 + byteArray[firstIndex + 3] * 16777216;
+        var dataView = new DataView(byteArray.buffer, firstIndex, 4);
+        var integer = dataView.getUint32(0, true);
+        return integer;
     }
 
     /**
-     * Read an integer encoded in 2 bytes
+     * Read an integer encoded in 2 bytes, little endian
      * @param {type} byteArray
      * @param {type} firstIndex
      * @returns {Number}
      */
     function readIntegerFrom2Bytes(byteArray, firstIndex) {
-        return byteArray[firstIndex] + byteArray[firstIndex + 1] * 256;
+        var dataView = new DataView(byteArray.buffer, firstIndex, 2);
+        var integer = dataView.getUint16(0, true);
+        return integer;
+    }
+    
+    /**
+     * Read a float encoded in 2 bytes
+     * @param {type} byteArray
+     * @param {type} firstIndex
+     * @param {bool} littleEndian (optional)
+     * @returns {Number}
+     */
+    function readFloatFrom4Bytes(byteArray, firstIndex, littleEndian) {
+        var dataView = new DataView(byteArray.buffer, firstIndex, 4);
+        var float = dataView.getFloat32(0, littleEndian);
+        return float;
     }
 
     /**
@@ -169,6 +186,7 @@ define(function(require) {
         endsWith: endsWith,
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,
+        readFloatFrom4Bytes : readFloatFrom4Bytes,
         uint8ArrayToHex : uint8ArrayToHex,
         uint8ArrayToBase64 : uint8ArrayToBase64,
         enumerateAll : enumerateAll

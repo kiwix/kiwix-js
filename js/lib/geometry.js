@@ -264,9 +264,9 @@ define(function(require) {
             var topLeft = x;
             var bottomRight = y;
             this.x = topLeft.x;
-            this.y = topLeft.y;
+            this.y = bottomRight.y;
             this.width = bottomRight.x - topLeft.x;
-            this.height = bottomRight.y - topLeft.y;
+            this.height = topLeft.y - bottomRight.y;
         }
         else {
             this.x = x;

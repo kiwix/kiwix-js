@@ -25,6 +25,7 @@ define(function(require) {
     var evopediaTitle = require('title');
     var evopediaArchive = require('archive');
     var geometry = require('geometry');
+    var util = require('util');
 
     // Due to security restrictions in the browsers,
     // we can not read directly the files and run the unit tests
@@ -50,7 +51,7 @@ define(function(require) {
         var localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
 
-        module("evopedia");
+        module("evopedia_title_search_and_read");
         asyncTest("check getTitlesStartingAtOffset 0", function() {
             var callbackFunction = function(titleList) {
                 equal(titleList.length, 4, "4 titles found, as requested");
@@ -246,8 +247,8 @@ define(function(require) {
                 && normalizedRect5.height===1, "rect5 successfully normalized by switching bottom right and top left corners");
         });
         test("check rectangle constructor from top-left and bottom-right points", function() {
-            var topLeft = new geometry.point(2,3);
-            var bottomRight = new geometry.point(5,5);
+            var topLeft = new geometry.point(2,5);
+            var bottomRight = new geometry.point(5,3);
             var rect = new geometry.rect(topLeft, bottomRight);
             equal(rect.x, 2 , "rect.x should be 2");
             equal(rect.y, 3 , "rect.y should be 3");
@@ -271,6 +272,19 @@ define(function(require) {
             ok(rect1.contains(rect6), "rect1 should contain rect6");
             ok(rect1.contains(rect7), "rect1 should contain rect7");
         });
+        
+        module("utils");
+        test("check reading an IEEE_754 float from 4 bytes" ,function() {
+           var byteArray = new Uint8Array(4);
+           // 1100 0010 1110 1101 0100 0000 0000 0000
+           byteArray[0] = 194;
+           byteArray[1] = 237;
+           byteArray[2] = 64;
+           byteArray[3] = 0;
+           var float = util.readFloatFrom4Bytes(byteArray, 0);
+           equal(float, -118.625, "the IEEE_754 float should be converted as -118.625");
+        });
+
         
         module("articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {

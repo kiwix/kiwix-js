@@ -747,8 +747,8 @@ define(function(require) {
      * @returns {_L23.geometry.point}
      */
     readCoordinates = function(byteArray, startIndex) {
-      var lat = util.readIntegerFrom2Bytes(byteArray, startIndex);
-      var long = util.readIntegerFrom2Bytes(byteArray, startIndex + 2);
+      var lat = util.readFloatFrom4Bytes(byteArray, startIndex, true);
+      var long = util.readFloatFrom4Bytes(byteArray, startIndex + 4, true);
       var point = new geometry.point(long, lat);
       return point;
     };
@@ -797,27 +797,28 @@ define(function(require) {
                 }
             }
             else {
-                // TODO this part needs to be reworked and does not work as is
+                // TODO this part needs to be reworked.
+                // It computes coordinates and title positions correctly, but
                 // I can not push titles found in the list with a simple for loop because of the asynchronous read
                 // Maybe I should split that in 2 parts : first gather all the title positions with the loop
                 // and then read all the titles
                 for (var i = 0; i < selector; i ++) {
-                    var indexInByteArray = 2 + i * 8;
+                    var indexInByteArray = 2 + i * 12;
                     
                     var articleCoordinates = readCoordinates(byteArray, indexInByteArray);
                     // Read position (in title file) of title
-                    var title_pos = util.readIntegerFrom4Bytes(byteArray, indexInByteArray + 2);
+                    var title_pos = util.readIntegerFrom4Bytes(byteArray, indexInByteArray + 8);
                     if (!targetRect.containsPoint(articleCoordinates)) {
                         continue;
                     }
                     // TODO also add the coordinates of each title
                     titlesFound.push(title_pos);
                     if (maxTitles >= 0 && titlesFound.length >= maxTitles) {
-                        LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                        callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
                         return;
                     }
                 }
-                LocalArchive.callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
             }
 
         };
