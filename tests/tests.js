@@ -276,6 +276,7 @@ define(function(require) {
         module("utils");
         test("check reading an IEEE_754 float from 4 bytes" ,function() {
            var byteArray = new Uint8Array(4);
+           // This example is taken from https://fr.wikipedia.org/wiki/IEEE_754#Un_exemple_plus_complexe
            // 1100 0010 1110 1101 0100 0000 0000 0000
            byteArray[0] = 194;
            byteArray[1] = 237;
@@ -284,25 +285,35 @@ define(function(require) {
            var float = util.readFloatFrom4Bytes(byteArray, 0);
            equal(float, -118.625, "the IEEE_754 float should be converted as -118.625");
         });
-
         
         module("articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
             var callbackTitlesNearbyFound = function(titles) {
                 ok(titles !== null, "Some titles should be found");
                 equal(titles.length, 3, "3 titles should be found");
+                var titleDanube = null;
+                var titleParis = null;
                 var titleAlps = null;
                 for (var i=0; i<titles.length; i++) {
-                    var title = titles[i];
-                    if (title && title.name && title.name === "Alps") {
-                        titleAlps = title;
+                    // TODO : read the titles instead of their position
+                    var titlepos = titles[i];
+                    if (titlepos === 6030) {
+                        titleDanube = titlepos;
+                    }
+                    else if (titlepos === 18484) {
+                        titleParis = titlepos;
+                    }
+                    else if (titlepos === 832) {
+                        titleAlps = titlepos;
                     }
                 }
+                ok(titleDanube !== null, "The title 'Danube' should be found");
+                ok(titleParis !== null, "The title 'Paris' should be found");
                 ok(titleAlps !== null, "The title 'Alps' should be found");
-                // TODO : check the coordinates of title Alps?
+                // TODO : check the title name and coordinates of each title (or at least one)
                 start();
             };
-            var rectFranceGermany = new geometry.rect(40,50,-10,10);
+            var rectFranceGermany = new geometry.rect(0,40,10,10);
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
     };
