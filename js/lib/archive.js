@@ -716,11 +716,12 @@ define(function(require) {
     };
     
     /**
-     * Finds articles that are located inside the given rectangle
+     * Finds titles that are located inside the given rectangle
+     * This is the main function, that has to be called from the application
      * 
-     * @param {type} rect Rectangle where to look for articles
-     * @param {type} maxTitles Maximum number of articles to find
-     * @param callbackFunction Function to call with the list of articles found
+     * @param {type} rect Rectangle where to look for titles
+     * @param {type} maxTitles Maximum number of titles to find
+     * @param callbackFunction Function to call with the list of titles found
      */
     LocalArchive.prototype.getTitlesInCoords = function(rect, maxTitles, callbackFunction) {
         var normalizedRectangle = rect.normalized();
@@ -728,6 +729,20 @@ define(function(require) {
         LocalArchive.getTitlesInCoordsInt(this, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, new Array(), callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
     };
     
+    /**
+     * Callback function called by getTitlesInCoordsInt (or by itself), in order
+     * to loop through every coordinate file, and search titles nearby in each
+     * of them.
+     * When all the coordinate files are searched, or when enough titles are
+     * found, the callbackFunction is called
+     * 
+     * @param {type} localArchive
+     * @param {type} titlesFound
+     * @param {type} i : index of the coordinate file
+     * @param {type} maxTitles
+     * @param {type} normalizedRectangle
+     * @param {type} callbackFunction
+     */
     LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlesFound, i, maxTitles, normalizedRectangle, callbackFunction) {
         i++;
         if (titlesFound.length < maxTitles && i < localArchive.coordinateFiles.length) {
@@ -740,8 +755,8 @@ define(function(require) {
     };
     
     /**
-     * Reads 4 bytes in given byteArray, starting at startIndex, and convert
-     * these 4 bytes into latitude and longitude (each uses 2 bytes, little endian)
+     * Reads 8 bytes in given byteArray, starting at startIndex, and convert
+     * these 8 bytes into latitude and longitude (each uses 4 bytes, little endian)
      * @param {type} byteArray
      * @param {type} startIndex
      * @returns {_L23.geometry.point}
@@ -753,6 +768,19 @@ define(function(require) {
       return point;
     };
     
+    /**
+     * Searches in a coordinate file some titles in a target rectangle.
+     * This function recursively calls itself, in order to browse all the quadtree
+     * @param {type} localArchive
+     * @param {type} coordinateFileIndex
+     * @param {type} coordFilePos
+     * @param {type} targetRect
+     * @param {type} thisRect
+     * @param {type} maxTitles
+     * @param {type} titlesFound
+     * @param {type} callbackFunction
+     * @param {type} callbackGetTitlesInCoordsInt
+     */
     LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt) {
         var reader = new FileReader();
         reader.onerror = errorHandler;
@@ -768,21 +796,22 @@ define(function(require) {
             
             // 0xFFFF = 65535 in decimal
             if (selector === 65535) {
-                // not enough articles, further subdivision needed
+                // This is an innernode : let's browse it subdivisions
                 var center = readCoordinates(byteArray, 2);
                 var lensw = util.readIntegerFrom4Bytes(byteArray, 10);
                 var lense = util.readIntegerFrom4Bytes(byteArray, 14);
                 var lennw = util.readIntegerFrom4Bytes(byteArray, 18);
-                // compute the 4 positions
+                // Compute the 4 positions in coordinate file
                 var pos0 = coordFilePos + 22;
                 var pos1 = pos0 + lensw;
                 var pos2 = pos1 + lense;
                 var pos3 = pos2 + lennw;
-                // compute the 4 rectangles
+                // Compute the 4 rectangles around
                 var rectSW = new geometry.rect(thisRect.origin(), center);
                 var rectSE = (new geometry.rect(thisRect.topRight(), center)).normalized();
                 var rectNW = (new geometry.rect(thisRect.bottomLeft(), center)).normalized();
                 var rectNE = (new geometry.rect(thisRect.corner(), center)).normalized();
+                // Recursively call this function for each rectangle around
                 if (targetRect.intersect(rectSW)) {
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
@@ -797,6 +826,9 @@ define(function(require) {
                 }
             }
             else {
+                // This is a leaf node : let's see if its articles are in the
+                // target rectangle
+                
                 // TODO this part needs to be reworked.
                 // It computes coordinates and title positions correctly, but
                 // I can not push titles found in the list with a simple for loop because of the asynchronous read
@@ -827,11 +859,11 @@ define(function(require) {
         // As there can be up to 65535 different coordinates, we have to read 22*65535 bytes = 1.44MB
         // TODO : This should be improved by reading the file in 2 steps :
         // - first read the selector
-        // - the read the coordinates (reading only the exact necessary bytes)
+        // - then read the coordinates (reading only the exact necessary bytes)
         var blob = localArchive.coordinateFiles[coordinateFileIndex].slice(coordFilePos, coordFilePos + 22*65535);
+        
         // Read in the file as a binary string
         reader.readAsArrayBuffer(blob);
-
     };
 
     /**
