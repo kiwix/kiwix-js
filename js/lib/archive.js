@@ -737,20 +737,20 @@ define(function(require) {
      * found, the callbackFunction is called
      * 
      * @param {type} localArchive
-     * @param {type} titlesFound
+     * @param {type} titlePositionsFound
      * @param {type} i : index of the coordinate file
      * @param {type} maxTitles
      * @param {type} normalizedRectangle
      * @param {type} callbackFunction
      */
-    LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlesFound, i, maxTitles, normalizedRectangle, callbackFunction) {
+    LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlePositionsFound, i, maxTitles, normalizedRectangle, callbackFunction) {
         i++;
-        if (titlesFound.length < maxTitles && i < localArchive.coordinateFiles.length) {
-            LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlesFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
+        if (titlePositionsFound.length < maxTitles && i < localArchive.coordinateFiles.length) {
+            LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlePositionsFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
         }
         else {
-            // TODO convert title_positions in titles
-            callbackFunction(titlesFound);
+            // TODO convert titlePositions in titles
+            callbackFunction(titlePositionsFound);
         }
     };
     
@@ -777,11 +777,11 @@ define(function(require) {
      * @param {type} targetRect
      * @param {type} thisRect
      * @param {type} maxTitles
-     * @param {type} titlesFound
+     * @param {type} titlePositionsFound
      * @param {type} callbackFunction
      * @param {type} callbackGetTitlesInCoordsInt
      */
-    LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt) {
+    LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt) {
         var reader = new FileReader();
         reader.onerror = errorHandler;
         reader.onabort = function(e) {
@@ -813,16 +813,16 @@ define(function(require) {
                 var rectNE = (new geometry.rect(thisRect.corner(), center)).normalized();
                 // Recursively call this function for each rectangle around
                 if (targetRect.intersect(rectSW)) {
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
                 if (targetRect.intersect(rectSE)) {
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectSE, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectSE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
                 if (targetRect.intersect(rectNW)) {
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectNW, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectNW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
                 if (targetRect.intersect(rectNE)) {
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlesFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
             }
             else {
@@ -843,14 +843,16 @@ define(function(require) {
                     if (!targetRect.containsPoint(articleCoordinates)) {
                         continue;
                     }
-                    // TODO also add the coordinates of each title
-                    titlesFound.push(title_pos);
-                    if (maxTitles >= 0 && titlesFound.length >= maxTitles) {
-                        callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                    // We currently do not use the article coordinates
+                    // so it's no use putting it in the result list : we only put
+                    // the position in title list
+                    titlePositionsFound.push(title_pos);
+                    if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
+                        callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
                         return;
                     }
                 }
-                callbackGetTitlesInCoordsInt(localArchive, titlesFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
             }
 
         };

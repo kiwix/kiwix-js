@@ -288,15 +288,15 @@ define(function(require) {
         
         module("articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
-            var callbackTitlesNearbyFound = function(titles) {
-                ok(titles !== null, "Some titles should be found");
-                equal(titles.length, 3, "3 titles should be found");
+            var callbackTitlesNearbyFound = function(titlePositions) {
+                ok(titlePositions !== null, "Some titles should be found");
+                equal(titlePositions.length, 3, "3 titles should be found");
                 var titleDanube = null;
                 var titleParis = null;
                 var titleAlps = null;
-                for (var i=0; i<titles.length; i++) {
+                for (var i=0; i<titlePositions.length; i++) {
                     // TODO : read the titles instead of their position
-                    var titlepos = titles[i];
+                    var titlepos = titlePositions[i];
                     if (titlepos === 6030) {
                         titleDanube = titlepos;
                     }
@@ -310,7 +310,8 @@ define(function(require) {
                 ok(titleDanube !== null, "The title 'Danube' should be found");
                 ok(titleParis !== null, "The title 'Paris' should be found");
                 ok(titleAlps !== null, "The title 'Alps' should be found");
-                // TODO : check the title name and coordinates of each title (or at least one)
+               
+                // TODO : check the title name
                 start();
             };
             var rectFranceGermany = new geometry.rect(0,40,10,10);
