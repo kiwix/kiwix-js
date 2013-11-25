@@ -18,7 +18,10 @@
     "device-storage:sdcard": {
       "description": "Required to read wikipedia archives",
       "access": "readonly"
-      }
+    },
+    "geolocation": {
+      "description": "Necessary for the 'articles nearby' feature"
+    }
   },
   "type": "privileged",
   "origin": "app://evopedia.info"

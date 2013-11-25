@@ -33,10 +33,16 @@ define(function(require) {
     var evopediaArchive = require('archive');
     var util = require('util');
     var cookies = require('cookies');
+    var geometry = require('geometry');
     
     // Maximum number of titles to display in a search
     var MAX_SEARCH_RESULT_SIZE = 50;
 
+    // Maximum distance (in degrees) where to search for articles around me
+    // In fact, we use a square around the user, not a circle
+    // This square has a length of twice the value of this constant
+    // One degree is ~111 km at the equator
+    var MAX_DISTANCE_ARTICLES_NEARBY = 0.1;
 
     var localArchive = null;
     
@@ -58,7 +64,15 @@ define(function(require) {
             onKeyUpPrefix(e);
         }
     });
-    // Bottome bar :
+    $("#btnArticlesNearby").on("click", function(e) {
+        searchTitlesNearby();
+        $("#welcomeText").hide();
+        $("#readingArticle").hide();
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+    });
+    // Bottom bar :
     $('#btnBack').on('click', function(e) {
         history.back();
         return false;
@@ -498,6 +512,64 @@ define(function(require) {
                 readArticle(title);
             }
         });
+    }
+    
+    /**
+     * Tries to geolocate the device of the user
+     * The accuracy of geolocation is not very important, so we disable HighAccuracy,
+     * so that geolocation might be as fast as possible (including geolocation by IP)
+     * 
+     * If a geolocation has been made less than 30 minutes ago, it can be re-used in cache
+     */
+    function geolocateAndLaunchTitlesNearbySearch() {
+        if (navigator.geolocation) {
+            var geo_options = {
+                enableHighAccuracy: false,
+                maximumAge: 1800000 // 30 minutes
+            };
+
+            function geo_success(pos) {
+                var crd = pos.coords;
+
+                var rectangle = new geometry.rect(
+                    crd.longitude - MAX_DISTANCE_ARTICLES_NEARBY,
+                    crd.latitude - MAX_DISTANCE_ARTICLES_NEARBY,
+                    MAX_DISTANCE_ARTICLES_NEARBY * 2,
+                    MAX_DISTANCE_ARTICLES_NEARBY * 2);
+                
+                localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+            };
+
+            function geo_error(err) {
+                alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+            };
+
+            navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+        }
+        else {
+            alert("Geolocation is not supported (or disabled) on your device, or by your browser");
+        }
+    }
+    
+    /**
+     * Looks for titles located around where the device is geolocated
+     */
+    function searchTitlesNearby() {
+        $('#searchingForTitles').show();
+        $('#configuration').hide();
+        $('#articleContent').empty();
+        if (localArchive !== null && localArchive.titleFile !== null) {
+            //geolocateAndLaunchTitlesNearbySearch();
+            var rectangle = new geometry.rect(0,40,10,10);
+            localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+        } else {
+            $('#searchingForTitles').hide();
+            // We have to remove the focus from the search field,
+            // so that the keyboard does not stay above the message
+            $("#searchTitles").focus();
+            alert("Archive not set : please select an archive");
+            $("#btnConfigure").click();
+        }
     }
 
 });
