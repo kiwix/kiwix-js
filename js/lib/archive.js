@@ -752,7 +752,14 @@ define(function(require) {
         else {
             // Search is over : now let's convert the title positions into Title instances
             if (titlePositionsFound && titlePositionsFound.length > 0) {
-                LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), callbackFunction);
+                // TODO find out why there are duplicates, and why the maxTitles is not respected
+                // The statement below removes duplicates and limits its size
+                // (not correctly because based on indexes of the original array, instead of target array)
+                // This should be removed when the cause is found
+                var filteredTitlePositions = titlePositionsFound.filter(function (e, i, arr) {
+                    return arr.lastIndexOf(e) === i && i<=maxTitles;
+                });
+                LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, filteredTitlePositions, 0, new Array(), callbackFunction);
             }
             else {
                 return titlePositionsFound;

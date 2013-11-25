@@ -305,18 +305,14 @@ define(function(require) {
      */
     function populateListOfTitles(titleArray) {
         var titleListDiv = $('#titleList');
-        // Remove previous results
-        titleListDiv.empty();
+        var titleListDivHtml = "";
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
-            var titleA = document.createElement('a');
-            titleA.setAttribute("class","list-group-item");
-            titleA.setAttribute("titleId", title.toStringId());
-            titleA.setAttribute("href", "#");
-            $(titleA).append(title.getReadableName());
-            $(titleA).on("click",handleTitleClick);
-            titleListDiv.append(titleA);
+            titleListDivHtml += "<a href='#' titleid='" + title.toStringId()
+                    + "' class='list-group-item'>" + title.getReadableName() + "</a>";
         }
+        titleListDiv.html(titleListDivHtml);
+        $("#titleList a").on("click",handleTitleClick);
         $('#searchingForTitles').hide();
     }
     
@@ -515,43 +511,6 @@ define(function(require) {
     }
     
     /**
-     * Tries to geolocate the device of the user
-     * The accuracy of geolocation is not very important, so we disable HighAccuracy,
-     * so that geolocation might be as fast as possible (including geolocation by IP)
-     * 
-     * If a geolocation has been made less than 30 minutes ago, it can be re-used in cache
-     */
-    function geolocateAndLaunchTitlesNearbySearch() {
-        if (navigator.geolocation) {
-            var geo_options = {
-                enableHighAccuracy: false,
-                maximumAge: 1800000 // 30 minutes
-            };
-
-            function geo_success(pos) {
-                var crd = pos.coords;
-
-                var rectangle = new geometry.rect(
-                    crd.longitude - MAX_DISTANCE_ARTICLES_NEARBY,
-                    crd.latitude - MAX_DISTANCE_ARTICLES_NEARBY,
-                    MAX_DISTANCE_ARTICLES_NEARBY * 2,
-                    MAX_DISTANCE_ARTICLES_NEARBY * 2);
-                
-                localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
-            };
-
-            function geo_error(err) {
-                alert("Unable to geolocate your device : " + err.code + " : " + err.message);
-            };
-
-            navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
-        }
-        else {
-            alert("Geolocation is not supported (or disabled) on your device, or by your browser");
-        }
-    }
-    
-    /**
      * Looks for titles located around where the device is geolocated
      */
     function searchTitlesNearby() {
@@ -559,9 +518,36 @@ define(function(require) {
         $('#configuration').hide();
         $('#articleContent').empty();
         if (localArchive !== null && localArchive.titleFile !== null) {
-            //geolocateAndLaunchTitlesNearbySearch();
-            var rectangle = new geometry.rect(0,40,10,10);
-            localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+            //var rectangle = new geometry.rect(0,40,10,10);
+            //localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+            if (navigator.geolocation) {
+                var geo_options = {
+                    enableHighAccuracy: false,
+                    maximumAge: 1800000, // 30 minutes
+                    timeout : 10000 // 10 seconds
+                };
+
+                function geo_success(pos) {
+                    var crd = pos.coords;
+
+                    var rectangle = new geometry.rect(
+                        crd.longitude - MAX_DISTANCE_ARTICLES_NEARBY,
+                        crd.latitude - MAX_DISTANCE_ARTICLES_NEARBY,
+                        MAX_DISTANCE_ARTICLES_NEARBY * 2,
+                        MAX_DISTANCE_ARTICLES_NEARBY * 2);
+
+                    localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                };
+
+                function geo_error(err) {
+                    alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+                };
+
+                navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+            }
+            else {
+                alert("Geolocation is not supported (or disabled) on your device, or by your browser");
+            }
         } else {
             $('#searchingForTitles').hide();
             // We have to remove the focus from the search field,
