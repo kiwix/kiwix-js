@@ -288,30 +288,28 @@ define(function(require) {
         
         module("articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
-            var callbackTitlesNearbyFound = function(titlePositions) {
-                ok(titlePositions !== null, "Some titles should be found");
-                equal(titlePositions.length, 3, "3 titles should be found");
+            var callbackTitlesNearbyFound = function(titleList) {
+                ok(titleList !== null, "Some titles should be found");
+                equal(titleList.length, 3, "3 titles should be found");
                 var titleDanube = null;
                 var titleParis = null;
                 var titleAlps = null;
-                for (var i=0; i<titlePositions.length; i++) {
-                    // TODO : read the titles instead of their position
-                    var titlepos = titlePositions[i];
-                    if (titlepos === 6030) {
-                        titleDanube = titlepos;
+                for (var i=0; i<titleList.length; i++) {
+                    var title = titleList[i];
+                    if (title.name === "Danube") {
+                        titleDanube = title;
                     }
-                    else if (titlepos === 18484) {
-                        titleParis = titlepos;
+                    else if (title.name === "Paris") {
+                        titleParis = title;
                     }
-                    else if (titlepos === 832) {
-                        titleAlps = titlepos;
+                    else if (title.name === "Alps") {
+                        titleAlps = title;
                     }
                 }
                 ok(titleDanube !== null, "The title 'Danube' should be found");
                 ok(titleParis !== null, "The title 'Paris' should be found");
                 ok(titleAlps !== null, "The title 'Alps' should be found");
                
-                // TODO : check the title name
                 start();
             };
             var rectFranceGermany = new geometry.rect(0,40,10,10);

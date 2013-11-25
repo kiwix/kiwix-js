@@ -734,7 +734,8 @@ define(function(require) {
      * to loop through every coordinate file, and search titles nearby in each
      * of them.
      * When all the coordinate files are searched, or when enough titles are
-     * found, the callbackFunction is called
+     * found, another function is called to convert the title positions found
+     * into Title instances (asynchronously)
      * 
      * @param {type} localArchive
      * @param {type} titlePositionsFound
@@ -749,9 +750,44 @@ define(function(require) {
             LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlePositionsFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
         }
         else {
-            // TODO convert titlePositions in titles
-            callbackFunction(titlePositionsFound);
+            // Search is over : now let's convert the title positions into Title instances
+            if (titlePositionsFound && titlePositionsFound.length > 0) {
+                LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), callbackFunction);
+            }
+            else {
+                return titlePositionsFound;
+            }
         }
+    };
+
+    /**
+     * This function reads a list of title positions, and converts it into a list or Title instances.
+     * It handles index i, then recursively calls itself for index i+1
+     * When all the list is processed, the callbackFunction is called with the Title list
+     * 
+     * @param {type} localArchive
+     * @param {type} titlePositionsFound
+     * @param {type} i
+     * @param {type} titlesFound
+     * @param {type} callbackFunction
+     */
+    LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, titlePositionsFound, i, titlesFound, callbackFunction) {
+        var titleOffset = titlePositionsFound[i];
+        localArchive.getTitlesStartingAtOffset(titleOffset, 1, function(titleList) {
+            if (titleList && titleList.length === 1) {
+                titlesFound.push(titleList[0]);
+                i++;
+                if (i<titlePositionsFound.length) {
+                    LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, i, titlesFound, callbackFunction);
+                }
+                else {
+                    callbackFunction(titlesFound);
+                }
+            }
+            else {
+                alert("No title could be found at offset " + titleOffset);
+            }
+        });
     };
     
     /**
@@ -828,12 +864,6 @@ define(function(require) {
             else {
                 // This is a leaf node : let's see if its articles are in the
                 // target rectangle
-                
-                // TODO this part needs to be reworked.
-                // It computes coordinates and title positions correctly, but
-                // I can not push titles found in the list with a simple for loop because of the asynchronous read
-                // Maybe I should split that in 2 parts : first gather all the title positions with the loop
-                // and then read all the titles
                 for (var i = 0; i < selector; i ++) {
                     var indexInByteArray = 2 + i * 12;
                     
