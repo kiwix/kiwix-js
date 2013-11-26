@@ -762,7 +762,7 @@ define(function(require) {
                 LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, filteredTitlePositions, 0, new Array(), callbackFunction);
             }
             else {
-                return titlePositionsFound;
+                callbackFunction(titlePositionsFound);
             }
         }
     };
