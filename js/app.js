@@ -543,7 +543,17 @@ define(function(require) {
                     alert("Unable to geolocate your device : " + err.code + " : " + err.message);
                 };
 
-                navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+                // TODO : for testing purpose
+                //navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+                var longitude = $('#longitude').val();
+                var latitude = $('#latitude').val();
+                var rectangle = new geometry.rect(
+                        longitude - MAX_DISTANCE_ARTICLES_NEARBY,
+                        latitude - MAX_DISTANCE_ARTICLES_NEARBY,
+                        MAX_DISTANCE_ARTICLES_NEARBY * 2,
+                        MAX_DISTANCE_ARTICLES_NEARBY * 2);
+
+                localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
             }
             else {
                 alert("Geolocation is not supported (or disabled) on your device, or by your browser");

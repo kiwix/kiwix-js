@@ -839,7 +839,7 @@ define(function(require) {
             
             // 0xFFFF = 65535 in decimal
             if (selector === 65535) {
-                // This is an innernode : let's browse it subdivisions
+                // This is an innernode : let's browse its subdivisions
                 var center = readCoordinates(byteArray, 2);
                 var lensw = util.readIntegerFrom4Bytes(byteArray, 10);
                 var lense = util.readIntegerFrom4Bytes(byteArray, 14);
@@ -867,6 +867,8 @@ define(function(require) {
                 if (targetRect.intersect(rectNE)) {
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
+                // TODO : it seems possible that targetRect does not intersect any of the 4 rectangles
+                // Iis it normal? In this case, the callback is never called
             }
             else {
                 // This is a leaf node : let's see if its articles are in the
