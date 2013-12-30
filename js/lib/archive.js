@@ -53,6 +53,7 @@ define(function(require) {
         this.date = null;
         this.language = null;
         this.titleSearchFile = null;
+        this.normalizedTitles = true;
     };
 
 
@@ -180,6 +181,19 @@ define(function(require) {
             var metadata = e.target.result;
             currentLocalArchiveInstance.language = /\nlanguage ?\= ?([^ \n]+)/.exec(metadata)[1];
             currentLocalArchiveInstance.date = /\ndate ?\= ?([^ \n]+)/.exec(metadata)[1];
+            var normalizedTitlesRegex = /\normalized_titles ?\= ?([^ \n]+)/;
+            if (normalizedTitlesRegex.exec(metadata)) {
+                var normalizedTitlesInt = normalizedTitlesRegex.exec(metadata)[1];
+                if (normalizedTitlesInt === 0) {
+                    currentLocalArchiveInstance.normalizedTitles = false;
+                }
+                else {
+                    currentLocalArchiveInstance.normalizedTitles = true;
+                }
+            }
+            else {
+                currentLocalArchiveInstance.normalizedTitles = true;
+            }
         };
         reader.readAsText(file);
     };
@@ -337,9 +351,8 @@ define(function(require) {
                     hi = mid;
                 }
                 else {
-                    var normalizedTitle =
-                            normalize_string.normalizeString(utf8.parse(byteArray.subarray(startIndex,
-                            newLineIndex)));
+                    var normalizedTitle = currentLocalArchiveInstance.normalizeStringIfCompatibleArchive(
+                            utf8.parse(byteArray.subarray(startIndex, newLineIndex)));
                     if (normalizedTitle < normalizedPrefix) {
                         lo = mid + newLineIndex - 1;
                     }
@@ -424,7 +437,7 @@ define(function(require) {
             alert('Title file read cancelled');
         };
         var currentLocalArchiveInstance = this;
-        var normalizedTitleName = normalize_string.normalizeString(titleName);
+        var normalizedTitleName = currentLocalArchiveInstance.normalizeStringIfCompatibleArchive(titleName);
         this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
             currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, MAX_TITLES_WITH_SAME_NORMALIZED_NAME, function(titleList) {
                 if (titleList !== null && titleList.length>0) {
@@ -460,7 +473,7 @@ define(function(require) {
     LocalArchive.prototype.findTitlesWithPrefix = function(prefix, maxSize, callbackFunction) {
         var titleFileSize = this.titleFile.size;
         if (prefix) {
-            prefix = normalize_string.normalizeString(prefix);
+            prefix = this.normalizeStringIfCompatibleArchive(prefix);
         }
 
         var reader = new FileReader();
@@ -469,14 +482,14 @@ define(function(require) {
             alert('Title file read cancelled');
         };
         var currentLocalArchiveInstance = this;
-        var normalizedPrefix = normalize_string.normalizeString(prefix);
+        var normalizedPrefix = this.normalizeStringIfCompatibleArchive(prefix);
         this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
             currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, maxSize, function(titleList) {
                 // Keep only the titles with names starting with the prefix
                 var i = 0;
                 for (i = 0; i < titleList.length; i++) {
                     var titleName = titleList[i].name;
-                    var normalizedTitleName = normalize_string.normalizeString(titleName);
+                    var normalizedTitleName = currentLocalArchiveInstance.normalizeStringIfCompatibleArchive(titleName);
                     if (normalizedTitleName.length < normalizedPrefix.length || normalizedTitleName.substring(0, normalizedPrefix.length) !== normalizedPrefix) {
                         break;
                     }
@@ -754,6 +767,21 @@ define(function(require) {
                 callbackFunction(directories);
             }
         };
+    };
+    
+    /**
+     * Normalize the given String, if the current Archive is compatible.
+     * If it's not, return the given String, as is.
+     * @param string : string to normalized
+     * @returns normalized string, or same string if archive is not compatible
+     */
+    LocalArchive.prototype.normalizeStringIfCompatibleArchive = function(string) {
+        if (this.normalizedTitles === true) {
+            return normalize_string.normalizeString(string);
+        }
+        else {
+            return string;
+        }
     };
     
     /**
