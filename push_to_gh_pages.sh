@@ -1,1 +1,1 @@
-git checkout gh-pages; git merge master; git push; git checkout master
+git checkout gh-pages; git merge maintenance_1.0; git push; git checkout maintenance_1.0
