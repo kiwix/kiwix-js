@@ -18,7 +18,6 @@ Thumbs.db
 .project
 .settings
 .tmproj
-nbproject
 *.sublime-project
 *.sublime-workspace
 
