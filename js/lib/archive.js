@@ -184,10 +184,10 @@ define(function(require) {
             var metadata = e.target.result;
             currentLocalArchiveInstance.language = /\nlanguage ?\= ?([^ \n]+)/.exec(metadata)[1];
             currentLocalArchiveInstance.date = /\ndate ?\= ?([^ \n]+)/.exec(metadata)[1];
-            var normalizedTitlesRegex = /\normalized_titles ?\= ?([^ \n]+)/;
+            var normalizedTitlesRegex = /\nnormalized_titles ?\= ?([^ \n]+)/;
             if (normalizedTitlesRegex.exec(metadata)) {
                 var normalizedTitlesInt = normalizedTitlesRegex.exec(metadata)[1];
-                if (normalizedTitlesInt === 0) {
+                if (normalizedTitlesInt === "0") {
                     currentLocalArchiveInstance.normalizedTitles = false;
                 }
                 else {
