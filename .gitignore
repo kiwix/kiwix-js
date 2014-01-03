@@ -35,6 +35,7 @@ Thumbs.db
 intermediate
 publish
 .idea
+nbproject/private
 
 # build script local files
 build/buildinfo.properties
