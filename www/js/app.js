@@ -147,9 +147,15 @@ define(function(require) {
         return false;
     });
     
-
     // Detect if DeviceStorage is available
     var storages = [];
+    function searchForArchives() {
+        // If DeviceStorage is available, we look for archives in it
+        $("#btnConfigure").click();
+        $('#scanningForArchives').show();
+        evopediaArchive.LocalArchive.scanForArchives(storages, populateDropDownListOfArchives);
+    }
+
     if ($.isFunction(navigator.getDeviceStorage)) {
         if ($.isFunction(navigator.getDeviceStorages)) {
             // The method getDeviceStorages is available (FxOS>=1.1)
@@ -166,13 +172,15 @@ define(function(require) {
             storages[0] = new osabstraction.StorageFirefoxOS(
                                  navigator.getDeviceStorage("sdcard"));
         }
+    } else if ($.isFunction(window.requestFileSystem)) { // cordova
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs) {
+            storages[0] = new osabstraction.StoragePhoneGap(fs);
+            searchForArchives();
+        });
     }
 
     if (storages !== null && storages.length > 0) {
-        // If DeviceStorage is available, we look for archives in it
-        $("#btnConfigure").click();
-        $('#scanningForArchives').show();
-        evopediaArchive.LocalArchive.scanForArchives(storages, populateDropDownListOfArchives);
+        searchForArchives();
     }
     else {
         // If DeviceStorage is not available, we display the file select components
