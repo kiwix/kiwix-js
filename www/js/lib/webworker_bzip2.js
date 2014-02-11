@@ -35,7 +35,7 @@ require({
                         var compressedByteArray = data.msg;
                         var startTime = new Date();
                         try {
-                            var uncompressedString = bzip2.simple(bzip2.array(new Uint8Array(compressedByteArray)));
+                            var uncompressedString = bzip2.simple(bzip2.array(compressedByteArray));
                             self.postMessage({cmd: 'result', msg: uncompressedString});
                             var endTime = new Date();
                             self.postMessage({cmd: 'debug', msg: "webworker uncompress complete : took " + (endTime - startTime) + " ms"});

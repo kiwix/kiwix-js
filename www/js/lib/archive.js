@@ -593,7 +593,8 @@ define(function(require) {
                             break;
                     }
                 };
-                webworkerBzip2.postMessage({cmd : 'uncompress', msg : compressedArticles});
+                webworkerBzip2.postMessage({cmd : 'uncompress', msg :
+                                            new Uint8Array(compressedArticles)});
                 
             }
             catch (e) {
