@@ -75,7 +75,7 @@ define(function(require) {
         var escapedEncodedTitle = new Uint8Array(encodedTitle);
         var escapes = util.readIntegerFrom2Bytes(encodedTitle, 0);
         if ((escapes & (1 << 14)) != 0)
-            escapes |= '\n';
+            escapes |= 10;
         for (var i = 0; i < 13; i++) {
             if ((escapes & (1 << i)) != 0)
                 escapedEncodedTitle[i + 2] = 10; // Corresponds to \n
