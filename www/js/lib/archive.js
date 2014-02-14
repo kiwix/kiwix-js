@@ -29,6 +29,7 @@ define(function(require) {
     var util = require('util');
     var geometry = require('geometry');
     var jQuery = require('jquery');
+    var titleIterators = require('titleIterators');
     
     // Declare the webworker that can uncompress with bzip2 algorithm
     var webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
@@ -304,113 +305,29 @@ define(function(require) {
     };
 
     /**
-     * This function is recursively called after each asynchronous read, so that
-     * to find the closest index in titleFile to the given prefix
-     * When found, call the callbackFunction with the index
-     * 
-     * @param reader
-     * @param normalizedPrefix
-     * @param lo
-     * @param hi
-     * @param callbackFunction
-     */
-    LocalArchive.prototype.recursivePrefixSearch = function(reader, normalizedPrefix, lo, hi, callbackFunction) {
-        if (lo < hi - 1) {
-            var mid = Math.floor((lo + hi) / 2);
-            var blob = this.titleFile.slice(mid, mid + MAX_TITLE_LENGTH);
-            var currentLocalArchiveInstance = this;
-            reader.onload = function(e) {
-                var binaryTitleFile = e.target.result;
-                var byteArray = new Uint8Array(binaryTitleFile);
-                // Look for the index of the next NewLine
-                var newLineIndex = 0;
-                while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
-                    newLineIndex++;
-                }
-                var startIndex = 0;
-                if (mid > 0) {
-                    startIndex = newLineIndex + 16;
-                    newLineIndex = startIndex;
-                    // Look for the index of the next NewLine	
-                    while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
-                        newLineIndex++;
-                    }
-                }
-                if (newLineIndex === startIndex) {
-                    // End of file reached
-                    hi = mid;
-                }
-                else {
-                    var normalizedTitle = currentLocalArchiveInstance.normalizeStringIfCompatibleArchive(
-                            utf8.parse(byteArray.subarray(startIndex, newLineIndex)));
-                    if (normalizedTitle < normalizedPrefix) {
-                        lo = mid + newLineIndex - 1;
-                    }
-                    else {
-                        hi = mid;
-                    }
-                }
-                currentLocalArchiveInstance.recursivePrefixSearch(reader, normalizedPrefix, lo, hi, callbackFunction);
-            };
-            // Read the file as a binary string
-            reader.readAsArrayBuffer(blob);
-        }
-        else {
-            if (lo > 0) {
-                // Let lo point to the start of an entry
-                lo++;
-                lo++;
-            }
-            // We found the closest title at index lo
-            callbackFunction(lo);
-        }
-    };
-
-    /**
      * Read the titles in the title file starting at the given offset (maximum titleCount), and call the callbackFunction with this list of Title instances
-     * @param titleOffset
+     * @param titleOffset offset into the title file - it has to point excatly
+     *                    to the start of a title entry
      * @param titleCount maximum number of titles to retrieve
      * @param callbackFunction
      */
     LocalArchive.prototype.getTitlesStartingAtOffset = function(titleOffset, titleCount, callbackFunction) {
-        var reader = new FileReader();
-        reader.onerror = errorHandler;
-        reader.onabort = function(e) {
-            alert('Title file read cancelled');
-        };
-
-        var currentLocalArchiveInstance = this;
-        reader.onload = function(e) {
-            var binaryTitleFile = e.target.result;
-            var byteArray = new Uint8Array(binaryTitleFile);
-            var i = 0;
-            var newLineIndex = 0;
-            var titleNumber = 0;
-            var titleList = new Array();
-            while (i < byteArray.length && titleNumber < titleCount) {
-                // Look for the index of the next NewLine
-                newLineIndex += 15;
-                while (newLineIndex < byteArray.length && byteArray[newLineIndex] != 10) {
-                    newLineIndex++;
+        var titles = [];
+        jQuery.when().then(function() {
+            var iterator = new titleIterators.SequentialTitleIterator(this, titleOffset);
+            function addNext() {
+                if (titles.length >= titleCount) {
+                    return titles;
                 }
-
-                // Copy the encodedTitle in a new Array
-                var encodedTitle = new Uint8Array(newLineIndex - i);
-                for (var j = 0; j < newLineIndex - i; j++) {
-                    encodedTitle[j] = byteArray[i + j];
-                }
-
-                var title = evopediaTitle.Title.parseTitle(encodedTitle, currentLocalArchiveInstance, i);
-
-                titleList[titleNumber] = title;
-                titleNumber++;
-                i = newLineIndex + 1;
+                return iterator.advance().then(function(title) {
+                    if (title == null)
+                        return titles;
+                    titles.push(title);
+                    return addNext();
+                });
             }
-            callbackFunction(titleList);
-        };
-        var blob = this.titleFile.slice(titleOffset, titleOffset + titleCount * MAX_TITLE_LENGTH);
-        // Read in the file as a binary string
-        reader.readAsArrayBuffer(blob);
+            return addNext();
+        }).then(callbackFunction, errorHandler);
     };
 
     /**
@@ -420,30 +337,23 @@ define(function(require) {
      * @param callbackFunction
      */
     LocalArchive.prototype.getTitleByName = function(titleName, callbackFunction) {
-        var titleFileSize = this.titleFile.size;
-        var reader = new FileReader();
-        reader.onerror = errorHandler;
-        reader.onabort = function(e) {
-            alert('Title file read cancelled');
-        };
-        var currentLocalArchiveInstance = this;
-        var normalizedTitleName = currentLocalArchiveInstance.normalizeStringIfCompatibleArchive(titleName);
-        this.recursivePrefixSearch(reader, normalizedTitleName, 0, titleFileSize, function(titleOffset) {
-            currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, MAX_TITLES_WITH_SAME_NORMALIZED_NAME, function(titleList) {
-                if (titleList !== null && titleList.length>0) {
-                    for (var i=0; i<titleList.length; i++) {
-                        var title = titleList[i];
-                        if (title.name === titleName) {
-                            // The title has been found
-                            callbackFunction(title);
-                            return;
-                        }
-                    }
+        var that = this;
+        var normalize = this.getNormalizeFunction();
+        var normalizedTitleName = normalize(titleName);
+
+        titleIterators.FindPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
+            var iterator = new titleIterators.SequentialTitleIterator(that, offset);
+            function check(title) {
+                if (title == null || normalize(title.name) !== normalizedTitleName) {
+                    return null;
+                } else if (title.name === titleName) {
+                    return title;
+                } else {
+                    return iterator.advance().then(check);
                 }
-                // The title has not been found
-                callbackFunction(null);
-            });
-        });
+            }
+            return iterator.advance().then(check);
+        }).then(callbackFunction, errorHandler);
     };
 
     /**
@@ -461,32 +371,30 @@ define(function(require) {
      * @param callbackFunction
      */
     LocalArchive.prototype.findTitlesWithPrefix = function(prefix, maxSize, callbackFunction) {
-        var titleFileSize = this.titleFile.size;
-        if (prefix) {
-            prefix = this.normalizeStringIfCompatibleArchive(prefix);
-        }
+        var that = this;
+        var titles = [];
+        var normalize = this.getNormalizeFunction();
+        prefix = normalize(prefix);
 
-        var reader = new FileReader();
-        reader.onerror = errorHandler;
-        reader.onabort = function(e) {
-            alert('Title file read cancelled');
-        };
-        var currentLocalArchiveInstance = this;
-        var normalizedPrefix = this.normalizeStringIfCompatibleArchive(prefix);
-        this.recursivePrefixSearch(reader, normalizedPrefix, 0, titleFileSize, function(titleOffset) {
-            currentLocalArchiveInstance.getTitlesStartingAtOffset(titleOffset, maxSize, function(titleList) {
-                // Keep only the titles with names starting with the prefix
-                var i = 0;
-                for (i = 0; i < titleList.length; i++) {
-                    var titleName = titleList[i].name;
-                    var normalizedTitleName = currentLocalArchiveInstance.normalizeStringIfCompatibleArchive(titleName);
-                    if (normalizedTitleName.length < normalizedPrefix.length || normalizedTitleName.substring(0, normalizedPrefix.length) !== normalizedPrefix) {
-                        break;
-                    }
+        titleIterators.FindPrefixOffset(this.titleFile, prefix, normalize).then(function(offset) {
+            var iterator = new titleIterators.SequentialTitleIterator(that, offset);
+            function addNext() {
+                if (titles.length >= maxSize) {
+                    return titles;
                 }
-                callbackFunction(titleList.slice(0, i));
-            });
-        });
+                return iterator.advance().then(function(title) {
+                    if (title == null)
+                        return titles;
+                    // check whether this title really starts with the prefix
+                    var name = normalize(title.name);
+                    if (name.length < prefix.length || name.substring(0, prefix.length) != prefix)
+                        return titles;
+                    titles.push(title);
+                    return addNext();
+                });
+            }
+            return addNext();
+        }).then(callbackFunction, errorHandler);
     };
 
 
@@ -947,6 +855,18 @@ define(function(require) {
         }
         else {
             return string;
+        }
+    };
+    
+    /**
+     * Returns a function that normalizes strings if the current archive is compatible.
+     * If it is not, returns the identity function.
+     */
+    LocalArchive.prototype.getNormalizeFunction = function() {
+        if (this.normalizedTitles === true) {
+            return normalize_string.normalizeString;
+        } else {
+            return function(string) { return string; }
         }
     };
     

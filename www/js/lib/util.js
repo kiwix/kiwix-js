@@ -20,6 +20,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 define(function(require) {
+    var jQuery = require('jquery');
 
     /**
      * Utility function : return true if the given string ends with the suffix
@@ -112,6 +113,25 @@ define(function(require) {
 
         return (r > 0 ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
     }
+
+    /**
+     * Reads a Uint8Array from the given file starting at byte offset begin and
+     * not including byte offset end.
+     * @returns jQuery promise
+     */
+    function readFileSlice(file, begin, end) {
+        var deferred = jQuery.Deferred();
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            deferred.resolve(new Uint8Array(e.target.result));
+        }
+        reader.onerror = reader.onabort = function(e) {
+            deferred.reject(e);
+        }
+        reader.readAsArrayBuffer(file.slice(begin, end));
+        return deferred.promise();
+    }
+
     
     /**
      * Functions and classes exposed by this module
@@ -122,6 +142,7 @@ define(function(require) {
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,
         readFloatFrom4Bytes : readFloatFrom4Bytes,
         uint8ArrayToHex : uint8ArrayToHex,
-        uint8ArrayToBase64 : uint8ArrayToBase64
+        uint8ArrayToBase64 : uint8ArrayToBase64,
+        readFileSlice : readFileSlice
     };
 });
