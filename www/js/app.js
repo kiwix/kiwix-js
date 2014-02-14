@@ -73,6 +73,14 @@ define(function(require) {
             $('#navbarToggle').click();
         }
     });
+    $("#btnRandomArticle").on("click", function(e) {
+        goToRandomArticle();
+        $("#welcomeText").hide();
+        $("#readingArticle").hide();
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+    });
     // Bottom bar :
     $('#btnBack').on('click', function(e) {
         history.back();
@@ -578,6 +586,20 @@ define(function(require) {
             alert("Archive not set : please select an archive");
             $("#btnConfigure").click();
         }
+    }
+
+    function goToRandomArticle() {
+        localArchive.getRandomTitle(function(title) {
+            if (title === null || title === undefined) {
+                alert("Error finding random article.");
+            }
+            else {
+                $("#articleName").html(title.name);
+                $("#readingArticle").show();
+                $("#articleContent").html("");
+                readArticle(title);
+            }
+        });
     }
 
 });

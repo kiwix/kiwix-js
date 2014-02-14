@@ -361,7 +361,16 @@ define(function(require) {
      * @param callbackFunction
      */
     LocalArchive.prototype.getRandomTitle = function(callbackFunction) {
-        // TODO to be implemented
+        var that = this;
+        var offset = Math.floor(Math.random() * this.titleFile.size);
+        jQuery.when().then(function() {
+            var iterator = new titleIterators.SequentialTitleIterator(that, offset);
+            // call advance twice because we are probably not at the beginning
+            // of a title
+            return iterator.advance().then(function() {
+                return iterator.advance();
+            });
+        }).then(callbackFunction, errorHandler);
     };
 
     /**
