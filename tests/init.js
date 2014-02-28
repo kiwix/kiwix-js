@@ -21,7 +21,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 require.config({
-    baseUrl: 'js/lib',
+    baseUrl: 'www/js/lib',
     paths: {
         'zepto': 'zepto',
         'jquery': 'jquery-2.0.3',
@@ -30,4 +30,4 @@ require.config({
     }
 });
 
-requirejs(['../../tests/tests']);
+requirejs(['../../../tests/tests']);

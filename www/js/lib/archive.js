@@ -32,17 +32,21 @@ define(function(require) {
     var titleIterators = require('titleIterators');
     
     // Declare the webworker that can uncompress with bzip2 algorithm
-    var webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
+    var webworkerBzip2;
+    try {
+        // When using the application normally
+        webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
+    }
+    catch(e) {
+        // When using unit tests
+        webworkerBzip2 = new Worker("www/js/lib/webworker_bzip2.js");
+    }
     
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
     // The maximum number of titles that can have the same name after normalizing
     // This is used by the algorithm that searches for a specific article by its name
     var MAX_TITLES_WITH_SAME_NORMALIZED_NAME = 30;
-    // Maximum length of a title
-    // 300 bytes is arbitrary : we actually do not really know how long the titles will be
-    // But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
-    var MAX_TITLE_LENGTH = 300;
     // A rectangle representing all the earth globe
     var GLOBE_RECTANGLE = new geometry.rect(-181, -90, 361, 181);
     
@@ -313,14 +317,15 @@ define(function(require) {
      */
     LocalArchive.prototype.getTitlesStartingAtOffset = function(titleOffset, titleCount, callbackFunction) {
         var titles = [];
+        var currentLocalArchiveInstance = this;
         jQuery.when().then(function() {
-            var iterator = new titleIterators.SequentialTitleIterator(this, titleOffset);
+            var iterator = new titleIterators.SequentialTitleIterator(currentLocalArchiveInstance, titleOffset);
             function addNext() {
                 if (titles.length >= titleCount) {
                     return titles;
                 }
                 return iterator.advance().then(function(title) {
-                    if (title == null)
+                    if (title === null)
                         return titles;
                     titles.push(title);
                     return addNext();

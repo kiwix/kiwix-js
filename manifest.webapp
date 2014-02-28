@@ -2,12 +2,12 @@
   "version": "1.1.0-SNAPSHOT",
   "name": "Evopedia",
   "description": "Offline Wikipedia Viewer",
-  "launch_path": "/index.html",
+  "launch_path": "/www/index.html",
   "icons": {
-    "16": "/img/icons/evopedia-16.png",
-    "48": "/img/icons/evopedia-48.png",
-    "60": "/img/icons/evopedia-60.png",
-    "128": "/img/icons/evopedia-128.png"
+    "16": "/www/img/icons/evopedia-16.png",
+    "48": "/www/img/icons/evopedia-48.png",
+    "60": "/www/img/icons/evopedia-60.png",
+    "128": "/www/img/icons/evopedia-128.png"
   },
   "developer": {
     "name": "Mossroy <mossroy@free.fr>",

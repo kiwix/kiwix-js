@@ -30,13 +30,15 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
      * Iterates over all titles starting at the given offset.
      * The asynchronous method advance has to be called before this.title is
      * valid.
+     * @param archive
+     * @param offset
      */
     function SequentialTitleIterator(archive, offset) {
         this._titleFile = archive.titleFile;
         this._archive = archive;
         this._offset = offset;
         this.title = null;
-    }
+    };
     /**
      * Advances to the next title (or the first), if possible.
      * @returns jQuery promise containing the next title or null if there is no
@@ -59,12 +61,15 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
             that._offset += newLineIndex + 1;
             return that._title;
         });
-    }
+    };
 
     /**
      * Searches for the offset into the given title file where the first title
      * with the given prefix (or lexicographically larger) is located.
      * The given function normalize is applied to every title before comparison.
+     * @param titleFile
+     * @param prefix
+     * @param normalize function to be applied to every title before comparison
      * @returns jQuery promise giving the offset
      */
     function FindPrefixOffset(titleFile, prefix, normalize) {
@@ -107,7 +112,7 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
                     return iterate();
                 });
             }
-        }
+        };
         return iterate();
     }
 
