@@ -24,25 +24,27 @@ define(function(require) {
     
     // Module dependencies
     var normalize_string = require('normalize_string');
-    var utf8 = require('utf8');
-    var evopediaTitle = require('title');
     var util = require('util');
     var geometry = require('geometry');
     var jQuery = require('jquery');
     var titleIterators = require('titleIterators');
     
     // Declare the webworker that can uncompress with bzip2 algorithm
-    var webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
+    var webworkerBzip2;
+    try {
+        // When using the application normally
+        webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
+    }
+    catch(e) {
+        // When using unit tests
+        webworkerBzip2 = new Worker("www/js/lib/webworker_bzip2.js");
+    }
     
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
     // The maximum number of titles that can have the same name after normalizing
     // This is used by the algorithm that searches for a specific article by its name
     var MAX_TITLES_WITH_SAME_NORMALIZED_NAME = 30;
-    // Maximum length of a title
-    // 300 bytes is arbitrary : we actually do not really know how long the titles will be
-    // But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
-    var MAX_TITLE_LENGTH = 300;
     // A rectangle representing all the earth globe
     var GLOBE_RECTANGLE = new geometry.rect(-181, -90, 361, 181);
     
@@ -106,11 +108,11 @@ define(function(require) {
                 currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
                         index + 1);
             }, function(error) {
-                // TODO there must be a better to way to detect a FileNotFound
-                // if (error != "NotFoundError") {
-                //     alert("Error reading data file " + index + " in directory "
-                //             + directory + " : " + error);
-                // }
+                // TODO there must be a better way to detect a FileNotFound
+                if (error != "NotFoundError") {
+                    alert("Error reading data file " + index + " in directory "
+                            + directory + " : " + error);
+                }
             });
     };
     
@@ -137,11 +139,11 @@ define(function(require) {
             currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
         }, function(error) {
-            // TODO there must be a better to way to detect a FileNotFound
-            // if (error != "NotFoundError") {
-            //     alert("Error reading coordinates file " + index + " in directory "
-            //             + directory + " : " + error);
-            // }
+            // TODO there must be a better way to detect a FileNotFound
+            if (error != "NotFoundError") {
+                alert("Error reading coordinates file " + index + " in directory "
+                        + directory + " : " + error);
+            }
         });
     };
     
@@ -313,14 +315,15 @@ define(function(require) {
      */
     LocalArchive.prototype.getTitlesStartingAtOffset = function(titleOffset, titleCount, callbackFunction) {
         var titles = [];
+        var currentLocalArchiveInstance = this;
         jQuery.when().then(function() {
-            var iterator = new titleIterators.SequentialTitleIterator(this, titleOffset);
+            var iterator = new titleIterators.SequentialTitleIterator(currentLocalArchiveInstance, titleOffset);
             function addNext() {
                 if (titles.length >= titleCount) {
                     return titles;
                 }
                 return iterator.advance().then(function(title) {
-                    if (title == null)
+                    if (title === null)
                         return titles;
                     titles.push(title);
                     return addNext();
@@ -341,7 +344,7 @@ define(function(require) {
         var normalize = this.getNormalizeFunction();
         var normalizedTitleName = normalize(titleName);
 
-        titleIterators.FindPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
+        titleIterators.findPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function check(title) {
                 if (title == null || normalize(title.name) !== normalizedTitleName) {
@@ -367,6 +370,8 @@ define(function(require) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             // call advance twice because we are probably not at the beginning
             // of a title
+            // TODO : we need to find a better way to reach the beginning of the title
+            // As it is now, the first advance() can fail on utf8 decoding
             return iterator.advance().then(function() {
                 return iterator.advance();
             });
@@ -385,7 +390,7 @@ define(function(require) {
         var normalize = this.getNormalizeFunction();
         prefix = normalize(prefix);
 
-        titleIterators.FindPrefixOffset(this.titleFile, prefix, normalize).then(function(offset) {
+        titleIterators.findPrefixOffset(this.titleFile, prefix, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function addNext() {
                 if (titles.length >= maxSize) {
@@ -837,7 +842,7 @@ define(function(require) {
             return storage.scanForDirectoriesContainingFile('titles.idx')
                 .then(function(dirs) {
                     jQuery.merge(directories, dirs);
-                    return true
+                    return true;
                 });
         });
         jQuery.when.apply(null, promises).then(function() {
@@ -875,7 +880,7 @@ define(function(require) {
         if (this.normalizedTitles === true) {
             return normalize_string.normalizeString;
         } else {
-            return function(string) { return string; }
+            return function(string) { return string; };
         }
     };
     

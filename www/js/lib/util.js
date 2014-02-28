@@ -117,6 +117,9 @@ define(function(require) {
     /**
      * Reads a Uint8Array from the given file starting at byte offset begin and
      * not including byte offset end.
+     * @param file
+     * @param begin
+     * @param end
      * @returns jQuery promise
      */
     function readFileSlice(file, begin, end) {
@@ -124,10 +127,10 @@ define(function(require) {
         var reader = new FileReader();
         reader.onload = function(e) {
             deferred.resolve(new Uint8Array(e.target.result));
-        }
+        };
         reader.onerror = reader.onabort = function(e) {
             deferred.reject(e);
-        }
+        };
         reader.readAsArrayBuffer(file.slice(begin, end));
         return deferred.promise();
     }
