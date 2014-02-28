@@ -24,8 +24,6 @@ define(function(require) {
     
     // Module dependencies
     var normalize_string = require('normalize_string');
-    var utf8 = require('utf8');
-    var evopediaTitle = require('title');
     var util = require('util');
     var geometry = require('geometry');
     var jQuery = require('jquery');
@@ -110,7 +108,7 @@ define(function(require) {
                 currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
                         index + 1);
             }, function(error) {
-                // TODO there must be a better to way to detect a FileNotFound
+                // TODO there must be a better way to detect a FileNotFound
                 if (error != "NotFoundError") {
                     alert("Error reading data file " + index + " in directory "
                             + directory + " : " + error);
@@ -141,7 +139,7 @@ define(function(require) {
             currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
         }, function(error) {
-            // TODO there must be a better to way to detect a FileNotFound
+            // TODO there must be a better way to detect a FileNotFound
             if (error != "NotFoundError") {
                 alert("Error reading coordinates file " + index + " in directory "
                         + directory + " : " + error);
@@ -372,6 +370,8 @@ define(function(require) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             // call advance twice because we are probably not at the beginning
             // of a title
+            // TODO : we need to find a better way to reach the beginning of the title
+            // As it is now, the first advance() can fail on utf8 decoding
             return iterator.advance().then(function() {
                 return iterator.advance();
             });
@@ -842,7 +842,7 @@ define(function(require) {
             return storage.scanForDirectoriesContainingFile('titles.idx')
                 .then(function(dirs) {
                     jQuery.merge(directories, dirs);
-                    return true
+                    return true;
                 });
         });
         jQuery.when.apply(null, promises).then(function() {
@@ -880,7 +880,7 @@ define(function(require) {
         if (this.normalizedTitles === true) {
             return normalize_string.normalizeString;
         } else {
-            return function(string) { return string; }
+            return function(string) { return string; };
         }
     };
     

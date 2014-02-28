@@ -76,6 +76,7 @@ define(function(require) {
     $("#btnRandomArticle").on("click", function(e) {
         goToRandomArticle();
         $("#welcomeText").hide();
+        $('#titleList').hide();
         $("#readingArticle").hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();

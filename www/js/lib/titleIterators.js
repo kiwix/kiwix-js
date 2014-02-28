@@ -53,7 +53,7 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
         return util.readFileSlice(this._titleFile, this._offset,
                                   this._offset + MAX_TITLE_LENGTH).then(function(byteArray) {
             var newLineIndex = 15;
-            while (newLineIndex < byteArray.length && byteArray[newLineIndex] != 10) {
+            while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
                 newLineIndex++;
             }
             var encodedTitle = byteArray.subarray(0, newLineIndex);
