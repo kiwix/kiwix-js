@@ -111,10 +111,10 @@ define(function(require) {
                         index + 1);
             }, function(error) {
                 // TODO there must be a better to way to detect a FileNotFound
-                // if (error != "NotFoundError") {
-                //     alert("Error reading data file " + index + " in directory "
-                //             + directory + " : " + error);
-                // }
+                if (error != "NotFoundError") {
+                    alert("Error reading data file " + index + " in directory "
+                            + directory + " : " + error);
+                }
             });
     };
     
@@ -142,10 +142,10 @@ define(function(require) {
                     index + 1);
         }, function(error) {
             // TODO there must be a better to way to detect a FileNotFound
-            // if (error != "NotFoundError") {
-            //     alert("Error reading coordinates file " + index + " in directory "
-            //             + directory + " : " + error);
-            // }
+            if (error != "NotFoundError") {
+                alert("Error reading coordinates file " + index + " in directory "
+                        + directory + " : " + error);
+            }
         });
     };
     
