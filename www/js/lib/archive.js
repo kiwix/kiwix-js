@@ -346,7 +346,7 @@ define(function(require) {
         var normalize = this.getNormalizeFunction();
         var normalizedTitleName = normalize(titleName);
 
-        titleIterators.FindPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
+        titleIterators.findPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function check(title) {
                 if (title == null || normalize(title.name) !== normalizedTitleName) {
@@ -390,7 +390,7 @@ define(function(require) {
         var normalize = this.getNormalizeFunction();
         prefix = normalize(prefix);
 
-        titleIterators.FindPrefixOffset(this.titleFile, prefix, normalize).then(function(offset) {
+        titleIterators.findPrefixOffset(this.titleFile, prefix, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function addNext() {
                 if (titles.length >= maxSize) {

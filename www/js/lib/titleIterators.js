@@ -72,12 +72,12 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
      * @param normalize function to be applied to every title before comparison
      * @returns jQuery promise giving the offset
      */
-    function FindPrefixOffset(titleFile, prefix, normalize) {
+    function findPrefixOffset(titleFile, prefix, normalize) {
         prefix = normalize(prefix);
         var lo = 0;
         var hi = titleFile.size;
         var iterate = function() {
-            if (lo >= hi) {
+            if (lo >= hi - 1) {
                 if (lo > 0)
                     lo += 2; // Let lo point to the start of an entry
                 return jQuery.when(lo);
@@ -121,6 +121,6 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
      */
     return {
         SequentialTitleIterator : SequentialTitleIterator,
-        FindPrefixOffset : FindPrefixOffset
+        findPrefixOffset : findPrefixOffset
     };
 });
