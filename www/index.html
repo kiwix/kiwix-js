@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <title>Evopedia</title>
+        <meta name="description" content="Offline wikipedia reader"> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--
+        Evopedia (offline wikipedia reader) - HTML5/Javascript version
+        Home page : http://www.evopedia.info/
+                
+        Main author of this application : Mossroy - mossroy@free.fr
+        Math image algorithm contributed by christian@evopedia.info
+
+        Copyright 2013 Mossroy
+        License GPL v3:
+        
+        This file is part of Evopedia.
+
+        Evopedia is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+
+        Evopedia is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
+        
+        -->
+
+        <link rel="stylesheet" href="css/mediawiki-main.css">
+        <link rel="stylesheet" href="css/app.css">
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.css" rel="stylesheet" media="screen">
+        <link href="css/bootstrap-theme.css" rel="stylesheet" media="screen">
+    </head>
+    <body role="application">
+        <section id="search-article" role="region">
+            <header id="top">
+                <nav class="navbar navbar-default" role="navigation">
+                  <!-- Brand and toggle get grouped for better mobile display -->
+                  <div class="navbar-header">
+                    <button type="button" id="navbarToggle" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                      <span class="sr-only">Toggle navigation</span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand">Evopedia 1.1.0-SNAPSHOT</a>
+                  </div>
+
+                  <!-- Collect the nav links, forms, and other content for toggling -->
+                  <div class="collapse navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                      <li id="liHomeNav" class="active"><a href="#" id="btnHome">Home</a></li>
+                      <li id="liConfigureNav"><a href="#" id="btnConfigure">Configure</a></li>
+                      <li id="liAboutNav"><a href="#" id="btnAbout">About</a></li>
+                    </ul>
+                  </div><!-- /.navbar-collapse -->
+                </nav>
+
+
+                <div class="container">
+                <form id="formTitleSearch" class="form-inline">
+                    <div class="input-group">
+                        <input type="text" id="prefix" placeholder="Search Wikipedia..." class="form-control" />
+                        <span class="input-group-btn">
+                            <a class="btn btn-default" id="searchTitles" href="#"><span class="glyphicon glyphicon-search"></span></a>
+                        </span>                
+                    </div>
+                    or <a href="#" id="btnArticlesNearby">Find articles around me (work in progress)</a><br/>
+                    Longitude/Latitude:
+                    <input type="text" id="longitude" size="8" /> <input type="text" id="latitude" size="8" /><br/>
+                    or <a href="#" id="btnRandomArticle">Go to a random article</a><br/>
+                    <div id="searchingForTitles" style="position: relative; z-index: 10; top: 20px; height: 0px; display: none;">
+                        <img src="img/spinner.gif" alt="Please wait..." />
+                    </div>
+                </form>
+                </div>
+            </header>
+            <article class="view-content">
+                <div id="about" style="display: none;">
+                    <h2>
+                    <img src="img/evopedia-64x64.png" alt="Evopedia icon"/>
+                    Evopedia : offline wikipedia viewer
+                    </h2>
+                    <br />Official site : <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
+                    <br />
+                    <br />You can search among the article titles, and read any of them without any Internet access.
+                    <br />All the content of wikipedia is inside your device (except the images). It also works with Wiktionary and Wikivoyage.
+                    <br />If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing amount of knowledge and culture.
+                    <br />
+                    <br />NB : If you're connected to the Internet when using the application, the images of the articles will be displayed from the Internet.
+                    <h3>Usage</h3>
+                    <h4>Step 1 : download an archive</h4>
+                    From <a href="http://dumpathome.evopedia.info/dumps/finished" target="_blank">http://dumpathome.evopedia.info/dumps/finished</a>, with a regular computer.
+                    <br />If you get a compressed archive (.zip, .tar.gz or .tar.bz2), you will have to decompress it.
+                    <br />For a quick test, you can start with the dump called <a href="http://evopedia.info/dumps/wikipedia_small_2010-08-14.tar.gz" target="_blank">"small"</a> : it contains a very small subset of the English archive (note that the hyperlinks between articles will rarely work, as a lot of articles are missing in it).
+                    <br />After that, you can download an archive in your language, through a Bittorrent client. Check its size : these archives take several GB each.
+                    <h4>Step 2 : put it on your SD-card</h4>
+                    The archive can be stored is any subdirectory of your SD-card (ex: /wikipedia_small_2010-08-14, or /evopedia/wikipedia_small_2010-08-14). If you have enough space, you can put several archives
+                    <h4>Step 3 : enjoy wikipedia offline!</h4>
+                    <h3>Privacy policy</h3>
+                    This application works offline. There is no central server. We do not collect any of your personal data and don't even know what you are doing with this application.
+                    <br />Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application. If not, the application will try to read the images of the articles on the wikipedia servers, which might indicate which articles you are reading.
+                    <br />This application only reads the wikipedia archives of your SD-card : it does not read any other files.
+                    <h3>Feedback / helping / contributing</h3>
+                    This is a first version of Evopedia. There are many ways this could be enhanced. In particular :
+                    <ul>
+                        <li><a href="https://github.com/mossroy/evopedia-html5/issues/9" target="_blank">Issue #9</a> : Some features of the original application still have to be implemented : in particular the "Articles nearby" feature (geolocation)</li>
+                        <li><a href="https://github.com/mossroy/evopedia-html5/issues/13" target="_blank">Issue #13</a> : All the user interface is in English : I plan to translate it at least in French. If you feel able to translate it in your language, please <a href="mailto:mossroy@free.fr?subject=%5BEvopedia%5D%20Translating%20Evopedia%20HTML5">contact me by email</a></li>
+                        <li><a href="https://github.com/mossroy/evopedia-html5/issues/4" target="_blank">Issue #4</a> : The performance when reading an article can probably be improved. I'm working on it</li>
+                    </ul>
+                    Suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5" target="_blank">github</a>.
+                    The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I use it as my roadmap.
+                    <br />Alternatively, you can send your feedback <a href="mailto:mossroy@free.fr?subject=%5BEvopedia%5D%20Feedback%20about%20Evopedia%20HTML5">by email</a>.
+                    <br />In all cases, please give me as much detail as you can : which device you are using, which version of Evopedia, which archive, which articles etc.
+                    <br />
+                    <br />If you like the Evopedia project and use it, please consider giving donations :
+                    <ul>
+                        <li>to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">donation page</a></li>
+                        <li>to Evopedia, to help maintaining the archives and applications. You can send donations with <a href="https://flattr.com/thing/1071868/evopedia" target="_blank">Flattr</a> or <a href="bitcoin:1D4f8gQoPRpK8rrpw6RPmJsqHadw2tTauU?label=Evopedia">Bitcoin</a></li>
+                    </ul>
+                    You can also help by :
+                    <ul>
+                        <li>Adding articles or improving the existing ones, by <a href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing online wikipedia articles</a></li>
+                        <li>Using the ressources of your computer to <a href="http://dumpathome.evopedia.info/contribute" target="_blank">help generating the archives</a></li>
+                    </ul>
+                    <h3>Credits</h3>
+                    I have to distribute some thanks to :
+                    <ul>
+                        <li>Christian Reitwießner, leader of the Evopedia project. He originally developed the Qt application, designed the archive format, and organizes the updates of these archives. Christian also contributed some code on this application, for the math images</li>
+                        <li>Mapilette for testing and supporting.</li>
+                        <li>Mozilla for building Firefox OS. It's an amazing platform. Many thanks in general for your commitment to keeping the web open, alive and respectful. For those who didn't, please read their <a href="https://www.mozilla.org/en-US/about/manifesto/" target="_blank">Manifesto</a> to see what are the goals of this non-profit organization</li>
+                        <li>Wikipedia teams and contributors to help spreading knowledge to everybody</li>
+                        <li>All the developers of libraries and tools I used for releasing them as Free software (see License paragraph)</li>
+                    </ul>
+                    <h3>License information</h3>
+                    Copyright 2013 Mossroy
+                    <br />This application is licensed under the GPL v3 license :
+                    <br />
+                    <i>
+                    <br />Evopedia is free software: you can redistribute it and/or modify
+                    <br />it under the terms of the GNU General Public License as published by
+                    <br />the Free Software Foundation, either version 3 of the License, or
+                    <br />(at your option) any later version.
+                    <br /> 
+                    <br />Evopedia is distributed in the hope that it will be useful,
+                    <br />but WITHOUT ANY WARRANTY; without even the implied warranty of
+                    <br />MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                    <br />GNU General Public License for more details.
+                    <br />
+                    <br />You should have received a copy of the GNU General Public License
+                    <br />along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>
+                    </i>
+                    <br />
+                    <br />Main libraries and ressources used :
+                    <ul>
+                        <li><a href="http://jquery.com/" target="_blank">jQuery</a> 2, released under the <a href="http://jquery.org/license" target="_blank">MIT license</a></li>
+                        <li><a href="http://getbootstrap.com/" target="_blank">Bootstrap</a> 3, released under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache license 2.0</a>, which includes icons from <a href="http://glyphicons.com/">Glyphicons</a></li>
+                        <li><a href="https://github.com/antimatter15/bzip2.js" target="_blank">bzip2.js</a>, released under the <a href="http://www.gnu.org/copyleft/lgpl.html" target="_blank">LGPL v2 license</a></li>
+                        <li><a href="http://www.requirejs.org/" target="_blank">RequireJS</a> 2, released under the <a href="https://github.com/jrburke/requirejs/blob/master/LICENSE" target="_blank">MIT license or new BSD license</a></li>
+                        <li><a href="http://zeptojs.com/" target="_blank">ZeptoJS</a> 2, released under the <a href="https://github.com/madrobby/zepto/blob/master/MIT-LICENSE" target="_blank">MIT license</a></li>
+                        <li><a href="http://qunitjs.com/" target="_blank">QUnit</a> 2, released under the <a href="http://jquery.org/license" target="_blank">MIT license</a></li>
+                        <li>Icons, algorithms and inspiration from <a href="https://github.com/evopedia/evopedia_qt/" target="_blank">Evopedia (Qt version)</a>, released under the <a href="https://www.gnu.org/licenses/" target="_blank">GPL v3 license</a></li>
+                        <li>Mediawiki CSS from <a href="http://wikidev.net/" target="_blank">Wikidev</a>, released under the <a href="http://www.gnu.org/copyleft/gpl.html" target="_blank">GPL license</a></li>
+                        <li>Geometry library from <a href="https://github.com/DavidDurman/joint/blob/master/src/geometry.js">JointJS</a>, released under the <a href="https://github.com/DavidDurman/joint/blob/master/LICENSE">Mozilla Public License v2</a> (small additions have been made to this javascript file)</li>
+                    </ul>
+                    <h3>Other platforms/versions</h3>
+                    Other Evopedia clients exist on various platforms. See the official site : <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
+                    <br />
+                    <br />This HTML5/javascript application is currently mainly targeted on Firefox OS devices. But it also can be used on some other platforms :
+                    <ul>
+                        <li>It works perfectly on the <a href="https://addons.mozilla.org/en-US/firefox/addon/firefox-os-simulator/" target="_blank">Firefos OS simulator</a> (a Firefox plugin), you have to put the archive files in any subdirectory in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard/wikipedia_small_2010-08-14)</li>
+                        <li>On desktops, it works but is less user friendly : you have to manually select the files of your archive, and it's not yet easily deployable as a "web application". I tested it on recent Firefox and Chromium, but it probably works on some other browsers (it even seems to work on IE10). You can test on <a href="http://mossroy.github.io/evopedia-html5/" target="_blank">this online page</a> or from a local copy of the <a href="https://github.com/mossroy/evopedia-html5" target="_blank">source code</a></li>
+                        <li>On Android, it does not seem to work for now (tried with internal browser, Chrome and Firefox) because you can not select all the files of an archive</li>
+                        <li>On Android and desktops, the DeviceStorage API (which is used to browse the SD-card for archives) should become available at some point (see <a href="https://wiki.mozilla.org/index.php?title=WebAPI" target="_blank"> https://wiki.mozilla.org/index.php?title=WebAPI</a>). As soon as it is, I will update the application to make it available on these platforms</li>
+                    </ul>
+
+                </div>
+                
+                <div id="configuration" style="display: none;">
+                    <h2>Configuration</h2>
+                    This application needs an archive of wikipedia to work. If you did not download one yet, please see the About section
+                    <div id="openLocalFiles" style="display: none;">
+                        <br /> Please select all the files inside the archive (wikipedia_*.dat, metadata.txt etc)<br />
+                        <input type="file" id="archiveFiles" multiple class="btn" /><br />
+                    </div>
+                    <div id="scanningForArchives" style="display: none;">
+                        <br /> Scanning your sdcard for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
+                    </div>
+                    <div id="chooseArchiveFromLocalStorage" style="display: none;">
+                        <br /> Please select the archive you want to use : <select id="archiveList" class="form-control"></select>
+                    </div>
+                    <br />
+                </div>
+                
+                <div id="welcomeText" class="container">
+                    You can search the content of your Wikipedia archive by typing in the above search field.
+                    <br />It will propose articles starting with what you typed
+                    <br />Or you can search for articles located around you (geolocation needed on your device)
+                </div>
+                
+                <!-- List of articles matching the typed prefix -->
+                <div class="container">
+                    <div id="titleList" class="list-group">
+                    </div>
+                </div>
+                <div id="readingArticle" style="display: none;">
+                    Reading article <span id="articleName"></span> from archive... Please wait <img src="img/spinner.gif" alt="Please wait..." />
+                </div>
+                <div id="articleContent">&nbsp;</div>
+                <br />
+            </article>
+            <footer>
+                <div id="navigationButtons" class="btn-toolbar">
+                    <!-- We need to restrict the size of this navbar,
+                    to avoid the top button to be in the scrollbar area :
+                    on a device, it can trigger a "page down" of the scrollbar -->
+                    <div class="restrictedSize">
+                        <a class="btn btn-lg pull-left" id="btnHomeBottom" title="Home"><span class="glyphicon glyphicon-home"></span></a>
+                        <a class="btn btn-lg" id="btnBack" title="Back"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>
+                        <a class="btn btn-lg" id="btnForward" title="Forward"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>
+                        <a class="btn btn-lg pull-right" id="btnTop" title="Top" href="#top"><span class="glyphicon glyphicon-arrow-up"></span></a>
+                    </div>
+                </div>
+            </footer>
+        </section>
+
+        <script type="text/javascript" src="cordova.js"></script>
+        <!-- Using require.js, a module system for javascript, include the
+             js files. This loads "main.js", which in turn can load other
+             files, all handled by require.js:
+             http://requirejs.org/docs/api.html#jsfiles -->
+        <script type="text/javascript"
+                data-main="js/init.js"
+        src="js/lib/require.js"></script>
+    </body>
+</html>
