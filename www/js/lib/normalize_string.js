@@ -2,7 +2,7 @@
  * normalize_string.js : Normalize a string in the same way the titles are normalized in an archive
  * This is necessary to search for titles in an archive
  * 
- * Copyright 2013 Mossroy
+ * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Evopedia.

@@ -1,7 +1,7 @@
 /**
  * webworker_bzip2.js : WebWorker implementation, in order to run bzip2 decompression in the background
  * 
- * Copyright 2013 Mossroy
+ * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Evopedia.

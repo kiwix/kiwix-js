@@ -1,7 +1,7 @@
 /**
  * util.js : Utility functions
  * 
- * Copyright 2013 Mossroy
+ * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Evopedia.

@@ -3,7 +3,7 @@
  * Original code from http://stackoverflow.com/users/553542/kadm , taken from
  * http://stackoverflow.com/questions/1240408/reading-bytes-from-a-javascript-string
  * 
- * Copyright 2013 Mossroy
+ * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Evopedia.

@@ -2,7 +2,7 @@
  * archive.js : Class for a local Evopedia archive, with the algorithms to read it
  * This file handles finding a title in an archive, reading an article in an archive etc
  * 
- * Copyright 2013 Mossroy
+ * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Evopedia.
@@ -851,7 +851,7 @@ define(function(require) {
             alert("Error scanning your SD card : " + error
                     + ". If you're using the Firefox OS Simulator, please put the archives in "
                     + "a 'fake-sdcard' directory inside your Firefox profile "
-                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/"
+                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_1_x_simulator@mozilla.org/"
                     + "profile/fake-sdcard/wikipedia_small_2010-08-14)");
             callbackFunction(null);
         });
