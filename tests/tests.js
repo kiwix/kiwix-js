@@ -315,5 +315,16 @@ define(function(require) {
             var rectFranceGermany = new geometry.rect(0,40,10,10);
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
+        
+        module("random_title");
+        asyncTest("check that a random title is found", function() {
+            var callbackRandomTitleFound = function(title) {
+                ok(title !== null, "One title should be found");
+                ok(title.name !== null, "The random title should have a name" );
+               
+                start();
+            };
+            localArchive.getRandomTitle(callbackRandomTitleFound);
+        });
     };
 });
