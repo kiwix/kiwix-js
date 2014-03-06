@@ -121,6 +121,7 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
      */
     return {
         SequentialTitleIterator : SequentialTitleIterator,
-        findPrefixOffset : findPrefixOffset
+        findPrefixOffset : findPrefixOffset,
+        MAX_TITLE_LENGTH : MAX_TITLE_LENGTH
     };
 });

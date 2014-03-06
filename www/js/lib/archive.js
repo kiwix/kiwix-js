@@ -42,9 +42,6 @@ define(function(require) {
     
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
-    // The maximum number of titles that can have the same name after normalizing
-    // This is used by the algorithm that searches for a specific article by its name
-    var MAX_TITLES_WITH_SAME_NORMALIZED_NAME = 30;
     // A rectangle representing all the earth globe
     var GLOBE_RECTANGLE = new geometry.rect(-181, -90, 361, 181);
     
@@ -367,12 +364,14 @@ define(function(require) {
         var that = this;
         var offset = Math.floor(Math.random() * this.titleFile.size);
         jQuery.when().then(function() {
-            var iterator = new titleIterators.SequentialTitleIterator(that, offset);
-            // call advance twice because we are probably not at the beginning
-            // of a title
-            // TODO : we need to find a better way to reach the beginning of the title
-            // As it is now, the first advance() can fail on utf8 decoding
-            return iterator.advance().then(function() {
+            return util.readFileSlice(that.titleFile, offset,
+                                  offset + titleIterators.MAX_TITLE_LENGTH).then(function(byteArray) {
+                // Let's find the next newLine
+                var newLineIndex = 0;
+                while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
+                    newLineIndex++;
+                }
+                var iterator = new titleIterators.SequentialTitleIterator(that, offset + newLineIndex + 1);
                 return iterator.advance();
             });
         }).then(callbackFunction, errorHandler);
