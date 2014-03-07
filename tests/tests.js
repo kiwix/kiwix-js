@@ -53,6 +53,7 @@ define(function(require) {
 
         module("evopedia_title_search_and_read");
         asyncTest("check getTitlesStartingAtOffset 0", function() {
+            expect(4);
             var callbackFunction = function(titleList) {
                 equal(titleList.length, 4, "4 titles found, as requested");
                 var indexAbraham = -1;
@@ -78,6 +79,7 @@ define(function(require) {
         });
 
         asyncTest("check findTitlesWithPrefix Am", function() {
+            expect(4);
             var callbackFunction = function(titleList) {
                 ok(titleList && titleList.length > 0, "At least one title is found");
                 var firstTitleName = "not found";
@@ -107,6 +109,7 @@ define(function(require) {
         titleAbraham.titleOffset = 57;
 
         asyncTest("check getTitleByName with accents : Diego Velázquez", function() {
+            expect(2);
             var callbackFunction = function(title) {
                 ok(title !== null, "Title found");
                 equal(title.name, "Diego_Velázquez", "Name of the title is correct");
@@ -115,6 +118,7 @@ define(function(require) {
             localArchive.getTitleByName("Diego_Velázquez", callbackFunction);
         });
         asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
+            expect(2);
             var callbackFunction = function(title) {
                 ok(title !== null, "Title found");
                 equal(title.name, "Hundred_Years'_War", "Name of the title is correct");
@@ -131,6 +135,7 @@ define(function(require) {
         });
 
         asyncTest("check readArticle", function() {
+            expect(3);
             var callbackFunction = function(title, htmlArticle) {
                 ok(htmlArticle && htmlArticle.length > 0, "Article not empty");
                 // Remove new lines
@@ -143,6 +148,7 @@ define(function(require) {
         });
 
         asyncTest("check getTitleByName and readArticle with escape bytes", function() {
+            expect(5);
             var callbackArticleRead = function(title, htmlArticle) {
                 ok(htmlArticle && htmlArticle.length > 0, "Article not empty");
                 // Remove new lines
@@ -160,6 +166,7 @@ define(function(require) {
         });
         
         asyncTest("check getTitleByName with a title name that does not exist in the archive", function() {
+            expect(1);
             var callbackTitleFound = function(title) {
                 ok(title === null, "No title found because it does not exist in the archive");
                 start();
@@ -168,6 +175,7 @@ define(function(require) {
         });
 
         asyncTest("check loading a math image", function() {
+            expect(2);
             var callbackFunction = function(data) {
                 ok(data && data.length > 0, "Image not empty");
                 // edb3069b82c68d270f6642c171cc6293.png should give a "1 1/2" formula (can be found in "Rational_number" article)
@@ -286,8 +294,9 @@ define(function(require) {
            equal(float, -118.625, "the IEEE_754 float should be converted as -118.625");
         });
         
-        module("articles_nearby");
+        module("evopedia_articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
+            expect(5);
             var callbackTitlesNearbyFound = function(titleList) {
                 ok(titleList !== null, "Some titles should be found");
                 equal(titleList.length, 3, "3 titles should be found");
@@ -316,8 +325,36 @@ define(function(require) {
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
         
-        module("random_title");
+        /*
+        asyncTest("check articles found nearby London", function() {
+            expect(2);
+            var callbackTitlesNearbyLondonFound = function(titleList) {
+                ok(titleList !== null, "Some titles should be found");
+                var titleLondon = null;
+                for (var i=0; i<titleList.length; i++) {
+                    var title = titleList[i];
+                    if (title.name === "London") {
+                        titleLondon = title;
+                    }
+                }
+                ok(titleLondon !== null, "The title 'London' should be found");
+               
+                start();
+            };
+            var pointLondon = new geometry.point(51, 0);
+            var maxDistance = 100;
+            var rectLondon = new geometry.rect(
+                    pointLondon.x - maxDistance,
+                    pointLondon.y - maxDistance,
+                    maxDistance * 2,
+                    maxDistance * 2);
+            localArchive.getTitlesInCoords(rectLondon, 30, callbackTitlesNearbyLondonFound);
+        });
+        */
+        
+        module("evopedia_random_title");
         asyncTest("check that a random title is found", function() {
+            expect(2);
             var callbackRandomTitleFound = function(title) {
                 ok(title !== null, "One title should be found");
                 ok(title.name !== null, "The random title should have a name" );
