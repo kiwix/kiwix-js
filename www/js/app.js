@@ -539,46 +539,56 @@ define(function(require) {
         $('#configuration').hide();
         $('#articleContent').empty();
         if (localArchive !== null && localArchive.titleFile !== null) {
-            //var rectangle = new geometry.rect(0,40,10,10);
-            //localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
-            if (navigator.geolocation) {
-                var geo_options = {
-                    enableHighAccuracy: false,
-                    maximumAge: 1800000, // 30 minutes
-                    timeout : 10000 // 10 seconds
-                };
+            var longitude = $('#longitude').val();
+            var latitude = $('#latitude').val();
+            var maxDistance = $('#maxDistance').val();
+            if (!maxDistance) {
+                maxDistance = MAX_DISTANCE_ARTICLES_NEARBY;
+            }
+            if (!longitude || !latitude) {
+                // If the user did not give any latitude/longitude, we try to use geolocation
+                if (navigator.geolocation) {
+                    var geo_options = {
+                        enableHighAccuracy: false,
+                        maximumAge: 1800000, // 30 minutes
+                        timeout: 10000 // 10 seconds
+                    };
 
-                function geo_success(pos) {
-                    var crd = pos.coords;
+                    function geo_success(pos) {
+                        var crd = pos.coords;
+                        
+                        alert("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude);
 
-                    var rectangle = new geometry.rect(
-                        crd.longitude - MAX_DISTANCE_ARTICLES_NEARBY,
-                        crd.latitude - MAX_DISTANCE_ARTICLES_NEARBY,
-                        MAX_DISTANCE_ARTICLES_NEARBY * 2,
-                        MAX_DISTANCE_ARTICLES_NEARBY * 2);
+                        var rectangle = new geometry.rect(
+                                crd.longitude - maxDistance,
+                                crd.latitude - maxDistance,
+                                maxDistance * 2,
+                                maxDistance * 2);
 
-                    localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
-                };
+                        localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                    };
 
-                function geo_error(err) {
-                    alert("Unable to geolocate your device : " + err.code + " : " + err.message);
-                };
+                    function geo_error(err) {
+                        alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+                    };
 
-                // TODO : for testing purpose
-                //navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
-                var longitude = $('#longitude').val();
-                var latitude = $('#latitude').val();
+                    navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+                }
+                else {
+                    alert("Geolocation is not supported (or disabled) on your device, or on your browser");
+                }
+            }
+            else {
+                // The user gave a latitude/longitude : let's use it to find articles around that location
                 var rectangle = new geometry.rect(
-                        longitude - MAX_DISTANCE_ARTICLES_NEARBY,
-                        latitude - MAX_DISTANCE_ARTICLES_NEARBY,
-                        MAX_DISTANCE_ARTICLES_NEARBY * 2,
-                        MAX_DISTANCE_ARTICLES_NEARBY * 2);
+                        longitude - maxDistance,
+                        latitude - maxDistance,
+                        maxDistance * 2,
+                        maxDistance * 2);
 
                 localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
             }
-            else {
-                alert("Geolocation is not supported (or disabled) on your device, or by your browser");
-            }
+
         } else {
             $('#searchingForTitles').hide();
             // We have to remove the focus from the search field,
