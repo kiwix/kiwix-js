@@ -24,7 +24,7 @@ require.config({
     baseUrl: 'js/lib',
     paths: {
         'zepto': 'zepto',
-        'jquery': 'jquery-2.0.3',
+        'jquery': 'jquery-2.1.0',
         'bootstrap': 'bootstrap',
         'title': 'title',
         'archive': 'archive'
