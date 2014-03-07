@@ -447,7 +447,7 @@ define(function(require) {
         // Returns a normalized rectangle; i.e., a rectangle that has a non-negative width and height.
         // If width < 0 the function swaps the left and right corners,
         // and it swaps the top and bottom corners if height < 0
-        // like in http://harmattan-dev.nokia.com/docs/library/html/qt4/qrectf.html#normalized
+        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
         normalized: function() {
             var newx = this.x;
             var newy = this.y;

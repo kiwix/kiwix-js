@@ -674,14 +674,7 @@ define(function(require) {
         else {
             // Search is over : now let's convert the title positions into Title instances
             if (titlePositionsFound && titlePositionsFound.length > 0) {
-                // TODO find out why there are duplicates, and why the maxTitles is not respected
-                // The statement below removes duplicates and limits its size
-                // (not correctly because based on indexes of the original array, instead of target array)
-                // This should be removed when the cause is found
-                var filteredTitlePositions = titlePositionsFound.filter(function (e, i, arr) {
-                    return arr.lastIndexOf(e) === i && i<=maxTitles;
-                });
-                LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, filteredTitlePositions, 0, new Array(), callbackFunction);
+                LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), callbackFunction);
             }
             else {
                 callbackFunction(titlePositionsFound);
@@ -789,8 +782,6 @@ define(function(require) {
                 if (targetRect.intersect(rectNE)) {
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                // TODO : it seems possible that targetRect does not intersect any of the 4 rectangles
-                // Is it normal? In this case, the callback is never called
             }
             else {
                 // This is a leaf node : let's see if its articles are in the

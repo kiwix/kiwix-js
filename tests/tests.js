@@ -325,11 +325,11 @@ define(function(require) {
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
         
-        /*
         asyncTest("check articles found nearby London", function() {
-            expect(2);
+            expect(3);
             var callbackTitlesNearbyLondonFound = function(titleList) {
                 ok(titleList !== null, "Some titles should be found");
+                ok(titleList.length > 0, "At least one title should be found");
                 var titleLondon = null;
                 for (var i=0; i<titleList.length; i++) {
                     var title = titleList[i];
@@ -342,15 +342,14 @@ define(function(require) {
                 start();
             };
             var pointLondon = new geometry.point(51, 0);
-            var maxDistance = 100;
+            var maxDistance = 1;
             var rectLondon = new geometry.rect(
                     pointLondon.x - maxDistance,
                     pointLondon.y - maxDistance,
                     maxDistance * 2,
                     maxDistance * 2);
-            localArchive.getTitlesInCoords(rectLondon, 30, callbackTitlesNearbyLondonFound);
+            localArchive.getTitlesInCoords(rectLondon, 100, callbackTitlesNearbyLondonFound);
         });
-        */
         
         module("evopedia_random_title");
         asyncTest("check that a random title is found", function() {
