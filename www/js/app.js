@@ -34,6 +34,7 @@ define(function(require) {
     var util = require('util');
     var cookies = require('cookies');
     var geometry = require('geometry');
+    var osabstraction = require('osabstraction');
     
     // Maximum number of titles to display in a search
     var MAX_SEARCH_RESULT_SIZE = 50;
@@ -155,12 +156,15 @@ define(function(require) {
             // We have to scan all the DeviceStorages, because getDeviceStorage
             // only returns the default Device Storage.
             // See https://bugzilla.mozilla.org/show_bug.cgi?id=885753
-            storages = navigator.getDeviceStorages("sdcard");
+            storages = $.map(navigator.getDeviceStorages("sdcard"), function(s) {
+                return new osabstraction.StorageFirefoxOS(s);
+            });
         }
         else {
             // The method getDeviceStorages is not available (FxOS 1.0)
             // The fallback is to use getDeviceStorage
-            storages[0] = navigator.getDeviceStorage("sdcard");
+            storages[0] = new osabstraction.StorageFirefoxOS(
+                                 navigator.getDeviceStorage("sdcard"));
         }
     }
 

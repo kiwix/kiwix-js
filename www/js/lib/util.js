@@ -113,72 +113,6 @@ define(function(require) {
         return (r > 0 ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
     }
     
-    
-    /**
-     * This function emulates a "composite" storage enumeration
-     * (i.e. returns files from all the storage areas)
-     * This is needed since the removal of composite storage :
-     * see https://bugzilla.mozilla.org/show_bug.cgi?id=885753
-     * 
-     * This code was copied (with only slight modifications) from Gaia source code :
-     * https://bug893282.bugzilla.mozilla.org/attachment.cgi?id=785076
-     * 
-     * @param {type} storages List of DeviceStorage instances
-     * @returns {_L22.enumerateAll.cursor} Cursor of files found in device storages
-     */
-    function enumerateAll(storages) {
-        var storageIndex = 0;
-        var ds_cursor = null;
-
-        var cursor = {
-            continue: function cursor_continue() {
-                ds_cursor.continue();
-            }
-        };
-
-        function enumerateNextStorage() {
-            ds_cursor = storages[storageIndex].enumerate();
-            ds_cursor.onsuccess = onsuccess;
-            ds_cursor.onerror = onerror;
-        };
-
-        function onsuccess(e) {
-            cursor.result = e.target.result;
-            if (!cursor.result) {
-                storageIndex++;
-                if (storageIndex < storages.length) {
-                    enumerateNextStorage();
-                    return;
-                }
-                // If we've run out of storages, then we fall through and call
-                // onsuccess with the null result.
-            }
-            if (cursor.onsuccess) {
-                try {
-                    cursor.onsuccess(e);
-                } catch (err) {
-                    console.warn('enumerateAll onsuccess threw', err);
-                }
-            }
-        };
-
-        function onerror(e) {
-            cursor.error = e.target.error;
-            if (cursor.onerror) {
-                try {
-                    cursor.onerror(e);
-                } catch (err) {
-                    console.warn('enumerateAll onerror threw', err);
-                }
-            }
-        };
-
-        enumerateNextStorage();
-        return cursor;
-    }
-    
-    
-    
     /**
      * Functions and classes exposed by this module
      */
@@ -188,7 +122,6 @@ define(function(require) {
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,
         readFloatFrom4Bytes : readFloatFrom4Bytes,
         uint8ArrayToHex : uint8ArrayToHex,
-        uint8ArrayToBase64 : uint8ArrayToBase64,
-        enumerateAll : enumerateAll
+        uint8ArrayToBase64 : uint8ArrayToBase64
     };
 });

@@ -28,6 +28,7 @@ define(function(require) {
     var evopediaTitle = require('title');
     var util = require('util');
     var geometry = require('geometry');
+    var jQuery = require('jquery');
     
     // Declare the webworker that can uncompress with bzip2 algorithm
     var webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
@@ -69,20 +70,16 @@ define(function(require) {
      */
     LocalArchive.prototype.readTitleFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
-        var filerequest = storage.get(directory + 'titles.idx');
-        filerequest.onsuccess = function() {
-            currentLocalArchiveInstance.titleFile = filerequest.result;
-        };
-        filerequest.onerror = function(event) {
-            alert("Error reading title file in directory " + directory + " : " + event.target.error.name);
-        };
-        var filerequestSearch = storage.get(directory + 'titles_search.idx');
-        filerequestSearch.onsuccess = function() {
-            currentLocalArchiveInstance.titleSearchFile = filerequest.result;
-        };
-        filerequest.onerror = function(event) {
+        storage.get(directory + 'titles.idx').then(function(file) {
+            currentLocalArchiveInstance.titleFile = file;
+        }, function(error) {
+            alert("Error reading title file in directory " + directory + " : " + error);
+        });
+        storage.get(directory + 'titles_search.idx').then(function(file) {
+            currentLocalArchiveInstance.titleSearchFile = file;
+        }, function(error) {
             // Do nothing : this file is not mandatory in an archive
-        };
+        });
     };
 
     /**
@@ -102,20 +99,18 @@ define(function(require) {
         } else {
             prefixedFileNumber = index;
         }
-        var filerequest = storage.get(directory + 'wikipedia_' + prefixedFileNumber
-                + '.dat');
-        filerequest.onsuccess = function() {
-            currentLocalArchiveInstance.dataFiles[index] = filerequest.result;
-            currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
-                    index + 1);
-        };
-        filerequest.onerror = function(event) {
-            // TODO there must be a better to way to detect a FileNotFound
-            if (event.target.error.name != "NotFoundError") {
-                alert("Error reading data file " + index + " in directory "
-                        + directory + " : " + event.target.error.name);
-            }
-        };
+        storage.get(directory + 'wikipedia_' + prefixedFileNumber + '.dat')
+            .then(function(file) {
+                currentLocalArchiveInstance.dataFiles[index] = file;
+                currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
+                        index + 1);
+            }, function(error) {
+                // TODO there must be a better to way to detect a FileNotFound
+                if (error != "NotFoundError") {
+                    alert("Error reading data file " + index + " in directory "
+                            + directory + " : " + error);
+                }
+            });
     };
     
     /**
@@ -135,20 +130,18 @@ define(function(require) {
         } else {
             prefixedFileNumber = index;
         }
-        var filerequest = storage.get(directory + 'coordinates_' + prefixedFileNumber
-                + '.idx');
-        filerequest.onsuccess = function() {
-            currentLocalArchiveInstance.coordinateFiles[index - 1] = filerequest.result;
+        storage.get(directory + 'coordinates_' + prefixedFileNumber
+                + '.idx').then(function(file) {
+            currentLocalArchiveInstance.coordinateFiles[index] = file;
             currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
-        };
-        filerequest.onerror = function(event) {
+        }, function(error) {
             // TODO there must be a better to way to detect a FileNotFound
-            if (event.target.error.name != "NotFoundError") {
+            if (error != "NotFoundError") {
                 alert("Error reading coordinates file " + index + " in directory "
-                        + directory + " : " + event.target.error.name);
+                        + directory + " : " + error);
             }
-        };
+        });
     };
     
     /**
@@ -161,15 +154,13 @@ define(function(require) {
     LocalArchive.prototype.readMetadataFileFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
 
-        var filerequest = storage.get(directory + 'metadata.txt');
-        filerequest.onsuccess = function() {
-            var metadataFile = filerequest.result;
+        storage.get(directory + 'metadata.txt').then(function(file) {
+            var metadataFile = file;
             currentLocalArchiveInstance.readMetadataFile(metadataFile);
-        };
-        filerequest.onerror = function(event) {
+        }, function(error) {
             alert("Error reading metadata.txt file in directory "
-                        + directory + " : " + event.target.error.name);
-        };
+                        + directory + " : " + error);
+        });
     };
     
     /**
@@ -300,20 +291,16 @@ define(function(require) {
      */
     LocalArchive.prototype.readMathFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
-        var filerequest1 = storage.get(directory + 'math.idx');
-        filerequest1.onsuccess = function() {
-            currentLocalArchiveInstance.mathIndexFile = filerequest1.result;
-        };
-        filerequest1.onerror = function(event) {
-            alert("Error reading math index file in directory " + directory + " : " + event.target.error.name);
-        };
-        var filerequest2 = storage.get(directory + 'math.dat');
-        filerequest2.onsuccess = function() {
-            currentLocalArchiveInstance.mathDataFile = filerequest2.result;
-        };
-        filerequest2.onerror = function(event) {
-            alert("Error reading math data file in directory " + directory + " : " + event.target.error.name);
-        };
+        storage.get(directory + 'math.idx').then(function(file) {
+            currentLocalArchiveInstance.mathIndexFile = file;
+        }, function(error) {
+            alert("Error reading math index file in directory " + directory + " : " + error);
+        });
+        storage.get(directory + 'math.dat').then(function(file) {
+            currentLocalArchiveInstance.mathDataFile = file;
+        }, function(error) {
+            alert("Error reading math data file in directory " + directory + " : " + error);
+        });
     };
 
     /**
@@ -928,40 +915,23 @@ define(function(require) {
      */
     LocalArchive.scanForArchives = function(storages, callbackFunction) {
         var directories = [];
-        var cursor = util.enumerateAll(storages);
-        cursor.onerror = function() {
-            alert("Error scanning your SD card : " + cursor.error
-                    +". If you're using the Firefox OS Simulator, please put the archives in a 'fake-sdcard' directory inside your Firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/profile/fake-sdcard/wikipedia_small_2010-08-14)");
+        var promises = jQuery.map(storages, function(storage) {
+            return storage.scanForDirectoriesContainingFile('titles.idx')
+                .then(function(dirs) {
+                    jQuery.merge(directories, dirs);
+                    return true
+                });
+        });
+        jQuery.when.apply(null, promises).then(function() {
+            callbackFunction(directories);
+        }, function(error) {
+            alert("Error scanning your SD card : " + error
+                    + ". If you're using the Firefox OS Simulator, please put the archives in "
+                    + "a 'fake-sdcard' directory inside your Firefox profile "
+                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/r2d2b2g@mozilla.org/"
+                    + "profile/fake-sdcard/wikipedia_small_2010-08-14)");
             callbackFunction(null);
-        };
-        cursor.onsuccess = function() {
-            if (cursor.result) {
-                var file = cursor.result;
-                var fileName = file.name;
-
-                // We look for files "titles.idx"
-                if (!util.endsWith(fileName, "titles.idx")) {
-                    cursor.continue();
-                    return;
-                }
-                
-                // Handle the case of archive files at the root of the sd-card
-                // (without a subdirectory)
-                var directory = "/";
-                
-                if (fileName.lastIndexOf('/')!==-1) {
-                    // We want to return the directory where titles.idx is stored
-                    // We also keep the trailing slash
-                    directory = fileName.substring(0, fileName.lastIndexOf('/') + 1);
-                }
-                
-                directories.push(directory);
-                cursor.continue();
-            }
-            else {
-                callbackFunction(directories);
-            }
-        };
+        });
     };
     
     /**
