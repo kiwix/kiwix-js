@@ -278,8 +278,21 @@ define(function(require) {
     
     rect.prototype = {
         toString: function() {
-	    return this.origin().toString() + ' ' + this.corner().toString();
+	    return 'x=' + this.x + ' y=' + this.y + ' w=' + this.width + ' h=' + this.height;
         },
+        sw : function() {
+            return point(this.x, this.y);
+        },
+        nw : function() {
+            return point(this.x, this.y + this.height);
+        },
+        se : function() {
+            return point(this.x + this.width, this.y);
+        },
+        ne : function() {
+            return point(this.x + this.width, this.y + this.height);
+        },
+        // TODO : rename all this right/left/top/bottom terms because they are misleading (and wrong) in the Evopedia context : replace with N/S/E/W
         origin: function() {
             return point(this.x, this.y);
         },

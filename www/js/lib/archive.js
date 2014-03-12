@@ -43,7 +43,7 @@ define(function(require) {
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
     // A rectangle representing all the earth globe
-    var GLOBE_RECTANGLE = new geometry.rect(-181, -90, 361, 181);
+    var GLOBE_RECTANGLE = new geometry.rect(-91, -181, 182, 362);
     
     /**
      * LocalArchive class : defines a wikipedia dump on the filesystem
@@ -637,6 +637,9 @@ define(function(require) {
         reader.readAsArrayBuffer(blob);
     };
     
+    // This is a global counter that helps find out when the search for articles nearby is over
+    var callbackCounterForTitlesInCoordsSearch = 0;
+    
     /**
      * Finds titles that are located inside the given rectangle
      * This is the main function, that has to be called from the application
@@ -646,9 +649,17 @@ define(function(require) {
      * @param callbackFunction Function to call with the list of titles found
      */
     LocalArchive.prototype.getTitlesInCoords = function(rect, maxTitles, callbackFunction) {
+        if (callbackCounterForTitlesInCoordsSearch > 0) {
+            alert("The last nearby search did not seem to end well : please try again");
+            callbackCounterForTitlesInCoordsSearch = 0;
+            return;
+        }
         var normalizedRectangle = rect.normalized();
-        var i = 0;
-        LocalArchive.getTitlesInCoordsInt(this, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, new Array(), callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
+        var titlePositionsFound = new Array();
+        for (var i = 0; i < this.coordinateFiles.length; i++) {
+            callbackCounterForTitlesInCoordsSearch++;
+            LocalArchive.getTitlesInCoordsInt(this, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlePositionsFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
+        }
     };
     
     /**
@@ -666,20 +677,15 @@ define(function(require) {
      * @param {type} normalizedRectangle
      * @param {type} callbackFunction
      */
-    LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlePositionsFound, i, maxTitles, normalizedRectangle, callbackFunction) {
-        i++;
-        if (titlePositionsFound.length < maxTitles && i < localArchive.coordinateFiles.length) {
-            LocalArchive.getTitlesInCoordsInt(localArchive, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlePositionsFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
+    LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlePositionsFound, maxTitles, callbackFunction) {
+        // Search is over : now let's convert the title positions into Title instances
+        if (titlePositionsFound && titlePositionsFound.length > 0) {
+            LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), callbackFunction);
         }
         else {
-            // Search is over : now let's convert the title positions into Title instances
-            if (titlePositionsFound && titlePositionsFound.length > 0) {
-                LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), callbackFunction);
-            }
-            else {
-                callbackFunction(titlePositionsFound);
-            }
+            callbackFunction(titlePositionsFound);
         }
+        
     };
 
     /**
@@ -722,7 +728,7 @@ define(function(require) {
     readCoordinates = function(byteArray, startIndex) {
       var lat = util.readFloatFrom4Bytes(byteArray, startIndex, true);
       var long = util.readFloatFrom4Bytes(byteArray, startIndex + 4, true);
-      var point = new geometry.point(long, lat);
+      var point = new geometry.point(lat, long);
       return point;
     };
     
@@ -740,6 +746,7 @@ define(function(require) {
      * @param {type} callbackGetTitlesInCoordsInt
      */
     LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt) {
+        console.log("getTitlesInCoordsInt called : coord file number=" + coordinateFileIndex + " coordFilepos=" + coordFilePos + " x=" + thisRect.x + " y=" + thisRect.y + " w=" + thisRect.width + " h=" + thisRect.height + " callbackCounterForTitlesInCoordsSearch=" + callbackCounterForTitlesInCoordsSearch);
         var reader = new FileReader();
         reader.onerror = errorHandler;
         reader.onabort = function(e) {
@@ -747,10 +754,12 @@ define(function(require) {
         };
 
         reader.onload = function(e) {
+            callbackCounterForTitlesInCoordsSearch--;
             var binaryTitleFile = e.target.result;
             var byteArray = new Uint8Array(binaryTitleFile);
             // Compute selector
             var selector = util.readIntegerFrom2Bytes(byteArray, 0);
+            console.log("selector=" + selector);
             
             // 0xFFFF = 65535 in decimal
             if (selector === 65535) {
@@ -765,22 +774,48 @@ define(function(require) {
                 var pos2 = pos1 + lense;
                 var pos3 = pos2 + lennw;
                 // Compute the 4 rectangles around
-                var rectSW = new geometry.rect(thisRect.origin(), center);
-                var rectSE = (new geometry.rect(thisRect.topRight(), center)).normalized();
-                var rectNW = (new geometry.rect(thisRect.bottomLeft(), center)).normalized();
-                var rectNE = (new geometry.rect(thisRect.corner(), center)).normalized();
+                var rectSW = (new geometry.rect(thisRect.sw(), center)).normalized();
+                var rectNE = (new geometry.rect(thisRect.ne(), center)).normalized();
+                var rectSE = (new geometry.rect(thisRect.se(), center)).normalized();
+                var rectNW = (new geometry.rect(thisRect.nw(), center)).normalized();
+                console.log("center=" + center);
+                console.log("pos0=" + pos0);
+                console.log("pos1=" + pos1);
+                console.log("pos2=" + pos2);
+                console.log("pos3=" + pos3);
+                console.log("rectSW=" + rectSW);
+                console.log("rectNW=" + rectNW);
+                console.log("rectSE=" + rectSE);
+                console.log("rectNE=" + rectNE);
                 // Recursively call this function for each rectangle around
+                console.log("Does the target rectangle intersect SW?");
                 if (targetRect.intersect(rectSW)) {
+                    console.log("Target rectangle intersects SW : looking for archives in it");
+                    callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                if (targetRect.intersect(rectSE)) {
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectSE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
-                }
+                console.log("Does the target rectangle intersect NW?");
                 if (targetRect.intersect(rectNW)) {
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectNW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                    console.log("Target rectangle intersects NW : looking for archives in it");
+                    callbackCounterForTitlesInCoordsSearch++;
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectNW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
+                console.log("Does the target rectangle intersect SE?");
+                if (targetRect.intersect(rectSE)) {
+                    console.log("Target rectangle intersects SE : looking for archives in it");
+                    callbackCounterForTitlesInCoordsSearch++;
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectSE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                }
+                console.log("Does the target rectangle intersect NE?");
                 if (targetRect.intersect(rectNE)) {
+                    console.log("Target rectangle intersects NE : looking for archives in it");
+                    callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                }
+                console.log("end");
+                if (callbackCounterForTitlesInCoordsSearch === 0) {
+                    console.log("callbackCounterForTitlesInCoordsSearch reached 0 : return the titles found")
+                    callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
                 }
             }
             else {
@@ -790,21 +825,28 @@ define(function(require) {
                     var indexInByteArray = 2 + i * 12;
                     
                     var articleCoordinates = readCoordinates(byteArray, indexInByteArray);
+                    console.log("articleCoordinates=" + articleCoordinates);
                     // Read position (in title file) of title
                     var title_pos = util.readIntegerFrom4Bytes(byteArray, indexInByteArray + 8);
                     if (!targetRect.containsPoint(articleCoordinates)) {
+                        console.log("target rectangle does not contain this point");
                         continue;
                     }
                     // We currently do not use the article coordinates
                     // so it's no use putting it in the result list : we only put
                     // the position in title list
+                    console.log("target rectangle contains this point : adding to the list");
                     titlePositionsFound.push(title_pos);
-                    if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
-                        callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
-                        return;
-                    }
+                    console.log("maxTitles="+maxTitles+" titlePositionsFound.length="+titlePositionsFound.length);
+                    // TODO : reactivate to enforce the maximum titles to be searched
+//                    if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
+//                        return;
+//                    }
                 }
-                callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, coordinateFileIndex, maxTitles, targetRect, callbackFunction);
+                if (callbackCounterForTitlesInCoordsSearch === 0) {
+                    console.log("callbackCounter reached 0 : return the titles found")
+                    callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
+                }
             }
 
         };

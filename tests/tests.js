@@ -207,6 +207,9 @@ define(function(require) {
             ok(rect6.intersect(rect2), "rect6 intersects rect2");
             ok(rect6.intersect(rect3), "rect6 intersects rect3");
             ok(!rect6.intersect(rect5), "rect6 intersects rect5");
+            var rect7 = new geometry.rect(0,0,45.5,90,5);
+            var rect8 = new geometry.rect(0,40,10,10);
+            ok(rect8.intersect(rect7), "rect8 intersects rect7");
         });
         test("check rectangle contains a point", function() {
             var rect1 = new geometry.rect(2,3,4,5);
@@ -321,7 +324,7 @@ define(function(require) {
                
                 start();
             };
-            var rectFranceGermany = new geometry.rect(0,40,10,10);
+            var rectFranceGermany = new geometry.rect(40,0,10,10);
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
         
@@ -329,7 +332,7 @@ define(function(require) {
             expect(3);
             var callbackTitlesNearbyLondonFound = function(titleList) {
                 ok(titleList !== null, "Some titles should be found");
-                ok(titleList.length > 0, "At least one title should be found");
+                equal(titleList.length, 1, "1 title should be found");
                 var titleLondon = null;
                 for (var i=0; i<titleList.length; i++) {
                     var title = titleList[i];
@@ -348,7 +351,33 @@ define(function(require) {
                     pointLondon.y - maxDistance,
                     maxDistance * 2,
                     maxDistance * 2);
-            localArchive.getTitlesInCoords(rectLondon, 100, callbackTitlesNearbyLondonFound);
+            localArchive.getTitlesInCoords(rectLondon, 10, callbackTitlesNearbyLondonFound);
+        });
+        
+        asyncTest("check articles found nearby Amsterdam", function() {
+            expect(3);
+            var callbackTitlesNearbyAmsterdamFound = function(titleList) {
+                ok(titleList !== null, "Some titles should be found");
+                equal(titleList.length, 1, "1 title should be found");
+                var titleAmsterdam = null;
+                for (var i=0; i<titleList.length; i++) {
+                    var title = titleList[i];
+                    if (title.name === "Amsterdam") {
+                        titleAmsterdam = title;
+                    }
+                }
+                ok(titleAmsterdam !== null, "The title 'Amsterdam' should be found");
+               
+                start();
+            };
+            var pointAmsterdam = new geometry.point(55, 5);
+            var maxDistance = 5;
+            var rectAmsterdam = new geometry.rect(
+                    pointAmsterdam.x - maxDistance,
+                    pointAmsterdam.y - maxDistance,
+                    maxDistance * 2,
+                    maxDistance * 2);
+            localArchive.getTitlesInCoords(rectAmsterdam, 10, callbackTitlesNearbyAmsterdamFound);
         });
         
         module("evopedia_random_title");
