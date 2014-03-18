@@ -328,6 +328,18 @@ define(function(require) {
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
         
+        asyncTest("check articles found nearby France and Germany, with a maximum", function() {
+            expect(2);
+            var callbackTitlesNearbyMaximumFound = function(titleList) {
+                ok(titleList !== null, "Some titles should be found");
+                equal(titleList.length, 2, "2 titles should be found");
+               
+                start();
+            };
+            var rectFranceGermany = new geometry.rect(40,0,10,10);
+            localArchive.getTitlesInCoords(rectFranceGermany, 2, callbackTitlesNearbyMaximumFound);
+        });
+        
         asyncTest("check articles found nearby London", function() {
             expect(3);
             var callbackTitlesNearbyLondonFound = function(titleList) {

@@ -839,8 +839,10 @@ define(function(require) {
                     // so it's no use putting it in the result list : we only put
                     // the position in title list
                     console.log("target rectangle contains this point : adding to the list");
-                    titlePositionsFound.push(title_pos);
-                    console.log("maxTitles="+maxTitles+" titlePositionsFound.length="+titlePositionsFound.length);
+                    if (maxTitles >= 0 && titlePositionsFound.length < maxTitles) {
+                        titlePositionsFound.push(title_pos);
+                        console.log("maxTitles="+maxTitles+" titlePositionsFound.length="+titlePositionsFound.length);
+                    }
                 }
             }
             if (callbackCounterForTitlesInCoordsSearch === 0) {
