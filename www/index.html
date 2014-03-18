@@ -51,7 +51,7 @@
                       <span class="icon-bar"></span>
                       <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand">Evopedia 1.1.0-SNAPSHOT</a>
+                    <a class="navbar-brand">Evopedia 1.1-SNAPSHOT</a>
                   </div>
 
                   <!-- Collect the nav links, forms, and other content for toggling -->
@@ -73,10 +73,11 @@
                             <a class="btn btn-default" id="searchTitles" href="#"><span class="glyphicon glyphicon-search"></span></a>
                         </span>                
                     </div>
-                    or <a href="#" id="btnArticlesNearby">Find articles around me (work in progress)</a><br/>
-                    Latitude/Longitude/MaxDistance:
-                    <input type="text" id="latitude" size="8" /> <input type="text" id="longitude" size="8" /> <input type="text" id="maxDistance" size="8" /><br/>
-                    or <a href="#" id="btnRandomArticle">Go to a random article</a><br/>
+                    <div id="articlesNearbyExpertOptions" style="display: none;">
+                        Latitude/Longitude/MaxDistance:
+                        <input type="text" id="latitude" size="8" /> <input type="text" id="longitude" size="8" /> <input type="text" id="maxDistance" size="8" /><br/>
+                    </div>
+                    or <a href="#" id="btnArticlesNearby">Find articles around me</a> (<a href="#" id="btnToggleArticlesNearbyExpertMode">toggle</a> expert mode) or <a href="#" id="btnRandomArticle">Go to a random article</a><br/>
                     <div id="searchingForTitles" style="position: relative; z-index: 10; top: 20px; height: 0px; display: none;">
                         <img src="img/spinner.gif" alt="Please wait..." />
                     </div>

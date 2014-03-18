@@ -73,6 +73,14 @@ define(function(require) {
             $('#navbarToggle').click();
         }
     });
+    $("#btnToggleArticlesNearbyExpertMode").on("click", function(e) {
+        if ($('#articlesNearbyExpertOptions').is(":visible")) {
+            $("#articlesNearbyExpertOptions").hide();
+        }
+        else {
+            $("#articlesNearbyExpertOptions").show();
+        }
+    });
     $("#btnRandomArticle").on("click", function(e) {
         goToRandomArticle();
         $("#welcomeText").hide();
@@ -333,7 +341,7 @@ define(function(require) {
         }
         var titleListDivHtml;
         if (maxTitles >= 0 && nbTitles >= maxTitles) {
-            titleListDivHtml = "More than " + maxTitles + " titles found (only " + maxTitles + " displayed) :<br/>";
+            titleListDivHtml = maxTitles + " first titles below (refine your search) :<br/>";
         }
         else {
             titleListDivHtml = nbTitles + " titles found :<br/>";
