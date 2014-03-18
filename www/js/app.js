@@ -43,7 +43,7 @@ define(function(require) {
     // In fact, we use a square around the user, not a circle
     // This square has a length of twice the value of this constant
     // One degree is ~111 km at the equator
-    var MAX_DISTANCE_ARTICLES_NEARBY = 0.1;
+    var MAX_DISTANCE_ARTICLES_NEARBY = 0.05;
 
     var localArchive = null;
     
@@ -323,10 +323,21 @@ define(function(require) {
     /**
      * Display the list of titles with the given array of titles
      * @param {type} titleArray
+     * @param maxTitles
      */
-    function populateListOfTitles(titleArray) {
+    function populateListOfTitles(titleArray, maxTitles) {
         var titleListDiv = $('#titleList');
-        var titleListDivHtml = "";
+        var nbTitles = 0;
+        if (titleArray) {
+            nbTitles = titleArray.length;
+        }
+        var titleListDivHtml;
+        if (nbTitles >= maxTitles) {
+            titleListDivHtml = "More than " + maxTitles + " titles found (only " + maxTitles + " displayed) :<br/>";
+        }
+        else {
+            titleListDivHtml = nbTitles + " titles found :<br/>";
+        }
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
             titleListDivHtml += "<a href='#' titleid='" + title.toStringId()
@@ -570,6 +581,7 @@ define(function(require) {
 
                     function geo_error(err) {
                         alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+                        $('#searchingForTitles').hide();
                     };
 
                     navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
@@ -581,8 +593,8 @@ define(function(require) {
             else {
                 // The user gave a latitude/longitude : let's use it to find articles around that location
                 var rectangle = new geometry.rect(
-                        longitude - maxDistance,
                         latitude - maxDistance,
+                        longitude - maxDistance,
                         maxDistance * 2,
                         maxDistance * 2);
 

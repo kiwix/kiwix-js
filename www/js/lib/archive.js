@@ -344,7 +344,7 @@ define(function(require) {
         titleIterators.findPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function check(title) {
-                if (title == null || normalize(title.name) !== normalizedTitleName) {
+                if (title === null || normalize(title.name) !== normalizedTitleName) {
                     return null;
                 } else if (title.name === titleName) {
                     return title;
@@ -393,15 +393,15 @@ define(function(require) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function addNext() {
                 if (titles.length >= maxSize) {
-                    return titles;
+                    return jQuery.Deferred().resolve(titles, maxSize);
                 }
                 return iterator.advance().then(function(title) {
-                    if (title == null)
-                        return titles;
+                    if (title === null)
+                        return jQuery.Deferred().resolve(titles, maxSize);
                     // check whether this title really starts with the prefix
                     var name = normalize(title.name);
-                    if (name.length < prefix.length || name.substring(0, prefix.length) != prefix)
-                        return titles;
+                    if (name.length < prefix.length || name.substring(0, prefix.length) !== prefix)
+                        return jQuery.Deferred().resolve(titles, maxSize);
                     titles.push(title);
                     return addNext();
                 });
@@ -672,18 +672,16 @@ define(function(require) {
      * 
      * @param {type} localArchive
      * @param {type} titlePositionsFound
-     * @param {type} i : index of the coordinate file
      * @param {type} maxTitles
-     * @param {type} normalizedRectangle
      * @param {type} callbackFunction
      */
     LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlePositionsFound, maxTitles, callbackFunction) {
         // Search is over : now let's convert the title positions into Title instances
         if (titlePositionsFound && titlePositionsFound.length > 0) {
-            LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), callbackFunction);
+            LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), maxTitles, callbackFunction);
         }
         else {
-            callbackFunction(titlePositionsFound);
+            callbackFunction(titlePositionsFound, maxTitles);
         }
         
     };
@@ -697,19 +695,20 @@ define(function(require) {
      * @param {type} titlePositionsFound
      * @param {type} i
      * @param {type} titlesFound
+     * @param maxTitles
      * @param {type} callbackFunction
      */
-    LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, titlePositionsFound, i, titlesFound, callbackFunction) {
+    LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction) {
         var titleOffset = titlePositionsFound[i];
         localArchive.getTitlesStartingAtOffset(titleOffset, 1, function(titleList) {
             if (titleList && titleList.length === 1) {
                 titlesFound.push(titleList[0]);
                 i++;
                 if (i<titlePositionsFound.length) {
-                    LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, i, titlesFound, callbackFunction);
+                    LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction);
                 }
                 else {
-                    callbackFunction(titlesFound);
+                    callbackFunction(titlesFound, maxTitles);
                 }
             }
             else {
@@ -755,6 +754,14 @@ define(function(require) {
 
         reader.onload = function(e) {
             callbackCounterForTitlesInCoordsSearch--;
+            if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
+                console.log("Maximum titles already found : we do not look further");
+                if (callbackCounterForTitlesInCoordsSearch === 0) {
+                    console.log("callbackCounterForTitlesInCoordsSearch reached 0 : return the titles found");
+                    callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
+                }
+                return;
+            }
             var binaryTitleFile = e.target.result;
             var byteArray = new Uint8Array(binaryTitleFile);
             // Compute selector
@@ -813,10 +820,6 @@ define(function(require) {
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
                 console.log("end");
-                if (callbackCounterForTitlesInCoordsSearch === 0) {
-                    console.log("callbackCounterForTitlesInCoordsSearch reached 0 : return the titles found")
-                    callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
-                }
             }
             else {
                 // This is a leaf node : let's see if its articles are in the
@@ -838,15 +841,11 @@ define(function(require) {
                     console.log("target rectangle contains this point : adding to the list");
                     titlePositionsFound.push(title_pos);
                     console.log("maxTitles="+maxTitles+" titlePositionsFound.length="+titlePositionsFound.length);
-                    // TODO : reactivate to enforce the maximum titles to be searched
-//                    if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
-//                        return;
-//                    }
                 }
-                if (callbackCounterForTitlesInCoordsSearch === 0) {
-                    console.log("callbackCounter reached 0 : return the titles found")
-                    callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
-                }
+            }
+            if (callbackCounterForTitlesInCoordsSearch === 0) {
+                console.log("callbackCounterForTitlesInCoordsSearch reached 0 : return the titles found");
+                callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
             }
 
         };
