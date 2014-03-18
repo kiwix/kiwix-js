@@ -132,7 +132,7 @@ define(function(require) {
         }
         storage.get(directory + 'coordinates_' + prefixedFileNumber
                 + '.idx').then(function(file) {
-            currentLocalArchiveInstance.coordinateFiles[index] = file;
+            currentLocalArchiveInstance.coordinateFiles[index - 1] = file;
             currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
         }, function(error) {
@@ -279,7 +279,7 @@ define(function(require) {
         this.readDataFilesFromStorage(selectedStorage, archiveDirectory, 0);
         this.readMathFilesFromStorage(selectedStorage, archiveDirectory);
         this.readMetadataFileFromStorage(selectedStorage, archiveDirectory);
-        this.readCoordinateFilesFromStorage(selectedStorage, archiveDirectory, 0);
+        this.readCoordinateFilesFromStorage(selectedStorage, archiveDirectory, 1);
     };
 
     /**

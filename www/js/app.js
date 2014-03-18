@@ -332,12 +332,16 @@ define(function(require) {
             nbTitles = titleArray.length;
         }
         var titleListDivHtml;
-        if (nbTitles >= maxTitles) {
+        if (maxTitles >= 0 && nbTitles >= maxTitles) {
             titleListDivHtml = "More than " + maxTitles + " titles found (only " + maxTitles + " displayed) :<br/>";
         }
         else {
             titleListDivHtml = nbTitles + " titles found :<br/>";
         }
+        if (nbTitles === 0) {
+            titleListDivHtml = "No titles found<br/>";
+        }
+
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
             titleListDivHtml += "<a href='#' titleid='" + title.toStringId()
@@ -346,6 +350,7 @@ define(function(require) {
         titleListDiv.html(titleListDivHtml);
         $("#titleList a").on("click",handleTitleClick);
         $('#searchingForTitles').hide();
+        $('#titleList').show();
     }
     
     
@@ -548,6 +553,7 @@ define(function(require) {
     function searchTitlesNearby() {
         $('#searchingForTitles').show();
         $('#configuration').hide();
+        $('#titleList').hide();
         $('#articleContent').empty();
         if (localArchive !== null && localArchive.titleFile !== null) {
             var longitude = $('#longitude').val();
