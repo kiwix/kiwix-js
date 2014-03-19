@@ -585,8 +585,8 @@ define(function(require) {
                         alert("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude);
 
                         var rectangle = new geometry.rect(
-                                crd.longitude - maxDistance,
                                 crd.latitude - maxDistance,
+                                crd.longitude - maxDistance,
                                 maxDistance * 2,
                                 maxDistance * 2);
 
