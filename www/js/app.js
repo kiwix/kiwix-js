@@ -52,6 +52,7 @@ define(function(require) {
         searchTitlesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
         $("#readingArticle").hide();
+        $('#geolocationProgress').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
@@ -63,6 +64,7 @@ define(function(require) {
     $('#prefix').on('keyup', function(e) {
         if (localArchive !== null && localArchive.titleFile !== null) {
             onKeyUpPrefix(e);
+            $('#geolocationProgress').hide();
         }
     });
     $("#btnArticlesNearby").on("click", function(e) {
@@ -86,6 +88,8 @@ define(function(require) {
         $("#welcomeText").hide();
         $('#titleList').hide();
         $("#readingArticle").hide();
+        $('#geolocationProgress').hide();
+        $('#searchingForTitles').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
@@ -124,6 +128,7 @@ define(function(require) {
         $('#prefix').focus();
         $("#titleList").html("");
         $("#readingArticle").hide();
+        $('#geolocationProgress').hide();
         $("#articleContent").html("");
         return false;
     });
@@ -142,6 +147,7 @@ define(function(require) {
         $("#welcomeText").hide();
         $('#titleList').hide();
         $("#readingArticle").hide();
+        $('#geolocationProgress').hide();
         $('#articleContent').hide();
         return false;
     });
@@ -160,6 +166,7 @@ define(function(require) {
         $("#welcomeText").hide();
         $('#titleList').hide();
         $("#readingArticle").hide();
+        $('#geolocationProgress').hide();
         $('#articleContent').hide();
         return false;
     });
@@ -358,6 +365,7 @@ define(function(require) {
         titleListDiv.html(titleListDivHtml);
         $("#titleList a").on("click",handleTitleClick);
         $('#searchingForTitles').hide();
+        $('#geolocationProgress').hide();
         $('#titleList').show();
     }
     
@@ -575,33 +583,50 @@ define(function(require) {
                 if (navigator.geolocation) {
                     var geo_options = {
                         enableHighAccuracy: false,
-                        maximumAge: 1800000, // 30 minutes
-                        timeout: 10000 // 10 seconds
+                        maximumAge: 600000, // 10 minutes
+                        timeout: Infinity 
                     };
 
                     function geo_success(pos) {
                         var crd = pos.coords;
                         
-                        alert("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude);
+                        if ($('#geolocationProgress').is(":visible")) {
+                            $('#geolocationProgress').html("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude
+                                    + "<br/>Now looking for articles around this location...");
 
-                        var rectangle = new geometry.rect(
-                                crd.latitude - maxDistance,
-                                crd.longitude - maxDistance,
-                                maxDistance * 2,
-                                maxDistance * 2);
+                            var rectangle = new geometry.rect(
+                                    crd.latitude - maxDistance,
+                                    crd.longitude - maxDistance,
+                                    maxDistance * 2,
+                                    maxDistance * 2);
 
-                        localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                            localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                        }
+                        else {
+                            // If the geolocationProgress div is not visible, it's because it has been canceled
+                            // So we simply ignore the result
+                        }
                     };
 
                     function geo_error(err) {
-                        alert("Unable to geolocate your device : " + err.code + " : " + err.message);
-                        $('#searchingForTitles').hide();
+                        if ($('#geolocationProgress').is(":visible")) {
+                            alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+                            $('#geolocationProgress').hide();
+                            $('#searchingForTitles').hide();
+                        }
+                        else {
+                            // If the geolocationProgress div is not visible, it's because it has been canceled
+                            // So we simply ignore the result
+                        }
                     };
-
+                    
+                    $('#geolocationProgress').html("Trying to geolocate your device...");
+                    $('#geolocationProgress').show();
                     navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
                 }
                 else {
                     alert("Geolocation is not supported (or disabled) on your device, or on your browser");
+                    $('#searchingForTitles').hide();
                 }
             }
             else {
@@ -611,6 +636,9 @@ define(function(require) {
                         longitude - maxDistance,
                         maxDistance * 2,
                         maxDistance * 2);
+                        
+                $('#geolocationProgress').html("Looking for articles around the location you gave...");
+                $('#geolocationProgress').show();
 
                 localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
             }
