@@ -49,15 +49,15 @@ define(function(require) {
      * LocalArchive class : defines a wikipedia dump on the filesystem
      */
     function LocalArchive() {
-        this.dataFiles = new Array();
-        this.coordinateFiles = new Array();
-        this.titleFile = null;
-        this.mathIndexFile = null;
-        this.mathDataFile = null;
-        this.date = null;
-        this.language = null;
-        this.titleSearchFile = null;
-        this.normalizedTitles = true;
+        this._dataFiles = new Array();
+        this._coordinateFiles = new Array();
+        this._titleFile = null;
+        this._mathIndexFile = null;
+        this._mathDataFile = null;
+        this._date = null;
+        this._language = null;
+        this._titleSearchFile = null;
+        this._normalizedTitles = true;
     };
 
 
@@ -71,12 +71,12 @@ define(function(require) {
     LocalArchive.prototype.readTitleFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
         storage.get(directory + 'titles.idx').then(function(file) {
-            currentLocalArchiveInstance.titleFile = file;
+            currentLocalArchiveInstance._titleFile = file;
         }, function(error) {
             alert("Error reading title file in directory " + directory + " : " + error);
         });
         storage.get(directory + 'titles_search.idx').then(function(file) {
-            currentLocalArchiveInstance.titleSearchFile = file;
+            currentLocalArchiveInstance._titleSearchFile = file;
         }, function(error) {
             // Do nothing : this file is not mandatory in an archive
         });
@@ -132,7 +132,7 @@ define(function(require) {
         }
         storage.get(directory + 'coordinates_' + prefixedFileNumber
                 + '.idx').then(function(file) {
-            currentLocalArchiveInstance.coordinateFiles[index - 1] = file;
+            currentLocalArchiveInstance._coordinateFiles[index - 1] = file;
             currentLocalArchiveInstance.readCoordinateFilesFromStorage(storage, directory,
                     index + 1);
         }, function(error) {
@@ -179,14 +179,14 @@ define(function(require) {
             if (normalizedTitlesRegex.exec(metadata)) {
                 var normalizedTitlesInt = normalizedTitlesRegex.exec(metadata)[1];
                 if (normalizedTitlesInt === "0") {
-                    currentLocalArchiveInstance.normalizedTitles = false;
+                    currentLocalArchiveInstance._normalizedTitles = false;
                 }
                 else {
-                    currentLocalArchiveInstance.normalizedTitles = true;
+                    currentLocalArchiveInstance._normalizedTitles = true;
                 }
             }
             else {
-                currentLocalArchiveInstance.normalizedTitles = true;
+                currentLocalArchiveInstance._normalizedTitles = true;
             }
         };
         reader.readAsText(file);
@@ -199,8 +199,8 @@ define(function(require) {
     LocalArchive.prototype.initializeFromArchiveFiles = function(archiveFiles) {
         var dataFileRegex = /^wikipedia_(\d\d).dat$/;
         var coordinateFileRegex = /^coordinates_(\d\d).idx$/;
-        this.dataFiles = new Array();
-        this.coordinateFiles = new Array();
+        this._dataFiles = new Array();
+        this._coordinateFiles = new Array();
         for (var i=0; i<archiveFiles.length; i++) {
             var file = archiveFiles[i];
             if (file) {
@@ -208,28 +208,28 @@ define(function(require) {
                     this.readMetadataFile(file);
                 }
                 else if (file.name === "titles.idx") {
-                    this.titleFile = file;
+                    this._titleFile = file;
                 }
                 else if (file.name === "titles_search.idx") {
-                    this.titleSearchFile = file;
+                    this._titleSearchFile = file;
                 }
                 else if (file.name === "math.idx") {
-                    this.mathIndexFile = file;
+                    this._mathIndexFile = file;
                 }
                 else if (file.name === "math.dat") {
-                    this.mathDataFile = file;
+                    this._mathDataFile = file;
                 }
                 else {
                     var coordinateFileNr = coordinateFileRegex.exec(file.name);
                     if (coordinateFileNr && coordinateFileNr.length > 0) {
                         var intFileNr = 1 * coordinateFileNr[1];
-                        this.coordinateFiles[intFileNr - 1] = file;
+                        this._coordinateFiles[intFileNr - 1] = file;
                     }
                     else {
                         var dataFileNr = dataFileRegex.exec(file.name);
                         if (dataFileNr && dataFileNr.length > 0) {
                             var intFileNr = 1 * dataFileNr[1];
-                            this.dataFiles[intFileNr] = file;
+                            this._dataFiles[intFileNr] = file;
                         }
                     }
                 }
@@ -341,12 +341,12 @@ define(function(require) {
         var normalize = this.getNormalizeFunction();
         var normalizedTitleName = normalize(titleName);
 
-        titleIterators.findPrefixOffset(this.titleFile, titleName, normalize).then(function(offset) {
+        titleIterators.findPrefixOffset(this._titleFile, titleName, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function check(title) {
-                if (title === null || normalize(title.name) !== normalizedTitleName) {
+                if (title === null || normalize(title._name) !== normalizedTitleName) {
                     return null;
-                } else if (title.name === titleName) {
+                } else if (title._name === titleName) {
                     return title;
                 } else {
                     return iterator.advance().then(check);
@@ -362,9 +362,9 @@ define(function(require) {
      */
     LocalArchive.prototype.getRandomTitle = function(callbackFunction) {
         var that = this;
-        var offset = Math.floor(Math.random() * this.titleFile.size);
+        var offset = Math.floor(Math.random() * this._titleFile.size);
         jQuery.when().then(function() {
-            return util.readFileSlice(that.titleFile, offset,
+            return util.readFileSlice(that._titleFile, offset,
                                   offset + titleIterators.MAX_TITLE_LENGTH).then(function(byteArray) {
                 // Let's find the next newLine
                 var newLineIndex = 0;
@@ -389,7 +389,7 @@ define(function(require) {
         var normalize = this.getNormalizeFunction();
         prefix = normalize(prefix);
 
-        titleIterators.findPrefixOffset(this.titleFile, prefix, normalize).then(function(offset) {
+        titleIterators.findPrefixOffset(this._titleFile, prefix, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function addNext() {
                 if (titles.length >= maxSize) {
@@ -399,7 +399,7 @@ define(function(require) {
                     if (title === null)
                         return jQuery.Deferred().resolve(titles, maxSize);
                     // check whether this title really starts with the prefix
-                    var name = normalize(title.name);
+                    var name = normalize(title._name);
                     if (name.length < prefix.length || name.substring(0, prefix.length) !== prefix)
                         return jQuery.Deferred().resolve(titles, maxSize);
                     titles.push(title);
@@ -422,28 +422,28 @@ define(function(require) {
         var dataFile = null;
 
         var prefixedFileNumber = "";
-        if (title.fileNr < 10) {
-            prefixedFileNumber = "0" + title.fileNr;
+        if (title._fileNr < 10) {
+            prefixedFileNumber = "0" + title._fileNr;
         } else {
-            prefixedFileNumber = title.fileNr;
+            prefixedFileNumber = title._fileNr;
         }
         var expectedFileName = "wikipedia_" + prefixedFileNumber + ".dat";
 
         // Find the good dump file
-        for (var i = 0; i < this.dataFiles.length; i++) {
-            var fileName = this.dataFiles[i].name;
+        for (var i = 0; i < this._dataFiles.length; i++) {
+            var fileName = this._dataFiles[i].name;
             // Check if the fileName ends with the expected file name (in case
             // of DeviceStorage usage, the fileName is prefixed by the
             // directory)
             if (fileName.match(expectedFileName + "$") == expectedFileName) {
-                dataFile = this.dataFiles[i];
+                dataFile = this._dataFiles[i];
             }
         }
         if (!dataFile) {
             // TODO can probably be replaced by some error handler at window level
             alert("Oops : some files seem to be missing in your archive. Please report this problem to us by email (see About section), with the names of the archive and article, and the following info : "
-                + "File number " + title.fileNr + " not found");
-            throw new Error("File number " + title.fileNr + " not found");
+                + "File number " + title._fileNr + " not found");
+            throw new Error("File number " + title._fileNr + " not found");
         } else {
             var reader = new FileReader();
             // Read the article in the dataFile, starting with a chunk of CHUNK_SIZE 
@@ -486,11 +486,11 @@ define(function(require) {
                         case "result":
                             var htmlArticles = event.data.msg;
                             // Start reading at offset, and keep length characters
-                            var htmlArticle = htmlArticles.substring(title.blockOffset,
-                                    title.blockOffset + title.articleLength);
-                            if (htmlArticle.length >= title.articleLength) {
+                            var htmlArticle = htmlArticles.substring(title._blockOffset,
+                                    title._blockOffset + title._articleLength);
+                            if (htmlArticle.length >= title._articleLength) {
                                 // Keep only length characters
-                                htmlArticle = htmlArticle.substring(0, title.articleLength);
+                                htmlArticle = htmlArticle.substring(0, title._articleLength);
                                 // Decode UTF-8 encoding
                                 htmlArticle = decodeURIComponent(escape(htmlArticle));
                                 callbackFunction(title, htmlArticle);
@@ -522,7 +522,7 @@ define(function(require) {
                 callbackFunction("Error : " + e);
             }
         };
-        var blob = dataFile.slice(title.blockStart, title.blockStart
+        var blob = dataFile.slice(title._blockStart, title._blockStart
                 + readLength);
 
         // Read in the image file as a binary string.
@@ -539,9 +539,9 @@ define(function(require) {
     LocalArchive.prototype.loadMathImage = function(hexString, callbackFunction) {
         var entrySize = 16 + 4 + 4;
         var lo = 0;
-        var hi = this.mathIndexFile.size / entrySize;
+        var hi = this._mathIndexFile.size / entrySize;
 
-        var mathDataFile = this.mathDataFile;
+        var mathDataFile = this._mathDataFile;
 
         this.findMathDataPosition(hexString, lo, hi, function(pos, length) {
             var reader = new FileReader();
@@ -578,7 +578,7 @@ define(function(require) {
             alert('Math image file read cancelled');
         };
         var mid = Math.floor((lo + hi) / 2);
-        var blob = this.mathIndexFile.slice(mid * entrySize, (mid + 1) * entrySize);
+        var blob = this._mathIndexFile.slice(mid * entrySize, (mid + 1) * entrySize);
         var currentLocalArchiveInstance = this;
         reader.onload = function(e) {
             var byteArray = new Uint8Array(e.target.result);
@@ -619,20 +619,20 @@ define(function(require) {
             if (byteArray.length === 0) {
                 // TODO can probably be replaced by some error handler at window level
                 alert("Oops : there seems to be something wrong in your archive. Please report it to us by email or through Github (see About section), with the names of the archive and article and the following info : "
-                    + "Unable to find redirected article for title " + title.name + " : offset " + title.blockStart + " not found in title file");
-                throw new Error("Unable to find redirected article for title " + title.name + " : offset " + title.blockStart + " not found in title file");
+                    + "Unable to find redirected article for title " + title._name + " : offset " + title._blockStart + " not found in title file");
+                throw new Error("Unable to find redirected article for title " + title._name + " : offset " + title._blockStart + " not found in title file");
             }
 
             var redirectedTitle = title;
-            redirectedTitle.fileNr = 1 * byteArray[2];
-            redirectedTitle.blockStart = util.readIntegerFrom4Bytes(byteArray, 3);
-            redirectedTitle.blockOffset = util.readIntegerFrom4Bytes(byteArray, 7);
-            redirectedTitle.articleLength = util.readIntegerFrom4Bytes(byteArray, 11);
+            redirectedTitle._fileNr = 1 * byteArray[2];
+            redirectedTitle._blockStart = util.readIntegerFrom4Bytes(byteArray, 3);
+            redirectedTitle._blockOffset = util.readIntegerFrom4Bytes(byteArray, 7);
+            redirectedTitle._articleLength = util.readIntegerFrom4Bytes(byteArray, 11);
 
             callbackFunction(redirectedTitle);
         };
         // Read only the 16 necessary bytes, starting at title.blockStart
-        var blob = this.titleFile.slice(title.blockStart, title.blockStart + 16);
+        var blob = this._titleFile.slice(title._blockStart, title._blockStart + 16);
         // Read in the file as a binary string
         reader.readAsArrayBuffer(blob);
     };
@@ -656,7 +656,7 @@ define(function(require) {
         }
         var normalizedRectangle = rect.normalized();
         var titlePositionsFound = new Array();
-        for (var i = 0; i < this.coordinateFiles.length; i++) {
+        for (var i = 0; i < this._coordinateFiles.length; i++) {
             callbackCounterForTitlesInCoordsSearch++;
             LocalArchive.getTitlesInCoordsInt(this, i, 0, normalizedRectangle, GLOBE_RECTANGLE, maxTitles, titlePositionsFound, callbackFunction, LocalArchive.callbackGetTitlesInCoordsInt);
         }
@@ -857,7 +857,7 @@ define(function(require) {
         // TODO : This should be improved by reading the file in 2 steps :
         // - first read the selector
         // - then read the coordinates (reading only the exact necessary bytes)
-        var blob = localArchive.coordinateFiles[coordinateFileIndex].slice(coordFilePos, coordFilePos + 22*65535);
+        var blob = localArchive._coordinateFiles[coordinateFileIndex].slice(coordFilePos, coordFilePos + 22*65535);
         
         // Read in the file as a binary string
         reader.readAsArrayBuffer(blob);
@@ -897,7 +897,7 @@ define(function(require) {
      * @returns normalized string, or same string if archive is not compatible
      */
     LocalArchive.prototype.normalizeStringIfCompatibleArchive = function(string) {
-        if (this.normalizedTitles === true) {
+        if (this._normalizedTitles === true) {
             return normalize_string.normalizeString(string);
         }
         else {
@@ -910,7 +910,7 @@ define(function(require) {
      * If it is not, returns the identity function.
      */
     LocalArchive.prototype.getNormalizeFunction = function() {
-        if (this.normalizedTitles === true) {
+        if (this._normalizedTitles === true) {
             return normalize_string.normalizeString;
         } else {
             return function(string) { return string; };

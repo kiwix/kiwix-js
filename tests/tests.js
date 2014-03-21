@@ -58,7 +58,7 @@ define(function(require) {
                 equal(titleList.length, 4, "4 titles found, as requested");
                 var indexAbraham = -1;
                 for (var i = 0; i < titleList.length; i++) {
-                    if (titleList[i] && titleList[i].name === "Abraham") {
+                    if (titleList[i] && titleList[i]._name === "Abraham") {
                         indexAbraham = i;
                     }
                 }
@@ -66,10 +66,10 @@ define(function(require) {
                 var firstTitleName = "not found";
                 var secondTitleName = "not found";
                 if (titleList.length >= 1 && titleList[0]) {
-                    firstTitleName = titleList[0].name;
+                    firstTitleName = titleList[0]._name;
                 }
                 if (titleList.length >= 2 && titleList[1]) {
-                    secondTitleName = titleList[1].name;
+                    secondTitleName = titleList[1]._name;
                 }
                 equal(firstTitleName, "Abbasid_Caliphate", "First article name is 'Abbasid_Caliphate'");
                 equal(secondTitleName, "Abortion", "Second article name is 'Abortion'");
@@ -85,10 +85,10 @@ define(function(require) {
                 var firstTitleName = "not found";
                 var secondTitleName = "not found";
                 if (titleList.length >= 1 && titleList[0]) {
-                    firstTitleName = titleList[0].name;
+                    firstTitleName = titleList[0]._name;
                 }
                 if (titleList.length >= 2 && titleList[1]) {
-                    secondTitleName = titleList[1].name;
+                    secondTitleName = titleList[1]._name;
                 }
                 equal(firstTitleName, "Amazon_River", "First article name is 'Amazon_River'");
                 equal(secondTitleName, "American_Civil_War", "Second article name is 'American_Civil_War'");
@@ -100,19 +100,19 @@ define(function(require) {
 
         // Create a title instance for the Article 'Abraham'
         var titleAbraham = new evopediaTitle.Title();
-        titleAbraham.archive = localArchive;
-        titleAbraham.articleLength = 10071;
-        titleAbraham.blockOffset = 127640;
-        titleAbraham.blockStart = 2364940;
-        titleAbraham.fileNr = 0;
-        titleAbraham.name = "Abraham";
-        titleAbraham.titleOffset = 57;
+        titleAbraham._archive = localArchive;
+        titleAbraham._articleLength = 10071;
+        titleAbraham._blockOffset = 127640;
+        titleAbraham._blockStart = 2364940;
+        titleAbraham._fileNr = 0;
+        titleAbraham._name = "Abraham";
+        titleAbraham._titleOffset = 57;
 
         asyncTest("check getTitleByName with accents : Diego Velázquez", function() {
             expect(2);
             var callbackFunction = function(title) {
                 ok(title !== null, "Title found");
-                equal(title.name, "Diego_Velázquez", "Name of the title is correct");
+                equal(title._name, "Diego_Velázquez", "Name of the title is correct");
                 start();
             };
             localArchive.getTitleByName("Diego_Velázquez", callbackFunction);
@@ -121,7 +121,7 @@ define(function(require) {
             expect(2);
             var callbackFunction = function(title) {
                 ok(title !== null, "Title found");
-                equal(title.name, "Hundred_Years'_War", "Name of the title is correct");
+                equal(title._name, "Hundred_Years'_War", "Name of the title is correct");
                 start();
             };
             localArchive.getTitleByName("Hundred_Years'_War", callbackFunction);
@@ -159,7 +159,7 @@ define(function(require) {
             };
             var callbackTitleFound = function(title) {
                 ok(title !== null, "Title found");
-                equal(title.name, "AIDS", "Name of the title is correct");
+                equal(title._name, "AIDS", "Name of the title is correct");
                 localArchive.readArticle(title, callbackArticleRead);
             };
             localArchive.getTitleByName("AIDS", callbackTitleFound);
@@ -308,13 +308,13 @@ define(function(require) {
                 var titleAlps = null;
                 for (var i=0; i<titleList.length; i++) {
                     var title = titleList[i];
-                    if (title.name === "Danube") {
+                    if (title._name === "Danube") {
                         titleDanube = title;
                     }
-                    else if (title.name === "Paris") {
+                    else if (title._name === "Paris") {
                         titleParis = title;
                     }
-                    else if (title.name === "Alps") {
+                    else if (title._name === "Alps") {
                         titleAlps = title;
                     }
                 }
@@ -348,7 +348,7 @@ define(function(require) {
                 var titleLondon = null;
                 for (var i=0; i<titleList.length; i++) {
                     var title = titleList[i];
-                    if (title.name === "London") {
+                    if (title._name === "London") {
                         titleLondon = title;
                     }
                 }
@@ -374,7 +374,7 @@ define(function(require) {
                 var titleAmsterdam = null;
                 for (var i=0; i<titleList.length; i++) {
                     var title = titleList[i];
-                    if (title.name === "Amsterdam") {
+                    if (title._name === "Amsterdam") {
                         titleAmsterdam = title;
                     }
                 }
@@ -397,7 +397,7 @@ define(function(require) {
             expect(2);
             var callbackRandomTitleFound = function(title) {
                 ok(title !== null, "One title should be found");
-                ok(title.name !== null, "The random title should have a name" );
+                ok(title._name !== null, "The random title should have a name" );
                
                 start();
             };

@@ -34,10 +34,10 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
      * @param offset
      */
     function SequentialTitleIterator(archive, offset) {
-        this._titleFile = archive.titleFile;
+        this._titleFile = archive._titleFile;
         this._archive = archive;
         this._offset = offset;
-        this.title = null;
+        this._title = null;
     };
     /**
      * Advances to the next title (or the first), if possible.
@@ -46,8 +46,8 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
      */
     SequentialTitleIterator.prototype.advance = function() {
         if (this._offset >= this._titleFile.size) {
-            this.title = null;
-            return jQuery.when(this.title);
+            this._title = null;
+            return jQuery.when(this._title);
         }
         var that = this;
         return util.readFileSlice(this._titleFile, this._offset,

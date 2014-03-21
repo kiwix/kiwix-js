@@ -29,19 +29,18 @@ define(function(require) {
      * Title class : defines the title of an article and some methods to manipulate it
      */
     function Title() {
-        this.name = null;
-        this.fileNr = null;
-        this.blockStart = null;
-        this.blockOffset = null;
-        this.articleLength = null;
-        this.archive = null;
-        this.titleOffset = null;
-        this.titleEntryLength = null;
-    }
-    ;
+        this._name = null;
+        this._fileNr = null;
+        this._blockStart = null;
+        this._blockOffset = null;
+        this._articleLength = null;
+        this._archive = null;
+        this._titleOffset = null;
+        this._titleEntryLength = null;
+    };
 
     Title.prototype.getReadableName = function() {
-        return this.name.replace(/_/g, " ");
+        return this._name.replace(/_/g, " ");
     };
 
 
@@ -60,16 +59,16 @@ define(function(require) {
             throw new Error("Error while parsing an encoded title line un title File : titleOffset cannot be negative (was " + titleOffset + ")");
         }
         var t = new Title();
-        t.archive = archive;
-        t.titleOffset = titleOffset;
+        t._archive = archive;
+        t._titleOffset = titleOffset;
 
         if (encodedTitle === null || encodedTitle.length < 15)
             return null;
 
         if (encodedTitle[encodedTitle.length - 1] == '\n') {
-            t.titleEntryLength = encodedTitle.length;
+            t._titleEntryLength = encodedTitle.length;
         } else {
-            t.titleEntryLength = encodedTitle.length + 1;
+            t._titleEntryLength = encodedTitle.length + 1;
         }
 
         var escapedEncodedTitle = new Uint8Array(encodedTitle);
@@ -81,12 +80,12 @@ define(function(require) {
                 escapedEncodedTitle[i + 2] = 10; // Corresponds to \n
         }
 
-        t.fileNr = 1 * escapedEncodedTitle[2];
-        t.blockStart = util.readIntegerFrom4Bytes(escapedEncodedTitle, 3);
-        t.blockOffset = util.readIntegerFrom4Bytes(escapedEncodedTitle, 7);
-        t.articleLength = util.readIntegerFrom4Bytes(escapedEncodedTitle, 11);
+        t._fileNr = 1 * escapedEncodedTitle[2];
+        t._blockStart = util.readIntegerFrom4Bytes(escapedEncodedTitle, 3);
+        t._blockOffset = util.readIntegerFrom4Bytes(escapedEncodedTitle, 7);
+        t._articleLength = util.readIntegerFrom4Bytes(escapedEncodedTitle, 11);
 
-        t.name = Title.parseNameOnly(escapedEncodedTitle);
+        t._name = Title.parseNameOnly(escapedEncodedTitle);
 
         return t;
     };
@@ -114,13 +113,13 @@ define(function(require) {
     Title.parseTitleId = function(localArchive, titleId) {
         var title = new Title();
         var idParts = titleId.split("|");
-        title.archive = localArchive;
-        title.fileNr = parseInt(idParts[2], 10);
-        title.titleOffset = parseInt(idParts[3], 10);
-        title.name = idParts[4];
-        title.blockStart = parseInt(idParts[5], 10);
-        title.blockOffset = parseInt(idParts[6], 10);
-        title.articleLength = parseInt(idParts[7], 10);
+        title._archive = localArchive;
+        title._fileNr = parseInt(idParts[2], 10);
+        title._titleOffset = parseInt(idParts[3], 10);
+        title._name = idParts[4];
+        title._blockStart = parseInt(idParts[5], 10);
+        title._blockOffset = parseInt(idParts[6], 10);
+        title._articleLength = parseInt(idParts[7], 10);
         return title;
     };
 
@@ -130,15 +129,15 @@ define(function(require) {
      * @returns {String}
      */
     Title.prototype.toStringId = function() {
-        return this.archive.language + "|" + this.archive.date + "|" + this.fileNr + "|"
-                + this.titleOffset + "|" + this.name + "|" + this.blockStart + "|" + this.blockOffset + "|" + this.articleLength;
+        return this._archive.language + "|" + this._archive.date + "|" + this._fileNr + "|"
+                + this._titleOffset + "|" + this._name + "|" + this._blockStart + "|" + this._blockOffset + "|" + this._articleLength;
     };
 
     /**
      * Serialize the title in a readable way
      */
     Title.prototype.toString = function() {
-        return "title.id = " + this.toStringId() + "title.name = " + this.name + " title.fileNr = " + this.fileNr + " title.blockStart = " + this.blockStart + " title.blockOffset = " + this.blockOffset + " title.articleLength = " + this.articleLength;
+        return "title.id = " + this.toStringId() + "title.name = " + this._name + " title.fileNr = " + this._fileNr + " title.blockStart = " + this._blockStart + " title.blockOffset = " + this._blockOffset + " title.articleLength = " + this._articleLength;
     };
     
     /**

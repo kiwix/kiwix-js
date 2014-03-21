@@ -62,7 +62,7 @@ define(function(require) {
         return false;
     });
     $('#prefix').on('keyup', function(e) {
-        if (localArchive !== null && localArchive.titleFile !== null) {
+        if (localArchive !== null && localArchive._titleFile !== null) {
             onKeyUpPrefix(e);
             $('#geolocationProgress').hide();
         }
@@ -322,7 +322,7 @@ define(function(require) {
         $('#searchingForTitles').show();
         $('#configuration').hide();
         $('#articleContent').empty();
-        if (localArchive !== null && localArchive.titleFile !== null) {
+        if (localArchive !== null && localArchive._titleFile !== null) {
             localArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
             $('#searchingForTitles').hide();
@@ -404,7 +404,7 @@ define(function(require) {
         $("#titleList").empty();
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
-        pushBrowserHistoryState(title.name);
+        pushBrowserHistoryState(title._name);
         $("#prefix").val("");
         return false;
     }
@@ -416,12 +416,12 @@ define(function(require) {
      * @param {type} titleId
      */
     function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
-        if (localArchive.dataFiles && localArchive.dataFiles.length > 0) {
+        if (localArchive._dataFiles && localArchive._dataFiles.length > 0) {
             var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
-            $("#articleName").html(title.name);
+            $("#articleName").html(title._name);
             $("#readingArticle").show();
             $("#articleContent").html("");
-            if (title.fileNr === 255) {
+            if (title._fileNr === 255) {
                 localArchive.resolveRedirect(title, readArticle);
             }
             else {
@@ -438,7 +438,7 @@ define(function(require) {
      * @param {type} title
      */
     function readArticle(title) {
-        if (title.fileNr === 255) {
+        if (title._fileNr === 255) {
             localArchive.resolveRedirect(title, readArticle);
         }
         else {
@@ -571,7 +571,7 @@ define(function(require) {
         $('#configuration').hide();
         $('#titleList').hide();
         $('#articleContent').empty();
-        if (localArchive !== null && localArchive.titleFile !== null) {
+        if (localArchive !== null && localArchive._titleFile !== null) {
             var longitude = $('#longitude').val();
             var latitude = $('#latitude').val();
             var maxDistance = $('#maxDistance').val();
@@ -659,7 +659,7 @@ define(function(require) {
                 alert("Error finding random article.");
             }
             else {
-                $("#articleName").html(title.name);
+                $("#articleName").html(title._name);
                 $("#readingArticle").show();
                 $("#articleContent").html("");
                 readArticle(title);
