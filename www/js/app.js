@@ -87,6 +87,7 @@ define(function(require) {
         goToRandomArticle();
         $("#welcomeText").hide();
         $('#titleList').hide();
+        $('#titleListHeaderMessage').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#searchingForTitles').hide();
@@ -122,14 +123,16 @@ define(function(require) {
         $('#formTitleSearch').show();
         $("#welcomeText").show();
         $('#titleList').show();
+        $('#titleListHeaderMessage').show();
         $('#articleContent').show();
         // Give the focus to the search field, and clean up the page contents
         $("#prefix").val("");
         $('#prefix').focus();
-        $("#titleList").html("");
+        $("#titleList").empty();
+        $('#titleListHeaderMessage').empty();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
-        $("#articleContent").html("");
+        $("#articleContent").empty();
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
@@ -146,6 +149,7 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $("#welcomeText").hide();
         $('#titleList').hide();
+        $('#titleListHeaderMessage').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
@@ -165,6 +169,7 @@ define(function(require) {
         $('#formTitleSearch').hide();
         $("#welcomeText").hide();
         $('#titleList').hide();
+        $('#titleListHeaderMessage').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
@@ -341,22 +346,27 @@ define(function(require) {
      * @param maxTitles
      */
     function populateListOfTitles(titleArray, maxTitles) {
-        var titleListDiv = $('#titleList');
+        
+        var titleListHeaderMessageDiv = $('#titleListHeaderMessage');
         var nbTitles = 0;
         if (titleArray) {
             nbTitles = titleArray.length;
         }
-        var titleListDivHtml;
+
+        var message;
         if (maxTitles >= 0 && nbTitles >= maxTitles) {
-            titleListDivHtml = maxTitles + " first titles below (refine your search) :<br/>";
+            message = maxTitles + " first titles below (refine your search) :";
         }
         else {
-            titleListDivHtml = nbTitles + " titles found :<br/>";
+            message = nbTitles + " titles found :";
         }
         if (nbTitles === 0) {
-            titleListDivHtml = "No titles found<br/>";
+            message = "No titles found";
         }
+        titleListHeaderMessageDiv.html(message);
 
+        var titleListDiv = $('#titleList');
+        var titleListDivHtml = "";
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
             titleListDivHtml += "<a href='#' titleid='" + title.toStringId()
@@ -367,6 +377,7 @@ define(function(require) {
         $('#searchingForTitles').hide();
         $('#geolocationProgress').hide();
         $('#titleList').show();
+        $('#titleListHeaderMessage').show();
     }
     
     
@@ -402,6 +413,7 @@ define(function(require) {
         
         var titleId = event.target.getAttribute("titleId");
         $("#titleList").empty();
+        $('#titleListHeaderMessage').empty();
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
         pushBrowserHistoryState(title._name);
@@ -570,6 +582,7 @@ define(function(require) {
         $('#searchingForTitles').show();
         $('#configuration').hide();
         $('#titleList').hide();
+        $('#titleListHeaderMessage').hide();
         $('#articleContent').empty();
         if (localArchive !== null && localArchive._titleFile !== null) {
             var longitude = $('#longitude').val();
