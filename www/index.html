@@ -107,16 +107,18 @@
                     The archive can be stored is any subdirectory of your SD-card (ex: /wikipedia_small_2010-08-14, or /evopedia/wikipedia_small_2010-08-14). If you have enough space, you can put several archives
                     <h4>Step 3 : enjoy wikipedia offline!</h4>
                     <h3>Privacy policy</h3>
-                    This application works offline. There is no central server. We do not collect any of your personal data and don't even know what you are doing with this application.
-                    <br />Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application. If not, the application will try to read the images of the articles on the wikipedia servers, which might indicate which articles you are reading.
+                    <h4>Short answer :</h4>
+                    This application works offline. We do not collect any of your personal data and don't even know what you are doing with this application.
+                    <br /><h4>Longer answer :</h4>
+                    Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application. If not, the application will try to read the images of the articles on the wikipedia servers, which might indicate which articles you are reading. Depending on your device, the "nearby articles" feature might also communicate with some Internet servers (usually Google) to geolocate your device (through your IP address and/or the Wifi networks detected around you)
                     <br />This application only reads the wikipedia archives of your SD-card : it does not read any other files.
                     <h3>Feedback / helping / contributing</h3>
-                    This is a first version of Evopedia. There are many ways this could be enhanced. In particular :
+                    There are many ways this could be enhanced. In particular :
                     <ul>
                         <li><a href="https://github.com/mossroy/evopedia-html5/issues/13" target="_blank">Issue #13</a> : All the user interface is in English : I plan to translate it at least in French. If you feel able to translate it in your language, please <a href="mailto:mossroy@free.fr?subject=%5BEvopedia%5D%20Translating%20Evopedia%20HTML5">contact me by email</a></li>
-                        <li><a href="https://github.com/mossroy/evopedia-html5/issues/4" target="_blank">Issue #4</a> : The performance when reading an article can probably be improved. I'm working on it</li>
+                        <li><a href="https://github.com/mossroy/evopedia-html5/issues/4" target="_blank">Issue #4</a> : The performance when reading an article can probably be improved</li>
                     </ul>
-                    Suggestions and patches are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5" target="_blank">github</a>.
+                    Suggestions and patches/pull requests are welcome : the source code is on <a href="https://github.com/mossroy/evopedia-html5" target="_blank">github</a>.
                     The <a href="https://github.com/mossroy/evopedia-html5/issues" target="_blank">bugtracker</a> is on github too. I use it as my roadmap.
                     <br />Alternatively, you can send your feedback <a href="mailto:mossroy@free.fr?subject=%5BEvopedia%5D%20Feedback%20about%20Evopedia%20HTML5">by email</a>.
                     <br />In all cases, please give me as much detail as you can : which device you are using, which version of Evopedia, which archive, which articles etc.
@@ -171,6 +173,7 @@
                         <li>Icons, algorithms and inspiration from <a href="https://github.com/evopedia/evopedia_qt/" target="_blank">Evopedia (Qt version)</a>, released under the <a href="https://www.gnu.org/licenses/" target="_blank">GPL v3 license</a></li>
                         <li>Mediawiki CSS from <a href="http://wikidev.net/" target="_blank">Wikidev</a>, released under the <a href="http://www.gnu.org/copyleft/gpl.html" target="_blank">GPL license</a></li>
                         <li>Geometry library from <a href="https://github.com/DavidDurman/joint/blob/master/src/geometry.js">JointJS</a>, released under the <a href="https://github.com/DavidDurman/joint/blob/master/LICENSE">Mozilla Public License v2</a> (small additions have been made to this javascript file)</li>
+                        <li><a href="https://cordova.apache.org/" target="_blank">Apache Cordova</a>, released under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache license 2.0</a></li>
                     </ul>
                     <h3>Other platforms/versions</h3>
                     Other Evopedia clients exist on various platforms. See the official site : <a href="http://www.evopedia.info/" target="_blank">http://www.evopedia.info/</a>
@@ -181,6 +184,7 @@
                         <li>On desktops, it works but is less user friendly : you have to manually select the files of your archive, and it's not yet easily deployable as a "web application". I tested it on recent Firefox and Chromium, but it probably works on some other browsers (it even seems to work on IE10). You can test on <a href="http://mossroy.github.io/evopedia-html5/" target="_blank">this online page</a> or from a local copy of the <a href="https://github.com/mossroy/evopedia-html5" target="_blank">source code</a></li>
                         <li>On Android, it does not seem to work for now (tried with internal browser, Chrome and Firefox) because you can not select all the files of an archive</li>
                         <li>On Android and desktops, the DeviceStorage API (which is used to browse the SD-card for archives) should become available at some point (see <a href="https://wiki.mozilla.org/index.php?title=WebAPI" target="_blank"> https://wiki.mozilla.org/index.php?title=WebAPI</a>). As soon as it is, I will update the application to make it available on these platforms</li>
+                        <li>An Apache Cordova port is on its way : it should make this HTML5/javascript version available on many mobile platforms</li>
                     </ul>
 
                 </div>
