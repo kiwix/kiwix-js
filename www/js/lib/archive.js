@@ -745,7 +745,6 @@ define(function(require) {
      * @param {type} callbackGetTitlesInCoordsInt
      */
     LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt) {
-        console.log("getTitlesInCoordsInt called : coord file number=" + coordinateFileIndex + " coordFilepos=" + coordFilePos + " x=" + thisRect.x + " y=" + thisRect.y + " w=" + thisRect.width + " h=" + thisRect.height + " callbackCounterForTitlesInCoordsSearch=" + callbackCounterForTitlesInCoordsSearch);
         var reader = new FileReader();
         reader.onerror = errorHandler;
         reader.onabort = function(e) {
@@ -755,9 +754,7 @@ define(function(require) {
         reader.onload = function(e) {
             callbackCounterForTitlesInCoordsSearch--;
             if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
-                console.log("Maximum titles already found : we do not look further");
                 if (callbackCounterForTitlesInCoordsSearch === 0) {
-                    console.log("callbackCounterForTitlesInCoordsSearch reached 0 : return the titles found");
                     callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
                 }
                 return;
@@ -766,7 +763,6 @@ define(function(require) {
             var byteArray = new Uint8Array(binaryTitleFile);
             // Compute selector
             var selector = util.readIntegerFrom2Bytes(byteArray, 0);
-            console.log("selector=" + selector);
             
             // 0xFFFF = 65535 in decimal
             if (selector === 65535) {
@@ -785,41 +781,23 @@ define(function(require) {
                 var rectNE = (new geometry.rect(thisRect.ne(), center)).normalized();
                 var rectSE = (new geometry.rect(thisRect.se(), center)).normalized();
                 var rectNW = (new geometry.rect(thisRect.nw(), center)).normalized();
-                console.log("center=" + center);
-                console.log("pos0=" + pos0);
-                console.log("pos1=" + pos1);
-                console.log("pos2=" + pos2);
-                console.log("pos3=" + pos3);
-                console.log("rectSW=" + rectSW);
-                console.log("rectNW=" + rectNW);
-                console.log("rectSE=" + rectSE);
-                console.log("rectNE=" + rectNE);
                 // Recursively call this function for each rectangle around
-                console.log("Does the target rectangle intersect SW?");
                 if (targetRect.intersect(rectSW)) {
-                    console.log("Target rectangle intersects SW : looking for archives in it");
                     callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                console.log("Does the target rectangle intersect NW?");
                 if (targetRect.intersect(rectNW)) {
-                    console.log("Target rectangle intersects NW : looking for archives in it");
                     callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectNW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                console.log("Does the target rectangle intersect SE?");
                 if (targetRect.intersect(rectSE)) {
-                    console.log("Target rectangle intersects SE : looking for archives in it");
                     callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectSE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                console.log("Does the target rectangle intersect NE?");
                 if (targetRect.intersect(rectNE)) {
-                    console.log("Target rectangle intersects NE : looking for archives in it");
                     callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos3, targetRect, rectNE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                console.log("end");
             }
             else {
                 // This is a leaf node : let's see if its articles are in the
@@ -828,25 +806,20 @@ define(function(require) {
                     var indexInByteArray = 2 + i * 12;
                     
                     var articleCoordinates = readCoordinates(byteArray, indexInByteArray);
-                    console.log("articleCoordinates=" + articleCoordinates);
                     // Read position (in title file) of title
                     var title_pos = util.readIntegerFrom4Bytes(byteArray, indexInByteArray + 8);
                     if (!targetRect.containsPoint(articleCoordinates)) {
-                        console.log("target rectangle does not contain this point");
                         continue;
                     }
                     // We currently do not use the article coordinates
                     // so it's no use putting it in the result list : we only put
                     // the position in title list
-                    console.log("target rectangle contains this point : adding to the list");
                     if (maxTitles >= 0 && titlePositionsFound.length < maxTitles) {
                         titlePositionsFound.push(title_pos);
-                        console.log("maxTitles="+maxTitles+" titlePositionsFound.length="+titlePositionsFound.length);
                     }
                 }
             }
             if (callbackCounterForTitlesInCoordsSearch === 0) {
-                console.log("callbackCounterForTitlesInCoordsSearch reached 0 : return the titles found");
                 callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
             }
 
