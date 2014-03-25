@@ -10,6 +10,8 @@ You can search among the article titles, and read any of them without any Intern
 All the content of wikipedia is inside your device (except the images). It also works with Wiktionary and Wikivoyage.
 If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing amount of knowledge and culture.
 
+Version 1.1 also adds the "articles nearby" feature: after geolocating your device, it lists articles found around your location.
+
 It uses wikipedia archives located at http://dumpathome.evopedia.info/dumps/finished
 You have to first download one of them (with a Bittorrent client) and store it on your SD-card.
 
