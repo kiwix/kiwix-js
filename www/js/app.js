@@ -133,6 +133,7 @@ define(function(require) {
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $("#articleContent").empty();
+        $('#searchingForTitles').hide();
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
@@ -153,6 +154,7 @@ define(function(require) {
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
+        $('#searchingForTitles').hide();
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -173,6 +175,7 @@ define(function(require) {
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
+        $('#searchingForTitles').hide();
         return false;
     });
     
