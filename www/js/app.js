@@ -75,14 +75,6 @@ define(function(require) {
             $('#navbarToggle').click();
         }
     });
-    $("#btnToggleArticlesNearbyExpertMode").on("click", function(e) {
-        if ($('#articlesNearbyExpertOptions').is(":visible")) {
-            $("#articlesNearbyExpertOptions").hide();
-        }
-        else {
-            $("#articlesNearbyExpertOptions").show();
-        }
-    });
     $("#btnRandomArticle").on("click", function(e) {
         goToRandomArticle();
         $("#welcomeText").hide();

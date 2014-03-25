@@ -66,19 +66,24 @@
 
 
                 <div class="container">
-                <form id="formTitleSearch" class="form-inline">
-                    <div class="input-group">
-                        <input type="text" id="prefix" placeholder="Search Wikipedia..." class="form-control" />
-                        <span class="input-group-btn">
-                            <a class="btn btn-default" id="searchTitles" href="#"><span class="glyphicon glyphicon-search"></span></a>
-                        </span>                
+                <form id="formTitleSearch">
+                    <div class="row">
+                        <span class="nopadding col-md-offset-1 col-sm-offset-1 col-md-8 col-sm-8 col-xs-7">
+                            <span class="input-group">
+                                <input type="text" id="prefix" placeholder="Search Wikipedia..." class="form-control" />
+                                <span class="input-group-btn">
+                                    <a class="btn btn-default" id="searchTitles" href="#"><span class="glyphicon glyphicon-search"></span></a>
+                                </span>
+                            </span>
+                        </span>
+                        <span class="nopadding col-md-2 col-sm-2 col-xs-5">
+                            <span class="btn-group btn-group-xs">
+                                <a class="btn btn-default btn-xs" id="btnArticlesNearby" href="#"><span class="glyphicon glyphicon-screenshot"></span><small><br/>Nearby</small></a>
+                                <a class="btn btn-default btn-xs" id="btnRandomArticle" href="#"><span class="glyphicon glyphicon-random"></span><small><br/>Random</small></a>
+                            </span>
+                        </span>
                     </div>
-                    <div id="articlesNearbyExpertOptions" style="display: none;">
-                        Latitude/Longitude/MaxDistance:
-                        <input type="text" id="latitude" size="8" /> <input type="text" id="longitude" size="8" /> <input type="text" id="maxDistance" size="8" /><br/>
-                    </div>
-                    or <a href="#" id="btnArticlesNearby">Find articles around me</a> (toggle <a href="#" id="btnToggleArticlesNearbyExpertMode">expert mode</a>) or <a href="#" id="btnRandomArticle">Go to a random article</a><br/>
-                    <div id="searchingForTitles" style="position: relative; z-index: 10; top: 20px; height: 0px; display: none;">
+                    <div id="searchingForTitles" class="floating" style="display: none;">
                         <img src="img/spinner.gif" alt="Please wait..." />
                     </div>
                 </form>
