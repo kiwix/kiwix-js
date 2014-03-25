@@ -101,7 +101,7 @@ define(function(require) {
         }
         storage.get(directory + 'wikipedia_' + prefixedFileNumber + '.dat')
             .then(function(file) {
-                currentLocalArchiveInstance.dataFiles[index] = file;
+                currentLocalArchiveInstance._dataFiles[index] = file;
                 currentLocalArchiveInstance.readDataFilesFromStorage(storage, directory,
                         index + 1);
             }, function(error) {
