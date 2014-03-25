@@ -580,75 +580,54 @@ define(function(require) {
         $('#titleListHeaderMessage').hide();
         $('#articleContent').empty();
         if (localArchive !== null && localArchive._titleFile !== null) {
-            var longitude = $('#longitude').val();
-            var latitude = $('#latitude').val();
-            var maxDistance = $('#maxDistance').val();
-            if (!maxDistance) {
-                maxDistance = MAX_DISTANCE_ARTICLES_NEARBY;
-            }
-            if (!longitude || !latitude) {
-                // If the user did not give any latitude/longitude, we try to use geolocation
-                if (navigator.geolocation) {
-                    var geo_options = {
-                        enableHighAccuracy: false,
-                        maximumAge: 600000, // 10 minutes
-                        timeout: Infinity 
-                    };
+            var maxDistance = MAX_DISTANCE_ARTICLES_NEARBY;
+            if (navigator.geolocation) {
+                var geo_options = {
+                    enableHighAccuracy: false,
+                    maximumAge: 600000, // 10 minutes
+                    timeout: Infinity 
+                };
 
-                    function geo_success(pos) {
-                        var crd = pos.coords;
-                        
-                        if ($('#geolocationProgress').is(":visible")) {
-                            $('#geolocationProgress').html("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude
-                                    + "<br/>Now looking for articles around this location...");
+                function geo_success(pos) {
+                    var crd = pos.coords;
 
-                            var rectangle = new geometry.rect(
-                                    crd.latitude - maxDistance,
-                                    crd.longitude - maxDistance,
-                                    maxDistance * 2,
-                                    maxDistance * 2);
+                    if ($('#geolocationProgress').is(":visible")) {
+                        $('#geolocationProgress').html("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude
+                                + "<br/>Now looking for articles around this location...");
 
-                            localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
-                        }
-                        else {
-                            // If the geolocationProgress div is not visible, it's because it has been canceled
-                            // So we simply ignore the result
-                        }
-                    };
+                        var rectangle = new geometry.rect(
+                                crd.latitude - maxDistance,
+                                crd.longitude - maxDistance,
+                                maxDistance * 2,
+                                maxDistance * 2);
 
-                    function geo_error(err) {
-                        if ($('#geolocationProgress').is(":visible")) {
-                            alert("Unable to geolocate your device : " + err.code + " : " + err.message);
-                            $('#geolocationProgress').hide();
-                            $('#searchingForTitles').hide();
-                        }
-                        else {
-                            // If the geolocationProgress div is not visible, it's because it has been canceled
-                            // So we simply ignore the result
-                        }
-                    };
-                    
-                    $('#geolocationProgress').html("Trying to geolocate your device...");
-                    $('#geolocationProgress').show();
-                    navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
-                }
-                else {
-                    alert("Geolocation is not supported (or disabled) on your device, or on your browser");
-                    $('#searchingForTitles').hide();
-                }
+                        localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                    }
+                    else {
+                        // If the geolocationProgress div is not visible, it's because it has been canceled
+                        // So we simply ignore the result
+                    }
+                };
+
+                function geo_error(err) {
+                    if ($('#geolocationProgress').is(":visible")) {
+                        alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+                        $('#geolocationProgress').hide();
+                        $('#searchingForTitles').hide();
+                    }
+                    else {
+                        // If the geolocationProgress div is not visible, it's because it has been canceled
+                        // So we simply ignore the result
+                    }
+                };
+
+                $('#geolocationProgress').html("Trying to geolocate your device...");
+                $('#geolocationProgress').show();
+                navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
             }
             else {
-                // The user gave a latitude/longitude : let's use it to find articles around that location
-                var rectangle = new geometry.rect(
-                        latitude - maxDistance,
-                        longitude - maxDistance,
-                        maxDistance * 2,
-                        maxDistance * 2);
-                        
-                $('#geolocationProgress').html("Looking for articles around the location you gave...");
-                $('#geolocationProgress').show();
-
-                localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                alert("Geolocation is not supported (or disabled) on your device, or on your browser");
+                $('#searchingForTitles').hide();
             }
 
         } else {
