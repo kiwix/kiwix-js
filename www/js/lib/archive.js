@@ -681,7 +681,7 @@ define(function(require) {
             LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), maxTitles, callbackFunction);
         }
         else {
-            callbackFunction(titlePositionsFound, maxTitles);
+            callbackFunction(titlePositionsFound, maxTitles, true);
         }
         
     };
@@ -708,7 +708,7 @@ define(function(require) {
                     LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction);
                 }
                 else {
-                    callbackFunction(titlesFound, maxTitles);
+                    callbackFunction(titlesFound, maxTitles, true);
                 }
             }
             else {

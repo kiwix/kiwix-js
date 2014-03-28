@@ -43,9 +43,12 @@ define(function(require) {
     // In fact, we use a square around the user, not a circle
     // This square has a length of twice the value of this constant
     // One degree is ~111 km at the equator
-    var MAX_DISTANCE_ARTICLES_NEARBY = 0.05;
+    var DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY = 0.01;
 
     var localArchive = null;
+    
+    // This max distance has a default value, but the user can make it change
+    var maxDistanceArticlesNearbySearch = DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY;
     
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
@@ -75,11 +78,31 @@ define(function(require) {
             $('#navbarToggle').click();
         }
     });
+    $("#btnEnlargeMaxDistance").on("click", function(e) {
+        maxDistanceArticlesNearbySearch = maxDistanceArticlesNearbySearch * 2 ;
+        searchTitlesNearby();
+        $("#welcomeText").hide();
+        $("#readingArticle").hide();
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+    });
+    $("#btnReduceMaxDistance").on("click", function(e) {
+        maxDistanceArticlesNearbySearch = maxDistanceArticlesNearbySearch / 2 ;
+        searchTitlesNearby();
+        $("#welcomeText").hide();
+        $("#readingArticle").hide();
+        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+            $('#navbarToggle').click();
+        }
+    });
     $("#btnRandomArticle").on("click", function(e) {
         goToRandomArticle();
         $("#welcomeText").hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
+        $('#suggestEnlargeMaxDistance').hide();
+        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#searchingForTitles').hide();
@@ -122,6 +145,8 @@ define(function(require) {
         $('#prefix').focus();
         $("#titleList").empty();
         $('#titleListHeaderMessage').empty();
+        $('#suggestEnlargeMaxDistance').hide();
+        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $("#articleContent").empty();
@@ -143,6 +168,8 @@ define(function(require) {
         $("#welcomeText").hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
+        $('#suggestEnlargeMaxDistance').hide();
+        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
@@ -164,6 +191,8 @@ define(function(require) {
         $("#welcomeText").hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
+        $('#suggestEnlargeMaxDistance').hide();
+        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
@@ -339,8 +368,10 @@ define(function(require) {
      * Display the list of titles with the given array of titles
      * @param {type} titleArray
      * @param maxTitles
+     * @param isNearbySearchSuggestions : it set to true, allow suggestions to
+     *  reduce or enlarge the distance where to look for articles nearby
      */
-    function populateListOfTitles(titleArray, maxTitles) {
+    function populateListOfTitles(titleArray, maxTitles, isNearbySearchSuggestions) {
         
         var titleListHeaderMessageDiv = $('#titleListHeaderMessage');
         var nbTitles = 0;
@@ -350,15 +381,25 @@ define(function(require) {
 
         var message;
         if (maxTitles >= 0 && nbTitles >= maxTitles) {
-            message = maxTitles + " first titles below (refine your search) :";
+            message = maxTitles + " first titles below (refine your search).";
         }
         else {
-            message = nbTitles + " titles found :";
+            message = nbTitles + " titles found.";
         }
         if (nbTitles === 0) {
-            message = "No titles found";
+            message = "No titles found.";
         }
+              
         titleListHeaderMessageDiv.html(message);
+        
+        // In case of nearby search, and too few or too many results,
+        // suggest the user to change the max Distance
+        if (isNearbySearchSuggestions && nbTitles <= maxTitles * 0.8) {
+            $('#suggestEnlargeMaxDistance').show();
+        }
+        if (isNearbySearchSuggestions && maxTitles >=0 && nbTitles >= maxTitles) {
+            $('#suggestReduceMaxDistance').show();
+        }
 
         var titleListDiv = $('#titleList');
         var titleListDivHtml = "";
@@ -409,6 +450,8 @@ define(function(require) {
         var titleId = event.target.getAttribute("titleId");
         $("#titleList").empty();
         $('#titleListHeaderMessage').empty();
+        $('#suggestEnlargeMaxDistance').hide();
+        $('#suggestReduceMaxDistance').hide();
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
         pushBrowserHistoryState(title._name);
@@ -578,9 +621,10 @@ define(function(require) {
         $('#configuration').hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
+        $('#suggestEnlargeMaxDistance').hide();
+        $('#suggestReduceMaxDistance').hide();
         $('#articleContent').empty();
         if (localArchive !== null && localArchive._titleFile !== null) {
-            var maxDistance = MAX_DISTANCE_ARTICLES_NEARBY;
             if (navigator.geolocation) {
                 var geo_options = {
                     enableHighAccuracy: false,
@@ -596,10 +640,10 @@ define(function(require) {
                                 + "<br/>Now looking for articles around this location...");
 
                         var rectangle = new geometry.rect(
-                                crd.latitude - maxDistance,
-                                crd.longitude - maxDistance,
-                                maxDistance * 2,
-                                maxDistance * 2);
+                                crd.latitude - maxDistanceArticlesNearbySearch,
+                                crd.longitude - maxDistanceArticlesNearbySearch,
+                                maxDistanceArticlesNearbySearch * 2,
+                                maxDistanceArticlesNearbySearch * 2);
 
                         localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
                     }
