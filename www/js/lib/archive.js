@@ -671,14 +671,15 @@ define(function(require) {
      * into Title instances (asynchronously)
      * 
      * @param {type} localArchive
+     * @param {type} targetRect
      * @param {type} titlePositionsFound
      * @param {type} maxTitles
      * @param {type} callbackFunction
      */
-    LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, titlePositionsFound, maxTitles, callbackFunction) {
+    LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, targetRect, titlePositionsFound, maxTitles, callbackFunction) {
         // Search is over : now let's convert the title positions into Title instances
         if (titlePositionsFound && titlePositionsFound.length > 0) {
-            LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, 0, new Array(), maxTitles, callbackFunction);
+            LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, targetRect, titlePositionsFound, 0, new Array(), maxTitles, callbackFunction);
         }
         else {
             callbackFunction(titlePositionsFound, maxTitles, true);
@@ -692,13 +693,14 @@ define(function(require) {
      * When all the list is processed, the callbackFunction is called with the Title list
      * 
      * @param {type} localArchive
+     * @param {type} targetRect
      * @param {type} titlePositionsFound
      * @param {type} i
      * @param {type} titlesFound
      * @param maxTitles
      * @param {type} callbackFunction
      */
-    LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction) {
+    LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, targetRect, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction) {
         var titleOffset = titlePositionsFound[i]._titleOffset;
         var geolocation = titlePositionsFound[i]._geolocation;
         localArchive.getTitlesStartingAtOffset(titleOffset, 1, function(titleList) {
@@ -708,10 +710,18 @@ define(function(require) {
                 titlesFound.push(title);
                 i++;
                 if (i<titlePositionsFound.length) {
-                    LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction);
+                    LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, targetRect, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction);
                 }
                 else {
-                    callbackFunction(titlesFound, maxTitles, true);
+                    // Sort the titles, based on their distance from here
+                    // in order to have the closest first
+                    var currentPosition = targetRect.center();
+                    var sortedTitlesFound = titlesFound.sort(function(a,b) {
+                       var distanceA = currentPosition.distance(a._geolocation);
+                       var distanceB = currentPosition.distance(b._geolocation);
+                       return distanceA - distanceB;
+                    });
+                    callbackFunction(sortedTitlesFound, maxTitles, true);
                 }
             }
             else {
@@ -758,7 +768,7 @@ define(function(require) {
             callbackCounterForTitlesInCoordsSearch--;
             if (maxTitles >= 0 && titlePositionsFound.length >= maxTitles) {
                 if (callbackCounterForTitlesInCoordsSearch === 0) {
-                    callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
+                    callbackGetTitlesInCoordsInt(localArchive, targetRect, titlePositionsFound, maxTitles, callbackFunction);
                 }
                 return;
             }
@@ -823,7 +833,7 @@ define(function(require) {
                 }
             }
             if (callbackCounterForTitlesInCoordsSearch === 0) {
-                callbackGetTitlesInCoordsInt(localArchive, titlePositionsFound, maxTitles, callbackFunction);
+                callbackGetTitlesInCoordsInt(localArchive, targetRect, titlePositionsFound, maxTitles, callbackFunction);
             }
 
         };
