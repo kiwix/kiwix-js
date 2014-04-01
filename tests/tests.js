@@ -341,7 +341,7 @@ define(function(require) {
         });
         
         asyncTest("check articles found nearby London", function() {
-            expect(3);
+            expect(5);
             var callbackTitlesNearbyLondonFound = function(titleList) {
                 ok(titleList !== null, "Some titles should be found");
                 equal(titleList.length, 1, "1 title should be found");
@@ -353,6 +353,12 @@ define(function(require) {
                     }
                 }
                 ok(titleLondon !== null, "The title 'London' should be found");
+                
+                // Check coordinates of London
+                var x = titleLondon._geolocation.x;
+                var y = titleLondon._geolocation.y;
+                equal(x, 51.50777816772461, "London should be at latitude 51.50777816772461");
+                equal(y, -0.12805555760860443, "London should be at longitude -0.12805555760860443");
                
                 start();
             };

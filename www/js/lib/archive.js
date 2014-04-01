@@ -27,6 +27,7 @@ define(function(require) {
     var util = require('util');
     var geometry = require('geometry');
     var jQuery = require('jquery');
+    var evopediaTitle = require('title');
     var titleIterators = require('titleIterators');
     
     // Declare the webworker that can uncompress with bzip2 algorithm
@@ -698,10 +699,13 @@ define(function(require) {
      * @param {type} callbackFunction
      */
     LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction) {
-        var titleOffset = titlePositionsFound[i];
+        var titleOffset = titlePositionsFound[i]._titleOffset;
+        var geolocation = titlePositionsFound[i]._geolocation;
         localArchive.getTitlesStartingAtOffset(titleOffset, 1, function(titleList) {
             if (titleList && titleList.length === 1) {
-                titlesFound.push(titleList[0]);
+                var title = titleList[0];
+                title._geolocation = geolocation;
+                titlesFound.push(title);
                 i++;
                 if (i<titlePositionsFound.length) {
                     LocalArchive.readTitlesFromTitleCoordsInTitleFile(localArchive, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction);
@@ -810,11 +814,11 @@ define(function(require) {
                     if (!targetRect.containsPoint(articleCoordinates)) {
                         continue;
                     }
-                    // We currently do not use the article coordinates
-                    // so it's no use putting it in the result list : we only put
-                    // the position in title list
                     if (maxTitles >= 0 && titlePositionsFound.length < maxTitles) {
-                        titlePositionsFound.push(title_pos);
+                        var title = new evopediaTitle.Title();
+                        title._titleOffset = title_pos;
+                        title._geolocation = articleCoordinates;
+                        titlePositionsFound.push(title);
                     }
                 }
             }

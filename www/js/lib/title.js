@@ -37,6 +37,7 @@ define(function(require) {
         this._archive = null;
         this._titleOffset = null;
         this._titleEntryLength = null;
+        this._geolocation = null;
     };
 
     Title.prototype.getReadableName = function() {
@@ -137,7 +138,7 @@ define(function(require) {
      * Serialize the title in a readable way
      */
     Title.prototype.toString = function() {
-        return "title.id = " + this.toStringId() + "title.name = " + this._name + " title.fileNr = " + this._fileNr + " title.blockStart = " + this._blockStart + " title.blockOffset = " + this._blockOffset + " title.articleLength = " + this._articleLength;
+        return "title.id = " + this.toStringId() + " title.name = " + this._name + " title.fileNr = " + this._fileNr + " title.blockStart = " + this._blockStart + " title.blockOffset = " + this._blockOffset + " title.articleLength = " + this._articleLength;
     };
     
     /**
