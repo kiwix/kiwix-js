@@ -405,8 +405,18 @@ define(function(require) {
         var titleListDivHtml = "";
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
+            
+            var distanceFromHereHtml = "";
+            if (title._geolocation && currentCoordinates) {
+                // If we know the current position and the title position, we display the distance
+                var distanceKm = (currentCoordinates.distance(title._geolocation) * 6371).toFixed(1);
+                distanceFromHereHtml = " (" + distanceKm + " km)";
+            }
+            
             titleListDivHtml += "<a href='#' titleid='" + title.toStringId()
-                    + "' class='list-group-item'>" + title.getReadableName() + "</a>";
+                    + "' class='list-group-item'>" + title.getReadableName()
+                    + distanceFromHereHtml 
+                    + "</a>";
         }
         titleListDiv.html(titleListDivHtml);
         $("#titleList a").on("click",handleTitleClick);
@@ -614,6 +624,8 @@ define(function(require) {
         });
     }
     
+    var currentCoordinates = null;
+    
     /**
      * Looks for titles located around where the device is geolocated
      */
@@ -639,10 +651,12 @@ define(function(require) {
                     if ($('#geolocationProgress').is(":visible")) {
                         $('#geolocationProgress').html("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude
                                 + "<br/>Now looking for articles around this location...");
+                        
+                        currentCoordinates = new geometry.point(crd.latitude, crd.longitude);
 
                         var rectangle = new geometry.rect(
-                                crd.latitude - maxDistanceArticlesNearbySearch,
-                                crd.longitude - maxDistanceArticlesNearbySearch,
+                                currentCoordinates.x - maxDistanceArticlesNearbySearch,
+                                currentCoordinates.y - maxDistanceArticlesNearbySearch,
                                 maxDistanceArticlesNearbySearch * 2,
                                 maxDistanceArticlesNearbySearch * 2);
 
