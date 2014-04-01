@@ -473,54 +473,53 @@ define(function(require) {
             alert('Data file read cancelled');
         };
         reader.onload = function(e) {
-            try {
-                var compressedArticles = e.target.result;
-                webworkerBzip2.onerror = function(event){
-                    // TODO can probably be replaced by some error handler at window level
-                    alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the names of the archive and article, and the following info : message="
-                            + event.message + " filename=" + event.filename + " line number=" + event.lineno );
-                    throw new Error("Error during bzip2 decompression : " + event.message + " (" + event.filename + ":" + event.lineno + ")");
-                };
-                webworkerBzip2.onmessage = function(event){
-                    switch (event.data.cmd){
-                        case "result":
-                            var htmlArticles = event.data.msg;
-                            // Start reading at offset, and keep length characters
-                            var htmlArticle = htmlArticles.substring(title._blockOffset,
-                                    title._blockOffset + title._articleLength);
-                            if (htmlArticle.length >= title._articleLength) {
-                                // Keep only length characters
-                                htmlArticle = htmlArticle.substring(0, title._articleLength);
-                                // Decode UTF-8 encoding
-                                htmlArticle = decodeURIComponent(escape(htmlArticle));
-                                callbackFunction(title, htmlArticle);
-                            } else {
-                                // TODO : throw exception if we reach the end of the file
-                                currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
-                                        callbackFunction);
-                            }                
-                            break;
-                        case "recurse":
-                            currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE, callbackFunction);
-                            break;
-                        case "debug":
-                            console.log(event.data.msg);
-                            break;
-                        case "error":
-                            // TODO can probably be replaced by some error handler at window level
-                            alert("An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the names of the archive and article, and the following info : message="
-                            + event.data.msg );
-                            throw new Error("Error during bzip2 decompression : " + event.data.msg);
-                            break;
-                    }
-                };
-                webworkerBzip2.postMessage({cmd : 'uncompress', msg :
-                                            new Uint8Array(compressedArticles)});
-                
-            }
-            catch (e) {
-                callbackFunction("Error : " + e);
-            }
+            var compressedArticles = e.target.result;
+            webworkerBzip2.onerror = function(event){
+                // TODO can probably be replaced by some error handler at window level
+                callbackFunction(null, "An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the names of the archive and article, and the following info : message="
+                        + event.message + " filename=" + event.filename + " line number=" + event.lineno);
+            };
+            webworkerBzip2.onmessage = function(event){
+                switch (event.data.cmd){
+                    case "result":
+                        var htmlArticles = event.data.msg;
+                        // Start reading at offset, and keep length characters
+                        var htmlArticle = htmlArticles.substring(title._blockOffset,
+                                title._blockOffset + title._articleLength);
+                        if (htmlArticle.length >= title._articleLength) {
+                            // Keep only length characters
+                            htmlArticle = htmlArticle.substring(0, title._articleLength);
+                            // Decode UTF-8 encoding
+                            htmlArticle = decodeURIComponent(escape(htmlArticle));
+                            callbackFunction(title, htmlArticle);
+                        } else {
+                            // TODO : throw exception if we reach the end of the file
+                            currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE,
+                                    callbackFunction);
+                        }                
+                        break;
+                    case "recurse":
+                        currentLocalArchiveInstance.readArticleChunk(title, dataFile, reader, readLength + CHUNK_SIZE, callbackFunction);
+                        break;
+                    case "debug":
+                        console.log(event.data.msg);
+                        break;
+                    case "error":
+                        // TODO can probably be replaced by some error handler at window level
+                        if (event.data.msg === "No magic number found") {
+                            // See https://github.com/mossroy/evopedia-html5/issues/77
+                            // It's a temporary workaround until https://github.com/mossroy/evopedia-html5/issues/6 is fixed
+                            callbackFunction(null, "Oops : this article can not be displayed for now. It's a known bug that is not solved yet. See <a href='https://github.com/mossroy/evopedia-html5/issues/6' target='_blank'>issue #6 on Github</a> for more info");
+                        }
+                        else {
+                            callbackFunction(null, "An unexpected error occured during bzip2 decompression. Please report it to us by email or through Github (see About section), with the names of the archive and article, and the following info : message="
+                                + event.data.msg);
+                        }
+                        break;
+                }
+            };
+            webworkerBzip2.postMessage({cmd : 'uncompress', msg :
+                                        new Uint8Array(compressedArticles)});
         };
         var blob = dataFile.slice(title._blockStart, title._blockStart
                 + readLength);

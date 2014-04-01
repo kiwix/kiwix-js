@@ -499,6 +499,7 @@ define(function(require) {
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
+     * NB : in some error cases, the given title can be null, and the htmlArticle contains the error message
      * @param {type} title
      * @param {type} htmlArticle
      */
