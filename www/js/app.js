@@ -726,6 +726,7 @@ define(function(require) {
             }
             else {
                 $("#articleName").html(title._name);
+                pushBrowserHistoryState(title._name);
                 $("#readingArticle").show();
                 $("#articleContent").html("");
                 readArticle(title);
