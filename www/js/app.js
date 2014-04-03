@@ -649,7 +649,8 @@ define(function(require) {
                     var crd = pos.coords;
 
                     if ($('#geolocationProgress').is(":visible")) {
-                        $('#geolocationProgress').html("Found your location : latitude=" + crd.latitude + ", longitude=" + crd.longitude
+                        $('#geolocationProgress').prop("step","SearchInTitleIndex");
+                        $('#geolocationProgress').html("Found your location : lat:" + crd.latitude.toFixed(7) + ", long:" + crd.longitude.toFixed(7)
                                 + "<br/>Now looking for articles around this location...");
                         
                         currentCoordinates = new geometry.point(crd.latitude, crd.longitude);
@@ -680,9 +681,28 @@ define(function(require) {
                     }
                 };
 
-                $('#geolocationProgress').html("Trying to geolocate your device...");
+                $('#geolocationProgress').html("Trying to find your location...");
+                // This property helps the code to know in which step we currently are
+                $('#geolocationProgress').prop("step","Geolocate");
                 $('#geolocationProgress').show();
                 navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
+                
+                // Give some feedback to the user of the geolocation takes some time
+                setTimeout(function(){
+                    if ($('#geolocationProgress').is(":visible") && $('#geolocationProgress').prop("step") === "Geolocate") {
+                        $('#geolocationProgress').html("Still trying to find your location... Depending on your device, this might take some time");
+                        setTimeout(function(){
+                            if ($('#geolocationProgress').is(":visible") && $('#geolocationProgress').prop("step") === "Geolocate") {
+                                $('#geolocationProgress').html("Still trying to find your location... On some devices, there might be a prompt for confirmation on the screen. Please confirm to allow geolocation of your device.");
+                                setTimeout(function() {
+                                    if ($('#geolocationProgress').is(":visible") && $('#geolocationProgress').prop("step") === "Geolocate") {
+                                        $('#geolocationProgress').html("Still trying to find your location... If you don't want to wait, you might try to type the name of a famous location around you.");
+                                    }
+                                }, 10000);
+                            }
+                        },10000);
+                    }
+                },5000);
             }
             else {
                 alert("Geolocation is not supported (or disabled) on your device, or on your browser");
