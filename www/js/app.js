@@ -110,6 +110,10 @@ define(function(require) {
             $('#navbarToggle').click();
         }
     });
+    
+    $('#btnRescanDeviceStorage').on("click", function(e) {
+        searchForArchivesInStorage();
+    });
     // Bottom bar :
     $('#btnBack').on('click', function(e) {
         history.back();
@@ -202,7 +206,18 @@ define(function(require) {
     
     // Detect if DeviceStorage is available
     var storages = [];
-    function searchForArchives() {
+    function searchForArchivesInPreferencesOrStorage() {
+        // First see if the list of archives is stored in the cookie
+        var listOfArchivesFromCookie = cookies.getItem("listOfArchives");
+        if (listOfArchivesFromCookie !== null && listOfArchivesFromCookie !== undefined && listOfArchivesFromCookie !== "") {
+            var directories = listOfArchivesFromCookie.split('|');
+            populateDropDownListOfArchives(directories);
+        }
+        else {
+            searchForArchivesInStorage();
+        }
+    }
+    function searchForArchivesInStorage() {
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
@@ -228,12 +243,12 @@ define(function(require) {
     } else if ($.isFunction(window.requestFileSystem)) { // cordova
         window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs) {
             storages[0] = new osabstraction.StoragePhoneGap(fs);
-            searchForArchives();
+            searchForArchivesInPreferencesOrStorage();
         });
     }
 
     if (storages !== null && storages.length > 0) {
-        searchForArchives();
+        searchForArchivesInPreferencesOrStorage();
     }
     else {
         // If DeviceStorage is not available, we display the file select components
@@ -274,6 +289,9 @@ define(function(require) {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
         }
+        // Store the list of archives in a cookie, to avoid rescanning at each start
+        cookies.setItem("listOfArchives", archiveDirectories.join('|'), Infinity);
+        
         $('#archiveList').on('change', setLocalArchiveFromArchiveList);
         if (comboArchiveList.options.length > 0) {
             var lastSelectedArchive = cookies.getItem("lastSelectedArchive");
@@ -299,7 +317,7 @@ define(function(require) {
         var archiveDirectory = $('#archiveList').val();
         localArchive = new evopediaArchive.LocalArchive();
         localArchive.initializeFromDeviceStorage(storages, archiveDirectory);
-        cookies.setItem("lastSelectedArchive",archiveDirectory,Infinity);
+        cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
         // The archive is set : go back to home page to start searching
         $("#btnHome").click();
     }
@@ -443,7 +461,7 @@ define(function(require) {
             }
             alert("You selected the 'small' archive. This archive is OK for testing, but be aware that very few hyperlinks in the articles will work because it's only a very small subset of the English dump.");
             // We will not display this warning again for one day
-            cookies.setItem("warnedSmallArchive",true,86400);
+            cookies.setItem("warnedSmallArchive", true, 86400);
         }
     }
     
