@@ -224,23 +224,13 @@ define(function(require) {
         evopediaArchive.LocalArchive.scanForArchives(storages, populateDropDownListOfArchives);
     }
 
-    if ($.isFunction(navigator.getDeviceStorage)) {
-        if ($.isFunction(navigator.getDeviceStorages)) {
-            // The method getDeviceStorages is available (FxOS>=1.1)
-            // We have to scan all the DeviceStorages, because getDeviceStorage
-            // only returns the default Device Storage.
-            // See https://bugzilla.mozilla.org/show_bug.cgi?id=885753
-            storages = $.map(navigator.getDeviceStorages("sdcard"), function(s) {
-                return new osabstraction.StorageFirefoxOS(s);
-            });
-        }
-        else {
-            // The method getDeviceStorages is not available (FxOS 1.0)
-            // The fallback is to use getDeviceStorage
-            storages[0] = new osabstraction.StorageFirefoxOS(
-                                 navigator.getDeviceStorage("sdcard"));
-        }
-    } else if ($.isFunction(window.requestFileSystem)) { // cordova
+    if ($.isFunction(navigator.getDeviceStorages)) {
+        // The method getDeviceStorages is available (FxOS>=1.1)
+        storages = $.map(navigator.getDeviceStorages("sdcard"), function(s) {
+            return new osabstraction.StorageFirefoxOS(s);
+        });
+    } else if ($.isFunction(window.requestFileSystem)) {
+        // The requestFileSystem is available (Cordova)
         window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs) {
             storages[0] = new osabstraction.StoragePhoneGap(fs);
             searchForArchivesInPreferencesOrStorage();

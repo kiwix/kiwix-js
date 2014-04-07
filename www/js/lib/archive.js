@@ -264,9 +264,9 @@ define(function(require) {
             }
         }
         else {
-            // This happens with FxOS 1.0
-            // In this case, we use the first storage of the list
-            // (there should be only one)
+            // This happens when the archiveDirectory is not prefixed by the name of the storage
+            // (in the Simulator, or with FxOs 1.0, or probably on devices that only have one device storage)
+            // In this case, we use the first storage of the list (there should be only one)
             if (storages.length === 1) {
                 selectedStorage = storages[0];
             }
