@@ -417,7 +417,7 @@ define(function(require) {
             var distanceFromHereHtml = "";
             if (title._geolocation && currentCoordinates) {
                 // If we know the current position and the title position, we display the distance and cardinal direction
-                var distanceKm = (currentCoordinates.distance(title._geolocation) * 6371 / 60).toFixed(1);
+                var distanceKm = (currentCoordinates.distance(title._geolocation) * 6371 * Math.PI / 180).toFixed(1);
                 var cardinalDirection = currentCoordinates.bearing(title._geolocation);
                 distanceFromHereHtml = " (" + distanceKm + " km " + cardinalDirection + ")";
             }
