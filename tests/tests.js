@@ -283,6 +283,21 @@ define(function(require) {
             ok(rect1.contains(rect6), "rect1 should contain rect6");
             ok(rect1.contains(rect7), "rect1 should contain rect7");
         });
+        test("check bearing algorithm", function() {
+            var point1 = new geometry.point(0,0);
+            var point2 = new geometry.point(2,0);
+            var line1 = new geometry.line(point1, point2);
+            equal(line1.bearing(), "N", "Bearing of line1 should be N");
+            var pointLondon = new geometry.point(51.50777816772461, -0.12805555760860443);
+            var pointParis = new geometry.point(48.856614, 2.3522219000000177);
+            var pointAmsterdam = new geometry.point(52.326947, 4.741287);
+            var lineLondonParis = new geometry.line(pointLondon, pointParis);
+            var lineParisLondon = new geometry.line(pointParis, pointLondon);
+            var lineLondonAmsterdam = new geometry.line(pointLondon, pointAmsterdam);
+            equal(lineLondonParis.bearing(), "SE", "Bearing from London to Paris sould be SE");
+            equal(lineParisLondon.bearing(), "NW", "Bearing from Paris to London sould be NW");
+            equal(lineLondonAmsterdam.bearing(), "E", "Bearing from London to Amsterdam sould be E");
+        });
         
         module("utils");
         test("check reading an IEEE_754 float from 4 bytes" ,function() {

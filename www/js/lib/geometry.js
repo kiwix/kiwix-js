@@ -96,6 +96,10 @@ define(function(require) {
         distance: function(p) {
 	    return line(this, p).length();
         },
+        // Returns the bearing between me and point 'p'
+        bearing: function(p) {
+            return line(this, p).bearing();
+        },
         // Returns a manhattan (taxi-cab) distance between me and point `p`.
         manhattanDistance: function(p) {
             return abs(p.x - this.x) + abs(p.y - this.y);
@@ -245,6 +249,31 @@ define(function(require) {
 	    }
 	    return point(this.start.x + (alpha * pt1Dir.x / det),
 		         this.start.y + (alpha * pt1Dir.y / det));
+        },
+        /**
+         * Returns the bearing (cardinal direction) of the line. For example N, W, or SE
+         * @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N
+         */
+        bearing: function() {
+            var lat1 = this.start.x * Math.PI / 180;
+            var lat2 = this.end.x * Math.PI / 180;
+            var lon1 = this.start.y * Math.PI / 180;
+            var lon2 = this.end.y * Math.PI / 180;
+            var dLon = lon2 - lon1;
+            var y = Math.sin(dLon) * Math.cos(lat2);
+            var x = Math.cos(lat1) * Math.sin(lat2) -
+                    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+            var brng = Math.atan2(y, x) / Math.PI * 180;
+
+            var bearings = ["NE", "E", "SE", "S", "SW", "W", "NW", "N"];
+
+            var index = brng - 22.5;
+            if (index < 0)
+                index += 360;
+            index = parseInt(index / 45);
+
+            return(bearings[index]);
+
         }
     };
 
