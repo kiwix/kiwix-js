@@ -5,6 +5,11 @@
 //      Geometry library.
 //      (c) 2011-2013 client IO
 //      Copied from https://github.com/DavidDurman/joint/blob/master/src/geometry.js
+//      and modified in order to :
+//      - add a few functions necessary to Evopedia
+//      - use the cartesian coordinate system (x goes right, y goes up)
+//      It might have inverted the clockwise/anticlockwise directions for angles/rotations
+//      but it doesn't matter because they are not used by Evopedia
 
 define(function(require) {
 
@@ -255,15 +260,15 @@ define(function(require) {
          * @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N
          */
         bearing: function() {
-            var lat1 = this.start.x * Math.PI / 180;
-            var lat2 = this.end.x * Math.PI / 180;
-            var lon1 = this.start.y;
-            var lon2 = this.end.y;
-            var dLon = (lon2 - lon1) * Math.PI / 180;
-            var y = Math.sin(dLon) * Math.cos(lat2);
-            var x = Math.cos(lat1) * Math.sin(lat2) -
-                    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-            var brng = Math.atan2(y, x) / Math.PI * 180;
+            var lat1 = toRad(this.start.y);
+            var lat2 = toRad(this.end.y);
+            var lon1 = this.start.x;
+            var lon2 = this.end.x;
+            var dLon = toRad(lon2 - lon1);
+            var y = sin(dLon) * cos(lat2);
+            var x = cos(lat1) * sin(lat2) -
+                    sin(lat1) * cos(lat2) * cos(dLon);
+            var brng = toDeg(atan2(y, x));
 
             var bearings = ["NE", "E", "SE", "S", "SW", "W", "NW", "N"];
 
@@ -289,13 +294,13 @@ define(function(require) {
             x = x.x;        
         }
         if (w === undefined && h === undefined) {
-            // The rectangle is built from topLeft and bottomRight points
-            var topLeft = x;
-            var bottomRight = y;
-            this.x = topLeft.x;
-            this.y = bottomRight.y;
-            this.width = bottomRight.x - topLeft.x;
-            this.height = topLeft.y - bottomRight.y;
+            // The rectangle is built from bottomLeft and topRight points
+            var bottomLeft = x;
+            var topRight = y;
+            this.x = bottomLeft.x;
+            this.y = bottomLeft.y;
+            this.width = topRight.x - bottomLeft.x;
+            this.height = topRight.y - bottomLeft.y;
         }
         else {
             this.x = x;
@@ -321,18 +326,11 @@ define(function(require) {
         ne : function() {
             return point(this.x + this.width, this.y + this.height);
         },
-        // TODO : rename all this right/left/top/bottom terms because they are misleading (and wrong) in the Evopedia context : replace with N/S/E/W
         origin: function() {
             return point(this.x, this.y);
         },
         corner: function() {
-            return point(this.x + this.width, this.y + this.height);
-        },
-        topRight: function() {
-            return point(this.x + this.width, this.y);
-        },
-        bottomLeft: function() {
-            return point(this.x, this.y + this.height);
+            return this.ne();
         },
         center: function() {
             return point(this.x + this.width/2, this.y + this.height/2);
@@ -356,8 +354,8 @@ define(function(require) {
             p = point(p);
 	    var distToLeft = p.x - this.x;
 	    var distToRight = (this.x + this.width) - p.x;
-	    var distToTop = p.y - this.y;
-	    var distToBottom = (this.y + this.height) - p.y;
+	    var distToBottom = p.y - this.y;
+	    var distToTop = (this.y + this.height) - p.y;
 	    var closest = distToLeft;
 	    var side = 'left';
             
@@ -365,21 +363,21 @@ define(function(require) {
 	        closest = distToRight;
 	        side = 'right';
 	    }
-	    if (distToTop < closest) {
-	        closest = distToTop;
-	        side = 'top';
-	    }
 	    if (distToBottom < closest) {
 	        closest = distToBottom;
 	        side = 'bottom';
+	    }
+	    if (distToTop < closest) {
+	        closest = distToTop;
+	        side = 'top';
 	    }
 	    return side;
         },
         // @return {bool} true if point p is insight me
         containsPoint: function(p) {
             p = point(p);
-	    if (p.x > this.x && p.x < this.x + this.width &&
-	        p.y > this.y && p.y < this.y + this.height) {
+	    if (p.x >= this.x && p.x <= this.x + this.width &&
+	        p.y >= this.y && p.y <= this.y + this.height) {
 	        return true;
 	    }
 	    return false;
@@ -436,8 +434,8 @@ define(function(require) {
 	        switch (side){
 	          case "right": return point(this.x + this.width, p.y);
 	          case "left": return point(this.x, p.y);
-	          case "bottom": return point(p.x, this.y + this.height);
-	          case "top": return point(p.x, this.y);
+	          case "bottom": return point(p.x, this.y);
+	          case "top": return point(p.x, this.y + this.height);
 	        }
 	    }
 	    return p.adhereToRect(this);
@@ -453,10 +451,10 @@ define(function(require) {
             
 	    // (clockwise, starting from the top side)
 	    var sides = [
-	        line(this.origin(), this.topRight()),
-	        line(this.topRight(), this.corner()),
-	        line(this.corner(), this.bottomLeft()),
-	        line(this.bottomLeft(), this.origin())
+	        line(this.sw(), this.nw()),
+	        line(this.nw(), this.ne()),
+	        line(this.ne(), this.se()),
+	        line(this.se(), this.sw())
 	    ];
 	    var connector = line(center, p);
             

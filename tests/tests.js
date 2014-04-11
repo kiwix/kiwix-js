@@ -219,7 +219,7 @@ define(function(require) {
             var point4 = new geometry.point(7,9);
             var point5 = new geometry.point(4,6);
             ok(!rect1.containsPoint(point1), "rect1 does not contain point1");
-            ok(!rect1.containsPoint(point2), "rect1 does not contain point2");
+            ok(rect1.containsPoint(point2), "rect1 contains point2");
             ok(rect1.containsPoint(point3), "rect1 contains point3");
             ok(!rect1.containsPoint(point4), "rect1 does not contain point4");
             ok(rect1.containsPoint(point5), "rect1 contains point5");
@@ -257,10 +257,10 @@ define(function(require) {
                 && normalizedRect5.width===4
                 && normalizedRect5.height===1, "rect5 successfully normalized by switching bottom right and top left corners");
         });
-        test("check rectangle constructor from top-left and bottom-right points", function() {
-            var topLeft = new geometry.point(2,5);
-            var bottomRight = new geometry.point(5,3);
-            var rect = new geometry.rect(topLeft, bottomRight);
+        test("check rectangle constructor from bottom-left and top-right points", function() {
+            var bottomLeft = new geometry.point(2,3);
+            var topRight = new geometry.point(5,5);
+            var rect = new geometry.rect(bottomLeft, topRight);
             equal(rect.x, 2 , "rect.x should be 2");
             equal(rect.y, 3 , "rect.y should be 3");
             equal(rect.width, 3 , "rect.width should be 3");
@@ -285,12 +285,12 @@ define(function(require) {
         });
         test("check bearing algorithm", function() {
             var point1 = new geometry.point(0,0);
-            var point2 = new geometry.point(2,0);
+            var point2 = new geometry.point(0,2);
             var line1 = new geometry.line(point1, point2);
             equal(line1.bearing(), "N", "Bearing of line1 should be N");
-            var pointLondon = new geometry.point(51.50777816772461, -0.12805555760860443);
-            var pointParis = new geometry.point(48.856614, 2.3522219000000177);
-            var pointAmsterdam = new geometry.point(52.326947, 4.741287);
+            var pointLondon = new geometry.point(-0.12805555760860443, 51.50777816772461);
+            var pointParis = new geometry.point(2.3522219000000177, 48.856614);
+            var pointAmsterdam = new geometry.point(4.741287, 52.326947);
             var lineLondonParis = new geometry.line(pointLondon, pointParis);
             var lineParisLondon = new geometry.line(pointParis, pointLondon);
             var lineLondonAmsterdam = new geometry.line(pointLondon, pointAmsterdam);
@@ -339,7 +339,7 @@ define(function(require) {
                
                 start();
             };
-            var rectFranceGermany = new geometry.rect(40,0,10,10);
+            var rectFranceGermany = new geometry.rect(0,40,10,10);
             localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
         
@@ -351,7 +351,7 @@ define(function(require) {
                
                 start();
             };
-            var rectFranceGermany = new geometry.rect(40,0,10,10);
+            var rectFranceGermany = new geometry.rect(0,40,10,10);
             localArchive.getTitlesInCoords(rectFranceGermany, 2, callbackTitlesNearbyMaximumFound);
         });
         
@@ -372,12 +372,12 @@ define(function(require) {
                 // Check coordinates of London
                 var x = titleLondon._geolocation.x;
                 var y = titleLondon._geolocation.y;
-                equal(x, 51.50777816772461, "London should be at latitude 51.50777816772461");
-                equal(y, -0.12805555760860443, "London should be at longitude -0.12805555760860443");
+                equal(y, 51.50777816772461, "London should be at latitude 51.50777816772461");
+                equal(x, -0.12805555760860443, "London should be at longitude -0.12805555760860443");
                
                 start();
             };
-            var pointLondon = new geometry.point(51, 0);
+            var pointLondon = new geometry.point(0, 51);
             var maxDistance = 1;
             var rectLondon = new geometry.rect(
                     pointLondon.x - maxDistance,
@@ -403,7 +403,7 @@ define(function(require) {
                
                 start();
             };
-            var pointAmsterdam = new geometry.point(55, 5);
+            var pointAmsterdam = new geometry.point(5, 55);
             var maxDistance = 5;
             var rectAmsterdam = new geometry.rect(
                     pointAmsterdam.x - maxDistance,

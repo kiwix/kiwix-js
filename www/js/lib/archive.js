@@ -44,7 +44,7 @@ define(function(require) {
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
     // A rectangle representing all the earth globe
-    var GLOBE_RECTANGLE = new geometry.rect(-91, -181, 182, 362);
+    var GLOBE_RECTANGLE = new geometry.rect(-181, -91, 362, 182);
     
     /**
      * LocalArchive class : defines a wikipedia dump on the filesystem
@@ -740,7 +740,7 @@ define(function(require) {
     readCoordinates = function(byteArray, startIndex) {
       var lat = util.readFloatFrom4Bytes(byteArray, startIndex, true);
       var long = util.readFloatFrom4Bytes(byteArray, startIndex + 4, true);
-      var point = new geometry.point(lat, long);
+      var point = new geometry.point(long, lat);
       return point;
     };
     
@@ -799,13 +799,13 @@ define(function(require) {
                     callbackCounterForTitlesInCoordsSearch++;
                     LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos0, targetRect, rectSW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
-                if (targetRect.intersect(rectNW)) {
-                    callbackCounterForTitlesInCoordsSearch++;
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectNW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
-                }
                 if (targetRect.intersect(rectSE)) {
                     callbackCounterForTitlesInCoordsSearch++;
-                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectSE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos1, targetRect, rectSE, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
+                }
+                if (targetRect.intersect(rectNW)) {
+                    callbackCounterForTitlesInCoordsSearch++;
+                    LocalArchive.getTitlesInCoordsInt(localArchive, coordinateFileIndex, pos2, targetRect, rectNW, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt);
                 }
                 if (targetRect.intersect(rectNE)) {
                     callbackCounterForTitlesInCoordsSearch++;

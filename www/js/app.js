@@ -50,6 +50,8 @@ define(function(require) {
     // This max distance has a default value, but the user can make it change
     var maxDistanceArticlesNearbySearch = DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY;
     
+    var currentCoordinates = null;
+    
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
         searchTitlesFromPrefix($('#prefix').val());
@@ -641,8 +643,6 @@ define(function(require) {
         });
     }
     
-    var currentCoordinates = null;
-    
     /**
      * Looks for titles located around where the device is geolocated
      */
@@ -670,7 +670,7 @@ define(function(require) {
                         $('#geolocationProgress').html("Found your location : lat:" + crd.latitude.toFixed(7) + ", long:" + crd.longitude.toFixed(7)
                                 + "<br/>Now looking for articles around this location...");
                         
-                        currentCoordinates = new geometry.point(crd.latitude, crd.longitude);
+                        currentCoordinates = new geometry.point(crd.longitude, crd.latitude);
 
                         var rectangle = new geometry.rect(
                                 currentCoordinates.x - maxDistanceArticlesNearbySearch,
