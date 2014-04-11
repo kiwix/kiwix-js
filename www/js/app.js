@@ -71,11 +71,16 @@ define(function(require) {
         }
     });
     $("#btnArticlesNearby").on("click", function(e) {
-        searchTitlesNearby();
-        $("#welcomeText").hide();
-        $("#readingArticle").hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
+        if (localArchive._coordinateFiles !== null && localArchive._coordinateFiles.length > 0) {
+            searchTitlesNearby();
+            $("#welcomeText").hide();
+            $("#readingArticle").hide();
+            if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+                $('#navbarToggle').click();
+            }
+        }
+        else {
+            alert("There is no coordinate file in this archive. This feature is only available on archives that have coordinate files (coordinates_xx.idx)");
         }
     });
     $("#btnEnlargeMaxDistance").on("click", function(e) {
