@@ -257,9 +257,9 @@ define(function(require) {
         bearing: function() {
             var lat1 = this.start.x * Math.PI / 180;
             var lat2 = this.end.x * Math.PI / 180;
-            var lon1 = this.start.y * Math.PI / 180;
-            var lon2 = this.end.y * Math.PI / 180;
-            var dLon = lon2 - lon1;
+            var lon1 = this.start.y;
+            var lon2 = this.end.y;
+            var dLon = (lon2 - lon1) * Math.PI / 180;
             var y = Math.sin(dLon) * Math.cos(lat2);
             var x = Math.cos(lat1) * Math.sin(lat2) -
                     Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
