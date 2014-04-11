@@ -74,6 +74,7 @@ define(function(require) {
     });
     $("#btnArticlesNearby").on("click", function(e) {
         if (localArchive._coordinateFiles !== null && localArchive._coordinateFiles.length > 0) {
+            $('#prefix').val("");
             searchTitlesNearby();
             $("#welcomeText").hide();
             $("#readingArticle").hide();
@@ -87,7 +88,7 @@ define(function(require) {
     });
     $("#btnEnlargeMaxDistance").on("click", function(e) {
         maxDistanceArticlesNearbySearch = maxDistanceArticlesNearbySearch * 2 ;
-        searchTitlesNearby();
+        searchTitlesNearbyGivenCoordinates(currentCoordinates.y, currentCoordinates.x, maxDistanceArticlesNearbySearch);
         $("#welcomeText").hide();
         $("#readingArticle").hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
@@ -96,7 +97,7 @@ define(function(require) {
     });
     $("#btnReduceMaxDistance").on("click", function(e) {
         maxDistanceArticlesNearbySearch = maxDistanceArticlesNearbySearch / 2 ;
-        searchTitlesNearby();
+        searchTitlesNearbyGivenCoordinates(currentCoordinates.y, currentCoordinates.x, maxDistanceArticlesNearbySearch);
         $("#welcomeText").hide();
         $("#readingArticle").hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
@@ -104,6 +105,7 @@ define(function(require) {
         }
     });
     $("#btnRandomArticle").on("click", function(e) {
+        $('#prefix').val("");
         goToRandomArticle();
         $("#welcomeText").hide();
         $('#titleList').hide();
@@ -267,9 +269,54 @@ define(function(require) {
     window.onpopstate = function(event) {
         if (event.state) {
             var titleName = event.state.titleName;
-            goToArticle(titleName);
+            var titleSearch = event.state.titleSearch;
+            var latitude = event.state.latitude;
+            var longitude = event.state.longitude;
+            var maxDistance = event.state.maxDistance;
+            
+            $('#prefix').val("");
+            $("#welcomeText").hide();
+            $("#readingArticle").hide();
+            if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
+                $('#navbarToggle').click();
+            }
+            $('#searchingForTitles').show();
+            $('#configuration').hide();
+            $('#titleList').hide();
+            $('#titleListHeaderMessage').hide();
+            $('#suggestEnlargeMaxDistance').hide();
+            $('#suggestReduceMaxDistance').hide();
+            $('#articleContent').empty();
+            
+            if (titleName && !(""===titleName)) {
+                goToArticle(titleName);
+            }
+            else if (titleSearch && !(""===titleSearch)) {
+                $('#prefix').val(titleSearch);
+                $('#searchTitles').click();
+            }
+            else if (latitude && !(""===latitude)) {
+                maxDistanceArticlesNearbySearch = maxDistance;
+                searchTitlesNearbyGivenCoordinates(latitude, longitude, maxDistance);
+            }
         }
     };
+    
+    /**
+     * Looks for titles located around the given coordinates, with give maximum distance
+     * @param {type} latitude
+     * @param {type} longitude
+     * @param {type} maxDistance
+     */
+    function searchTitlesNearbyGivenCoordinates(latitude, longitude, maxDistance) {
+        var rectangle = new geometry.rect(
+                longitude - maxDistance,
+                latitude - maxDistance,
+                maxDistance * 2,
+                maxDistance * 2);
+
+        localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+    }
     
     /**
      * Populate the drop-down list of titles with the given list
@@ -390,6 +437,14 @@ define(function(require) {
      *  reduce or enlarge the distance where to look for articles nearby
      */
     function populateListOfTitles(titleArray, maxTitles, isNearbySearchSuggestions) {
+        var currentLatitude;
+        var currentLongitude;
+        if (currentCoordinates) {
+            currentLatitude = currentCoordinates.y;
+            currentLongitude = currentCoordinates.x;
+        }
+        
+        pushBrowserHistoryState(null, $('#prefix').val(), currentLatitude, currentLongitude, maxDistanceArticlesNearbySearch);
         
         var titleListHeaderMessageDiv = $('#titleListHeaderMessage');
         var nbTitles = 0;
@@ -612,14 +667,42 @@ define(function(require) {
     }
 
     /**
-     * Changes the URL of the browser page
+     * Changes the URL of the browser page, so that the user might go back to it
+     * 
      * @param {type} titleName
+     * @param {type} titleSearch
+     * @param {type} latitude
+     * @param {type} longitude
+     * @param {type} maxDistance
+     * @returns {undefined}
      */
-    function pushBrowserHistoryState(titleName) {
-        if (titleName) {
-            var stateObj = {titleName: titleName};
-            window.history.pushState(stateObj, "Wikipedia Article : " + titleName, "?title=" + titleName);
+    function pushBrowserHistoryState(titleName, titleSearch, latitude, longitude, maxDistance) {
+        var stateObj = {};
+        var urlParameters;
+        var stateLabel;
+        if (titleName && !(""===titleName)) {
+            stateObj.titleName = titleName;
+            urlParameters = "?title=" + titleName;
+            stateLabel = "Wikipedia Article : " + titleName;
         }
+        else if (titleSearch && !(""===titleSearch)) {
+            stateObj.titleSearch = titleSearch;
+            urlParameters = "?titleSearch=" + titleSearch;
+            stateLabel = "Wikipedia search : " + titleSearch;
+        }
+        else if (latitude) {
+            stateObj.latitude = latitude;
+            stateObj.longitude = longitude;
+            stateObj.maxDistance = maxDistance;
+            urlParameters = "?latitude=" + latitude
+                + "&longitude=" + longitude;
+                + "&maxDistance=" + maxDistance;
+            stateLabel = "Wikipedia nearby search around lat=" + latitude +" ,long=" + longitude;
+        }
+        else {
+            return;
+        }
+        window.history.pushState(stateObj, stateLabel, urlParameters);
     }
 
 
@@ -672,13 +755,7 @@ define(function(require) {
                         
                         currentCoordinates = new geometry.point(crd.longitude, crd.latitude);
 
-                        var rectangle = new geometry.rect(
-                                currentCoordinates.x - maxDistanceArticlesNearbySearch,
-                                currentCoordinates.y - maxDistanceArticlesNearbySearch,
-                                maxDistanceArticlesNearbySearch * 2,
-                                maxDistanceArticlesNearbySearch * 2);
-
-                        localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+                        searchTitlesNearbyGivenCoordinates(crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
                     }
                     else {
                         // If the geolocationProgress div is not visible, it's because it has been canceled
