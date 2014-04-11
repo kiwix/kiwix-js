@@ -243,7 +243,10 @@ define(function(require) {
     }
 
     if (storages !== null && storages.length > 0) {
-        searchForArchivesInPreferencesOrStorage();
+        // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
+        // This way, it is only done once at this moment, instead of being done several times in callbacks
+        // After that, we can start looking for archives
+        storages[0].get("fake-file-to-read").always(searchForArchivesInPreferencesOrStorage);
     }
     else {
         // If DeviceStorage is not available, we display the file select components
