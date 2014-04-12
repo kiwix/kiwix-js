@@ -54,6 +54,7 @@ define(function(require) {
     
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
+        pushBrowserHistoryState(null, $('#prefix').val());
         searchTitlesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
         $("#readingArticle").hide();
@@ -280,7 +281,7 @@ define(function(require) {
             if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
                 $('#navbarToggle').click();
             }
-            $('#searchingForTitles').show();
+            $('#searchingForTitles').hide();
             $('#configuration').hide();
             $('#titleList').hide();
             $('#titleListHeaderMessage').hide();
@@ -293,7 +294,7 @@ define(function(require) {
             }
             else if (titleSearch && !(""===titleSearch)) {
                 $('#prefix').val(titleSearch);
-                $('#searchTitles').click();
+                searchTitlesFromPrefix($('#prefix').val());
             }
             else if (latitude && !(""===latitude)) {
                 maxDistanceArticlesNearbySearch = maxDistance;
@@ -443,8 +444,6 @@ define(function(require) {
             currentLatitude = currentCoordinates.y;
             currentLongitude = currentCoordinates.x;
         }
-        
-        pushBrowserHistoryState(null, $('#prefix').val(), currentLatitude, currentLongitude, maxDistanceArticlesNearbySearch);
         
         var titleListHeaderMessageDiv = $('#titleListHeaderMessage');
         var nbTitles = 0;
@@ -754,6 +753,8 @@ define(function(require) {
                                 + "<br/>Now looking for articles around this location...");
                         
                         currentCoordinates = new geometry.point(crd.longitude, crd.latitude);
+                        
+                        pushBrowserHistoryState(null, null, crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
 
                         searchTitlesNearbyGivenCoordinates(crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
                     }
