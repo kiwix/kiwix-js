@@ -5,9 +5,13 @@
   "launch_path": "/www/index.html",
   "icons": {
     "16": "/www/img/icons/evopedia-16.png",
+    "32": "/www/img/icons/evopedia-32.png",
     "48": "/www/img/icons/evopedia-48.png",
     "60": "/www/img/icons/evopedia-60.png",
-    "128": "/www/img/icons/evopedia-128.png"
+    "90": "/www/img/icons/evopedia-90.png",
+    "120": "/www/img/icons/evopedia-120.png",
+    "128": "/www/img/icons/evopedia-128.png",
+    "256": "/www/img/icons/evopedia-256.png"
   },
   "developer": {
     "name": "Mossroy <mossroy@free.fr>",
