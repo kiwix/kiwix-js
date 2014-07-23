@@ -20,6 +20,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
+'use strict';
 define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, jQuery) {
     // Maximum length of a title
     // 300 bytes is arbitrary : we actually do not really know how long the titles will be

@@ -21,6 +21,8 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
+'use strict';
+
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
@@ -715,7 +717,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
             }
         });
     }
-    
+       
     /**
      * Looks for titles located around where the device is geolocated
      */
@@ -733,38 +735,6 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
                     enableHighAccuracy: false,
                     maximumAge: 600000, // 10 minutes
                     timeout: Infinity 
-                };
-
-                function geo_success(pos) {
-                    var crd = pos.coords;
-
-                    if ($('#geolocationProgress').is(":visible")) {
-                        $('#geolocationProgress').prop("step","SearchInTitleIndex");
-                        $('#geolocationProgress').html("Found your location : lat:" + crd.latitude.toFixed(7) + ", long:" + crd.longitude.toFixed(7)
-                                + "<br/>Now looking for articles around this location...");
-                        
-                        currentCoordinates = new geometry.point(crd.longitude, crd.latitude);
-                        
-                        pushBrowserHistoryState(null, null, crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
-
-                        searchTitlesNearbyGivenCoordinates(crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
-                    }
-                    else {
-                        // If the geolocationProgress div is not visible, it's because it has been canceled
-                        // So we simply ignore the result
-                    }
-                };
-
-                function geo_error(err) {
-                    if ($('#geolocationProgress').is(":visible")) {
-                        alert("Unable to geolocate your device : " + err.code + " : " + err.message);
-                        $('#geolocationProgress').hide();
-                        $('#searchingForTitles').hide();
-                    }
-                    else {
-                        // If the geolocationProgress div is not visible, it's because it has been canceled
-                        // So we simply ignore the result
-                    }
                 };
 
                 $('#geolocationProgress').html("Trying to find your location...");
@@ -802,6 +772,46 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
             $("#searchTitles").focus();
             alert("Archive not set : please select an archive");
             $("#btnConfigure").click();
+        }
+    }
+    
+    /**
+     * Called when a geolocation request succeeds : start looking for titles around the location
+     * @param {type} pos Position given by geolocation
+     */
+    function geo_success(pos) {
+        var crd = pos.coords;
+
+        if ($('#geolocationProgress').is(":visible")) {
+            $('#geolocationProgress').prop("step", "SearchInTitleIndex");
+            $('#geolocationProgress').html("Found your location : lat:" + crd.latitude.toFixed(7) + ", long:" + crd.longitude.toFixed(7)
+                    + "<br/>Now looking for articles around this location...");
+
+            currentCoordinates = new geometry.point(crd.longitude, crd.latitude);
+
+            pushBrowserHistoryState(null, null, crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
+
+            searchTitlesNearbyGivenCoordinates(crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
+        }
+        else {
+            // If the geolocationProgress div is not visible, it's because it has been canceled
+            // So we simply ignore the result
+        }
+    }
+
+    /**
+     * Called when a geolocation fails
+     * @param {type} err
+     */
+    function geo_error(err) {
+        if ($('#geolocationProgress').is(":visible")) {
+            alert("Unable to geolocate your device : " + err.code + " : " + err.message);
+            $('#geolocationProgress').hide();
+            $('#searchingForTitles').hide();
+        }
+        else {
+            // If the geolocationProgress div is not visible, it's because it has been canceled
+            // So we simply ignore the result
         }
     }
 

@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
+'use strict';
 importScripts('./require.js');
 
 require({
