@@ -24,17 +24,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(function(require) {
-    
-    var $ = require('jquery');
-
-    // Evopedia javascript dependencies
-    var evopediaTitle = require('title');
-    var evopediaArchive = require('archive');
-    var util = require('util');
-    var cookies = require('cookies');
-    var geometry = require('geometry');
-    var osabstraction = require('osabstraction');
+define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstraction'],
+ function($, evopediaTitle, evopediaArchive, util, cookies, geometry, osabstraction) {
     
     // Maximum number of titles to display in a search
     var MAX_SEARCH_RESULT_SIZE = 50;

@@ -1,4 +1,4 @@
-define(function(require) {
+define([], function() {
 
 /* 
   bzip2.js - a small bzip2 decompression implementation

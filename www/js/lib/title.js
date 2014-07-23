@@ -19,11 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-define(function(require) {
-    
-    // Module dependencies
-    var utf8 = require('utf8');
-    var util = require('util');
+define(['utf8', 'util'], function(utf8, util) {
     
     /**
      * Title class : defines the title of an article and some methods to manipulate it

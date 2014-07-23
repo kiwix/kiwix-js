@@ -20,16 +20,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-define(function(require) {
-    
-    // Module dependencies
-    var normalize_string = require('normalize_string');
-    var util = require('util');
-    var geometry = require('geometry');
-    var jQuery = require('jquery');
-    var evopediaTitle = require('title');
-    var titleIterators = require('titleIterators');
-    
+define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jquery'],
+ function(normalize_string, geometry, evopediaTitle, util, titleIterators, jQuery) {
+        
     // Declare the webworker that can uncompress with bzip2 algorithm
     var webworkerBzip2;
     try {
