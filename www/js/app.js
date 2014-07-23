@@ -477,7 +477,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
                 distanceFromHereHtml = " (" + distanceKm + " km " + cardinalDirection + ")";
             }
             
-            titleListDivHtml += "<a href='#' titleid='" + title.toStringId()
+            titleListDivHtml += "<a href='#' titleid='" + title.toStringId().replace(/'/g,"&apos;")
                     + "' class='list-group-item'>" + title.getReadableName()
                     + distanceFromHereHtml 
                     + "</a>";
