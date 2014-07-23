@@ -22,12 +22,6 @@
 define(['jquery', 'title', 'archive', 'util', 'geometry'],
  function($, evopediaTitle, evopediaArchive, util, geometry) {
 
-    var $ = require('jquery');
-    var evopediaTitle = require('title');
-    var evopediaArchive = require('archive');
-    var geometry = require('geometry');
-    var util = require('util');
-
     // Due to security restrictions in the browsers,
     // we can not read directly the files and run the unit tests
     // The user has to select them manually, then launch the tests
