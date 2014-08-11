@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1-SNAPSHOT",
+  "version": "1.1.1",
   "name": "Evopedia",
   "description": "Offline Wikipedia Viewer",
   "launch_path": "/www/index.html",
@@ -24,7 +24,7 @@
       "access": "readonly"
     },
     "geolocation": {
-      "description": "Necessary for the 'articles nearby' feature"
+      "description": "Necessary only for the 'articles nearby' feature"
     }
   },
   "type": "privileged",
