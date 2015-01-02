@@ -108,15 +108,15 @@
                     <br />If you get a compressed archive (.zip, .tar.gz or .tar.bz2), you will have to decompress it.
                     <br />For a quick test, you can start with the dump called <a href="http://evopedia.info/dumps/wikipedia_small_2010-08-14.tar.gz" target="_blank">"small"</a> : it contains a very small subset of the English archive (note that the hyperlinks between articles will rarely work, as a lot of articles are missing in it).
                     <br />After that, you can download an archive in your language, through a Bittorrent client. Check its size : these archives take several GB each.
-                    <h4>Step 2 : put it on your SD-card</h4>
-                    The archive can be stored is any subdirectory of your SD-card (ex: /wikipedia_small_2010-08-14, or /evopedia/wikipedia_small_2010-08-14). If you have enough space, you can put several archives
+                    <h4>Step 2 : put it on your SD-card (or internal storage)</h4>
+                    The archive can be stored is any subdirectory of your SD-card or internal storage (ex: /wikipedia_small_2010-08-14, or /evopedia/wikipedia_small_2010-08-14). If you have enough space, you can put several archives
                     <h4>Step 3 : enjoy wikipedia offline!</h4>
                     <h3>Privacy policy</h3>
                     <h4>Short answer :</h4>
                     This application works offline. We do not collect any of your personal data and don't even know what you are doing with this application.
                     <br /><h4>Longer answer :</h4>
                     Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application. If not, the application will try to read the images of the articles on the wikipedia servers, which might indicate which articles you are reading. Depending on your device, the "nearby articles" feature might also communicate with some Internet servers (usually Google) to geolocate your device (through your IP address and/or the Wifi networks detected around you)
-                    <br />This application only reads the wikipedia archives of your SD-card : it does not read any other files.
+                    <br />This application only reads the wikipedia archives of your SD-card (or internal storage) : it does not read any other files.
                     <h3>Feedback / helping / contributing</h3>
                     There are many ways this could be enhanced. In particular :
                     <ul>
@@ -185,10 +185,10 @@
                     <br />This HTML5/javascript application is currently mainly targeted on Firefox OS devices. But it also can be used on some other platforms :
                     <ul>
                         <li>It works perfectly on the <a href="https://developer.mozilla.org/docs/Mozilla/Firefox_OS/Using_the_App_Manager" target="_blank">Firefos OS simulator</a> (a Firefox plugin, used through the "App manager" of Firefox 26+), you have to put the archive files in any subdirectory in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_1_x_simulator@mozilla.org/profile/fake-sdcard/wikipedia_small_2010-08-14)</li>
-                        <li>On desktops, it works but is less user friendly : you have to manually select the files of your archive, and it's not yet easily deployable as a "web application". I tested it on recent Firefox and Chromium, but it probably works on some other browsers (it even seems to work on IE10). You can test on <a href="http://mossroy.github.io/evopedia-html5/" target="_blank">this online page</a> or from a local copy of the <a href="https://github.com/mossroy/evopedia-html5" target="_blank">source code</a></li>
-                        <li>On Android, it does not seem to work for now (tried with internal browser, Chrome and Firefox) because you can not select all the files of an archive</li>
-                        <li>On Android and desktops, the DeviceStorage API (which is used to browse the SD-card for archives) should become available at some point (see <a href="https://wiki.mozilla.org/index.php?title=WebAPI" target="_blank"> https://wiki.mozilla.org/index.php?title=WebAPI</a>). As soon as it is, I will update the application to make it available on these platforms</li>
-                        <li>An Apache Cordova port is on its way : it should make this HTML5/javascript version available on many mobile platforms</li>
+                        <li>On desktops, it can work (by pointing to the index.html file) but is less user friendly : you have to manually select the files of your archive, and it's not yet easily deployable as a "web application". I tested it on recent Firefox and Chromium, but it probably works on some other browsers (it even seems to work on IE10). You can test on <a href="http://mossroy.github.io/evopedia-html5/" target="_blank">this online page</a> or from a local copy of the <a href="https://github.com/mossroy/evopedia-html5" target="_blank">source code</a></li>
+                        <li>It also works on Android (since Firefox 34). You need to install Firefox first, then install Evopedia from the MarketPlace of Firefox. For now, there is a <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1117136">major bug</a> that prevents a wikipedia archive to be found in an external SD card : it has to be put in the internal storage of the device (if you have enough space in it)</li>
+                        <li>On desktops, the DeviceStorage API (which is used to browse the SD-card/internal memory for archives) should become available at some point (see <a href="https://wiki.mozilla.org/index.php?title=WebAPI" target="_blank"> https://wiki.mozilla.org/index.php?title=WebAPI</a>). As soon as it is, I will update the application to make it available on this platform</li>
+                        <li>An Apache Cordova port has been started (but is not ready yet, help welcome) : it should make this HTML5/javascript version available on many mobile platforms</li>
                     </ul>
 
                 </div>

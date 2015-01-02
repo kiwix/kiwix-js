@@ -324,7 +324,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         for (var i = 0; i < archiveDirectories.length; i++) {
             var archiveDirectory = archiveDirectories[i];
             if (archiveDirectory === "/") {
-                alert("It looks like you have put some archive files at the root of your sdcard. Please move them in a subdirectory");
+                alert("It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory");
             }
             else {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
@@ -346,7 +346,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
             setLocalArchiveFromArchiveList();
         }
         else {
-            alert("Welcome to Evopedia! This application needs a wikipedia archive in your SD-card. Please download one and put it on the SD-card (see About section). Also check that your device is not connected to a computer through USB device storage (which locks the SD-card content)");
+            alert("Welcome to Evopedia! This application needs a wikipedia archive in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)");
             $("#btnAbout").click();
         }
     }
