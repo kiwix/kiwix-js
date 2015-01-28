@@ -360,11 +360,13 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
      */
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
-        localArchive = new evopediaArchive.LocalArchive();
-        localArchive.initializeFromDeviceStorage(storages, archiveDirectory);
-        cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
-        // The archive is set : go back to home page to start searching
-        $("#btnHome").click();
+        if (archiveDirectory && archiveDirectory.length > 0) {
+            localArchive = new evopediaArchive.LocalArchive();
+            localArchive.initializeFromDeviceStorage(storages, archiveDirectory);
+            cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
+            // The archive is set : go back to home page to start searching
+            $("#btnHome").click();
+        }
     }
 
     /**
