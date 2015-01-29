@@ -28,6 +28,15 @@
 
 define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstraction'],
  function($, evopediaTitle, evopediaArchive, util, cookies, geometry, osabstraction) {
+     
+    // Disable any eval() call in jQuery : it's disabled by CSP in any packaged application
+    // It happens on some wiktionary archives, because there is some javascript inside the html article
+    // Cf http://forum.jquery.com/topic/jquery-ajax-disable-script-eval
+    jQuery.globalEval = function(code) {
+        // jQuery believes the javascript has been executed, but we did nothing
+        // In any case, that would have been blocked by CSP for package applications
+        console.log("jQuery tried to run some javascript with eval(), which is not allowed in packaged applications")
+    };
     
     // Maximum number of titles to display in a search
     var MAX_SEARCH_RESULT_SIZE = 50;
