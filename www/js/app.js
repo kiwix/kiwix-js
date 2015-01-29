@@ -240,7 +240,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         });
     }
 
-    if (storages !== null && storages.length > 0 && storages[0].storageName && storages[0].storageName.length > 0) {
+    if (storages !== null && storages.length > 0) {
         // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
         // This way, it is only done once at this moment, instead of being done several times in callbacks
         // After that, we can start looking for archives
