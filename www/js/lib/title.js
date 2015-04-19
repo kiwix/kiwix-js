@@ -121,6 +121,12 @@ define(['utf8', 'util'], function(utf8, util) {
         return title;
     };
 
+    Title.prototype.name = function() {
+        return this._name;
+    }
+    Title.prototype.isRedirect = function() {
+        return this._fileNr === 0xff;
+    }
 
     /**
      * Serialize the title with its values

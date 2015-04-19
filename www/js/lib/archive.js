@@ -55,6 +55,17 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
         this._normalizedTitles = true;
     };
 
+    LocalArchive.prototype.isReady = function() {
+        return this._titleFile !== null;
+    };
+
+    LocalArchive.prototype.hasCoordinates = function() {
+        return (this._coordinateFiles !== null && this._coordinateFiles.length > 0);
+    };
+
+    LocalArchive.prototype.parseTitleId = function(titleId) {
+        return evopediaTitle.Title.parseTitleId(this, titleId);
+    };
 
     /**
      * Read the title Files in the given directory, and assign them to the
@@ -844,7 +855,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
     };
 
     /**
-     *  Scans the DeviceStorage for archives
+     *  Scans the DeviceStorage for archives
      * 
      * @param storages List of DeviceStorage instances
      * @param callbackFunction Function to call with the list of directories where archives are found
