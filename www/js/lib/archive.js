@@ -21,8 +21,8 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jquery'],
- function(normalize_string, geometry, evopediaTitle, util, titleIterators, jQuery) {
+define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
+ function(normalize_string, geometry, evopediaTitle, util, titleIterators, q) {
         
     // Declare the webworker that can uncompress with bzip2 algorithm
     var webworkerBzip2;
@@ -56,7 +56,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
     };
 
     LocalArchive.prototype.isReady = function() {
-        return this._titleFile !== null;
+        return this._titleFile !== null && this._dataFiles && this._dataFiles.length > 0
     };
 
     LocalArchive.prototype.hasCoordinates = function() {
@@ -246,46 +246,15 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
     
     /**
      * Initialize the localArchive from given directory, using DeviceStorage
-     * @param {type} storages List of DeviceStorages available
+     * @param {type} DeviceStorage the directory resides in
      * @param {type} archiveDirectory
      */
-    LocalArchive.prototype.initializeFromDeviceStorage = function(storages, archiveDirectory) {
-        // First, we have to find which DeviceStorage has been selected by the user
-        // It is the prefix of the archive directory
-        var storageNameRegex = /^\/([^\/]+)\//;
-        var regexResults = storageNameRegex.exec(archiveDirectory);
-        var selectedStorage = null;
-        if (regexResults && regexResults.length>0) {
-            var selectedStorageName = regexResults[1];
-            for (var i=0; i<storages.length; i++) {
-                var storage = storages[i];
-                if (selectedStorageName === storage.storageName) {
-                    // We found the selected storage
-                    selectedStorage = storage;
-                }
-            }
-            if (selectedStorage === null) {
-                alert("Unable to find which device storage corresponds to directory " + archiveDirectory);
-            }
-        }
-        else {
-            // This happens when the archiveDirectory is not prefixed by the name of the storage
-            // (in the Simulator, or with FxOs 1.0, or probably on devices that only have one device storage)
-            // In this case, we use the first storage of the list (there should be only one)
-            if (storages.length === 1) {
-                selectedStorage = storages[0];
-            }
-            else {
-                alert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
-                    + archiveDirectory + ", but there were " + storages.length
-                    + " storages found with getDeviceStorages instead of 1");
-            }
-        }
-        this.readTitleFilesFromStorage(selectedStorage, archiveDirectory);
-        this.readDataFilesFromStorage(selectedStorage, archiveDirectory, 0);
-        this.readMathFilesFromStorage(selectedStorage, archiveDirectory);
-        this.readMetadataFileFromStorage(selectedStorage, archiveDirectory);
-        this.readCoordinateFilesFromStorage(selectedStorage, archiveDirectory, 1);
+    LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory) {
+        this.readTitleFilesFromStorage(storage, archiveDirectory);
+        this.readDataFilesFromStorage(storage, archiveDirectory, 0);
+        this.readMathFilesFromStorage(storage, archiveDirectory);
+        this.readMetadataFileFromStorage(storage, archiveDirectory);
+        this.readCoordinateFilesFromStorage(storage, archiveDirectory, 1);
     };
 
     /**
@@ -319,7 +288,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
     LocalArchive.prototype.getTitlesStartingAtOffset = function(titleOffset, titleCount, callbackFunction) {
         var titles = [];
         var currentLocalArchiveInstance = this;
-        jQuery.when().then(function() {
+        q.when().then(function() {
             var iterator = new titleIterators.SequentialTitleIterator(currentLocalArchiveInstance, titleOffset);
             function addNext() {
                 if (titles.length >= titleCount) {
@@ -369,9 +338,9 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
     LocalArchive.prototype.getRandomTitle = function(callbackFunction) {
         var that = this;
         var offset = Math.floor(Math.random() * this._titleFile.size);
-        jQuery.when().then(function() {
+        q.when().then(function() {
             return util.readFileSlice(that._titleFile, offset,
-                                  offset + titleIterators.MAX_TITLE_LENGTH).then(function(byteArray) {
+                                  titleIterators.MAX_TITLE_LENGTH).then(function(byteArray) {
                 // Let's find the next newLine
                 var newLineIndex = 0;
                 while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
@@ -399,21 +368,26 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function addNext() {
                 if (titles.length >= maxSize) {
-                    return jQuery.Deferred().resolve(titles, maxSize);
+                    callbackFunction(titles, maxSize);
+                    return 1;
                 }
                 return iterator.advance().then(function(title) {
-                    if (title === null)
-                        return jQuery.Deferred().resolve(titles, maxSize);
+                    if (title === null) {
+                        callbackFunction(titles, maxSize);
+                        return 1;
+                    }
                     // check whether this title really starts with the prefix
                     var name = normalize(title._name);
-                    if (name.length < prefix.length || name.substring(0, prefix.length) !== prefix)
-                        return jQuery.Deferred().resolve(titles, maxSize);
+                    if (name.length < prefix.length || name.substring(0, prefix.length) !== prefix) {
+                        callbackFunction(titles, maxSize);
+                        return 1;
+                    }
                     titles.push(title);
                     return addNext();
                 });
             }
             return addNext();
-        }).then(callbackFunction, errorHandler);
+        }).then(function(){}, errorHandler);
     };
 
 
@@ -854,33 +828,6 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'jque
         reader.readAsArrayBuffer(blob);
     };
 
-    /**
-     *  Scans the DeviceStorage for archives
-     * 
-     * @param storages List of DeviceStorage instances
-     * @param callbackFunction Function to call with the list of directories where archives are found
-     */
-    LocalArchive.scanForArchives = function(storages, callbackFunction) {
-        var directories = [];
-        var promises = jQuery.map(storages, function(storage) {
-            return storage.scanForDirectoriesContainingFile('titles.idx')
-                .then(function(dirs) {
-                    jQuery.merge(directories, dirs);
-                    return true;
-                });
-        });
-        jQuery.when.apply(null, promises).then(function() {
-            callbackFunction(directories);
-        }, function(error) {
-            alert("Error scanning your SD card : " + error
-                    + ". If you're using the Firefox OS Simulator, please put the archives in "
-                    + "a 'fake-sdcard' directory inside your Firefox profile "
-                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_1_x_simulator@mozilla.org/"
-                    + "profile/fake-sdcard/wikipedia_small_2010-08-14)");
-            callbackFunction(null);
-        });
-    };
-    
     /**
      * Normalize the given String, if the current Archive is compatible.
      * If it's not, return the given String, as is.

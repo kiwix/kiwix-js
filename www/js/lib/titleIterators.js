@@ -21,7 +21,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, jQuery) {
+define(['utf8', 'title', 'util', 'q'], function(utf8, evopediaTitle, util, q) {
     // Maximum length of a title
     // 300 bytes is arbitrary : we actually do not really know how long the titles will be
     // But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
@@ -48,11 +48,11 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
     SequentialTitleIterator.prototype.advance = function() {
         if (this._offset >= this._titleFile.size) {
             this._title = null;
-            return jQuery.when(this._title);
+            return q.when(this._title)
         }
         var that = this;
         return util.readFileSlice(this._titleFile, this._offset,
-                                  this._offset + MAX_TITLE_LENGTH).then(function(byteArray) {
+                                  MAX_TITLE_LENGTH).then(function(byteArray) {
             var newLineIndex = 15;
             while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {
                 newLineIndex++;
@@ -81,10 +81,10 @@ define(['utf8', 'title', 'util', 'jquery'], function(utf8, evopediaTitle, util, 
             if (lo >= hi - 1) {
                 if (lo > 0)
                     lo += 2; // Let lo point to the start of an entry
-                return jQuery.when(lo);
+                return q.when(lo);
             } else {
                 var mid = Math.floor((lo + hi) / 2);
-                return util.readFileSlice(titleFile, mid, mid + MAX_TITLE_LENGTH).then(function(byteArray) {
+                return util.readFileSlice(titleFile, mid, MAX_TITLE_LENGTH).then(function(byteArray) {
                     // Look for the index of the next NewLine
                     var newLineIndex = 0;
                     while (newLineIndex < byteArray.length && byteArray[newLineIndex] !== 10) {

@@ -253,7 +253,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
         // This way, it is only done once at this moment, instead of being done several times in callbacks
         // After that, we can start looking for archives
-        storages[0].get("fake-file-to-read").always(searchForArchivesInPreferencesOrStorage);
+        storages[0].get("fake-file-to-read").then(searchForArchivesInPreferencesOrStorage,
+                                                  searchForArchivesInPreferencesOrStorage);
     }
     else {
         // If DeviceStorage is not available, we display the file select components
@@ -370,7 +371,38 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
         if (archiveDirectory && archiveDirectory.length > 0) {
-            selectedArchive = backend.loadArchiveFromDeviceStorage(storages, archiveDirectory);
+            // Now, try to find which DeviceStorage has been selected by the user
+            // It is the prefix of the archive directory
+            var storageNameRegex = /^\/([^\/]+)\//;
+            var regexResults = storageNameRegex.exec(archiveDirectory);
+            var selectedStorage = null;
+            if (regexResults && regexResults.length>0) {
+                var selectedStorageName = regexResults[1];
+                for (var i=0; i<storages.length; i++) {
+                    var storage = storages[i];
+                    if (selectedStorageName === storage.storageName) {
+                        // We found the selected storage
+                        selectedStorage = storage;
+                    }
+                }
+                if (selectedStorage === null) {
+                    alert("Unable to find which device storage corresponds to directory " + archiveDirectory);
+                }
+            }
+            else {
+                // This happens when the archiveDirectory is not prefixed by the name of the storage
+                // (in the Simulator, or with FxOs 1.0, or probably on devices that only have one device storage)
+                // In this case, we use the first storage of the list (there should be only one)
+                if (storages.length === 1) {
+                    selectedStorage = storages[0];
+                }
+                else {
+                    alert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                        + archiveDirectory + ", but there were " + storages.length
+                        + " storages found with getDeviceStorages instead of 1");
+                }
+            }
+            selectedArchive = backend.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory);
             cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
@@ -555,7 +587,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * @param {type} titleId
      */
     function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
-        if (selectedArchive._dataFiles && selectedArchive._dataFiles.length > 0) {
+        if (selectedArchive.isReady()) {
             var title = selectedArchive.parseTitleId(titleId);
             $("#articleName").html(title.name());
             $("#readingArticle").show();

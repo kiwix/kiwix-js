@@ -20,7 +20,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['jquery'], function(jQuery) {
+define(['q'], function(q) {
 
     /**
      * Utility function : return true if the given string ends with the suffix
@@ -122,8 +122,8 @@ define(['jquery'], function(jQuery) {
      * @param end
      * @returns jQuery promise
      */
-    function readFileSlice(file, begin, end) {
-        var deferred = jQuery.Deferred();
+    function readFileSlice(file, begin, size) {
+        var deferred = q.defer();
         var reader = new FileReader();
         reader.onload = function(e) {
             deferred.resolve(new Uint8Array(e.target.result));
@@ -131,11 +131,31 @@ define(['jquery'], function(jQuery) {
         reader.onerror = reader.onabort = function(e) {
             deferred.reject(e);
         };
-        reader.readAsArrayBuffer(file.slice(begin, end));
-        return deferred.promise();
+        reader.readAsArrayBuffer(file.slice(begin, begin + size));
+        return deferred.promise;
     }
 
-    
+    /**
+     * Performs a binary search on indices begin <= i < end, utilizing query(i) to return where to
+     * continue the search.
+     * If lowerBound is not set, returns only indices where query returns 0 and null otherwise.
+     * If lowerBound is set, returns the smallest index where query does not return > 0.
+     */
+    function binarySearch(begin, end, query, lowerBound) {
+        if (end <= begin)
+            return lowerBound ? begin : null;
+        var mid = Math.floor((begin + end) / 2);
+        return query(mid).then(function(decision)
+        {
+            if (decision < 0)
+                return binarySearch(begin, mid, query, lowerBound);
+            else if (decision > 0)
+                return binarySearch(mid + 1, end, query, lowerBound);
+            else
+                return mid;
+        });
+    };
+
     /**
      * Functions and classes exposed by this module
      */
@@ -146,6 +166,7 @@ define(['jquery'], function(jQuery) {
         readFloatFrom4Bytes : readFloatFrom4Bytes,
         uint8ArrayToHex : uint8ArrayToHex,
         uint8ArrayToBase64 : uint8ArrayToBase64,
-        readFileSlice : readFileSlice
+        readFileSlice : readFileSlice,
+        binarySearch: binarySearch
     };
 });

@@ -20,19 +20,48 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['title', 'archive'], function(evopediaTitle, evopediaArchive) {
-    function loadArchiveFromDeviceStorage(storages, path) {
-        var archive = new evopediaArchive.LocalArchive();
-        archive.initializeFromDeviceStorage(storages, path);
-        return archive;
+define(['title', 'archive', 'zimArchive', 'util', 'jquery'],
+       function(evopediaTitle, evopediaArchive, zimArchive, util, jQuery) {
+
+    function loadArchiveFromDeviceStorage(storage, path) {
+        if (util.endsWith(path, ".zim")) {
+            return new zimArchive.ZIMArchive(storage, path);
+        } else {
+            var archive = new evopediaArchive.LocalArchive();
+            archive.initializeFromDeviceStorage(storage, path);
+            return archive;
+        }
     };
     function loadArchiveFromFiles(files) {
         var archive = new evopediaArchive.LocalArchive();
         archive.initializeFromArchiveFiles(files);
         return achive;
     };
-    function scanForArchives(storages, callback) {
-        evopediaArchive.LocalArchive.scanForArchives(storages, callback);
+    /**
+     *  Scans the DeviceStorage for archives
+     *
+     * @param storages List of DeviceStorage instances
+     * @param callbackFunction Function to call with the list of directories where archives are found
+     */
+    function scanForArchives(storages, callbackFunction) {
+        var directories = [];
+        var promises = jQuery.map(storages, function(storage) {
+            return storage.scanForArchives()
+                .then(function(dirs) {
+                    jQuery.merge(directories, dirs);
+                    return true;
+                });
+        });
+        jQuery.when.apply(null, promises).then(function() {
+            callbackFunction(directories);
+        }, function(error) {
+            alert("Error scanning your SD card : " + error
+                    + ". If you're using the Firefox OS Simulator, please put the archives in "
+                    + "a 'fake-sdcard' directory inside your Firefox profile "
+                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_1_x_simulator@mozilla.org/"
+                    + "profile/fake-sdcard/wikipedia_small_2010-08-14)");
+            callbackFunction(null);
+        });
     };
 
     /**
@@ -40,6 +69,7 @@ define(['title', 'archive'], function(evopediaTitle, evopediaArchive) {
      */
     return {
         loadArchiveFromDeviceStorage: loadArchiveFromDeviceStorage,
-        loadArchiveFromFiles: loadArchiveFromFiles
+        loadArchiveFromFiles: loadArchiveFromFiles,
+        scanForArchives: scanForArchives
     };
 });

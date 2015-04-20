@@ -20,7 +20,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['util', 'jquery'], function(util, jQuery) {
+define(['util', 'q'], function(util, q) {
     /**
      * Creates an abstraction layer around the FirefoxOS storage.
      * @see StoragePhoneGap
@@ -29,7 +29,7 @@ define(['util', 'jquery'], function(util, jQuery) {
     function StorageFirefoxOS(storage) {
         this._storage = storage;
         this.storageName = storage.storageName;
-    }
+    };
     /**
      * Access the given file.
      * @param path absolute path to the file
@@ -37,21 +37,19 @@ define(['util', 'jquery'], function(util, jQuery) {
      *         rejected with an error message.
      */
     StorageFirefoxOS.prototype.get = function(path) {
-        var deferred = jQuery.Deferred();
+        var deferred = q.defer();
         var request = this._storage.get(path);
         request.onsuccess = function() { deferred.resolve(this.result); }
         request.onerror = function() { deferred.reject(this.error.name); }
-        return deferred.promise();
-    }
+        return deferred.promise;
+    };
     /**
-     * Searches for directories containing a file with the given name.
-     * @param fileName  file name to search
-     * @return jQuery promise which is resolved with an array of directory
-     *         paths and  rejected with an error message.
+     * Searches for archive files or directories.
+     * @return jQuery promise which is resolved with an array of
+     *         paths and rejected with an error message.
      */
-    StorageFirefoxOS.prototype.scanForDirectoriesContainingFile
-                            = function(fileName) {
-        var deferred = jQuery.Deferred();
+    StorageFirefoxOS.prototype.scanForArchives = function() {
+        var deferred = q.defer();
         var directories = [];
         var cursor = this._storage.enumerate();
         cursor.onerror = function() {
@@ -64,27 +62,26 @@ define(['util', 'jquery'], function(util, jQuery) {
             }
             var file = cursor.result;
 
-            if (!util.endsWith(file.name, fileName)) {
-                cursor.continue();
-                return;
-            }
+            if (util.endsWith(file.name, "titles.idx")) {
+                // Handle the case of archive files at the root of the sd-card
+                // (without a subdirectory)
+                var directory = "/";
 
-            // Handle the case of archive files at the root of the sd-card
-            // (without a subdirectory)
-            var directory = "/";
-
-            if (file.name.lastIndexOf('/') !== -1) {
-                // We want to return the directory where the file is stored
-                // We also keep the trailing slash
-                directory = file.name.substring(0,
-                                      file.name.lastIndexOf('/') + 1);
+                if (file.name.lastIndexOf('/') !== -1) {
+                    // We want to return the directory where the file is stored
+                    // We also keep the trailing slash
+                    directory = file.name.substring(0,
+                                          file.name.lastIndexOf('/') + 1);
+                }
+                directories.push(directory);
+            } else if (util.endsWith(file.name, ".zim")) {
+                directories.push(file.name);
             }
-            directories.push(directory);
 
             cursor.continue();
         };
-        return deferred.promise();
-    }
+        return deferred.promise;
+    };
 
     /**
      * Creates an abstraction layour around the PhoneGap storage.
@@ -94,7 +91,7 @@ define(['util', 'jquery'], function(util, jQuery) {
     function StoragePhoneGap(storage) {
         this._storage = storage;
         this.storageName = 'PhoneGapStorage'; // TODO
-    }
+    };
     /**
      * Access the given file.
      * @param path absolute path to the file
@@ -103,7 +100,7 @@ define(['util', 'jquery'], function(util, jQuery) {
      */
     StoragePhoneGap.prototype.get = function(path) {
         console.log("Trying to access " + path);
-        var deferred = jQuery.Deferred();
+        var deferred = q.defer();
         var that = this;
         var onSuccess = function(file) {
             deferred.resolve(file);
@@ -119,18 +116,16 @@ define(['util', 'jquery'], function(util, jQuery) {
         if (path.substr(0, 7) == 'file://')
             path = path.substr(7);
         this._storage.root.getFile(path, options, onSuccessInt, onError);
-        return deferred.promise();
-    }
+        return deferred.promise;
+    };
     /**
-     * Searches for directories containing a file with the given name.
-     * @param fileName  file name to search
-     * @return jQuery promise which is resolved with an array of directory
-     *         paths and  rejected with an error message.
+     * Searches for archive files or directories.
+     * @return jQuery promise which is resolved with an array of
+     *         paths and rejected with an error message.
      */
-    StoragePhoneGap.prototype.scanForDirectoriesContainingFile
-                            = function(fileName) {
+    StoragePhoneGap.prototype.scanForArchives = function() {
         var that = this;
-        var deferred = jQuery.Deferred();
+        var deferred = q.defer();
         var directories = [];
         var stack = [this._storage.root];
 
@@ -141,11 +136,13 @@ define(['util', 'jquery'], function(util, jQuery) {
                 var entry = entries[i];
                 if (entry.isDirectory) {
                     stack.push(entry);
-                } else if (util.endsWith(entry.name, fileName)) {
+                } else if (util.endsWith(entry.name, "titles.idx")) {
                     var path = dir.fullPath;
                     if (path.length == 0 || path[path.length - 1] != '/')
                         path += '/';
                     directories.push(path);
+                } else if (util.endsWith(entry.name, ".zim")) {
+                    directories.push(dir.fullPath + '/' + entry.name);
                 }
             }
             iteration();
@@ -162,8 +159,8 @@ define(['util', 'jquery'], function(util, jQuery) {
             reader.readEntries(dirReaderSuccess, dirReaderFail);
         }
         iteration();
-        return deferred.promise();
-    }
+        return deferred.promise;
+    };
 
     /**
      * Convert HTML5 FileError codes to strings.
@@ -185,7 +182,7 @@ define(['util', 'jquery'], function(util, jQuery) {
             default:
                 return 'Unknown Error';
         }
-    }
+    };
 
     return {
         StorageFirefoxOS: StorageFirefoxOS,
