@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstraction'],
- function($, evopediaTitle, evopediaArchive, util, cookies, geometry, osabstraction) {
+define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction'],
+ function($, backend, util, cookies, geometry, osabstraction) {
      
     // Disable any eval() call in jQuery : it's disabled by CSP in any packaged application
     // It happens on some wiktionary archives, because there is some javascript inside the html article
@@ -47,7 +47,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
     // One degree is ~111 km at the equator
     var DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY = 0.01;
 
-    var localArchive = null;
+    var selectedArchive = null;
     
     // This max distance has a default value, but the user can make it change
     var maxDistanceArticlesNearbySearch = DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY;
@@ -70,13 +70,13 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         return false;
     });
     $('#prefix').on('keyup', function(e) {
-        if (localArchive !== null && localArchive._titleFile !== null) {
+        if (selectedArchive !== null && selectedArchive.isReady()) {
             onKeyUpPrefix(e);
             $('#geolocationProgress').hide();
         }
     });
     $("#btnArticlesNearby").on("click", function(e) {
-        if (localArchive._coordinateFiles !== null && localArchive._coordinateFiles.length > 0) {
+        if (selectedArchive.hasCoordinates()) {
             $('#prefix').val("");
             searchTitlesNearby();
             $("#welcomeText").hide();
@@ -233,7 +233,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
-        evopediaArchive.LocalArchive.scanForArchives(storages, populateDropDownListOfArchives);
+        backend.scanForArchives(storages, populateDropDownListOfArchives);
     }
 
     if ($.isFunction(navigator.getDeviceStorages)) {
@@ -253,7 +253,8 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
         // This way, it is only done once at this moment, instead of being done several times in callbacks
         // After that, we can start looking for archives
-        storages[0].get("fake-file-to-read").always(searchForArchivesInPreferencesOrStorage);
+        storages[0].get("fake-file-to-read").then(searchForArchivesInPreferencesOrStorage,
+                                                  searchForArchivesInPreferencesOrStorage);
     }
     else {
         // If DeviceStorage is not available, we display the file select components
@@ -318,7 +319,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
                 maxDistance * 2,
                 maxDistance * 2);
 
-        localArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+        selectedArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
     }
     
     /**
@@ -370,8 +371,38 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
     function setLocalArchiveFromArchiveList() {
         var archiveDirectory = $('#archiveList').val();
         if (archiveDirectory && archiveDirectory.length > 0) {
-            localArchive = new evopediaArchive.LocalArchive();
-            localArchive.initializeFromDeviceStorage(storages, archiveDirectory);
+            // Now, try to find which DeviceStorage has been selected by the user
+            // It is the prefix of the archive directory
+            var storageNameRegex = /^\/([^\/]+)\//;
+            var regexResults = storageNameRegex.exec(archiveDirectory);
+            var selectedStorage = null;
+            if (regexResults && regexResults.length>0) {
+                var selectedStorageName = regexResults[1];
+                for (var i=0; i<storages.length; i++) {
+                    var storage = storages[i];
+                    if (selectedStorageName === storage.storageName) {
+                        // We found the selected storage
+                        selectedStorage = storage;
+                    }
+                }
+                if (selectedStorage === null) {
+                    alert("Unable to find which device storage corresponds to directory " + archiveDirectory);
+                }
+            }
+            else {
+                // This happens when the archiveDirectory is not prefixed by the name of the storage
+                // (in the Simulator, or with FxOs 1.0, or probably on devices that only have one device storage)
+                // In this case, we use the first storage of the list (there should be only one)
+                if (storages.length === 1) {
+                    selectedStorage = storages[0];
+                }
+                else {
+                    alert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                        + archiveDirectory + ", but there were " + storages.length
+                        + " storages found with getDeviceStorages instead of 1");
+                }
+            }
+            selectedArchive = backend.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory);
             cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
@@ -390,8 +421,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
      * Sets the localArchive from the File selects populated by user
      */
     function setLocalArchiveFromFileSelect() {
-        localArchive = new evopediaArchive.LocalArchive();
-        localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
+        selectedArchive = backend.loadArchiveFromFiles(document.getElementById('archiveFiles').files);
         // The archive is set : go back to home page to start searching
         $("#btnHome").click();
     }
@@ -425,8 +455,8 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         $('#searchingForTitles').show();
         $('#configuration').hide();
         $('#articleContent').empty();
-        if (localArchive !== null && localArchive._titleFile !== null) {
-            localArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+        if (selectedArchive !== null && selectedArchive.isReady()) {
+            selectedArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
             $('#searchingForTitles').hide();
             // We have to remove the focus from the search field,
@@ -513,7 +543,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
      * If it is, display a warning message about the hyperlinks not working
      */
     function checkSmallArchive() {
-        if (localArchive.language === "small" && !cookies.hasItem("warnedSmallArchive")) {
+        if (selectedArchive.language === "small" && !cookies.hasItem("warnedSmallArchive")) {
             // The user selected the "small" archive, which is quite incomplete
             // So let's display a warning to the user
             
@@ -544,8 +574,8 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
-        var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
-        pushBrowserHistoryState(title._name);
+        var title = selectedArchive.parseTitleId(titleId);
+        pushBrowserHistoryState(title.name());
         $("#prefix").val("");
         return false;
     }
@@ -557,13 +587,13 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
      * @param {type} titleId
      */
     function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
-        if (localArchive._dataFiles && localArchive._dataFiles.length > 0) {
-            var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
-            $("#articleName").html(title._name);
+        if (selectedArchive.isReady()) {
+            var title = selectedArchive.parseTitleId(titleId);
+            $("#articleName").html(title.name());
             $("#readingArticle").show();
             $("#articleContent").html("");
-            if (title._fileNr === 255) {
-                localArchive.resolveRedirect(title, readArticle);
+            if (title.isRedirect()) {
+                selectedArchive.resolveRedirect(title, readArticle);
             }
             else {
                 readArticle(title);
@@ -579,11 +609,11 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
      * @param {type} title
      */
     function readArticle(title) {
-        if (title._fileNr === 255) {
-            localArchive.resolveRedirect(title, readArticle);
+        if (title.isRedirect()) {
+            selectedArchive.resolveRedirect(title, readArticle);
         }
         else {
-            localArchive.readArticle(title, displayArticleInForm);
+            selectedArchive.readArticle(title, displayArticleInForm);
         }
     }
 
@@ -642,7 +672,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
                     || util.endsWith(lowerCaseUrl, ".jpg")
                     || util.endsWith(lowerCaseUrl, ".jpeg"))) {
                 // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
-                var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+localArchive.language+".wikipedia.org/wiki/File:$1");
+                var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+selectedArchive.language+".wikipedia.org/wiki/File:$1");
                 $(this).attr("href", onlineWikipediaUrl);
                 $(this).attr("target", "_blank");
             }
@@ -666,7 +696,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
             var image = $(this);
             var m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/);
             if (m) {
-                localArchive.loadMathImage(m[1], function(data) {
+                selectedArchive.loadMathImage(m[1], function(data) {
                     image.attr("src", 'data:image/png;base64,' + data);
                 });
             }
@@ -719,7 +749,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
      * @returns {undefined}
      */
     function goToArticle(titleName) {
-        localArchive.getTitleByName(titleName, function(title) {
+        selectedArchive.getTitleByName(titleName, function(title) {
             if (title === null || title === undefined) {
                 $("#readingArticle").hide();
                 alert("Article with title " + titleName + " not found in the archive");
@@ -744,7 +774,7 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $('#articleContent').empty();
-        if (localArchive !== null && localArchive._titleFile !== null) {
+        if (selectedArchive !== null && selectedArchive.isReady()) {
             if (navigator.geolocation) {
                 var geo_options = {
                     enableHighAccuracy: false,
@@ -831,13 +861,13 @@ define(['jquery', 'title', 'archive', 'util', 'cookies','geometry','osabstractio
     }
 
     function goToRandomArticle() {
-        localArchive.getRandomTitle(function(title) {
+        selectedArchive.getRandomTitle(function(title) {
             if (title === null || title === undefined) {
                 alert("Error finding random article.");
             }
             else {
-                $("#articleName").html(title._name);
-                pushBrowserHistoryState(title._name);
+                $("#articleName").html(title.name());
+                pushBrowserHistoryState(title.name());
                 $("#readingArticle").show();
                 $("#articleContent").html("");
                 readArticle(title);
