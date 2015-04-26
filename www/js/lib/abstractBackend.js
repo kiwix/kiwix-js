@@ -26,16 +26,22 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
     function loadArchiveFromDeviceStorage(storage, path) {
         if (util.endsWith(path, ".zim")) {
             return new zimArchive.ZIMArchive(storage, path);
-        } else {
+        }
+        else {
             var archive = new evopediaArchive.LocalArchive();
             archive.initializeFromDeviceStorage(storage, path);
             return archive;
         }
     };
     function loadArchiveFromFiles(files) {
-        var archive = new evopediaArchive.LocalArchive();
-        archive.initializeFromArchiveFiles(files);
-        return archive;
+        if (files.length >= 1 && util.endsWith(files[0].name, ".zim")) {
+            return new zimArchive.ZIMArchive(files[0]);
+        }
+        else {
+            var archive = new evopediaArchive.LocalArchive();
+            archive.initializeFromArchiveFiles(files);
+            return archive;
+        }
     };
     /**
      *  Scans the DeviceStorage for archives

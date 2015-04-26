@@ -22,19 +22,28 @@
 'use strict';
 define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) {
     /**
-     * Creates a ZIM arhive object to access the ZIM file at the given path in the given storage.
+     * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
+     * This constructor can also be used with a single File parameter.
      */
     function ZIMArchive(storage, path) {
         var that = this;
         that._file = null;
         that.language = ""; //@TODO
-        storage.get(path).then(function(file) {
-            return zimfile.fromFile(file).then(function(file) {
+        if (storage && storage instanceof File && !path) {
+            // The constructor has been called with a single File parameter
+            zimfile.fromFile(storage).then(function(file) {
                 that._file = file;
             });
-        }, function(error) {
-            alert("Error reading ZIM file " + path + ": " + error);
-        });
+        }
+        else {
+            storage.get(path).then(function(file) {
+                return zimfile.fromFile(file).then(function(file) {
+                    that._file = file;
+                });
+            }, function(error) {
+                alert("Error reading ZIM file " + path + ": " + error);
+            });
+        }
     };
 
     ZIMArchive.prototype.isReady = function() {
