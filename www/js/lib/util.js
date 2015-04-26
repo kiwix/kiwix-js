@@ -116,10 +116,10 @@ define(['q'], function(q) {
 
     /**
      * Reads a Uint8Array from the given file starting at byte offset begin and
-     * not including byte offset end.
+     * for given size.
      * @param file
      * @param begin
-     * @param end
+     * @param size
      * @returns jQuery promise
      */
     function readFileSlice(file, begin, size) {
@@ -140,6 +140,10 @@ define(['q'], function(q) {
      * continue the search.
      * If lowerBound is not set, returns only indices where query returns 0 and null otherwise.
      * If lowerBound is set, returns the smallest index where query does not return > 0.
+     * @param begin
+     * @param end
+     * @param query
+     * @param lowerBound
      */
     function binarySearch(begin, end, query, lowerBound) {
         if (end <= begin)

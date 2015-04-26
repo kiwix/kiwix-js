@@ -20,7 +20,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['util', 'q'], function(util, q) {
+define(['util', 'q', 'jquery'], function(util, q, jQuery) {
     /**
      * Creates an abstraction layer around the FirefoxOS storage.
      * @see StoragePhoneGap
@@ -49,7 +49,7 @@ define(['util', 'q'], function(util, q) {
      *         paths and rejected with an error message.
      */
     StorageFirefoxOS.prototype.scanForArchives = function() {
-        var deferred = q.defer();
+        var deferred = jQuery.Deferred();
         var directories = [];
         var cursor = this._storage.enumerate();
         cursor.onerror = function() {
@@ -80,7 +80,7 @@ define(['util', 'q'], function(util, q) {
 
             cursor.continue();
         };
-        return deferred.promise;
+        return deferred.promise();
     };
 
     /**

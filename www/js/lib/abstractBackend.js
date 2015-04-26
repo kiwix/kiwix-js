@@ -20,8 +20,8 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['title', 'archive', 'zimArchive', 'util', 'jquery'],
-       function(evopediaTitle, evopediaArchive, zimArchive, util, jQuery) {
+define(['archive', 'zimArchive', 'util', 'jquery'],
+       function(evopediaArchive, zimArchive, util, jQuery) {
 
     function loadArchiveFromDeviceStorage(storage, path) {
         if (util.endsWith(path, ".zim")) {
@@ -35,7 +35,7 @@ define(['title', 'archive', 'zimArchive', 'util', 'jquery'],
     function loadArchiveFromFiles(files) {
         var archive = new evopediaArchive.LocalArchive();
         archive.initializeFromArchiveFiles(files);
-        return achive;
+        return archive;
     };
     /**
      *  Scans the DeviceStorage for archives
@@ -58,7 +58,7 @@ define(['title', 'archive', 'zimArchive', 'util', 'jquery'],
             alert("Error scanning your SD card : " + error
                     + ". If you're using the Firefox OS Simulator, please put the archives in "
                     + "a 'fake-sdcard' directory inside your Firefox profile "
-                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_1_x_simulator@mozilla.org/"
+                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"
                     + "profile/fake-sdcard/wikipedia_small_2010-08-14)");
             callbackFunction(null);
         });
