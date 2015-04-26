@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-define(['jquery', 'title', 'archive', 'util', 'geometry'],
- function($, evopediaTitle, evopediaArchive, util, geometry) {
+define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geometry'],
+ function($, evopediaTitle, evopediaArchive, zimArchive, zimDirEntry, util, geometry) {
 
     // Due to security restrictions in the browsers,
     // we can not read directly the files and run the unit tests
@@ -37,14 +37,18 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
         });
 
         test("check archive files are selected", function() {
-            var archiveFiles = document.getElementById('archiveFiles').files;
-            ok(archiveFiles && archiveFiles[0] && archiveFiles[0].size > 0, "First archive file set and not empty");
-            ok(archiveFiles.length >= 5, "At least 5 files are selected");
+            var evopediaArchiveFiles = document.getElementById('evopediaArchiveFiles').files;
+            ok(evopediaArchiveFiles && evopediaArchiveFiles[0] && evopediaArchiveFiles[0].size > 0, "First archive file set and not empty");
+            ok(evopediaArchiveFiles.length >= 5, "At least 5 files are selected");
+            var zimArchiveFiles = document.getElementById('zimArchiveFiles').files;
+            ok(zimArchiveFiles && zimArchiveFiles[0] && zimArchiveFiles[0].size > 0, "ZIM file set and not empty");
         });
 
-        // Create a localArchive from selected files, in order to run the following tests
-        var localArchive = new evopediaArchive.LocalArchive();
-        localArchive.initializeFromArchiveFiles(document.getElementById('archiveFiles').files);
+        // Create a localEvopediaArchive and a localZimArchive from selected files, in order to run the following tests
+        var localEvopediaArchive = new evopediaArchive.LocalArchive();
+        localEvopediaArchive.initializeFromArchiveFiles(document.getElementById('evopediaArchiveFiles').files);
+        var zimFile = document.getElementById('zimArchiveFiles').files[0];
+        var localZimArchive = new zimArchive.ZIMArchive(zimFile);
 
         module("evopedia_title_search_and_read");
         asyncTest("check getTitlesStartingAtOffset 0", function() {
@@ -70,7 +74,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 equal(secondTitleName, "Abortion", "Second article name is 'Abortion'");
                 start();
             };
-            localArchive.getTitlesStartingAtOffset(0, 4, callbackFunction);
+            localEvopediaArchive.getTitlesStartingAtOffset(0, 4, callbackFunction);
         });
 
         asyncTest("check findTitlesWithPrefix Am", function() {
@@ -90,12 +94,12 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 equal(titleList.length, 4, "4 titles should be found");
                 start();
             };
-            localArchive.findTitlesWithPrefix("Am", 10, callbackFunction);
+            localEvopediaArchive.findTitlesWithPrefix("Am", 10, callbackFunction);
         });
 
         // Create a title instance for the Article 'Abraham'
         var titleAbraham = new evopediaTitle.Title();
-        titleAbraham._archive = localArchive;
+        titleAbraham._archive = localEvopediaArchive;
         titleAbraham._articleLength = 10071;
         titleAbraham._blockOffset = 127640;
         titleAbraham._blockStart = 2364940;
@@ -110,7 +114,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 equal(title._name, "Diego_Velázquez", "Name of the title is correct");
                 start();
             };
-            localArchive.getTitleByName("Diego_Velázquez", callbackFunction);
+            localEvopediaArchive.getTitleByName("Diego_Velázquez", callbackFunction);
         });
         asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
             expect(2);
@@ -119,12 +123,12 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 equal(title._name, "Hundred_Years'_War", "Name of the title is correct");
                 start();
             };
-            localArchive.getTitleByName("Hundred_Years'_War", callbackFunction);
+            localEvopediaArchive.getTitleByName("Hundred_Years'_War", callbackFunction);
         });
 
         test("check parseTitleFromId", function() {
             var titleId = "small|2010-08-14|0|57|Abraham|2364940|127640|10071";
-            var title = evopediaTitle.Title.parseTitleId(localArchive, titleId);
+            var title = evopediaTitle.Title.parseTitleId(localEvopediaArchive, titleId);
             ok(title, "Title instance created");
             deepEqual(title, titleAbraham, "Parsing from titleId gives Abraham title");
         });
@@ -139,7 +143,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 ok(htmlArticle.match("</div>[ \t]$"), "</div> at the end");
                 start();
             };
-            localArchive.readArticle(titleAbraham, callbackFunction);
+            localEvopediaArchive.readArticle(titleAbraham, callbackFunction);
         });
 
         asyncTest("check getTitleByName and readArticle with escape bytes", function() {
@@ -155,9 +159,9 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
             var callbackTitleFound = function(title) {
                 ok(title !== null, "Title found");
                 equal(title._name, "AIDS", "Name of the title is correct");
-                localArchive.readArticle(title, callbackArticleRead);
+                localEvopediaArchive.readArticle(title, callbackArticleRead);
             };
-            localArchive.getTitleByName("AIDS", callbackTitleFound);
+            localEvopediaArchive.getTitleByName("AIDS", callbackTitleFound);
         });
         
         asyncTest("check getTitleByName with a title name that does not exist in the archive", function() {
@@ -166,7 +170,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 ok(title === null, "No title found because it does not exist in the archive");
                 start();
             };
-            localArchive.getTitleByName("abcdef", callbackTitleFound);
+            localEvopediaArchive.getTitleByName("abcdef", callbackTitleFound);
         });
 
         asyncTest("check loading a math image", function() {
@@ -180,7 +184,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 start();
             };
 
-            localArchive.loadMathImage("edb3069b82c68d270f6642c171cc6293", callbackFunction);
+            localEvopediaArchive.loadMathImage("edb3069b82c68d270f6642c171cc6293", callbackFunction);
         });
         
         module("geometry");
@@ -335,7 +339,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 start();
             };
             var rectFranceGermany = new geometry.rect(0,40,10,10);
-            localArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
+            localEvopediaArchive.getTitlesInCoords(rectFranceGermany, 10, callbackTitlesNearbyFound);
         });
         
         asyncTest("check articles found nearby France and Germany, with a maximum", function() {
@@ -347,7 +351,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                 start();
             };
             var rectFranceGermany = new geometry.rect(0,40,10,10);
-            localArchive.getTitlesInCoords(rectFranceGermany, 2, callbackTitlesNearbyMaximumFound);
+            localEvopediaArchive.getTitlesInCoords(rectFranceGermany, 2, callbackTitlesNearbyMaximumFound);
         });
         
         asyncTest("check articles found nearby London", function() {
@@ -379,7 +383,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                     pointLondon.y - maxDistance,
                     maxDistance * 2,
                     maxDistance * 2);
-            localArchive.getTitlesInCoords(rectLondon, 10, callbackTitlesNearbyLondonFound);
+            localEvopediaArchive.getTitlesInCoords(rectLondon, 10, callbackTitlesNearbyLondonFound);
         });
         
         asyncTest("check articles found nearby Amsterdam", function() {
@@ -405,7 +409,7 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                     pointAmsterdam.y - maxDistance,
                     maxDistance * 2,
                     maxDistance * 2);
-            localArchive.getTitlesInCoords(rectAmsterdam, 10, callbackTitlesNearbyAmsterdamFound);
+            localEvopediaArchive.getTitlesInCoords(rectAmsterdam, 10, callbackTitlesNearbyAmsterdamFound);
         });
         
         module("evopedia_random_title");
@@ -417,7 +421,24 @@ define(['jquery', 'title', 'archive', 'util', 'geometry'],
                
                 start();
             };
-            localArchive.getRandomTitle(callbackRandomTitleFound);
+            localEvopediaArchive.getRandomTitle(callbackRandomTitleFound);
+        });
+        
+        // Construct the DirEntry for Arikitcac article
+        var arikitcacDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "7371|1|A|0|11|Arikitcac.html|Arikitcac");
+        
+        module("zim_title_search_and_read");
+        asyncTest("check getTitleByName Arikitcac", function() {
+            expect(1);
+            var callbackFunction = function(title, htmlArticle) {
+                ok(htmlArticle && htmlArticle.length > 0, "Article not empty");
+                // Remove new lines
+                htmlArticle = htmlArticle.replace(/[\r\n]/g, " ");
+                ok(htmlArticle.match("^[ \t]*<h1[^>]*>Arikitcac</h1>"), "'Arikitcac' title at the beginning");
+                ok(htmlArticle.match("</div>[ \t]$"), "</div> at the end");
+                start();
+            };
+            localZimArchive.readArticle(arikitcacDirEntry, callbackFunction);
         });
     };
 });
