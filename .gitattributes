@@ -32,3 +32,10 @@
 *.odt	binary
 *.ods	binary
 *.odp	binary
+*.ttf	binary
+*.zim	binary
+*.zim*	binary
+*.eot	binary
+*.svg	binary
+*.woff	binary
+*.woff2	binary
