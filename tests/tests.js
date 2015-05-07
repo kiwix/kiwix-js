@@ -424,18 +424,23 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             localEvopediaArchive.getRandomTitle(callbackRandomTitleFound);
         });
         
-        // Construct the DirEntry for Arikitcac article
-        var arikitcacDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "7371|1|A|0|11|Arikitcac.html|Arikitcac");
-        
+        module("ZIM initialisation");
+        test("ZIM archive is ready", function() {
+            ok(localZimArchive.isReady() === true, "ZIM archive should be set as ready");
+        });
+                
         module("zim_title_search_and_read");
         asyncTest("check getTitleByName Arikitcac", function() {
-            expect(1);
+            // Construct the DirEntry for Arikitcac article
+            // NB : this must be done inside a test or asyncTest function, else the localZimArchive is not ready yet
+            var arikitcacDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "7371|1|A|0|11|Arikitcac.html|Arikitcac");
+
+            expect(2);
             var callbackFunction = function(title, htmlArticle) {
                 ok(htmlArticle && htmlArticle.length > 0, "Article not empty");
                 // Remove new lines
                 htmlArticle = htmlArticle.replace(/[\r\n]/g, " ");
-                ok(htmlArticle.match("^[ \t]*<h1[^>]*>Arikitcac</h1>"), "'Arikitcac' title at the beginning");
-                ok(htmlArticle.match("</div>[ \t]$"), "</div> at the end");
+                ok(htmlArticle.match("^.*<h1[^>]*>Arikitcac</h1>"), "'Arikitcac' title somewhere in the article");
                 start();
             };
             localZimArchive.readArticle(arikitcacDirEntry, callbackFunction);
