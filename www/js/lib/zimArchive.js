@@ -49,6 +49,10 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
     ZIMArchive.prototype.isReady = function() {
         return this._file !== null;
     };
+    
+    ZIMArchive.prototype.needsWikimediaCSS = function() {
+        return false;
+    };
 
     ZIMArchive.prototype.hasCoordinates = function() {
         return false;

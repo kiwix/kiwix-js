@@ -9,28 +9,28 @@
 ** All you guys rock :)
 */
 
-#articleContent .evopedianav {
+.evopedianav {
     font-size: 150%;
     color: #002bb8;
 }
 
-#articleContent .evopedianav:visited {
+.evopedianav:visited {
     color: #002bb8;
 }
 
-#articleContent iframe {
+iframe {
     border: 0px;
 }
 
-#articleContent .geo {
+.geo {
     display:none;
 }
 
-#articleContent #coordinates_3_ObenRechts {
+#coordinates_3_ObenRechts {
     /*display:inline;*/
     display: none;
 }
-#articleContent #coordinates {
+#coordinates {
     /*display:inline;*/
     display: none;
     background:transparent none repeat scroll 0 0;
@@ -50,22 +50,22 @@
     z-index:1;
 }
 
-#articleContent #column-content {
+#column-content {
 	width: 100%;
 	float: right;
 	margin: 0 0 .6em -12.2em;
 	padding: 0;
 }
-#articleContent #content {
+#content {
 	margin: 2.8em 0 0 12.2em;
 	padding: 0 1em 1em 1em;
 	position: relative;
 	z-index: 2;
 }
-#articleContent #column-one {
+#column-one {
 	padding-top: 160px;
 }
-#articleContent #content {
+#content {
 	background: white;
 	color: black;
 	border: 1px solid #aaa;
@@ -80,7 +80,7 @@
 ** http://style.cleverchimp.com/font_size_intervals/altintervals.html
 */
 
-#articleContent body {
+body {
 	/*font: xx-small sans-serif;
 	background: #f9f9f9 url(/headbg.jpg) 0 0 no-repeat;*/
 	font: normal sans-serif;
@@ -93,66 +93,66 @@
 }
 
 /* scale back up to a sane default */
-#articleContent #globalWrapper {
+#globalWrapper {
 	font-size: 127%;
 	width: 100%;
 	margin: 0;
 	padding: 0;
 }
-#articleContent .visualClear {
+.visualClear {
 	clear: both;
 }
 
 /* general styles */
 
-#articleContent table {
+table {
 	font-size: 100%;
 	color: black;
 	/* we don't want the bottom borders of <h2>s to be visible through
 	   floated tables */
 	background-color: white;
 }
-#articleContent fieldset table {
+fieldset table {
 	/* but keep table layouts in forms clean... */
 	background: none;
 }
-#articleContent a {
+a {
 	text-decoration: none;
 	color: #002bb8;
 	background: none;
 }
-#articleContent a:visited {
+a:visited {
 	color: #5a3696;
 }
-#articleContent a:active {
+a:active {
 	color: #faa700;
 }
-#articleContent a:hover {
+a:hover {
 	text-decoration: underline;
 }
-#articleContent a.stub {
+a.stub {
 	color: #772233;
 }
-#articleContent a.new, #articleContent #p-personal a.new {
+a.new, #p-personal a.new {
 	color: #ba0000;
 }
-#articleContent a.new:visited, #articleContent #p-personal a.new:visited {
+a.new:visited, #p-personal a.new:visited {
 	color: #a55858;
 }
 
-#articleContent img {
+img {
 	border: none;
 	vertical-align: middle;
 }
-#articleContent p {
+p {
 	margin: .4em 0 .5em 0;
 	line-height: 1.5em;
 }
-#articleContent p img {
+p img {
 	margin: 0;
 }
 
-#articleContent hr {
+hr {
 	height: 1px;
 	color: #aaa;
 	background-color: #aaa;
@@ -160,7 +160,7 @@
 	margin: .2em 0 .2em 0;
 }
 
-#articleContent h1, #articleContent h2, #articleContent h3, #articleContent h4, #articleContent h5, #articleContent h6 {
+h1, h2, h3, h4, h5, h6 {
 	color: black;
 	background: none;
 	font-weight: normal;
@@ -169,95 +169,95 @@
 	padding-bottom: .17em;
 	border-bottom: 1px solid #aaa;
 }
-#articleContent h1 { font-size: 188%; }
-#articleContent .editsection { display: none; }
-#articleContent h1 .editsection { font-size: 53%; }
-#articleContent h2 { font-size: 150%; }
-#articleContent h2 .editsection { font-size: 67%; }
-#articleContent h3, #articleContent h4, #articleContent h5, #articleContent h6 {
+h1 { font-size: 188%; }
+.editsection { display: none; }
+h1 .editsection { font-size: 53%; }
+h2 { font-size: 150%; }
+h2 .editsection { font-size: 67%; }
+h3, h4, h5, h6 {
 	border-bottom: none;
 	font-weight: bold;
 }
-#articleContent h3 { font-size: 132%; }
-#articleContent h3 .editsection { font-size: 76%; font-weight: normal; }
-#articleContent h4 { font-size: 116%; }
-#articleContent h4 .editsection { font-size: 86%; font-weight: normal; }
-#articleContent h5 { font-size: 100%; }
-#articleContent h5 .editsection { font-weight: normal; }
-#articleContent h6 { font-size: 80%;  }
-#articleContent h6 .editsection { font-size: 125%; font-weight: normal; }
+h3 { font-size: 132%; }
+h3 .editsection { font-size: 76%; font-weight: normal; }
+h4 { font-size: 116%; }
+h4 .editsection { font-size: 86%; font-weight: normal; }
+h5 { font-size: 100%; }
+h5 .editsection { font-weight: normal; }
+h6 { font-size: 80%;  }
+h6 .editsection { font-size: 125%; font-weight: normal; }
 
-#articleContent ul {
+ul {
 	line-height: 1.5em;
 	list-style-type: square;
 	margin: .3em 0 0 1.5em;
 	padding: 0;
 /*	list-style-image: url(/bullet.gif);*/
 }
-#articleContent ol {
+ol {
 	line-height: 1.5em;
 	margin: .3em 0 0 3.2em;
 	padding: 0;
 	list-style-image: none;
 }
-#articleContent li {
+li {
 	margin-bottom: .1em;
 }
-#articleContent dt {
+dt {
 	font-weight: bold;
 	margin-bottom: .1em;
 }
-#articleContent dl {
+dl {
 	margin-top: .2em;
 	margin-bottom: .5em;
 }
-#articleContent dd {
+dd {
 	line-height: 1.5em;
 	margin-left: 2em;
 	margin-bottom: .1em;
 }
 
-#articleContent fieldset {
+fieldset {
 	border: 1px solid #2f6fab;
 	margin: 1em 0 1em 0;
 	padding: 0 1em 1em;
 	line-height: 1.5em;
 }
-#articleContent fieldset.nested {
+fieldset.nested {
 	margin: 0 0 0.5em 0;
 	padding: 0 0.5em 0.5em;
 }
-#articleContent legend {
+legend {
 	padding: .5em;
 	font-size: 95%;
 }
-#articleContent form {
+form {
 	border: none;
 	margin: 0;
 }
 
-#articleContent textarea {
+textarea {
 	width: 100%;
 	padding: .1em;
 }
 
-#articleContent input.historysubmit {
+input.historysubmit {
 	padding: 0 .3em .3em .3em !important;
 	font-size: 94%;
 	cursor: pointer;
 	height: 1.7em !important;
 	margin-left: 1.6em;
 }
-#articleContent select {
+select {
 	vertical-align: top;
 }
-#articleContent abbr, #articleContent acronym, #articleContent .explain {
+abbr, acronym, .explain {
 	border-bottom: 1px dotted black;
 	color: black;
 	background: none;
 	cursor: help;
 }
-#articleContent q {
+q {
 	font-family: Times, "Times New Roman", serif;
 	font-style: italic;
 }
@@ -266,10 +266,10 @@ blockquote {
 	font-family: Times, "Times New Roman", serif;
 	font-style: italic;
 }*/
-#articleContent code {
+code {
 	background-color: #f9f9f9;
 }
-#articleContent pre {
+pre {
 	padding: 1em;
 	border: 1px dashed #2f6fab;
 	color: black;
@@ -281,32 +281,32 @@ blockquote {
 ** the main content area
 */
 
-#articleContent #siteSub {
+#siteSub {
 	display: none;
 }
-#articleContent #jump-to-nav {
+#jump-to-nav {
 	display: none;
 }
 
-#articleContent #contentSub, #articleContent #contentSub2 {
+#contentSub, #contentSub2 {
 	font-size: 84%;
 	line-height: 1.2em;
 	margin: 0 0 1.4em 1em;
 	color: #7d7d7d;
 	width: auto;
 }
-#articleContent span.subpages {
+span.subpages {
 	display: block;
 }
 
 /* Some space under the headers in the content area */
-#articleContent #bodyContent h1, #articleContent #bodyContent h2 {
+#bodyContent h1, #bodyContent h2 {
 	margin-bottom: .6em;
 }
-#articleContent #bodyContent h3, #articleContent #bodyContent h4, #articleContent #bodyContent h5 {
+#bodyContent h3, #bodyContent h4, #bodyContent h5 {
 	margin-bottom: .3em;
 }
-#articleContent .firstHeading {
+.firstHeading {
 	margin-bottom: .1em;
 	/* These two rules hack around bug 2013 (fix for more limited bug 11325).
 	   When bug 2013 is fixed properly, they should be removed. */
@@ -315,7 +315,7 @@ blockquote {
 }
 
 /* user notification thing */
-#articleContent .usermessage {
+.usermessage {
 	background-color: #ffce7b;
 	border: 1px solid #ffa500;
 	color: black;
@@ -324,16 +324,16 @@ blockquote {
 	padding: .5em 1em;
 	vertical-align: middle;
 }
-#articleContent #siteNotice {
+#siteNotice {
 	text-align: center;
 	font-size: 95%;
 	padding: 0 .9em;
 }
-#articleContent #siteNotice p {
+#siteNotice p {
 	margin: 0;
 	padding: 0;
 }
-#articleContent .success {
+.success {
 	color: green;
 	font-size: larger;
 }
@@ -341,7 +341,7 @@ blockquote {
 	color: red;
 	font-size: larger;
 }*/
-#articleContent .errorbox, #articleContent .successbox {
+.errorbox, .successbox {
 	font-size: larger;
 	border: 2px solid;
 	padding: .5em 1em;
@@ -349,15 +349,15 @@ blockquote {
 	margin-bottom: 2em;
 	color: #000;
 }
-#articleContent .errorbox {
+.errorbox {
 	border-color: red;
 	background-color: #fff2f2;
 }
-#articleContent .successbox {
+.successbox {
 	border-color: green;
 	background-color: #dfd;
 }
-#articleContent .errorbox h2, #articleContent .successbox h2 {
+.errorbox h2, .successbox h2 {
 	font-size: 1em;
 	font-weight: bold;
 	display: inline;
@@ -365,7 +365,7 @@ blockquote {
 	border: none;
 }
 
-#articleContent .catlinks {
+.catlinks {
 	border: 1px solid #aaa;
 	background-color: #f9f9f9;
 	padding: 5px;
@@ -374,14 +374,14 @@ blockquote {
 }
 /* currently unused, intended to be used by a metadata box
 in the bottom-right corner of the content area */
-#articleContent .documentDescription {
+.documentDescription {
 	/* The summary text describing the document */
 	font-weight: bold;
 	display: block;
 	margin: 1em 0;
 	line-height: 1.5em;
 }
-#articleContent .documentByLine {
+.documentByLine {
 	text-align: right;
 	font-size: 90%;
 	clear: both;
@@ -390,19 +390,19 @@ in the bottom-right corner of the content area */
 }
 
 /* emulate center */
-#articleContent .center {
+.center {
 	width: 100%;
 	text-align: center;
 }
-#articleContent *.center * {
+*.center * {
 	margin-left: auto;
 	margin-right: auto;
 }
 /* small for tables and similar */
-#articleContent .small, #articleContent .small * {
+.small, .small * {
 	font-size: 94%;
 }
-#articleContent table.small {
+table.small {
 	font-size: 100%;
 }
 
@@ -410,53 +410,53 @@ in the bottom-right corner of the content area */
 ** content styles
 */
 
-#articleContent #toc,
-#articleContent .toc,
-#articleContent .mw-warning {
+#toc,
+.toc,
+.mw-warning {
 	border: 1px solid #aaa;
 	background-color: #f9f9f9;
 	padding: 5px;
 	font-size: 95%;
 }
-#articleContent #toc h2,
-#articleContent .toc h2 {
+#toc h2,
+.toc h2 {
 	display: inline;
 	border: none;
 	padding: 0;
 	font-size: 100%;
 	font-weight: bold;
 }
-#articleContent #toc #toctitle,
-#articleContent .toc #toctitle,
-#articleContent #toc .toctitle,
-#articleContent .toc .toctitle {
+#toc #toctitle,
+.toc #toctitle,
+#toc .toctitle,
+.toc .toctitle {
 	text-align: center;
 }
-#articleContent #toc ul,
-#articleContent .toc ul {
+#toc ul,
+.toc ul {
 	list-style-type: none;
 	list-style-image: none;
 	margin-left: 0;
 	padding-left: 0;
 	text-align: left;
 }
-#articleContent #toc ul ul,
-#articleContent .toc ul ul {
+#toc ul ul,
+.toc ul ul {
 	margin: 0 0 0 2em;
 }
-#articleContent #toc .toctoggle,
-#articleContent .toc .toctoggle {
+#toc .toctoggle,
+.toc .toctoggle {
 	font-size: 94%;
 }
 
-#articleContent .mw-warning {
+.mw-warning {
 	margin-left: 50px;
 	margin-right: 50px;
 	text-align: center;
 }
 
 /* images */
-#articleContent div.floatright, #articleContent table.floatright {
+div.floatright, table.floatright {
 	clear: right;
 	float: right;
 	position: relative;
@@ -467,8 +467,8 @@ in the bottom-right corner of the content area */
 	border-width: .5em 0 .8em 1.4em;
 */
 }
-#articleContent div.floatright p { font-style: italic; }
-#articleContent div.floatleft, #articleContent table.floatleft {
+div.floatright p { font-style: italic; }
+div.floatleft, table.floatleft {
 	float: left;
 	clear: left;
 	position: relative;
@@ -480,15 +480,15 @@ in the bottom-right corner of the content area */
 	border-width: .5em 1.4em .8em 0;
 */
 }
-#articleContent div.floatleft p { font-style: italic; }
+div.floatleft p { font-style: italic; }
 /* thumbnails */
-#articleContent div.thumb {
+div.thumb {
 	margin-bottom: .5em;
 	border-style: solid;
 	border-color: white;
 	width: auto;
 }
-#articleContent div.thumbinner {
+div.thumbinner {
 	border: 1px solid #ccc;
 	padding: 3px !important;
 	background-color: #f9f9f9;
@@ -496,41 +496,41 @@ in the bottom-right corner of the content area */
 	text-align: center;
 	overflow: hidden;
 }
-#articleContent html .thumbimage {
+html .thumbimage {
 	border: 1px solid #ccc;
 }
-#articleContent html .thumbcaption {
+html .thumbcaption {
 	border: none;
 	text-align: left;
 	line-height: 1.4em;
 	padding: 3px !important;
 	font-size: 94%;
 }
-#articleContent div.magnify {
+div.magnify {
 	float: right;
 	border: none !important;
 	background: none !important;
 }
-#articleContent div.magnify a, #articleContent div.magnify img {
+div.magnify a, div.magnify img {
 	display: block;
 	border: none !important;
 	background: none !important;
 }
-#articleContent div.tright {
+div.tright {
 	clear: right;
 	float: right;
 	border-width: .5em 0 .8em 1.4em;
 }
-#articleContent div.tleft {
+div.tleft {
 	float: left;
 	clear: left;
 	margin-right: .5em;
 	border-width: .5em 1.4em .8em 0;
 }
-#articleContent img.thumbborder {
+img.thumbborder {
 	border: 1px solid #dddddd;
 }
-#articleContent .hiddenStructure {
+.hiddenStructure {
 	display: none;
 }
 
@@ -543,20 +543,20 @@ in the bottom-right corner of the content area */
 ** User styles
 */
 /* table standards */
-#articleContent table.rimage {
+table.rimage {
 	float: right;
 	position: relative;
 	margin-left: 1em;
 	margin-bottom: 1em;
 	text-align: center;
 }
-#articleContent .toccolours {
+.toccolours {
 	border: 1px solid #aaa;
 	background-color: #f9f9f9;
 	padding: 5px;
 	font-size: 95%;
 }
-#articleContent div.townBox {
+div.townBox {
 	position: relative;
 	float: right;
 	background: white;
@@ -567,16 +567,16 @@ in the bottom-right corner of the content area */
 	overflow: hidden;
 	clear: right;
 }
-#articleContent div.townBox dl {
+div.townBox dl {
 	padding: 0;
 	margin: 0 0 .3em;
 	font-size: 96%;
 }
-#articleContent div.townBox dl dt {
+div.townBox dl dt {
 	background: none;
 	margin: .4em 0 0;
 }
-#articleContent div.townBox dl dd {
+div.townBox dl dd {
 	margin: .1em 0 0 1.1em;
 	background-color: #f3f3f3;
 }
@@ -584,7 +584,7 @@ in the bottom-right corner of the content area */
 /*
 ** edit views etc
 */
-#articleContent .special li {
+.special li {
 	line-height: 1.4em;
 	margin: 0;
 	padding: 0;
@@ -594,75 +594,75 @@ in the bottom-right corner of the content area */
 ** keep the whitespace in front of the ^=, hides rule from konqueror
 ** this is css3, the validator doesn't like it when validating as css2
 */
-#articleContent #bodyContent a.external,
-#articleContent #bodyContent a[href ^="gopher://"] {
+#bodyContent a.external,
+#bodyContent a[href ^="gopher://"] {
 	/*background: url(external.png) center right no-repeat;*/
 	padding-right: 13px;
 }
-#articleContent #bodyContent a[href ^="https://"],
-#articleContent .link-https {
+#bodyContent a[href ^="https://"],
+.link-https {
 /*	background: url(lock_icon.gif) center right no-repeat;*/
 	padding-right: 16px;
 }
-#articleContent #bodyContent a[href ^="mailto:"],
-#articleContent .link-mailto {
+#bodyContent a[href ^="mailto:"],
+.link-mailto {
 /*	background: url(mail_icon.gif) center right no-repeat;*/
 	padding-right: 18px;
 }
-#articleContent #bodyContent a[href ^="news://"] {
+#bodyContent a[href ^="news://"] {
 /*	background: url(news_icon.png) center right no-repeat;*/
 	padding-right: 18px;
 }
-#articleContent #bodyContent a[href ^="ftp://"],
-#articleContent .link-ftp {
+#bodyContent a[href ^="ftp://"],
+.link-ftp {
 /*	background: url(file_icon.gif) center right no-repeat;*/
 	padding-right: 18px;
 }
-#articleContent #bodyContent a[href ^="irc://"],
-#articleContent #bodyContent a.extiw[href ^="irc://"],
-#articleContent .link-irc {
+#bodyContent a[href ^="irc://"],
+#bodyContent a.extiw[href ^="irc://"],
+.link-irc {
 /*	background: url(discussionitem_icon.gif) center right no-repeat;*/
 	padding-right: 18px;
 }
-#articleContent #bodyContent a.external[href $=".ogg"], #articleContent #bodyContent a.external[href $=".OGG"],
-#articleContent #bodyContent a.external[href $=".mid"], #articleContent #bodyContent a.external[href $=".MID"],
-#articleContent #bodyContent a.external[href $=".midi"], #articleContent #bodyContent a.external[href $=".MIDI"],
-#articleContent #bodyContent a.external[href $=".mp3"], #articleContent #bodyContent a.external[href $=".MP3"],
-#articleContent #bodyContent a.external[href $=".wav"], #articleContent #bodyContent a.external[href $=".WAV"],
-#articleContent #bodyContent a.external[href $=".wma"], #articleContent #bodyContent a.external[href $=".WMA"],
-#articleContent .link-audio {
+#bodyContent a.external[href $=".ogg"], #bodyContent a.external[href $=".OGG"],
+#bodyContent a.external[href $=".mid"], #bodyContent a.external[href $=".MID"],
+#bodyContent a.external[href $=".midi"], #bodyContent a.external[href $=".MIDI"],
+#bodyContent a.external[href $=".mp3"], #bodyContent a.external[href $=".MP3"],
+#bodyContent a.external[href $=".wav"], #bodyContent a.external[href $=".WAV"],
+#bodyContent a.external[href $=".wma"], #bodyContent a.external[href $=".WMA"],
+.link-audio {
 /*	background: url("audio.png") center right no-repeat;*/
 	padding-right: 13px;
 }
-#articleContent #bodyContent a.external[href $=".ogm"], #articleContent #bodyContent a.external[href $=".OGM"],
-#articleContent #bodyContent a.external[href $=".avi"], #articleContent #bodyContent a.external[href $=".AVI"],
-#articleContent #bodyContent a.external[href $=".mpeg"], #articleContent #bodyContent a.external[href $=".MPEG"],
-#articleContent #bodyContent a.external[href $=".mpg"], #articleContent #bodyContent a.external[href $=".MPG"],
-#articleContent .link-video {
+#bodyContent a.external[href $=".ogm"], #bodyContent a.external[href $=".OGM"],
+#bodyContent a.external[href $=".avi"], #bodyContent a.external[href $=".AVI"],
+#bodyContent a.external[href $=".mpeg"], #bodyContent a.external[href $=".MPEG"],
+#bodyContent a.external[href $=".mpg"], #bodyContent a.external[href $=".MPG"],
+.link-video {
 /*	background: url("video.png") center right no-repeat;*/
 	padding-right: 13px;
 }
-#articleContent #bodyContent a.external[href $=".pdf"], #articleContent #bodyContent a.external[href $=".PDF"],
-#articleContent #bodyContent a.external[href *=".pdf#"], #articleContent #bodyContent a.external[href *=".PDF#"],
-#articleContent #bodyContent a.external[href *=".pdf?"], #articleContent #bodyContent a.external[href *=".PDF?"],
-#articleContent .link-document {
+#bodyContent a.external[href $=".pdf"], #bodyContent a.external[href $=".PDF"],
+#bodyContent a.external[href *=".pdf#"], #bodyContent a.external[href *=".PDF#"],
+#bodyContent a.external[href *=".pdf?"], #bodyContent a.external[href *=".PDF?"],
+.link-document {
 /*	background: url("document.png") center right no-repeat;*/
 	padding-right: 12px;
 }
 
 /* disable interwiki styling */
-#articleContent #bodyContent a.extiw,
-#articleContent #bodyContent a.extiw:active {
+#bodyContent a.extiw,
+#bodyContent a.extiw:active {
 	color: #36b;
 	background: none;
 	padding: 0;
 }
-#articleContent #bodyContent a.external {
+#bodyContent a.external {
 	color: #36b;
 }
 /* this can be used in the content area to switch off
 special external link styling */
-#articleContent #bodyContent .plainlinks a {
+#bodyContent .plainlinks a {
 	background: none !important;
 	padding: 0 !important;
 }
@@ -673,7 +673,7 @@ special external link styling */
 /*
 ** general portlet styles (elements in the quickbar)
 */
-#articleContent .portlet {
+.portlet {
 	border: none;
 	margin: 0 0 .5em;
 	padding: 0;
@@ -681,12 +681,12 @@ special external link styling */
 	width: 11.6em;
 	overflow: hidden;
 }
-#articleContent .portlet h4 {
+.portlet h4 {
 	font-size: 95%;
 	font-weight: normal;
 	white-space: nowrap;
 }
-#articleContent .portlet h5 {
+.portlet h5 {
 	background: transparent;
 	padding: 0 1em 0 .5em;
 	display: inline;
@@ -696,7 +696,7 @@ special external link styling */
 	font-weight: normal;
 	white-space: nowrap;
 }
-#articleContent .portlet h6 {
+.portlet h6 {
 	background: #ffae2e;
 	border: 1px solid #2f6fab;
 	border-style: solid solid none solid;
@@ -708,7 +708,7 @@ special external link styling */
 	font-weight: normal;
 	white-space: nowrap;
 }
-#articleContent .pBody {
+.pBody {
 	font-size: 95%;
 	background-color: white;
 	color: black;
@@ -716,20 +716,20 @@ special external link styling */
 	border: 1px solid #aaa;
 	padding: 0 .8em .3em .5em;
 }
-#articleContent .portlet h1,
-#articleContent .portlet h2,
-#articleContent .portlet h3,
-#articleContent .portlet h4 {
+.portlet h1,
+.portlet h2,
+.portlet h3,
+.portlet h4 {
 	margin: 0;
 	padding: 0;
 }
-#articleContent .portlet ul {
+.portlet ul {
 	line-height: 1.5em;
 	list-style-type: square;
 /*	list-style-image: url(/bullet.gif);*/
 	font-size: 95%;
 }
-#articleContent .portlet li {
+.portlet li {
 	padding: 0;
 	margin: 0;
 }
@@ -738,7 +738,7 @@ special external link styling */
 ** Logo properties
 */
 
-#articleContent #p-logo {
+#p-logo {
 	top: 0;
 	left: 0;
 	position: absolute; /*needed to use z-index */
@@ -747,11 +747,11 @@ special external link styling */
 	width: 12em;
 	overflow: visible;
 }
-#articleContent #p-logo h5 {
+#p-logo h5 {
 	display: none;
 }
-#articleContent #p-logo a,
-#articleContent #p-logo a:hover {
+#p-logo a,
+#p-logo a:hover {
 	display: block;
 	height: 155px;
 	width: 12.2em;
@@ -763,25 +763,25 @@ special external link styling */
 /*
 ** Search portlet
 */
-#articleContent #p-search {
+#p-search {
 	position: relative;
 	z-index: 3;
 }
-#articleContent input.searchButton {
+input.searchButton {
 	margin-top: 1px;
 	font-size: 95%;
 }
-#articleContent #searchGoButton {
+#searchGoButton {
 	padding-left: .5em;
 	padding-right: .5em;
 	font-weight: bold;
 }
-#articleContent #searchInput {
+#searchInput {
 	width: 10.9em;
 	margin: 0;
 	font-size: 95%;
 }
-#articleContent #p-search .pBody {
+#p-search .pBody {
 	padding: .5em .4em .4em .4em;
 	text-align: center;
 }
@@ -789,13 +789,13 @@ special external link styling */
 /*
 ** the personal toolbar
 */
-#articleContent #p-personal {
+#p-personal {
 	position: absolute;
 	left: 0;
 	top: 0;
 	z-index: 0;
 }
-#articleContent #p-personal {
+#p-personal {
 	width: 100%;
 	white-space: nowrap;
 	padding: 0;
@@ -805,11 +805,11 @@ special external link styling */
 	overflow: visible;
 	line-height: 1.2em;
 }
-#articleContent #p-personal h5 {
+#p-personal h5 {
 	display: none;
 }
-#articleContent #p-personal .portlet,
-#articleContent #p-personal .pBody {
+#p-personal .portlet,
+#p-personal .pBody {
 	z-index: 0;
 	padding: 0;
 	margin: 0;
@@ -818,7 +818,7 @@ special external link styling */
 	background: none;
 }
 /* this is the ul contained in the portlet */
-#articleContent #p-personal ul {
+#p-personal ul {
 	border: none;
 	line-height: 1.4em;
 	color: #2f6fab;
@@ -830,7 +830,7 @@ special external link styling */
 	background: none;
 	cursor: default;
 }
-#articleContent #p-personal li {
+#p-personal li {
 	z-index: 0;
 	border: none;
 	padding: 0;
@@ -840,39 +840,39 @@ special external link styling */
 	line-height: 1.2em;
 	background: none;
 }
-#articleContent #p-personal li a {
+#p-personal li a {
 	text-decoration: none;
 	color: #005896;
 	padding-bottom: .2em;
 	background: none;
 }
-#articleContent #p-personal li a:hover {
+#p-personal li a:hover {
 	background-color: white;
 	padding-bottom: .2em;
 	text-decoration: none;
 }
-#articleContent #p-personal li.active a:hover {
+#p-personal li.active a:hover {
 	background-color: transparent;
 }
 /* the icon in front of the user name, single quotes
 in bg url to hide it from iemac */
-#articleContent li#pt-userpage,
-#articleContent li#pt-anonuserpage,
-#articleContent li#pt-login {
+li#pt-userpage,
+li#pt-anonuserpage,
+li#pt-login {
 /*	background: url(user.gif) top left no-repeat;*/
 	padding-left: 20px;
 	text-transform: none;
 }
-#articleContent #p-personal ul {
+#p-personal ul {
 	text-transform: lowercase;
 }
-#articleContent #p-personal li.active {
+#p-personal li.active {
 	font-weight: bold;
 }
 /*
 ** the page-related actions- page/talk, edit etc
 */
-#articleContent #p-cactions {
+#p-cactions {
 	position: absolute;
 	top: 1.3em;
 	left: 11.5em;
@@ -887,10 +887,10 @@ in bg url to hide it from iemac */
 	list-style: none;
 	font-size: 95%;
 }
-#articleContent #p-cactions ul {
+#p-cactions ul {
 	list-style: none;
 }
-#articleContent #p-cactions li {
+#p-cactions li {
 	display: inline;
 	border: 1px solid #aaa;
 	border-bottom: none;
@@ -899,12 +899,12 @@ in bg url to hide it from iemac */
 	overflow: visible;
 	background: white;
 }
-#articleContent #p-cactions li.selected {
+#p-cactions li.selected {
 	border-color: #fabd23;
 	padding: 0 0 .2em 0;
 	font-weight: bold;
 }
-#articleContent #p-cactions li a {
+#p-cactions li a {
 	background-color: #fbfbfb;
 	color: #002bb8;
 	border: none;
@@ -914,40 +914,40 @@ in bg url to hide it from iemac */
 	margin: 0;
 	text-decoration: none;
 }
-#articleContent #p-cactions li.selected a {
+#p-cactions li.selected a {
 	z-index: 3;
 	padding: 0 1em .2em!important;
 	background-color: white;
 }
-#articleContent #p-cactions .new a {
+#p-cactions .new a {
 	color: #ba0000;
 }
-#articleContent #p-cactions li a:hover {
+#p-cactions li a:hover {
 	z-index: 3;
 	text-decoration: none;
 	background-color: white;
 }
-#articleContent #p-cactions h5 {
+#p-cactions h5 {
 	display: none;
 }
-#articleContent #p-cactions li.istalk {
+#p-cactions li.istalk {
 	margin-right: 0;
 }
-#articleContent #p-cactions li.istalk a {
+#p-cactions li.istalk a {
 	padding-right: .5em;
 }
-#articleContent #p-cactions #ca-addsection a {
+#p-cactions #ca-addsection a {
 	padding-left: .4em;
 	padding-right: .4em;
 }
 /* offsets to distinguish the tab groups */
-#articleContent li#ca-talk {
+li#ca-talk {
 	margin-right: 1.6em;
 }
-#articleContent li#ca-watch, #articleContent li#ca-unwatch, #articleContent li#ca-varlang-0, #articleContent li#ca-print {
+li#ca-watch, li#ca-unwatch, li#ca-varlang-0, li#ca-print {
 	margin-left: 1.6em;
 }
-#articleContent #p-cactions .pBody {
+#p-cactions .pBody {
 	font-size: 1em;
 	background-color: transparent;
 	color: inherit;
@@ -955,18 +955,18 @@ in bg url to hide it from iemac */
 	border: 0;
 	padding: 0;
 }
-#articleContent #p-cactions .hiddenStructure {
+#p-cactions .hiddenStructure {
 	display: none;
 }
-#articleContent #p-cactions li a {
+#p-cactions li a {
 	text-transform: lowercase;
 }
 
 /*
 ** the remaining portlets
 */
-#articleContent #p-tbx,
-#articleContent #p-lang {
+#p-tbx,
+#p-lang {
 	position: relative;
 	z-index: 3;
 }
@@ -974,13 +974,13 @@ in bg url to hide it from iemac */
 /* TODO: #t-iscite is only used by the Cite extension, come up with some
  * system which allows extensions to add to this file on the fly
  */
-#articleContent #t-ispermalink, #articleContent #t-iscite {
+#t-ispermalink, #t-iscite {
 	color: #999;
 }
 /*
 ** footer
 */
-#articleContent #footer {
+#footer {
 	background-color: white;
 	border-top: 1px solid #fabd23;
 	border-bottom: 1px solid #fabd23;
@@ -989,36 +989,36 @@ in bg url to hide it from iemac */
 	text-align: center;
 	font-size: 90%;
 }
-#articleContent #footer li {
+#footer li {
 	display: inline;
 	margin: 0 1.3em;
 }
-#articleContent #f-poweredbyico, #articleContent #f-copyrightico {
+#f-poweredbyico, #f-copyrightico {
 	margin: 0 8px;
 	position: relative;
 	top: -2px; /* Bump it up just a tad */
 }
-#articleContent #f-poweredbyico {
+#f-poweredbyico {
 	float: right;
 	height: 1%;
 }
-#articleContent #f-copyrightico {
+#f-copyrightico {
 	float: left;
 	height: 1%;
 }
 
 /* js pref toc */
-#articleContent #preftoc {
+#preftoc {
 	margin: 0;
 	padding: 0;
 	width: 100%;
 	clear: both;
 }
-#articleContent #preftoc li {
+#preftoc li {
 	background-color: #f0f0f0;
 	color: #000;
 }
-#articleContent #preftoc li {
+#preftoc li {
 	margin: 1px -2px 1px 2px;
 	float: left;
 	padding: 2px 0 3px 0;
@@ -1031,7 +1031,7 @@ in bg url to hide it from iemac */
 	list-style-image: none;
 	z-index: 3;
 }
-#articleContent #preftoc li.selected {
+#preftoc li.selected {
 	font-weight: bold;
 	background-color: #f9f9f9;
 	border: 1px solid #aaa;
@@ -1041,74 +1041,74 @@ in bg url to hide it from iemac */
 	padding-top: 2px;
 	margin-right: -3px;
 }
-#articleContent #preftoc > li.selected {
+#preftoc > li.selected {
 	top: 2px;
 }
-#articleContent #preftoc a,
-#articleContent #preftoc a:active {
+#preftoc a,
+#preftoc a:active {
 	display: block;
 	color: #000;
 	padding: 0 .7em;
 	position: relative;
 	text-decoration: none;
 }
-#articleContent #preftoc li.selected a {
+#preftoc li.selected a {
 	cursor: default;
 	text-decoration: none;
 }
-#articleContent #prefcontrol {
+#prefcontrol {
 	padding-top: 2em;
 	clear: both;
 }
-#articleContent #preferences {
+#preferences {
 	margin: 0;
 	border: 1px solid #aaa;
 	clear: both;
 	padding: 1.5em;
 	background-color: #F9F9F9;
 }
-#articleContent .prefsection {
+.prefsection {
 	border: none;
 	padding: 0;
 	margin: 0;
 }
-#articleContent .prefsection fieldset {
+.prefsection fieldset {
 	border: 1px solid #aaa;
 	float: left;
 	margin-right: 2em;
 }
-#articleContent .prefsection legend {
+.prefsection legend {
 	font-weight: bold;   
 }
-#articleContent .prefsection table, #articleContent .prefsection legend {
+.prefsection table, .prefsection legend {
 	background-color: #F9F9F9;
 }
-#articleContent .mainLegend {
+.mainLegend {
 	display: none;
 }
-#articleContent div.prefsectiontip {
+div.prefsectiontip {
 	font-size: x-small;
 	padding: .2em 2em;
 	color: #666;
 }
-#articleContent .btnSavePrefs {
+.btnSavePrefs {
 	font-weight: bold;
 	padding-left: .3em;
 	padding-right: .3em;
 }
 
-#articleContent .preferences-login {
+.preferences-login {
 	clear: both;
 	margin-bottom: 1.5em;
 }
 
-#articleContent .prefcache {
+.prefcache {
 	font-size: 90%;
 	margin-top: 2em;
 }
 
-#articleContent div#userloginForm form,
-#articleContent div#userlogin form#userlogin2 {
+div#userloginForm form,
+div#userlogin form#userlogin2 {
 	margin: 0 3em 1em 0;
 	border: 1px solid #aaa;
 	clear: both;
@@ -1116,47 +1116,47 @@ in bg url to hide it from iemac */
 	background-color: #f9f9f9;
 	float: left;
 }
-#articleContent .rtl div#userloginForm form,
-#articleContent .rtl div#userlogin form#userlogin2 {
+.rtl div#userloginForm form,
+.rtl div#userlogin form#userlogin2 {
 	float: right;
 }
 
-#articleContent div#userloginForm table,
-#articleContent div#userlogin form#userlogin2 table {
+div#userloginForm table,
+div#userlogin form#userlogin2 table {
 	background-color: #f9f9f9;
 }
 
-#articleContent div#userloginForm h2,
-#articleContent div#userlogin form#userlogin2 h2 {
+div#userloginForm h2,
+div#userlogin form#userlogin2 h2 {
 	padding-top: 0;
 }
 
-#articleContent div#userlogin .captcha,
-#articleContent div#userloginForm .captcha {
+div#userlogin .captcha,
+div#userloginForm .captcha {
 	border: 1px solid #bbb;
 	padding: 1.5em 2em;
 	background-color: white;
 }
 
-#articleContent #loginend, #articleContent #signupend {
+#loginend, #signupend {
 	clear: both;
 }
 
-#articleContent #userloginprompt, #articleContent #languagelinks {
+#userloginprompt, #languagelinks {
 	font-size: 85%;
 }
 
-#articleContent #login-sectiontip {
+#login-sectiontip {
 	font-size: 85%;
 	line-height: 1.2;
 	padding-top: 2em;
 }
 
-#articleContent #userlogin .loginText, #articleContent #userlogin .loginPassword {
+#userlogin .loginText, #userlogin .loginPassword {
 	width: 12em;
 }
 
-#articleContent #userloginlink a, #articleContent #wpLoginattempt, #articleContent #wpCreateaccount {
+#userloginlink a, #wpLoginattempt, #wpCreateaccount {
 	font-weight: bold;
 }
 
@@ -1166,17 +1166,17 @@ in bg url to hide it from iemac */
 ** @import("IEMacFixes.css");
 */
 /* tabs: border on the a, not the div */
-#articleContent * > html #p-cactions li { border: none; }
-#articleContent * > html #p-cactions li a {
+* > html #p-cactions li { border: none; }
+* > html #p-cactions li a {
 	border: 1px solid #aaa;
 	border-bottom: none;
 }
-#articleContent * > html #p-cactions li.selected a { border-color: #fabd23; }
+* > html #p-cactions li.selected a { border-color: #fabd23; }
 /* footer icons need a fixed width */
-#articleContent * > html #f-poweredbyico,
-#articleContent * > html #f-copyrightico { width: 88px; }
-#articleContent * > html #bodyContent,
-#articleContent * > html #bodyContent pre {
+* > html #f-poweredbyico,
+* > html #f-copyrightico { width: 88px; }
+* > html #bodyContent,
+* > html #bodyContent pre {
 	overflow-x: auto;
 	width: 100%;
 	padding-bottom: 25px;
@@ -1184,110 +1184,110 @@ in bg url to hide it from iemac */
 
 /* more IE fixes */
 /* float/negative margin brokenness */
-#articleContent * html #footer {margin-top: 0;}
-#articleContent * html #column-content {
+* html #footer {margin-top: 0;}
+* html #column-content {
 	display: inline;
 	margin-bottom: 0;
 }
-#articleContent * html div.editsection { font-size: smaller; }
-#articleContent #pagehistory li.selected { position: relative; }
+* html div.editsection { font-size: smaller; }
+#pagehistory li.selected { position: relative; }
 
 /* Mac IE 5.0 fix; floated content turns invisible */
-#articleContent * > html #column-content {
+* > html #column-content {
 	float: none;
 }
-#articleContent * > html #column-one {
+* > html #column-one {
 	position: absolute;
 	left: 0;
 	top: 0;
 }
-#articleContent * > html #footer {
+* > html #footer {
 	margin-left: 13.2em;
 }
-#articleContent .redirectText {
+.redirectText {
 	font-size: 150%;
 	margin: 5px;
 }
 
-#articleContent .printfooter {
+.printfooter {
 	display: none;
 }
 
-#articleContent .not-patrolled {
+.not-patrolled {
 	background-color: #ffa;
 }
-#articleContent div.patrollink {
+div.patrollink {
 	clear: both;
 	font-size: 75%;
 	text-align: right;
 }
-#articleContent span.newpage, #articleContent span.minor, #articleContent span.bot {
+span.newpage, span.minor, span.bot {
 	font-weight: bold;
 }
-#articleContent span.unpatrolled {
+span.unpatrolled {
 	font-weight: bold;
 	color: red;
 }
 
-#articleContent .sharedUploadNotice {
+.sharedUploadNotice {
 	font-style: italic;
 }
 
-#articleContent span.updatedmarker {
+span.updatedmarker {
 	color: black;
 	background-color: #0f0;
 }
 
-#articleContent table.gallery {
+table.gallery {
 	border: 1px solid #ccc;
 	margin: 2px;
 	padding: 2px;
 	background-color: white;
 }
 
-#articleContent table.gallery tr {
+table.gallery tr {
 	vertical-align: top;
 }
 
-#articleContent table.gallery td {
+table.gallery td {
 	vertical-align: top;
 	background-color: #f9f9f9;
 	border: solid 2px white;
 }
 /* Keep this temporarily so that cached pages will display right */
-#articleContent table.gallery td.galleryheader {
+table.gallery td.galleryheader {
     text-align: center;
 	font-weight: bold;
 }
-#articleContent table.gallery caption {
+table.gallery caption {
 	font-weight: bold;
 }
 
-#articleContent div.gallerybox {
+div.gallerybox {
 	margin: 2px;
 }
 
-#articleContent div.gallerybox div.thumb {
+div.gallerybox div.thumb {
 	text-align: center;
 	border: 1px solid #ccc;
 	margin: 2px;
 }
 
-#articleContent div.gallerytext {
+div.gallerytext {
 	overflow: hidden;
 	font-size: 94%;
 	padding: 2px 4px;
 }
 
-#articleContent span.comment {
+span.comment {
 	font-style: italic;
 }
 
-#articleContent span.changedby {
+span.changedby {
 	font-size: 95%;
 }
 
-#articleContent .previewnote {
+.previewnote {
 	text-indent: 3em;
 	color: #c00;
 	border-bottom: 1px solid #aaa;
@@ -1295,12 +1295,12 @@ in bg url to hide it from iemac */
 	margin-bottom: 1em;
 }
 
-#articleContent .previewnote p {
+.previewnote p {
 	margin: 0;
 	padding: 0;
 }
 
-#articleContent .editExternally {
+.editExternally {
 	border: 1px solid gray;
 	background-color: #ffffff;
 	padding: 3px;
@@ -1309,63 +1309,63 @@ in bg url to hide it from iemac */
 	font-size: small;
 	text-align: center;
 }
-#articleContent .editExternallyHelp {
+.editExternallyHelp {
 	font-style: italic;
 	color: gray;
 }
 
-#articleContent .toggle {
+.toggle {
 	margin-left: 2em;
 	text-indent: -2em;
 }
 
 /* Classes for EXIF data display */
-#articleContent table.mw_metadata {
+table.mw_metadata {
 	font-size: 0.8em;
 	margin-left: 0.5em;
 	margin-bottom: 0.5em;
 	width: 300px;
 }
 
-#articleContent table.mw_metadata caption {
+table.mw_metadata caption {
 	font-weight: bold;
 }
 
-#articleContent table.mw_metadata th {
+table.mw_metadata th {
 	font-weight: normal;
 }
 
-#articleContent table.mw_metadata td {
+table.mw_metadata td {
 	padding: 0.1em;
 }
 
-#articleContent table.mw_metadata {
+table.mw_metadata {
 	border: none;
 	border-collapse: collapse;
 }
 
-#articleContent table.mw_metadata td, #articleContent table.mw_metadata th {
+table.mw_metadata td, table.mw_metadata th {
 	text-align: center;
 	border: 1px solid #aaaaaa;
 	padding-left: 0.1em;
 	padding-right: 0.1em;
 }
 
-#articleContent table.mw_metadata th {
+table.mw_metadata th {
 	background-color: #f9f9f9;
 }
 
-#articleContent table.mw_metadata td {
+table.mw_metadata td {
 	background-color: #fcfcfc;
 }
 
-#articleContent table.collapsed tr.collapsable {
+table.collapsed tr.collapsable {
 	display: none;
 }
 
 
 /* filetoc */
-#articleContent ul#filetoc {
+ul#filetoc {
 	text-align: center;
 	border: 1px solid #aaaaaa;
 	background-color: #f9f9f9;
@@ -1376,54 +1376,54 @@ in bg url to hide it from iemac */
 	margin-right: 0;
 }
 
-#articleContent #filetoc li {
+#filetoc li {
 	display: inline;
 	list-style-type: none;
 	padding-right: 2em;
 }
 
-#articleContent input#wpSummary {
+input#wpSummary {
 	width: 80%;
 }
 
 /* @bug 1714 */
-#articleContent input#wpSave, #articleContent input#wpDiff {
+input#wpSave, input#wpDiff {
 	margin-right: 0.33em;
 }
 
-#articleContent #editform .editOptions {
+#editform .editOptions {
 	display: inline;
 }
 
-#articleContent #wpSave {
+#wpSave {
 	font-weight: bold;
 }
 
 /* Classes for article validation */
 
-#articleContent table.revisionform_default {
+table.revisionform_default {
 	border: 1px solid #000000;
 }
 
-#articleContent table.revisionform_focus {
+table.revisionform_focus {
 	border: 1px solid #000000;
 	background-color:#00BBFF;
 }
 
-#articleContent tr.revision_tr_default {
+tr.revision_tr_default {
 	background-color:#EEEEEE;
 }
 
-#articleContent tr.revision_tr_first {
+tr.revision_tr_first {
 	background-color:#DDDDDD;
 }
 
-#articleContent p.revision_saved {
+p.revision_saved {
 	color: green;
 	font-weight:bold;
 }
 
-#articleContent #mw_trackbacks {
+#mw_trackbacks {
 	border: solid 1px #bbbbff;
 	background-color: #eeeeff;
 	padding: 0.2em;
@@ -1432,104 +1432,104 @@ in bg url to hide it from iemac */
 
 /* Allmessages table */
 
-#articleContent #allmessagestable th {
+#allmessagestable th {
 	background-color: #b2b2ff;
 }
 
-#articleContent #allmessagestable tr.orig {
+#allmessagestable tr.orig {
 	background-color: #ffe2e2;
 }
 
-#articleContent #allmessagestable tr.new {
+#allmessagestable tr.new {
 	background-color: #e2ffe2;
 }
 
-#articleContent #allmessagestable tr.def {
+#allmessagestable tr.def {
 	background-color: #f0f0ff;
 }
 
 
 /* noarticletext */
-#articleContent div.noarticletext {
+div.noarticletext {
 	border: 1px solid #ccc;
 	background: #fff;
 	padding: .2em 1em;
 	color: #000;
 }
 
-#articleContent div#searchTargetContainer {
+div#searchTargetContainer {
 	left:       10px;
 	top:        10px;
 	width:      90%;
 	background: white;
 }
 
-#articleContent div#searchTarget {
+div#searchTarget {
 	padding:    3px;
 	margin:     5px;
 	background: #F0F0F0;
 	border:     solid 1px blue;
 }
 
-#articleContent div#searchTarget ul li {
+div#searchTarget ul li {
 	list-style: none;
 }
 
-#articleContent div#searchTarget ul li:before {
+div#searchTarget ul li:before {
 	color: orange;
 	content: "\00BB \0020";
 }
 
-#articleContent div#searchTargetHide {
+div#searchTargetHide {
 	float:right;
 	border:solid 1px black;
 	background:#DCDCDC;
 	padding:2px;
 }
 
-#articleContent div.multipageimagenavbox {
+div.multipageimagenavbox {
    border: solid 1px silver;
    padding: 4px;
    margin: 1em;
    background: #f0f0f0;
 }
 
-#articleContent div.multipageimagenavbox div.thumb {
+div.multipageimagenavbox div.thumb {
    border: none;
    margin-left: 2em;
    margin-right: 2em;
 }
 
-#articleContent div.multipageimagenavbox hr {
+div.multipageimagenavbox hr {
    margin: 6px;
 }
 
-#articleContent table.multipageimage td {
+table.multipageimage td {
    text-align: center;
 }
 
 /** Special:Version */
 
-#articleContent table#sv-ext, #articleContent table#sv-hooks, #articleContent table#sv-software {
+table#sv-ext, table#sv-hooks, table#sv-software {
 	margin: 1em;
 	padding:0em;
 }
 
-#articleContent #sv-ext td, #articleContent #sv-hooks td, #articleContent #sv-software td,
-#articleContent #sv-ext th, #articleContent #sv-hooks th, #articleContent #sv-software th {
+#sv-ext td, #sv-hooks td, #sv-software td,
+#sv-ext th, #sv-hooks th, #sv-software th {
 	border: 1px solid #A0A0A0;
 	padding: 0 0.15em 0 0.15em;
 }
-#articleContent #sv-ext th, #articleContent #sv-hooks th, #articleContent #sv-software th {
+#sv-ext th, #sv-hooks th, #sv-software th {
 	background-color: #F0F0F0;
 	color: black;
 	padding: 0 0.15em 0 0.15em;
 }
-#articleContent tr.sv-space{
+tr.sv-space{
 	height: 0.8em;
 	border:none;
 }
-#articleContent tr.sv-space td { display: none; }
+tr.sv-space td { display: none; }
 
 /*
   Table pager (e.g. Special:Imagelist)
@@ -1539,47 +1539,47 @@ in bg url to hide it from iemac */
   - remove line wrapping for all td and th, set background color
   - restore line wrapping for the last two table cells (description and size)
 */
-#articleContent .TablePager_nav a { text-decoration: none; }
-#articleContent .TablePager { border-collapse: collapse; }
-#articleContent .TablePager, #articleContent .TablePager td, #articleContent .TablePager th { 
+.TablePager_nav a { text-decoration: none; }
+.TablePager { border-collapse: collapse; }
+.TablePager, .TablePager td, .TablePager th { 
 	border: 1px solid #aaaaaa;
 	padding: 0 0.15em 0 0.15em;
 }
-#articleContent .TablePager th { background-color: #eeeeff }
-#articleContent .TablePager td { background-color: #ffffff }
-#articleContent .TablePager tr:hover td { background-color: #eeeeff }
+.TablePager th { background-color: #eeeeff }
+.TablePager td { background-color: #ffffff }
+.TablePager tr:hover td { background-color: #eeeeff }
 
-#articleContent .imagelist td, #articleContent .imagelist th { white-space: nowrap }
-#articleContent .imagelist .TablePager_col_links { background-color: #eeeeff }
-#articleContent .imagelist .TablePager_col_img_description { white-space: normal }
-#articleContent .imagelist th.TablePager_sort { background-color: #ccccff }
+.imagelist td, .imagelist th { white-space: nowrap }
+.imagelist .TablePager_col_links { background-color: #eeeeff }
+.imagelist .TablePager_col_img_description { white-space: normal }
+.imagelist th.TablePager_sort { background-color: #ccccff }
 
-#articleContent .templatesUsed { margin-top: 1.5em; }
+.templatesUsed { margin-top: 1.5em; }
 
-#articleContent .mw-summary-preview {
+.mw-summary-preview {
 	margin: 0.1em 0;
 }
 
 /* Friendlier slave lag warnings */
-#articleContent div.mw-lag-warn-normal,
-#articleContent div.mw-lag-warn-high {
+div.mw-lag-warn-normal,
+div.mw-lag-warn-high {
 	padding: 3px;
 	text-align: center;
 	margin: 3px auto;
 }
-#articleContent div.mw-lag-warn-normal {
+div.mw-lag-warn-normal {
 	border: 1px solid #FFCC66;
 	background-color: #FFFFCC;
 }
-#articleContent div.mw-lag-warn-high {
+div.mw-lag-warn-high {
 	font-weight: bold;
 	border: 2px solid #FF0033;
 	background-color: #FFCCCC;
 }
 
 /* Recreating-deleted-page/reupload file warning and log entries */
-#articleContent div#mw-upload-deleted-warn,
-#articleContent div#mw-recreate-deleted-warn {
+div#mw-upload-deleted-warn,
+div#mw-recreate-deleted-warn {
 	padding: 3px;
 	margin-bottom: 3px;
 	border: 2px solid #2F6FAB;
@@ -1588,24 +1588,24 @@ div#mw-upload-deleted-warn ul li,
 div#mw-recreate-deleted-warn ul li {
 	font-size: 90%;
 }
-#articleContent .MediaTransformError {
+.MediaTransformError {
 	background-color: #ccc;
 	padding: 0.1em;
 }
-#articleContent .MediaTransformError td {
+.MediaTransformError td {
 	text-align: center;
 	vertical-align: middle;
 	font-size: 90%;
 }
 
 /** Special:Search stuff */
-#articleContent div#mw-search-interwiki-caption {
+div#mw-search-interwiki-caption {
 	text-align: center;
 	font-weight: bold;
 	font-size: 95%;
 }
 
-#articleContent .mw-search-interwiki-project {
+.mw-search-interwiki-project {
 	font-size: 97%;
 	text-align: left;
 	padding-left: 0.2em;
@@ -1615,13 +1615,13 @@ div#mw-recreate-deleted-warn ul li {
 	background: #cae8ff;
 }
 
-#articleContent span.searchmatch {
+span.searchmatch {
 	font-weight: bold;
 	color: red;
 }
 
 /* God-damned hack for the crappy layout */
-#articleContent .os-suggest {
+.os-suggest {
 	font-size: 127%;
 }
 
@@ -1644,7 +1644,7 @@ div#mw-recreate-deleted-warn ul li {
 
  /* Personennamen in Kapitälchen: class="Person" */
  
- #articleContent .Person {
+ .Person {
     display: inline;
     font-variant: small-caps;
     font-style: normal;
@@ -1652,25 +1652,25 @@ div#mw-recreate-deleted-warn ul li {
 
  /* [[Wikipedia:Zitate|Zitate]] (siehe [[Vorlage:Zitat]]) */
  
- #articleContent p.Zitat {
+ p.Zitat {
     font-style: normal;
     margin-bottom: 0em;
  }
- #articleContent p.cite {
+ p.cite {
     margin-top: 0em;
     padding-left: 1em;
  }
 
  /* [[Wikipedia:Quellenangaben|Quellenangaben]] nicht kursiv, da sie ggf. verschiedene Bestandteile enthalten */
  
- #articleContent cite {
+ cite {
     font-style: normal;
  }
 
  /* Stylesheet-Ergänzung zu Standard-[[Wikipedia:Navigationsleisten|Navigationsleisten]] */
  
- #articleContent div.BoxenVerschmelzen,
- #articleContent div.NavFrame {
+ div.BoxenVerschmelzen,
+ div.NavFrame {
     margin: 0px;
     padding: 2px;
     border: 1px solid #aaaaaa;
@@ -1679,36 +1679,36 @@ div#mw-recreate-deleted-warn ul li {
     font-size: 95%;
         clear:both;
  }
- #articleContent div.BoxenVerschmelzen div.NavFrame {
+ div.BoxenVerschmelzen div.NavFrame {
     border-style: none;
     border-style: hidden;
  }
- #articleContent div.NavFrame + div.NavFrame {
+ div.NavFrame + div.NavFrame {
     border-top-style: none;
     border-top-style: hidden;
  }
- #articleContent div.NavPic {
+ div.NavPic {
     background-color: #ffffff;
     margin: 0px;
     padding: 2px;
     float: left;
  }
- #articleContent div.NavFrame div.NavHead {
+ div.NavFrame div.NavHead {
     height: 1.6em;
     font-weight: bold;
     font-size: 100%;
     background-color: #efefef;
  }
- #articleContent div.NavFrame p {
+ div.NavFrame p {
     font-size: 100%;
  }
- #articleContent div.NavFrame div.NavContent {
+ div.NavFrame div.NavContent {
     font-size: 100%;
  }
- #articleContent div.NavFrame div.NavContent p {
+ div.NavFrame div.NavContent p {
     font-size: 100%;
  }
- #articleContent div.NavEnd {
+ div.NavEnd {
     margin: 0px;
     padding: 0px;
     line-height: 1px;
@@ -1716,21 +1716,21 @@ div#mw-recreate-deleted-warn ul li {
  }
 
 /* Stylesheet fuer den 'Ausklappen'-Button an Navileisten, der in [[MediaWiki:Common.js]] implementiert wird */
-#articleContent .NavToggle {
+.NavToggle {
        font-size: x-small;
        float:right;
 }
 
  /* Abstand vor Navigationsleisten */
  
- #articleContent div.BoxenVerschmelzen,
- #articleContent div.NavFrame {
+ div.BoxenVerschmelzen,
+ div.NavFrame {
    margin-top: 1.5em;
  }
- #articleContent div.BoxenVerschmelzen div.NavFrame {
+ div.BoxenVerschmelzen div.NavFrame {
    margin-top: 0;
  }
- #articleContent div.NavFrame + div.NavFrame {
+ div.NavFrame + div.NavFrame {
    margin-top: 0;
  }
 
@@ -1747,7 +1747,7 @@ div#mw-recreate-deleted-warn ul li {
 
  /* Stylesheet-Ergänzung zu SideBoxen (ehedem [[Wikipedia:TownBox|TownBox]]) */
  
- #articleContent div.sideBox {
+ div.sideBox {
     position: relative;
     float: right;
     background: white;
@@ -1758,23 +1758,23 @@ div#mw-recreate-deleted-warn ul li {
     overflow: hidden;
     clear: right;
  }
- #articleContent div.sideBox dl {
+ div.sideBox dl {
     padding: 0;
     margin: 0 0 0.3em 0;
     font-size: 96%;
  }
-#articleContent div.sideBox dl dt {
+div.sideBox dl dt {
     background: none;
     margin: 0.4em 0 0 0;
  }
-#articleContent  div.sideBox dl dd {
+ div.sideBox dl dd {
     margin: 0.1em 0 0 1.1em;
     background-color: #f3f3f3;
  }
 
  /* Stylesheet-Ergänzung zu [[Wikipedia:Taxoboxen|Taxoboxen]] */
  
-#articleContent  table.taxobox {
+ table.taxobox {
         border-collapse: collapse;
         border: 1px solid gray;
         float: right;
@@ -1782,46 +1782,46 @@ div#mw-recreate-deleted-warn ul li {
         margin-left: 0.5em;
         background-color:white;
  }
-#articleContent  table.taxobox th {
+ table.taxobox th {
         background-color: #9BCD9B;
         border: solid 1px gray;
         text-align: center;
         font-weight: bold;
  }
-#articleContent  table.taxobox td {
+ table.taxobox td {
         vertical-align:top;
  }
-#articleContent  table.taxobox .Person {
+ table.taxobox .Person {
         font-style: normal;
  }
-#articleContent  table.taxobox div.thumb,
-#articleContent  table.taxobox div.thumb * {
+ table.taxobox div.thumb,
+ table.taxobox div.thumb * {
         margin: auto;
         padding: 0;
         float: none;
         border: none;
         background-color:#F9F9F9;
  }
-#articleContent  table.taxobox div.magnify {
+ table.taxobox div.magnify {
         display: none;
  }
- #articleContent table.taxobox tr td div.thumb div div.thumbcaption {
+ table.taxobox tr td div.thumb div div.thumbcaption {
         text-align:center;
  }
- #articleContent table.taxobox td.Person {
+ table.taxobox td.Person {
         text-align:center;
         display:block;
  }
- #articleContent table.taxobox td.taxo-name {
+ table.taxobox td.taxo-name {
         text-align:center;
  }
- #articleContent table.taxobox td.taxo-bild {
+ table.taxobox td.taxo-bild {
         text-align:center;
  }
 
  /* Stylesheet-Ergänzung zu [[Wikipedia:Paläoboxen|Paläoboxen]] */
  
- #articleContent table.palaeobox {
+ table.palaeobox {
        border-collapse: collapse;
        border: 1px solid gray;
        float: right;
@@ -1829,51 +1829,51 @@ div#mw-recreate-deleted-warn ul li {
        margin-left: 0.5em;
        background-color:white;
  }
- #articleContent table.palaeobox th {
+ table.palaeobox th {
        background-color: #e7dcc3;
        border: solid 1px gray;
        text-align: center;
        font-weight: bold;
  }
- #articleContent table.palaeobox td {
+ table.palaeobox td {
        vertical-align:top;
  }
- #articleContent table.palaeobox .Person {
+ table.palaeobox .Person {
        font-style: normal;
  }
- #articleContent table.palaeobox div.thumb,
- #articleContent table.palaeobox div.thumb * {
+ table.palaeobox div.thumb,
+ table.palaeobox div.thumb * {
        margin: 0;
        padding: 0;
        float: none;
        border: none;
  }
- #articleContent table.palaeobox div.magnify {
+ table.palaeobox div.magnify {
        display:none;
  }
- #articleContent table.palaeobox tr td div.thumb div div.thumbcaption {
+ table.palaeobox tr td div.thumb div div.thumbcaption {
        text-align:left;
  }
- #articleContent table.palaeobox td.Person {
+ table.palaeobox td.Person {
        text-align:center;
        display:block;
  }
- #articleContent table.palaeobox td.taxo-name {
+ table.palaeobox td.taxo-name {
        text-align:center;
  }
- #articleContent table.palaeobox td.taxo-bild {
+ table.palaeobox td.taxo-bild {
        text-align:center;
  }
- #articleContent table.palaeobox td.taxo-zeit {
+ table.palaeobox td.taxo-zeit {
        text-align:center;
  }
- #articleContent table.palaeobox td.taxo-ort {
+ table.palaeobox td.taxo-ort {
        text-align:left;
  }
 
  /* aus Vorlage zur Entlastung, skinabhängigen Darstellung und Kombinierbarkeit hierher ausgelagert */
- #articleContent .wikitable,
- #articleContent .prettytable {
+ .wikitable,
+ .prettytable {
   margin: 1em 1em 1em 0;
   background: #f9f9f9;
   border: 1px #AAA solid;
@@ -1881,23 +1881,23 @@ div#mw-recreate-deleted-warn ul li {
   empty-cells:show;
  }
 
- #articleContent .wikitable th, #articleContent .wikitable td,
- #articleContent .prettytable th, #articleContent .prettytable td {
+ .wikitable th, .wikitable td,
+ .prettytable th, .prettytable td {
   border: 1px #AAA solid;
   padding: 0.3em;
  }
 
- #articleContent .wikitable caption,
- #articleContent .prettytable caption {
+ .wikitable caption,
+ .prettytable caption {
   margin-left: inherit;
   margin-right: inherit;
   font-weight: bold;
  }
  
- #articleContent .nogrid th, #articleContent .nogrid td {border: none;}
- #articleContent .float-left { float: left; clear: left; }
- #articleContent .float-right { float: right; clear: right; margin: 1em 0 1em 1em; }
- #articleContent .centered { margin-left: auto; margin-right: auto; }
+ .nogrid th, .nogrid td {border: none;}
+ .float-left { float: left; clear: left; }
+ .float-right { float: right; clear: right; margin: 1em 0 1em 1em; }
+ .centered { margin-left: auto; margin-right: auto; }
 
  /* Bitte KEINE weiteren Definitionen dieser Art für Boxen hier, das gehört in entsprechende Vorlagen! */
  /* Hier 20 Mal Trivialitäten wie "text-align:center" zu definieren verlangsamt alles und ist nicht */
@@ -1906,21 +1906,21 @@ div#mw-recreate-deleted-warn ul li {
 
  /* Do not expand [[Wikipedia:WikiProjekt Georeferenzierung|kvaleberg.com-URLs]] for printing */
  
- #articleContent #content span.coordinates a.external.text:after, #articleContent #content span.coordinates a.external.autonumber:after { content: ""; }
- #articleContent #content div.coordinates a.external.text:after, #articleContent #content div.coordinates a.external.autonumber:after { content: ""; }
+ #content span.coordinates a.external.text:after, #content span.coordinates a.external.autonumber:after { content: ""; }
+ #content div.coordinates a.external.text:after, #content div.coordinates a.external.autonumber:after { content: ""; }
  
  /* Do not expand URLs for printing */
  
- #articleContent #content span.plainlinks-print a.external.text:after, #articleContent #content span.plainlinks-print a.external.autonumber:after { content: ""; }
- #articleContent #content div.plainlinks-print a.external.text:after, #articleContent #content div.plainlinks-print a.external.autonumber:after { content: ""; }
+ #content span.plainlinks-print a.external.text:after, #content span.plainlinks-print a.external.autonumber:after { content: ""; }
+ #content div.plainlinks-print a.external.text:after, #content div.plainlinks-print a.external.autonumber:after { content: ""; }
  
  /* Metadaten (bspw. [[Wikipedia:Personendaten|Personendaten]]) */
  
-#articleContent  table.metadata {
+ table.metadata {
     border: 1px solid #aaaaaa;
     display: none;
  }
-#articleContent  .metadata-label {
+ .metadata-label {
     color: #aaaaaa;
  }
 
@@ -1933,58 +1933,58 @@ div#mw-recreate-deleted-warn ul li {
   * für dünne Rahmen nur noch "border-style" angeben muss.)
   */
  
-#articleContent  .rahmenfarbe1 { /* Wie Inhaltsverzeichnis */
+ .rahmenfarbe1 { /* Wie Inhaltsverzeichnis */
     border-color: #aaaaaa;
     border-width: 1px;
  }
-#articleContent  .rahmenfarbe2 { /* Unauffällig, geringer Kontrast */
+ .rahmenfarbe2 { /* Unauffällig, geringer Kontrast */
     border-color: #e9e9e9;
     border-width: 1px;
  }
-#articleContent  .rahmenfarbe3 { /* "Rot", auffällig */
+ .rahmenfarbe3 { /* "Rot", auffällig */
     border-color: #c00000;
     border-width: 1px;
  }
-#articleContent  .rahmenfarbe4 { /* Neutrale Farbe, deutlich */
+ .rahmenfarbe4 { /* Neutrale Farbe, deutlich */
     border-color: #8888aa;
     border-width: 1px;
  }
-#articleContent  .rahmenfarbe5 { /* "Schwarz", hoher Kontrast */
+ .rahmenfarbe5 { /* "Schwarz", hoher Kontrast */
     border-color: #000000;
     border-width: 1px;
  }
  
- #articleContent .hintergrundfarbe1 { /* Wie Inhaltsverzeichnis */
+ .hintergrundfarbe1 { /* Wie Inhaltsverzeichnis */
     background-color: #f9f9f9;
  }
- #articleContent .hintergrundfarbe2 { /* "Weiß", für Nicht-Artikel-Seiten, neutral */
+ .hintergrundfarbe2 { /* "Weiß", für Nicht-Artikel-Seiten, neutral */
     background-color: #ffffff;
  }
- #articleContent .hintergrundfarbe3 { /* "Gelb", auffällig */
+ .hintergrundfarbe3 { /* "Gelb", auffällig */
     background-color: #ffff40;
  }
- #articleContent .hintergrundfarbe4 { /* Sehr auffällig */
+ .hintergrundfarbe4 { /* Sehr auffällig */
     background-color: #ffaa00;
  }
- #articleContent .hintergrundfarbe5 { /* Neutral, abgesetzt */
+ .hintergrundfarbe5 { /* Neutral, abgesetzt */
     background-color: #e0e0e0;
  }
- #articleContent .hintergrundfarbe6 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
+ .hintergrundfarbe6 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
     background-color: #b3b7ff;
  }
- #articleContent .hintergrundfarbe7 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
+ .hintergrundfarbe7 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
     background-color: #ffcbcb;
  }
- #articleContent .hintergrundfarbe8 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
+ .hintergrundfarbe8 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
     background-color: #ffebad;
  }
- #articleContent .hintergrundfarbe9 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
+ .hintergrundfarbe9 { /* Allgemein „bunt“, für Hervorhebungen und Unterscheidungen */
     background-color: #b9ffc5;
  }
 
  /* Keine Vergrößerung der Zeilenhöhe durch hochgestellte Zahlen der Fußnoten */
  
- #articleContent .reference, #articleContent .references sup {
+ .reference, .references sup {
      font-size: 91%;
      vertical-align: text-top;
      position: relative;
@@ -1993,22 +1993,22 @@ div#mw-recreate-deleted-warn ul li {
 
  /* Hervorhebung der angeklickten Fußnoten und der Rückverweise in blau */
  
- #articleContent ol.references > li:target {
+ ol.references > li:target {
      background-color: #DEF;
  }
  
- #articleContent sup.reference:target { 
+ sup.reference:target { 
      background-color: #DEF;
  }
 
  /* Für <hiero></hiero> */
 
- #articleContent .mw-hierotable { border: 0px; padding: 0px; }
- #articleContent .mw-hierotable th, #articleContent .mw-hierotable td { border: 0px; padding: 0px; }
+ .mw-hierotable { border: 0px; padding: 0px; }
+ .mw-hierotable th, .mw-hierotable td { border: 0px; padding: 0px; }
 
  /* Für [[MediaWiki:Anoneditwarning]] */
 
- #articleContent #mw-anon-edit-warning {
+ #mw-anon-edit-warning {
 	background-color: #ffce7b;
 	border: 1px solid #ffa500;
 	color: black;
@@ -2022,114 +2022,114 @@ div#mw-recreate-deleted-warn ul li {
 
  /* Markierung von Redirects in [[Special:Allpages]], [[Special:Watchlist]], Kategorien */
  
- #articleContent .allpagesredirect {
+ .allpagesredirect {
         font-style: italic;
  }
  
- #articleContent .watchlistredir {
+ .watchlistredir {
         font-style: italic;
  }
  
- #articleContent .redirect-in-category {
+ .redirect-in-category {
         font-style: italic;
  }
  
  /* Einmal gelesene Bestandteile (z.B. in der Sitenotice) ausblenden, sobald css geladen ist */
  
- #articleContent #gelesen {
+ #gelesen {
         display:none;
  }
 
  /* Größerer Abstand zwischen TOC-Nummerierung und TOC-Eintrag */
- #articleContent span.tocnumber {margin-right:0.3em;}
+ span.tocnumber {margin-right:0.3em;}
 
  /* Skinabhängige absolute Positionierungen ausblenden */
  /* Bitte [[MediaWiki Diskussion:Common.css#Absolute_Positionierungen]] beachten */
  
- #articleContent #coordinates_3_ObenRechts, #articleContent #issnlink, #articleContent #editcount, #articleContent #shortcut, #articleContent #artikelstadium {
+ #coordinates_3_ObenRechts, #issnlink, #editcount, #shortcut, #artikelstadium {
     display: none;
  }
 
   /* CommonsTicker styles */
  
-#articleContent   .tickerList ul,    #articleContent .tickerList ul li    { list-style: none; text-indent:-2em; margin-left:2em;   text-align:left; }
-  #articleContent .tickerList ul ul, #articleContent .tickerList ul ul li { list-style: none; text-indent:0;    margin-left:1.5em; text-align:left; }
+  .tickerList ul,    .tickerList ul li    { list-style: none; text-indent:-2em; margin-left:2em;   text-align:left; }
+  .tickerList ul ul, .tickerList ul ul li { list-style: none; text-indent:0;    margin-left:1.5em; text-align:left; }
  
-  #articleContent .tickerAction_deleted:before     { content:" WEG "; color: #FF0000; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_restored:before    { content:" RST "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_replaced:before    { content:" ERS "; color: #CC88FF; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_addedTag:before    { content:" +LA "; color: #FF8800; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_removedTag:before  { content:" -LA "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_addedBad:before    { content:" +LA "; color: #FF8800; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_removedBad:before  { content:" -LA "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_addedGood:before   { content:" +OK "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
-  #articleContent .tickerAction_removedGood:before { content:" -OK "; color: #FF8800; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_deleted:before     { content:" WEG "; color: #FF0000; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_restored:before    { content:" RST "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_replaced:before    { content:" ERS "; color: #CC88FF; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_addedTag:before    { content:" +LA "; color: #FF8800; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_removedTag:before  { content:" -LA "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_addedBad:before    { content:" +LA "; color: #FF8800; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_removedBad:before  { content:" -LA "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_addedGood:before   { content:" +OK "; color: #00BB00; font-family:monospace; font-weight:bold; font-size:100%; }
+  .tickerAction_removedGood:before { content:" -OK "; color: #FF8800; font-family:monospace; font-weight:bold; font-size:100%; }
  
-  #articleContent .tickerUsage  { font-size:80%; }  /* ticker usage list */
-  #articleContent .tickerTemplateEntry    { font-weight: bold; } /* entry applies to a template used by multiple images */
+  .tickerUsage  { font-size:80%; }  /* ticker usage list */
+  .tickerTemplateEntry    { font-weight: bold; } /* entry applies to a template used by multiple images */
  
   /* per-status styles  */  
-  #articleContent .tickerStatus_done:before {content:" Fixed "; color: #00AA00; font-family:monospace; font-weight:bold; font-size:90%; text-decoration: none;}
-  #articleContent .tickerStatus_done { text-decoration:line-through; font-size: small; } 
+  .tickerStatus_done:before {content:" Fixed "; color: #00AA00; font-family:monospace; font-weight:bold; font-size:90%; text-decoration: none;}
+  .tickerStatus_done { text-decoration:line-through; font-size: small; } 
  
   /* strike through when entry has been handeled (done) */
   /*.tickerStatus_done .tickerAction_deleted:before  { content:" "; text-decoration: none;}*/ 
-  #articleContent .tickerStatus_done .tickerAction_deleted:before  { text-decoration: none; }
+  .tickerStatus_done .tickerAction_deleted:before  { text-decoration: none; }
  
   /* local reupload */  
-  #articleContent .tickerStatus_local {text-decoration:line-through; font-size: small; } 
-  #articleContent .tickerStatus_local .tickerAction_deleted:before  {content:" "; text-decoration: none;}
-  #articleContent .tickerStatus_local:before { content:" re-uploaded locally "; color: #00AA00; font-family:monospace; font-weight:bold; font-size:90%; text-decoration: none;}
+  .tickerStatus_local {text-decoration:line-through; font-size: small; } 
+  .tickerStatus_local .tickerAction_deleted:before  {content:" "; text-decoration: none;}
+  .tickerStatus_local:before { content:" re-uploaded locally "; color: #00AA00; font-family:monospace; font-weight:bold; font-size:90%; text-decoration: none;}
  
   /* in process of fixing */
-  #articleContent .tickerStatus_fixing .tickerAction_deleted:before  {content:" "; text-decoration: none;}
-  #articleContent .tickerStatus_fixing:before {content:"fixing"; color: #FF8800; font-family:monospace; font-weight:bold; font-size:90%;}
+  .tickerStatus_fixing .tickerAction_deleted:before  {content:" "; text-decoration: none;}
+  .tickerStatus_fixing:before {content:"fixing"; color: #FF8800; font-family:monospace; font-weight:bold; font-size:90%;}
  
   /* Won'tfix */
-  #articleContent .tickerStatus_wontfix .tickerAction_deleted:before  {text-decoration: none;}
-  #articleContent .tickerStatus_wontfix {text-decoration: line-through;}
-  #articleContent .tickerStatus_wontfix:before {content:"Will not fix"; color: #CC0000; font-family:monospace; font-weight:bold; font-size:90%;text-decoration:none;}  
+  .tickerStatus_wontfix .tickerAction_deleted:before  {text-decoration: none;}
+  .tickerStatus_wontfix {text-decoration: line-through;}
+  .tickerStatus_wontfix:before {content:"Will not fix"; color: #CC0000; font-family:monospace; font-weight:bold; font-size:90%;text-decoration:none;}  
  
   /* similiar */
-  #articleContent .tickerStatus_similiar .tickerAction_deleted:before  {text-decoration: none;}
-  #articleContent .tickerStatus_similiar {text-decoration: line-through;}
-  #articleContent .tickerStatus_similiar:before {content:"REPL Article;no fix"; color: #FF4400; font-family:monospace; font-weight:bold; font-size:90%;text-decoration:none;}
+  .tickerStatus_similiar .tickerAction_deleted:before  {text-decoration: none;}
+  .tickerStatus_similiar {text-decoration: line-through;}
+  .tickerStatus_similiar:before {content:"REPL Article;no fix"; color: #FF4400; font-family:monospace; font-weight:bold; font-size:90%;text-decoration:none;}
  
   /* NA */
-  #articleContent .tickerStatus_NA .tickerAction_deleted:before  {text-decoration: none;}
-  #articleContent .tickerStatus_NA:before {content:"No NEG"; color: #00FF20;} 
-  #articleContent ul span.tickerStatus_NA + ul span.tickerUsage {display:none;}
-  #articleContent span.tickerStatus_NA  span.tickerUsage {display:none;}
+  .tickerStatus_NA .tickerAction_deleted:before  {text-decoration: none;}
+  .tickerStatus_NA:before {content:"No NEG"; color: #00FF20;} 
+  ul span.tickerStatus_NA + ul span.tickerUsage {display:none;}
+  span.tickerStatus_NA  span.tickerUsage {display:none;}
   /*Needed so that both subentrys and non-subentrys both are invisivble */
 
  /* Anpassungen für [[:Template:Link_FA]] */
  
  /* hide the template */
- #articleContent #bodyContent span.FA {
+ #bodyContent span.FA {
      display: none; 
  }
  
  /* change the bullets for links to special articles */
- #articleContent #p-lang li.FA {
+ #p-lang li.FA {
      /* hier immer auch linkFA_bullet in Common.js mit anpassen für die älteren skins! */
      /*list-style-image: url("http://upload.wikimedia.org/wikipedia/commons/d/d0/Monobook-bullet-star-transparent.png");*/
  }
  
  /* without this, special bullets go too far to the left */
  /*
- #articleContent .portlet li {
+ .portlet li {
   list-style-image: url("http://upload.wikimedia.org/wikipedia/commons/1/18/Monobook-bullet.png");
  }
  */
 
  /* DIVs in ImageMaps inlinen (Vorschlag von Revolus) */
- #articleContent .imagemap-inline div {
+ .imagemap-inline div {
        display: inline;
  }
 
  /* [[Special:Hochladen]]: Warnmeldung auf bestehende Dateien, unerwünschte Prefixe usw. deutlicher hervorheben. */
 
- #articleContent #wpDestFile-warning ul {
+ #wpDestFile-warning ul {
        border:solid red 1px;
        padding: 1.5em;
  }
@@ -2138,8 +2138,8 @@ div#mw-recreate-deleted-warn ul li {
  /* Vor allem auf Spezialseiten, da diese eine andere Hintergrundfarbe haben. */
  /* Update 21. März 2008: Wurde mit [[rev:32269]] und [[rev:32270]] zentralisiert. */
 
- #articleContent table.searchResultImage, #articleContent table#mw-sitematrix-table, #articleContent table.mw-specialpages-table,
- #articleContent table.mw-listgrouprights-table, #articleContent table.diff
+ table.searchResultImage, table#mw-sitematrix-table, table.mw-specialpages-table,
+ table.mw-listgrouprights-table, table.diff
   {
        background-color: transparent; 
   }
@@ -2152,11 +2152,11 @@ div#mw-recreate-deleted-warn ul li {
  /* +++++ 3. NEUE [[Hauptseite|HAUPTSEITE]] (ab 2006) +++++ */
  
  /* Kategorie verbergen */
- #articleContent body.page-Hauptseite #catlinks {
+ body.page-Hauptseite #catlinks {
   display:none;
  }
 
- #articleContent #hauptseite h2 {
+ #hauptseite h2 {
        background-color: #d8e8ff;
        border: 1px solid #8898bf;
        font-size: 1em;
@@ -2166,65 +2166,65 @@ div#mw-recreate-deleted-warn ul li {
        padding-top: 0.1em;
        padding-bottom: 0.1em;
  }
- #articleContent #hauptseite .inhalt {
+ #hauptseite .inhalt {
        background-color: #ffffff;
        border: 1px solid #8898bf;
        border-top: 0px solid white;
        padding: 0.3em 0.8em 0.4em 0.8em;
  }
- #articleContent #hauptseite .inhalt hr {
+ #hauptseite .inhalt hr {
        background-color: #8898bf;
        color: #8898bf;
        height: 1px;
        margin:0.5em 0;
        padding: 0;
  }
- #articleContent #hauptseite .inhalt .mehr {
+ #hauptseite .inhalt .mehr {
        clear: both;
        font-size: 95%;
        margin-top: 0.8em;
        text-align: right;
  }
- #articleContent .hauptseite-oben,
- #articleContent .hauptseite-links,
- #articleContent .hauptseite-rechts {
+ .hauptseite-oben,
+ .hauptseite-links,
+ .hauptseite-rechts {
        margin-bottom: 1em;
  }
- #articleContent .hauptseite-links {
+ .hauptseite-links {
        margin-right: 0.5em;
  }
- #articleContent .hauptseite-rechts {
+ .hauptseite-rechts {
        margin-left: 0.5em;
  }
- #articleContent .hauptseite-oben h2,
- #articleContent .hauptseite-unten h2 {
+ .hauptseite-oben h2,
+ .hauptseite-unten h2 {
        text-align: center;
  }
- #articleContent .hauptseite-oben .inhalt .portale {
+ .hauptseite-oben .inhalt .portale {
        font-weight: bold;
        margin-top: 0.2em;
        margin-bottom: 0.2em;
  }
- #articleContent .hauptseite-oben .inhalt .intern {
+ .hauptseite-oben .inhalt .intern {
        font-size: 90%;
        text-align: center;
  }
- #articleContent .hauptseite-links h2,
- #articleContent .hauptseite-rechts h2 {
+ .hauptseite-links h2,
+ .hauptseite-rechts h2 {
        text-indent: 0.8em;
  }
- #articleContent #hauptseite-schwesterprojekte .inhalt a {
+ #hauptseite-schwesterprojekte .inhalt a {
        font-weight: bold;
  }
 
  /* p.catlinks span a[href*="/wiki/Kategorie:Arbeitskategorie"] { display:none } wegen HIDDENCAT nicht mehr notwendig */ 
 
  /* Remove underline from IPA links */
- #articleContent .IPA a:link, #articleContent .IPA a:visited {
+ .IPA a:link, .IPA a:visited {
     text-decoration: none;
  }
 
- #articleContent span.Unicode
+ span.Unicode
  {
   font-family:
   'Code2000',
@@ -2234,7 +2234,7 @@ div#mw-recreate-deleted-warn ul li {
   sans-serif;
  }
 
- #articleContent span.Unicode1
+ span.Unicode1
  {
   font-family:
   'Code2001',
@@ -2243,7 +2243,7 @@ div#mw-recreate-deleted-warn ul li {
   sans-serif;
  }
 
- #articleContent span.Unicode2
+ span.Unicode2
  {
   font-family:
   'Sun-ExtB',
@@ -2251,7 +2251,7 @@ div#mw-recreate-deleted-warn ul li {
   sans-serif;
  }
 
- #articleContent span.IPA
+ span.IPA
  {
   font-family:
    'Quivira',
@@ -2264,7 +2264,7 @@ div#mw-recreate-deleted-warn ul li {
    sans-serif;
  }
 
- #articleContent span.IAST
+ span.IAST
  {
   font-family:
    'Code2000',
@@ -2273,7 +2273,7 @@ div#mw-recreate-deleted-warn ul li {
   sans-serif;
  }
 
- #articleContent span.altitalisch
+ span.altitalisch
  {
   font-family:
    'Quivira',
@@ -2283,7 +2283,7 @@ div#mw-recreate-deleted-warn ul li {
  }
 
 
- #articleContent span.gotisch
+ span.gotisch
  {
   font-family:
    'Quivira',
@@ -2292,7 +2292,7 @@ div#mw-recreate-deleted-warn ul li {
    sans-serif;
  }
 
- #articleContent span.hebrew
+ span.hebrew
  {
   font-family:
   'Quivira',
@@ -2304,7 +2304,7 @@ div#mw-recreate-deleted-warn ul li {
   sans-serif;
  }
 
- #articleContent span.spanAr
+ span.spanAr
  {
   font-family:
   'Arial Unicode MS',
@@ -2315,7 +2315,7 @@ div#mw-recreate-deleted-warn ul li {
  }
 
 
- #articleContent span.music-symbol
+ span.music-symbol
  {
   font-family:
   'Musical Symbols',
@@ -2325,12 +2325,12 @@ div#mw-recreate-deleted-warn ul li {
  }
 
  /* Standardmäßige Ausblendung der Flagged-Revisions-Backlog-Sitenotice */
- #articleContent #mw-oldreviewed-notice {
+ #mw-oldreviewed-notice {
   display: none;
  }
 
 /* Default skin for navigation boxes */
-#articleContent table.navbox {            /* Navbox container style */
+table.navbox {            /* Navbox container style */
   border: 1px solid #aaa;
   width: 100%; 
   margin: auto;
@@ -2339,55 +2339,55 @@ div#mw-recreate-deleted-warn ul li {
   text-align: center;
   padding: 1px;
 }
-#articleContent table.navbox + table.navbox {  /* Single pixel border between adjacent navboxes */
+table.navbox + table.navbox {  /* Single pixel border between adjacent navboxes */
   margin-top: -1px;            /* (doesn't work for IE6, but that's okay)       */
 }
-#articleContent .navbox-title,
-#articleContent .navbox-abovebelow,
-#articleContent table.navbox th {
+.navbox-title,
+.navbox-abovebelow,
+table.navbox th {
   text-align: center;      /* Title and above/below styles */
   padding-left: 1em;
   padding-right: 1em;
 }
-#articleContent .navbox-group {            /* Group style */
+.navbox-group {            /* Group style */
   white-space: nowrap;
   text-align: right;
   font-weight: bold;
   padding-left: 1em;
   padding-right: 1em;
 }
-#articleContent .navbox, #articleContent .navbox-subgroup {
+.navbox, .navbox-subgroup {
   background: #fdfdfd;     /* Background color */
 }
-#articleContent .navbox-list {
+.navbox-list {
   border-color: #fdfdfd;   /* Must match background color */
 }
-#articleContent .navbox-title,
-#articleContent table.navbox th {
+.navbox-title,
+table.navbox th {
   background: #ccccff;     /* Level 1 color */
 }
-#articleContent .navbox-abovebelow,
-#articleContent .navbox-group,
-#articleContent .navbox-subgroup .navbox-title {
+.navbox-abovebelow,
+.navbox-group,
+.navbox-subgroup .navbox-title {
   background: #ddddff;     /* Level 2 color */
 }
-#articleContent .navbox-subgroup .navbox-group, #articleContent .navbox-subgroup .navbox-abovebelow {
+.navbox-subgroup .navbox-group, .navbox-subgroup .navbox-abovebelow {
   background: #e6e6ff;     /* Level 3 color */
 }
-#articleContent .navbox-even {
+.navbox-even {
   background: #f7f7f7;     /* Even row striping */
 }
-#articleContent .navbox-odd {
+.navbox-odd {
   background: transparent; /* Odd row striping */
 }
 
-#articleContent .collapseButton {          /* 'show'/'hide' buttons created dynamically */
+.collapseButton {          /* 'show'/'hide' buttons created dynamically */
     float: right;          /* by the CollapsibleTables javascript in    */
     font-weight: normal;   /* [[MediaWiki:Common.js]]are styled here    */
     text-align: right;     /* so they can be customised.                */
     width: auto;
 }
-#articleContent .navbox .collapseButton {  /* In navboxes, the show/hide button balances */
+.navbox .collapseButton {  /* In navboxes, the show/hide button balances */
     width: 6em;            /* the vde links from [[Template:Tnavbar]],   */
 }                          /* so they need to be the same width.         */
 
@@ -2395,7 +2395,7 @@ div#mw-recreate-deleted-warn ul li {
 
 
 /* Infobox template style */
-#articleContent .infobox {
+.infobox {
     border: 1px solid #aaa;
     background-color: #f9f9f9;
     color: black;
@@ -2404,158 +2404,158 @@ div#mw-recreate-deleted-warn ul li {
     float: right;
     clear: right;
 }
-#articleContent .infobox td,
-#articleContent .infobox th {
+.infobox td,
+.infobox th {
     vertical-align: top;
 }
-#articleContent .infobox caption {
+.infobox caption {
     font-size: larger;
 }
-#articleContent .infobox.bordered {
+.infobox.bordered {
     border-collapse: collapse;
 }
-#articleContent .infobox.bordered td,
-#articleContent .infobox.bordered th {
+.infobox.bordered td,
+.infobox.bordered th {
     border: 1px solid #aaa;
 }
-#articleContent .infobox.bordered .borderless td,
-#articleContent .infobox.bordered .borderless th {
+.infobox.bordered .borderless td,
+.infobox.bordered .borderless th {
     border: 0;
 }
 
-#articleContent .infobox.sisterproject {
+.infobox.sisterproject {
     width: 20em;
     font-size: 90%;
 }
 
-#articleContent .infobox.standard-talk {
+.infobox.standard-talk {
     border: 1px solid #c0c090;
     background-color: #f8eaba;
 }
-#articleContent .infobox.standard-talk.bordered td,
-#articleContent .infobox.standard-talk.bordered th {
+.infobox.standard-talk.bordered td,
+.infobox.standard-talk.bordered th {
     border: 1px solid #c0c090;
 }
 
 /* styles for bordered infobox with merged rows */
-#articleContent .infobox.bordered .mergedtoprow td,
-#articleContent .infobox.bordered .mergedtoprow th {
+.infobox.bordered .mergedtoprow td,
+.infobox.bordered .mergedtoprow th {
     border: 0;
     border-top: 1px solid #aaa;
     border-right: 1px solid #aaa;
 }
 
-#articleContent .infobox.bordered .mergedrow td,
-#articleContent .infobox.bordered .mergedrow th {
+.infobox.bordered .mergedrow td,
+.infobox.bordered .mergedrow th {
     border: 0;
     border-right: 1px solid #aaa;
 }
 
 /* Styles for geography infoboxes, eg countries,
    country subdivisions, cities, etc.            */
-#articleContent .infobox.geography {
+.infobox.geography {
     text-align: left;
     border-collapse: collapse;
     line-height: 1.2em; 
     font-size: 90%;
 }
 
-#articleContent .infobox.geography  td,
-#articleContent .infobox.geography  th {
+.infobox.geography  td,
+.infobox.geography  th {
     border-top: solid 1px #aaa;
     padding: 0.4em 0.6em 0.4em 0.6em;
 }
-#articleContent .infobox.geography .mergedtoprow td,
-#articleContent .infobox.geography .mergedtoprow th {
+.infobox.geography .mergedtoprow td,
+.infobox.geography .mergedtoprow th {
     border-top: solid 1px #aaa;
     padding: 0.4em 0.6em 0.2em 0.6em;
 }
 
-#articleContent .infobox.geography .mergedrow td,
-#articleContent .infobox.geography .mergedrow th {
+.infobox.geography .mergedrow td,
+.infobox.geography .mergedrow th {
     border: 0;
     padding: 0 0.6em 0.2em 0.6em;
 }
 
-#articleContent .infobox.geography .mergedbottomrow td,
-#articleContent .infobox.geography .mergedbottomrow th {
+.infobox.geography .mergedbottomrow td,
+.infobox.geography .mergedbottomrow th {
     border-top: 0;
     border-bottom: solid 1px #aaa;
     padding: 0 0.6em 0.4em 0.6em;
 }
 
-#articleContent .infobox.geography .maptable td,
-#articleContent .infobox.geography .maptable th {
+.infobox.geography .maptable td,
+.infobox.geography .maptable th {
     border: 0;
     padding: 0;
 }
 
-#articleContent .flowlist ul {
+.flowlist ul {
    overflow-x:hidden;
    margin-left:0em;
    padding-left:1.6em
 }
-#articleContent .flowlist ol {
+.flowlist ol {
    overflow-x:hidden;
    margin-left:0em;
    padding-left:3.2em
 }
-#articleContent .flowlist dl {
+.flowlist dl {
    overflow-x:hidden
 }
-#articleContent .hlist dl,#articleContent .hlist ol,#articleContent .hlist ul {
+.hlist dl,.hlist ol,.hlist ul {
    margin:0;
    padding:0
 }
-#articleContent .hlist dd,#articleContent .hlist dt,#articleContent .hlist li {
+.hlist dd,.hlist dt,.hlist li {
    margin:0;
    display:inline
 }
-#articleContent .hlist dl dl,#articleContent .hlist dl ol,#articleContent .hlist dl ul,#articleContent .hlist ol dl,#articleContent .hlist ol ol,#articleContent .hlist ol ul,#articleContent .hlist ul dl,#articleContent .hlist ul ol,#articleContent .hlist ul ul {
+.hlist dl dl,.hlist dl ol,.hlist dl ul,.hlist ol dl,.hlist ol ol,.hlist ol ul,.hlist ul dl,.hlist ul ol,.hlist ul ul {
    display:inline
 }
-#articleContent .hlist dt:after {
+.hlist dt:after {
    content:":"
 }
-#articleContent .hlist dd:after,#articleContent .hlist li:after {
+.hlist dd:after,.hlist li:after {
    content:" · ";
    font-weight:bold
 }
-#articleContent .hlist dd:last-child:after,#articleContent .hlist dt:last-child:after,#articleContent .hlist li:last-child:after {
+.hlist dd:last-child:after,.hlist dt:last-child:after,.hlist li:last-child:after {
    content:none
 }
-#articleContent .hlist dd.hlist-last-child:after,.hlist dt.hlist-last-child:after,.hlist li.hlist-last-child:after {
+.hlist dd.hlist-last-child:after,.hlist dt.hlist-last-child:after,.hlist li.hlist-last-child:after {
    content:none
 }
-#articleContent .hlist dd dd:first-child:before,#articleContent .hlist dd dt:first-child:before,#articleContent .hlist dd li:first-child:before,#articleContent .hlist dt dd:first-child:before,#articleContent .hlist dt dt:first-child:before,#articleContent .hlist dt li:first-child:before,#articleContent .hlist li dd:first-child:before,#articleContent .hlist li dt:first-child:before,#articleContent .hlist li li:first-child:before {
+.hlist dd dd:first-child:before,.hlist dd dt:first-child:before,.hlist dd li:first-child:before,.hlist dt dd:first-child:before,.hlist dt dt:first-child:before,.hlist dt li:first-child:before,.hlist li dd:first-child:before,.hlist li dt:first-child:before,.hlist li li:first-child:before {
    content:" (";
    font-weight:normal
 }
-#articleContent .hlist dd dd:last-child:after,#articleContent .hlist dd dt:last-child:after,#articleContent .hlist dd li:last-child:after,#articleContent .hlist dt dd:last-child:after,#articleContent .hlist dt dt:last-child:after,#articleContent .hlist dt li:last-child:after,#articleContent .hlist li dd:last-child:after,#articleContent .hlist li dt:last-child:after,#articleContent .hlist li li:last-child:after {
+.hlist dd dd:last-child:after,.hlist dd dt:last-child:after,.hlist dd li:last-child:after,.hlist dt dd:last-child:after,.hlist dt dt:last-child:after,.hlist dt li:last-child:after,.hlist li dd:last-child:after,.hlist li dt:last-child:after,.hlist li li:last-child:after {
    content:") ";
    font-weight:normal
 }
-#articleContent .hlist dd dd.hlist-last-child:after,#articleContent .hlist dd dt.hlist-last-child:after,#articleContent .hlist dd li.hlist-last-child:after,#articleContent .hlist dt dd.hlist-last-child:after,#articleContent .hlist dt dt.hlist-last-child:after,#articleContent .hlist dt li.hlist-last-child:after,#articleContent .hlist li dd.hlist-last-child:after,#articleContent .hlist li dt.hlist-last-child:after,#articleContent .hlist li li.hlist-last-child:after {
+.hlist dd dd.hlist-last-child:after,.hlist dd dt.hlist-last-child:after,.hlist dd li.hlist-last-child:after,.hlist dt dd.hlist-last-child:after,.hlist dt dt.hlist-last-child:after,.hlist dt li.hlist-last-child:after,.hlist li dd.hlist-last-child:after,.hlist li dt.hlist-last-child:after,.hlist li li.hlist-last-child:after {
    content:") ";
    font-weight:normal
 }
-#articleContent .hlist ol {
+.hlist ol {
    counter-reset:listitem
 }
-#articleContent .hlist ol > li {
+.hlist ol > li {
    counter-increment:listitem
 }
-#articleContent .hlist ol > li:before {
+.hlist ol > li:before {
    content:" " counter(listitem) " "
 }
-#articleContent .hlist dd ol > li:first-child:before,#articleContent .hlist dt ol > li:first-child:before,#articleContent .hlist li ol > li:first-child:before {
+.hlist dd ol > li:first-child:before,.hlist dt ol > li:first-child:before,.hlist li ol > li:first-child:before {
    content:" (" counter(listitem) " "
 }
-#articleContent .plainlist ul {
+.plainlist ul {
    line-height:inherit;
    list-style:none none;
    margin:0
 }
-#articleContent .plainlist ul li {
+.plainlist ul li {
    margin-bottom:0
 }

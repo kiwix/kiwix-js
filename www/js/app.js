@@ -165,7 +165,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $('#geolocationProgress').hide();
-        $("#articleContent").empty();
+        $("#articleContent").contents().empty();
         $('#searchingForTitles').hide();
         return false;
     });
@@ -290,7 +290,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             $('#titleListHeaderMessage').hide();
             $('#suggestEnlargeMaxDistance').hide();
             $('#suggestReduceMaxDistance').hide();
-            $('#articleContent').empty();
+            $('#articleContent').contents().empty();
             
             if (titleName && !(""===titleName)) {
                 goToArticle(titleName);
@@ -454,7 +454,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     function searchTitlesFromPrefix(prefix) {
         $('#searchingForTitles').show();
         $('#configuration').hide();
-        $('#articleContent').empty();
+        $('#articleContent').contents().empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             selectedArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
@@ -591,7 +591,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             var title = selectedArchive.parseTitleId(titleId);
             $("#articleName").html(title.name());
             $("#readingArticle").show();
-            $("#articleContent").html("");
+            $("#articleContent").contents().html("");
             if (title.isRedirect()) {
                 selectedArchive.resolveRedirect(title, readArticle);
             }
@@ -626,16 +626,26 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      */
     function displayArticleInForm(title, htmlArticle) {
         $("#readingArticle").hide();
+        // Scroll the iframe to its top
+        $("#articleContent").contents().scrollTop(0);
 
-        // Display the article inside the web page.		
-        $('#articleContent').html(htmlArticle);
+        // Apply Mediawiki CSS only when it's an Evopedia archive
+        if (selectedArchive.needsWikimediaCSS()) {
+            $('#articleContent').contents().find('head').empty();
+            var currentHref = $(location).attr('href');
+            var regexPath = /^(.*\/)[^\/]+$/;
+            var currentPath = regexPath.exec(currentHref)[1];
+            $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
+        }
+        // Display the article inside the web page.
+        $('#articleContent').contents().find('body').html(htmlArticle);
 
         // Compile the regular expressions needed to modify links
         var regexOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
         var regexImageLink = /^.?\/?[^:]+:(.*)/;
         
         // Convert links into javascript calls
-        $('#articleContent').find('a').each(function() {
+        $('#articleContent').contents().find('body').find('a').each(function() {
             // Store current link's url
             var url = $(this).attr("href");
             if (url === null || url === undefined) {
@@ -692,7 +702,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         });
 
         // Load math images
-        $('#articleContent').find('img').each(function() {
+        $('#articleContent').contents().find('body').find('img').each(function() {
             var image = $(this);
             var m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/);
             if (m) {
@@ -757,7 +767,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             else {
                 $("#articleName").html(titleName);
                 $("#readingArticle").show();
-                $("#articleContent").html("");
+                $('#articleContent').contents().find('body').html("");
                 readArticle(title);
             }
         });
@@ -773,7 +783,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#titleListHeaderMessage').hide();
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
-        $('#articleContent').empty();
+        $('#articleContent').contents().find('body').empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             if (navigator.geolocation) {
                 var geo_options = {
@@ -869,7 +879,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 $("#articleName").html(title.name());
                 pushBrowserHistoryState(title.name());
                 $("#readingArticle").show();
-                $("#articleContent").html("");
+                $('#articleContent').contents().find('body').html("");
                 readArticle(title);
             }
         });

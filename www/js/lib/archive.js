@@ -56,7 +56,11 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     };
 
     LocalArchive.prototype.isReady = function() {
-        return this._titleFile !== null && this._dataFiles && this._dataFiles.length > 0
+        return this._titleFile !== null && this._dataFiles && this._dataFiles.length > 0;
+    };
+    
+    LocalArchive.prototype.needsWikimediaCSS = function() {
+        return true;
     };
 
     LocalArchive.prototype.hasCoordinates = function() {
