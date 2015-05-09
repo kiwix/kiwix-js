@@ -637,6 +637,11 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             var currentPath = regexPath.exec(currentHref)[1];
             $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
         }
+        else {
+            // TODO temporary test to inject CSS inside the iframe
+            $('#articleContent').contents().find('head').empty();
+            $('#articleContent').contents().find('head').append("<link rel='stylesheet' href='data:text/css;charset=UTF-8," + encodeURIComponent("body {background: #E9E9E9;}") + "' />");
+        }
         // Display the article inside the web page.
         $('#articleContent').contents().find('body').html(htmlArticle);
 
