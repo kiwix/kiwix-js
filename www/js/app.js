@@ -630,7 +630,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $("#articleContent").contents().scrollTop(0);
 
         // Apply Mediawiki CSS only when it's an Evopedia archive
-        if (selectedArchive.needsWikimediaCSS()) {
+        if (selectedArchive.needsWikimediaCSS() === true) {
             $('#articleContent').contents().find('head').empty();
             var currentHref = $(location).attr('href');
             var regexPath = /^(.*\/)[^\/]+$/;
