@@ -644,7 +644,18 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         }
         // Display the article inside the web page.
         $('#articleContent').contents().find('body').html(htmlArticle);
-
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
+                console.log('ok : serviceWorker ready', reg);
+            }, function(err) {
+                console.log('error while registering serviceWorker', err);
+            });
+        }
+        else {
+            console.log("serviceWorker API not available");
+        }
+        
         // Compile the regular expressions needed to modify links
         var regexOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
         var regexImageLink = /^.?\/?[^:]+:(.*)/;
@@ -691,19 +702,19 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 $(this).attr("href", onlineWikipediaUrl);
                 $(this).attr("target", "_blank");
             }
-            else {
-                // It's a link to another article : add an onclick event to go to this article
-                // instead of following the link
-                if (url.length>=2 && url.substring(0, 2) === "./") {
-                    url = url.substring(2);
-                }
-                $(this).on('click', function(e) {
-                    var titleName = decodeURIComponent(url);
-                    pushBrowserHistoryState(titleName);
-                    goToArticle(titleName);
-                    return false;
-                });
-            }
+//            else {
+//                // It's a link to another article : add an onclick event to go to this article
+//                // instead of following the link
+//                if (url.length>=2 && url.substring(0, 2) === "./") {
+//                    url = url.substring(2);
+//                }
+//                $(this).on('click', function(e) {
+//                    var titleName = decodeURIComponent(url);
+//                    pushBrowserHistoryState(titleName);
+//                    goToArticle(titleName);
+//                    return false;
+//                });
+//            }
         });
 
         // Load math images
