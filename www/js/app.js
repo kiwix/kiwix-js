@@ -216,6 +216,18 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         return false;
     });
     
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
+            console.log('ok : serviceWorker ready', reg);
+            // TODO block application before serviceworker is ready
+        }, function(err) {
+            console.log('error while registering serviceWorker', err);
+        });
+    }
+    else {
+        console.log("serviceWorker API not available");
+    }    
+    
     // Detect if DeviceStorage is available
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
@@ -625,7 +637,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * @param {type} htmlArticle
      */
     function displayArticleInForm(title, htmlArticle) {
-        $("#readingArticle").hide();
+        $("#readingArticle").hide();        
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
 
@@ -644,17 +656,6 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         }
         // Display the article inside the web page.
         $('#articleContent').contents().find('body').html(htmlArticle);
-        
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
-                console.log('ok : serviceWorker ready', reg);
-            }, function(err) {
-                console.log('error while registering serviceWorker', err);
-            });
-        }
-        else {
-            console.log("serviceWorker API not available");
-        }
         
         // Compile the regular expressions needed to modify links
         var regexOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
@@ -702,6 +703,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 $(this).attr("href", onlineWikipediaUrl);
                 $(this).attr("target", "_blank");
             }
+// TODO : enable the jQuery stuff only for Evopedia archives
 //            else {
 //                // It's a link to another article : add an onclick event to go to this article
 //                // instead of following the link
