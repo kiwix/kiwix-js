@@ -445,5 +445,20 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             };
             localZimArchive.readArticle(arikitcacDirEntry, callbackFunction);
         });
+        asyncTest("article Atim correctly redirects to Atimw", function() {
+            expect(6);
+            localZimArchive.getTitleByName("Atim.html", function(title) {
+                console.log(title);
+                ok(title !== null, "Title found");
+                ok(title.isRedirect(), "Title is a redirect.");
+                equal(title.name(), "Atim", "Correct redirect title name.");
+                localZimArchive.resolveRedirect(title, function(title) {
+                    ok(title !== null, "Title found");
+                    ok(!title.isRedirect(), "Title is not a redirect.");
+                    equal(title.name(), "Atimw", "Correct redirected title name.");
+                    start();
+                });
+            });
+        });
     };
 });

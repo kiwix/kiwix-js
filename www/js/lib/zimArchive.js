@@ -88,7 +88,10 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
     };
 
     ZIMArchive.prototype.resolveRedirect = function(title, callback) {
-
+        var that = this;
+        this._file.dirEntryByTitleIndex(title.redirectTarget).then(function(dirEntry) {
+            return that._dirEntryToTitleObject(dirEntry);
+        }).then(callback);
     };
 
     ZIMArchive.prototype.readArticle = function(title, callback) {
