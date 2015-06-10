@@ -37,7 +37,7 @@ define([], function() {
     DirEntry.prototype.toStringId = function() {
         //@todo also store isRedirect and redirectTarget
         return this.offset + '|' + this.mimetype + '|' + this.namespace + '|' + this.cluster + '|' +
-                this.blob + '|' + this.url + '|' + this.title;
+                this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
     };
     DirEntry.prototype.getReadableName = function() {
         return this.title;
@@ -53,7 +53,6 @@ define([], function() {
     };
 
     DirEntry.fromStringId = function(zimfile, stringId) {
-        //@todo also use isRedirect and redirectTarget
         var data = {};
         var idParts = stringId.split("|");
         data.offset = parseInt(idParts[0], 10);
@@ -63,6 +62,8 @@ define([], function() {
         data.blob = parseInt(idParts[4], 10);
         data.url = idParts[5];
         data.title = idParts[6];
+        data.isRedirect = ( idParts[7] === "true" );
+        data.redirectTarget = idParts[8];
         return new DirEntry(zimfile, data);
     };
 
