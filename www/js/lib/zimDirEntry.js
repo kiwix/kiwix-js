@@ -22,11 +22,12 @@
 'use strict';
 define([], function() {
     function DirEntry(zimfile, dirEntryData) {
-        //@todo polymorphic on mimetype (redirect, linktarget / deleted)
         this._zimfile = zimfile;
+        this.redirect = dirEntryData.isRedirect;
         this.offset = dirEntryData.offset;
         this.mimetype = dirEntryData.mimetype;
         this.namespace = dirEntryData.namespace;
+        this.redirectTarget = dirEntryData.redirectTarget;
         this.cluster = dirEntryData.cluster;
         this.blob = dirEntryData.blob;
         this.url = dirEntryData.url;
@@ -34,8 +35,9 @@ define([], function() {
     };
 
     DirEntry.prototype.toStringId = function() {
+        //@todo also store isRedirect and redirectTarget
         return this.offset + '|' + this.mimetype + '|' + this.namespace + '|' + this.cluster + '|' +
-                this.blob + '|' + this.url + '|' + this.title;
+                this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
     };
     DirEntry.prototype.getReadableName = function() {
         return this.title;
@@ -44,7 +46,7 @@ define([], function() {
         return this.title;
     };
     DirEntry.prototype.isRedirect = function() {
-        return false; //@todo
+        return this.redirect;
     };
     DirEntry.prototype.readData = function() {
         return this._zimfile.blob(this.cluster, this.blob);
@@ -60,6 +62,8 @@ define([], function() {
         data.blob = parseInt(idParts[4], 10);
         data.url = idParts[5];
         data.title = idParts[6];
+        data.isRedirect = ( idParts[7] === "true" );
+        data.redirectTarget = idParts[8];
         return new DirEntry(zimfile, data);
     };
 

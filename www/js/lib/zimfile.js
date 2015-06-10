@@ -56,18 +56,22 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         var that = this;
         return this._readSlice(offset, 2048).then(function(data)
         {
-            //@todo polymorphic on mimetype (redirect, linktarget / deleted)
             var dirEntry =
             {
                 offset: offset,
                 mimetype: readInt(data, 0, 2),
-                namespace: String.fromCharCode(data[3]),
-                cluster: readInt(data, 8, 4),
-                blob: readInt(data, 12, 4),
-                url: utf8.parse(data.subarray(16), true),
-                title: '',
+                namespace: String.fromCharCode(data[3])
             };
-            var pos = 16;
+            dirEntry.isRedirect = (dirEntry.mimetype === 0xffff);
+            if (dirEntry.isRedirect)
+                dirEntry.redirectTarget = readInt(data, 8, 4);
+            else
+            {
+                dirEntry.cluster = readInt(data, 8, 4);
+                dirEntry.blob = readInt(data, 12, 4);
+            }
+            var pos = dirEntry.isRedirect ? 12 : 16;
+            dirEntry.url = utf8.parse(data.subarray(pos), true);
             while (data[pos] !== 0)
                 pos++;
             dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
