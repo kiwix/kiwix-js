@@ -231,13 +231,14 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     }
     
     if (isServiceWorkerAvailable()) {
+        $('#serviceWorkerStatus').html("ServiceWorker available : trying to register it...");
         navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
             console.log('ok : serviceWorker ready', reg);
             serviceWorkerRegistration = reg;
             $('#serviceWorkerStatus').html("ServiceWorker enabled");
         }, function(err) {
             console.error('error while registering serviceWorker', err);
-            $('#serviceWorkerStatus').html("ServiceWorker API available, but unalble to register : " + err);
+            $('#serviceWorkerStatus').html("ServiceWorker API available, but unable to register : " + err);
         });
     }
     else {
