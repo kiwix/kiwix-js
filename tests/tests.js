@@ -430,32 +430,32 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
         });
                 
         module("zim_title_search_and_read");
-        asyncTest("check getTitleByName Arikitcac", function() {
+        asyncTest("check DirEntry.fromStringId 'A Fool for You'", function() {
             // Construct the DirEntry for Arikitcac article
             // NB : this must be done inside a test or asyncTest function, else the localZimArchive is not ready yet
-            var arikitcacDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "7371|1|A|0|11|Arikitcac.html|Arikitcac");
+            var arikitcacDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "5856|7|A|0|2|A_Fool_for_You.html|A Fool for You|false|undefined");
 
             expect(2);
             var callbackFunction = function(title, htmlArticle) {
                 ok(htmlArticle && htmlArticle.length > 0, "Article not empty");
                 // Remove new lines
                 htmlArticle = htmlArticle.replace(/[\r\n]/g, " ");
-                ok(htmlArticle.match("^.*<h1[^>]*>Arikitcac</h1>"), "'Arikitcac' title somewhere in the article");
+                ok(htmlArticle.match("^.*<h1[^>]*>A Fool for You</h1>"), "'A Fool for You' title somewhere in the article");
                 start();
             };
             localZimArchive.readArticle(arikitcacDirEntry, callbackFunction);
         });
-        asyncTest("article Atim correctly redirects to Atimw", function() {
+        asyncTest("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function() {
             expect(6);
-            localZimArchive.getTitleByName("Atim.html", function(title) {
+            localZimArchive.getTitleByName("(The_Night_Time_Is)_The_Right_Time.html", function(title) {
                 console.log(title);
                 ok(title !== null, "Title found");
                 ok(title.isRedirect(), "Title is a redirect.");
-                equal(title.name(), "Atim", "Correct redirect title name.");
+                equal(title.name(), "(The Night Time Is) The Right Time", "Correct redirect title name.");
                 localZimArchive.resolveRedirect(title, function(title) {
                     ok(title !== null, "Title found");
                     ok(!title.isRedirect(), "Title is not a redirect.");
-                    equal(title.name(), "Atimw", "Correct redirected title name.");
+                    equal(title.name(), "Night Time Is the Right Time", "Correct redirected title name.");
                     start();
                 });
             });
