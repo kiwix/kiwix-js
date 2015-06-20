@@ -216,16 +216,33 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         return false;
     });
     
-    if ('serviceWorker' in navigator) {
+    var serviceWorkerRegistration = null;
+    
+    function isServiceWorkerAvailable() {
+        return ('serviceWorker' in navigator);
+    }
+    
+    function isServiceWorkerReady() {
+        return (serviceWorkerRegistration != null
+                && selectedArchive
+                // TODO : I disable Service Workers on Evopedia archives, for now
+                // Maybe it would be worth trying to enable them in the future?
+                && selectedArchive.needsWikimediaCSS() !== true);
+    }
+    
+    if (isServiceWorkerAvailable()) {
         navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
             console.log('ok : serviceWorker ready', reg);
-            // TODO block application before serviceworker is ready
+            serviceWorkerRegistration = reg;
+            $('#serviceWorkerStatus').html("ServiceWorker enabled");
         }, function(err) {
-            console.log('error while registering serviceWorker', err);
+            console.error('error while registering serviceWorker', err);
+            $('#serviceWorkerStatus').html("ServiceWorker API available, but unalble to register : " + err);
         });
     }
     else {
         console.log("serviceWorker API not available");
+        $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
     }    
     
     // Detect if DeviceStorage is available
@@ -703,20 +720,22 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 $(this).attr("href", onlineWikipediaUrl);
                 $(this).attr("target", "_blank");
             }
-// TODO : enable the jQuery stuff only for Evopedia archives
-//            else {
-//                // It's a link to another article : add an onclick event to go to this article
-//                // instead of following the link
-//                if (url.length>=2 && url.substring(0, 2) === "./") {
-//                    url = url.substring(2);
-//                }
-//                $(this).on('click', function(e) {
-//                    var titleName = decodeURIComponent(url);
-//                    pushBrowserHistoryState(titleName);
-//                    goToArticle(titleName);
-//                    return false;
-//                });
-//            }
+            else {
+                // It's a link to another article
+                if (!isServiceWorkerReady()) {
+                    // If serviceWorker is not usable, add an onclick event to go to this article
+                    // instead of following the link
+                    if (url.length>=2 && url.substring(0, 2) === "./") {
+                        url = url.substring(2);
+                    }
+                    $(this).on('click', function(e) {
+                        var titleName = decodeURIComponent(url);
+                        pushBrowserHistoryState(titleName);
+                        goToArticle(titleName);
+                        return false;
+                    });
+                }
+            }
         });
 
         // Load math images
