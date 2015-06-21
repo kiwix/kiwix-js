@@ -233,7 +233,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     if (isServiceWorkerAvailable()) {
         $('#serviceWorkerStatus').html("ServiceWorker available : trying to register it...");
         navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
-            console.log('ok : serviceWorker ready', reg);
+            console.log('serviceWorker registered', reg);
             serviceWorkerRegistration = reg;
             $('#serviceWorkerStatus').html("ServiceWorker enabled");
         }, function(err) {
@@ -658,6 +658,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $("#readingArticle").hide();        
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
+        
+        if (isServiceWorkerReady()) {
+            // TODO : for testing
+            console.log("try to postMessage to ServiceWorker");
+            navigator.serviceWorker.controller.postMessage("hello");
+            console.log("message sent to ServiceWorker");
+        }
 
         // Apply Mediawiki CSS only when it's an Evopedia archive
         if (selectedArchive.needsWikimediaCSS() === true) {

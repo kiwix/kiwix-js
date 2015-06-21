@@ -58,18 +58,22 @@ require({
 
 function(util) {
 
-    console.log("SW startup");
+    console.log("ServiceWorker startup");
 
     self.addEventListener('install', function(event) {
-      console.log("SW installed");
+      console.log("ServiceWorker installed");
     });
 
     self.addEventListener('activate', function(event) {
-      console.log("SW activated");
+      console.log("ServiceWorker activated");
+    });
+    
+    self.addEventListener('message', function (event) {
+        console.log('Message received', event.data);
     });
 
     self.addEventListener('fetch', function(event) {
-      console.log('Handling fetch event for : ' + event.request.url);
+      console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
       // Can be tested on the RayCharles ZIM file :
       // http://download.kiwix.org/zim/wikipedia/wikipedia_en_ray_charles_2015-06.zim
@@ -89,7 +93,7 @@ function(util) {
 
         var mockResponse = new Response(responseBody, responseInit);
 
-        console.log('Responding with a mock response body :' + responseBody);
+        console.log('ServiceWorker responding with a mock response body :' + responseBody);
         event.respondWith(mockResponse);
       }
       
@@ -113,7 +117,7 @@ function(util) {
 
         var mockResponse = new Response(responseBody, responseInit);
 
-        console.log('Responding JPEG request with a mock response body');
+        console.log('ServiceWorker responding JPEG request with a mock response body');
         event.respondWith(mockResponse);
       }
 
