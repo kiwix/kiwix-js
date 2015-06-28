@@ -59,6 +59,9 @@ require({
 function(util) {
 
     console.log("ServiceWorker startup");
+    
+    var messagePort2 = null;
+    var messagePort1 = null;
 
     self.addEventListener('install', function(event) {
       console.log("ServiceWorker installed");
@@ -70,6 +73,14 @@ function(util) {
     
     self.addEventListener('message', function (event) {
         console.log('Message received', event.data);
+        if (event.data.action === 'init') {
+            messagePort2 = event.ports[0];
+            messagePort1 = event.ports[1];
+            console.log('messagePort1 and 2 initialized');
+        }
+        if (event.data.action === 'initArchive') {
+            console.log('messagePort2 initialized with archive', event.ports[0]);
+        }
     });
 
     self.addEventListener('fetch', function(event) {
@@ -80,21 +91,36 @@ function(util) {
       // Make a search without any prefix, then choose "A man and his soul"
       // and click on the link Ray Charles
       if (util.endsWith(event.request.url,'Ray_Charles.html')) {
+        
+        console.log('Asking the backend for an article', event.request.url);
+        return new Promise(function(resolve, reject) {
+            messagePort2.postMessage({'action': 'getArticle', 'articleName': 'A/Ray_Charles.html'}, [messagePort1]);
 
-        var responseInit = {
-          status: 200,
-          statusText: 'OK',
-          headers: {
-            'Content-Type': 'text/html'
-          }
-        };
+            console.log('Message sent to the backend');
+            messagePort2.addEventListener('message', function (event) {
+                console.log('Message received on messagePort2', event.data);
+                if (event.data.action === 'articleContent') {
+                    var responseInit = {
+                      status: 200,
+                      statusText: 'OK',
+                      headers: {
+                        'Content-Type': 'text/html'
+                      }
+                    };
 
-        var responseBody = "This is a mock response from the service worker for : " + event.request.url;
+                    var responseBody = "This is a mock response : " + event.data.articleContent + " from the service worker for : " + event.request.url;
 
-        var mockResponse = new Response(responseBody, responseInit);
+                    var mockResponse = new Response(responseBody, responseInit);
 
-        console.log('ServiceWorker responding with a mock response body :' + responseBody);
-        event.respondWith(mockResponse);
+                    console.log('ServiceWorker responding with a mock response body :' + responseBody);
+                    resolve(mockResponse);
+                }
+                else {
+                    reject(event.data);
+                }
+            });
+            console.log('Eventlistener added to listen for an answer');
+        });
       }
       
       var regexJpeg = new RegExp(/\.jpg$/);

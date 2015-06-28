@@ -646,6 +646,19 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             selectedArchive.readArticle(title, displayArticleInForm);
         }
     }
+    
+    var messageChannel = new MessageChannel();
+    messageChannel.port2.onmessage = function(event) {
+      if (event.data.error) {
+        console.log("Error in MessageChannel", event.data.error);
+        reject(event.data.error);
+      } else {
+        console.log("the ServiceWorker sent a message on port1", event.data);
+        console.log("let's try to answer to this message");
+        messageChannel.port1.postMessage({'action': 'articleContent', 'articleContent': 'sample article content'}, [messageChannel.port2]);
+        console.log("sample article content sent to ServiceWorker");
+      }
+    };
 
     /**
      * Display the the given HTML article in the web page,
@@ -661,9 +674,12 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         
         if (isServiceWorkerReady()) {
             // TODO : for testing
-            console.log("try to postMessage to ServiceWorker");
-            navigator.serviceWorker.controller.postMessage("hello");
-            console.log("message sent to ServiceWorker");
+            console.log("try to post an init message to ServiceWorker");
+            console.log("messageChannel :", messageChannel);
+            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2, messageChannel.port1]);
+            // TODO : test to see if it is possible to transfer the archive to the ServiceWorker?
+            //navigator.serviceWorker.controller.postMessage({'action': 'initArchive'}, [selectedArchive]);
+            console.log("init message sent to ServiceWorker");
         }
 
         // Apply Mediawiki CSS only when it's an Evopedia archive
