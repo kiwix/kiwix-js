@@ -651,19 +651,28 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     messageChannel.port1.onmessage = handleMessageChannelMessage;
     
     function handleMessageChannelMessage(event) {
-      if (event.data.error) {
-        console.log("Error in MessageChannel", event.data.error);
-        reject(event.data.error);
-      } else {
-        console.log("the ServiceWorker sent a message on port1", event.data);
-        console.log("let's try to answer to this message");
-        messageChannel = new MessageChannel();
-        messageChannel.port1.onmessage = handleMessageChannelMessage;
-        // TODO : replace with article read from backend
-        var articleContent="<html><body>links to <a href='Ray_Charles.html'>Ray_Charles article</a> or <a href='David_Newman_(jazz_musician).html'>David Newman</a></body></html>";
-        navigator.serviceWorker.controller.postMessage({'action': 'articleContent', 'articleName' : event.data.articleName, 'articleContent': articleContent}, [messageChannel.port2]);
-        console.log("sample article content sent to ServiceWorker");
-      }
+        if (event.data.error) {
+            console.error("Error in MessageChannel", event.data.error);
+            reject(event.data.error);
+        } else {
+            console.log("the ServiceWorker sent a message on port1", event.data);
+            if (event.data.action === "askForContent") {
+                console.log("we are asked for a content : let's try to answer to this message");
+                messageChannel = new MessageChannel();
+                messageChannel.port1.onmessage = handleMessageChannelMessage;
+                var titleName = event.data.titleName;
+                selectedArchive.getTitleByName(titleName, function(title) {
+                    // TODO handle redirects
+                    selectedArchive.readArticle(title, function(readableTitleName, content) {
+                        navigator.serviceWorker.controller.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content}, [messageChannel.port2]);
+                        console.log("content sent to ServiceWorker");
+                    });
+                });
+            }
+            else {
+                console.error("Invalid message received", event.data);
+            }
+        }
     };
 
     /**
