@@ -648,14 +648,20 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     }
     
     var messageChannel = new MessageChannel();
-    messageChannel.port2.onmessage = function(event) {
+    messageChannel.port1.onmessage = handleMessageChannelMessage;
+    
+    function handleMessageChannelMessage(event) {
       if (event.data.error) {
         console.log("Error in MessageChannel", event.data.error);
         reject(event.data.error);
       } else {
         console.log("the ServiceWorker sent a message on port1", event.data);
         console.log("let's try to answer to this message");
-        messageChannel.port1.postMessage({'action': 'articleContent', 'articleContent': 'sample article content'}, [messageChannel.port2]);
+        messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = handleMessageChannelMessage;
+        // TODO : replace with article read from backend
+        var articleContent="<html><body>links to <a href='Ray_Charles.html'>Ray_Charles article</a> or <a href='David_Newman_(jazz_musician).html'>David Newman</a></body></html>";
+        navigator.serviceWorker.controller.postMessage({'action': 'articleContent', 'articleName' : event.data.articleName, 'articleContent': articleContent}, [messageChannel.port2]);
         console.log("sample article content sent to ServiceWorker");
       }
     };
@@ -676,9 +682,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             // TODO : for testing
             console.log("try to post an init message to ServiceWorker");
             console.log("messageChannel :", messageChannel);
-            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2, messageChannel.port1]);
-            // TODO : test to see if it is possible to transfer the archive to the ServiceWorker?
-            //navigator.serviceWorker.controller.postMessage({'action': 'initArchive'}, [selectedArchive]);
+            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
             console.log("init message sent to ServiceWorker");
         }
 

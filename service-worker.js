@@ -61,7 +61,6 @@ function(util) {
     console.log("ServiceWorker startup");
     
     var messagePort2 = null;
-    var messagePort1 = null;
 
     self.addEventListener('install', function(event) {
       console.log("ServiceWorker installed");
@@ -72,16 +71,15 @@ function(util) {
     });
     
     self.addEventListener('message', function (event) {
-        console.log('Message received', event.data);
         if (event.data.action === 'init') {
+            console.log('Init message received', event.data);
             messagePort2 = event.ports[0];
-            messagePort1 = event.ports[1];
-            console.log('messagePort1 and 2 initialized');
-        }
-        if (event.data.action === 'initArchive') {
-            console.log('messagePort2 initialized with archive', event.ports[0]);
+            console.log('messagePort2 initialized', messagePort2);
         }
     });
+    
+    var regexpJpeg = new RegExp(/\.jpg$/);
+    var regexpArticle = new RegExp(/(\/A\/[^\/]+\.html)$/);
 
     self.addEventListener('fetch', function(event) {
       console.log('ServiceWorker handling fetch event for : ' + event.request.url);
@@ -89,17 +87,18 @@ function(util) {
       // Can be tested on the RayCharles ZIM file :
       // http://download.kiwix.org/zim/wikipedia/wikipedia_en_ray_charles_2015-06.zim
       // Make a search without any prefix, then choose "A man and his soul"
-      // and click on the link Ray Charles
-      if (util.endsWith(event.request.url,'Ray_Charles.html')) {
+      // and click on the link Ray Charles     
+      if (regexpArticle.test(event.request.url) && !util.endsWith(event.request.url, 'dummyArticle.html')) {
         
         console.log('Asking the backend for an article', event.request.url);
-        return new Promise(function(resolve, reject) {
-            messagePort2.postMessage({'action': 'getArticle', 'articleName': 'A/Ray_Charles.html'}, [messagePort1]);
-
+        event.respondWith(new Promise(function(resolve, reject) {
+            var regexpResult = regexpArticle.exec(event.request.url);
+            var articleName = regexpResult[1];
+            messagePort2.postMessage({'action': 'getArticle', 'articleName': articleName});
             console.log('Message sent to the backend');
-            messagePort2.addEventListener('message', function (event) {
-                console.log('Message received on messagePort2', event.data);
-                if (event.data.action === 'articleContent') {
+            self.addEventListener('message', function (event) {
+                if (articleName === event.data.articleName && event.data.action === 'articleContent') {
+                    console.log('articleContent message received for ' + articleName, event.data);
                     var responseInit = {
                       status: 200,
                       statusText: 'OK',
@@ -108,7 +107,7 @@ function(util) {
                       }
                     };
 
-                    var responseBody = "This is a mock response : " + event.data.articleContent + " from the service worker for : " + event.request.url;
+                    var responseBody = "This is a response from the service worker :<br/> " + event.data.articleContent;
 
                     var mockResponse = new Response(responseBody, responseInit);
 
@@ -118,15 +117,16 @@ function(util) {
                 else {
                     reject(event.data);
                 }
+                // TODO : we should remove this event listener, because it will probably never be used again
+                // but how to do that with an anonymous function? ('this' does not point to it)
+                self.removeEventListener('message', this);
             });
-            console.log('Eventlistener added to listen for an answer');
-        });
+            console.log('Eventlistener added to listen for an answer to ' + articleName);
+        }));
       }
       
-      var regexJpeg = new RegExp(/\.jpg$/);
-      
       // Give a sample JPEG image (Wikipedia logo) for all .jpg images
-      if (regexJpeg.test(event.request.url)) {
+      if (regexpJpeg.test(event.request.url)) {
         var responseInit = {
           status: 200,
           statusText: 'OK',
