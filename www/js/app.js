@@ -664,15 +664,26 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             console.log("the ServiceWorker sent a message on port1", event.data);
             if (event.data.action === "askForContent") {
                 console.log("we are asked for a content : let's try to answer to this message");
-                messageChannel = new MessageChannel();
-                messageChannel.port1.onmessage = handleMessageChannelMessage;
                 var titleName = event.data.titleName;
+                var messagePort = event.ports[0];
                 selectedArchive.getTitleByName(titleName, function(title) {
-                    // TODO handle redirects and other content types
-                    selectedArchive.readArticle(title, function(readableTitleName, content) {
-                        navigator.serviceWorker.controller.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content}, [messageChannel.port2]);
-                        console.log("content sent to ServiceWorker");
-                    });
+                    // TODO handle other content types
+                    // TODO a Promise would avoid duplicating the code here
+                    // Cf https://github.com/mossroy/evopedia-html5/issues/67
+                    if (title.isRedirect()) {
+                        selectedArchive.resolveRedirect(title, function(title) {
+                            selectedArchive.readArticle(title, function(readableTitleName, content) {
+                                messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
+                                console.log("content sent to ServiceWorker (after a redirect)");
+                            });
+                        });
+                    }
+                    else {
+                        selectedArchive.readArticle(title, function(readableTitleName, content) {
+                            messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
+                            console.log("content sent to ServiceWorker");
+                        });
+                    }
                 });
             }
             else {
