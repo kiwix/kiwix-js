@@ -647,9 +647,15 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         }
     }
     
+    // Let's instanciate the messageChannel where the ServiceWorker can ask for contents
     var messageChannel = new MessageChannel();
     messageChannel.port1.onmessage = handleMessageChannelMessage;
     
+    /**
+     * Function that handles a message of the messageChannel.
+     * It tries to read the content in the backend, and sends it back to the ServiceWorker
+     * @param event
+     */
     function handleMessageChannelMessage(event) {
         if (event.data.error) {
             console.error("Error in MessageChannel", event.data.error);
@@ -662,7 +668,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 messageChannel.port1.onmessage = handleMessageChannelMessage;
                 var titleName = event.data.titleName;
                 selectedArchive.getTitleByName(titleName, function(title) {
-                    // TODO handle redirects
+                    // TODO handle redirects and other content types
                     selectedArchive.readArticle(title, function(readableTitleName, content) {
                         navigator.serviceWorker.controller.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content}, [messageChannel.port2]);
                         console.log("content sent to ServiceWorker");
