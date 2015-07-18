@@ -190,6 +190,21 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
+        // Refresh the ServiceWorker status (in case it has been unregistered)
+        if (isServiceWorkerAvailable()) {
+            if (isServiceWorkerReady()) {
+                $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
+                $('#serviceWorkerStatus').css("color","green");
+            }
+            else {
+                $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
+                $('#serviceWorkerStatus').css("color","red");
+            }
+        }
+        else {
+            $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
+            $('#serviceWorkerStatus').css("color","red");
+        }
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -218,10 +233,18 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     var serviceWorkerRegistration = null;
     
+    /**
+     * Tells if the ServiceWorker API is available
+     * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
+     */
     function isServiceWorkerAvailable() {
         return ('serviceWorker' in navigator);
     }
     
+    /**
+     * Tells if the MessageChannel API is available
+     * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
+     */
     function isMessageChannelAvailable() {
         try{
             var dummyMessageChannel = new MessageChannel();
@@ -233,12 +256,12 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         return false;
     }
     
+    /**
+     * Tells if the ServiceWorker is registered, and ready to capture HTTP requests
+     * and inject content in articles.
+     */
     function isServiceWorkerReady() {
-        return (serviceWorkerRegistration != null
-                && selectedArchive
-                // TODO : I disable Service Workers on Evopedia archives, for now
-                // Maybe it would be worth trying to enable them in the future?
-                && selectedArchive.needsWikimediaCSS() !== true);
+        return (serviceWorkerRegistration != null);
     }
     
     if (isServiceWorkerAvailable()) {
@@ -425,11 +448,11 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         if (archiveDirectory && archiveDirectory.length > 0) {
             // Now, try to find which DeviceStorage has been selected by the user
             // It is the prefix of the archive directory
-            var storageNameRegex = /^\/([^\/]+)\//;
-            var regexResults = storageNameRegex.exec(archiveDirectory);
+            var regexpStorageName = /^\/([^\/]+)\//;
+            var regexpResults = regexpStorageName.exec(archiveDirectory);
             var selectedStorage = null;
-            if (regexResults && regexResults.length>0) {
-                var selectedStorageName = regexResults[1];
+            if (regexpResults && regexpResults.length>0) {
+                var selectedStorageName = regexpResults[1];
                 for (var i=0; i<storages.length; i++) {
                     var storage = storages[i];
                     if (selectedStorageName === storage.storageName) {
@@ -669,9 +692,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         }
     }
     
-    // Let's instanciate the messageChannel where the ServiceWorker can ask for contents
-    var messageChannel = new MessageChannel();
-    messageChannel.port1.onmessage = handleMessageChannelMessage;
+    if (isMessageChannelAvailable()) {
+        // Let's instanciate the messageChannel where the ServiceWorker can ask for contents
+        // NB : note that we use the var keyword here (and not let),
+        // so that the scope of the variable is the whole file
+        var messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = handleMessageChannelMessage;
+    }
     
     /**
      * Function that handles a message of the messageChannel.
@@ -713,6 +740,12 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             }
         }
     };
+    
+    // Compile some regular expressions needed to modify links
+    var regexpOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
+    var regexpImageLink = /^.?\/?[^:]+:(.*)/;
+    var regexpMathImageUrl = /^\/math.*\/([0-9a-f]{32})\.png$/;
+    var regexpPath = /^(.*\/)[^\/]+$/;
 
     /**
      * Display the the given HTML article in the web page,
@@ -727,19 +760,29 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $("#articleContent").contents().scrollTop(0);
         
         if (isServiceWorkerReady()) {
-            // TODO : for testing
-            console.log("try to post an init message to ServiceWorker");
-            console.log("messageChannel :", messageChannel);
-            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
-            console.log("init message sent to ServiceWorker");
+            // TODO : We do not use Service Workers on Evopedia archives, for now
+            // Maybe it would be worth trying to enable them in the future?
+            if (selectedArchive.needsWikimediaCSS()) {
+                // Let's unregister the ServiceWorker
+                serviceWorkerRegistration.unregister().then(serviceWorkerRegistration = null);
+            }
+            else {
+                // TODO : for testing : this initialization should be done earlier,
+                // as soon as the ServiceWorker is ready.
+                // This can probably been done by listening to state change :
+                // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker/onstatechange
+                console.log("try to post an init message to ServiceWorker");
+                console.log("messageChannel :", messageChannel);
+                navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
+                console.log("init message sent to ServiceWorker");
+            }
         }
 
         // Apply Mediawiki CSS only when it's an Evopedia archive
         if (selectedArchive.needsWikimediaCSS() === true) {
             $('#articleContent').contents().find('head').empty();
             var currentHref = $(location).attr('href');
-            var regexPath = /^(.*\/)[^\/]+$/;
-            var currentPath = regexPath.exec(currentHref)[1];
+            var currentPath = regexpPath.exec(currentHref)[1];
             $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
         }
         else {
@@ -750,56 +793,55 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         // Display the article inside the web page.
         $('#articleContent').contents().find('body').html(htmlArticle);
         
-        // Compile the regular expressions needed to modify links
-        var regexOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
-        var regexImageLink = /^.?\/?[^:]+:(.*)/;
-        
-        // Convert links into javascript calls
-        $('#articleContent').contents().find('body').find('a').each(function() {
-            // Store current link's url
-            var url = $(this).attr("href");
-            if (url === null || url === undefined) {
-                return;
-            }
-            var lowerCaseUrl = url.toLowerCase();
-            var cssClass = $(this).attr("class");
+        // If the ServiceWorker is not useable, we need to fallback to parse the DOM
+        // to inject math images, and replace some links with javascript calls
+        if (selectedArchive.needsWikimediaCSS() || !isServiceWorkerReady() || !isMessageChannelAvailable()) {
 
-            if (cssClass === "new") {
-                // It's a link to a missing article : display a message
-                $(this).on('click', function(e) {
-                    alert("Missing article in Wikipedia");
-                    return false;
-                });
-            }
-            else if (url.slice(0, 1) === "#") {
-                // It's an anchor link : do nothing
-            }
-            else if (url.substring(0, 4) === "http") {
-                // It's an external link : open in a new tab
-                $(this).attr("target", "_blank");
-            }
-            else if (url.match(regexOtherLanguage)) {
-                // It's a link to another language : change the URL to the online version of wikipedia
-                // The regular expression extracts $1 as the language, and $2 as the title name
-                var onlineWikipediaUrl = url.replace(regexOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
-                $(this).attr("href", onlineWikipediaUrl);
-                // Open in a new tab
-                $(this).attr("target", "_blank");
-            }
-            else if (url.match(regexImageLink)
-                && (util.endsWith(lowerCaseUrl, ".png")
-                    || util.endsWith(lowerCaseUrl, ".svg")
-                    || util.endsWith(lowerCaseUrl, ".jpg")
-                    || util.endsWith(lowerCaseUrl, ".jpeg"))) {
-                // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
-                var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+selectedArchive.language+".wikipedia.org/wiki/File:$1");
-                $(this).attr("href", onlineWikipediaUrl);
-                $(this).attr("target", "_blank");
-            }
-            else {
-                // It's a link to another article
-                if (!isServiceWorkerReady()) {
-                    // If serviceWorker is not usable, add an onclick event to go to this article
+            // Convert links into javascript calls
+            $('#articleContent').contents().find('body').find('a').each(function() {
+                // Store current link's url
+                var url = $(this).attr("href");
+                if (url === null || url === undefined) {
+                    return;
+                }
+                var lowerCaseUrl = url.toLowerCase();
+                var cssClass = $(this).attr("class");
+
+                if (cssClass === "new") {
+                    // It's a link to a missing article : display a message
+                    $(this).on('click', function(e) {
+                        alert("Missing article in Wikipedia");
+                        return false;
+                    });
+                }
+                else if (url.slice(0, 1) === "#") {
+                    // It's an anchor link : do nothing
+                }
+                else if (url.substring(0, 4) === "http") {
+                    // It's an external link : open in a new tab
+                    $(this).attr("target", "_blank");
+                }
+                else if (url.match(regexpOtherLanguage)) {
+                    // It's a link to another language : change the URL to the online version of wikipedia
+                    // The regular expression extracts $1 as the language, and $2 as the title name
+                    var onlineWikipediaUrl = url.replace(regexpOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
+                    $(this).attr("href", onlineWikipediaUrl);
+                    // Open in a new tab
+                    $(this).attr("target", "_blank");
+                }
+                else if (url.match(regexpImageLink)
+                    && (util.endsWith(lowerCaseUrl, ".png")
+                        || util.endsWith(lowerCaseUrl, ".svg")
+                        || util.endsWith(lowerCaseUrl, ".jpg")
+                        || util.endsWith(lowerCaseUrl, ".jpeg"))) {
+                    // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
+                    var onlineWikipediaUrl = url.replace(regexpImageLink, "https://"+selectedArchive.language+".wikipedia.org/wiki/File:$1");
+                    $(this).attr("href", onlineWikipediaUrl);
+                    $(this).attr("target", "_blank");
+                }
+                else {
+                    // It's a link to another article
+                    // Add an onclick event to go to this article
                     // instead of following the link
                     if (url.length>=2 && url.substring(0, 2) === "./") {
                         url = url.substring(2);
@@ -811,13 +853,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                         return false;
                     });
                 }
-            }
-        });
+            });
+        }
 
         // Load math images
         $('#articleContent').contents().find('body').find('img').each(function() {
             var image = $(this);
-            var m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/);
+            var m = image.attr("src").match(regexpMathImageUrl);
             if (m) {
                 selectedArchive.loadMathImage(m[1], function(data) {
                     image.attr("src", 'data:image/png;base64,' + data);
