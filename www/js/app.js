@@ -222,6 +222,17 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         return ('serviceWorker' in navigator);
     }
     
+    function isMessageChannelAvailable() {
+        try{
+            var dummyMessageChannel = new MessageChannel();
+            if (dummyMessageChannel) return true;
+        }
+        catch (e){
+            return false;
+        }
+        return false;
+    }
+    
     function isServiceWorkerReady() {
         return (serviceWorkerRegistration != null
                 && selectedArchive
@@ -231,20 +242,31 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     }
     
     if (isServiceWorkerAvailable()) {
-        $('#serviceWorkerStatus').html("ServiceWorker available : trying to register it...");
+        $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
         navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
             console.log('serviceWorker registered', reg);
             serviceWorkerRegistration = reg;
-            $('#serviceWorkerStatus').html("ServiceWorker enabled");
+            $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
+            $('#serviceWorkerStatus').css("color","green");
         }, function(err) {
             console.error('error while registering serviceWorker', err);
             $('#serviceWorkerStatus').html("ServiceWorker API available, but unable to register : " + err);
+            $('#serviceWorkerStatus').css("color","red");
         });
     }
     else {
         console.log("serviceWorker API not available");
         $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
-    }    
+        $('#serviceWorkerStatus').css("color","red");
+    }
+    if (isMessageChannelAvailable()) {
+        $('#messageChannelStatus').html("MessageChannel API available");
+        $('#messageChannelStatus').css("color","green");
+    }
+    else {
+        $('#messageChannelStatus').html("MessageChannel API unavailable");
+        $('#messageChannelStatus').css("color","red");
+    }
     
     // Detect if DeviceStorage is available
     var storages = [];
