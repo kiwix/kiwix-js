@@ -764,7 +764,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             // Maybe it would be worth trying to enable them in the future?
             if (selectedArchive.needsWikimediaCSS()) {
                 // Let's unregister the ServiceWorker
-                serviceWorkerRegistration.unregister().then(serviceWorkerRegistration = null);
+                serviceWorkerRegistration.unregister().then(function() {serviceWorkerRegistration = null});
             }
             else {
                 // TODO : for testing : this initialization should be done earlier,
