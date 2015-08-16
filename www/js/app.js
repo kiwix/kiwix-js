@@ -35,7 +35,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     jQuery.globalEval = function(code) {
         // jQuery believes the javascript has been executed, but we did nothing
         // In any case, that would have been blocked by CSP for package applications
-        console.log("jQuery tried to run some javascript with eval(), which is not allowed in packaged applications")
+        console.log("jQuery tried to run some javascript with eval(), which is not allowed in packaged applications");
     };
     
     // Maximum number of titles to display in a search
@@ -54,12 +54,27 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     var currentCoordinates = null;
     
+    /**
+     * Resize the IFrame height, so that it fills the whole available height in the window
+     */
+    function resizeIFrame() {
+        var height = $(window).outerHeight()
+                - $("#top").outerHeight(true)
+                - $("#titleListWithHeader").outerHeight(true)
+                // TODO : this 5 should be dynamically computed, and not hard-coded
+                - 5;
+        $(".articleIFrame").css("height", height + "px");
+    }
+    $(document).ready(resizeIFrame);
+    $(window).resize(resizeIFrame);
+    
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
         pushBrowserHistoryState(null, $('#prefix').val());
         searchTitlesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
@@ -164,6 +179,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         $("#articleContent").contents().empty();
         $('#searchingForTitles').hide();
@@ -187,6 +203,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
@@ -210,6 +227,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
@@ -626,6 +644,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      */
     function displayArticleInForm(title, htmlArticle) {
         $("#readingArticle").hide();
+        $("#articleContent").show();
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
 
