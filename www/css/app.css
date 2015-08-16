@@ -35,7 +35,7 @@
   text-shadow: 0px 1px 1px rgba(0,0,0,.4);
 }
 [role=region] > .view-content {
-  margin: 0 1rem 4rem 1rem;
+  margin: 0;
 }
 [role=region] > footer {
   background: rgba(0,0,0,.2);
@@ -64,4 +64,13 @@
     z-index: 10;
     top: 20px;
     height: 0px; 
+}
+
+.articleIFrame {
+    width: 100%;
+    border: 0;
+}
+
+.category-padding {
+   margin: 0 1rem 0 1rem;
 }

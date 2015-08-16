@@ -89,7 +89,7 @@
                 </div>
             </header>
             <article class="view-content">
-                <div id="about" style="display: none;">
+                <div id="about" style="display: none;" class="category-padding">
                     <h2>
                     <img src="img/icons/evopedia-60.png" alt="Evopedia icon"/>
                     Evopedia : offline wikipedia viewer
@@ -192,7 +192,7 @@
 
                 </div>
                 
-                <div id="configuration" style="display: none;">
+                <div id="configuration" style="display: none;" class="category-padding">
                     <h2>Configuration</h2>
                     This application needs an archive of wikipedia to work. If you did not download one yet, please see the About section
                     <div id="openLocalFiles" style="display: none;">
@@ -212,14 +212,14 @@
                     <br />
                 </div>
                 
-                <div id="welcomeText" class="container">
+                <div id="welcomeText" class="container" class="category-padding">
                     You can search the content of your Wikipedia archive by typing in the above search field.
                     <br />It will propose articles starting with what you typed
                     <br />Or you can search for articles located around you (geolocation needed on your device)
                 </div>
                 
                 <!-- List of articles matching the typed prefix -->
-                <div class="container">
+                <div id="titleListWithHeader" class="container">
                     <span id="titleListHeaderMessage"></span>
                     <span id="suggestEnlargeMaxDistance" style="display: none;">
                         &nbsp;You can <a id="btnEnlargeMaxDistance">look more far away</a>
@@ -235,8 +235,7 @@
                 </div>
                 <div id="geolocationProgress" style="display: none;" class="container">
                 </div>
-                <iframe id="articleContent" src="A/dummyArticle.html" style="height: 600px; width: 100%;">&nbsp;</iframe>
-                <br />
+                <iframe id="articleContent" src="A/dummyArticle.html" class="articleIFrame">&nbsp;</iframe>
             </article>
             <footer>
                 <div id="navigationButtons" class="btn-toolbar">
