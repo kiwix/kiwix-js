@@ -183,8 +183,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
         var reader = new FileReader();
         reader.onload = function(e) {
             var metadata = e.target.result;
-            currentLocalArchiveInstance.language = /\nlanguage ?\= ?([^ \n]+)/.exec(metadata)[1];
-            currentLocalArchiveInstance.date = /\ndate ?\= ?([^ \n]+)/.exec(metadata)[1];
+            currentLocalArchiveInstance._language = /\nlanguage ?\= ?([^ \n]+)/.exec(metadata)[1];
+            currentLocalArchiveInstance._date = /\ndate ?\= ?([^ \n]+)/.exec(metadata)[1];
             var normalizedTitlesRegex = /\nnormalized_titles ?\= ?([^ \n]+)/;
             if (normalizedTitlesRegex.exec(metadata)) {
                 var normalizedTitlesInt = normalizedTitlesRegex.exec(metadata)[1];
@@ -271,12 +271,12 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     LocalArchive.prototype.readMathFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
         storage.get(directory + 'math.idx').then(function(file) {
-            currentLocalArchiveInstance.mathIndexFile = file;
+            currentLocalArchiveInstance._mathIndexFile = file;
         }, function(error) {
             alert("Error reading math index file in directory " + directory + " : " + error);
         });
         storage.get(directory + 'math.dat').then(function(file) {
-            currentLocalArchiveInstance.mathDataFile = file;
+            currentLocalArchiveInstance._mathDataFile = file;
         }, function(error) {
             alert("Error reading math data file in directory " + directory + " : " + error);
         });
