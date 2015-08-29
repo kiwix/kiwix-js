@@ -216,16 +216,19 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         if (isServiceWorkerAvailable()) {
             if (isServiceWorkerReady()) {
                 $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
-                $('#serviceWorkerStatus').css("color","green");
+                $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                        .addClass("apiAvailable");
             }
             else {
                 $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
-                $('#serviceWorkerStatus').css("color","red");
+                $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                        .addClass("apiUnavailable");
             }
         }
         else {
             $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
-            $('#serviceWorkerStatus').css("color","red");
+            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiUnavailable");
         }
         return false;
     });
@@ -293,25 +296,30 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             console.log('serviceWorker registered', reg);
             serviceWorkerRegistration = reg;
             $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
-            $('#serviceWorkerStatus').css("color","green");
+            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiAvailable");
         }, function(err) {
             console.error('error while registering serviceWorker', err);
             $('#serviceWorkerStatus').html("ServiceWorker API available, but unable to register : " + err);
-            $('#serviceWorkerStatus').css("color","red");
+            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiUnavailable");
         });
     }
     else {
         console.log("serviceWorker API not available");
         $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
-        $('#serviceWorkerStatus').css("color","red");
+        $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                .addClass("apiUnavailable");
     }
     if (isMessageChannelAvailable()) {
         $('#messageChannelStatus').html("MessageChannel API available");
-        $('#messageChannelStatus').css("color","green");
+        $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
+                .addClass("apiAvailable");
     }
     else {
         $('#messageChannelStatus').html("MessageChannel API unavailable");
-        $('#messageChannelStatus').css("color","red");
+        $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
+                .addClass("apiUnavailable");
     }
     
     // Detect if DeviceStorage is available

@@ -75,6 +75,14 @@
    margin: 0 1rem 0 1rem;
 }
 
+.apiAvailable {
+    color : green;
+}
+
+.apiUnavailable {
+    color : orange;
+}
+
 /* Réduction de la taille des éléments en haut pour les petits écrans */
 @media (max-width: 768px) {
     /* Pour réduire la taille du menu en haut */
