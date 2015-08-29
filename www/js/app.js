@@ -154,6 +154,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#btnHome').click();
         return false;
     });
+    $('#btnTop').on('click', function(e) {
+        $("#articleContent").contents().scrollTop(0);
+        return false;
+    });
     // Top menu :
     $('#btnHome').on('click', function(e) {
         // Highlight the selected section in the navbar
@@ -279,7 +283,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * and inject content in articles.
      */
     function isServiceWorkerReady() {
-        return (serviceWorkerRegistration != null);
+        return (serviceWorkerRegistration !== null);
     }
     
     if (isServiceWorkerAvailable()) {
@@ -783,7 +787,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             // Maybe it would be worth trying to enable them in the future?
             if (selectedArchive.needsWikimediaCSS()) {
                 // Let's unregister the ServiceWorker
-                serviceWorkerRegistration.unregister().then(function() {serviceWorkerRegistration = null});
+                serviceWorkerRegistration.unregister().then(function() {serviceWorkerRegistration = null;});
             }
             else {
                 // TODO : for testing : this initialization should be done earlier,

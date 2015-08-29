@@ -63,7 +63,7 @@ define(['utf8', 'util'], function(utf8, util) {
         if (encodedTitle === null || encodedTitle.length < 15)
             return null;
 
-        if (encodedTitle[encodedTitle.length - 1] == '\n') {
+        if (encodedTitle[encodedTitle.length - 1] === '\n') {
             t._titleEntryLength = encodedTitle.length;
         } else {
             t._titleEntryLength = encodedTitle.length + 1;
@@ -96,7 +96,7 @@ define(['utf8', 'util'], function(utf8, util) {
         if (len < 15) {
             return null;
         }
-        if (len > 15 && encodedTitle[len - 1] == '\n') {
+        if (len > 15 && encodedTitle[len - 1] === '\n') {
             len--;
         }
         return utf8.parse(encodedTitle.subarray(15, len));

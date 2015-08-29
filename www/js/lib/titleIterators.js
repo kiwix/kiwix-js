@@ -48,7 +48,7 @@ define(['utf8', 'title', 'util', 'q'], function(utf8, evopediaTitle, util, q) {
     SequentialTitleIterator.prototype.advance = function() {
         if (this._offset >= this._titleFile.size) {
             this._title = null;
-            return q.when(this._title)
+            return q.when(this._title);
         }
         var that = this;
         return util.readFileSlice(this._titleFile, this._offset,
