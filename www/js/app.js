@@ -38,20 +38,35 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         console.log("jQuery tried to run some javascript with eval(), which is not allowed in packaged applications");
     };
     
-    // Maximum number of titles to display in a search
+    /**
+     * Maximum number of titles to display in a search
+     * @type Integer
+     */
     var MAX_SEARCH_RESULT_SIZE = 50;
 
-    // Maximum distance (in degrees) where to search for articles around me
-    // In fact, we use a square around the user, not a circle
-    // This square has a length of twice the value of this constant
-    // One degree is ~111 km at the equator
+    /**
+     * Maximum distance (in degrees) where to search for articles around me
+     * In fact, we use a square around the user, not a circle
+     * This square has a length of twice the value of this constant
+     * One degree is ~111 km at the equator
+     * @type Float
+     */
     var DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY = 0.01;
 
+    /**
+     * @type LocalArchive|ZIMArchive
+     */
     var selectedArchive = null;
     
-    // This max distance has a default value, but the user can make it change
+    /**
+     * This max distance has a default value, but the user can make it change
+     * @type Number
+     */
     var maxDistanceArticlesNearbySearch = DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY;
     
+    /**
+     * @type point
+     */
     var currentCoordinates = null;
     
     /**
@@ -262,6 +277,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Tells if the ServiceWorker API is available
      * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
+     * @returns {Boolean}
      */
     function isServiceWorkerAvailable() {
         return ('serviceWorker' in navigator);
@@ -270,6 +286,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Tells if the MessageChannel API is available
      * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
+     * @returns {Boolean}
      */
     function isMessageChannelAvailable() {
         try{
@@ -285,6 +302,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Tells if the ServiceWorker is registered, and ready to capture HTTP requests
      * and inject content in articles.
+     * @returns {Boolean}
      */
     function isServiceWorkerReady() {
         return (serviceWorkerRegistration !== null);
@@ -323,6 +341,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     }
     
     // Detect if DeviceStorage is available
+    /**
+     * 
+     * @type Array.<StorageFirefoxOS|StoragePhoneGap>
+     */
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
         // First see if the list of archives is stored in the cookie
@@ -414,9 +436,9 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     /**
      * Looks for titles located around the given coordinates, with give maximum distance
-     * @param {type} latitude
-     * @param {type} longitude
-     * @param {type} maxDistance
+     * @param {Float} latitude
+     * @param {Float} longitude
+     * @param {Number} maxDistance
      */
     function searchTitlesNearbyGivenCoordinates(latitude, longitude, maxDistance) {
         var rectangle = new geometry.rect(
@@ -430,7 +452,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     /**
      * Populate the drop-down list of titles with the given list
-     * @param {type} archiveDirectories
+     * @param {Array.<String>} archiveDirectories
      */
     function populateDropDownListOfArchives(archiveDirectories) {
         $('#scanningForArchives').hide();
@@ -534,7 +556,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
 
     /**
      * Handle key input in the prefix input zone
-     * @param {type} evt
+     * @param {Event} evt
      */
     function onKeyUpPrefix(evt) {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
@@ -555,7 +577,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Search the index for titles that start with the given prefix (implemented
      * with a binary search inside the index file)
-     * @param {type} prefix
+     * @param {String} prefix
      */
     function searchTitlesFromPrefix(prefix) {
         $('#searchingForTitles').show();
@@ -576,9 +598,9 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
   
     /**
      * Display the list of titles with the given array of titles
-     * @param {type} titleArray
-     * @param maxTitles
-     * @param isNearbySearchSuggestions : it set to true, allow suggestions to
+     * @param {Array.<Title>} titleArray
+     * @param {Integer} maxTitles
+     * @param {Boolean} isNearbySearchSuggestions : it set to true, allow suggestions to
      *  reduce or enlarge the distance where to look for articles nearby
      */
     function populateListOfTitles(titleArray, maxTitles, isNearbySearchSuggestions) {
@@ -649,7 +671,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * If it is, display a warning message about the hyperlinks not working
      */
     function checkSmallArchive() {
-        if (selectedArchive.language === "small" && !cookies.hasItem("warnedSmallArchive")) {
+        if (selectedArchive._language === "small" && !cookies.hasItem("warnedSmallArchive")) {
             // The user selected the "small" archive, which is quite incomplete
             // So let's display a warning to the user
             
@@ -667,8 +689,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     /**
      * Handles the click on a title
-     * @param {type} event
-     * @returns {undefined}
+     * @param {Event} event
+     * @returns {Boolean}
      */
     function handleTitleClick(event) {
         // If we use the small archive, a warning should be displayed to the user
@@ -690,7 +712,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Creates an instance of title from given titleId (including resolving redirects),
      * and call the function to read the corresponding article
-     * @param {type} titleId
+     * @param {String} titleId
      */
     function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
         if (selectedArchive.isReady()) {
@@ -712,7 +734,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
 
     /**
      * Read the article corresponding to the given title
-     * @param {type} title
+     * @param {Title|DirEntry} title
      */
     function readArticle(title) {
         if (title.isRedirect()) {
@@ -734,7 +756,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Function that handles a message of the messageChannel.
      * It tries to read the content in the backend, and sends it back to the ServiceWorker
-     * @param event
+     * @param {Event} event
      */
     function handleMessageChannelMessage(event) {
         if (event.data.error) {
@@ -782,8 +804,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
      * NB : in some error cases, the given title can be null, and the htmlArticle contains the error message
-     * @param {type} title
-     * @param {type} htmlArticle
+     * @param {Title|DirEntry} title
+     * @param {String} htmlArticle
      */
     function displayArticleInForm(title, htmlArticle) {
         $("#readingArticle").hide();
@@ -867,7 +889,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                         || util.endsWith(lowerCaseUrl, ".jpg")
                         || util.endsWith(lowerCaseUrl, ".jpeg"))) {
                     // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
-                    var onlineWikipediaUrl = url.replace(regexpImageLink, "https://"+selectedArchive.language+".wikipedia.org/wiki/File:$1");
+                    var onlineWikipediaUrl = url.replace(regexpImageLink, "https://" + selectedArchive._language + ".wikipedia.org/wiki/File:$1");
                     $(this).attr("href", onlineWikipediaUrl);
                     $(this).attr("target", "_blank");
                 }
@@ -903,12 +925,11 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     /**
      * Changes the URL of the browser page, so that the user might go back to it
      * 
-     * @param {type} titleName
-     * @param {type} titleSearch
-     * @param {type} latitude
-     * @param {type} longitude
-     * @param {type} maxDistance
-     * @returns {undefined}
+     * @param {String} titleName
+     * @param {String} titleSearch
+     * @param {Float} latitude
+     * @param {Float} longitude
+     * @param {Float} maxDistance
      */
     function pushBrowserHistoryState(titleName, titleSearch, latitude, longitude, maxDistance) {
         var stateObj = {};
@@ -942,8 +963,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
 
     /**
      * Replace article content with the one of the given title
-     * @param {type} titleName
-     * @returns {undefined}
+     * @param {String} titleName
      */
     function goToArticle(titleName) {
         selectedArchive.getTitleByName(titleName, function(title) {
@@ -1019,7 +1039,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     /**
      * Called when a geolocation request succeeds : start looking for titles around the location
-     * @param {type} pos Position given by geolocation
+     * @param {Position} pos Position given by geolocation
      */
     function geo_success(pos) {
         var crd = pos.coords;
@@ -1043,7 +1063,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
 
     /**
      * Called when a geolocation fails
-     * @param {type} err
+     * @param {PositionError} err
      */
     function geo_error(err) {
         if ($('#geolocationProgress').is(":visible")) {

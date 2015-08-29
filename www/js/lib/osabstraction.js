@@ -21,6 +21,15 @@
  */
 'use strict';
 define(['util', 'q', 'jquery'], function(util, q, jQuery) {
+    
+    /**
+     * Storage implemented by Firefox OS
+     * 
+     * @typedef StorageFirefoxOS
+     * @property {DeviceStorage} _storage DeviceStorage
+     * @property {String} storageName Name of the storage
+     */
+    
     /**
      * Creates an abstraction layer around the FirefoxOS storage.
      * @see StoragePhoneGap
@@ -32,8 +41,8 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
     };
     /**
      * Access the given file.
-     * @param path absolute path to the file
-     * @return jQuery promise which is resolved with a HTML5 file object and
+     * @param {String} path absolute path to the file
+     * @return {Promise} Promise which is resolved with a HTML5 file object and
      *         rejected with an error message.
      */
     StorageFirefoxOS.prototype.get = function(path) {
@@ -45,7 +54,7 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
     };
     /**
      * Searches for archive files or directories.
-     * @return jQuery promise which is resolved with an array of
+     * @return {Promise} Promise which is resolved with an array of
      *         paths and rejected with an error message.
      */
     StorageFirefoxOS.prototype.scanForArchives = function() {
@@ -82,6 +91,14 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
         };
         return deferred.promise();
     };
+    
+    /**
+     * Storage implemented by PhoneGap
+     * 
+     * @typedef StoragePhoneGap
+     * @property {LocalFileSystem} _storage DeviceStorage
+     * @property {String} storageName Name of the storage
+     */
 
     /**
      * Creates an abstraction layour around the PhoneGap storage.
@@ -94,8 +111,8 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
     };
     /**
      * Access the given file.
-     * @param path absolute path to the file
-     * @return jQuery promise which is resolved with a HTML5 file object and
+     * @param {String} path absolute path to the file
+     * @return {Promise} Promise which is resolved with a HTML5 file object and
      *         rejected with an error message.
      */
     StoragePhoneGap.prototype.get = function(path) {
@@ -121,7 +138,7 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
     };
     /**
      * Searches for archive files or directories.
-     * @return jQuery promise which is resolved with an array of
+     * @return {Promise} Promise which is resolved with an array of
      *         paths and rejected with an error message.
      */
     StoragePhoneGap.prototype.scanForArchives = function() {
@@ -166,8 +183,8 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
 
     /**
      * Convert HTML5 FileError codes to strings.
-     * @param code FileError code
-     * @return string message corresponding to the error code
+     * @param {Integer} code FileError code
+     * @return {String} string message corresponding to the error code
      */
     StoragePhoneGap.prototype._errorCodeToString = function(code) {
         switch (code) {

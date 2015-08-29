@@ -26,13 +26,20 @@ define(['utf8', 'title', 'util', 'q'], function(utf8, evopediaTitle, util, q) {
     // 300 bytes is arbitrary : we actually do not really know how long the titles will be
     // But mediawiki titles seem to be limited to ~200 bytes, so 300 should be more than enough
     var MAX_TITLE_LENGTH = 300;
-
+    
     /**
      * Iterates over all titles starting at the given offset.
      * The asynchronous method advance has to be called before this.title is
      * valid.
-     * @param archive
-     * @param offset
+     * 
+     * @typedef SequentialTitleIterator
+     * @property {File} _titleFile Title File
+     * @property {LocalArchive} _archive Archive
+     * @property {Integer} _offset
+     * @property {Title} _title
+     * 
+     * @param {LocalArchive} archive
+     * @param {Integer} offset
      */
     function SequentialTitleIterator(archive, offset) {
         this._titleFile = archive._titleFile;
@@ -42,7 +49,7 @@ define(['utf8', 'title', 'util', 'q'], function(utf8, evopediaTitle, util, q) {
     };
     /**
      * Advances to the next title (or the first), if possible.
-     * @returns jQuery promise containing the next title or null if there is no
+     * @returns {Promise} Promise containing the next title or null if there is no
      * next title
      */
     SequentialTitleIterator.prototype.advance = function() {
@@ -68,10 +75,10 @@ define(['utf8', 'title', 'util', 'q'], function(utf8, evopediaTitle, util, q) {
      * Searches for the offset into the given title file where the first title
      * with the given prefix (or lexicographically larger) is located.
      * The given function normalize is applied to every title before comparison.
-     * @param titleFile
-     * @param prefix
+     * @param {File} titleFile
+     * @param {String} prefix
      * @param normalize function to be applied to every title before comparison
-     * @returns jQuery promise giving the offset
+     * @returns Promise giving the offset
      */
     function findPrefixOffset(titleFile, prefix, normalize) {
         prefix = normalize(prefix);

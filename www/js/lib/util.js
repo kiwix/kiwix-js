@@ -24,8 +24,8 @@ define(['q'], function(q) {
 
     /**
      * Utility function : return true if the given string ends with the suffix
-     * @param str
-     * @param suffix
+     * @param {String} str
+     * @param {String} suffix
      * @returns {Boolean}
      */
     function endsWith(str, suffix) {
@@ -34,9 +34,9 @@ define(['q'], function(q) {
     
     /**
      * Read an integer encoded in 4 bytes, little endian
-     * @param {type} byteArray
-     * @param {type} firstIndex
-     * @returns {Number}
+     * @param {Array} byteArray
+     * @param {Integer} firstIndex
+     * @returns {Integer}
      */
     function readIntegerFrom4Bytes(byteArray, firstIndex) {
         var dataView = new DataView(byteArray.buffer, firstIndex, 4);
@@ -46,9 +46,9 @@ define(['q'], function(q) {
 
     /**
      * Read an integer encoded in 2 bytes, little endian
-     * @param {type} byteArray
-     * @param {type} firstIndex
-     * @returns {Number}
+     * @param {Array} byteArray
+     * @param {Integer} firstIndex
+     * @returns {Integer}
      */
     function readIntegerFrom2Bytes(byteArray, firstIndex) {
         var dataView = new DataView(byteArray.buffer, firstIndex, 2);
@@ -58,10 +58,10 @@ define(['q'], function(q) {
     
     /**
      * Read a float encoded in 2 bytes
-     * @param {type} byteArray
-     * @param {type} firstIndex
-     * @param {bool} littleEndian (optional)
-     * @returns {Number}
+     * @param {Array} byteArray
+     * @param {Integer} firstIndex
+     * @param {Boolean} littleEndian (optional)
+     * @returns {Float}
      */
     function readFloatFrom4Bytes(byteArray, firstIndex, littleEndian) {
         var dataView = new DataView(byteArray.buffer, firstIndex, 4);
@@ -71,7 +71,7 @@ define(['q'], function(q) {
 
     /**
      * Convert a Uint8Array to a lowercase hex string
-     * @param {type} byteArray
+     * @param {Array} byteArray
      * @returns {String}
      */
     function uint8ArrayToHex(byteArray) {
@@ -88,7 +88,7 @@ define(['q'], function(q) {
     /**
      * Convert a Uint8Array to base64
      * TODO : might be replaced by btoa() built-in function? https://developer.mozilla.org/en-US/docs/Web/API/window.btoa
-     * @param {type} byteArray
+     * @param {Array} byteArray
      * @returns {String}
      */
     function uint8ArrayToBase64(byteArray) {
@@ -117,10 +117,10 @@ define(['q'], function(q) {
     /**
      * Reads a Uint8Array from the given file starting at byte offset begin and
      * for given size.
-     * @param file
-     * @param begin
-     * @param size
-     * @returns jQuery promise
+     * @param {File} file
+     * @param {Integer} begin
+     * @param {Integer} size
+     * @returns {Promise} Promise
      */
     function readFileSlice(file, begin, size) {
         var deferred = q.defer();
@@ -140,10 +140,10 @@ define(['q'], function(q) {
      * continue the search.
      * If lowerBound is not set, returns only indices where query returns 0 and null otherwise.
      * If lowerBound is set, returns the smallest index where query does not return > 0.
-     * @param begin
-     * @param end
-     * @param query
-     * @param lowerBound
+     * @param {Integer} begin
+     * @param {Integer} end
+     * @param query Function
+     * @param {Boolean} lowerBound
      */
     function binarySearch(begin, end, query, lowerBound) {
         if (end <= begin)

@@ -21,16 +21,28 @@
  */
 'use strict';
 define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) {
+    
+    /**
+     * ZIM Archive
+     * 
+     * 
+     * @typedef ZIMArchive
+     * @property {ZIMFile} _file The ZIM file
+     * @property {String} _language Language of the content
+     */
+    
+    
     /**
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
-     * @param {type} storage
-     * @param {type} path
+     * 
+     * @param {StorageFirefoxOS|StoragePhoneGap|File} storage Storage (in this case, the path must be given) or File (path must be omitted)
+     * @param {String} path
      */
     function ZIMArchive(storage, path) {
         var that = this;
         that._file = null;
-        that.language = ""; //@TODO
+        that._language = ""; //@TODO
         if (storage && storage instanceof File && !path) {
             // The constructor has been called with a single File parameter
             zimfile.fromFile(storage).then(function(file) {
@@ -48,22 +60,51 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
         }
     };
 
+    /**
+     * 
+     * @returns {Boolean}
+     */
     ZIMArchive.prototype.isReady = function() {
         return this._file !== null;
     };
     
+    /**
+     * 
+     * @returns {Boolean}
+     */
     ZIMArchive.prototype.needsWikimediaCSS = function() {
         return false;
     };
 
+    /**
+     * 
+     * @returns {Boolean}
+     */
     ZIMArchive.prototype.hasCoordinates = function() {
         return false;
     };
 
+    /**
+     * 
+     * @param {String} titleId
+     * @returns {DirEntry}
+     */
     ZIMArchive.prototype.parseTitleId = function(titleId) {
         return zimDirEntry.DirEntry.fromStringId(this._file, titleId);
     };
+    
+    /**
+     * @callback callbackTitleList
+     * @param {Array.<Title>} titleArray Array of Titles found
+     */
 
+    /**
+     * 
+     * @param {String} prefix
+     * @param {Integer} resultSize
+     * @param {type} callback
+     * @returns {callbackTitleList}
+     */
     ZIMArchive.prototype.findTitlesWithPrefix = function(prefix, resultSize, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
@@ -85,27 +126,54 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
         }).then(callback);
     };
 
+    /**
+     * 
+     * @param {rect} rectangle
+     * @param {Integer} resultSize
+     * @param {callbackTitleList} callback
+     */
     ZIMArchive.prototype.getTitlesInCoords = function(rectangle, resultSize, callback) {
         callback([]);
     };
+    
+    /**
+     * @callback callbackTitle
+     * @param {Title} title Title found
+     */
 
+    /**
+     * 
+     * @param {DirEntry} title
+     * @param {callbackTitle} callback
+     */
     ZIMArchive.prototype.resolveRedirect = function(title, callback) {
         var that = this;
         this._file.dirEntryByTitleIndex(title.redirectTarget).then(function(dirEntry) {
             return that._dirEntryToTitleObject(dirEntry);
         }).then(callback);
     };
-
+    
+    /**
+     * @callback callbackStringContent
+     * @param {String} content String content
+     */
+    
+    /**
+     * 
+     * @param {DirEntry} title
+     * @param {callbackStringContent} callback
+     */
     ZIMArchive.prototype.readArticle = function(title, callback) {
         return title.readData().then(function(data) {
             callback(title.name(), data);
         });
     };
 
-    ZIMArchive.prototype.loadMathImage = function(hexString, callback) {
-
-    };
-
+    /**
+     * 
+     * @param {String} titleName
+     * @param {callbackTitle} callback
+     */
     ZIMArchive.prototype.getTitleByName = function(titleName, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
@@ -124,6 +192,10 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
         });
     };
 
+    /**
+     * 
+     * @param {callbackTitle} callback
+     */
     ZIMArchive.prototype.getRandomTitle = function(callback) {
         var that = this;
         var index = Math.floor(Math.random() * this._file.articleCount);
@@ -132,6 +204,11 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
         }).then(callback)
     };
 
+    /**
+     * 
+     * @param dirEntry
+     * @returns {DirEntry}
+     */
     ZIMArchive.prototype._dirEntryToTitleObject = function(dirEntry) {
         return new zimDirEntry.DirEntry(this._file, dirEntry);
     };

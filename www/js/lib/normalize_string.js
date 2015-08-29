@@ -116,6 +116,11 @@ define([], function() {
     nm['6'] = '6'; nm['7'] = '7'; nm['8'] = '8'; nm['9'] = '9';
 
 
+    /**
+     * Normalize the given String
+     * @param {String} string String to normalize
+     * @returns {String}
+     */
     function normalizeString(string) {
         var normalizedStringArray = [];
         for (var i = 0; i < string.length; i++) {

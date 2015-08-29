@@ -32,12 +32,39 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         }
         return r;
     };
-
+                
+    /**
+     * A ZIM File
+     * 
+     * See http://www.openzim.org/wiki/ZIM_file_format#Header
+     * 
+     * @typedef ZIMFile
+     * @property {File} _file The ZIM file
+     * @property {Integer} articleCount total number of articles
+     * @property {Integer} clusterCount total number of clusters
+     * @property {Integer} urlPtrPos position of the directory pointerlist ordered by URL
+     * @property {Integer} titlePtrPos position of the directory pointerlist ordered by title
+     * @property {Integer} clusterPtrPos position of the cluster pointer list
+     * @property {Integer} mimeListPos position of the MIME type list (also header size)
+     * @property {Integer} mainPage main page or 0xffffffff if no main page
+     * @property {Integer} layoutPage layout page or 0xffffffffff if no layout page
+     * 
+     */
+    
+    /**
+     * @param {File} abstractFile
+     */
     function ZIMFile(abstractFile)
     {
         this._file = abstractFile;
     }
 
+    /**
+     * 
+     * @param {Integer} offset
+     * @param {Integer} size
+     * @returns {Integer}
+     */
     ZIMFile.prototype._readInteger = function(offset, size)
     {
         return util.readFileSlice(this._file, offset, size).then(function(data)
@@ -46,11 +73,22 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         });
     };
 
+    /**
+     * 
+     * @param {Integer} offset
+     * @param {Integer} size
+     * @returns {Promise}
+     */
     ZIMFile.prototype._readSlice = function(offset, size)
     {
         return util.readFileSlice(this._file, offset, size);
     };
 
+    /**
+     * 
+     * @param {Integer} offset
+     * @returns {unresolved} DirEntry data (without the file)
+     */
     ZIMFile.prototype.dirEntry = function(offset)
     {
         var that = this;
@@ -79,6 +117,11 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         });
     };
 
+    /**
+     * 
+     * @param {Integer} index
+     * @returns {unresolved} DirEntry data (without the file)
+     */
     ZIMFile.prototype.dirEntryByUrlIndex = function(index)
     {
         var that = this;
@@ -88,6 +131,11 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         });
     };
 
+    /**
+     * 
+     * @param {Integer} index
+     * @returns {unresolved} DirEntry data (without the file)
+     */
     ZIMFile.prototype.dirEntryByTitleIndex = function(index)
     {
         var that = this;
@@ -97,6 +145,12 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         });
     };
 
+    /**
+     * 
+     * @param {Integer} cluster
+     * @param {Integer} blob
+     * @returns {String}
+     */
     ZIMFile.prototype.blob = function(cluster, blob)
     {
         var that = this;
@@ -122,6 +176,11 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
     };
 
     return {
+        /**
+         * 
+         * @param {File} file
+         * @returns {Promise}
+         */
         fromFile: function(file) {
             return util.readFileSlice(file, 0, 80).then(function(header)
             {

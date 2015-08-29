@@ -21,9 +21,20 @@
  */
 'use strict';
 define(['utf8', 'util'], function(utf8, util) {
-    
+       
     /**
      * Title class : defines the title of an article and some methods to manipulate it
+     * 
+     * @typedef Title
+     * @property {String} _name Name of the title
+     * @property {Integer} _fileNr Number of the archive file
+     * @property {Integer} _blockStart
+     * @property {Integer} _blockOffset
+     * @property {Integer} _articleLength Length of the article
+     * @property {LocalArchive} _archive Archive where the Title is
+     * @property {Integer} _titleOffset
+     * @property {Integer} _titleEntryLength
+     * @property {point} _geolocation
      */
     function Title() {
         this._name = null;
@@ -37,6 +48,10 @@ define(['utf8', 'util'], function(utf8, util) {
         this._geolocation = null;
     };
 
+    /**
+     * Replaces underscores by spaces, to get a readable name
+     * @returns {String}
+     */
     Title.prototype.getReadableName = function() {
         return this._name.replace(/_/g, " ");
     };
@@ -44,10 +59,10 @@ define(['utf8', 'util'], function(utf8, util) {
 
     /**
      * Creates a Title instance from an encoded title line from a title file
-     * @param {type} encodedTitle
-     * @param {type} archive
-     * @param {type} titleOffset
-     * @returns {_L1.Title}
+     * @param {String} encodedTitle
+     * @param {LocalArchive} archive
+     * @param {Integer} titleOffset
+     * @returns {Title}
      */
     Title.parseTitle = function(encodedTitle, archive, titleOffset) {
         if (archive === null) {
@@ -90,6 +105,8 @@ define(['utf8', 'util'], function(utf8, util) {
 
     /*
      * Retrieves the name of an article from an encoded title line
+     * @param {String} encodedTitle
+     * @return {String} Name of the title
      */
     Title.parseNameOnly = function(encodedTitle) {
         var len = encodedTitle.length;
@@ -104,9 +121,9 @@ define(['utf8', 'util'], function(utf8, util) {
 
     /**
      * Creates a title instance from a serialized id
-     * @param {type} localArchive
-     * @param {type} titleId
-     * @returns {_L1.Title}
+     * @param {LocalArchive} localArchive
+     * @param {String} titleId
+     * @returns {Title}
      */
     Title.parseTitleId = function(localArchive, titleId) {
         var title = new Title();
@@ -121,9 +138,18 @@ define(['utf8', 'util'], function(utf8, util) {
         return title;
     };
 
+    /**
+     * Name of the title
+     * @returns {String}
+     */
     Title.prototype.name = function() {
         return this._name;
     };
+    
+    /**
+     * Is this title a redirection?
+     * @returns {Boolean}
+     */
     Title.prototype.isRedirect = function() {
         return this._fileNr === 0xff;
     };
@@ -133,12 +159,13 @@ define(['utf8', 'util'], function(utf8, util) {
      * @returns {String}
      */
     Title.prototype.toStringId = function() {
-        return this._archive.language + "|" + this._archive.date + "|" + this._fileNr + "|"
+        return this._archive._language + "|" + this._archive.date + "|" + this._fileNr + "|"
                 + this._titleOffset + "|" + this._name + "|" + this._blockStart + "|" + this._blockOffset + "|" + this._articleLength;
     };
 
     /**
      * Serialize the title in a readable way
+     * @returns {String}
      */
     Title.prototype.toString = function() {
         return "title.id = " + this.toStringId() + " title.name = " + this._name + " title.fileNr = " + this._fileNr + " title.blockStart = " + this._blockStart + " title.blockOffset = " + this._blockOffset + " title.articleLength = " + this._articleLength;

@@ -21,6 +21,30 @@
  */
 'use strict';
 define([], function() {
+    
+    /**
+     * A Directory Entry in a ZIM File
+     * 
+     * See http://www.openzim.org/wiki/ZIM_file_format#Directory_Entries
+     * 
+     * @typedef DirEntry
+     * @property {File} _zimfile The ZIM file
+     * @property {Boolean} redirect
+     * @property {Integer} offset
+     * @property {Integer} mimetype MIME type number as defined in the MIME type list
+     * @property {String} namespace defines to which namespace this directory entry belongs 
+     * @property {Integer} redirectTarget
+     * @property {Integer} cluster cluster number in which the data of this directory entry is stored 
+     * @property {Integer} blob blob number inside the compressed cluster where the contents are stored 
+     * @property {String} url string with the URL as refered in the URL pointer list
+     * @property {String} title string with a title as refered in the Title pointer list (or empty)
+     * 
+     */
+    
+    /**
+     * @param {File} zimfile
+     * @param {unresolved} dirEntryData
+     */    
     function DirEntry(zimfile, dirEntryData) {
         this._zimfile = zimfile;
         this.redirect = dirEntryData.isRedirect;
@@ -34,24 +58,54 @@ define([], function() {
         this.title = dirEntryData.title;
     };
 
+    /**
+     * 
+     * @returns {String}
+     */
     DirEntry.prototype.toStringId = function() {
         //@todo also store isRedirect and redirectTarget
         return this.offset + '|' + this.mimetype + '|' + this.namespace + '|' + this.cluster + '|' +
                 this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
     };
+    
+    /**
+     * 
+     * @returns {String}
+     */
     DirEntry.prototype.getReadableName = function() {
         return this.title;
     };
+    
+    /**
+     * 
+     * @returns {String}
+     */
     DirEntry.prototype.name = function() {
         return this.title;
     };
+    
+    /**
+     * 
+     * @returns {Boolean}
+     */
     DirEntry.prototype.isRedirect = function() {
         return this.redirect;
     };
+    
+    /**
+     * 
+     * @returns {Promise}
+     */
     DirEntry.prototype.readData = function() {
         return this._zimfile.blob(this.cluster, this.blob);
     };
 
+    /**
+     * 
+     * @param {File} zimfile
+     * @param {String} stringId
+     * @returns {DirEntry}
+     */
     DirEntry.fromStringId = function(zimfile, stringId) {
         var data = {};
         var idParts = stringId.split("|");

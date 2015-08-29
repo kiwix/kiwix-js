@@ -23,7 +23,23 @@
 define(['q'], function(q) {
     var xzdec = Module; //@todo including via requirejs seems to not work
     xzdec._init();
-
+    
+    /**
+     * @typedef Decompressor
+     * @property {Integer} _chunkSize
+     * @property {FileReader} _reader
+     * @property {unresolved} _decHandle
+     * @property {Integer} _inStreamPos
+     * @property {Integer} _outStreamPos
+     * @property {Array} _outBuffer
+     */
+    
+    /**
+     * @constructor
+     * @param {FileReader} reader
+     * @param {Integer} chunkSize
+     * @returns {Decompressor}
+     */
     function Decompressor(reader, chunkSize) {
         this._chunkSize = chunkSize || 1024 * 5;
         this._reader = reader;
@@ -35,8 +51,8 @@ define(['q'], function(q) {
     /**
      * Read length bytes, offset into the decompressed stream. Consecutive calls may only
      * advance in the stream and may not overlap.
-     * @param {type} offset
-     * @param {type} length
+     * @param {Integer} offset
+     * @param {Integer} length
      */
     Decompressor.prototype.readSlice = function(offset, length) {
         this._outBuffer = new Int8Array(new ArrayBuffer(length));
@@ -50,6 +66,12 @@ define(['q'], function(q) {
         xzdec._release(this._decHandle);
     };
 
+    /**
+     * 
+     * @param {Integer} offset
+     * @param {Integer} length
+     * @returns {Array}
+     */
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded().then(function() {
@@ -88,6 +110,11 @@ define(['q'], function(q) {
                 return that._readLoop(offset, length);
         });
     };
+    
+    /**
+     * 
+     * @returns {Promise}
+     */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
         if (!xzdec._input_empty(this._decHandle))
             return q.when(0);

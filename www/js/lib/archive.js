@@ -39,9 +39,19 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     var CHUNK_SIZE = 131072;
     // A rectangle representing all the earth globe
     var GLOBE_RECTANGLE = new geometry.rect(-181, -91, 362, 182);
-    
+        
     /**
-     * LocalArchive class : defines a wikipedia dump on the filesystem
+     * LocalArchive class : defines an Evopedia dump on the filesystem
+     * 
+     * @typedef LocalArchive
+     * @property {Array.<File>} _dataFiles Array of the data files
+     * @property {Array.<File>} _coordinateFiles Array of the coordinate files
+     * @property {File} _titleFile File that list all the titles
+     * @property {File} _mathIndexFile File that indexes the math images
+     * @property {Date} _date When the archive as been built
+     * @property {String} _language Language used by the archive
+     * @property {File} _titleSearchFile File that allows infix search
+     * @property {Boolean} _normalizedTitles Are the titles normalized in the archive?
      */
     function LocalArchive() {
         this._dataFiles = new Array();
@@ -75,7 +85,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * Read the title Files in the given directory, and assign them to the
      * current LocalArchive
      * 
-     * @param storage
+     * @param {StorageFirefoxOS|StoragePhoneGap} storage
      * @param directory
      */
     LocalArchive.prototype.readTitleFilesFromStorage = function(storage, directory) {
@@ -250,8 +260,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     
     /**
      * Initialize the localArchive from given directory, using DeviceStorage
-     * @param {type} storage the directory resides in
-     * @param {type} archiveDirectory
+     * @param {DeviceStorage} storage the directory resides in
+     * @param {String} archiveDirectory
      */
     LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory) {
         this.readTitleFilesFromStorage(storage, archiveDirectory);
@@ -265,8 +275,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * Read the math files (math.idx and math.dat) in the given directory, and assign it to the
      * current LocalArchive
      * 
-     * @param storage
-     * @param directory
+     * @param {DeviceStorage} storage
+     * @param {String} directory
      */
     LocalArchive.prototype.readMathFilesFromStorage = function(storage, directory) {
         var currentLocalArchiveInstance = this;
@@ -281,13 +291,18 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             alert("Error reading math data file in directory " + directory + " : " + error);
         });
     };
+    
+    /**
+     * @callback callbackTitleList
+     * @param {Array.<Title>} titleArray Array of Titles found
+     */
 
     /**
      * Read the titles in the title file starting at the given offset (maximum titleCount), and call the callbackFunction with this list of Title instances
-     * @param titleOffset offset into the title file - it has to point excatly
+     * @param {Integer} titleOffset offset into the title file - it has to point exactly
      *                    to the start of a title entry
-     * @param titleCount maximum number of titles to retrieve
-     * @param callbackFunction
+     * @param {Integer} titleCount maximum number of titles to retrieve
+     * @param {callbackTitleList} callbackFunction
      */
     LocalArchive.prototype.getTitlesStartingAtOffset = function(titleOffset, titleCount, callbackFunction) {
         var titles = [];
@@ -308,12 +323,17 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             return addNext();
         }).then(callbackFunction, errorHandler);
     };
+    
+    /**
+     * @callback callbackTitle
+     * @param {Title} title Title found
+     */
 
     /**
      * Look for a title by its name, and call the callbackFunction with this Title
      * If the title is not found, the callbackFunction is called with parameter null
-     * @param titleName
-     * @param callbackFunction
+     * @param {String} titleName
+     * @param {callbackTitle} callbackFunction
      */
     LocalArchive.prototype.getTitleByName = function(titleName, callbackFunction) {
         var that = this;
@@ -337,7 +357,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
 
     /**
      * Get a random title, and call the callbackFunction with this Title
-     * @param callbackFunction
+     * @param {callbackTitle} callbackFunction
      */
     LocalArchive.prototype.getRandomTitle = function(callbackFunction) {
         var that = this;
@@ -358,9 +378,9 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
 
     /**
      * Find titles that start with the given prefix, and call the callbackFunction with this list of Titles
-     * @param prefix
-     * @param maxSize Maximum number of titles to read
-     * @param callbackFunction
+     * @param {String} prefix
+     * @param {Integer} maxSize Maximum number of titles to read
+     * @param {callbackTitleList} callbackFunction
      */
     LocalArchive.prototype.findTitlesWithPrefix = function(prefix, maxSize, callbackFunction) {
         var that = this;
@@ -393,14 +413,19 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             return addNext();
         }).then(function(){}, errorHandler);
     };
+    
+    /**
+     * @callback callbackStringContent
+     * @param {String} content String content
+     */
 
 
     /**
      * Read an article from the title instance, and call the
      * callbackFunction with the article HTML String
      * 
-     * @param title
-     * @param callbackFunction
+     * @param {Title} title
+     * @param {callbackStringContent} callbackFunction
      */
     LocalArchive.prototype.readArticle = function(title, callbackFunction) {
         var dataFile = null;
@@ -444,11 +469,11 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * call the callbackFunction with the article HTML String.
      * Else, recursively call this function with readLength + CHUNK_SIZE
      * 
-     * @param title
-     * @param dataFile
-     * @param reader
-     * @param readLength
-     * @param callbackFunction
+     * @param {Title} title
+     * @param {File} dataFile
+     * @param {FileReader} reader
+     * @param {Integer} readLength
+     * @param {callbackStringContent} callbackFunction
      */
     LocalArchive.prototype.readArticleChunk = function(title, dataFile, reader,
             readLength, callbackFunction) {
@@ -517,8 +542,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * Load the math image specified by the hex string and call the
      * callbackFunction with a base64 encoding of its data.
      * 
-     * @param hexString
-     * @param callbackFunction
+     * @param {String} hexString
+     * @param {callbackStringContent} callbackFunction
      */
     LocalArchive.prototype.loadMathImage = function(hexString, callbackFunction) {
         var entrySize = 16 + 4 + 4;
@@ -541,14 +566,20 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             reader.readAsArrayBuffer(blob);
         });
     };
+    
+    /**
+     * @callback callbackPositionLength
+     * @param {Integer} pos Position
+     * @param {Integer} len Length
+     */
 
 
     /**
      * Recursive algorithm to find the position of the Math image in the data file
-     * @param {type} hexString
-     * @param {type} lo
-     * @param {type} hi
-     * @param {type} callbackFunction
+     * @param {String} hexString
+     * @param {Integer} lo
+     * @param {Integer} hi
+     * @param {callbackPositionLength} callbackFunction
      */
     LocalArchive.prototype.findMathDataPosition = function(hexString, lo, hi, callbackFunction) {
         var entrySize = 16 + 4 + 4;
@@ -587,8 +618,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
 
     /**
      * Resolve the redirect of the given title instance, and call the callbackFunction with the redirected Title instance
-     * @param title
-     * @param callbackFunction
+     * @param {Title} title
+     * @param {callbackTitle} callbackFunction
      */
     LocalArchive.prototype.resolveRedirect = function(title, callbackFunction) {
         var reader = new FileReader();
@@ -628,9 +659,9 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * Finds titles that are located inside the given rectangle
      * This is the main function, that has to be called from the application
      * 
-     * @param {type} rect Rectangle where to look for titles
-     * @param {type} maxTitles Maximum number of titles to find
-     * @param callbackFunction Function to call with the list of titles found
+     * @param {rect} rect Rectangle where to look for titles
+     * @param {Integer} maxTitles Maximum number of titles to find
+     * @param {callbackTitleList} callbackFunction Function to call with the list of titles found
      */
     LocalArchive.prototype.getTitlesInCoords = function(rect, maxTitles, callbackFunction) {
         if (callbackCounterForTitlesInCoordsSearch > 0) {
@@ -654,11 +685,12 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * found, another function is called to convert the title positions found
      * into Title instances (asynchronously)
      * 
-     * @param {type} localArchive
-     * @param {type} targetRect
+     * @callback callbackGetTitlesInCoordsInt
+     * @param {LocalArchive} localArchive
+     * @param {rect} targetRect
      * @param {type} titlePositionsFound
-     * @param {type} maxTitles
-     * @param {type} callbackFunction
+     * @param {Integer} maxTitles
+     * @param {callbackTitleList} callbackFunction
      */
     LocalArchive.callbackGetTitlesInCoordsInt = function(localArchive, targetRect, titlePositionsFound, maxTitles, callbackFunction) {
         // Search is over : now let's convert the title positions into Title instances
@@ -676,13 +708,13 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * It handles index i, then recursively calls itself for index i+1
      * When all the list is processed, the callbackFunction is called with the Title list
      * 
-     * @param {type} localArchive
-     * @param {type} targetRect
-     * @param {type} titlePositionsFound
-     * @param {type} i
-     * @param {type} titlesFound
-     * @param maxTitles
-     * @param {type} callbackFunction
+     * @param {LocalArchive} localArchive
+     * @param {rect} targetRect
+     * @param {Array.<Title>} titlePositionsFound
+     * @param {Integer} i
+     * @param {Array.<Title>} titlesFound
+     * @param {Integer} maxTitles
+     * @param {callbackTitleList} callbackFunction
      */
     LocalArchive.readTitlesFromTitleCoordsInTitleFile = function (localArchive, targetRect, titlePositionsFound, i, titlesFound, maxTitles, callbackFunction) {
         var titleOffset = titlePositionsFound[i]._titleOffset;
@@ -717,9 +749,9 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     /**
      * Reads 8 bytes in given byteArray, starting at startIndex, and convert
      * these 8 bytes into latitude and longitude (each uses 4 bytes, little endian)
-     * @param {type} byteArray
-     * @param {type} startIndex
-     * @returns {_L23.geometry.point}
+     * @param {Array} byteArray
+     * @param {Integer} startIndex
+     * @returns {point}
      */
     var readCoordinates = function(byteArray, startIndex) {
       var lat = util.readFloatFrom4Bytes(byteArray, startIndex, true);
@@ -731,15 +763,15 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     /**
      * Searches in a coordinate file some titles in a target rectangle.
      * This function recursively calls itself, in order to browse all the quadtree
-     * @param {type} localArchive
-     * @param {type} coordinateFileIndex
-     * @param {type} coordFilePos
-     * @param {type} targetRect
-     * @param {type} thisRect
-     * @param {type} maxTitles
-     * @param {type} titlePositionsFound
-     * @param {type} callbackFunction
-     * @param {type} callbackGetTitlesInCoordsInt
+     * @param {LocalArchive} localArchive
+     * @param {Integer} coordinateFileIndex
+     * @param {Integer} coordFilePos
+     * @param {rect} targetRect
+     * @param {rect} thisRect
+     * @param {Integer} maxTitles
+     * @param {Array.<Title>} titlePositionsFound
+     * @param {callbackTitleList} callbackFunction
+     * @param {callbackGetTitlesInCoordsInt} callbackGetTitlesInCoordsInt
      */
     LocalArchive.getTitlesInCoordsInt = function(localArchive, coordinateFileIndex, coordFilePos, targetRect, thisRect, maxTitles, titlePositionsFound, callbackFunction, callbackGetTitlesInCoordsInt) {
         var reader = new FileReader();
@@ -836,8 +868,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     /**
      * Normalize the given String, if the current Archive is compatible.
      * If it's not, return the given String, as is.
-     * @param string : string to normalized
-     * @returns normalized string, or same string if archive is not compatible
+     * @param {String} string String to normalized
+     * @returns {String} normalized string, or same string if archive is not compatible
      */
     LocalArchive.prototype.normalizeStringIfCompatibleArchive = function(string) {
         if (this._normalizedTitles === true) {
@@ -862,8 +894,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     
     /**
      * ErrorHandler for FileReader
-     * @param {type} evt
-     * @returns {undefined}
+     * @param {Event} evt
      */
     function errorHandler(evt) {
         switch (evt.target.error.code) {

@@ -23,6 +23,13 @@
 define(['archive', 'zimArchive', 'util', 'jquery'],
        function(evopediaArchive, zimArchive, util, jQuery) {
 
+
+    /**
+     * Create an archive (ZIM or Evopedia) from DeviceStorage location
+     * @param {DeviceStorage} storage
+     * @param {String} path
+     * @returns {ZIMArchive|LocalArchive}
+     */
     function loadArchiveFromDeviceStorage(storage, path) {
         if (util.endsWith(path, ".zim")) {
             return new zimArchive.ZIMArchive(storage, path);
@@ -33,6 +40,11 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
             return archive;
         }
     };
+    /**
+     * Create an archive (ZIM or Evopedia) from Files
+     * @param {Array.<File>} files
+     * @returns {ZIMArchive|LocalArchive}
+     */
     function loadArchiveFromFiles(files) {
         if (files.length >= 1 && util.endsWith(files[0].name, ".zim")) {
             return new zimArchive.ZIMArchive(files[0]);
@@ -43,11 +55,18 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
             return archive;
         }
     };
+    
+    /**
+     * @callback callbackPathList
+     * @param {Array.<String>} directoryList List of directories
+     */
+    
+    
     /**
      *  Scans the DeviceStorage for archives
      *
-     * @param storages List of DeviceStorage instances
-     * @param callbackFunction Function to call with the list of directories where archives are found
+     * @param {Array.<DeviceStorage>} storages List of DeviceStorage instances
+     * @param {callbackPathList} callbackFunction Function to call with the list of directories where archives are found
      */
     function scanForArchives(storages, callbackFunction) {
         var directories = [];
