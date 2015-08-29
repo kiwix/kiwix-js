@@ -156,7 +156,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     });
     $('#btnTop').on('click', function(e) {
         $("#articleContent").contents().scrollTop(0);
-        return false;
+        // We return true, so that the link to #top is still triggered (useful in the About section)
+        return true;
     });
     // Top menu :
     $('#btnHome').on('click', function(e) {
