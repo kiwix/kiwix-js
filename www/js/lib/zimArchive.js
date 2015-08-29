@@ -20,7 +20,8 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) {
+define(['zimfile', 'zimDirEntry', 'util', 'normalize_string'],
+    function(zimfile, zimDirEntry, util, normalize_string) {
     
     /**
      * ZIM Archive
@@ -107,9 +108,10 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
      */
     ZIMArchive.prototype.findTitlesWithPrefix = function(prefix, resultSize, callback) {
         var that = this;
+        prefix = normalize_string.normalizeString(prefix);
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                return prefix < dirEntry.title ? -1 : 1;
+                return prefix < normalize_string.normalizeString(dirEntry.title) ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
             //@todo do not add titles that do not have the right prefix
