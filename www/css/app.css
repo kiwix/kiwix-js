@@ -35,7 +35,7 @@
   text-shadow: 0px 1px 1px rgba(0,0,0,.4);
 }
 [role=region] > .view-content {
-  margin: 0 1rem 4rem 1rem;
+  margin: 0;
 }
 [role=region] > footer {
   background: rgba(0,0,0,.2);
@@ -64,4 +64,55 @@
     z-index: 10;
     top: 20px;
     height: 0px; 
+}
+
+.articleIFrame {
+    width: 100%;
+    border: 0;
+}
+
+.category-padding {
+   margin: 0 1rem 0 1rem;
+}
+
+/* Réduction de la taille des éléments en haut pour les petits écrans */
+@media (max-width: 768px) {
+    /* Pour réduire la taille du menu en haut */
+    .navbar {
+        min-height: 20px !important;
+        margin-bottom: 1px !important;
+    }
+    .navbar-brand {
+        padding-top: 2px !important;
+        padding-bottom: 1px !important;
+        height: 25px !important;
+    }
+    .navbar-toggle {
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
+        margin-top: 2px !important;
+        margin-bottom: 0px !important;
+    }
+    [role=region] > header {
+        margin-bottom: 0px !important;
+    }
+    /* Pour supprimer l'espace entre la zone de recherche et l'iframe */
+    .list-group {
+        margin-bottom: 0px !important;
+    }
+    /* Pour réduire la taille du champ de recherche */
+    .form-control {
+        height: 28px !important;
+        padding-bottom: 5px !important;
+    }
+    /* Pour réduire la taille des boutons en haut de l'écran */
+    .btn-xs, .btn-sm, .btn-default, .btn-group-xs > .btn, .btn-group-sm > .btn {
+        font-size: 10px !important;
+    }
+    /* Pour réduire la taille des boutons en bas de l'écran */
+    .btn-lg, .btn-group-lg > .btn {
+        padding-top: 1px !important;
+        padding-bottom: 1px !important;
+        font-size: 16px !important;
+    }    
 }

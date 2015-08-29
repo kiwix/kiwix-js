@@ -35,7 +35,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     jQuery.globalEval = function(code) {
         // jQuery believes the javascript has been executed, but we did nothing
         // In any case, that would have been blocked by CSP for package applications
-        console.log("jQuery tried to run some javascript with eval(), which is not allowed in packaged applications")
+        console.log("jQuery tried to run some javascript with eval(), which is not allowed in packaged applications");
     };
     
     // Maximum number of titles to display in a search
@@ -54,12 +54,27 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     
     var currentCoordinates = null;
     
+    /**
+     * Resize the IFrame height, so that it fills the whole available height in the window
+     */
+    function resizeIFrame() {
+        var height = $(window).outerHeight()
+                - $("#top").outerHeight(true)
+                - $("#titleListWithHeader").outerHeight(true)
+                // TODO : this 5 should be dynamically computed, and not hard-coded
+                - 5;
+        $(".articleIFrame").css("height", height + "px");
+    }
+    $(document).ready(resizeIFrame);
+    $(window).resize(resizeIFrame);
+    
     // Define behavior of HTML elements
     $('#searchTitles').on('click', function(e) {
         pushBrowserHistoryState(null, $('#prefix').val());
         searchTitlesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
@@ -139,6 +154,11 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#btnHome').click();
         return false;
     });
+    $('#btnTop').on('click', function(e) {
+        $("#articleContent").contents().scrollTop(0);
+        // We return true, so that the link to #top is still triggered (useful in the About section)
+        return true;
+    });
     // Top menu :
     $('#btnHome').on('click', function(e) {
         // Highlight the selected section in the navbar
@@ -164,8 +184,9 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
-        $("#articleContent").empty();
+        $("#articleContent").contents().empty();
         $('#searchingForTitles').hide();
         return false;
     });
@@ -187,9 +208,25 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
+        // Refresh the ServiceWorker status (in case it has been unregistered)
+        if (isServiceWorkerAvailable()) {
+            if (isServiceWorkerReady()) {
+                $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
+                $('#serviceWorkerStatus').css("color","green");
+            }
+            else {
+                $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
+                $('#serviceWorkerStatus').css("color","red");
+            }
+        }
+        else {
+            $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
+            $('#serviceWorkerStatus').css("color","red");
+        }
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -210,11 +247,72 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
+        $("#articleContent").hide();
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
         return false;
     });
+    
+    var serviceWorkerRegistration = null;
+    
+    /**
+     * Tells if the ServiceWorker API is available
+     * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
+     */
+    function isServiceWorkerAvailable() {
+        return ('serviceWorker' in navigator);
+    }
+    
+    /**
+     * Tells if the MessageChannel API is available
+     * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
+     */
+    function isMessageChannelAvailable() {
+        try{
+            var dummyMessageChannel = new MessageChannel();
+            if (dummyMessageChannel) return true;
+        }
+        catch (e){
+            return false;
+        }
+        return false;
+    }
+    
+    /**
+     * Tells if the ServiceWorker is registered, and ready to capture HTTP requests
+     * and inject content in articles.
+     */
+    function isServiceWorkerReady() {
+        return (serviceWorkerRegistration !== null);
+    }
+    
+    if (isServiceWorkerAvailable()) {
+        $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
+        navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
+            console.log('serviceWorker registered', reg);
+            serviceWorkerRegistration = reg;
+            $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
+            $('#serviceWorkerStatus').css("color","green");
+        }, function(err) {
+            console.error('error while registering serviceWorker', err);
+            $('#serviceWorkerStatus').html("ServiceWorker API available, but unable to register : " + err);
+            $('#serviceWorkerStatus').css("color","red");
+        });
+    }
+    else {
+        console.log("serviceWorker API not available");
+        $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
+        $('#serviceWorkerStatus').css("color","red");
+    }
+    if (isMessageChannelAvailable()) {
+        $('#messageChannelStatus').html("MessageChannel API available");
+        $('#messageChannelStatus').css("color","green");
+    }
+    else {
+        $('#messageChannelStatus').html("MessageChannel API unavailable");
+        $('#messageChannelStatus').css("color","red");
+    }
     
     // Detect if DeviceStorage is available
     var storages = [];
@@ -290,7 +388,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             $('#titleListHeaderMessage').hide();
             $('#suggestEnlargeMaxDistance').hide();
             $('#suggestReduceMaxDistance').hide();
-            $('#articleContent').empty();
+            $('#articleContent').contents().empty();
             
             if (titleName && !(""===titleName)) {
                 goToArticle(titleName);
@@ -373,11 +471,11 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         if (archiveDirectory && archiveDirectory.length > 0) {
             // Now, try to find which DeviceStorage has been selected by the user
             // It is the prefix of the archive directory
-            var storageNameRegex = /^\/([^\/]+)\//;
-            var regexResults = storageNameRegex.exec(archiveDirectory);
+            var regexpStorageName = /^\/([^\/]+)\//;
+            var regexpResults = regexpStorageName.exec(archiveDirectory);
             var selectedStorage = null;
-            if (regexResults && regexResults.length>0) {
-                var selectedStorageName = regexResults[1];
+            if (regexpResults && regexpResults.length>0) {
+                var selectedStorageName = regexpResults[1];
                 for (var i=0; i<storages.length; i++) {
                     var storage = storages[i];
                     if (selectedStorageName === storage.storageName) {
@@ -454,7 +552,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     function searchTitlesFromPrefix(prefix) {
         $('#searchingForTitles').show();
         $('#configuration').hide();
-        $('#articleContent').empty();
+        $('#articleContent').contents().empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             selectedArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
         } else {
@@ -591,7 +689,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             var title = selectedArchive.parseTitleId(titleId);
             $("#articleName").html(title.name());
             $("#readingArticle").show();
-            $("#articleContent").html("");
+            $("#articleContent").contents().html("");
             if (title.isRedirect()) {
                 selectedArchive.resolveRedirect(title, readArticle);
             }
@@ -616,6 +714,61 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             selectedArchive.readArticle(title, displayArticleInForm);
         }
     }
+    
+    if (isMessageChannelAvailable()) {
+        // Let's instanciate the messageChannel where the ServiceWorker can ask for contents
+        // NB : note that we use the var keyword here (and not let),
+        // so that the scope of the variable is the whole file
+        var messageChannel = new MessageChannel();
+        messageChannel.port1.onmessage = handleMessageChannelMessage;
+    }
+    
+    /**
+     * Function that handles a message of the messageChannel.
+     * It tries to read the content in the backend, and sends it back to the ServiceWorker
+     * @param event
+     */
+    function handleMessageChannelMessage(event) {
+        if (event.data.error) {
+            console.error("Error in MessageChannel", event.data.error);
+            reject(event.data.error);
+        } else {
+            console.log("the ServiceWorker sent a message on port1", event.data);
+            if (event.data.action === "askForContent") {
+                console.log("we are asked for a content : let's try to answer to this message");
+                var titleName = event.data.titleName;
+                var messagePort = event.ports[0];
+                selectedArchive.getTitleByName(titleName, function(title) {
+                    // TODO handle other content types
+                    // TODO a Promise would avoid duplicating the code here
+                    // Cf https://github.com/mossroy/evopedia-html5/issues/67
+                    if (title.isRedirect()) {
+                        selectedArchive.resolveRedirect(title, function(title) {
+                            selectedArchive.readArticle(title, function(readableTitleName, content) {
+                                messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
+                                console.log("content sent to ServiceWorker (after a redirect)");
+                            });
+                        });
+                    }
+                    else {
+                        selectedArchive.readArticle(title, function(readableTitleName, content) {
+                            messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
+                            console.log("content sent to ServiceWorker");
+                        });
+                    }
+                });
+            }
+            else {
+                console.error("Invalid message received", event.data);
+            }
+        }
+    };
+    
+    // Compile some regular expressions needed to modify links
+    var regexpOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
+    var regexpImageLink = /^.?\/?[^:]+:(.*)/;
+    var regexpMathImageUrl = /^\/math.*\/([0-9a-f]{32})\.png$/;
+    var regexpPath = /^(.*\/)[^\/]+$/;
 
     /**
      * Display the the given HTML article in the web page,
@@ -626,75 +779,111 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      */
     function displayArticleInForm(title, htmlArticle) {
         $("#readingArticle").hide();
-
-        // Display the article inside the web page.		
-        $('#articleContent').html(htmlArticle);
-
-        // Compile the regular expressions needed to modify links
-        var regexOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
-        var regexImageLink = /^.?\/?[^:]+:(.*)/;
+        $("#articleContent").show();
+        // Scroll the iframe to its top
+        $("#articleContent").contents().scrollTop(0);
         
-        // Convert links into javascript calls
-        $('#articleContent').find('a').each(function() {
-            // Store current link's url
-            var url = $(this).attr("href");
-            if (url === null || url === undefined) {
-                return;
-            }
-            var lowerCaseUrl = url.toLowerCase();
-            var cssClass = $(this).attr("class");
-
-            if (cssClass === "new") {
-                // It's a link to a missing article : display a message
-                $(this).on('click', function(e) {
-                    alert("Missing article in Wikipedia");
-                    return false;
-                });
-            }
-            else if (url.slice(0, 1) === "#") {
-                // It's an anchor link : do nothing
-            }
-            else if (url.substring(0, 4) === "http") {
-                // It's an external link : open in a new tab
-                $(this).attr("target", "_blank");
-            }
-            else if (url.match(regexOtherLanguage)) {
-                // It's a link to another language : change the URL to the online version of wikipedia
-                // The regular expression extracts $1 as the language, and $2 as the title name
-                var onlineWikipediaUrl = url.replace(regexOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
-                $(this).attr("href", onlineWikipediaUrl);
-                // Open in a new tab
-                $(this).attr("target", "_blank");
-            }
-            else if (url.match(regexImageLink)
-                && (util.endsWith(lowerCaseUrl, ".png")
-                    || util.endsWith(lowerCaseUrl, ".svg")
-                    || util.endsWith(lowerCaseUrl, ".jpg")
-                    || util.endsWith(lowerCaseUrl, ".jpeg"))) {
-                // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
-                var onlineWikipediaUrl = url.replace(regexImageLink, "https://"+selectedArchive.language+".wikipedia.org/wiki/File:$1");
-                $(this).attr("href", onlineWikipediaUrl);
-                $(this).attr("target", "_blank");
+        if (isServiceWorkerReady()) {
+            // TODO : We do not use Service Workers on Evopedia archives, for now
+            // Maybe it would be worth trying to enable them in the future?
+            if (selectedArchive.needsWikimediaCSS()) {
+                // Let's unregister the ServiceWorker
+                serviceWorkerRegistration.unregister().then(function() {serviceWorkerRegistration = null;});
             }
             else {
-                // It's a link to another article : add an onclick event to go to this article
-                // instead of following the link
-                if (url.length>=2 && url.substring(0, 2) === "./") {
-                    url = url.substring(2);
-                }
-                $(this).on('click', function(e) {
-                    var titleName = decodeURIComponent(url);
-                    pushBrowserHistoryState(titleName);
-                    goToArticle(titleName);
-                    return false;
-                });
+                // TODO : for testing : this initialization should be done earlier,
+                // as soon as the ServiceWorker is ready.
+                // This can probably been done by listening to state change :
+                // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker/onstatechange
+                console.log("try to post an init message to ServiceWorker");
+                console.log("messageChannel :", messageChannel);
+                navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
+                console.log("init message sent to ServiceWorker");
             }
-        });
+        }
+
+        // Apply Mediawiki CSS only when it's an Evopedia archive
+        if (selectedArchive.needsWikimediaCSS() === true) {
+            $('#articleContent').contents().find('head').empty();
+            var currentHref = $(location).attr('href');
+            var currentPath = regexpPath.exec(currentHref)[1];
+            $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
+        }
+        else {
+            // TODO temporary test to inject CSS inside the iframe
+            $('#articleContent').contents().find('head').empty();
+            $('#articleContent').contents().find('head').append("<link rel='stylesheet' href='data:text/css;charset=UTF-8," + encodeURIComponent("body {background: #E9E9E9;}") + "' />");
+        }
+        // Display the article inside the web page.
+        $('#articleContent').contents().find('body').html(htmlArticle);
+        
+        // If the ServiceWorker is not useable, we need to fallback to parse the DOM
+        // to inject math images, and replace some links with javascript calls
+        if (selectedArchive.needsWikimediaCSS() || !isServiceWorkerReady() || !isMessageChannelAvailable()) {
+
+            // Convert links into javascript calls
+            $('#articleContent').contents().find('body').find('a').each(function() {
+                // Store current link's url
+                var url = $(this).attr("href");
+                if (url === null || url === undefined) {
+                    return;
+                }
+                var lowerCaseUrl = url.toLowerCase();
+                var cssClass = $(this).attr("class");
+
+                if (cssClass === "new") {
+                    // It's a link to a missing article : display a message
+                    $(this).on('click', function(e) {
+                        alert("Missing article in Wikipedia");
+                        return false;
+                    });
+                }
+                else if (url.slice(0, 1) === "#") {
+                    // It's an anchor link : do nothing
+                }
+                else if (url.substring(0, 4) === "http") {
+                    // It's an external link : open in a new tab
+                    $(this).attr("target", "_blank");
+                }
+                else if (url.match(regexpOtherLanguage)) {
+                    // It's a link to another language : change the URL to the online version of wikipedia
+                    // The regular expression extracts $1 as the language, and $2 as the title name
+                    var onlineWikipediaUrl = url.replace(regexpOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
+                    $(this).attr("href", onlineWikipediaUrl);
+                    // Open in a new tab
+                    $(this).attr("target", "_blank");
+                }
+                else if (url.match(regexpImageLink)
+                    && (util.endsWith(lowerCaseUrl, ".png")
+                        || util.endsWith(lowerCaseUrl, ".svg")
+                        || util.endsWith(lowerCaseUrl, ".jpg")
+                        || util.endsWith(lowerCaseUrl, ".jpeg"))) {
+                    // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
+                    var onlineWikipediaUrl = url.replace(regexpImageLink, "https://"+selectedArchive.language+".wikipedia.org/wiki/File:$1");
+                    $(this).attr("href", onlineWikipediaUrl);
+                    $(this).attr("target", "_blank");
+                }
+                else {
+                    // It's a link to another article
+                    // Add an onclick event to go to this article
+                    // instead of following the link
+                    if (url.length>=2 && url.substring(0, 2) === "./") {
+                        url = url.substring(2);
+                    }
+                    $(this).on('click', function(e) {
+                        var titleName = decodeURIComponent(url);
+                        pushBrowserHistoryState(titleName);
+                        goToArticle(titleName);
+                        return false;
+                    });
+                }
+            });
+        }
 
         // Load math images
-        $('#articleContent').find('img').each(function() {
+        $('#articleContent').contents().find('body').find('img').each(function() {
             var image = $(this);
-            var m = image.attr("src").match(/^\/math.*\/([0-9a-f]{32})\.png$/);
+            var m = image.attr("src").match(regexpMathImageUrl);
             if (m) {
                 selectedArchive.loadMathImage(m[1], function(data) {
                     image.attr("src", 'data:image/png;base64,' + data);
@@ -757,7 +946,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             else {
                 $("#articleName").html(titleName);
                 $("#readingArticle").show();
-                $("#articleContent").html("");
+                $('#articleContent').contents().find('body').html("");
                 readArticle(title);
             }
         });
@@ -773,7 +962,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#titleListHeaderMessage').hide();
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
-        $('#articleContent').empty();
+        $('#articleContent').contents().find('body').empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             if (navigator.geolocation) {
                 var geo_options = {
@@ -869,7 +1058,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 $("#articleName").html(title.name());
                 pushBrowserHistoryState(title.name());
                 $("#readingArticle").show();
-                $("#articleContent").html("");
+                $('#articleContent').contents().find('body').html("");
                 readArticle(title);
             }
         });

@@ -39,8 +39,8 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
     StorageFirefoxOS.prototype.get = function(path) {
         var deferred = q.defer();
         var request = this._storage.get(path);
-        request.onsuccess = function() { deferred.resolve(this.result); }
-        request.onerror = function() { deferred.reject(this.error.name); }
+        request.onsuccess = function() { deferred.resolve(this.result); };
+        request.onerror = function() { deferred.reject(this.error.name); };
         return deferred.promise;
     };
     /**
@@ -113,8 +113,9 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
             fileEntry.file(onSuccess, onError);
         };
         var options = {create: false, exclusive: false};
-        if (path.substr(0, 7) == 'file://')
+        if (path.substr(0, 7) === 'file://') {
             path = path.substr(7);
+        }
         this._storage.root.getFile(path, options, onSuccessInt, onError);
         return deferred.promise;
     };
@@ -138,26 +139,27 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
                     stack.push(entry);
                 } else if (util.endsWith(entry.name, "titles.idx")) {
                     var path = dir.fullPath;
-                    if (path.length == 0 || path[path.length - 1] != '/')
+                    if (path.length == 0 || path[path.length - 1] !== '/') {
                         path += '/';
+                    }
                     directories.push(path);
                 } else if (util.endsWith(entry.name, ".zim")) {
                     directories.push(dir.fullPath + '/' + entry.name);
                 }
             }
             iteration();
-        }
+        };
         var dirReaderFail = function(error) {
             deferred.reject(that._errorCodeToString(error.code));
-        }
+        };
         var iteration = function() {
-            if (stack.length == 0) {
+            if (stack.length === 0) {
                 deferred.resolve(directories);
                 return;
             }
             var reader = stack[stack.length - 1].createReader();
             reader.readEntries(dirReaderSuccess, dirReaderFail);
-        }
+        };
         iteration();
         return deferred.promise;
     };

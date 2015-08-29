@@ -35,12 +35,14 @@ define(['q'], function(q) {
     /**
      * Read length bytes, offset into the decompressed stream. Consecutive calls may only
      * advance in the stream and may not overlap.
+     * @param {type} offset
+     * @param {type} length
      */
     Decompressor.prototype.readSlice = function(offset, length) {
         this._outBuffer = new Int8Array(new ArrayBuffer(length));
         this._outBufferPos = 0;
         return this._readLoop(offset, length);
-    }
+    };
     /**
      * Finish the decompressing and release resources.
      */

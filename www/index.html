@@ -33,11 +33,10 @@
         
         -->
 
-        <link rel="stylesheet" href="css/mediawiki-main.css">
-        <link rel="stylesheet" href="css/app.css">
+        <link rel="stylesheet" href="css/app.css"/>
         <!-- Bootstrap -->
-        <link href="css/bootstrap.css" rel="stylesheet" media="screen">
-        <link href="css/bootstrap-theme.css" rel="stylesheet" media="screen">
+        <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
+        <link href="css/bootstrap-theme.css" rel="stylesheet" media="screen"/>
     </head>
     <body role="application">
         <section id="search-article" role="region">
@@ -51,7 +50,7 @@
                       <span class="icon-bar"></span>
                       <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand">Evopedia 2.0-kiwix-SNAPSHOT</a>
+                    <a class="navbar-brand">Evopedia 2.0-kiwix-WIP</a>
                   </div>
 
                   <!-- Collect the nav links, forms, and other content for toggling -->
@@ -90,7 +89,7 @@
                 </div>
             </header>
             <article class="view-content">
-                <div id="about" style="display: none;">
+                <div id="about" style="display: none;" class="category-padding">
                     <h2>
                     <img src="img/icons/evopedia-60.png" alt="Evopedia icon"/>
                     Evopedia : offline wikipedia viewer
@@ -193,7 +192,7 @@
 
                 </div>
                 
-                <div id="configuration" style="display: none;">
+                <div id="configuration" style="display: none;" class="category-padding">
                     <h2>Configuration</h2>
                     This application needs an archive of wikipedia to work. If you did not download one yet, please see the About section
                     <div id="openLocalFiles" style="display: none;">
@@ -208,17 +207,19 @@
                         <br /> Please select the archive you want to use : <select id="archiveList" class="form-control"></select>
                         <br /> Click <a id="btnRescanDeviceStorage">here</a> to rescan your SD Cards and internal memory
                     </div>
+                    <div id="serviceWorkerStatus"></div>
+                    <div id="messageChannelStatus"></div>
                     <br />
                 </div>
                 
-                <div id="welcomeText" class="container">
+                <div id="welcomeText" class="container" class="category-padding">
                     You can search the content of your Wikipedia archive by typing in the above search field.
                     <br />It will propose articles starting with what you typed
                     <br />Or you can search for articles located around you (geolocation needed on your device)
                 </div>
                 
                 <!-- List of articles matching the typed prefix -->
-                <div class="container">
+                <div id="titleListWithHeader" class="container">
                     <span id="titleListHeaderMessage"></span>
                     <span id="suggestEnlargeMaxDistance" style="display: none;">
                         &nbsp;You can <a id="btnEnlargeMaxDistance">look more far away</a>
@@ -234,8 +235,7 @@
                 </div>
                 <div id="geolocationProgress" style="display: none;" class="container">
                 </div>
-                <div id="articleContent">&nbsp;</div>
-                <br />
+                <iframe id="articleContent" src="A/dummyArticle.html" class="articleIFrame">&nbsp;</iframe>
             </article>
             <footer>
                 <div id="navigationButtons" class="btn-toolbar">

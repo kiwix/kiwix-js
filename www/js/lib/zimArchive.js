@@ -24,6 +24,8 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
     /**
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
+     * @param {type} storage
+     * @param {type} path
      */
     function ZIMArchive(storage, path) {
         var that = this;
@@ -48,6 +50,10 @@ define(['zimfile', 'zimDirEntry', 'util'], function(zimfile, zimDirEntry, util) 
 
     ZIMArchive.prototype.isReady = function() {
         return this._file !== null;
+    };
+    
+    ZIMArchive.prototype.needsWikimediaCSS = function() {
+        return false;
     };
 
     ZIMArchive.prototype.hasCoordinates = function() {

@@ -56,7 +56,11 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     };
 
     LocalArchive.prototype.isReady = function() {
-        return this._titleFile !== null && this._dataFiles && this._dataFiles.length > 0
+        return this._titleFile !== null && this._dataFiles && this._dataFiles.length > 0;
+    };
+    
+    LocalArchive.prototype.needsWikimediaCSS = function() {
+        return true;
     };
 
     LocalArchive.prototype.hasCoordinates = function() {
@@ -246,7 +250,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     
     /**
      * Initialize the localArchive from given directory, using DeviceStorage
-     * @param {type} DeviceStorage the directory resides in
+     * @param {type} storage the directory resides in
      * @param {type} archiveDirectory
      */
     LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory) {
@@ -415,7 +419,8 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             // Check if the fileName ends with the expected file name (in case
             // of DeviceStorage usage, the fileName is prefixed by the
             // directory)
-            if (fileName.match(expectedFileName + "$") == expectedFileName) {
+            var regexpEndsWithExpectedFileName = new RegExp(expectedFileName + "$");
+            if (regexpEndsWithExpectedFileName.test(fileName)) {
                 dataFile = this._dataFiles[i];
             }
         }
