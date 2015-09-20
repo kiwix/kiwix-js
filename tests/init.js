@@ -24,7 +24,7 @@
 require.config({
     baseUrl: 'www/js/lib',
     paths: {
-        'jquery': 'jquery-2.1.3',
+        'jquery': 'jquery-2.1.4',
         'title': 'title',
         'archive': 'archive'
     }
