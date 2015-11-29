@@ -110,6 +110,8 @@ define(['zimfile', 'zimDirEntry', 'util'],
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
+                if (dirEntry.title == "")
+                    return -1; // ZIM sorts empty titles (assets) to the end
                 return prefix < dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
