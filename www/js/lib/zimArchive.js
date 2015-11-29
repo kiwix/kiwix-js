@@ -115,13 +115,13 @@ define(['zimfile', 'zimDirEntry', 'util'],
                 return prefix < dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
-            //@todo do not add titles that do not have the right prefix
             var titles = [];
             var addTitles = function(index) {
                 if (index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return titles;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
-                    titles.push(that._dirEntryToTitleObject(dirEntry));
+                    if (dirEntry.title.slice(0, prefix.length) == prefix)
+                        titles.push(that._dirEntryToTitleObject(dirEntry));
                     return addTitles(index + 1);
                 });
             };
