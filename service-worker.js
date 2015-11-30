@@ -90,7 +90,7 @@ function(util) {
 
     self.addEventListener('fetch', function(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
-
+        
         // TODO handle the dummy article more properly
         if (regexpContentUrl.test(event.request.url) && !regexpDummyArticle.test(event.request.url)) {
         
@@ -120,9 +120,18 @@ function(util) {
                     console.log("It's a layout dependency : " + titleName);
                     if (regexpJS.test(titleName)) {
                         // TODO : Firefox nightly does not like when it does not receive the javascript content
-                        // So, until we properly read it from the backend, we need to reject the HTTP request
-                        console.log(titleName + " is a javascript content : we reject it for now, to avoid disturbing Firefox");
-                        reject("No javascript content for now");
+                        // So, until we properly read it from the backend, we need to send an empty content to the HTTP request
+                        console.log(titleName + " is a javascript content : we send an empty content for now, to avoid disturbing Firefox");
+                        var responseInit = {
+                            status: 200,
+                            statusText: 'OK',
+                            headers: {
+                                'Content-Type': 'text/javascript'
+                            }
+                        };
+                        var httpResponse = new Response(';', responseInit);
+                        resolve(httpResponse);
+                        return;
                     }
                 }
 
