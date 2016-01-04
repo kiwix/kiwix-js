@@ -21,14 +21,80 @@
  */
 define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geometry'],
  function($, evopediaTitle, evopediaArchive, zimArchive, zimDirEntry, util, geometry) {
+    
+    var localEvopediaArchive;
+    var localZimArchive;
 
-    // Due to security restrictions in the browsers,
-    // we can not read directly the files and run the unit tests
-    // The user has to select them manually, then launch the tests
-    $('#runTests').on('click', function(e) {
-        runTests();
+    
+    /**
+     * Make an HTTP request for a Blob and return a Promise
+     * 
+     * @param {String} url URL to download from
+     * @param {String} name Name to give to the Blob instance
+     * @returns {Promise}
+     */
+    function makeBlobRequest(url, name) {
+        return new Promise(function (resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.onload = function () {
+                if (this.status >= 200 && this.status < 300) {
+                    var blob = new Blob([xhr.response], {type: 'application/octet-stream'});
+                    blob.name = name;
+                    resolve(blob);
+                } else {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                }
+            };
+            xhr.onerror = function () {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            };
+            xhr.responseType = 'blob';
+            xhr.send();
+        });
+    }
+    
+    // Let's try to download the Evopedia and ZIM files
+    var evopediaArchiveFiles = new Array();
+    var zimArchiveFiles = new Array();
+    
+    var blob1 = makeBlobRequest('tests/wikipedia_small_2010-08-14/wikipedia_00.dat', 'wikipedia_00.dat');
+    var blob2 = makeBlobRequest('tests/wikipedia_small_2010-08-14/titles.idx', 'titles.idx');
+    var blob3 = makeBlobRequest('tests/wikipedia_small_2010-08-14/metadata.txt', 'metadata.txt');
+    var blob4 = makeBlobRequest('tests/wikipedia_small_2010-08-14/math.idx', 'math.idx');
+    var blob5 = makeBlobRequest('tests/wikipedia_small_2010-08-14/math.dat', 'math.dat');
+    var blob6 = makeBlobRequest('tests/wikipedia_small_2010-08-14/coordinates_01.idx', 'coordinates_01.idx');
+    var blob7 = makeBlobRequest('tests/wikipedia_small_2010-08-14/coordinates_02.idx', 'coordinates_02.idx');
+    var blob8 = makeBlobRequest('tests/wikipedia_small_2010-08-14/coordinates_03.idx', 'coordinates_03.idx');
+    var blob9 = makeBlobRequest('tests/wikipedia_en_ray_charles_2015-06.zim', 'wikipedia_en_ray_charles_2015-06.zim');
+    Promise.all([blob1, blob2, blob3, blob4, blob5, blob6, blob7, blob8, blob9])
+        .then(function(values) {
+            evopediaArchiveFiles.push(values[0]);
+            evopediaArchiveFiles.push(values[1]);
+            evopediaArchiveFiles.push(values[2]);
+            evopediaArchiveFiles.push(values[3]);
+            evopediaArchiveFiles.push(values[4]);
+            evopediaArchiveFiles.push(values[5]);
+            evopediaArchiveFiles.push(values[6]);
+            evopediaArchiveFiles.push(values[7]);
+            zimArchiveFiles.push(values[8]);
+    }).then(function() {
+        // Create a localEvopediaArchive and a localZimArchive from selected files, in order to run the following tests
+        localEvopediaArchive = new evopediaArchive.LocalArchive();
+        localEvopediaArchive.initializeFromArchiveFiles(evopediaArchiveFiles, function(archive) {
+            var zimFile = zimArchiveFiles[0];
+            localZimArchive = new zimArchive.ZIMArchive(zimFile, null, function (zimArchive) {
+                runTests();
+            });
+        });
     });
-
+ 
     var runTests = function() {
 
         module("environment");
@@ -36,19 +102,11 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             equal("test", "test", "QUnit is properly configured");
         });
 
-        test("check archive files are selected", function() {
-            var evopediaArchiveFiles = document.getElementById('evopediaArchiveFiles').files;
+        test("check archive files are read", function() {
             ok(evopediaArchiveFiles && evopediaArchiveFiles[0] && evopediaArchiveFiles[0].size > 0, "First archive file set and not empty");
-            ok(evopediaArchiveFiles.length >= 5, "At least 5 files are selected");
-            var zimArchiveFiles = document.getElementById('zimArchiveFiles').files;
-            ok(zimArchiveFiles && zimArchiveFiles[0] && zimArchiveFiles[0].size > 0, "ZIM file set and not empty");
+            ok(evopediaArchiveFiles.length >= 5, "At least 5 files are read");
+            ok(zimArchiveFiles && zimArchiveFiles[0] && zimArchiveFiles[0].size > 0, "ZIM file read and not empty");
         });
-
-        // Create a localEvopediaArchive and a localZimArchive from selected files, in order to run the following tests
-        var localEvopediaArchive = new evopediaArchive.LocalArchive();
-        localEvopediaArchive.initializeFromArchiveFiles(document.getElementById('evopediaArchiveFiles').files);
-        var zimFile = document.getElementById('zimArchiveFiles').files[0];
-        var localZimArchive = new zimArchive.ZIMArchive(zimFile);
 
         module("evopedia_title_search_and_read");
         asyncTest("check getTitlesStartingAtOffset 0", function() {
@@ -448,7 +506,6 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
         asyncTest("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function() {
             expect(6);
             localZimArchive.getTitleByName("(The_Night_Time_Is)_The_Right_Time.html", function(title) {
-                console.log(title);
                 ok(title !== null, "Title found");
                 ok(title.isRedirect(), "Title is a redirect.");
                 equal(title.name(), "(The Night Time Is) The Right Time", "Correct redirect title name.");

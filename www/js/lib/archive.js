@@ -184,11 +184,17 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     };
     
     /**
+     * @callback callbackLocalArchive
+     * @param {LocalArchive} localArchive Ready-to-use LocalArchive instance
+     */
+    
+    /**
      * Read the metadata file, in order to populate its values in the current
      * instance
      * @param {File} file metadata.txt file
+     * @param {callbackLocalArchive} callback Callback called when the metadata file is read
      */
-    LocalArchive.prototype.readMetadataFile = function(file) {
+    LocalArchive.prototype.readMetadataFile = function(file, callback) {
         var currentLocalArchiveInstance = this;
         var reader = new FileReader();
         reader.onload = function(e) {
@@ -208,6 +214,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             else {
                 currentLocalArchiveInstance._normalizedTitles = true;
             }
+            callback(currentLocalArchiveInstance);
         };
         reader.readAsText(file);
     };
@@ -215,8 +222,9 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     /**
      * Initialize the localArchive from given archive files
      * @param {type} archiveFiles
+     * @param {callbackLocalArchive} callback Callback called when the LocalArchive is initialized
      */
-    LocalArchive.prototype.initializeFromArchiveFiles = function(archiveFiles) {
+    LocalArchive.prototype.initializeFromArchiveFiles = function(archiveFiles, callback) {
         var dataFileRegex = /^wikipedia_(\d\d).dat$/;
         var coordinateFileRegex = /^coordinates_(\d\d).idx$/;
         this._dataFiles = new Array();
@@ -225,7 +233,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             var file = archiveFiles[i];
             if (file) {
                 if (file.name === "metadata.txt") {
-                    this.readMetadataFile(file);
+                    this.readMetadataFile(file, callback);
                 }
                 else if (file.name === "titles.idx") {
                     this._titleFile = file;

@@ -32,28 +32,37 @@ define(['zimfile', 'zimDirEntry', 'util'],
      * @property {String} _language Language of the content
      */
     
+    /**
+     * @callback callbackZIMArchive
+     * @param {ZIMArchive} zimArchive Ready-to-use ZIMArchive
+     */
+    
     
     /**
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
      * 
-     * @param {StorageFirefoxOS|StoragePhoneGap|File} storage Storage (in this case, the path must be given) or File (path must be omitted)
+     * @param {StorageFirefoxOS|StoragePhoneGap|Blob} storage Storage (in this case, the path must be given) or File (path must be omitted)
      * @param {String} path
+     * @param {callbackZIMArchive} callbackReady
      */
-    function ZIMArchive(storage, path) {
+    function ZIMArchive(storage, path, callbackReady) {
         var that = this;
         that._file = null;
         that._language = ""; //@TODO
-        if (storage && storage instanceof File && !path) {
-            // The constructor has been called with a single File parameter
+        if (storage && storage instanceof Blob && !path) {
+            // The constructor has been called with a single File/Blob parameter
             zimfile.fromFile(storage).then(function(file) {
                 that._file = file;
+                callbackReady(that);
             });
         }
         else {
+            console.log(storage);
             storage.get(path).then(function(file) {
                 return zimfile.fromFile(file).then(function(file) {
                     that._file = file;
+                    callbackReady(that);
                 });
             }, function(error) {
                 alert("Error reading ZIM file " + path + ": " + error);
