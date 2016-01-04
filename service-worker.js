@@ -52,6 +52,19 @@ function b64toBlob(b64Data, contentType, sliceSize) {
     return blob;
 }
 
+self.addEventListener('install', function(event) {
+    event.waitUntil(self.skipWaiting());
+    console.log("ServiceWorker installed");
+});
+
+self.addEventListener('activate', function(event) {
+    // "Claiming" the ServiceWorker is necessary to make it work right away,
+    // without the need to reload the page.
+    // See https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim
+    event.waitUntil(self.clients.claim());
+    console.log("ServiceWorker activated");
+});
+
 require({
     baseUrl: "./www/js/lib/"
 },
@@ -62,14 +75,6 @@ function(util) {
     console.log("ServiceWorker startup");
     
     var outgoingMessagePort = null;
-
-    self.addEventListener('install', function(event) {
-        console.log("ServiceWorker installed");
-    });
-
-    self.addEventListener('activate', function(event) {
-        console.log("ServiceWorker activated");
-    });
     
     self.addEventListener('message', function (event) {
         if (event.data.action === 'init') {
