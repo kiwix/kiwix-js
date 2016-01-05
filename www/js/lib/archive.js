@@ -335,22 +335,16 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
     };
     
     /**
-     * @callback callbackTitle
-     * @param {Title} title Title found
-     */
-
-    /**
      * Look for a title by its name, and call the callbackFunction with this Title
      * If the title is not found, the callbackFunction is called with parameter null
      * @param {String} titleName
-     * @param {callbackTitle} callbackFunction
      */
-    LocalArchive.prototype.getTitleByName = function(titleName, callbackFunction) {
+    LocalArchive.prototype.getTitleByName = function(titleName) {
         var that = this;
         var normalize = this.getNormalizeFunction();
         var normalizedTitleName = normalize(titleName);
 
-        titleIterators.findPrefixOffset(this._titleFile, titleName, normalize).then(function(offset) {
+        return titleIterators.findPrefixOffset(this._titleFile, titleName, normalize).then(function(offset) {
             var iterator = new titleIterators.SequentialTitleIterator(that, offset);
             function check(title) {
                 if (title === null || normalize(title._name) !== normalizedTitleName) {
@@ -362,7 +356,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
                 }
             }
             return iterator.advance().then(check);
-        }).then(callbackFunction, errorHandler);
+        });
     };
 
     /**

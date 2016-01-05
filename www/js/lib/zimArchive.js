@@ -20,8 +20,8 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimfile', 'zimDirEntry', 'util'],
-    function(zimfile, zimDirEntry, util) {
+define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
+    function(zimfile, zimDirEntry, util, utf8) {
     
     /**
      * ZIM Archive
@@ -177,6 +177,22 @@ define(['zimfile', 'zimDirEntry', 'util'],
      */
     ZIMArchive.prototype.readArticle = function(title, callback) {
         return title.readData().then(function(data) {
+            callback(title.name(), utf8.parse(data));
+        });
+    };
+
+    /**
+     * @callback callbackBinaryContent
+     * @param {Uint8Array} content binary content
+     */
+
+    /**
+     * Read a binary file.
+     * @param {DirEntry} title
+     * @param {callbackBinaryContent} callback
+     */
+    ZIMArchive.prototype.readBinaryFile = function(title, callback) {
+        return title.readData().then(function(data) {
             callback(title.name(), data);
         });
     };
@@ -184,11 +200,10 @@ define(['zimfile', 'zimDirEntry', 'util'],
     /**
      * 
      * @param {String} titleName
-     * @param {callbackTitle} callback
      */
-    ZIMArchive.prototype.getTitleByName = function(titleName, callback) {
+    ZIMArchive.prototype.getTitleByName = function(titleName) {
         var that = this;
-        util.binarySearch(0, this._file.articleCount, function(i) {
+        return util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 if (titleName < dirEntry.url)
                     return -1;
@@ -200,7 +215,7 @@ define(['zimfile', 'zimDirEntry', 'util'],
         }).then(function(index) {
             return that._file.dirEntryByUrlIndex(index);
         }).then(function(dirEntry) {
-            callback(that._dirEntryToTitleObject(dirEntry));
+            return that._dirEntryToTitleObject(dirEntry);
         });
     };
 

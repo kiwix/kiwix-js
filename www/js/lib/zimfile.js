@@ -159,17 +159,26 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
-            //@todo we assume it is compressed - handle uncompressed (first byte at clusterOffset)
-            var reader = function(offset, size) {
-                return that._readSlice(clusterOffset + 1 + offset, size);
-            };
-            var dec = new xz.Decompressor(reader);
-            return dec.readSlice(blob * 4, 8).then(function(data) {
-                var blobOffset = readInt(data, 0, 4);
-                var nextBlobOffset = readInt(data, 4, 4);
-                return dec.readSlice(blobOffset, nextBlobOffset - blobOffset).then(function(data) {
-                    dec.end();
-                    return utf8.parse(data);
+            return that._readSlice(clusterOffset, 1).then(function(compressionType) {
+                var decompressor;
+                var plainBlobReader = function(offset, size) {
+                    return that._readSlice(clusterOffset + 1 + offset, size);
+                };
+                if (compressionType[0] === 0 || compressionType[0] === 1) {
+                    // uncompressed
+                    decompressor = { readSlice: plainBlobReader, end: function() {} };
+                } else if (compressionType[0] === 4) {
+                    decompressor = new xz.Decompressor(plainBlobReader);
+                } else {
+                    return new Uint8Array(); // unsupported compression type
+                }
+                return decompressor.readSlice(blob * 4, 8).then(function(data) {
+                    var blobOffset = readInt(data, 0, 4);
+                    var nextBlobOffset = readInt(data, 4, 4);
+                    return decompressor.readSlice(blobOffset, nextBlobOffset - blobOffset).then(function(data) {
+                        decompressor.end();
+                        return data;
+                    });
                 });
             });
         });
