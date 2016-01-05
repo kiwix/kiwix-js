@@ -214,7 +214,9 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             else {
                 currentLocalArchiveInstance._normalizedTitles = true;
             }
-            callback(currentLocalArchiveInstance);
+            if (callback) {
+                callback(currentLocalArchiveInstance);
+            }
         };
         reader.readAsText(file);
     };
