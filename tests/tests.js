@@ -517,5 +517,22 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 });
             });
         });
+        asyncTest("Image 'I/m/RayCharles_AManAndHisSoul.jpg' can be loaded", function() {
+            expect(6);
+            localZimArchive.getTitleByName("(The_Night_Time_Is)_The_Right_Time.html", function(title) {
+                console.log(title);
+                ok(title !== null, "Title found");
+                ok(title.isRedirect(), "Title is a redirect.");
+                localZimArchive.resolveRedirect(title, function(title) {
+                    ok(title !== null, "Title found");
+                    ok(!title.isRedirect(), "Title is not a redirect.");
+                    localZimArchive.readBinaryFile(title, function(title, data) {
+                        ok(data.length === 58666, "Data length is correct.");
+                        ok(data[361] === 121, "Data is correct at some point.");
+                        start();
+                    });
+                });
+            });
+        });
     };
 });

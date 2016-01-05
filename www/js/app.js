@@ -768,24 +768,23 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 console.log("we are asked for a content : let's try to answer to this message");
                 var titleName = event.data.titleName;
                 var messagePort = event.ports[0];
-                selectedArchive.getTitleByName(titleName, function(title) {
-                    // TODO handle other content types
-                    // TODO a Promise would avoid duplicating the code here
-                    // Cf https://github.com/mossroy/evopedia-html5/issues/67
+                var readFile = function(title) {
+                    console.log("Found title.");
                     if (title.isRedirect()) {
-                        selectedArchive.resolveRedirect(title, function(title) {
-                            selectedArchive.readArticle(title, function(readableTitleName, content) {
-                                messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
-                                console.log("content sent to ServiceWorker (after a redirect)");
-                            });
-                        });
-                    }
-                    else {
-                        selectedArchive.readArticle(title, function(readableTitleName, content) {
+                        console.log("Following redirect...");
+                        selectedArchive.resolveRedirect(title, readFile);
+                    } else {
+                        console.log("Reading binary file...");
+                        selectedArchive.readBinaryFile(title, function(readableTitleName, content) {
                             messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
-                            console.log("content sent to ServiceWorker");
+                            console.log("content sent to ServiceWorker)");
                         });
                     }
+                }
+                console.log("Fetching tile " + titleName);
+                selectedArchive.getTitleByName(titleName).then(readFile).fail(function() {
+                    console.log("could not find title:" + arguments);
+                    messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});
                 });
             }
             else {
@@ -966,7 +965,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * @param {String} titleName
      */
     function goToArticle(titleName) {
-        selectedArchive.getTitleByName(titleName, function(title) {
+        selectedArchive.getTitleByName(titleName).then(function(title) {
             if (title === null || title === undefined) {
                 $("#readingArticle").hide();
                 alert("Article with title " + titleName + " not found in the archive");
@@ -977,7 +976,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 $('#articleContent').contents().find('body').html("");
                 readArticle(title);
             }
-        });
+        }).fail(function() { alert("Error reading title " + titleName); });
     }
        
     /**
