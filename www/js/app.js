@@ -375,7 +375,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * @returns {Boolean} true if they're compatible
      */
     function checkSelectedArchiveCompatibilityWithInjectionMode() {
-        if (selectedArchive.needsWikimediaCSS() && contentInjectionMode === 'serviceworker') {
+        if (selectedArchive && selectedArchive.needsWikimediaCSS() && contentInjectionMode === 'serviceworker') {
             alert('You seem to want to use ServiceWorker mode for an Evopedia archive : this is not supported. Please use the JQuery mode or use a ZIM file');
             $("#btnConfigure").click();
             return false;
@@ -881,6 +881,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     var regexpImageLink = /^.?\/?[^:]+:(.*)/;
     var regexpMathImageUrl = /^\/math.*\/([0-9a-f]{32})\.png$/;
     var regexpPath = /^(.*\/)[^\/]+$/;
+    var regexpImageUrl = /^\.\.\/I\/(.*)$/;
+    var regexpMetadataUrl = /^\.\.\/-\/(.*)$/;
 
     /**
      * Display the the given HTML article in the web page,
@@ -969,13 +971,60 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             });
         }
 
-        // Load math images
+        // Load images
         $('#articleContent').contents().find('body').find('img').each(function() {
             var image = $(this);
             var m = image.attr("src").match(regexpMathImageUrl);
             if (m) {
+                // It's a math image (Evopedia archive)
                 selectedArchive.loadMathImage(m[1], function(data) {
                     image.attr("src", 'data:image/png;base64,' + data);
+                });
+            } else {
+                // It's a standard image contained in the ZIM file
+                var imageMatch = image.attr("src").match(regexpImageUrl);
+                if (imageMatch) {
+                    selectedArchive.getTitleByName(imageMatch[1]).then(function(title) {
+                        selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                            // TODO : add the complete MIME-type of the image (as read from the ZIM file)
+                            image.attr("src", 'data:image;base64,' + util.uint8ArrayToBase64(content));
+                        });
+                    }).fail(function () {
+                        console.error("could not find title for image:" + imageMatch[1]);
+                    });
+                }
+            }
+        });
+        
+        // Load CSS content
+        $('#articleContent').contents().find('body').find('link[rel=stylesheet]').each(function() {
+            var link = $(this);
+            var hrefMatch = link.attr("href").match(regexpMetadataUrl);
+            if (hrefMatch) {
+                // It's a CSS file contained in the ZIM file
+                selectedArchive.getTitleByName(hrefMatch[1]).then(function(title) {
+                    selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                        link.attr("href", 'data:text/css;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
+                    });
+                }).fail(function () {
+                    console.error("could not find title for CSS : " + hrefMatch[1]);
+                });
+            }
+        });
+        
+        // Load Javascript content
+        $('#articleContent').contents().find('body').find('script').each(function() {
+            var script = $(this);
+            var srcMatch = script.attr("src").match(regexpMetadataUrl);
+            // TODO check that the type of the script is text/javascript or application/javascript
+            if (srcMatch) {
+                // It's a Javascript file contained in the ZIM file
+                selectedArchive.getTitleByName(srcMatch[1]).then(function(title) {
+                    selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                        script.attr("src", 'data:text/javascript;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
+                    });
+                }).fail(function () {
+                    console.error("could not find title for javascript : " + srcMatch[1]);
                 });
             }
         });
