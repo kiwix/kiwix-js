@@ -81,6 +81,15 @@ function(util, utf8) {
             console.log('Init message received', event.data);
             outgoingMessagePort = event.ports[0];
             console.log('outgoingMessagePort initialized', outgoingMessagePort);
+            self.addEventListener('fetch', fetchEventListener);
+            console.log('fetchEventListener enabled');
+        }
+        if (event.data.action === 'disable') {
+            console.log('Disable message received');
+            outgoingMessagePort = null;
+            console.log('outgoingMessagePort deleted');
+            self.removeEventListener('fetch', fetchEventListener);
+            console.log('fetchEventListener removed');
         }
     });
     
@@ -93,13 +102,13 @@ function(util, utf8) {
 
     var regexpContentUrl = new RegExp(/\/(.)\/(.*[^\/]+)$/);
     var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
-
-    self.addEventListener('fetch', function(event) {
+    
+    function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
-        
+
         // TODO handle the dummy article more properly
         if (regexpContentUrl.test(event.request.url) && !regexpDummyArticle.test(event.request.url)) {
-        
+
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
                 var regexpResult = regexpContentUrl.exec(event.request.url);
@@ -163,6 +172,5 @@ function(util, utf8) {
         }
         // If event.respondWith() isn't called because this wasn't a request that we want to handle,
         // then the default request/response behavior will automatically be used.
-    });
-
+    }
 });

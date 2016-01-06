@@ -227,24 +227,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
-        // Refresh the ServiceWorker status (in case it has been unregistered)
-        if (isServiceWorkerAvailable()) {
-            if (isServiceWorkerReady()) {
-                $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
-                $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
-                        .addClass("apiAvailable");
-            }
-            else {
-                $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
-                $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
-                        .addClass("apiUnavailable");
-            }
-        }
-        else {
-            $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
-            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
-                    .addClass("apiUnavailable");
-        }
+        refreshAPIStatus();
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -271,6 +254,140 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#searchingForTitles').hide();
         return false;
     });
+    $('input:radio[name=contentInjectionMode]').on('change', function(e) {
+        // Do the necessary to enable or disable the Service Worker
+        setContentInjectionMode(this.value);
+        checkSelectedArchiveCompatibilityWithInjectionMode();
+    });
+    
+    /**
+     * Displays of refreshes the API status shown to the user
+     */
+    function refreshAPIStatus() {
+        if (isMessageChannelAvailable()) {
+            $('#messageChannelStatus').html("MessageChannel API available");
+            $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiAvailable");
+        } else {
+            $('#messageChannelStatus').html("MessageChannel API unavailable");
+            $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiUnavailable");
+        }
+        if (isServiceWorkerAvailable()) {
+            if (isServiceWorkerReady()) {
+                $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
+                $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                        .addClass("apiAvailable");
+            } else {
+                $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
+                $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                        .addClass("apiUnavailable");
+            }
+        } else {
+            $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
+            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiUnavailable");
+        }
+    }
+    
+    var contentInjectionMode;
+    
+    /**
+     * Sets the given injection mode.
+     * This involves registering (or re-enabling) the Service Worker if necessary
+     * It also refreshes the API status for the user afterwards.
+     * 
+     * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
+     */
+    function setContentInjectionMode(value) {
+        if (value === 'jquery') {
+            if (isServiceWorkerReady()) {
+                // We need to disable the ServiceWorker
+                // Unregistering it does not seem to work as expected : the ServiceWorker
+                // is indeed unregistered but still active...
+                // So we have to disable it manually (even if it's still registered and active)
+                navigator.serviceWorker.controller.postMessage({'action': 'disable'});
+                messageChannel = null;
+            }
+            refreshAPIStatus();
+        } else if (value === 'serviceworker') {
+            if (!isServiceWorkerAvailable()) {
+                alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
+                setContentInjectionMode('jquery');
+                return;
+            }
+            if (!isMessageChannelAvailable()) {
+                alert("The MessageChannel API is not available on your device. Falling back to JQuery mode");
+                setContentInjectionMode('jquery');
+                return;
+            }
+            
+            if (!messageChannel) {
+                // Let's create the messageChannel for the 2-way communication
+                // with the Service Worker
+                messageChannel = new MessageChannel();
+                messageChannel.port1.onmessage = handleMessageChannelMessage;
+            }
+                    
+            if (!isServiceWorkerReady()) {
+                $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
+                navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
+                    console.log('serviceWorker registered', reg);
+                    serviceWorkerRegistration = reg;
+                    refreshAPIStatus();
+                    
+                    // We need to wait for the ServiceWorker to be activated
+                    // before sending the first init message
+                    var serviceWorker;
+                    if (reg.installing) {
+                        serviceWorker = reg.installing;
+                    } else if (reg.waiting) {
+                        serviceWorker = reg.waiting;
+                    } else if (reg.active) {
+                        serviceWorker = reg.active;
+                    }
+                    serviceWorker.addEventListener('statechange', function(statechangeevent) {
+                        if (statechangeevent.target.state === 'activated') {
+                            console.log("try to post an init message to ServiceWorker");
+                            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
+                            console.log("init message sent to ServiceWorker");
+                        }
+                    });
+                }, function (err) {
+                    console.error('error while registering serviceWorker', err);
+                    refreshAPIStatus();
+                });
+            } else {
+                console.log("try to re-post an init message to ServiceWorker, to re-enable it in case it was disabled");
+                navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
+                console.log("init message sent to ServiceWorker");
+            }
+        }
+        $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').attr('checked', true);
+        contentInjectionMode = value;
+        // Save the value in a cookie, so that to be able to keep it after a reload/restart
+        cookies.setItem('lastContentInjectionMode', value, Infinity);
+    }
+    
+    /**
+     * Checks if the archive selected by the user is compatible
+     * with the injection mode, and warn the user if it's not
+     * @returns {Boolean} true if they're compatible
+     */
+    function checkSelectedArchiveCompatibilityWithInjectionMode() {
+        if (selectedArchive.needsWikimediaCSS() && contentInjectionMode === 'serviceworker') {
+            alert('You seem to want to use ServiceWorker mode for an Evopedia archive : this is not supported. Please use the JQuery mode or use a ZIM file');
+            $("#btnConfigure").click();
+            return false;
+        }
+        return true;
+    }
+    
+    // At launch, we try to set the last content injection mode (stored in a cookie)
+    var lastContentInjectionMode = cookies.getItem('lastContentInjectionMode');
+    if (lastContentInjectionMode) {
+        setContentInjectionMode(lastContentInjectionMode);
+    }
     
     var serviceWorkerRegistration = null;
     
@@ -305,42 +422,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      * @returns {Boolean}
      */
     function isServiceWorkerReady() {
-        return (serviceWorkerRegistration !== null);
+        // Return true if the serviceWorkerRegistration is not null and not undefined
+        return (serviceWorkerRegistration);
     }
     
-    if (isServiceWorkerAvailable()) {
-        $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
-        navigator.serviceWorker.register('../service-worker.js').then(function(reg) {
-            console.log('serviceWorker registered', reg);
-            serviceWorkerRegistration = reg;
-            $('#serviceWorkerStatus').html("ServiceWorker API available, and registered");
-            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
-                    .addClass("apiAvailable");
-        }, function(err) {
-            console.error('error while registering serviceWorker', err);
-            $('#serviceWorkerStatus').html("ServiceWorker API available, but unable to register : " + err);
-            $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
-                    .addClass("apiUnavailable");
-        });
-    }
-    else {
-        console.log("serviceWorker API not available");
-        $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
-        $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
-                .addClass("apiUnavailable");
-    }
-    if (isMessageChannelAvailable()) {
-        $('#messageChannelStatus').html("MessageChannel API available");
-        $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
-                .addClass("apiAvailable");
-    }
-    else {
-        $('#messageChannelStatus').html("MessageChannel API unavailable");
-        $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
-                .addClass("apiUnavailable");
-    }
-    
-    // Detect if DeviceStorage is available
     /**
      * 
      * @type Array.<StorageFirefoxOS|StoragePhoneGap>
@@ -532,8 +617,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             }
             selectedArchive = backend.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory);
             cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
-            // The archive is set : go back to home page to start searching
-            $("#btnHome").click();
+            if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
+                // The archive is set : go back to home page to start searching
+                $("#btnHome").click();
+            }
         }
     }
 
@@ -550,8 +637,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
      */
     function setLocalArchiveFromFileSelect() {
         selectedArchive = backend.loadArchiveFromFiles(document.getElementById('archiveFiles').files);
-        // The archive is set : go back to home page to start searching
-        $("#btnHome").click();
+        if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
+            // The archive is set : go back to home page to start searching
+            $("#btnHome").click();
+        }
     }
 
     /**
@@ -745,13 +834,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         }
     }
     
-    if (isMessageChannelAvailable()) {
-        // Let's instanciate the messageChannel where the ServiceWorker can ask for contents
-        // NB : note that we use the var keyword here (and not let),
-        // so that the scope of the variable is the whole file
-        var messageChannel = new MessageChannel();
-        messageChannel.port1.onmessage = handleMessageChannelMessage;
-    }
+    var messageChannel;
     
     /**
      * Function that handles a message of the messageChannel.
@@ -811,25 +894,6 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $("#articleContent").show();
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
-        
-        if (isServiceWorkerReady()) {
-            // TODO : We do not use Service Workers on Evopedia archives, for now
-            // Maybe it would be worth trying to enable them in the future?
-            if (selectedArchive.needsWikimediaCSS()) {
-                // Let's unregister the ServiceWorker
-                serviceWorkerRegistration.unregister().then(function() {serviceWorkerRegistration = null;});
-            }
-            else {
-                // TODO : for testing : this initialization should be done earlier,
-                // as soon as the ServiceWorker is ready.
-                // This can probably been done by listening to state change :
-                // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker/onstatechange
-                console.log("try to post an init message to ServiceWorker");
-                console.log("messageChannel :", messageChannel);
-                navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
-                console.log("init message sent to ServiceWorker");
-            }
-        }
 
         // Apply Mediawiki CSS only when it's an Evopedia archive
         if (selectedArchive.needsWikimediaCSS() === true) {
@@ -838,17 +902,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             var currentPath = regexpPath.exec(currentHref)[1];
             $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
         }
-        else {
-            // TODO temporary test to inject CSS inside the iframe
-            $('#articleContent').contents().find('head').empty();
-            $('#articleContent').contents().find('head').append("<link rel='stylesheet' href='data:text/css;charset=UTF-8," + encodeURIComponent("body {background: #E9E9E9;}") + "' />");
-        }
+
         // Display the article inside the web page.
         $('#articleContent').contents().find('body').html(htmlArticle);
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
-        if (selectedArchive.needsWikimediaCSS() || !isServiceWorkerReady() || !isMessageChannelAvailable()) {
+        if (contentInjectionMode === 'jquery') {
 
             // Convert links into javascript calls
             $('#articleContent').contents().find('body').find('a').each(function() {
