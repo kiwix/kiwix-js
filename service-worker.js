@@ -130,7 +130,6 @@ function(util, utf8) {
                     else if (regexpCSS.test(titleName)) {
                         contentType = 'image/css';
                     }
-                    reject("temporarily refuse javascript and css dependencies");
                 }
 
                 // Let's instanciate a new messageChannel, to allow app.s to give us the content
