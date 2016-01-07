@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geometry'],
- function($, evopediaTitle, evopediaArchive, zimArchive, zimDirEntry, util, geometry) {
+define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geometry', 'utf8'],
+ function($, evopediaTitle, evopediaArchive, zimArchive, zimDirEntry, util, geometry, utf8) {
     
     var localEvopediaArchive;
     var localZimArchive;
@@ -172,7 +172,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "Diego_Velázquez", "Name of the title is correct");
                 start();
             };
-            localEvopediaArchive.getTitleByName("Diego_Velázquez").then(callbackFunction);
+            localEvopediaArchive.getTitleByName("A/Diego_Velázquez").then(callbackFunction);
         });
         asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
             expect(2);
@@ -181,7 +181,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "Hundred_Years'_War", "Name of the title is correct");
                 start();
             };
-            localEvopediaArchive.getTitleByName("Hundred_Years'_War").then(callbackFunction);
+            localEvopediaArchive.getTitleByName("A/Hundred_Years'_War").then(callbackFunction);
         });
 
         test("check parseTitleFromId", function() {
@@ -219,7 +219,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "AIDS", "Name of the title is correct");
                 localEvopediaArchive.readArticle(title, callbackArticleRead);
             };
-            localEvopediaArchive.getTitleByName("AIDS").then(callbackTitleFound);
+            localEvopediaArchive.getTitleByName("A/AIDS").then(callbackTitleFound);
         });
         
         asyncTest("check getTitleByName with a title name that does not exist in the archive", function() {
@@ -228,7 +228,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 ok(title === null, "No title found because it does not exist in the archive");
                 start();
             };
-            localEvopediaArchive.getTitleByName("abcdef").then(callbackTitleFound);
+            localEvopediaArchive.getTitleByName("A/abcdef").then(callbackTitleFound);
         });
 
         asyncTest("check loading a math image", function() {
@@ -505,7 +505,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
         });
         asyncTest("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function() {
             expect(6);
-            localZimArchive.getTitleByName("(The_Night_Time_Is)_The_Right_Time.html").then(function(title) {
+            localZimArchive.getTitleByName("A/(The_Night_Time_Is)_The_Right_Time.html").then(function(title) {
                 ok(title !== null, "Title found");
                 ok(title.isRedirect(), "Title is a redirect.");
                 equal(title.name(), "(The Night Time Is) The Right Time", "Correct redirect title name.");
@@ -519,10 +519,9 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
         });
         asyncTest("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function() {
             expect(4);
-            localZimArchive.getTitleByName("m/RayCharles_AManAndHisSoul.jpg").then(function(title) {
-                console.log(title);
+            localZimArchive.getTitleByName("I/m/RayCharles_AManAndHisSoul.jpg").then(function(title) {
                 ok(title !== null, "Title found");
-                equal(title.url, "m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
+                equal(title.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
                 localZimArchive.readBinaryFile(title, function(title, data) {
                     equal(data.length, 4951, "Data length is correct.");
                     var beginning = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70,

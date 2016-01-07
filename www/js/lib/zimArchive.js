@@ -121,6 +121,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (dirEntry.title == "")
                     return -1; // ZIM sorts empty titles (assets) to the end
+                else if (dirEntry.namespace < "A")
+                    return 1;
+                else if (dirEntry.namespace > "A")
+                    return -1;
                 return prefix < dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
@@ -206,17 +210,22 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         return util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
-                if (titleName < dirEntry.url)
+                var url = dirEntry.namespace + "/" + dirEntry.url;
+                if (titleName < url)
                     return -1;
-                else if (titleName > dirEntry.url)
+                else if (titleName > url)
                     return 1;
                 else
                     return 0;
             });
         }).then(function(index) {
+            if (index === null) return null;
             return that._file.dirEntryByUrlIndex(index);
         }).then(function(dirEntry) {
-            return that._dirEntryToTitleObject(dirEntry);
+            if (dirEntry === null)
+                return null;
+            else
+                return that._dirEntryToTitleObject(dirEntry);
         });
     };
 
