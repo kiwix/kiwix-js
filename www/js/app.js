@@ -902,13 +902,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $("#articleContent").contents().scrollTop(0);
 
         // Display the article inside the web page.
-        var ifrm = document.getElementById('articleContent');
-        ifrm = (ifrm.contentWindow) ? ifrm.contentWindow : (ifrm.contentDocument.document) ? ifrm.contentDocument.document : ifrm.contentDocument;
-        ifrm.document.open();
-        ifrm.document.write(htmlArticle);
-        ifrm.document.close();
+        var articleContentIFrame = document.getElementById('articleContent');
+        articleContentIFrame = (articleContentIFrame.contentWindow) ? articleContentIFrame.contentWindow : (articleContentIFrame.contentDocument.document) ? articleContentIFrame.contentDocument.document : articleContentIFrame.contentDocument;
+        articleContentIFrame.document.open();
+        articleContentIFrame.document.write(htmlArticle);
+        articleContentIFrame.document.close();
         
-        //$(document.getElementById('#articleContent').contentWindow.document).load(function () {
+        // When the IFrame content is loaded, we can parse it
         $('iframe#articleContent').load(function() {
             // Apply Mediawiki CSS only when it's an Evopedia archive
             if (selectedArchive.needsWikimediaCSS() === true) {
