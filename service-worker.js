@@ -42,9 +42,9 @@ self.addEventListener('activate', function(event) {
 require({
     baseUrl: "./www/js/lib/"
 },
-["util", "utf8"],
+["util"],
 
-function(util, utf8) {
+function(util) {
 
     console.log("ServiceWorker startup");
     
@@ -74,21 +74,34 @@ function(util, utf8) {
     var regexpJS = new RegExp(/\.js/i);
     var regexpCSS = new RegExp(/\.css$/i);
 
-    var regexpContentUrl = new RegExp(/\/(.)\/(.*[^\/]+)$/);
+    var regexpContentUrlWithNamespace = new RegExp(/\/(.)\/(.*[^\/]+)$/);
+    var regexpContentUrlWithoutNamespace = new RegExp(/^(.*[^\/]+)$/);
     var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
     
     function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         // TODO handle the dummy article more properly
-        if (regexpContentUrl.test(event.request.url) && !regexpDummyArticle.test(event.request.url)) {
+        if ((regexpContentUrlWithNamespace.test(event.request.url)
+                || regexpContentUrlWithoutNamespace.test(event.request.url))
+            && !regexpDummyArticle.test(event.request.url)) {
 
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
-                var regexpResult = regexpContentUrl.exec(event.request.url);
-                var nameSpace = regexpResult[1];
-                var titleName = regexpResult[2];
+                var nameSpace;
+                var titleName;
                 var contentType;
+                if (regexpContentUrlWithoutNamespace.test(event.request.url)) {
+                    // When the request URL is in the same folder,
+                    // it means it's a link to an article (namespace A)
+                    var regexpResult = regexpContentUrlWithoutNamespace.exec(event.request.url);
+                    nameSpace = 'A';
+                    titleName = regexpResult[1];
+                } else {
+                    var regexpResult = regexpContentUrlWithNamespace.exec(event.request.url);
+                    nameSpace = regexpResult[1];
+                    titleName = regexpResult[2];
+                }
 
                 // The namespace defines the type of content. See http://www.openzim.org/wiki/ZIM_file_format#Namespaces
                 // TODO : read the contentType from the ZIM file instead of hard-coding it here
