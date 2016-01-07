@@ -1000,14 +1000,16 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             });
 
             // Load CSS content
-            $('#articleContent').contents().find('body').find('link[rel=stylesheet]').each(function() {
+            $('#articleContent').contents().find('link[rel=stylesheet]').each(function() {
                 var link = $(this);
                 var hrefMatch = link.attr("href").match(regexpMetadataUrl);
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
-                    selectedArchive.getTitleByName(hrefMatch[1]).then(function(title) {
+                    var titleName = util.removeUrlParameters(hrefMatch[1]);
+                    selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            link.attr("href", 'data:text/css;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
+                            var cssContent = encodeURIComponent(util.uintToString(content));
+                            link.attr("href", 'data:text/css;charset=UTF-8,' + cssContent);
                         });
                     }).fail(function () {
                         console.error("could not find title for CSS : " + hrefMatch[1]);
@@ -1016,15 +1018,18 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             });
 
             // Load Javascript content
-            $('#articleContent').contents().find('body').find('script').each(function() {
+            $('#articleContent').contents().find('script').each(function() {
                 var script = $(this);
                 var srcMatch = script.attr("src").match(regexpMetadataUrl);
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
-                    selectedArchive.getTitleByName(srcMatch[1]).then(function(title) {
+                    var titleName = util.removeUrlParameters(srcMatch[1]);
+                    selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            script.attr("src", 'data:text/javascript;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
+                            // TODO : I have to disable javascript for now
+                            // var jsContent = encodeURIComponent(util.uintToString(content));
+                            //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
                         });
                     }).fail(function () {
                         console.error("could not find title for javascript : " + srcMatch[1]);

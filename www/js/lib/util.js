@@ -195,14 +195,27 @@ define(['q'], function(q) {
     
     /**
      * Converts a UInt Array to a UTF-8 encoded string
+     * source : http://michael-rushanan.blogspot.de/2014/03/javascript-uint8array-hacks-and-cheat.html
      * 
      * @param {UIntArray} uintArray
      * @returns {String}
      */
     function uintToString(uintArray) {
-        var encodedString = String.fromCharCode.apply(null, uintArray),
-                decodedString = decodeURIComponent(escape(encodedString));
-        return decodedString;
+        var s = '';
+        for (var i = 0; i < uintArray.length; i++) {
+            s += String.fromCharCode(uintArray[i]);
+        }
+        return s;
+    }
+    
+    var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
+    
+    function removeUrlParameters(url) {
+        if (regexpRemoveUrlParameters.test(url)) {
+            return regexpRemoveUrlParameters.exec(url)[1];
+        } else {
+            return url;
+        }
     }
 
     /**
@@ -218,6 +231,7 @@ define(['q'], function(q) {
         readFileSlice : readFileSlice,
         binarySearch: binarySearch,
         b64toBlob: b64toBlob,
-        uintToString: uintToString
+        uintToString: uintToString,
+        removeUrlParameters: removeUrlParameters
     };
 });

@@ -123,24 +123,27 @@ function(util) {
                     console.log("It's a layout dependency : " + titleName);
                     if (regexpJS.test(titleName)) {
                         contentType = 'text/javascript';
+                        var responseInit = {
+                            status: 200,
+                            statusText: 'OK',
+                            headers: {
+                                'Content-Type': contentType
+                            }
+                        };
+
+                        var httpResponse = new Response(';', responseInit);
+
+                        // TODO : temporary before the backend actually sends a proper content
+                        resolve(httpResponse);
+                        return;
                     }
                     else if (regexpCSS.test(titleName)) {
-                        contentType = 'image/css';
+                        contentType = 'text/css';
                     }
-                    var responseInit = {
-                        status: 200,
-                        statusText: 'OK',
-                        headers: {
-                            'Content-Type': contentType
-                        }
-                    };
-
-                    var httpResponse = new Response(';', responseInit);
-
-                    // TODO : temporary before the backend actually sends a proper content
-                    resolve(httpResponse);
-                    return;
                 }
+                
+                // We need to remove the potential parameters in the URL
+                titleName = util.removeUrlParameters(titleName);
                 
                 titleNameWithNameSpace = nameSpace + '/' + titleName;
 
@@ -156,7 +159,7 @@ function(util) {
                                 'Content-Type': contentType
                             }
                         };
-
+                        
                         var httpResponse = new Response(event.data.content, responseInit);
 
                         console.log('ServiceWorker responding to the HTTP request for ' + titleNameWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
