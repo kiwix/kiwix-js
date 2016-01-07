@@ -856,9 +856,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 var titleName = event.data.titleName;
                 var messagePort = event.ports[0];
                 var readFile = function(title) {
-                    console.log("Found title.");
-                    if (title.isRedirect()) {
-                        console.log("Following redirect...");
+                    if (title === null) {
+                        console.error("Title " + titleName + " not found in archive.");
+                        messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': ''});
+                    } else if (title.isRedirect()) {
                         selectedArchive.resolveRedirect(title, readFile);
                     } else {
                         console.log("Reading binary file...");
@@ -868,9 +869,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                         });
                     }
                 }
-                console.log("Fetching title " + titleName);
                 selectedArchive.getTitleByName(titleName).then(readFile).fail(function() {
-                    console.log("could not find title:" + arguments);
                     messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});
                 });
             }
