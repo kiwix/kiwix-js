@@ -363,7 +363,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 console.log("init message sent to ServiceWorker");
             }
         }
-        $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').attr('checked', true);
+        $('input:radio[name=contentInjectionMode]').prop('checked', false);
+        $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
         // Save the value in a cookie, so that to be able to keep it after a reload/restart
         cookies.setItem('lastContentInjectionMode', value, Infinity);
@@ -387,6 +388,9 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     var lastContentInjectionMode = cookies.getItem('lastContentInjectionMode');
     if (lastContentInjectionMode) {
         setContentInjectionMode(lastContentInjectionMode);
+    }
+    else {
+        setContentInjectionMode('jquery');
     }
     
     var serviceWorkerRegistration = null;
@@ -790,13 +794,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#titleListHeaderMessage').empty();
         $('#suggestEnlargeMaxDistance').hide();
         $('#suggestReduceMaxDistance').hide();
+        $("#prefix").val("");
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = selectedArchive.parseTitleId(titleId);
         pushBrowserHistoryState(title.name());
-        $("#prefix").val("");
         return false;
     }
-
+    
 
     /**
      * Creates an instance of title from given titleId (including resolving redirects),
@@ -897,137 +901,145 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
 
-        // Apply Mediawiki CSS only when it's an Evopedia archive
-        if (selectedArchive.needsWikimediaCSS() === true) {
-            $('#articleContent').contents().find('head').empty();
-            var currentHref = $(location).attr('href');
-            var currentPath = regexpPath.exec(currentHref)[1];
-            $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
-        }
-
         // Display the article inside the web page.
-        $('#articleContent').contents().find('body').html(htmlArticle);
+        var ifrm = document.getElementById('articleContent');
+        ifrm = (ifrm.contentWindow) ? ifrm.contentWindow : (ifrm.contentDocument.document) ? ifrm.contentDocument.document : ifrm.contentDocument;
+        ifrm.document.open();
+        ifrm.document.write(htmlArticle);
+        ifrm.document.close();
         
-        // If the ServiceWorker is not useable, we need to fallback to parse the DOM
-        // to inject math images, and replace some links with javascript calls
-        if (contentInjectionMode === 'jquery') {
+        //$(document.getElementById('#articleContent').contentWindow.document).load(function () {
+        $('iframe#articleContent').load(function() {
+            // Apply Mediawiki CSS only when it's an Evopedia archive
+            if (selectedArchive.needsWikimediaCSS() === true) {
+                var currentHref = $(location).attr('href');
+                var currentPath = regexpPath.exec(currentHref)[1];
+                $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
+            }
 
-            // Convert links into javascript calls
-            $('#articleContent').contents().find('body').find('a').each(function() {
-                // Store current link's url
-                var url = $(this).attr("href");
-                if (url === null || url === undefined) {
-                    return;
-                }
-                var lowerCaseUrl = url.toLowerCase();
-                var cssClass = $(this).attr("class");
+            // If the ServiceWorker is not useable, we need to fallback to parse the DOM
+            // to inject math images, and replace some links with javascript calls
+            if (contentInjectionMode === 'jquery') {
 
-                if (cssClass === "new") {
-                    // It's a link to a missing article : display a message
-                    $(this).on('click', function(e) {
-                        alert("Missing article in Wikipedia");
-                        return false;
-                    });
-                }
-                else if (url.slice(0, 1) === "#") {
-                    // It's an anchor link : do nothing
-                }
-                else if (url.substring(0, 4) === "http") {
-                    // It's an external link : open in a new tab
-                    $(this).attr("target", "_blank");
-                }
-                else if (url.match(regexpOtherLanguage)) {
-                    // It's a link to another language : change the URL to the online version of wikipedia
-                    // The regular expression extracts $1 as the language, and $2 as the title name
-                    var onlineWikipediaUrl = url.replace(regexpOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
-                    $(this).attr("href", onlineWikipediaUrl);
-                    // Open in a new tab
-                    $(this).attr("target", "_blank");
-                }
-                else if (url.match(regexpImageLink)
-                    && (util.endsWith(lowerCaseUrl, ".png")
-                        || util.endsWith(lowerCaseUrl, ".svg")
-                        || util.endsWith(lowerCaseUrl, ".jpg")
-                        || util.endsWith(lowerCaseUrl, ".jpeg"))) {
-                    // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
-                    var onlineWikipediaUrl = url.replace(regexpImageLink, "https://" + selectedArchive._language + ".wikipedia.org/wiki/File:$1");
-                    $(this).attr("href", onlineWikipediaUrl);
-                    $(this).attr("target", "_blank");
-                }
-                else {
-                    // It's a link to another article
-                    // Add an onclick event to go to this article
-                    // instead of following the link
-                    if (url.length>=2 && url.substring(0, 2) === "./") {
-                        url = url.substring(2);
+                // Convert links into javascript calls
+                $('#articleContent').contents().find('body').find('a').each(function() {
+                    // Store current link's url
+                    var url = $(this).attr("href");
+                    if (url === null || url === undefined) {
+                        return;
                     }
-                    $(this).on('click', function(e) {
-                        var titleName = decodeURIComponent(url);
-                        pushBrowserHistoryState(titleName);
-                        goToArticle(titleName);
-                        return false;
-                    });
-                }
-            });
-        }
+                    var lowerCaseUrl = url.toLowerCase();
+                    var cssClass = $(this).attr("class");
 
-        // Load images
-        $('#articleContent').contents().find('body').find('img').each(function() {
-            var image = $(this);
-            var m = image.attr("src").match(regexpMathImageUrl);
-            if (m) {
-                // It's a math image (Evopedia archive)
-                selectedArchive.loadMathImage(m[1], function(data) {
-                    image.attr("src", 'data:image/png;base64,' + data);
-                });
-            } else {
-                // It's a standard image contained in the ZIM file
-                var imageMatch = image.attr("src").match(regexpImageUrl);
-                if (imageMatch) {
-                    selectedArchive.getTitleByName(imageMatch[1]).then(function(title) {
-                        selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            // TODO : add the complete MIME-type of the image (as read from the ZIM file)
-                            image.attr("src", 'data:image;base64,' + util.uint8ArrayToBase64(content));
+                    if (cssClass === "new") {
+                        // It's a link to a missing article : display a message
+                        $(this).on('click', function(e) {
+                            alert("Missing article in Wikipedia");
+                            return false;
                         });
-                    }).fail(function () {
-                        console.error("could not find title for image:" + imageMatch[1]);
-                    });
-                }
-            }
-        });
-        
-        // Load CSS content
-        $('#articleContent').contents().find('body').find('link[rel=stylesheet]').each(function() {
-            var link = $(this);
-            var hrefMatch = link.attr("href").match(regexpMetadataUrl);
-            if (hrefMatch) {
-                // It's a CSS file contained in the ZIM file
-                selectedArchive.getTitleByName(hrefMatch[1]).then(function(title) {
-                    selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                        link.attr("href", 'data:text/css;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
-                    });
-                }).fail(function () {
-                    console.error("could not find title for CSS : " + hrefMatch[1]);
+                    }
+                    else if (url.slice(0, 1) === "#") {
+                        // It's an anchor link : do nothing
+                    }
+                    else if (url.substring(0, 4) === "http") {
+                        // It's an external link : open in a new tab
+                        $(this).attr("target", "_blank");
+                    }
+                    else if (url.match(regexpOtherLanguage)) {
+                        // It's a link to another language : change the URL to the online version of wikipedia
+                        // The regular expression extracts $1 as the language, and $2 as the title name
+                        var onlineWikipediaUrl = url.replace(regexpOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
+                        $(this).attr("href", onlineWikipediaUrl);
+                        // Open in a new tab
+                        $(this).attr("target", "_blank");
+                    }
+                    else if (url.match(regexpImageLink)
+                        && (util.endsWith(lowerCaseUrl, ".png")
+                            || util.endsWith(lowerCaseUrl, ".svg")
+                            || util.endsWith(lowerCaseUrl, ".jpg")
+                            || util.endsWith(lowerCaseUrl, ".jpeg"))) {
+                        // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
+                        var onlineWikipediaUrl = url.replace(regexpImageLink, "https://" + selectedArchive._language + ".wikipedia.org/wiki/File:$1");
+                        $(this).attr("href", onlineWikipediaUrl);
+                        $(this).attr("target", "_blank");
+                    }
+                    else {
+                        // It's a link to another article
+                        // Add an onclick event to go to this article
+                        // instead of following the link
+                        if (url.length>=2 && url.substring(0, 2) === "./") {
+                            url = url.substring(2);
+                        }
+                        $(this).on('click', function(e) {
+                            var titleName = decodeURIComponent(url);
+                            pushBrowserHistoryState(titleName);
+                            goToArticle(titleName);
+                            return false;
+                        });
+                    }
                 });
-            }
-        });
-        
-        // Load Javascript content
-        $('#articleContent').contents().find('body').find('script').each(function() {
-            var script = $(this);
-            var srcMatch = script.attr("src").match(regexpMetadataUrl);
-            // TODO check that the type of the script is text/javascript or application/javascript
-            if (srcMatch) {
-                // It's a Javascript file contained in the ZIM file
-                selectedArchive.getTitleByName(srcMatch[1]).then(function(title) {
-                    selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                        script.attr("src", 'data:text/javascript;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
-                    });
-                }).fail(function () {
-                    console.error("could not find title for javascript : " + srcMatch[1]);
+                
+                // Load images
+                $('#articleContent').contents().find('body').find('img').each(function() {
+                    var image = $(this);
+                    var m = image.attr("src").match(regexpMathImageUrl);
+                    if (m) {
+                        // It's a math image (Evopedia archive)
+                        selectedArchive.loadMathImage(m[1], function(data) {
+                            image.attr("src", 'data:image/png;base64,' + data);
+                        });
+                    } else {
+                        // It's a standard image contained in the ZIM file
+                        var imageMatch = image.attr("src").match(regexpImageUrl);
+                        if (imageMatch) {
+                            selectedArchive.getTitleByName(imageMatch[1]).then(function(title) {
+                                selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                                    // TODO : add the complete MIME-type of the image (as read from the ZIM file)
+                                    image.attr("src", 'data:image;base64,' + util.uint8ArrayToBase64(content));
+                                });
+                            }).fail(function () {
+                                console.error("could not find title for image:" + imageMatch[1]);
+                            });
+                        }
+                    }
                 });
+
+                // Load CSS content
+                $('#articleContent').contents().find('body').find('link[rel=stylesheet]').each(function() {
+                    var link = $(this);
+                    var hrefMatch = link.attr("href").match(regexpMetadataUrl);
+                    if (hrefMatch) {
+                        // It's a CSS file contained in the ZIM file
+                        selectedArchive.getTitleByName(hrefMatch[1]).then(function(title) {
+                            selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                                link.attr("href", 'data:text/css;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
+                            });
+                        }).fail(function () {
+                            console.error("could not find title for CSS : " + hrefMatch[1]);
+                        });
+                    }
+                });
+
+                // Load Javascript content
+                $('#articleContent').contents().find('body').find('script').each(function() {
+                    var script = $(this);
+                    var srcMatch = script.attr("src").match(regexpMetadataUrl);
+                    // TODO check that the type of the script is text/javascript or application/javascript
+                    if (srcMatch) {
+                        // It's a Javascript file contained in the ZIM file
+                        selectedArchive.getTitleByName(srcMatch[1]).then(function(title) {
+                            selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                                script.attr("src", 'data:text/javascript;charset=UTF-8,' + encodeURIComponent(util.uintToString(content)));
+                            });
+                        }).fail(function () {
+                            console.error("could not find title for javascript : " + srcMatch[1]);
+                        });
+                    }
+                });
+
             }
-        });
+
+        });   
     }
 
     /**

@@ -113,7 +113,19 @@ function(util, utf8) {
                     else if (regexpCSS.test(titleName)) {
                         contentType = 'image/css';
                     }
-                    reject("temporarily refuse javascript and css dependencies");
+                    var responseInit = {
+                        status: 200,
+                        statusText: 'OK',
+                        headers: {
+                            'Content-Type': contentType
+                        }
+                    };
+
+                    var httpResponse = new Response(';', responseInit);
+
+                    // TODO : temporary before the backend actually sends a proper content
+                    resolve(httpResponse);
+                    return;
                 }
 
                 // Let's instanciate a new messageChannel, to allow app.s to give us the content
