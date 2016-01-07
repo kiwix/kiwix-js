@@ -75,7 +75,7 @@ function(util) {
     var regexpCSS = new RegExp(/\.css$/i);
 
     var regexpContentUrlWithNamespace = new RegExp(/\/(.)\/(.*[^\/]+)$/);
-    var regexpContentUrlWithoutNamespace = new RegExp(/^(.*[^\/]+)$/);
+    var regexpContentUrlWithoutNamespace = new RegExp(/^([^\/]+)$/);
     var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
     
     function fetchEventListener(event) {
