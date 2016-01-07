@@ -864,11 +864,11 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                         console.log("Reading binary file...");
                         selectedArchive.readBinaryFile(title, function(readableTitleName, content) {
                             messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
-                            console.log("content sent to ServiceWorker)");
+                            console.log("content sent to ServiceWorker");
                         });
                     }
                 }
-                console.log("Fetching tile " + titleName);
+                console.log("Fetching title " + titleName);
                 selectedArchive.getTitleByName(titleName).then(readFile).fail(function() {
                     console.log("could not find title:" + arguments);
                     messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});

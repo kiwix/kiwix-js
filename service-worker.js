@@ -25,6 +25,32 @@
 // TODO : remove requirejs if it's really useless here
 importScripts('./www/js/lib/require.js');
 
+/**
+ * From https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
+ */
+function b64toBlob(b64Data, contentType, sliceSize) {
+    contentType = contentType || '';
+    sliceSize = sliceSize || 512;
+
+    var byteCharacters = atob(b64Data);
+    var byteArrays = [];
+
+    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+        var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+        var byteNumbers = new Array(slice.length);
+        for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        var byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    var blob = new Blob(byteArrays, {type: contentType});
+    return blob;
+}
 
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
@@ -55,15 +81,6 @@ function(util, utf8) {
             console.log('Init message received', event.data);
             outgoingMessagePort = event.ports[0];
             console.log('outgoingMessagePort initialized', outgoingMessagePort);
-            self.addEventListener('fetch', fetchEventListener);
-            console.log('fetchEventListener enabled');
-        }
-        if (event.data.action === 'disable') {
-            console.log('Disable message received');
-            outgoingMessagePort = null;
-            console.log('outgoingMessagePort deleted');
-            self.removeEventListener('fetch', fetchEventListener);
-            console.log('fetchEventListener removed');
         }
     });
     
@@ -76,13 +93,13 @@ function(util, utf8) {
 
     var regexpContentUrl = new RegExp(/\/(.)\/(.*[^\/]+)$/);
     var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
-    
-    function fetchEventListener(event) {
-        console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
+    self.addEventListener('fetch', function(event) {
+        console.log('ServiceWorker handling fetch event for : ' + event.request.url);
+        
         // TODO handle the dummy article more properly
         if (regexpContentUrl.test(event.request.url) && !regexpDummyArticle.test(event.request.url)) {
-
+        
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
                 var regexpResult = regexpContentUrl.exec(event.request.url);
@@ -113,19 +130,6 @@ function(util, utf8) {
                     else if (regexpCSS.test(titleName)) {
                         contentType = 'image/css';
                     }
-                    var responseInit = {
-                        status: 200,
-                        statusText: 'OK',
-                        headers: {
-                            'Content-Type': contentType
-                        }
-                    };
-
-                    var httpResponse = new Response(';', responseInit);
-
-                    // TODO : temporary before the backend actually sends a proper content
-                    resolve(httpResponse);
-                    return;
                 }
 
                 // Let's instanciate a new messageChannel, to allow app.s to give us the content
@@ -158,5 +162,6 @@ function(util, utf8) {
         }
         // If event.respondWith() isn't called because this wasn't a request that we want to handle,
         // then the default request/response behavior will automatically be used.
-    }
+    });
+
 });

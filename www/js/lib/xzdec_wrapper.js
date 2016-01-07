@@ -43,10 +43,6 @@ define(['q'], function(q) {
     function Decompressor(reader, chunkSize) {
         this._chunkSize = chunkSize || 1024 * 5;
         this._reader = reader;
-        this._decHandle = xzdec._init_decompression(this._chunkSize);
-        this._inStreamPos = 0;
-        this._outStreamPos = 0;
-        this._outBuffer = null;
     };
     /**
      * Read length bytes, offset into the decompressed stream. Consecutive calls may only
@@ -55,15 +51,16 @@ define(['q'], function(q) {
      * @param {Integer} length
      */
     Decompressor.prototype.readSlice = function(offset, length) {
+        var that = this;
+        this._inStreamPos = 0;
+        this._outStreamPos = 0;
+        this._decHandle = xzdec._init_decompression(this._chunkSize);
         this._outBuffer = new Int8Array(new ArrayBuffer(length));
         this._outBufferPos = 0;
-        return this._readLoop(offset, length);
-    };
-    /**
-     * Finish the decompressing and release resources.
-     */
-    Decompressor.prototype.end = function() {
-        xzdec._release(this._decHandle);
+        return this._readLoop(offset, length).then(function(data) {
+            xzdec._release(that._decHandle);
+            return data;
+        });
     };
 
     /**
@@ -88,23 +85,19 @@ define(['q'], function(q) {
             }
 
             var outPos = xzdec._get_out_pos(that._decHandle);
-            if (finished || outPos === that._chunkSize || that._outStreamPos + outPos >= offset + length) {
-                if (that._outStreamPos + outPos >= offset)
-                {
-                    var outBuffer = xzdec._get_out_buffer(that._decHandle);
-                    var copyStart = offset - that._outStreamPos;
-                    if (copyStart < 0)
-                        copyStart = 0;
-                    for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++)
-                        that._outBuffer[that._outBufferPos++] = xzdec.HEAP8[outBuffer + i];
-                }
-                if (outPos === that._chunkSize)
-                {
-                    that._outStreamPos += outPos;
-                    xzdec._out_buffer_cleared(that._decHandle);
-                }
+            if (outPos > 0 && that._outStreamPos + outPos >= offset)
+            {
+                var outBuffer = xzdec._get_out_buffer(that._decHandle);
+                var copyStart = offset - that._outStreamPos;
+                if (copyStart < 0)
+                    copyStart = 0;
+                for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++)
+                    that._outBuffer[that._outBufferPos++] = xzdec.HEAP8[outBuffer + i];
             }
-            if (finished || that._outStreamPos + outPos >= offset + length)
+            that._outStreamPos += outPos;
+            if (outPos > 0)
+                xzdec._out_buffer_cleared(that._decHandle);
+            if (finished || that._outStreamPos >= offset + length)
                 return that._outBuffer;
             else
                 return that._readLoop(offset, length);

@@ -154,7 +154,6 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
     ZIMFile.prototype.blob = function(cluster, blob)
     {
         var that = this;
-        //@todo decompress in a streaming way, otherwise we have to "guess" the sizes
         return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function(clusterOffsets)
         {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
@@ -166,7 +165,7 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
                 };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
-                    decompressor = { readSlice: plainBlobReader, end: function() {} };
+                    decompressor = { readSlice: plainBlobReader };
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else {
@@ -175,10 +174,7 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
                 return decompressor.readSlice(blob * 4, 8).then(function(data) {
                     var blobOffset = readInt(data, 0, 4);
                     var nextBlobOffset = readInt(data, 4, 4);
-                    return decompressor.readSlice(blobOffset, nextBlobOffset - blobOffset).then(function(data) {
-                        decompressor.end();
-                        return data;
-                    });
+                    return decompressor.readSlice(blobOffset, nextBlobOffset - blobOffset);
                 });
             });
         });

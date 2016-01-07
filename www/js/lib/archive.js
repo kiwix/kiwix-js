@@ -338,6 +338,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * Look for a title by its name, and call the callbackFunction with this Title
      * If the title is not found, the callbackFunction is called with parameter null
      * @param {String} titleName
+     * @return {Promise} resolving to the title object or null if not found.
      */
     LocalArchive.prototype.getTitleByName = function(titleName) {
         var that = this;
