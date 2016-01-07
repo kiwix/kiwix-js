@@ -68,9 +68,9 @@ self.addEventListener('activate', function(event) {
 require({
     baseUrl: "./www/js/lib/"
 },
-["util", "utf8"],
+["util"],
 
-function(util, utf8) {
+function(util) {
 
     console.log("ServiceWorker startup");
     

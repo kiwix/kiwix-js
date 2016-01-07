@@ -198,8 +198,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
 
     /**
-     * 
+     * Searches a title (article / page) by name.
      * @param {String} titleName
+     * @return {Promise} resolving to the title object or null if not found.
      */
     ZIMArchive.prototype.getTitleByName = function(titleName) {
         var that = this;
