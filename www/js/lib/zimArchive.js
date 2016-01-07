@@ -200,6 +200,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             callback(title.name(), data);
         });
     };
+    
+    var regexpTitleNameWithoutNameSpace = /^[^\/]+$/;
 
     /**
      * Searches a title (article / page) by name.
@@ -208,6 +210,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getTitleByName = function(titleName) {
         var that = this;
+        // If no namespace is mentioned, it's an article, and we have to add it
+        if (regexpTitleNameWithoutNameSpace.test(titleName)) {
+            titleName= "A/" + titleName;
+        }
         return util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 var url = dirEntry.namespace + "/" + dirEntry.url;

@@ -25,32 +25,6 @@
 // TODO : remove requirejs if it's really useless here
 importScripts('./www/js/lib/require.js');
 
-/**
- * From https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
- */
-function b64toBlob(b64Data, contentType, sliceSize) {
-    contentType = contentType || '';
-    sliceSize = sliceSize || 512;
-
-    var byteCharacters = atob(b64Data);
-    var byteArrays = [];
-
-    for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-        var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-        var byteNumbers = new Array(slice.length);
-        for (var i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        var byteArray = new Uint8Array(byteNumbers);
-
-        byteArrays.push(byteArray);
-    }
-
-    var blob = new Blob(byteArrays, {type: contentType});
-    return blob;
-}
 
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
@@ -81,6 +55,15 @@ function(util) {
             console.log('Init message received', event.data);
             outgoingMessagePort = event.ports[0];
             console.log('outgoingMessagePort initialized', outgoingMessagePort);
+            self.addEventListener('fetch', fetchEventListener);
+            console.log('fetchEventListener enabled');
+        }
+        if (event.data.action === 'disable') {
+            console.log('Disable message received');
+            outgoingMessagePort = null;
+            console.log('outgoingMessagePort deleted');
+            self.removeEventListener('fetch', fetchEventListener);
+            console.log('fetchEventListener removed');
         }
     });
     
@@ -91,21 +74,35 @@ function(util) {
     var regexpJS = new RegExp(/\.js/i);
     var regexpCSS = new RegExp(/\.css$/i);
 
-    var regexpContentUrl = new RegExp(/\/(.)\/(.*[^\/]+)$/);
+    var regexpContentUrlWithNamespace = new RegExp(/\/(.)\/(.*[^\/]+)$/);
+    var regexpContentUrlWithoutNamespace = new RegExp(/^([^\/]+)$/);
     var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
-
-    self.addEventListener('fetch', function(event) {
+    
+    function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
-        
+
         // TODO handle the dummy article more properly
-        if (regexpContentUrl.test(event.request.url) && !regexpDummyArticle.test(event.request.url)) {
-        
+        if ((regexpContentUrlWithNamespace.test(event.request.url)
+                || regexpContentUrlWithoutNamespace.test(event.request.url))
+            && !regexpDummyArticle.test(event.request.url)) {
+
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
-                var regexpResult = regexpContentUrl.exec(event.request.url);
-                var nameSpace = regexpResult[1];
-                var titleName = regexpResult[2];
+                var nameSpace;
+                var titleName;
+                var titleNameWithNameSpace;
                 var contentType;
+                if (regexpContentUrlWithoutNamespace.test(event.request.url)) {
+                    // When the request URL is in the same folder,
+                    // it means it's a link to an article (namespace A)
+                    var regexpResult = regexpContentUrlWithoutNamespace.exec(event.request.url);
+                    nameSpace = 'A';
+                    titleName = regexpResult[1];
+                } else {
+                    var regexpResult = regexpContentUrlWithNamespace.exec(event.request.url);
+                    nameSpace = regexpResult[1];
+                    titleName = regexpResult[2];
+                }
 
                 // The namespace defines the type of content. See http://www.openzim.org/wiki/ZIM_file_format#Namespaces
                 // TODO : read the contentType from the ZIM file instead of hard-coding it here
@@ -126,17 +123,6 @@ function(util) {
                     console.log("It's a layout dependency : " + titleName);
                     if (regexpJS.test(titleName)) {
                         contentType = 'text/javascript';
-                    }
-                    else if (regexpCSS.test(titleName)) {
-                        contentType = 'image/css';
-                    }
-                }
-
-                // Let's instanciate a new messageChannel, to allow app.s to give us the content
-                var messageChannel = new MessageChannel();
-                messageChannel.port1.onmessage = function(event) {
-                    if (event.data.action === 'giveContent') {
-                        console.log('content message received for ' + titleName, event.data);
                         var responseInit = {
                             status: 200,
                             statusText: 'OK',
@@ -145,23 +131,51 @@ function(util) {
                             }
                         };
 
+                        var httpResponse = new Response(';', responseInit);
+
+                        // TODO : temporary before the backend actually sends a proper content
+                        resolve(httpResponse);
+                        return;
+                    }
+                    else if (regexpCSS.test(titleName)) {
+                        contentType = 'text/css';
+                    }
+                }
+                
+                // We need to remove the potential parameters in the URL
+                titleName = util.removeUrlParameters(titleName);
+                
+                titleNameWithNameSpace = nameSpace + '/' + titleName;
+
+                // Let's instanciate a new messageChannel, to allow app.s to give us the content
+                var messageChannel = new MessageChannel();
+                messageChannel.port1.onmessage = function(event) {
+                    if (event.data.action === 'giveContent') {
+                        console.log('content message received for ' + titleNameWithNameSpace, event.data);
+                        var responseInit = {
+                            status: 200,
+                            statusText: 'OK',
+                            headers: {
+                                'Content-Type': contentType
+                            }
+                        };
+                        
                         var httpResponse = new Response(event.data.content, responseInit);
 
-                        console.log('ServiceWorker responding to the HTTP request for ' + titleName + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
+                        console.log('ServiceWorker responding to the HTTP request for ' + titleNameWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
                         resolve(httpResponse);
                     }
                     else {
-                        console.log('Invalid message received from app.js for ' + titleName, event.data);
+                        console.log('Invalid message received from app.js for ' + titleNameWithNameSpace, event.data);
                         reject(event.data);
                     }
                 };
-                console.log('Eventlistener added to listen for an answer to ' + titleName);
-                outgoingMessagePort.postMessage({'action': 'askForContent', 'titleName': titleName}, [messageChannel.port2]);
+                console.log('Eventlistener added to listen for an answer to ' + titleNameWithNameSpace);
+                outgoingMessagePort.postMessage({'action': 'askForContent', 'titleName': titleNameWithNameSpace}, [messageChannel.port2]);
                 console.log('Message sent to app.js through outgoingMessagePort');
             }));
         }
         // If event.respondWith() isn't called because this wasn't a request that we want to handle,
         // then the default request/response behavior will automatically be used.
-    });
-
+    }
 });

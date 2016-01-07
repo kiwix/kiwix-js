@@ -159,6 +159,64 @@ define(['q'], function(q) {
                 return mid;
         });
     };
+    
+    /**
+     * Converts a Base64 Content to a Blob
+     * From https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
+     * 
+     * @param {String} b64Data Base64-encoded data
+     * @param {String} contentType
+     * @param {Integer} sliceSize
+     * @returns {Blob}
+     */
+    function b64toBlob(b64Data, contentType, sliceSize) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+
+        var byteCharacters = atob(b64Data);
+        var byteArrays = [];
+
+        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+            var byteNumbers = new Array(slice.length);
+            for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+
+            var byteArray = new Uint8Array(byteNumbers);
+
+            byteArrays.push(byteArray);
+        }
+
+        var blob = new Blob(byteArrays, {type: contentType});
+        return blob;
+    }
+    
+    /**
+     * Converts a UInt Array to a UTF-8 encoded string
+     * source : http://michael-rushanan.blogspot.de/2014/03/javascript-uint8array-hacks-and-cheat.html
+     * 
+     * @param {UIntArray} uintArray
+     * @returns {String}
+     */
+    function uintToString(uintArray) {
+        var s = '';
+        for (var i = 0; i < uintArray.length; i++) {
+            s += String.fromCharCode(uintArray[i]);
+        }
+        return s;
+    }
+    
+    var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
+    
+    function removeUrlParameters(url) {
+        if (regexpRemoveUrlParameters.test(url)) {
+            return regexpRemoveUrlParameters.exec(url)[1];
+        } else {
+            return url;
+        }
+    }
 
     /**
      * Functions and classes exposed by this module
@@ -171,6 +229,9 @@ define(['q'], function(q) {
         uint8ArrayToHex : uint8ArrayToHex,
         uint8ArrayToBase64 : uint8ArrayToBase64,
         readFileSlice : readFileSlice,
-        binarySearch: binarySearch
+        binarySearch: binarySearch,
+        b64toBlob: b64toBlob,
+        uintToString: uintToString,
+        removeUrlParameters: removeUrlParameters
     };
 });

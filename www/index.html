@@ -207,6 +207,12 @@
                         <br /> Please select the archive you want to use : <select id="archiveList" class="form-control"></select>
                         <br /> Click <a id="btnRescanDeviceStorage">here</a> to rescan your SD Cards and internal memory
                     </div>
+                    <div id="contentInjectionModeDiv">
+                        Content injection mode : <br/>
+                        <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked><label for="jQueryModeRadio">JQuery</label>
+                        <br>
+                        <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio"><label for="serviceworkerModeRadio">ServiceWorker</label>
+                    </div>
                     <div id="serviceWorkerStatus"></div>
                     <div id="messageChannelStatus"></div>
                     <br />
