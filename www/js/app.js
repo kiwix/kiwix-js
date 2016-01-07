@@ -338,14 +338,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     
                     // We need to wait for the ServiceWorker to be activated
                     // before sending the first init message
-                    var serviceWorker;
-                    if (reg.installing) {
-                        serviceWorker = reg.installing;
-                    } else if (reg.waiting) {
-                        serviceWorker = reg.waiting;
-                    } else if (reg.active) {
-                        serviceWorker = reg.active;
-                    }
+                    var serviceWorker = reg.installing || reg.waiting || reg.active;
                     serviceWorker.addEventListener('statechange', function(statechangeevent) {
                         if (statechangeevent.target.state === 'activated') {
                             console.log("try to post an init message to ServiceWorker");
