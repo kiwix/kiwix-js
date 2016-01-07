@@ -172,7 +172,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "Diego_Velázquez", "Name of the title is correct");
                 start();
             };
-            localEvopediaArchive.getTitleByName("A/Diego_Velázquez").then(callbackFunction);
+            localEvopediaArchive.getTitleByName("Diego_Velázquez").then(callbackFunction);
         });
         asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
             expect(2);
@@ -181,7 +181,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "Hundred_Years'_War", "Name of the title is correct");
                 start();
             };
-            localEvopediaArchive.getTitleByName("A/Hundred_Years'_War").then(callbackFunction);
+            localEvopediaArchive.getTitleByName("Hundred_Years'_War").then(callbackFunction);
         });
 
         test("check parseTitleFromId", function() {
@@ -219,7 +219,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "AIDS", "Name of the title is correct");
                 localEvopediaArchive.readArticle(title, callbackArticleRead);
             };
-            localEvopediaArchive.getTitleByName("A/AIDS").then(callbackTitleFound);
+            localEvopediaArchive.getTitleByName("AIDS").then(callbackTitleFound);
         });
         
         asyncTest("check getTitleByName with a title name that does not exist in the archive", function() {
@@ -228,7 +228,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 ok(title === null, "No title found because it does not exist in the archive");
                 start();
             };
-            localEvopediaArchive.getTitleByName("A/abcdef").then(callbackTitleFound);
+            localEvopediaArchive.getTitleByName("abcdef").then(callbackTitleFound);
         });
 
         asyncTest("check loading a math image", function() {
