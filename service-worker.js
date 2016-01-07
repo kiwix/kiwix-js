@@ -90,6 +90,7 @@ function(util) {
             event.respondWith(new Promise(function(resolve, reject) {
                 var nameSpace;
                 var titleName;
+                var titleNameWithNameSpace;
                 var contentType;
                 if (regexpContentUrlWithoutNamespace.test(event.request.url)) {
                     // When the request URL is in the same folder,
@@ -140,12 +141,14 @@ function(util) {
                     resolve(httpResponse);
                     return;
                 }
+                
+                titleNameWithNameSpace = nameSpace + '/' + titleName;
 
                 // Let's instanciate a new messageChannel, to allow app.s to give us the content
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function(event) {
                     if (event.data.action === 'giveContent') {
-                        console.log('content message received for ' + titleName, event.data);
+                        console.log('content message received for ' + titleNameWithNameSpace, event.data);
                         var responseInit = {
                             status: 200,
                             statusText: 'OK',
@@ -156,16 +159,16 @@ function(util) {
 
                         var httpResponse = new Response(event.data.content, responseInit);
 
-                        console.log('ServiceWorker responding to the HTTP request for ' + titleName + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
+                        console.log('ServiceWorker responding to the HTTP request for ' + titleNameWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
                         resolve(httpResponse);
                     }
                     else {
-                        console.log('Invalid message received from app.js for ' + titleName, event.data);
+                        console.log('Invalid message received from app.js for ' + titleNameWithNameSpace, event.data);
                         reject(event.data);
                     }
                 };
-                console.log('Eventlistener added to listen for an answer to ' + titleName);
-                outgoingMessagePort.postMessage({'action': 'askForContent', 'titleName': titleName}, [messageChannel.port2]);
+                console.log('Eventlistener added to listen for an answer to ' + titleNameWithNameSpace);
+                outgoingMessagePort.postMessage({'action': 'askForContent', 'titleName': titleNameWithNameSpace}, [messageChannel.port2]);
                 console.log('Message sent to app.js through outgoingMessagePort');
             }));
         }

@@ -531,7 +531,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 });
             });
         });
-        asyncTest("Image 's/style.css' can be loaded", function() {
+        asyncTest("Stylesheet 's/style.css' can be loaded", function() {
             expect(4);
             localZimArchive.getTitleByName("-/s/style.css").then(function(title) {
                 ok(title !== null, "Title found");
