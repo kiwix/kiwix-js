@@ -532,5 +532,19 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 });
             });
         });
+        asyncTest("Image 's/style.css' can be loaded", function() {
+            expect(4);
+            localZimArchive.getTitleByName("-/s/style.css").then(function(title) {
+                ok(title !== null, "Title found");
+                equal(title.url, "-/s/style.css", "URL is correct.");
+                localZimArchive.readBinaryFile(title, function(title, data) {
+                    equal(data.length, 104495, "Data length is correct.");
+                    data = utf8.parse(data);
+                    var beginning = "\n/* start http://en.wikipedia.org/w/load.php?debug=false&lang=en&modules=site&only=styles&skin=vector";
+                    equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
+                    start();
+                });
+            });
+        });
     };
 });
