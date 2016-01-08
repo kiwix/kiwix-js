@@ -1001,8 +1001,21 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     var titleName = util.removeUrlParameters(hrefMatch[1]);
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            var cssContent = encodeURIComponent(util.uintToString(content));
-                            link.attr("href", 'data:text/css;charset=UTF-8,' + cssContent);
+                            var cssContent = util.uintToString(content);
+                            // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
+                            // So we replace the tag with a <style>...</style>
+                            // while copying some attributes of the original tag
+                            var mediaAttributeValue = link.attr('media');
+                            var mediaAttribute = '';
+                            if (mediaAttributeValue) {
+                                mediaAttribute = ' media="' + mediaAttributeValue + '"';
+                            }
+                            var disabledAttributeValue = link.attr('media');
+                            var disabledAttribute = '';
+                            if (disabledAttributeValue) {
+                                disabledAttribute = ' disabled="' + disabledAttributeValue + '"';
+                            }
+                            link.replaceWith('<style type="text/css"' + mediaAttribute + disabledAttribute + '>' + cssContent + '</style>');
                         });
                     }).fail(function () {
                         console.error("could not find title for CSS : " + hrefMatch[1]);
