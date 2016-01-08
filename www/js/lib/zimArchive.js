@@ -125,7 +125,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     return 1;
                 else if (dirEntry.namespace > "A")
                     return -1;
-                return prefix < dirEntry.title ? -1 : 1;
+                return prefix <= dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
             var titles = [];
