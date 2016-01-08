@@ -566,16 +566,16 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 }
             }).fail(errorHandlerAsyncTest);
         });
-        asyncTest("Javascript '-/j/head.js' can be loaded", function() {
+        asyncTest("Javascript '-/j/local.js' can be loaded", function() {
             expect(4);
-            localZimArchive.getTitleByName("-/j/head.js").then(function(title) {
+            localZimArchive.getTitleByName("-/j/local.js").then(function(title) {
                 ok(title !== null, "Title found");
                 if (title !== null) {
-                    equal(title.url, "-/j/head.js", "URL is correct.");
+                    equal(title.url, "-/j/local.js", "URL is correct.");
                     localZimArchive.readBinaryFile(title, function(title, data) {
-                        equal(data.length, 104495, "Data length is correct.");
+                        equal(data.length, 41, "Data length is correct.");
                         data = utf8.parse(data);
-                        var beginning = "\n/* start http://en.wikipedia.org/w/load.php?debug=false&lang=en&modules=site&only=styles&skin=vector";
+                        var beginning = "console.log( \"mw.loader";
                         equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
                         start();
                     });
