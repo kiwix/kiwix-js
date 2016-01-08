@@ -980,7 +980,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     // It's a standard image contained in the ZIM file
                     var imageMatch = image.attr("src").match(regexpImageUrl);
                     if (imageMatch) {
-                        selectedArchive.getTitleByName(imageMatch[1]).then(function(title) {
+                        var titleName = decodeURIComponent(imageMatch[1]);
+                        selectedArchive.getTitleByName(titleName).then(function(title) {
                             selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                                 // TODO : add the complete MIME-type of the image (as read from the ZIM file)
                                 image.attr("src", 'data:image;base64,' + util.uint8ArrayToBase64(content));
@@ -998,7 +999,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 var hrefMatch = link.attr("href").match(regexpMetadataUrl);
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(hrefMatch[1]);
+                    var titleName = util.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             var cssContent = encodeURIComponent(util.uintToString(content));
@@ -1017,7 +1018,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(srcMatch[1]);
+                    var titleName = util.removeUrlParameters(decodeURIComponent(srcMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             // TODO : I have to disable javascript for now
