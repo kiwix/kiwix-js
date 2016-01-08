@@ -254,11 +254,33 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
         $('#searchingForTitles').hide();
         return false;
     });
-    $('input:radio[name=contentInjectionMode]').on('change', function(e) {
+    $('input:radio[name=contentInjectionMode]').on('change', function(event) {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
         checkSelectedArchiveCompatibilityWithInjectionMode();
     });
+    $('#articleContent').on('load',onIFrameLoad);
+    function onIFrameLoad() {
+        $('#centeredspinner').hide();
+        $('#articleContent').contents().on('click', function (event) {
+            if (contentInjectionMode === 'serviceworker') {
+                // In Service Worker mode, we want to display a spinner
+                // when the user clicks on a link
+                // We only do that when the click is somewhere inside a <a> tag
+                // that has a href attribute
+                if ($(event.target).is('a[href!=""] *,a[href!=""]')) {
+                    // And we don't want to show the spinner when clicking on an anchor
+                    if ($(event.target).is('a:not([href^="#"]) *,a:not([href^="#"])')) {
+                        $('#articleContent').contents().find('body').fadeTo('fast',0.2);
+                        $('#centeredspinner').show();
+                    }
+                }
+            }
+
+        });
+    }
+    // Add the event for first use
+    onIFrameLoad();
     
     /**
      * Displays of refreshes the API status shown to the user
@@ -1030,7 +1052,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 }
             });
 
-        }  
+        }
     }
 
     /**

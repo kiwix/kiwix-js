@@ -83,6 +83,16 @@
     color : orange;
 }
 
+#centeredspinner{
+    position: absolute;
+    height: 100px;
+    width: 100px;
+    top: 50%;
+    left: 50%;
+    margin-left: -50px;
+    margin-top: -50px;
+}
+
 /* Réduction de la taille des éléments en haut pour les petits écrans */
 @media (max-width: 768px) {
     /* Pour réduire la taille du menu en haut */
