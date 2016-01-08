@@ -1003,19 +1003,26 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             var cssContent = util.uintToString(content);
                             // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
-                            // So we replace the tag with a <style>...</style>
+                            // So we replace the tag with a <style type="text/css">...</style>
                             // while copying some attributes of the original tag
+                            // Cf http://jonraasch.com/blog/javascript-style-node
+                            var cssElement = document.createElement('style');
+                            cssElement.type = 'text/css';
+
+                            if (cssElement.styleSheet) {
+                                cssElement.styleSheet.cssText = cssContent;
+                            } else {
+                                cssElement.appendChild(document.createTextNode(cssContent));
+                            }
                             var mediaAttributeValue = link.attr('media');
-                            var mediaAttribute = '';
                             if (mediaAttributeValue) {
-                                mediaAttribute = ' media="' + mediaAttributeValue + '"';
+                                cssElement.media = mediaAttributeValue;
                             }
                             var disabledAttributeValue = link.attr('media');
-                            var disabledAttribute = '';
                             if (disabledAttributeValue) {
-                                disabledAttribute = ' disabled="' + disabledAttributeValue + '"';
+                                cssElement.disabled = disabledAttributeValue;
                             }
-                            link.replaceWith('<style type="text/css"' + mediaAttribute + disabledAttribute + '>' + cssContent + '</style>');
+                            link.replaceWith(cssElement);
                         });
                     }).fail(function () {
                         console.error("could not find title for CSS : " + hrefMatch[1]);
