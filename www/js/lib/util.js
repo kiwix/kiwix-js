@@ -33,6 +33,78 @@ define(['q'], function(q) {
     }
     
     /**
+     * Returns the same String with the first letter in upper-case
+     * @param {String} string
+     * @returns {String}
+     */
+    function ucFirstLetter(string) {
+        if (string) {
+            if (string.length >= 1) {
+                return string.charAt(0).toLocaleUpperCase() + string.slice(1);
+            } else {
+                return string;
+            }
+        } else {
+            return string;
+        }
+    }
+    
+    /**
+     * Returns the same String with the first letter in lower-case
+     * @param {String} string
+     * @returns {String}
+     */
+    function lcFirstLetter(string) {
+        if (string) {
+            if (string.length >= 1) {
+                return string.charAt(0).toLocaleLowerCase() + string.slice(1);
+            } else {
+                return string;
+            }
+        } else {
+            return string;
+        }
+    }
+    
+    /**
+     * Returns the same String with the first letter of every word in upper-case
+     * @param {String} string
+     * @returns {String}
+     */
+    function ucEveryFirstLetter(string) {
+        if (string) {
+            return string.replace( /\b\w/g, function (m) {
+                return m.toLocaleUpperCase();
+            });
+        } else {
+            return string;
+        }
+    }
+    
+    /**
+     * Generates an array of Titles, where all duplicates have been removed
+     * (it also sorts the titles)
+     * 
+     * @param {Array.<Title>} array of Titles
+     * @returns {Array.<Title>} same array of Titles, without duplicates
+     */
+    function removeDuplicateTitlesInArray(array) {
+        array.sort(function(titleA, titleB) {
+            if (titleA.title < titleB.title) return -1;
+            if (titleA.title > titleB.title) return 1;
+            return 0;
+        });
+        for(var i = 1; i < array.length; ){
+            if(array[i-1].title === array[i].title){
+                array.splice(i, 1);
+            } else {
+                i++;
+            }
+        }
+        return array;
+    }
+    
+    /**
      * Read an integer encoded in 4 bytes, little endian
      * @param {Array} byteArray
      * @param {Integer} firstIndex
@@ -223,6 +295,10 @@ define(['q'], function(q) {
      */
     return {
         endsWith: endsWith,
+        ucFirstLetter: ucFirstLetter,
+        lcFirstLetter: lcFirstLetter,
+        ucEveryFirstLetter: ucEveryFirstLetter,
+        removeDuplicatesInArray: removeDuplicateTitlesInArray,
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,
         readFloatFrom4Bytes : readFloatFrom4Bytes,

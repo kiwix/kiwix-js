@@ -109,13 +109,61 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
 
     /**
+     * Look for titles starting with the given prefix.
+     * For now, ZIM titles are case sensitive.
+     * So, as workaround, we try several variants of the prefix to find more results.
+     * This should be enhanced when the ZIM format will be modified to store normalized titles
+     * See https://github.com/mossroy/evopedia-html5/issues/117
      * 
      * @param {String} prefix
      * @param {Integer} resultSize
-     * @param {type} callback
-     * @returns {callbackTitleList}
+     * @param {callbackTitleList} callback
      */
     ZIMArchive.prototype.findTitlesWithPrefix = function(prefix, resultSize, callback) {
+        var that = this;
+        that.findTitlesWithPrefixCaseSensitive(prefix, resultSize, function(titles) {
+            if (titles.length < resultSize) {
+                // Let's add results with first letter upper-case
+                var ucPrefix = util.ucFirstLetter(prefix);
+                that.findTitlesWithPrefixCaseSensitive(ucPrefix, resultSize, function(ucTitles) {
+                    titles.push.apply(titles, ucTitles);
+                    titles = util.removeDuplicatesInArray(titles);
+                    if (titles.length < resultSize) {
+                        // Let's add results with first letter lower-case
+                        var lcPrefix = util.ucFirstLetter(prefix);
+                        that.findTitlesWithPrefixCaseSensitive(lcPrefix, resultSize, function(lcTitles) {
+                            titles.push.apply(titles, lcTitles);
+                            titles = util.removeDuplicatesInArray(titles);
+                            if (titles.length < resultSize) {
+                                // Let's add results with first letter of every word upper-case
+                                var ucEveryWordPrefix = util.ucEveryFirstLetter(prefix);
+                                that.findTitlesWithPrefixCaseSensitive(ucEveryWordPrefix, resultSize, function (ucEveryTitles) {
+                                    titles.push.apply(titles, ucEveryTitles);
+                                    titles = util.removeDuplicatesInArray(titles);
+                                    callback(titles);
+                                });
+                            } else {
+                                callback(titles);
+                            }
+                        });
+                    } else {
+                        callback(titles);
+                    }
+                });
+            } else {
+                callback(titles);
+            }
+        });
+    };
+    
+    /**
+     * Look for titles starting with the given prefix (case-sensitive)
+     * 
+     * @param {String} prefix
+     * @param {Integer} resultSize
+     * @param {callbackTitleList} callback
+     */
+    ZIMArchive.prototype.findTitlesWithPrefixCaseSensitive = function(prefix, resultSize, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
