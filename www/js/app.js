@@ -1001,8 +1001,28 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     var titleName = util.removeUrlParameters(hrefMatch[1]);
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            var cssContent = encodeURIComponent(util.uintToString(content));
-                            link.attr("href", 'data:text/css;charset=UTF-8,' + cssContent);
+                            var cssContent = util.uintToString(content);
+                            // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
+                            // So we replace the tag with a <style type="text/css">...</style>
+                            // while copying some attributes of the original tag
+                            // Cf http://jonraasch.com/blog/javascript-style-node
+                            var cssElement = document.createElement('style');
+                            cssElement.type = 'text/css';
+
+                            if (cssElement.styleSheet) {
+                                cssElement.styleSheet.cssText = cssContent;
+                            } else {
+                                cssElement.appendChild(document.createTextNode(cssContent));
+                            }
+                            var mediaAttributeValue = link.attr('media');
+                            if (mediaAttributeValue) {
+                                cssElement.media = mediaAttributeValue;
+                            }
+                            var disabledAttributeValue = link.attr('media');
+                            if (disabledAttributeValue) {
+                                cssElement.disabled = disabledAttributeValue;
+                            }
+                            link.replaceWith(cssElement);
                         });
                     }).fail(function () {
                         console.error("could not find title for CSS : " + hrefMatch[1]);
