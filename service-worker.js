@@ -143,7 +143,7 @@ function(util) {
                 }
                 
                 // We need to remove the potential parameters in the URL
-                titleName = util.removeUrlParameters(titleName);
+                titleName = util.removeUrlParameters(decodeURIComponent(titleName));
                 
                 titleNameWithNameSpace = nameSpace + '/' + titleName;
 
