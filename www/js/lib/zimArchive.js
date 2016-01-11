@@ -119,13 +119,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                if (dirEntry.title == "")
+                if (dirEntry.title === "")
                     return -1; // ZIM sorts empty titles (assets) to the end
                 else if (dirEntry.namespace < "A")
                     return 1;
                 else if (dirEntry.namespace > "A")
                     return -1;
-                return prefix < dirEntry.title ? -1 : 1;
+                return prefix <= dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
             var titles = [];
@@ -133,7 +133,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 if (index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return titles;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
-                    if (dirEntry.title.slice(0, prefix.length) == prefix)
+                    if (dirEntry.title.slice(0, prefix.length) === prefix && dirEntry.namespace === "A")
                         titles.push(that._dirEntryToTitleObject(dirEntry));
                     return addTitles(index + 1);
                 });
