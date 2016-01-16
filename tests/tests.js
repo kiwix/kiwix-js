@@ -94,6 +94,15 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             });
         });
     });
+    
+    /**
+     * Function to use in .fail() of an async test
+     * @param e Error
+     */
+    function errorHandlerAsyncTest(e) {
+        ok(false, "Error in async call", e);
+        start();
+    }
  
     var runTests = function() {
 
@@ -172,7 +181,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "Diego_Velázquez", "Name of the title is correct");
                 start();
             };
-            localEvopediaArchive.getTitleByName("Diego_Velázquez").then(callbackFunction);
+            localEvopediaArchive.getTitleByName("Diego_Velázquez").then(callbackFunction).fail(errorHandlerAsyncTest);
         });
         asyncTest("check getTitleByName with quote : Hundred Years' War", function() {
             expect(2);
@@ -181,7 +190,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "Hundred_Years'_War", "Name of the title is correct");
                 start();
             };
-            localEvopediaArchive.getTitleByName("Hundred_Years'_War").then(callbackFunction);
+            localEvopediaArchive.getTitleByName("Hundred_Years'_War").then(callbackFunction).fail(errorHandlerAsyncTest);
         });
 
         test("check parseTitleFromId", function() {
@@ -219,7 +228,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 equal(title._name, "AIDS", "Name of the title is correct");
                 localEvopediaArchive.readArticle(title, callbackArticleRead);
             };
-            localEvopediaArchive.getTitleByName("AIDS").then(callbackTitleFound);
+            localEvopediaArchive.getTitleByName("AIDS").then(callbackTitleFound).fail(errorHandlerAsyncTest);
         });
         
         asyncTest("check getTitleByName with a title name that does not exist in the archive", function() {
@@ -228,7 +237,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 ok(title === null, "No title found because it does not exist in the archive");
                 start();
             };
-            localEvopediaArchive.getTitleByName("abcdef").then(callbackTitleFound);
+            localEvopediaArchive.getTitleByName("abcdef").then(callbackTitleFound).fail(errorHandlerAsyncTest);
         });
 
         asyncTest("check loading a math image", function() {
@@ -507,43 +516,74 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             expect(6);
             localZimArchive.getTitleByName("A/(The_Night_Time_Is)_The_Right_Time.html").then(function(title) {
                 ok(title !== null, "Title found");
-                ok(title.isRedirect(), "Title is a redirect.");
-                equal(title.name(), "(The Night Time Is) The Right Time", "Correct redirect title name.");
-                localZimArchive.resolveRedirect(title, function(title) {
-                    ok(title !== null, "Title found");
-                    ok(!title.isRedirect(), "Title is not a redirect.");
-                    equal(title.name(), "Night Time Is the Right Time", "Correct redirected title name.");
+                if (title !== null) {
+                    ok(title.isRedirect(), "Title is a redirect.");
+                    equal(title.name(), "(The Night Time Is) The Right Time", "Correct redirect title name.");
+                    localZimArchive.resolveRedirect(title, function(title) {
+                        ok(title !== null, "Title found");
+                        ok(!title.isRedirect(), "Title is not a redirect.");
+                        equal(title.name(), "Night Time Is the Right Time", "Correct redirected title name.");
+                        start();
+                    });
+                } else {
                     start();
-                });
-            });
+                }
+            }).fail(errorHandlerAsyncTest);
         });
         asyncTest("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function() {
             expect(4);
             localZimArchive.getTitleByName("I/m/RayCharles_AManAndHisSoul.jpg").then(function(title) {
                 ok(title !== null, "Title found");
-                equal(title.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
-                localZimArchive.readBinaryFile(title, function(title, data) {
-                    equal(data.length, 4951, "Data length is correct.");
-                    var beginning = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70,
-                                                     73, 70, 0, 1, 1, 0, 0, 1]);
-                    equal(data.slice(0, beginning.length).toSource(), beginning.toSource(), "Data beginning is correct.");
+                if (title !== null) {
+                    equal(title.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
+                    localZimArchive.readBinaryFile(title, function(title, data) {
+                        equal(data.length, 4951, "Data length is correct.");
+                        var beginning = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70,
+                                                         73, 70, 0, 1, 1, 0, 0, 1]);
+                        equal(data.slice(0, beginning.length).toSource(), beginning.toSource(), "Data beginning is correct.");
+                        start();
+                    });
+                } else {
                     start();
-                });
-            });
+                }
+            }).fail(errorHandlerAsyncTest);
         });
-        asyncTest("Stylesheet 's/style.css' can be loaded", function() {
+        asyncTest("Stylesheet '-/s/style.css' can be loaded", function() {
             expect(4);
             localZimArchive.getTitleByName("-/s/style.css").then(function(title) {
                 ok(title !== null, "Title found");
-                equal(title.url, "-/s/style.css", "URL is correct.");
-                localZimArchive.readBinaryFile(title, function(title, data) {
-                    equal(data.length, 104495, "Data length is correct.");
-                    data = utf8.parse(data);
-                    var beginning = "\n/* start http://en.wikipedia.org/w/load.php?debug=false&lang=en&modules=site&only=styles&skin=vector";
-                    equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
+                if (title !== null) {
+                    equal(title.url, "-/s/style.css", "URL is correct.");
+                    localZimArchive.readBinaryFile(title, function(title, data) {
+                        equal(data.length, 104495, "Data length is correct.");
+                        data = utf8.parse(data);
+                        var beginning = "\n/* start http://en.wikipedia.org/w/load.php?debug=false&lang=en&modules=site&only=styles&skin=vector";
+                        equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
+                        start();
+                    });
+                } else {
                     start();
-                });
-            });
+                }
+            }).fail(errorHandlerAsyncTest);
+        });
+        asyncTest("Javascript '-/j/local.js' can be loaded", function() {
+            expect(4);
+            localZimArchive.getTitleByName("-/j/local.js").then(function(title) {
+                ok(title !== null, "Title found");
+                if (title !== null) {
+                    equal(title.url, "-/j/local.js", "URL is correct.");
+                    localZimArchive.readBinaryFile(title, function(title, data) {
+                        equal(data.length, 41, "Data length is correct.");
+                        data = utf8.parse(data);
+                        var beginning = "console.log( \"mw.loader";
+                        equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
+                        start();
+                    });
+                }   
+                else {
+                    start();
+                }
+            }).fail(errorHandlerAsyncTest);
         });
     };
 });

@@ -861,7 +861,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                             console.log("content sent to ServiceWorker");
                         });
                     }
-                }
+                };
                 selectedArchive.getTitleByName(titleName).then(readFile).fail(function() {
                     messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});
                 });
@@ -988,13 +988,14 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     // We try to find its name (from an absolute or relative URL)
                     var imageMatch = image.attr("src").match(regexpImageUrl);
                     if (imageMatch) {
-                        selectedArchive.getTitleByName(imageMatch[1]).then(function(title) {
+                        var titleName = decodeURIComponent(imageMatch[1]);
+                        selectedArchive.getTitleByName(titleName).then(function(title) {
                             selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                                 // TODO : add the complete MIME-type of the image (as read from the ZIM file)
                                 image.attr("src", 'data:image;base64,' + util.uint8ArrayToBase64(content));
                             });
-                        }).fail(function (error) {
-                            console.error("could not find title for image " + imageMatch[1] + " : " + error);
+                        }).fail(function (e) {
+                            console.error("could not find title for image:" + titleName, e);
                         });
                     }
                 }
@@ -1007,14 +1008,34 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 var hrefMatch = link.attr("href").match(regexpMetadataUrl);
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(hrefMatch[1]);
+                    var titleName = util.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            var cssContent = encodeURIComponent(util.uintToString(content));
-                            link.attr("href", 'data:text/css;charset=UTF-8,' + cssContent);
+                            var cssContent = util.uintToString(content);
+                            // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
+                            // So we replace the tag with a <style type="text/css">...</style>
+                            // while copying some attributes of the original tag
+                            // Cf http://jonraasch.com/blog/javascript-style-node
+                            var cssElement = document.createElement('style');
+                            cssElement.type = 'text/css';
+
+                            if (cssElement.styleSheet) {
+                                cssElement.styleSheet.cssText = cssContent;
+                            } else {
+                                cssElement.appendChild(document.createTextNode(cssContent));
+                            }
+                            var mediaAttributeValue = link.attr('media');
+                            if (mediaAttributeValue) {
+                                cssElement.media = mediaAttributeValue;
+                            }
+                            var disabledAttributeValue = link.attr('media');
+                            if (disabledAttributeValue) {
+                                cssElement.disabled = disabledAttributeValue;
+                            }
+                            link.replaceWith(cssElement);
                         });
-                    }).fail(function (error) {
-                        console.error("could not find title for CSS " + titleName + " : " + error);
+                    }).fail(function (e) {
+                        console.error("could not find title for CSS : " + titleName, e);
                     });
                 }
             });
@@ -1027,15 +1048,15 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(srcMatch[1]);
+                    var titleName = util.removeUrlParameters(decodeURIComponent(srcMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             // TODO : I have to disable javascript for now
                             // var jsContent = encodeURIComponent(util.uintToString(content));
                             //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
                         });
-                    }).fail(function (error) {
-                        console.error("could not find title for javascript " + titleName + " : " + error);
+                    }).fail(function (e) {
+                        console.error("could not find title for javascript : " + titleName, e);
                     });
                 }
             });
