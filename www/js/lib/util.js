@@ -344,8 +344,6 @@ define(['q'], function(q) {
         readFileSlice : readFileSlice,
         binarySearch: binarySearch,
         b64toBlob: b64toBlob,
-        feedNodeWithBlob: feedNodeWithBlob,
-        uintToString: uintToString,
-        removeUrlParameters: removeUrlParameters
+        uintToString: uintToString
     };
 });
