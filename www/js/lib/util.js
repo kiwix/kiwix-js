@@ -281,27 +281,6 @@ define(['q'], function(q) {
     }
     
     /**
-     * Creates a Blob from the given content, then a URL from this Blob
-     * And put this URL in the attribute of the DOM node
-     * 
-     * This is useful to inject images inside an article
-     * 
-     * @param {Object} jQueryNode
-     * @param {String} nodeAttribute
-     * @param {Uint8Array} content
-     * @param {String} mimeType
-     */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
-        var blob = new Blob([content], {type: mimeType});
-        var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
-            URL.revokeObjectURL(url);
-        });
-        jQueryNode.attr(nodeAttribute, url);
-    }
-    
-    
-    /**
      * Converts a UInt Array to a UTF-8 encoded string
      * source : http://michael-rushanan.blogspot.de/2014/03/javascript-uint8array-hacks-and-cheat.html
      * 
@@ -314,16 +293,6 @@ define(['q'], function(q) {
             s += String.fromCharCode(uintArray[i]);
         }
         return s;
-    }
-    
-    var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
-    
-    function removeUrlParameters(url) {
-        if (regexpRemoveUrlParameters.test(url)) {
-            return regexpRemoveUrlParameters.exec(url)[1];
-        } else {
-            return url;
-        }
     }
 
     /**
