@@ -423,6 +423,11 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
      * @callback callbackStringContent
      * @param {String} content String content
      */
+    
+    /**
+     * @callback callbackUint8ArrayContent
+     * @param {Uint8Array} content String content
+     */
 
 
     /**
@@ -545,10 +550,10 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
 
     /**
      * Load the math image specified by the hex string and call the
-     * callbackFunction with a base64 encoding of its data.
+     * callbackFunction with its Uint8Array data.
      * 
      * @param {String} hexString
-     * @param {callbackStringContent} callbackFunction
+     * @param {callbackUint8ArrayContent} callbackFunction
      */
     LocalArchive.prototype.loadMathImage = function(hexString, callbackFunction) {
         var entrySize = 16 + 4 + 4;
@@ -566,7 +571,7 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
             var blob = mathDataFile.slice(pos, pos + length);
             reader.onload = function(e) {
                 var byteArray = new Uint8Array(e.target.result);
-                callbackFunction(util.uint8ArrayToBase64(byteArray));
+                callbackFunction(byteArray);
             };
             reader.readAsArrayBuffer(blob);
         });

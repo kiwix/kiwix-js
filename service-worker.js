@@ -42,9 +42,9 @@ self.addEventListener('activate', function(event) {
 require({
     baseUrl: "./www/js/lib/"
 },
-["util"],
+["uiUtil"],
 
-function(util) {
+function(uiUtil) {
 
     console.log("ServiceWorker startup");
     
@@ -143,7 +143,7 @@ function(util) {
                 }
                 
                 // We need to remove the potential parameters in the URL
-                titleName = util.removeUrlParameters(decodeURIComponent(titleName));
+                titleName = uiUtil.removeUrlParameters(decodeURIComponent(titleName));
                 
                 titleNameWithNameSpace = nameSpace + '/' + titleName;
 

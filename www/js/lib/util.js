@@ -294,16 +294,6 @@ define(['q'], function(q) {
         }
         return s;
     }
-    
-    var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
-    
-    function removeUrlParameters(url) {
-        if (regexpRemoveUrlParameters.test(url)) {
-            return regexpRemoveUrlParameters.exec(url)[1];
-        } else {
-            return url;
-        }
-    }
 
     /**
      * Functions and classes exposed by this module
@@ -323,7 +313,6 @@ define(['q'], function(q) {
         readFileSlice : readFileSlice,
         binarySearch: binarySearch,
         b64toBlob: b64toBlob,
-        uintToString: uintToString,
-        removeUrlParameters: removeUrlParameters
+        uintToString: uintToString
     };
 });

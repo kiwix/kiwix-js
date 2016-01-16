@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction'],
- function($, backend, util, cookies, geometry, osabstraction) {
+define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osabstraction'],
+ function($, backend, util, uiUtil, cookies, geometry, osabstraction) {
      
     // Disable any eval() call in jQuery : it's disabled by CSP in any packaged application
     // It happens on some wiktionary archives, because there is some javascript inside the html article
@@ -981,7 +981,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 if (m) {
                     // It's a math image (Evopedia archive)
                     selectedArchive.loadMathImage(m[1], function(data) {
-                        image.attr("src", 'data:image/png;base64,' + data);
+                        uiUtil.feedNodeWithBlob(image, 'src', data, 'image/png');
                     });
                 } else {
                     // It's a standard image contained in the ZIM file
@@ -991,8 +991,8 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                         var titleName = decodeURIComponent(imageMatch[1]);
                         selectedArchive.getTitleByName(titleName).then(function(title) {
                             selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                                // TODO : add the complete MIME-type of the image (as read from the ZIM file)
-                                image.attr("src", 'data:image;base64,' + util.uint8ArrayToBase64(content));
+                                // TODO : use the complete MIME-type of the image (as read from the ZIM file)
+                                uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
                             });
                         }).fail(function (e) {
                             console.error("could not find title for image:" + titleName, e);
@@ -1008,7 +1008,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 var hrefMatch = link.attr("href").match(regexpMetadataUrl);
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
+                    var titleName = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             var cssContent = util.uintToString(content);
@@ -1048,7 +1048,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(decodeURIComponent(srcMatch[1]));
+                    var titleName = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             // TODO : I have to disable javascript for now
