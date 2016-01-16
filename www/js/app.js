@@ -1011,7 +1011,28 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                     var titleName = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            uiUtil.feedNodeWithBlob(link, 'href', content, 'text/css');
+                            var cssContent = util.uintToString(content);
+                            // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
+                            // So we replace the tag with a <style type="text/css">...</style>
+                            // while copying some attributes of the original tag
+                            // Cf http://jonraasch.com/blog/javascript-style-node
+                            var cssElement = document.createElement('style');
+                            cssElement.type = 'text/css';
+
+                            if (cssElement.styleSheet) {
+                                cssElement.styleSheet.cssText = cssContent;
+                            } else {
+                                cssElement.appendChild(document.createTextNode(cssContent));
+                            }
+                            var mediaAttributeValue = link.attr('media');
+                            if (mediaAttributeValue) {
+                                cssElement.media = mediaAttributeValue;
+                            }
+                            var disabledAttributeValue = link.attr('media');
+                            if (disabledAttributeValue) {
+                                cssElement.disabled = disabledAttributeValue;
+                            }
+                            link.replaceWith(cssElement);
                         });
                     }).fail(function (e) {
                         console.error("could not find title for CSS : " + titleName, e);
