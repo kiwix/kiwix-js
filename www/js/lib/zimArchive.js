@@ -109,23 +109,53 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
 
     /**
+     * Look for titles starting with the given prefix.
+     * For now, ZIM titles are case sensitive.
+     * So, as workaround, we try several variants of the prefix to find more results.
+     * This should be enhanced when the ZIM format will be modified to store normalized titles
+     * See https://phabricator.wikimedia.org/T108536
      * 
      * @param {String} prefix
      * @param {Integer} resultSize
-     * @param {type} callback
-     * @returns {callbackTitleList}
+     * @param {callbackTitleList} callback
      */
     ZIMArchive.prototype.findTitlesWithPrefix = function(prefix, resultSize, callback) {
         var that = this;
+        var prefixVariants = util.removeDuplicateStringsInSmallArray([prefix, util.ucFirstLetter(prefix), util.lcFirstLetter(prefix), util.ucEveryFirstLetter(prefix)]);
+        var titles = [];
+        function searchNextVariant() {
+            if (prefixVariants.length === 0 || titles.length >= resultSize) {
+                callback(titles);
+                return;
+            }
+            var prefix = prefixVariants[0];
+            prefixVariants = prefixVariants.slice(1);
+            that.findTitlesWithPrefixCaseSensitive(prefix, resultSize - titles.length, function (newTitles) {
+                titles.push.apply(titles, newTitles);
+                searchNextVariant();
+            });
+        }
+        searchNextVariant();
+    };
+    
+    /**
+     * Look for titles starting with the given prefix (case-sensitive)
+     * 
+     * @param {String} prefix
+     * @param {Integer} resultSize
+     * @param {callbackTitleList} callback
+     */
+    ZIMArchive.prototype.findTitlesWithPrefixCaseSensitive = function(prefix, resultSize, callback) {
+        var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                if (dirEntry.title == "")
+                if (dirEntry.title === "")
                     return -1; // ZIM sorts empty titles (assets) to the end
                 else if (dirEntry.namespace < "A")
                     return 1;
                 else if (dirEntry.namespace > "A")
                     return -1;
-                return prefix < dirEntry.title ? -1 : 1;
+                return prefix <= dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
             var titles = [];
@@ -133,7 +163,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 if (index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return titles;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
-                    if (dirEntry.title.slice(0, prefix.length) == prefix)
+                    if (dirEntry.title.slice(0, prefix.length) === prefix && dirEntry.namespace === "A")
                         titles.push(that._dirEntryToTitleObject(dirEntry));
                     return addTitles(index + 1);
                 });

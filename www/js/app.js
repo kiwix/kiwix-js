@@ -861,7 +861,7 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                             console.log("content sent to ServiceWorker");
                         });
                     }
-                }
+                };
                 selectedArchive.getTitleByName(titleName).then(readFile).fail(function() {
                     messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});
                 });
@@ -877,8 +877,10 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
     var regexpImageLink = /^.?\/?[^:]+:(.*)/;
     var regexpMathImageUrl = /^\/math.*\/([0-9a-f]{32})\.png$/;
     var regexpPath = /^(.*\/)[^\/]+$/;
-    var regexpImageUrl = /^\.\.\/(I\/.*)$/;
-    var regexpMetadataUrl = /^\.\.\/(-\/.*)$/;
+    // These regular expressions match both relative and absolute URLs
+    // Since late 2014, all ZIM files should use relative URLs
+    var regexpImageUrl = /^(?:\.\.\/|\/)(I\/.*)$/;
+    var regexpMetadataUrl = /^(?:\.\.\/|\/)(-\/.*)$/;
 
     /**
      * Display the the given HTML article in the web page,
@@ -955,8 +957,13 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     // It's a link to another article
                     // Add an onclick event to go to this article
                     // instead of following the link
-                    if (url.length>=2 && url.substring(0, 2) === "./") {
+                    
+                    if (url.substring(0, 2) === "./") {
                         url = url.substring(2);
+                    }
+                    // Remove the initial slash if it's an absolute URL
+                    else if (url.substring(0, 1) === "/") {
+                        url = url.substring(1);
                     }
                     $(this).on('click', function(e) {
                         var titleName = decodeURIComponent(url);
@@ -978,15 +985,17 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
                     });
                 } else {
                     // It's a standard image contained in the ZIM file
+                    // We try to find its name (from an absolute or relative URL)
                     var imageMatch = image.attr("src").match(regexpImageUrl);
                     if (imageMatch) {
-                        selectedArchive.getTitleByName(imageMatch[1]).then(function(title) {
+                        var titleName = decodeURIComponent(imageMatch[1]);
+                        selectedArchive.getTitleByName(titleName).then(function(title) {
                             selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                                 // TODO : use the complete MIME-type of the image (as read from the ZIM file)
                                 util.feedNodeWithBlob(image, 'src', content, 'image');
                             });
-                        }).fail(function () {
-                            console.error("could not find title for image:" + imageMatch[1]);
+                        }).fail(function (e) {
+                            console.error("could not find title for image:" + titleName, e);
                         });
                     }
                 }
@@ -995,16 +1004,17 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             // Load CSS content
             $('#articleContent').contents().find('link[rel=stylesheet]').each(function() {
                 var link = $(this);
+                // We try to find its name (from an absolute or relative URL)
                 var hrefMatch = link.attr("href").match(regexpMetadataUrl);
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(hrefMatch[1]);
+                    var titleName = util.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             util.feedNodeWithBlob(link, 'href', content, 'text/css');
                         });
-                    }).fail(function () {
-                        console.error("could not find title for CSS : " + hrefMatch[1]);
+                    }).fail(function (e) {
+                        console.error("could not find title for CSS : " + titleName, e);
                     });
                 }
             });
@@ -1012,19 +1022,20 @@ define(['jquery', 'abstractBackend', 'util', 'cookies','geometry','osabstraction
             // Load Javascript content
             $('#articleContent').contents().find('script').each(function() {
                 var script = $(this);
+                // We try to find its name (from an absolute or relative URL)
                 var srcMatch = script.attr("src").match(regexpMetadataUrl);
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
-                    var titleName = util.removeUrlParameters(srcMatch[1]);
+                    var titleName = util.removeUrlParameters(decodeURIComponent(srcMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
                         selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
                             // TODO : I have to disable javascript for now
                             // var jsContent = encodeURIComponent(util.uintToString(content));
                             //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
                         });
-                    }).fail(function () {
-                        console.error("could not find title for javascript : " + srcMatch[1]);
+                    }).fail(function (e) {
+                        console.error("could not find title for javascript : " + titleName, e);
                     });
                 }
             });
