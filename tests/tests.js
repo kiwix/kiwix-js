@@ -377,6 +377,21 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
            var float = util.readFloatFrom4Bytes(byteArray, 0);
            equal(float, -118.625, "the IEEE_754 float should be converted as -118.625");
         });
+        test("check upper/lower case variations", function() {
+            var testString1 = "téléphone";
+            var testString2 = "Paris";
+            var testString3 = "le Couvre-chef Est sur le porte-manteaux";
+            var testString4 = "épée";
+            equal(util.ucFirstLetter(testString1), "Téléphone", "The first letter should be upper-case");
+            equal(util.lcFirstLetter(testString2), "paris", "The first letter should be lower-case");
+            equal(util.ucEveryFirstLetter(testString3), "Le Couvre-Chef Est Sur Le Porte-Manteaux", "The first letter of every word should be upper-case");
+            equal(util.ucFirstLetter(testString4), "Épée", "The first letter should be upper-case (with accent)");
+        });
+        test("check remove duplicates of an array of title objects", function() {
+            var array = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"a"}, {title:"c"}, {title:"d"}];
+            var expectedArray = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"d"}];
+            deepEqual(util.removeDuplicateTitlesInArray(array), expectedArray, "Duplicates should be removed from the array");
+        });
         
         module("evopedia_articles_nearby");
         asyncTest("check articles found nearby France and Germany", function() {
@@ -498,9 +513,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 
         module("zim_title_search_and_read");
         asyncTest("check DirEntry.fromStringId 'A Fool for You'", function() {
-            // Construct the DirEntry for Arikitcac article
-            // NB : this must be done inside a test or asyncTest function, else the localZimArchive is not ready yet
-            var arikitcacDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "5856|7|A|0|2|A_Fool_for_You.html|A Fool for You|false|undefined");
+            var aFoolForYouDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, "5856|7|A|0|2|A_Fool_for_You.html|A Fool for You|false|undefined");
 
             expect(2);
             var callbackFunction = function(title, htmlArticle) {
@@ -510,7 +523,37 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 ok(htmlArticle.match("^.*<h1[^>]*>A Fool for You</h1>"), "'A Fool for You' title somewhere in the article");
                 start();
             };
-            localZimArchive.readArticle(arikitcacDirEntry, callbackFunction);
+            localZimArchive.readArticle(aFoolForYouDirEntry, callbackFunction);
+        });
+        asyncTest("check findTitlesWithPrefix 'A'", function() {
+            expect(2);
+            var callbackFunction = function(titleList) {
+                ok(titleList && titleList.length === 5, "Article list with 5 results");
+                var firstTitle = titleList[0];
+                equal(firstTitle.title , 'A Fool for You', 'First result should be "A Fool for You"');
+                start();
+            };
+            localZimArchive.findTitlesWithPrefix('A', 5, callbackFunction);
+        });
+        asyncTest("check findTitlesWithPrefix 'a'", function() {
+            expect(2);
+            var callbackFunction = function(titleList) {
+                ok(titleList && titleList.length === 5, "Article list with 5 results");
+                var firstTitle = titleList[0];
+                equal(firstTitle.title , 'A Fool for You', 'First result should be "A Fool for You"');
+                start();
+            };
+            localZimArchive.findTitlesWithPrefix('a', 5, callbackFunction);
+        });
+        asyncTest("check findTitlesWithPrefix 'blues brothers'", function() {
+            expect(2);
+            var callbackFunction = function(titleList) {
+                ok(titleList && titleList.length === 3, "Article list with 3 result");
+                var firstTitle = titleList[0];
+                equal(firstTitle.title , 'Blues Brothers (film)', 'First result should be "Blues Brothers (film)"');
+                start();
+            };
+            localZimArchive.findTitlesWithPrefix('blues brothers', 5, callbackFunction);
         });
         asyncTest("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function() {
             expect(6);
