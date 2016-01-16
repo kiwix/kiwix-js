@@ -38,12 +38,8 @@ define(['q'], function(q) {
      * @returns {String}
      */
     function ucFirstLetter(string) {
-        if (string) {
-            if (string.length >= 1) {
-                return string.charAt(0).toLocaleUpperCase() + string.slice(1);
-            } else {
-                return string;
-            }
+        if (string && string.length >= 1) {
+            return string[0].toLocaleUpperCase() + string.slice(1);
         } else {
             return string;
         }
@@ -102,6 +98,25 @@ define(['q'], function(q) {
             }
         }
         return array;
+    }
+    
+    /**
+     * Generates an array of Strings, where all duplicates have been removed
+     * (without changing the order)
+     * It is optimized for small arrays.
+     * Source : http://codereview.stackexchange.com/questions/60128/removing-duplicates-from-an-array-quickly
+     * 
+     * @param {Array.<Title>} array of String
+     * @returns {Array.<Title>} same array of Strings, without duplicates
+     */
+    function removeDuplicateStringsInSmallArray(array) {
+        var unique = [];
+        for (var i = 0; i < array.length; i++) {
+            var current = array[i];
+            if (unique.indexOf(current) < 0)
+                unique.push(current);
+        }
+        return unique;
     }
     
     /**
@@ -298,7 +313,8 @@ define(['q'], function(q) {
         ucFirstLetter: ucFirstLetter,
         lcFirstLetter: lcFirstLetter,
         ucEveryFirstLetter: ucEveryFirstLetter,
-        removeDuplicatesInArray: removeDuplicateTitlesInArray,
+        removeDuplicateTitlesInArray: removeDuplicateTitlesInArray,
+        removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,
         readFloatFrom4Bytes : readFloatFrom4Bytes,

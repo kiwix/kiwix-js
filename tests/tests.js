@@ -381,7 +381,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
         test("check remove duplicates of an array of title objects", function() {
             var array = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"a"}, {title:"c"}, {title:"d"}];
             var expectedArray = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"d"}];
-            deepEqual(util.removeDuplicatesInArray(array), expectedArray, "Duplicates should be removed from the array");
+            deepEqual(util.removeDuplicateTitlesInArray(array), expectedArray, "Duplicates should be removed from the array");
         });
         
         module("evopedia_articles_nearby");

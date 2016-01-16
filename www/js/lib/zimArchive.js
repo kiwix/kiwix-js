@@ -113,7 +113,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * For now, ZIM titles are case sensitive.
      * So, as workaround, we try several variants of the prefix to find more results.
      * This should be enhanced when the ZIM format will be modified to store normalized titles
-     * See https://github.com/mossroy/evopedia-html5/issues/117
+     * See https://phabricator.wikimedia.org/T108536
      * 
      * @param {String} prefix
      * @param {Integer} resultSize
@@ -121,39 +121,21 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.findTitlesWithPrefix = function(prefix, resultSize, callback) {
         var that = this;
-        that.findTitlesWithPrefixCaseSensitive(prefix, resultSize, function(titles) {
-            if (titles.length < resultSize) {
-                // Let's add results with first letter upper-case
-                var ucPrefix = util.ucFirstLetter(prefix);
-                that.findTitlesWithPrefixCaseSensitive(ucPrefix, resultSize, function(ucTitles) {
-                    titles.push.apply(titles, ucTitles);
-                    titles = util.removeDuplicatesInArray(titles);
-                    if (titles.length < resultSize) {
-                        // Let's add results with first letter lower-case
-                        var lcPrefix = util.ucFirstLetter(prefix);
-                        that.findTitlesWithPrefixCaseSensitive(lcPrefix, resultSize, function(lcTitles) {
-                            titles.push.apply(titles, lcTitles);
-                            titles = util.removeDuplicatesInArray(titles);
-                            if (titles.length < resultSize) {
-                                // Let's add results with first letter of every word upper-case
-                                var ucEveryWordPrefix = util.ucEveryFirstLetter(prefix);
-                                that.findTitlesWithPrefixCaseSensitive(ucEveryWordPrefix, resultSize, function (ucEveryTitles) {
-                                    titles.push.apply(titles, ucEveryTitles);
-                                    titles = util.removeDuplicatesInArray(titles);
-                                    callback(titles);
-                                });
-                            } else {
-                                callback(titles);
-                            }
-                        });
-                    } else {
-                        callback(titles);
-                    }
-                });
-            } else {
+        var prefixVariants = util.removeDuplicateStringsInSmallArray([prefix, util.ucFirstLetter(prefix), util.lcFirstLetter(prefix), util.ucEveryFirstLetter(prefix)]);
+        var titles = [];
+        function searchNextVariant() {
+            if (prefixVariants.length === 0 || titles.length >= resultSize) {
                 callback(titles);
+                return;
             }
-        });
+            var prefix = prefixVariants[0];
+            prefixVariants = prefixVariants.slice(1);
+            that.findTitlesWithPrefixCaseSensitive(prefix, resultSize - titles.length, function (newTitles) {
+                titles.push.apply(titles, newTitles);
+                searchNextVariant();
+            });
+        }
+        searchNextVariant();
     };
     
     /**
