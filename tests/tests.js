@@ -573,6 +573,42 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 }
             }).fail(errorHandlerAsyncTest);
         });
+        asyncTest("article 'Raelettes' correctly redirects to 'The Raelettes'", function() {
+            expect(6);
+            localZimArchive.getTitleByName("A/Raelettes.html").then(function(title) {
+                ok(title !== null, "Title found");
+                if (title !== null) {
+                    ok(title.isRedirect(), "Title is a redirect.");
+                    equal(title.name(), "Raelettes", "Correct redirect title name.");
+                    localZimArchive.resolveRedirect(title, function(title) {
+                        ok(title !== null, "Title found");
+                        ok(!title.isRedirect(), "Title is not a redirect.");
+                        equal(title.name(), "The Raelettes", "Correct redirected title name.");
+                        start();
+                    });
+                } else {
+                    start();
+                }
+            }).fail(errorHandlerAsyncTest);
+        });
+        asyncTest("article 'Bein Green' correctly redirects to 'Bein' Green", function() {
+            expect(6);
+            localZimArchive.getTitleByName("A/Bein_Green.html").then(function(title) {
+                ok(title !== null, "Title found");
+                if (title !== null) {
+                    ok(title.isRedirect(), "Title is a redirect.");
+                    equal(title.name(), "Bein Green", "Correct redirect title name.");
+                    localZimArchive.resolveRedirect(title, function(title) {
+                        ok(title !== null, "Title found");
+                        ok(!title.isRedirect(), "Title is not a redirect.");
+                        equal(title.name(), "Bein' Green", "Correct redirected title name.");
+                        start();
+                    });
+                } else {
+                    start();
+                }
+            }).fail(errorHandlerAsyncTest);
+        });
         asyncTest("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function() {
             expect(4);
             localZimArchive.getTitleByName("I/m/RayCharles_AManAndHisSoul.jpg").then(function(title) {
