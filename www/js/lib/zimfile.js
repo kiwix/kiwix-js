@@ -28,7 +28,7 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
         for (var i = 0; i < size; i++)
         {
             var c = (data[offset + i] + 256) & 0xff;
-            r += c << (8 * i);
+            r += util.leftShift(c, 8 * i);
         }
         return r;
     };
