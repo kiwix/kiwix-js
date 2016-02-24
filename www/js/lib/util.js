@@ -294,6 +294,19 @@ define(['q'], function(q) {
         }
         return s;
     }
+    
+    /**
+     * Does a "left shift" on an integer.
+     * It is equivalent to int << bits (which works only on 32-bit integers),
+     * but compatible with 64-bit integers.
+     * 
+     * @param {Integer} int
+     * @param {Integer} bits
+     * @returns {Integer}
+     */
+    function leftShift(int, bits) {
+        return int * Math.pow(2, bits);
+    }
 
     /**
      * Functions and classes exposed by this module
@@ -313,6 +326,7 @@ define(['q'], function(q) {
         readFileSlice : readFileSlice,
         binarySearch: binarySearch,
         b64toBlob: b64toBlob,
-        uintToString: uintToString
+        uintToString: uintToString,
+        leftShift: leftShift
     };
 });
