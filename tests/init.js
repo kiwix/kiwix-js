@@ -21,6 +21,11 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
+
+// This global variable is used by archive.js to find the webworker js file
+// because it has to be found in a different location if used in a unit test
+var PREFIX_PATH_WEBWORKER_BZIP2 = "www/";
+
 require.config({
     baseUrl: 'www/js/lib',
     paths: {

@@ -23,17 +23,11 @@
 'use strict';
 define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
  function(normalize_string, geometry, evopediaTitle, util, titleIterators, q) {
-        
+     
     // Declare the webworker that can uncompress with bzip2 algorithm
-    var webworkerBzip2;
-    try {
-        // When using the application normally
-        webworkerBzip2 = new Worker("js/lib/webworker_bzip2.js");
-    }
-    catch(e) {
-        // When using unit tests
-        webworkerBzip2 = new Worker("www/js/lib/webworker_bzip2.js");
-    }
+    // When using the application normally, there's no prefix
+    // But the prefix www is needed when using unit tests
+    var webworkerBzip2 = new Worker(PREFIX_PATH_WEBWORKER_BZIP2 + "js/lib/webworker_bzip2.js");
     
     // Size of chunks read in the dump files : 128 KB
     var CHUNK_SIZE = 131072;
