@@ -609,6 +609,24 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                 }
             }).fail(errorHandlerAsyncTest);
         });
+        asyncTest("article 'America, the Beautiful' correctly redirects to 'America the Beautiful'", function() {
+            expect(6);
+            localZimArchive.getTitleByName("A/America,_the_Beautiful.html").then(function(title) {
+                ok(title !== null, "Title found");
+                if (title !== null) {
+                    ok(title.isRedirect(), "Title is a redirect.");
+                    equal(title.name(), "America, the Beautiful", "Correct redirect title name.");
+                    localZimArchive.resolveRedirect(title, function(title) {
+                        ok(title !== null, "Title found");
+                        ok(!title.isRedirect(), "Title is not a redirect.");
+                        equal(title.name(), "America the Beautiful", "Correct redirected title name.");
+                        start();
+                    });
+                } else {
+                    start();
+                }
+            }).fail(errorHandlerAsyncTest);
+        });
         asyncTest("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function() {
             expect(4);
             localZimArchive.getTitleByName("I/m/RayCharles_AManAndHisSoul.jpg").then(function(title) {
