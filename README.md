@@ -32,5 +32,5 @@ You can install it on a Firefox OS device through the WebIDE of Firefox :
 
 You also can run it on a desktop browser of a computer (tested with Firefox and Chromium) :
 - for jQuery mode, you can simply open the index.html file in the source code, but the browser will not allow to run a ServiceWorker this way
-- for ServiceWorker mode, the source code needs to be served through a web server (even on localhost)
+- for ServiceWorker mode, the source code needs to be served through a web server (even on localhost). On Firefox, you also need to use the developer edition of Firefox (>=v48.0a2) for now.
 In both modes, you will have to manually select the ZIM file each time.
