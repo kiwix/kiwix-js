@@ -212,9 +212,9 @@
                     </div>
                     <div id="contentInjectionModeDiv">
                         Content injection mode : <br/>
-                        <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked><label for="jQueryModeRadio">JQuery</label>
+                        <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked><label for="jQueryModeRadio">JQuery</label> (slow and memory hungry, but safer)
                         <br>
-                        <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio"><label for="serviceworkerModeRadio">ServiceWorker</label>
+                        <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio"><label for="serviceworkerModeRadio">ServiceWorker</label> (faster but unstable, and not supported by all platforms)
                     </div>
                     <div id="serviceWorkerStatus"></div>
                     <div id="messageChannelStatus"></div>
