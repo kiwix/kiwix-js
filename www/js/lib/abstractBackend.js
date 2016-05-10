@@ -23,6 +23,7 @@
 define(['archive', 'zimArchive', 'util', 'jquery'],
        function(evopediaArchive, zimArchive, util, jQuery) {
 
+    var regexpZIMFileName = /\.zim[^\.]*$/i;
 
     /**
      * Create an archive (ZIM or Evopedia) from DeviceStorage location
@@ -31,7 +32,7 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
      * @returns {ZIMArchive|LocalArchive}
      */
     function loadArchiveFromDeviceStorage(storage, path) {
-        if (util.endsWith(path, ".zim")) {
+        if (regexpZIMFileName.test(path)) {
             return new zimArchive.ZIMArchive(storage, path);
         }
         else {
@@ -46,8 +47,8 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
      * @returns {ZIMArchive|LocalArchive}
      */
     function loadArchiveFromFiles(files) {
-        if (files.length >= 1 && util.endsWith(files[0].name, ".zim")) {
-            return new zimArchive.ZIMArchive(files[0]);
+        if (files.length >= 1 && regexpZIMFileName.test(files[0].name)) {
+            return new zimArchive.ZIMArchive(files);
         }
         else {
             var archive = new evopediaArchive.LocalArchive();

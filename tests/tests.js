@@ -88,8 +88,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
         // Create a localEvopediaArchive and a localZimArchive from selected files, in order to run the following tests
         localEvopediaArchive = new evopediaArchive.LocalArchive();
         localEvopediaArchive.initializeFromArchiveFiles(evopediaArchiveFiles, function(archive) {
-            var zimFile = zimArchiveFiles[0];
-            localZimArchive = new zimArchive.ZIMArchive(zimFile, null, function (zimArchive) {
+            localZimArchive = new zimArchive.ZIMArchive(zimArchiveFiles, null, function (zimArchive) {
                 runTests();
             });
         });

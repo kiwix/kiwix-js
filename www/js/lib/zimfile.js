@@ -39,7 +39,7 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
      * See http://www.openzim.org/wiki/ZIM_file_format#Header
      * 
      * @typedef ZIMFile
-     * @property {File} _file The ZIM file
+     * @property {Array.<File>} _files Array of ZIM files
      * @property {Integer} articleCount total number of articles
      * @property {Integer} clusterCount total number of clusters
      * @property {Integer} urlPtrPos position of the directory pointerlist ordered by URL
@@ -52,11 +52,11 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
      */
     
     /**
-     * @param {File} abstractFile
+     * @param {Array.<File>} abstractFileArray
      */
-    function ZIMFile(abstractFile)
+    function ZIMFile(abstractFileArray)
     {
-        this._file = abstractFile;
+        this._files = abstractFileArray;
     }
 
     /**
@@ -67,7 +67,7 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
      */
     ZIMFile.prototype._readInteger = function(offset, size)
     {
-        return util.readFileSlice(this._file, offset, size).then(function(data)
+        return this._readSlice(offset, size).then(function(data)
         {
             return readInt(data, 0, size);
         });
@@ -81,7 +81,16 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
      */
     ZIMFile.prototype._readSlice = function(offset, size)
     {
-        return util.readFileSlice(this._file, offset, size);
+        var fileNumber = 0;
+        var offsetInActualFile = offset;
+        var fileSize = this._files[0].size;
+        if (this._files.length > 1 && offset > fileSize) {
+            // We need to find in which actual file the data must be read
+            fileNumber = Math.floor(offset / fileSize);
+            offsetInActualFile = offset - fileNumber * fileSize;
+        }
+        // TODO handle the case where the slice is splitted into several files
+        return util.readFileSlice(this._files[fileNumber], offsetInActualFile, size);
     };
 
     /**
@@ -183,13 +192,15 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
     return {
         /**
          * 
-         * @param {File} file
+         * @param {Array.<File>} fileArray
          * @returns {Promise}
          */
-        fromFile: function(file) {
-            return util.readFileSlice(file, 0, 80).then(function(header)
+        fromFileArray: function(fileArray) {
+            // Let's sort the file array in alphabetic order
+            fileArray.sort();
+            return util.readFileSlice(fileArray[0], 0, 80).then(function(header)
             {
-                var zf = new ZIMFile(file);
+                var zf = new ZIMFile(fileArray);
                 zf.articleCount = readInt(header, 24, 4);
                 zf.clusterCount = readInt(header, 28, 4);
                 zf.urlPtrPos = readInt(header, 32, 8);
