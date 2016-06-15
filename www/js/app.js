@@ -1225,11 +1225,18 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                 alert("Error finding random article.");
             }
             else {
-                $("#articleName").html(title.name());
-                pushBrowserHistoryState(title.name());
-                $("#readingArticle").show();
-                $('#articleContent').contents().find('body').html("");
-                readArticle(title);
+                if (title.namespace === 'A') {
+                    $("#articleName").html(title.name());
+                    pushBrowserHistoryState(title.name());
+                    $("#readingArticle").show();
+                    $('#articleContent').contents().find('body').html("");
+                    readArticle(title);
+                }
+                else {
+                    // If the random title search did not end up on an article,
+                    // we try again, until we find one
+                    goToRandomArticle();
+                }
             }
         });
     }
