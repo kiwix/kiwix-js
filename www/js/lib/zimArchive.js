@@ -194,7 +194,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.resolveRedirect = function(title, callback) {
         var that = this;
-        this._file.dirEntryByTitleIndex(title.redirectTarget).then(function(dirEntry) {
+        this._file.dirEntryByUrlIndex(title.redirectTarget).then(function(dirEntry) {
             return that._dirEntryToTitleObject(dirEntry);
         }).then(callback);
     };
