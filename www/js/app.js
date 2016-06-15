@@ -255,9 +255,15 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
-        // Do the necessary to enable or disable the Service Worker
-        setContentInjectionMode(this.value);
-        checkSelectedArchiveCompatibilityWithInjectionMode();
+        if (checkWarnServiceWorkerMode(this.value)) {
+            // Do the necessary to enable or disable the Service Worker
+            setContentInjectionMode(this.value);
+            checkSelectedArchiveCompatibilityWithInjectionMode();
+        }
+        else {
+            setContentInjectionMode('jquery');
+        }
+        
     });
     
     /**
@@ -373,6 +379,34 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             alert('You seem to want to use ServiceWorker mode for an Evopedia archive : this is not supported. Please use the JQuery mode or use a ZIM file');
             $("#btnConfigure").click();
             return false;
+        }
+        return true;
+    }
+    
+    /**
+     * If the ServiceWorker mode is selected, warn the user before activating it
+     * @param chosenContentInjectionMode The mode that the user has chosen
+     */
+    function checkWarnServiceWorkerMode(chosenContentInjectionMode) {
+        if (chosenContentInjectionMode === 'serviceworker' && !cookies.hasItem("warnedServiceWorkerMode")) {
+            // The user selected the "serviceworker" mode, which is still unstable
+            // So let's display a warning to the user
+
+            // If the focus is on the search field, we have to move it,
+            // else the keyboard hides the message
+            if ($("#prefix").is(":focus")) {
+                $("searchTitles").focus();
+            }
+            if (confirm("The 'Service Worker' mode is still UNSTABLE for now."
+                + " It happens that the application needs to be reinstalled (or the ServiceWorker manually removed)."
+                + " Please confirm with OK that you're ready to face this kind of bugs, or click Cancel to stay in 'jQuery' mode.")) {
+                // We will not display this warning again for one day
+                cookies.setItem("warnedServiceWorkerMode", true, 86400);
+                return true;
+            }
+            else {
+                return false;
+            }
         }
         return true;
     }
