@@ -600,11 +600,11 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             setLocalArchiveFromArchiveList();
         }
         else {
-            alert("Welcome to Evopedia! This application needs a wikipedia archive in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)");
+            alert("Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)");
             $("#btnAbout").click();
             var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
             if (isAndroid) {
-                alert("You seem to be using an Android device. Be aware that there is a bug on Firefox (at least for versions 34 and 35), that prevents finding wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if Evopedia can't find it.");
+                alert("You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.");
             }
         }
     }
