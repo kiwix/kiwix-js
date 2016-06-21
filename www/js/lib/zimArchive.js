@@ -28,7 +28,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * 
      * @typedef ZIMArchive
-     * @property {ZIMFile} _file The ZIM file
+     * @property {ZIMFile} _file The ZIM file (instance of ZIMFile, that might physically be splitted into several actual files)
      * @property {String} _language Language of the content
      */
     
@@ -42,7 +42,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
      * 
-     * @param {StorageFirefoxOS|StoragePhoneGap|Array.<Blob>} storage Storage (in this case, the path must be given) or File (path must be omitted)
+     * @param {StorageFirefoxOS|StoragePhoneGap|Array.<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
      * @param {String} path
      * @param {callbackZIMArchive} callbackReady
      */
@@ -61,16 +61,59 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             });
         }
         else {
+            // First, let's make sure the file exists at this path
             storage.get(path).then(function(file) {
                 var fileArray = new Array();
-                // TODO find all the actual files that belong to the same archive
-                fileArray[0] = file;
-                return zimfile.fromFileArray(fileArray).then(function(file) {
-                    that._file = file;
-                    callbackReady(that);
-                });
+                
+                // Let's find the prefix of this file (/path/to/file.zim for /path/to/file.zimaa)
+                var regexpZIMFileName = /(^.+\.zim)[^\.]*$/i;
+                var regexpZIMFileNameResults = regexpZIMFileName.exec(path);
+                var fileNamePrefix;
+                if (regexpZIMFileNameResults && regexpZIMFileNameResults.length>0) {
+                    fileNamePrefix = regexpZIMFileNameResults[1];
+                }
+                else {
+                    alert("Impossible to find the prefix of ZIM file " + path);
+                }
+                
+                // Find the directory where the file is
+                // without the device storage name prefix
+                var regexpDirectoryPath = /^\/[^\/]+\/(.*\/)[^\/]*/;
+                var regexpDirectoryPathResults = regexpDirectoryPath.exec(path);
+                if (regexpDirectoryPathResults && regexpDirectoryPathResults.length > 0) {
+                    var directoryPath = regexpDirectoryPathResults[1];
+                    // We need to find all the actual files that belong to the same archive :
+                    // they are in the same directory and have the same prefix
+                    // TODO : this seems to scan the whole DeviceStorage instead of only the directory?
+                    var cursor = storage.enumerate(directoryPath);
+                    cursor.onsuccess = function () {
+                        if (this.result) {
+                            var file = this.result;
+                            // TODO if it's not possible to avoid scanning sub-directories,
+                            // we should take care we don't match files inside those sub-directories
+                            if (file && file.name && file.name.startsWith(fileNamePrefix)) {
+                                fileArray.push(file);
+                            }                            
+                        }
+                        if (this.done) {
+                            return zimfile.fromFileArray(fileArray).then(function (zimFile) {
+                                that._file = zimFile;
+                                callbackReady(that);
+                            });
+                        }
+                        else {
+                            this.continue();
+                        }
+                    };
+                    cursor.onerror = function (error) {
+                        alert("Impossible to find the actual files corresponding to " + path + " : " + error);
+                    };
+                }
+                else {
+                    alert("Impossible to find the directory of " + path);
+                }
             }, function(error) {
-                alert("Error reading ZIM file " + path + ": " + error);
+                alert("Error reading ZIM file " + path + " : " + error);
             });
         }
     };
@@ -279,7 +322,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var index = Math.floor(Math.random() * this._file.articleCount);
         this._file.dirEntryByUrlIndex(index).then(function(dirEntry) {
             return that._dirEntryToTitleObject(dirEntry);
-        }).then(callback)
+        }).then(callback);
     };
 
     /**
