@@ -81,16 +81,36 @@ define(['xzdec_wrapper', 'util', 'utf8'], function(xz, util, utf8) {
      */
     ZIMFile.prototype._readSlice = function(offset, size)
     {
-        var fileNumber = 0;
-        var offsetInActualFile = offset;
-        var fileSize = this._files[0].size;
-        if (this._files.length > 1 && offset > fileSize) {
-            // We need to find in which actual file the data must be read
-            fileNumber = Math.floor(offset / fileSize);
-            offsetInActualFile = offset - fileNumber * fileSize;
+        // TODO do we need to convert some of these numbers to float
+        // for the sake of precision?
+        var readRequests = [];
+        var currentOffset = 0;
+        for (var i = 0; i < this._files.length; currentOffset += this._files[i].size, ++i) {
+            var currentSize = this._files[i].size;
+            if (offset < currentOffset + currentSize && currentOffset < offset + size) {
+                var readStart = Math.max(0, offset - currentOffset);
+                var readSize = Math.min(currentSize, offset + size - currentOffset);
+                readRequests.push(util.readFileSlice(this._files[i], readStart, readSize));
+            }
         }
-        // TODO handle the case where the slice is splitted into several files
-        return util.readFileSlice(this._files[fileNumber], offsetInActualFile, size);
+        if (readRequests.length == 0) {
+            // make it fail
+            return util.readFileSlice(this._files[0], this._files[0].size, size);
+        } else if (readRequests.length == 1) {
+            return readRequests[0];
+        } else {
+            // Wait until all are resolved and concatenate.
+            console.log("CONCAT");
+            return readRequests[0].all(readRequests).then(function(arrays) {
+                var concatenated = new Uint8Array(size);
+                var sizeSum = 0;
+                for (var i = 0; i < arrays.length; ++i) {
+                    concatenated.set(new Uint8Array(arrays[i]), sizeSum);
+                    sizeSum += arrays[i].byteLength;
+                }
+                return concatenated.buffer;
+            });
+        }
     };
 
     /**

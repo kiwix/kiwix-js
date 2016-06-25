@@ -50,72 +50,59 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         that._file = null;
         that._language = ""; //@TODO
-        if (storage && !path) {
-            var fileList = storage;
-            // We need to convert the FileList into an Array
-            var fileArray = [].slice.call(fileList);
-            // The constructor has been called with an array of File/Blob parameter
+        var createZimfile = function(fileArray) {
             zimfile.fromFileArray(fileArray).then(function(file) {
                 that._file = file;
                 callbackReady(that);
             });
         }
-        else {
-            // First, let's make sure the file exists at this path
-            storage.get(path).then(function(file) {
-                var fileArray = new Array();
-                
-                // Let's find the prefix of this file (/path/to/file.zim for /path/to/file.zimaa)
-                var regexpZIMFileName = /(^.+\.zim)[^\.]*$/i;
-                var regexpZIMFileNameResults = regexpZIMFileName.exec(path);
-                var fileNamePrefix;
-                if (regexpZIMFileNameResults && regexpZIMFileNameResults.length>0) {
-                    fileNamePrefix = regexpZIMFileNameResults[1];
-                }
-                else {
-                    alert("Impossible to find the prefix of ZIM file " + path);
-                }
-                
-                // Find the directory where the file is
-                // without the device storage name prefix
-                var regexpDirectoryPath = /^\/[^\/]+\/(.*\/)[^\/]*/;
-                var regexpDirectoryPathResults = regexpDirectoryPath.exec(path);
-                if (regexpDirectoryPathResults && regexpDirectoryPathResults.length > 0) {
-                    var directoryPath = regexpDirectoryPathResults[1];
-                    // We need to find all the actual files that belong to the same archive :
-                    // they are in the same directory and have the same prefix
-                    // TODO : this seems to scan the whole DeviceStorage instead of only the directory?
-                    var cursor = storage.enumerate(directoryPath);
-                    cursor.onsuccess = function () {
-                        if (this.result) {
-                            var file = this.result;
-                            // TODO if it's not possible to avoid scanning sub-directories,
-                            // we should take care we don't match files inside those sub-directories
-                            if (file && file.name && file.name.startsWith(fileNamePrefix)) {
-                                fileArray.push(file);
-                            }                            
-                        }
-                        if (this.done) {
-                            return zimfile.fromFileArray(fileArray).then(function (zimFile) {
-                                that._file = zimFile;
-                                callbackReady(that);
-                            });
-                        }
-                        else {
-                            this.continue();
-                        }
-                    };
-                    cursor.onerror = function (error) {
-                        alert("Impossible to find the actual files corresponding to " + path + " : " + error);
-                    };
-                }
-                else {
-                    alert("Impossible to find the directory of " + path);
-                }
-            }, function(error) {
-                alert("Error reading ZIM file " + path + " : " + error);
-            });
+        if (storage && !path) {
+            var fileList = storage;
+            // We need to convert the FileList into an Array
+            var fileArray = [].slice.call(fileList);
+            // The constructor has been called with an array of File/Blob parameter
+            createZimfile(fileArray);
         }
+        else {
+            var p;
+            if (/.*zim..$/.test(path)) {
+                // splitted archive
+                that._searchArchiveParts(storage, path.slice(0, -2)).then(function(fileArray) {
+                    createZimfile(fileArray);
+                }, function(error) {
+                    alert("Error reading files in splitted archive " + path + ": " + error);
+                });
+            }
+            else {
+                storage.get(path).then(function(file) {
+                    createZimfile([file]);
+                }, function(error) {
+                    alert("Error reading ZIM file " + path + " : " + error);
+                });
+            }
+        }
+    };
+
+    /**
+     * Searches the directory for all parts of a splitted archive.
+     * @param {Storage} storage storage interface
+     * @param {String} prefixPath path to the splitted files, missing the "aa" / "ab" / ... suffix.
+     * @returns {Promise} that resolves to the array of file objects found.
+     */
+    ZIMArchive.prototype._searchArchiveParts = function(storage, prefixPath) {
+        var fileArray = [];
+        var nextFile = function(part) {
+            var suffix = String.fromCharCode(0x61 + Math.floor(part / 26)) + String.fromCharCode(0x61 + part % 26);
+            console.log(suffix);
+            return storage.get(prefixPath + suffix)
+                .then(function(file) {
+                    fileArray.push(file);
+                    return nextFile(part + 1);
+                }, function(error) {
+                    return fileArray;
+                });
+        };
+        return nextFile(0);
     };
 
     /**
