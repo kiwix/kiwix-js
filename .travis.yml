@@ -1,0 +1,9 @@
+language: node_js
+addons:
+  sauce_connect: true
+before_script:
+  - npm install nightwatch http-server
+  - ./node_modules/http-server/bin/http-server . &
+script:
+  - ./node_modules/nightwatch/bin/nightwatch --env firefox
+  - pkill node
