@@ -51,7 +51,7 @@
                       <span class="icon-bar"></span>
                       <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand">Kiwix beta</a>
+                    <a class="navbar-brand">Kiwix 2.0 beta</a>
                   </div>
 
                   <!-- Collect the nav links, forms, and other content for toggling -->
@@ -106,10 +106,11 @@
                     From <a href="http://download.kiwix.org" target="_blank">http://download.kiwix.org</a>, with a regular computer.
                     <br />For a quick test, you can start with the <a href="http://download.kiwix.org/zim/wikipedia/wikipedia_en_ray_charles_2015-06.zim" target="_blank">"Ray Charles" ZIM file</a> : it contains some wikipedia articles about Ray Charles.
                     <br />After that, you can download an archive in your language. Check its size : these archives take several GB each.
+                    <br />If your archive size is more than 2 GB, it might not be supported by your device if it's using a FAT filesystem. In this case, it can be splitted into several 2GB files : see <a href="http://www.kiwix.org/wiki/FAQ">the Kiwix FAQ</a>
                     <br />
-                    <br />NB : this application is also compatible with <a href="http://dumpathome.evopedia.info/dumps/finished/">Evopedia archive</a>, but this format and <a href="http://www.evopedia.info">project</a> are now discontinued.
+                    <br />NB : version 1.x of this application was designed for <a href="http://dumpathome.evopedia.info/dumps/finished/">Evopedia archives</a> and it's still compatible with it, but this format and <a href="http://www.evopedia.info">project</a> are now discontinued.
                     <h4>Step 2 : put it on your SD-card (or internal storage)</h4>
-                    The archive can be stored is any subdirectory of your SD-card or internal storage (ex: /zim). If you have enough space, you can put several archives
+                    The archive can be stored in any subdirectory of your SD-card or internal storage (ex: /zim). If you have enough space, you can put several archives
                     <h4>Step 3 : enjoy wikipedia offline!</h4>
                     <h3>Privacy policy</h3>
                     <h4>Short answer :</h4>
@@ -120,9 +121,12 @@
                     <h3>Feedback / helping / contributing</h3>
                     This application is still in beta state. There are bugs and improvements that need to be done. In particular :
                     <ul>
-                        <li><a href="https://github.com/kiwix/kiwix-html5/issues/113" target="_blank">Issue #113</a> : Handle splitted ZIM files, to be able to handle big archives on FAT32 filesystems</li>
                         <li><a href="https://github.com/kiwix/kiwix-html5/issues/114" target="_blank">Issue #114</a> : Add a way to easily download ZIM files directly from the device</li>
                         <li><a href="https://github.com/kiwix/kiwix-html5/issues/13" target="_blank">Issue #13</a> : All the user interface is in English : I plan to translate it at least in French. If you feel able to translate it in your language, please contact me</li>
+                        <li><a href="https://github.com/kiwix/kiwix-html5/issues/172" target="_blank">Issue #172</a> and <a href="https://github.com/kiwix/kiwix-html5/issues/152" target="_blank">#152</a> : Handle video and javascript content</li>
+                        <li><a href="https://github.com/kiwix/kiwix-html5/issues/126" target="_blank">Issue #126</a> : Load the welcome page at first startup</li>
+                        <li><a href="https://github.com/kiwix/kiwix-html5/issues/117" target="_blank">Issue #117</a> : Better handle upper/lowercase and accents/diacritics in title search</li>
+                        <li>Performance improvements etc.</li>
                     </ul>
                     Suggestions and patches/pull requests are welcome : the source code is on <a href="https://github.com/kiwix/kiwix-html5" target="_blank">github</a>.
                     The <a href="https://github.com/kiwix/kiwix-html5/issues" target="_blank">bugtracker</a> is on github too. We use it as our roadmap.
@@ -186,10 +190,9 @@
                     <br />
                     <br />This HTML5/javascript application is currently mainly targeted on Firefox OS devices. But it also can be used on some other platforms :
                     <ul>
-                        <li>It works perfectly on the <a href="https://developer.mozilla.org/docs/Mozilla/Firefox_OS/Using_the_App_Manager" target="_blank">Firefos OS simulator</a> (a Firefox plugin, used through the "App manager" of Firefox 26+), you have to put the ZIM files in any subdirectory in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/profile/fake-sdcard/zim/)</li>
-                        <li>On desktops, it can work (by pointing to the index.html file) but is less user friendly : you have to manually select the ZIM file, and it's not yet easily deployable as a "web application". I tested it on recent Firefox and Chromium, but it probably works on some other browsers. You can test on <a href="http://kiwix.github.io/kiwix-html5/" target="_blank">this online page</a> or from a local copy of the <a href="https://github.com/kiwix/kiwix-html5" target="_blank">source code</a></li>
+                        <li>It works perfectly on the <a href="https://developer.mozilla.org/docs/Mozilla/Firefox_OS/Using_the_App_Manager" target="_blank">Firefos OS simulator</a> (a Firefox plugin, used through the "WebIDE" of Firefox), you have to put the ZIM files in any subdirectory in a "fake-sdcard" folder of your firefox profile (ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/profile/fake-sdcard/zim/)</li>
+                        <li>On desktops, it can work (by pointing to the index.html file) but is less user friendly : you have to manually select the ZIM file(s), and it's not yet easily deployable as a "web application". I tested it on recent Firefox and Chromium, but it probably works on some other browsers. You can test on <a href="http://kiwix.github.io/kiwix-html5/" target="_blank">this online page</a> or from a local copy of the <a href="https://github.com/kiwix/kiwix-html5" target="_blank">source code</a></li>
                         <li>It also works on Android (since Firefox 34). You need to install Firefox first, then install Kiwix from the MarketPlace of Firefox. For now, there is a <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1117136">major bug</a> that prevents a ZIM file to be found in an external SD card : it has to be put in the internal storage of the device (if you have enough space in it)</li>
-                        <li>On desktops, the DeviceStorage API (which is used to browse the SD-card/internal memory for archives) is supposed to become available at some point (see <a href="https://wiki.mozilla.org/index.php?title=WebAPI" target="_blank"> https://wiki.mozilla.org/index.php?title=WebAPI</a>). As soon as it is, I will update the application to make it available on this platform</li>
                         <li>An Apache Cordova port has been started (but is not ready yet, help welcome) : it should make this HTML5/javascript version available on many mobile platforms</li>
                     </ul>
 
