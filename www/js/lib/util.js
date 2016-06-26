@@ -201,6 +201,55 @@ define(['q'], function(q) {
         return (r > 0 ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
     }
 
+    function FileCache(file) {
+        this._file = file;
+        this._blocks = {};
+        //TODO: Use an LRU-cache for the blocks
+    }
+    FileCache.prototype.read = function(begin, end) {
+        var blockSize = 2048;
+        // Read large chunks bypassing the block cache because we would have to
+        // stich together too many blocks.
+        if (end - begin > 2048)
+            return this._readInternal(begin, end);
+        var that = this;
+        var readRequests = [];
+        for (var i = Math.floor(begin / blockSize) * blockSize; i < end; i += blockSize) {
+            if (this._blocks[i] === undefined)
+                readRequests.push(this._readBlock(i, blockSize));
+        }
+        return q.all(readRequests).then(function() {
+            var result = new Uint8Array(end - begin);
+            var pos = 0;
+            for (var i = Math.floor(begin / blockSize) * blockSize; i < end; i += blockSize) {
+                var b = Math.max(i, begin) - i;
+                var e = Math.min(end, i + blockSize) - i;
+                result.set(that._blocks[i].subarray(b, e), pos);
+                pos += e - b;
+            }
+            return result;
+        });
+    };
+    FileCache.prototype._readBlock = function(offset, blockSize) {
+        var that = this;
+        return this._readInternal(offset, offset + blockSize).then(function(result) {
+            that._blocks[offset] = result;
+        });
+    };
+    FileCache.prototype._readInternal = function(begin, end) {
+        var deferred = q.defer();
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            deferred.resolve(new Uint8Array(e.target.result));
+        };
+        reader.onerror = reader.onabort = function(e) {
+            deferred.reject(e);
+        };
+        reader.readAsArrayBuffer(this._file.slice(begin, end));
+        return deferred.promise;
+    };
+    var caches = {};
+
     /**
      * Reads a Uint8Array from the given file starting at byte offset begin and
      * for given size.
@@ -210,16 +259,9 @@ define(['q'], function(q) {
      * @returns {Promise} Promise
      */
     function readFileSlice(file, begin, size) {
-        var deferred = q.defer();
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            deferred.resolve(new Uint8Array(e.target.result));
-        };
-        reader.onerror = reader.onabort = function(e) {
-            deferred.reject(e);
-        };
-        reader.readAsArrayBuffer(file.slice(begin, begin + size));
-        return deferred.promise;
+        if (caches[file.name] === undefined)
+            caches[file.name] = new FileCache(file);
+        return caches[file.name].read(begin, begin + size);
     }
 
     /**
