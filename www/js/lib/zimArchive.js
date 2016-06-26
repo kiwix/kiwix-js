@@ -55,7 +55,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 that._file = file;
                 callbackReady(that);
             });
-        }
+        };
         if (storage && !path) {
             var fileList = storage;
             // We need to convert the FileList into an Array
@@ -64,7 +64,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             createZimfile(fileArray);
         }
         else {
-            var p;
             if (/.*zim..$/.test(path)) {
                 // splitted archive
                 that._searchArchiveParts(storage, path.slice(0, -2)).then(function(fileArray) {
@@ -93,7 +92,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var fileArray = [];
         var nextFile = function(part) {
             var suffix = String.fromCharCode(0x61 + Math.floor(part / 26)) + String.fromCharCode(0x61 + part % 26);
-            console.log(suffix);
             return storage.get(prefixPath + suffix)
                 .then(function(file) {
                     fileArray.push(file);
