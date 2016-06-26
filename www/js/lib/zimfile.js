@@ -20,7 +20,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
+define(['xzdec_wrapper', 'util', 'utf8', 'q', 'lrucache'], function(xz, util, utf8, Q, LRUCache) {
 
     var readInt = function(data, offset, size)
     {
@@ -57,6 +57,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
     function ZIMFile(abstractFileArray)
     {
         this._files = abstractFileArray;
+        this._dirEntryCache = new LRUCache.cache(1000);
     }
 
     /**
@@ -97,7 +98,6 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
             return readRequests[0];
         } else {
             // Wait until all are resolved and concatenate.
-            console.log("CONCAT");
             return Q.all(readRequests).then(function(arrays) {
                 var concatenated = new Uint8Array(size);
                 var sizeSum = 0;
@@ -151,9 +151,11 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
     ZIMFile.prototype.dirEntryByUrlIndex = function(index)
     {
         var that = this;
-        return this._readInteger(this.urlPtrPos + index * 8, 8).then(function(dirEntryPos)
-        {
-            return that.dirEntry(dirEntryPos);
+        return that._dirEntryCache.get(index, function() {
+            return that._readInteger(that.urlPtrPos + index * 8, 8).then(function(dirEntryPos)
+            {
+                return that.dirEntry(dirEntryPos);
+            });
         });
     };
 
