@@ -89,13 +89,12 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
             var currentSize = this._files[i].size;
             if (offset < currentOffset + currentSize && currentOffset < offset + size) {
                 var readStart = Math.max(0, offset - currentOffset);
-                var readSize = Math.min(currentSize, offset + size - currentOffset);
+                var readSize = Math.min(currentSize, offset + size - currentOffset - readStart);
                 readRequests.push(util.readFileSlice(this._files[i], readStart, readSize));
             }
         }
         if (readRequests.length == 0) {
-            // make it fail
-            return util.readFileSlice(this._files[0], this._files[0].size, size);
+            return Q(new Uint8Array(0).buffer);
         } else if (readRequests.length == 1) {
             return readRequests[0];
         } else {
