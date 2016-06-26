@@ -1084,11 +1084,14 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                     // It's a Javascript file contained in the ZIM file
                     var titleName = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
                     selectedArchive.getTitleByName(titleName).then(function(title) {
-                        selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                            // TODO : I have to disable javascript for now
-                            // var jsContent = encodeURIComponent(util.uintToString(content));
-                            //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
-                        });
+                        if (title === null)
+                            console.log("Error: js file not found: " + titleName);
+                        else
+                            selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                                // TODO : I have to disable javascript for now
+                                // var jsContent = encodeURIComponent(util.uintToString(content));
+                                //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
+                            });
                     }).fail(function (e) {
                         console.error("could not find title for javascript : " + titleName, e);
                     });

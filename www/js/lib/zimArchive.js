@@ -28,7 +28,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * 
      * @typedef ZIMArchive
-     * @property {ZIMFile} _file The ZIM file
+     * @property {ZIMFile} _file The ZIM file (instance of ZIMFile, that might physically be splitted into several actual files)
      * @property {String} _language Language of the content
      */
     
@@ -42,7 +42,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
      * 
-     * @param {StorageFirefoxOS|StoragePhoneGap|Blob} storage Storage (in this case, the path must be given) or File (path must be omitted)
+     * @param {StorageFirefoxOS|StoragePhoneGap|Array.<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
      * @param {String} path
      * @param {callbackZIMArchive} callbackReady
      */
@@ -50,24 +50,57 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         that._file = null;
         that._language = ""; //@TODO
-        if (storage && storage instanceof Blob && !path) {
-            // The constructor has been called with a single File/Blob parameter
-            zimfile.fromFile(storage).then(function(file) {
+        var createZimfile = function(fileArray) {
+            zimfile.fromFileArray(fileArray).then(function(file) {
                 that._file = file;
                 callbackReady(that);
             });
+        };
+        if (storage && !path) {
+            var fileList = storage;
+            // We need to convert the FileList into an Array
+            var fileArray = [].slice.call(fileList);
+            // The constructor has been called with an array of File/Blob parameter
+            createZimfile(fileArray);
         }
         else {
-            console.log(storage);
-            storage.get(path).then(function(file) {
-                return zimfile.fromFile(file).then(function(file) {
-                    that._file = file;
-                    callbackReady(that);
+            if (/.*zim..$/.test(path)) {
+                // splitted archive
+                that._searchArchiveParts(storage, path.slice(0, -2)).then(function(fileArray) {
+                    createZimfile(fileArray);
+                }, function(error) {
+                    alert("Error reading files in splitted archive " + path + ": " + error);
                 });
-            }, function(error) {
-                alert("Error reading ZIM file " + path + ": " + error);
-            });
+            }
+            else {
+                storage.get(path).then(function(file) {
+                    createZimfile([file]);
+                }, function(error) {
+                    alert("Error reading ZIM file " + path + " : " + error);
+                });
+            }
         }
+    };
+
+    /**
+     * Searches the directory for all parts of a splitted archive.
+     * @param {Storage} storage storage interface
+     * @param {String} prefixPath path to the splitted files, missing the "aa" / "ab" / ... suffix.
+     * @returns {Promise} that resolves to the array of file objects found.
+     */
+    ZIMArchive.prototype._searchArchiveParts = function(storage, prefixPath) {
+        var fileArray = [];
+        var nextFile = function(part) {
+            var suffix = String.fromCharCode(0x61 + Math.floor(part / 26)) + String.fromCharCode(0x61 + part % 26);
+            return storage.get(prefixPath + suffix)
+                .then(function(file) {
+                    fileArray.push(file);
+                    return nextFile(part + 1);
+                }, function(error) {
+                    return fileArray;
+                });
+        };
+        return nextFile(0);
     };
 
     /**
@@ -274,7 +307,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var index = Math.floor(Math.random() * this._file.articleCount);
         this._file.dirEntryByUrlIndex(index).then(function(dirEntry) {
             return that._dirEntryToTitleObject(dirEntry);
-        }).then(callback)
+        }).then(callback);
     };
 
     /**

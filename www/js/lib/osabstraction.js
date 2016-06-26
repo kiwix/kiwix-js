@@ -70,6 +70,10 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
                 return;
             }
             var file = cursor.result;
+            
+            // We try to match both a standalone ZIM file (.zim) or
+            // the first file of a splitted ZIM files collection (.zimaa)
+            var regexpZIMFileName = /\.zim(aa)?$/i;
 
             if (util.endsWith(file.name, "titles.idx")) {
                 // Handle the case of archive files at the root of the sd-card
@@ -83,7 +87,7 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
                                           file.name.lastIndexOf('/') + 1);
                 }
                 directories.push(directory);
-            } else if (util.endsWith(file.name, ".zim")) {
+            } else if (regexpZIMFileName.test(file.name)) {
                 directories.push(file.name);
             }
 
@@ -91,6 +95,16 @@ define(['util', 'q', 'jquery'], function(util, q, jQuery) {
         };
         return deferred.promise();
     };
+    
+    /**
+     * Browse a path through DeviceStorage API
+     * @param path Path where to look for files
+     * @return {DOMCursor} Cursor of files found in given path
+     */
+    StorageFirefoxOS.prototype.enumerate = function(path) {
+        return this._storage.enumerate();
+    };
+
     
     /**
      * Storage implemented by PhoneGap
