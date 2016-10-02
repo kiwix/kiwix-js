@@ -105,7 +105,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
                     concatenated.set(new Uint8Array(arrays[i]), sizeSum);
                     sizeSum += arrays[i].byteLength;
                 }
-                return concatenated.buffer;
+                return concatenated;
             });
         }
     };
