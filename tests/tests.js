@@ -72,8 +72,11 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
     var blob6 = makeBlobRequest('tests/wikipedia_small_2010-08-14/coordinates_01.idx', 'coordinates_01.idx');
     var blob7 = makeBlobRequest('tests/wikipedia_small_2010-08-14/coordinates_02.idx', 'coordinates_02.idx');
     var blob8 = makeBlobRequest('tests/wikipedia_small_2010-08-14/coordinates_03.idx', 'coordinates_03.idx');
-    var blob9 = makeBlobRequest('tests/wikipedia_en_ray_charles_2015-06.zim', 'wikipedia_en_ray_charles_2015-06.zim');
-    Promise.all([blob1, blob2, blob3, blob4, blob5, blob6, blob7, blob8, blob9])
+    var splitBlobs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o'].map(function(c) {
+        var filename = 'tests/wikipedia_en_ray_charles_2015-06.zima' + c;
+        return makeBlobRequest('tests/' + filename, filename);
+    });
+    Promise.all([blob1, blob2, blob3, blob4, blob5, blob6, blob7, blob8].concat(splitBlobs))
         .then(function(values) {
             evopediaArchiveFiles.push(values[0]);
             evopediaArchiveFiles.push(values[1]);
@@ -83,7 +86,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             evopediaArchiveFiles.push(values[5]);
             evopediaArchiveFiles.push(values[6]);
             evopediaArchiveFiles.push(values[7]);
-            zimArchiveFiles.push(values[8]);
+            zimArchiveFiles = values.slice(8);
     }).then(function() {
         // Create a localEvopediaArchive and a localZimArchive from selected files, in order to run the following tests
         localEvopediaArchive = new evopediaArchive.LocalArchive();
