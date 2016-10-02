@@ -81,8 +81,6 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
      */
     ZIMFile.prototype._readSlice = function(offset, size)
     {
-        // TODO do we need to convert some of these numbers to float
-        // for the sake of precision?
         var readRequests = [];
         var currentOffset = 0;
         for (var i = 0; i < this._files.length; currentOffset += this._files[i].size, ++i) {
