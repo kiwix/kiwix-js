@@ -1,4 +1,7 @@
-{
+'use strict'
+var TRAVIS_JOB_NUMBER = process.env.TRAVIS_JOB_NUMBER
+
+module.exports = {
   "src_folders" : ["browser-tests"],
   "output_folder" : "reports",
   "custom_commands_path" : "",
@@ -18,14 +21,16 @@
         "enabled" : false
       },
       "globals": {
-        "waitForConditionTimeout": 60000
+        "waitForConditionTimeout": 600
       }
     },
     "firefox" : {
       "desiredCapabilities": {
         "browserName": "firefox",
         "javascriptEnabled": true,
-        "acceptSslCerts": true
+        "acceptSslCerts": true,
+        "build": "build-" + TRAVIS_JOB_NUMBER,
+        "tunnel-identifier": TRAVIS_JOB_NUMBER
       }
     }
   }

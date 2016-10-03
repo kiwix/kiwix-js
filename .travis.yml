@@ -1,9 +1,12 @@
 language: node_js
 addons:
-  sauce_connect: true
+  sauce_connect:
+    username: "peter-x"
+    access_key: "d6a1e0a5-691d-4e08-a567-c6f3325c873c"
+
 before_script:
   - npm install nightwatch http-server
   - ./node_modules/http-server/bin/http-server . &
 script:
-  - ./node_modules/nightwatch/bin/nightwatch --env firefox
+  - ./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox
   - pkill node
