@@ -20,7 +20,7 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q', 'FileCache'], function(q, FileCache) {
+define(['q', 'filecache'], function(q, FileCache) {
 
     /**
      * Utility function : return true if the given string ends with the suffix
