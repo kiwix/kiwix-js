@@ -663,16 +663,36 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $('#archiveFiles').on('change', setLocalArchiveFromFileSelect);
     }
 
-    /**
-     * Sets the localArchive from the File selects populated by user
-     */
-    function setLocalArchiveFromFileSelect() {
-        selectedArchive = backend.loadArchiveFromFiles(document.getElementById('archiveFiles').files);
+    function setLocalArchiveFromFileList(files) {
+        selectedArchive = backend.loadArchiveFromFiles(files);
         if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
         }
     }
+    /**
+     * Sets the localArchive from the File selects populated by user
+     */
+    function setLocalArchiveFromFileSelect() {
+        setLocalArchiveFromFileList(document.getElementById('archiveFiles').files);
+    }
+
+    /**
+     * This is used in the testing interface to inject a remote archive.
+     */
+    window.setRemoteArchive = function(url) {
+        var request = new XMLHttpRequest();
+        request.open("GET", url, true);
+        request.responseType = "blob";
+        request.onload = function (e) {
+            if (request.response) {
+                // Hack to make this look similar to a file
+                request.response.name = url;
+                setLocalArchiveFromFileList([request.response]);
+            }
+        };
+        request.send(null);
+    };
 
     /**
      * Handle key input in the prefix input zone
