@@ -20,10 +20,22 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-browser.browserAction.onClicked.addListener(handleClick);
+// In order to work on both Firefox and Chromium/Chrome (and derivatives).
+// browser and chrome variables expose almost the same APIs
+var genericBrowser;
+if (typeof browser !== 'undefined') {
+    // Firefox
+    genericBrowser = browser;
+}
+else {
+    // Chromium/Chrome
+    genericBrowser = chrome;
+}
+
+genericBrowser.browserAction.onClicked.addListener(handleClick);
 
 function handleClick(event) {
-    chrome.tabs.create({
-        url: chrome.runtime.getURL('/index.html')
+    genericBrowser.tabs.create({
+        url: genericBrowser.runtime.getURL('/index.html')
     });
 }
