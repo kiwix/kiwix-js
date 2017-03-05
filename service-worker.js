@@ -22,9 +22,6 @@
  * along with Evopedia (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-// TODO : remove requirejs if it's really useless here
-importScripts('./www/js/lib/require.js');
-
 
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
@@ -39,46 +36,59 @@ self.addEventListener('activate', function(event) {
     console.log("ServiceWorker activated");
 });
 
-require({
-    baseUrl: "./www/js/lib/"
-},
-["uiUtil"],
+var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
 
-function(uiUtil) {
+// This function is duplicated from uiUtil.js
+// because using requirejs would force to add the 'fetch' event listener
+// after the initial evaluation of this script, which is not supported any more
+// in recent versions of the browsers.
+// Cf https://bugzilla.mozilla.org/show_bug.cgi?id=1181127
+// TODO : find a way to avoid this duplication
+function removeUrlParameters(url) {
+    if (regexpRemoveUrlParameters.test(url)) {
+        return regexpRemoveUrlParameters.exec(url)[1];
+    } else {
+        return url;
+    }
+}
+    
+console.log("ServiceWorker startup");
 
-    console.log("ServiceWorker startup");
-    
-    var outgoingMessagePort = null;
-    
-    self.addEventListener('message', function (event) {
-        if (event.data.action === 'init') {
-            console.log('Init message received', event.data);
-            outgoingMessagePort = event.ports[0];
-            console.log('outgoingMessagePort initialized', outgoingMessagePort);
-            self.addEventListener('fetch', fetchEventListener);
-            console.log('fetchEventListener enabled');
-        }
-        if (event.data.action === 'disable') {
-            console.log('Disable message received');
-            outgoingMessagePort = null;
-            console.log('outgoingMessagePort deleted');
-            self.removeEventListener('fetch', fetchEventListener);
-            console.log('fetchEventListener removed');
-        }
-    });
-    
-    // TODO : this way to recognize content types is temporary
-    // It must be replaced by reading the actual MIME-Type from the backend
-    var regexpJPEG = new RegExp(/\.jpe?g$/i);
-    var regexpPNG = new RegExp(/\.png$/i);
-    var regexpJS = new RegExp(/\.js/i);
-    var regexpCSS = new RegExp(/\.css$/i);
+var outgoingMessagePort = null;
+var fetchCaptureEnabled = false;
+self.addEventListener('fetch', fetchEventListener);
+console.log('fetchEventListener set');
 
-    var regexpContentUrlWithNamespace = new RegExp(/\/(.)\/(.*[^\/]+)$/);
-    var regexpContentUrlWithoutNamespace = new RegExp(/^([^\/]+)$/);
-    var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
-    
-    function fetchEventListener(event) {
+self.addEventListener('message', function (event) {
+    if (event.data.action === 'init') {
+        console.log('Init message received', event.data);
+        outgoingMessagePort = event.ports[0];
+        console.log('outgoingMessagePort initialized', outgoingMessagePort);
+        fetchCaptureEnabled = true;
+        console.log('fetchEventListener enabled');
+    }
+    if (event.data.action === 'disable') {
+        console.log('Disable message received');
+        outgoingMessagePort = null;
+        console.log('outgoingMessagePort deleted');
+        fetchCaptureEnabled = false;
+        console.log('fetchEventListener disabled');
+    }
+});
+
+// TODO : this way to recognize content types is temporary
+// It must be replaced by reading the actual MIME-Type from the backend
+var regexpJPEG = new RegExp(/\.jpe?g$/i);
+var regexpPNG = new RegExp(/\.png$/i);
+var regexpJS = new RegExp(/\.js/i);
+var regexpCSS = new RegExp(/\.css$/i);
+
+var regexpContentUrlWithNamespace = new RegExp(/\/(.)\/(.*[^\/]+)$/);
+var regexpContentUrlWithoutNamespace = new RegExp(/^([^\/]+)$/);
+var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
+
+function fetchEventListener(event) {
+    if (fetchCaptureEnabled) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         // TODO handle the dummy article more properly
@@ -141,10 +151,10 @@ function(uiUtil) {
                         contentType = 'text/css';
                     }
                 }
-                
+
                 // We need to remove the potential parameters in the URL
-                titleName = uiUtil.removeUrlParameters(decodeURIComponent(titleName));
-                
+                titleName = removeUrlParameters(decodeURIComponent(titleName));
+
                 titleNameWithNameSpace = nameSpace + '/' + titleName;
 
                 // Let's instanciate a new messageChannel, to allow app.s to give us the content
@@ -159,7 +169,7 @@ function(uiUtil) {
                                 'Content-Type': contentType
                             }
                         };
-                        
+
                         var httpResponse = new Response(event.data.content, responseInit);
 
                         console.log('ServiceWorker responding to the HTTP request for ' + titleNameWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
@@ -178,4 +188,4 @@ function(uiUtil) {
         // If event.respondWith() isn't called because this wasn't a request that we want to handle,
         // then the default request/response behavior will automatically be used.
     }
-});
+}
