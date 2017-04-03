@@ -1,8 +1,9 @@
 language: node_js
 addons:
   sauce_connect:
-    username: "peter-x"
-    access_key: "d6a1e0a5-691d-4e08-a567-c6f3325c873c"
+    username: "mossroy"
+  jwt:
+    secure: "CuubvMsV+rs5vU0GZqNrWUOlPpw1C9OMVEIwMosyxQSkDykZ5wL+O9dhHXj1GnhIcol6SD1aAcQYoeCZJ542+f3nWOcaC0lh3vi4P4tK0oHvSqk4GWSSkRmuLLeqcxCgyh3rIL2ghw7Q0Kuwwc74QcEb5ettZL/HEjlQ9SUKKG3smZsylq7tHJInc60X15J0yB+uIAA0YLSgBPFwyAKz95xg4fJDdaRmzCG8GGQP/rwpuWOnCqiW57Qa7RfQARC8tzZGORo99laa5pgOH0CFxLO1dgSEfKTI6Wo1cnWwiIOSsoaBGk0hjPsEmA+pALzXeEMIAoDTt1xSfxFZAJaO+k7MP3R8vYcGnp51BpHelo4tEbg/Rk4F1Os0wvL8CDlcUadTqSqxd0QC8mLXZQaH6+oodY07KU9kx3vFr6h+izF1T2SgOIdnj7AHMs0qFSr7zYNqlL01JGIQWmt+2//ceVBaKXSjetbkpTNGqupvXX7Pp9oARZzIVLZviJdFF5A+s4IM38adznKwI4roShETjJZR5oIHPe4lu+ff9Ztfxx9SKNbyULaXg5CcYswrfD74K7MY5P3ovrceMBSYRoAr9ieoJ7E8OxmLJpXMGdVpSN7Bi36trkl4UzkaekSLHl+yUPmSkZWovhjjAD9T4SM+CoI09cWXBGDgHmhU8q0mZso="
 
 before_script:
   - npm install nightwatch http-server
