@@ -1,4 +1,9 @@
 language: node_js
+addons:
+  sauce_connect:
+    username: "mossroy"
+  jwt:
+    secure: "cHsT8cQMeRr7/Vai7w2VxI1izXPdJfyzBQ1taAIZ6zuCriiH5gA5UlQWGpV2b3KFRteOQD9yzQuet/InKc0bnJ9IpIqYCzyiJG49umRGMYofgUHdLAzsRiwjNyyx8QZuJuHDlNNDUvBXrMaKJBvoSDrfXu4m6pIFD2T64CZsq9VRMX1ol4Kyzlm7D5KOjIuveU+WFgGAVGsNYM1yoN0CRTSrZ4HrY1IzF3MFbqeJTViIrwK4kfy+3+B8Lj4rb1OOz/TczobSZ4700g9Juj8/a3ow6fUrZtO377jR1+4Ve63UOk2OgZyw8bFz0e1JGYve6//ln2ALwnH//7mct3gOwotsakONPXUe9oLtXNmtJDC2q10BTO34nWhhUq1uYNnx29Mo45pqqd0pPPEBFU1IoGeDUeAbJ1e2NLXuRIsanbcObr9n+he9DVnVpyJNT6l/jfOEGzPCFjvgwx3Yps05sZZLGlOobPXSDSn0u+z+/kF/dCb5tMc19clPKbVqq8Kj3Pv3QOJgF3VJQrsx92zxrNM99g06sM5EkcNiXbYWokGK/JvR1FxZSglV5NQns0E4pvCJEumh7wbKUMIeBu6rmQw/85LcNTkOhj//QIbbYtRr4JRlwJkPjgP4LZLkdQSpD+vkBhEmB7aZj1qVvu7WW1/4zJalcEsGAx8CWTy6P0s="
 
 before_script:
   - npm install nightwatch http-server
