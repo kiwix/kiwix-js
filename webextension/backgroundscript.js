@@ -1,7 +1,7 @@
 /**
  * backgroundscript.js: Background script for the WebExtension
  *
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2017 Mossroy and contributors
  * License GPL v3:
  *
  * This file is part of Evopedia.
