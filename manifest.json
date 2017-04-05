@@ -4,7 +4,7 @@
     "version": "2.0",
 
     "description": "Kiwix : offline wikipedia reader",
-
+    
     "icons": {
         "16": "www/img/icons/kiwix-16.png",
         "19": "www/img/icons/kiwix-19.png",
@@ -29,5 +29,9 @@
 
     "background": {
         "scripts": ["webextension/backgroundscript.js"]
-    }
+    },
+    
+    "author": "mossroy",
+    "homepage_url": "http://www.kiwix.org",
+    "offline_enabled": true
 }
