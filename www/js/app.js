@@ -933,8 +933,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     var regexpPath = /^(.*\/)[^\/]+$/;
     // These regular expressions match both relative and absolute URLs
     // Since late 2014, all ZIM files should use relative URLs
-    var regexpImageUrl = /^(?:\.\.\/|\/)(I\/.*)$/;
-    var regexpMetadataUrl = /^(?:\.\.\/|\/)(-\/.*)$/;
+    var regexpImageUrl = /^(?:\.\.\/|\/)+(I\/.*)$/;
+    var regexpMetadataUrl = /^(?:\.\.\/|\/)+(-\/.*)$/;
 
     /**
      * Display the the given HTML article in the web page,
