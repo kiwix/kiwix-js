@@ -116,7 +116,7 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             }
         }
         else {
-            alert("There is no coordinate file in this archive. This feature is only available on archives that have coordinate files (coordinates_xx.idx)");
+            alert("There are no usable coordinates in this archive. This feature is only available on deprecated Evopedia archives for now");
         }
     });
     $("#btnEnlargeMaxDistance").on("click", function(e) {
