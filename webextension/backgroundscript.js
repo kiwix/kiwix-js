@@ -36,6 +36,6 @@ genericBrowser.browserAction.onClicked.addListener(handleClick);
 
 function handleClick(event) {
     genericBrowser.tabs.create({
-        url: genericBrowser.runtime.getURL('/index.html')
+        url: genericBrowser.runtime.getURL('/www/index.html')
     });
 }
