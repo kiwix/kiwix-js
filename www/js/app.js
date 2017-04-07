@@ -927,14 +927,13 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     };
     
     // Compile some regular expressions needed to modify links
-    var regexpOtherLanguage = /^\.?\/?\.\.\/([^\/]+)\/(.*)/;
     var regexpImageLink = /^.?\/?[^:]+:(.*)/;
     var regexpMathImageUrl = /^\/math.*\/([0-9a-f]{32})\.png$/;
     var regexpPath = /^(.*\/)[^\/]+$/;
     // These regular expressions match both relative and absolute URLs
     // Since late 2014, all ZIM files should use relative URLs
-    var regexpImageUrl = /^(?:\.\.\/|\/)(I\/.*)$/;
-    var regexpMetadataUrl = /^(?:\.\.\/|\/)(-\/.*)$/;
+    var regexpImageUrl = /^(?:\.\.\/|\/)+(I\/.*)$/;
+    var regexpMetadataUrl = /^(?:\.\.\/|\/)+(-\/.*)$/;
 
     /**
      * Display the the given HTML article in the web page,
@@ -987,14 +986,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                 }
                 else if (url.substring(0, 4) === "http") {
                     // It's an external link : open in a new tab
-                    $(this).attr("target", "_blank");
-                }
-                else if (url.match(regexpOtherLanguage)) {
-                    // It's a link to another language : change the URL to the online version of wikipedia
-                    // The regular expression extracts $1 as the language, and $2 as the title name
-                    var onlineWikipediaUrl = url.replace(regexpOtherLanguage, "https://$1.wikipedia.org/wiki/$2");
-                    $(this).attr("href", onlineWikipediaUrl);
-                    // Open in a new tab
                     $(this).attr("target", "_blank");
                 }
                 else if (url.match(regexpImageLink)
