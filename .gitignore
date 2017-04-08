@@ -43,3 +43,10 @@ build/config/buildinfo.properties
 
 www-built
 www-ghdeploy
+/node_modules/
+/tmp/
+/scripts/kiwix-*.pem
+/scripts/set_secret_environment_variables.sh
+/build/
+/scripts/travisci_builder_id_key
+/scripts/secret_files.tar.gz

@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Kiwix",
-    "version": "2.0",
+    "version": "2.0-beta",
 
     "description": "Kiwix : offline wikipedia reader",
     
@@ -25,6 +25,12 @@
             "64": "www/img/icons/kiwix-64.png"
         },
         "default_title": "Kiwix"
+    },
+    
+    "applications": {
+        "gecko": {
+            "id": "kiwix@kiwix.org"
+        }
     },
 
     "background": {
