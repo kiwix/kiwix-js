@@ -259,20 +259,22 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
                 }
             }
         }
-        
+        callback(this);
     };
     
     /**
      * Initialize the localArchive from given directory, using DeviceStorage
      * @param {DeviceStorage} storage the directory resides in
      * @param {String} archiveDirectory
+     * @param {callbackLocalArchive} callback Callback called when the LocalArchive is initialized
      */
-    LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory) {
+    LocalArchive.prototype.initializeFromDeviceStorage = function(storage, archiveDirectory, callback) {
         this.readTitleFilesFromStorage(storage, archiveDirectory);
         this.readDataFilesFromStorage(storage, archiveDirectory, 0);
         this.readMathFilesFromStorage(storage, archiveDirectory);
         this.readMetadataFileFromStorage(storage, archiveDirectory);
         this.readCoordinateFilesFromStorage(storage, archiveDirectory, 1);
+        callback(this);
     };
 
     /**
@@ -373,6 +375,16 @@ define(['normalize_string', 'geometry', 'title', 'util', 'titleIterators', 'q'],
                 return iterator.advance();
             });
         }).then(callbackFunction, errorHandler);
+    };
+    
+    /**
+     * Looks for the title of the main page
+     * @param {callbackTitle} callback
+     * @returns {Promise} that resolves to the Title
+     */
+    LocalArchive.prototype.getMainPageTitle = function(callback) {
+        // There's no such feature in Evopedia archives
+        callback(null);
     };
 
     /**

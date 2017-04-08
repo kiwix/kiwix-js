@@ -203,6 +203,10 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $('#geolocationProgress').hide();
         $("#articleContent").contents().empty();
         $('#searchingForTitles').hide();
+        if (selectedArchive !== null && selectedArchive.isReady()) {
+            $("#welcomeText").hide();
+            goToMainArticle();
+        }
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
@@ -646,12 +650,14 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                         + " storages found with getDeviceStorages instead of 1");
                 }
             }
-            selectedArchive = backend.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory);
-            cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
-            if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
-                // The archive is set : go back to home page to start searching
-                $("#btnHome").click();
-            }
+            selectedArchive = backend.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function (archive) {
+                cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
+                if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
+                    // The archive is set : go back to home page to start searching
+                    $("#btnHome").click();
+                }
+            });
+            
         }
     }
 
@@ -664,11 +670,13 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     }
 
     function setLocalArchiveFromFileList(files) {
-        selectedArchive = backend.loadArchiveFromFiles(files);
-        if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
-            // The archive is set : go back to home page to start searching
-            $("#btnHome").click();
-        }
+        selectedArchive = backend.loadArchiveFromFiles(files, function(archive){
+            if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
+                // The archive is set : go back to home page to start searching
+                $("#btnHome").click();
+            }
+        });
+        
     }
     /**
      * Sets the localArchive from the File selects populated by user
@@ -1284,6 +1292,26 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                     // If the random title search did not end up on an article,
                     // we try again, until we find one
                     goToRandomArticle();
+                }
+            }
+        });
+    }
+    
+    function goToMainArticle() {
+        selectedArchive.getMainPageTitle(function(title) {
+            if (title === null || title === undefined) {
+                console.error("Error finding main article.");
+            }
+            else {
+                if (title.namespace === 'A') {
+                    $("#articleName").html(title.name());
+                    pushBrowserHistoryState(title.name());
+                    $("#readingArticle").show();
+                    $('#articleContent').contents().find('body').html("");
+                    readArticle(title);
+                }
+                else {
+                    console.error("The main page of this archive does not seem to be an article");
                 }
             }
         });

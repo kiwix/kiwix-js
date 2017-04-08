@@ -126,6 +126,21 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.hasCoordinates = function() {
         return false;
     };
+    
+    /**
+     * Looks for the title of the main page
+     * @param {callbackTitle} callback
+     * @returns {Promise} that resolves to the Title
+     */
+    ZIMArchive.prototype.getMainPageTitle = function(callback) {
+        if (this.isReady()) {
+            var mainPageUrlIndex = this._file.mainPage;
+            var that=this;
+            this._file.dirEntryByUrlIndex(mainPageUrlIndex).then(function(dirEntry){
+                return that._dirEntryToTitleObject(dirEntry);
+            }).then(callback);
+        }
+    };
 
     /**
      * 
