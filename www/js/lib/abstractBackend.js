@@ -29,30 +29,32 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
      * Create an archive (ZIM or Evopedia) from DeviceStorage location
      * @param {DeviceStorage} storage
      * @param {String} path
+     * @param {callbackZIMArchive} callback
      * @returns {ZIMArchive|LocalArchive}
      */
-    function loadArchiveFromDeviceStorage(storage, path) {
+    function loadArchiveFromDeviceStorage(storage, path, callback) {
         if (regexpZIMFileName.test(path)) {
-            return new zimArchive.ZIMArchive(storage, path);
+            return new zimArchive.ZIMArchive(storage, path, callback);
         }
         else {
             var archive = new evopediaArchive.LocalArchive();
-            archive.initializeFromDeviceStorage(storage, path);
+            archive.initializeFromDeviceStorage(storage, path, callback);
             return archive;
         }
     };
     /**
      * Create an archive (ZIM or Evopedia) from Files
      * @param {Array.<File>} files
+     * @param {callbackZIMArchive} callback
      * @returns {ZIMArchive|LocalArchive}
      */
-    function loadArchiveFromFiles(files) {
+    function loadArchiveFromFiles(files, callback) {
         if (files.length >= 1 && regexpZIMFileName.test(files[0].name)) {
-            return new zimArchive.ZIMArchive(files);
+            return new zimArchive.ZIMArchive(files, null, callback);
         }
         else {
             var archive = new evopediaArchive.LocalArchive();
-            archive.initializeFromArchiveFiles(files);
+            archive.initializeFromArchiveFiles(files, callback);
             return archive;
         }
     };

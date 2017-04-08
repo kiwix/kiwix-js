@@ -501,7 +501,7 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
             expect(2);
             var callbackRandomTitleFound = function(title) {
                 ok(title !== null, "One title should be found");
-                ok(title._name !== null, "The random title should have a name" );
+                ok(title.name() !== null, "The random title should have a name" );
                
                 start();
             };
@@ -701,6 +701,28 @@ define(['jquery', 'title', 'archive', 'zimArchive', 'zimDirEntry', 'util', 'geom
                     start();
                 }
             }).fail(errorHandlerAsyncTest);
+        });
+        
+        module("zim_random_and_main_title");
+        asyncTest("check that a random title is found", function() {
+            expect(2);
+            var callbackRandomTitleFound = function(title) {
+                ok(title !== null, "One title should be found");
+                ok(title.name() !== null, "The random title should have a name" );
+               
+                start();
+            };
+            localZimArchive.getRandomTitle(callbackRandomTitleFound);
+        });
+        asyncTest("check that the main title is found", function() {
+            expect(2);
+            var callbackMainPageTitleFound = function(title) {
+                ok(title !== null, "Main title should be found");
+                equal(title.name(), "Summary", "The main title should be called Summary" );
+               
+                start();
+            };
+            localZimArchive.getMainPageTitle(callbackMainPageTitleFound);
         });
     };
 });
