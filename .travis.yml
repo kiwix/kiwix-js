@@ -17,4 +17,4 @@ deploy:
     provider: script
     script: "./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh $TRAVIS_TAG"
     on:
-        branch: master
+        condition: ( "$TRAVIS_EVENT_TYPE" = "cron" )

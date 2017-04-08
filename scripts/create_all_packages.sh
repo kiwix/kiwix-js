@@ -12,8 +12,8 @@ if [ -r "$BASEDIR/scripts/set_secret_environment_variables.sh" ]; then
 fi
 
 # Use the first argument as a version number, else use the Travis tag, else use the commit id
-VERSION_TO_REPLACE="2\.0-beta"
-VERSION_PREFIX="2.0.0"
+VERSION_TO_REPLACE="2\.0-WIP"
+VERSION_PREFIX="2.0"
 if [ ! "$1zz" == "zz" ]; then
     VERSION=$1
     echo "Packaging version $VERSION because it has been passed as an argument"

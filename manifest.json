@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Kiwix",
-    "version": "2.0-beta",
+    "version": "2.0-WIP",
 
     "description": "Kiwix : offline wikipedia reader",
     
@@ -29,7 +29,7 @@
     
     "applications": {
         "gecko": {
-            "id": "kiwix@kiwix.org"
+            "id": "kiwix-html5-unlisted@kiwix.org"
         }
     },
 
