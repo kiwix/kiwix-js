@@ -103,7 +103,7 @@
                     <br />
                     <h3>Usage</h3>
                     <h4>Step 1 : download an archive</h4>
-                    From <a href="http://download.kiwix.org/zim" target="_blank">http://download.kiwix.org/zim/</a>, with a regular computer.
+                    From <a href="http://download.kiwix.org/zim" target="_blank">http://download.kiwix.org/zim/</a>, with a regular computer. <strong>Only wikimedia contents (ZIM files in wiki* subdirectories, like <a href="http://download.kiwix.org/zim/wikipedia/" target="_blank">http://download.kiwix.org/zim/wikipedia/</a>) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.
                     <br />For a quick test, you can start with the <a href="http://download.kiwix.org/zim/wikipedia/wikipedia_en_ray_charles_2015-06.zim" target="_blank">"Ray Charles" ZIM file</a> : it contains some wikipedia articles about Ray Charles.
                     <br />After that, you can download an archive in your language. Check its size : these archives take several GB each.
                     <br />If your archive size is more than 2 GB, it might not be supported by your device if it's using a FAT filesystem. In this case, it can be splitted into several 2GB files : see <a href="http://www.kiwix.org/wiki/FAQ">the Kiwix FAQ</a>
@@ -195,6 +195,7 @@
                     <div id="openLocalFiles" style="display: none;">
                         Please select the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)<br />
                         <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.dat,.idx,.txt,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz" /><br />
+                        <strong>Only wikimedia contents (wiki*.zim* files) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.<br />
                         NB : for an Evopedia archive, please select all the files inside the archive (wikipedia_*.dat, metadata.txt etc)<br />
                     </div>
                     <div id="scanningForArchives" style="display: none;">
