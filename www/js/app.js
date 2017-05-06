@@ -382,7 +382,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     
     /**
      * 
-     * @type Array.<StorageFirefoxOS|StoragePhoneGap>
+     * @type Array.<StorageFirefoxOS>
      */
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
@@ -406,13 +406,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     if ($.isFunction(navigator.getDeviceStorages)) {
         // The method getDeviceStorages is available (FxOS>=1.1)
         storages = $.map(navigator.getDeviceStorages("sdcard"), function(s) {
-            return new osabstraction.StorageFirefoxOS(s);
-        });
-    } else if ($.isFunction(window.requestFileSystem)) {
-        // The requestFileSystem is available (Cordova)
-        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs) {
-            storages[0] = new osabstraction.StoragePhoneGap(fs);
-            searchForArchivesInPreferencesOrStorage();
+            return new abstractFilesystemAccess.StorageFirefoxOS(s);
         });
     }
 
