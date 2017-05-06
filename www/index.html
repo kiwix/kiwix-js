@@ -4,7 +4,7 @@
         <meta charset="utf-8">
 
         <title>Kiwix</title>
-        <meta name="description" content="Offline wikipedia reader"> 
+        <meta name="description" content="Offline wikipedia reader">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <!--
         Kiwix (offline wikipedia reader) - HTML5/Javascript version
@@ -16,7 +16,7 @@
 
         Copyright 2013-2017 Mossroy, Peter-x and contributors
         License GPL v3:
-        
+
         This file is part of Kiwix.
 
         Kiwix is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 
         You should have received a copy of the GNU General Public License
         along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
-        
+
         -->
 
         <link rel="stylesheet" href="css/app.css"/>
@@ -93,24 +93,28 @@
                 <div id="about" style="display: none;" class="category-padding">
                     <h2>
                     <img src="img/icons/kiwix-60.png" alt="Kiwix icon"/>
-                    Kiwix : offline wikipedia viewer
+                    Kiwix : offline Wikipedia viewer
                     </h2>
                     <br />Official site : <a href="http://www.kiwix.org/" target="_blank">http://www.kiwix.org/</a>
                     <br />
-                    <br />You can search among the article titles, and read any of them without any Internet access.
-                    <br />All the content of wikipedia is inside your device (including the images). It might also work with any content in <a href="http://www.openzim.org//wiki/OpenZIM">OpenZIM format</a>, but has been only tested on the wikipedia ones.
-                    <br />If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing amount of knowledge and culture.
+                    <br />If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse amazing amounts of knowledge and culture.
+                    <br />The content is packages in file archives called ZIM files.
+                    <br />Once you have downloaded material from the Kiwix website, you will be able to read material from Wikipedia and many other sources.
+                    <br />You can search among the article titles, and read any of these articles offline, without needing Internet access.
+                    <br />All the content of Wikipedia is inside your device (including the images). It might also work with any content in the <a href="http://www.openzim.org//wiki/OpenZIM">OpenZIM format</a>, but has been only tested on the Wikipedia ones.
                     <br />
+                    <br />Note : version 1.x of this application was designed for <a href="http://dumpathome.evopedia.info/dumps/finished/">Evopedia archives</a> and it's still compatible with it, but this format and <a href="http://www.evopedia.info">project</a> are now discontinued.
                     <h3>Usage</h3>
-                    <h4>Step 1 : download an archive</h4>
-                    From <a href="http://download.kiwix.org/zim" target="_blank">http://download.kiwix.org/zim/</a>, with a regular computer. <strong>Only wikimedia contents (ZIM files in wiki* subdirectories, like <a href="http://download.kiwix.org/zim/wikipedia/" target="_blank">http://download.kiwix.org/zim/wikipedia/</a>) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.
+                    <h4>Step 1 : download some content</h4>
+                    from <a href="http://download.kiwix.org/zim" target="_blank">http://download.kiwix.org/zim/</a>, with a regular computer.
+                    <strong>Currently only wikimedia contents (ZIM files in wiki* subdirectories, for instance <a href="http://download.kiwix.org/zim/wikipedia/" target="_blank">http://download.kiwix.org/zim/wikipedia/</a>) have been tested</strong>.
+                    There are known bugs when reading other contents; and audio/video/dynamic contents are not supported for now.
                     <br />For a quick test, you can start with the <a href="http://download.kiwix.org/zim/wikipedia/wikipedia_en_ray_charles_2015-06.zim" target="_blank">"Ray Charles" ZIM file</a> : it contains some wikipedia articles about Ray Charles.
-                    <br />After that, you can download an archive in your language. Check its size : these archives take several GB each.
-                    <br />If your archive size is more than 2 GB, it might not be supported by your device if it's using a FAT filesystem. In this case, it can be splitted into several 2GB files : see <a href="http://www.kiwix.org/wiki/FAQ">the Kiwix FAQ</a>
+                    <br />After that, you can download materials in your language. Check the size before you download files as many of the files are large (several Gigabytes).
+                    <br />If the file is larger than 2 GB, it might not be supported by your device if your storage is formatted using a FAT filesystem. If so, it's possible to split the material into several 2GB files : see <a href="http://www.kiwix.org/wiki/FAQ">the Kiwix FAQ</a>
                     <br />
-                    <br />NB : version 1.x of this application was designed for <a href="http://dumpathome.evopedia.info/dumps/finished/">Evopedia archives</a> and it's still compatible with it, but this format and <a href="http://www.evopedia.info">project</a> are now discontinued.
-                    <h4>Step 2 : put it on your device</h4>
-                    If you have enough space, you can put several archives
+                    <h4>Step 2 : copy the content onto your device</h4>
+                    If you have enough space, you can put several archives.
                     <h4>Step 3 : open the extension, go to the "Configure" menu and select your ZIM file</h4>
                     <h4>Step 4 : enjoy wikipedia offline!</h4>
                     <h3>Privacy policy</h3>
@@ -122,7 +126,7 @@
                     <h3>Feedback / helping / contributing</h3>
                     This application is still a work in progress. There are many bugs and improvements that need to be done. In particular :
                     <ul>
-                        <li><a href="https://github.com/kiwix/kiwix-html5/issues/114" target="_blank">Issue #114</a> : Add a way to easily download ZIM files directly from the device</li>
+                        <li><a href="https://github.com/kiwix/kiwix-html5/issues/114" target="_blank">Issue #114</a> : Add a way to easily download ZIM files directly to the device</li>
                         <li><a href="https://github.com/kiwix/kiwix-html5/issues/13" target="_blank">Issue #13</a> : All the user interface is in English : I plan to translate it at least in French. If you feel able to translate it in your language, please contact me</li>
                         <li><a href="https://github.com/kiwix/kiwix-html5/issues/172" target="_blank">Issue #172</a> and <a href="https://github.com/kiwix/kiwix-html5/issues/152" target="_blank">#152</a> : Handle video and javascript content</li>
                         <li><a href="https://github.com/kiwix/kiwix-html5/issues/126" target="_blank">Issue #126</a> : Load the welcome page at first startup</li>
@@ -160,7 +164,7 @@
                     <br />it under the terms of the GNU General Public License as published by
                     <br />the Free Software Foundation, either version 3 of the License, or
                     <br />(at your option) any later version.
-                    <br /> 
+                    <br />
                     <br />Kiwix is distributed in the hope that it will be useful,
                     <br />but WITHOUT ANY WARRANTY; without even the implied warranty of
                     <br />MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -188,7 +192,7 @@
                     <h3>Other platforms/versions</h3>
                     Other Kiwix clients exist on various platforms. See the official site : <a href="http://www.kiwix.org/" target="_blank">http://www.kiwix.org/</a>
                 </div>
-                
+
                 <div id="configuration" style="display: none;" class="category-padding">
                     <h2>Configuration</h2>
                     This application needs a ZIM archive to work. If you did not download one yet, please see the About section
@@ -218,12 +222,12 @@
                     <div id="messageChannelStatus"></div>
                     <br />
                 </div>
-                
+
                 <div id="welcomeText" class="container category-padding">
                     You can search the content of your ZIM archive by typing in the above search field.
                     <br />It will propose articles starting with what you typed
                 </div>
-                
+
                 <!-- List of articles matching the typed prefix -->
                 <div id="titleListWithHeader" class="container">
                     <span id="titleListHeaderMessage"></span>
