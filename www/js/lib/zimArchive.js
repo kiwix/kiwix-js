@@ -112,22 +112,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
     
     /**
-     * 
-     * @returns {Boolean}
-     */
-    ZIMArchive.prototype.needsWikimediaCSS = function() {
-        return false;
-    };
-
-    /**
-     * 
-     * @returns {Boolean}
-     */
-    ZIMArchive.prototype.hasCoordinates = function() {
-        return false;
-    };
-    
-    /**
      * Looks for the title of the main page
      * @param {callbackTitle} callback
      * @returns {Promise} that resolves to the Title

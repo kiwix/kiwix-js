@@ -22,16 +22,10 @@
  */
 'use strict';
 
-// This global variable is used by archive.js to find the webworker js file
-// because it has to be found in a different location if used in a unit test
-var PREFIX_PATH_WEBWORKER_BZIP2 = "www/";
-
 require.config({
     baseUrl: 'www/js/lib',
     paths: {
-        'jquery': 'jquery-2.1.4',
-        'title': 'title',
-        'archive': 'archive'
+        'jquery': 'jquery-2.1.4'
     }
 });
 
