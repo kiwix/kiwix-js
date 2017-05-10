@@ -78,7 +78,6 @@
                         </span>
                         <span class="nopadding col-md-2 col-sm-2 col-xs-5">
                             <span class="btn-group btn-group-xs">
-                                <a class="btn btn-default btn-xs" id="btnArticlesNearby"><span class="glyphicon glyphicon-screenshot"></span><small><br/>Nearby</small></a>
                                 <a class="btn btn-default btn-xs" id="btnRandomArticle"><span class="glyphicon glyphicon-random"></span><small><br/>Random</small></a>
                             </span>
                         </span>
@@ -121,7 +120,7 @@
                     <h4>Short answer :</h4>
                     This application works offline. We do not collect any of your personal data and don't even know what you are doing with this application.
                     <br /><h4>Longer answer :</h4>
-                    Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application. Depending on your device, the "nearby articles" feature might also communicate with some Internet servers (usually Google) to geolocate your device (through your IP address and/or the Wifi networks detected around you)
+                    Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application.
                     <br />This application only reads the archive files of your device : it does not read any other files.
                     <h3>Feedback / helping / contributing</h3>
                     This application is still a work in progress. There are many bugs and improvements that need to be done. In particular :
@@ -178,16 +177,12 @@
                     <ul>
                         <li><a href="http://jquery.com/" target="_blank">jQuery</a> 2, released under the <a href="http://jquery.org/license" target="_blank">MIT license</a></li>
                         <li><a href="http://getbootstrap.com/" target="_blank">Bootstrap</a> 3, released under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache license 2.0</a>, which includes icons from <a href="http://glyphicons.com/">Glyphicons</a></li>
-                        <li><a href="https://github.com/antimatter15/bzip2.js" target="_blank">bzip2.js</a>, released under the <a href="http://www.gnu.org/copyleft/lgpl.html" target="_blank">LGPL v2 license</a></li>
                         <li><a href="http://www.requirejs.org/" target="_blank">RequireJS</a> 2, released under the <a href="https://github.com/jrburke/requirejs/blob/master/LICENSE" target="_blank">MIT license or new BSD license</a></li>
                         <li><a href="http://qunitjs.com/" target="_blank">QUnit</a> 2, released under the <a href="http://jquery.org/license" target="_blank">MIT license</a></li>
                         <li>Kiwix logo from <a href="http://www.kiwix.org/" target="_blank">kiwix.org</a>, released under the <a href="http://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution Share Alike</a></li>
                         <li>OpenZIM specifications from <a href="http://www.openzim.org//wiki/OpenZIM" target="_blank">www.openzim.org</a>, released under the <a href="http://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution Share Alike</a></li>
                         <li>Emscripten to generate a XZ decompressor in javascript : <a href="https://github.com/kripken/emscripten" target="_blank">https://github.com/kripken/emscripten</a>, released under the <a href="https://github.com/kripken/emscripten" target="_blank">MIT license</a></li>
                         <li><a href="http://tukaani.org/xz/embedded.html">XZ Embedded</a> (the XZ library converted to Javascript with Emscripten), in public domain</li>
-                        <li>Mediawiki CSS from <a href="http://wikidev.net/" target="_blank">Wikidev</a>, released under the <a href="http://www.gnu.org/copyleft/gpl.html" target="_blank">GPL license</a></li>
-                        <li>Geometry library from <a href="https://github.com/DavidDurman/joint/blob/master/src/geometry.js">JointJS</a>, released under the <a href="https://github.com/DavidDurman/joint/blob/master/LICENSE">Mozilla Public License v2</a> (some changes have been made to this javascript file : see its header)</li>
-                        <li><a href="https://cordova.apache.org/" target="_blank">Apache Cordova</a>, released under the <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache license 2.0</a></li>
                     </ul>
                     <h3>Other platforms/versions</h3>
                     Other Kiwix clients exist on various platforms. See the official site : <a href="http://www.kiwix.org/" target="_blank">http://www.kiwix.org/</a>
@@ -200,7 +195,6 @@
                         Please select the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)<br />
                         <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.dat,.idx,.txt,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz" /><br />
                         <strong>Only wikimedia contents (wiki*.zim* files) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.<br />
-                        NB : for an Evopedia archive, please select all the files inside the archive (wikipedia_*.dat, metadata.txt etc)<br />
                     </div>
                     <div id="scanningForArchives" style="display: none;">
                         <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
@@ -243,8 +237,6 @@
                 <div id="readingArticle" style="display: none;" class="container">
                     Reading article <span id="articleName"></span> from archive... Please wait <img src="img/spinner.gif" alt="Please wait..." />
                 </div>
-                <div id="geolocationProgress" style="display: none;" class="container">
-                </div>
                 <iframe id="articleContent" src="A/dummyArticle.html" class="articleIFrame">&nbsp;</iframe>
             </article>
             <footer>
@@ -262,11 +254,6 @@
             </footer>
         </section>
 
-        <!--
-        This script seems to cause issues in latest versions of Firefox OS and Chromium
-        For now, the Apache Cordova port is not a priority
-        <script type="text/javascript" src="cordova.js"></script>
-        -->
         <script type="text/javascript" src="js/lib/xzdec.js"></script>
         <!-- Using require.js, a module system for javascript, include the
              js files. This loads "main.js", which in turn can load other

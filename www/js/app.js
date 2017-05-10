@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osabstraction'],
- function($, backend, util, uiUtil, cookies, geometry, osabstraction) {
+define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFilesystemAccess'],
+ function($, zimArchiveLoader, util, uiUtil, cookies, abstractFilesystemAccess) {
      
     // Disable any eval() call in jQuery : it's disabled by CSP in any packaged application
     // It happens on some wiktionary archives, because there is some javascript inside the html article
@@ -45,29 +45,9 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     var MAX_SEARCH_RESULT_SIZE = 50;
 
     /**
-     * Maximum distance (in degrees) where to search for articles around me
-     * In fact, we use a square around the user, not a circle
-     * This square has a length of twice the value of this constant
-     * One degree is ~111 km at the equator
-     * @type Float
-     */
-    var DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY = 0.01;
-
-    /**
-     * @type LocalArchive|ZIMArchive
+     * @type ZIMArchive
      */
     var selectedArchive = null;
-    
-    /**
-     * This max distance has a default value, but the user can make it change
-     * @type Number
-     */
-    var maxDistanceArticlesNearbySearch = DEFAULT_MAX_DISTANCE_ARTICLES_NEARBY;
-    
-    /**
-     * @type point
-     */
-    var currentCoordinates = null;
     
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
@@ -90,7 +70,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $("#welcomeText").hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
-        $('#geolocationProgress').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
@@ -102,39 +81,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     $('#prefix').on('keyup', function(e) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             onKeyUpPrefix(e);
-            $('#geolocationProgress').hide();
-        }
-    });
-    $("#btnArticlesNearby").on("click", function(e) {
-        if (selectedArchive.hasCoordinates()) {
-            $('#prefix').val("");
-            searchTitlesNearby();
-            $("#welcomeText").hide();
-            $("#readingArticle").hide();
-            if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-                $('#navbarToggle').click();
-            }
-        }
-        else {
-            alert("There are no usable coordinates in this archive. This feature is only available on deprecated Evopedia archives for now");
-        }
-    });
-    $("#btnEnlargeMaxDistance").on("click", function(e) {
-        maxDistanceArticlesNearbySearch = maxDistanceArticlesNearbySearch * 2 ;
-        searchTitlesNearbyGivenCoordinates(currentCoordinates.y, currentCoordinates.x, maxDistanceArticlesNearbySearch);
-        $("#welcomeText").hide();
-        $("#readingArticle").hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
-    });
-    $("#btnReduceMaxDistance").on("click", function(e) {
-        maxDistanceArticlesNearbySearch = maxDistanceArticlesNearbySearch / 2 ;
-        searchTitlesNearbyGivenCoordinates(currentCoordinates.y, currentCoordinates.x, maxDistanceArticlesNearbySearch);
-        $("#welcomeText").hide();
-        $("#readingArticle").hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
         }
     });
     $("#btnRandomArticle").on("click", function(e) {
@@ -143,10 +89,7 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $("#welcomeText").hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
-        $('#suggestEnlargeMaxDistance').hide();
-        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
-        $('#geolocationProgress').hide();
         $('#searchingForTitles').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
@@ -196,11 +139,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $('#prefix').focus();
         $("#titleList").empty();
         $('#titleListHeaderMessage').empty();
-        $('#suggestEnlargeMaxDistance').hide();
-        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
-        $('#geolocationProgress').hide();
         $("#articleContent").contents().empty();
         $('#searchingForTitles').hide();
         if (selectedArchive !== null && selectedArchive.isReady()) {
@@ -224,11 +164,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $("#welcomeText").hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
-        $('#suggestEnlargeMaxDistance').hide();
-        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
-        $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
         refreshAPIStatus();
@@ -249,11 +186,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $("#welcomeText").hide();
         $('#titleList').hide();
         $('#titleListHeaderMessage').hide();
-        $('#suggestEnlargeMaxDistance').hide();
-        $('#suggestReduceMaxDistance').hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
-        $('#geolocationProgress').hide();
         $('#articleContent').hide();
         $('#searchingForTitles').hide();
         return false;
@@ -262,7 +196,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         if (checkWarnServiceWorkerMode(this.value)) {
             // Do the necessary to enable or disable the Service Worker
             setContentInjectionMode(this.value);
-            checkSelectedArchiveCompatibilityWithInjectionMode();
         }
         else {
             setContentInjectionMode('jquery');
@@ -374,20 +307,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     }
     
     /**
-     * Checks if the archive selected by the user is compatible
-     * with the injection mode, and warn the user if it's not
-     * @returns {Boolean} true if they're compatible
-     */
-    function checkSelectedArchiveCompatibilityWithInjectionMode() {
-        if (selectedArchive && selectedArchive.needsWikimediaCSS() && contentInjectionMode === 'serviceworker') {
-            alert('You seem to want to use ServiceWorker mode for an Evopedia archive : this is not supported. Please use the JQuery mode or use a ZIM file');
-            $("#btnConfigure").click();
-            return false;
-        }
-        return true;
-    }
-    
-    /**
      * If the ServiceWorker mode is selected, warn the user before activating it
      * @param chosenContentInjectionMode The mode that the user has chosen
      */
@@ -463,7 +382,7 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     
     /**
      * 
-     * @type Array.<StorageFirefoxOS|StoragePhoneGap>
+     * @type Array.<StorageFirefoxOS>
      */
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
@@ -481,19 +400,13 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
-        backend.scanForArchives(storages, populateDropDownListOfArchives);
+        zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives);
     }
 
     if ($.isFunction(navigator.getDeviceStorages)) {
         // The method getDeviceStorages is available (FxOS>=1.1)
         storages = $.map(navigator.getDeviceStorages("sdcard"), function(s) {
-            return new osabstraction.StorageFirefoxOS(s);
-        });
-    } else if ($.isFunction(window.requestFileSystem)) {
-        // The requestFileSystem is available (Cordova)
-        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, function(fs) {
-            storages[0] = new osabstraction.StoragePhoneGap(fs);
-            searchForArchivesInPreferencesOrStorage();
+            return new abstractFilesystemAccess.StorageFirefoxOS(s);
         });
     }
 
@@ -522,9 +435,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         if (event.state) {
             var titleName = event.state.titleName;
             var titleSearch = event.state.titleSearch;
-            var latitude = event.state.latitude;
-            var longitude = event.state.longitude;
-            var maxDistance = event.state.maxDistance;
             
             $('#prefix').val("");
             $("#welcomeText").hide();
@@ -536,8 +446,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             $('#configuration').hide();
             $('#titleList').hide();
             $('#titleListHeaderMessage').hide();
-            $('#suggestEnlargeMaxDistance').hide();
-            $('#suggestReduceMaxDistance').hide();
             $('#articleContent').contents().empty();
             
             if (titleName && !(""===titleName)) {
@@ -547,28 +455,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                 $('#prefix').val(titleSearch);
                 searchTitlesFromPrefix($('#prefix').val());
             }
-            else if (latitude && !(""===latitude)) {
-                maxDistanceArticlesNearbySearch = maxDistance;
-                searchTitlesNearbyGivenCoordinates(latitude, longitude, maxDistance);
-            }
         }
     };
-    
-    /**
-     * Looks for titles located around the given coordinates, with give maximum distance
-     * @param {Float} latitude
-     * @param {Float} longitude
-     * @param {Number} maxDistance
-     */
-    function searchTitlesNearbyGivenCoordinates(latitude, longitude, maxDistance) {
-        var rectangle = new geometry.rect(
-                longitude - maxDistance,
-                latitude - maxDistance,
-                maxDistance * 2,
-                maxDistance * 2);
-
-        selectedArchive.getTitlesInCoords(rectangle, MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
-    }
     
     /**
      * Populate the drop-down list of titles with the given list
@@ -650,12 +538,10 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
                         + " storages found with getDeviceStorages instead of 1");
                 }
             }
-            selectedArchive = backend.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function (archive) {
+            selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function (archive) {
                 cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
-                if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
-                    // The archive is set : go back to home page to start searching
-                    $("#btnHome").click();
-                }
+                // The archive is set : go back to home page to start searching
+                $("#btnHome").click();
             });
             
         }
@@ -670,13 +556,10 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     }
 
     function setLocalArchiveFromFileList(files) {
-        selectedArchive = backend.loadArchiveFromFiles(files, function(archive){
-            if (checkSelectedArchiveCompatibilityWithInjectionMode()) {
-                // The archive is set : go back to home page to start searching
-                $("#btnHome").click();
-            }
+        selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
+            // The archive is set : go back to home page to start searching
+            $("#btnHome").click();
         });
-        
     }
     /**
      * Sets the localArchive from the File selects populated by user
@@ -748,17 +631,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
      * Display the list of titles with the given array of titles
      * @param {Array.<Title>} titleArray
      * @param {Integer} maxTitles
-     * @param {Boolean} isNearbySearchSuggestions : it set to true, allow suggestions to
-     *  reduce or enlarge the distance where to look for articles nearby
      */
-    function populateListOfTitles(titleArray, maxTitles, isNearbySearchSuggestions) {
-        var currentLatitude;
-        var currentLongitude;
-        if (currentCoordinates) {
-            currentLatitude = currentCoordinates.y;
-            currentLongitude = currentCoordinates.x;
-        }
-        
+    function populateListOfTitles(titleArray, maxTitles) {       
         var titleListHeaderMessageDiv = $('#titleListHeaderMessage');
         var nbTitles = 0;
         if (titleArray) {
@@ -778,77 +652,31 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
               
         titleListHeaderMessageDiv.html(message);
         
-        // In case of nearby search, and too few or too many results,
-        // suggest the user to change the max Distance
-        if (isNearbySearchSuggestions && nbTitles <= maxTitles * 0.8) {
-            $('#suggestEnlargeMaxDistance').show();
-        }
-        if (isNearbySearchSuggestions && maxTitles >=0 && nbTitles >= maxTitles) {
-            $('#suggestReduceMaxDistance').show();
-        }
 
         var titleListDiv = $('#titleList');
         var titleListDivHtml = "";
         for (var i = 0; i < titleArray.length; i++) {
             var title = titleArray[i];
             
-            var distanceFromHereHtml = "";
-            if (title._geolocation && currentCoordinates) {
-                // If we know the current position and the title position, we display the distance and cardinal direction
-                var distanceKm = (currentCoordinates.distance(title._geolocation) * 6371 * Math.PI / 180).toFixed(1);
-                var cardinalDirection = currentCoordinates.bearing(title._geolocation);
-                distanceFromHereHtml = " (" + distanceKm + " km " + cardinalDirection + ")";
-            }
-            
             titleListDivHtml += "<a href='#' titleid='" + title.toStringId().replace(/'/g,"&apos;")
-                    + "' class='list-group-item'>" + title.getReadableName()
-                    + distanceFromHereHtml 
-                    + "</a>";
+                    + "' class='list-group-item'>" + title.getReadableName() + "</a>";
         }
         titleListDiv.html(titleListDivHtml);
         $("#titleList a").on("click",handleTitleClick);
         $('#searchingForTitles').hide();
-        $('#geolocationProgress').hide();
         $('#titleList').show();
         $('#titleListHeaderMessage').show();
     }
-    
-    
-    /**
-     * Checks if the small archive is in use
-     * If it is, display a warning message about the hyperlinks not working
-     */
-    function checkSmallArchive() {
-        if (selectedArchive._language === "small" && !cookies.hasItem("warnedSmallArchive")) {
-            // The user selected the "small" archive, which is quite incomplete
-            // So let's display a warning to the user
-            
-            // If the focus is on the search field, we have to move it,
-            // else the keyboard hides the message
-            if ($("#prefix").is(":focus")) {
-                $("searchTitles").focus();
-            }
-            alert("You selected the 'small' archive. This archive is OK for testing, but be aware that very few hyperlinks in the articles will work because it's only a very small subset of the English dump.");
-            // We will not display this warning again for one day
-            cookies.setItem("warnedSmallArchive", true, 86400);
-        }
-    }
-    
     
     /**
      * Handles the click on a title
      * @param {Event} event
      * @returns {Boolean}
      */
-    function handleTitleClick(event) {
-        // If we use the small archive, a warning should be displayed to the user
-        checkSmallArchive();
-        
+    function handleTitleClick(event) {       
         var titleId = event.target.getAttribute("titleId");
         $("#titleList").empty();
         $('#titleListHeaderMessage').empty();
-        $('#suggestEnlargeMaxDistance').hide();
-        $('#suggestReduceMaxDistance').hide();
         $("#prefix").val("");
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = selectedArchive.parseTitleId(titleId);
@@ -936,7 +764,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
     
     // Compile some regular expressions needed to modify links
     var regexpImageLink = /^.?\/?[^:]+:(.*)/;
-    var regexpMathImageUrl = /^\/math.*\/([0-9a-f]{32})\.png$/;
     var regexpPath = /^(.*\/)[^\/]+$/;
     // These regular expressions match both relative and absolute URLs
     // Since late 2014, all ZIM files should use relative URLs
@@ -955,14 +782,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
         $("#articleContent").show();
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
-
-        // Apply Mediawiki CSS only when it's an Evopedia archive
-        if (selectedArchive.needsWikimediaCSS() === true) {
-            $('#articleContent').contents().find('head').empty();
-            var currentHref = $(location).attr('href');
-            var currentPath = regexpPath.exec(currentHref)[1];
-            $('#articleContent').contents().find('head').append("<link rel='stylesheet' type='text/css' href='" + currentPath + "css/mediawiki-main.css' id='mediawiki-stylesheet' />");
-        }
 
         // Display the article inside the web page.
         $('#articleContent').contents().find('body').html(htmlArticle);
@@ -1030,27 +849,19 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             // Load images
             $('#articleContent').contents().find('body').find('img').each(function() {
                 var image = $(this);
-                var m = image.attr("src").match(regexpMathImageUrl);
-                if (m) {
-                    // It's a math image (Evopedia archive)
-                    selectedArchive.loadMathImage(m[1], function(data) {
-                        uiUtil.feedNodeWithBlob(image, 'src', data, 'image/png');
-                    });
-                } else {
-                    // It's a standard image contained in the ZIM file
-                    // We try to find its name (from an absolute or relative URL)
-                    var imageMatch = image.attr("src").match(regexpImageUrl);
-                    if (imageMatch) {
-                        var titleName = decodeURIComponent(imageMatch[1]);
-                        selectedArchive.getTitleByName(titleName).then(function(title) {
-                            selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
-                                // TODO : use the complete MIME-type of the image (as read from the ZIM file)
-                                uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
-                            });
-                        }).fail(function (e) {
-                            console.error("could not find title for image:" + titleName, e);
+                // It's a standard image contained in the ZIM file
+                // We try to find its name (from an absolute or relative URL)
+                var imageMatch = image.attr("src").match(regexpImageUrl);
+                if (imageMatch) {
+                    var titleName = decodeURIComponent(imageMatch[1]);
+                    selectedArchive.getTitleByName(titleName).then(function(title) {
+                        selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                            // TODO : use the complete MIME-type of the image (as read from the ZIM file)
+                            uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
                         });
-                    }
+                    }).fail(function (e) {
+                        console.error("could not find title for image:" + titleName, e);
+                    });
                 }
             });
 
@@ -1125,11 +936,8 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
      * 
      * @param {String} titleName
      * @param {String} titleSearch
-     * @param {Float} latitude
-     * @param {Float} longitude
-     * @param {Float} maxDistance
      */
-    function pushBrowserHistoryState(titleName, titleSearch, latitude, longitude, maxDistance) {
+    function pushBrowserHistoryState(titleName, titleSearch) {
         var stateObj = {};
         var urlParameters;
         var stateLabel;
@@ -1142,15 +950,6 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             stateObj.titleSearch = titleSearch;
             urlParameters = "?titleSearch=" + titleSearch;
             stateLabel = "Wikipedia search : " + titleSearch;
-        }
-        else if (latitude) {
-            stateObj.latitude = latitude;
-            stateObj.longitude = longitude;
-            stateObj.maxDistance = maxDistance;
-            urlParameters = "?latitude=" + latitude
-                + "&longitude=" + longitude;
-                + "&maxDistance=" + maxDistance;
-            stateLabel = "Wikipedia nearby search around lat=" + latitude +" ,long=" + longitude;
         }
         else {
             return;
@@ -1177,104 +976,7 @@ define(['jquery', 'abstractBackend', 'util', 'uiUtil', 'cookies','geometry','osa
             }
         }).fail(function() { alert("Error reading title " + titleName); });
     }
-       
-    /**
-     * Looks for titles located around where the device is geolocated
-     */
-    function searchTitlesNearby() {
-        $('#searchingForTitles').show();
-        $('#configuration').hide();
-        $('#titleList').hide();
-        $('#titleListHeaderMessage').hide();
-        $('#suggestEnlargeMaxDistance').hide();
-        $('#suggestReduceMaxDistance').hide();
-        $('#articleContent').contents().find('body').empty();
-        if (selectedArchive !== null && selectedArchive.isReady()) {
-            if (navigator.geolocation) {
-                var geo_options = {
-                    enableHighAccuracy: false,
-                    maximumAge: 600000, // 10 minutes
-                    timeout: Infinity 
-                };
-
-                $('#geolocationProgress').html("Trying to find your location...");
-                // This property helps the code to know in which step we currently are
-                $('#geolocationProgress').prop("step","Geolocate");
-                $('#geolocationProgress').show();
-                navigator.geolocation.getCurrentPosition(geo_success, geo_error, geo_options);
-                
-                // Give some feedback to the user of the geolocation takes some time
-                setTimeout(function(){
-                    if ($('#geolocationProgress').is(":visible") && $('#geolocationProgress').prop("step") === "Geolocate") {
-                        $('#geolocationProgress').html("Still trying to find your location... Depending on your device, this might take some time");
-                        setTimeout(function(){
-                            if ($('#geolocationProgress').is(":visible") && $('#geolocationProgress').prop("step") === "Geolocate") {
-                                $('#geolocationProgress').html("Still trying to find your location... On some devices, there might be a prompt for confirmation on the screen. Please confirm to allow geolocation of your device.");
-                                setTimeout(function() {
-                                    if ($('#geolocationProgress').is(":visible") && $('#geolocationProgress').prop("step") === "Geolocate") {
-                                        $('#geolocationProgress').html("Still trying to find your location... If you don't want to wait, you might try to type the name of a famous location around you.");
-                                    }
-                                }, 10000);
-                            }
-                        },10000);
-                    }
-                },5000);
-            }
-            else {
-                alert("Geolocation is not supported (or disabled) on your device, or on your browser");
-                $('#searchingForTitles').hide();
-            }
-
-        } else {
-            $('#searchingForTitles').hide();
-            // We have to remove the focus from the search field,
-            // so that the keyboard does not stay above the message
-            $("#searchTitles").focus();
-            alert("Archive not set : please select an archive");
-            $("#btnConfigure").click();
-        }
-    }
     
-    /**
-     * Called when a geolocation request succeeds : start looking for titles around the location
-     * @param {Position} pos Position given by geolocation
-     */
-    function geo_success(pos) {
-        var crd = pos.coords;
-
-        if ($('#geolocationProgress').is(":visible")) {
-            $('#geolocationProgress').prop("step", "SearchInTitleIndex");
-            $('#geolocationProgress').html("Found your location : lat:" + crd.latitude.toFixed(7) + ", long:" + crd.longitude.toFixed(7)
-                    + "<br/>Now looking for articles around this location...");
-
-            currentCoordinates = new geometry.point(crd.longitude, crd.latitude);
-
-            pushBrowserHistoryState(null, null, crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
-
-            searchTitlesNearbyGivenCoordinates(crd.latitude, crd.longitude, maxDistanceArticlesNearbySearch);
-        }
-        else {
-            // If the geolocationProgress div is not visible, it's because it has been canceled
-            // So we simply ignore the result
-        }
-    }
-
-    /**
-     * Called when a geolocation fails
-     * @param {PositionError} err
-     */
-    function geo_error(err) {
-        if ($('#geolocationProgress').is(":visible")) {
-            alert("Unable to geolocate your device : " + err.code + " : " + err.message);
-            $('#geolocationProgress').hide();
-            $('#searchingForTitles').hide();
-        }
-        else {
-            // If the geolocationProgress div is not visible, it's because it has been canceled
-            // So we simply ignore the result
-        }
-    }
-
     function goToRandomArticle() {
         selectedArchive.getRandomTitle(function(title) {
             if (title === null || title === undefined) {

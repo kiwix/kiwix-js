@@ -42,7 +42,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
      * 
-     * @param {StorageFirefoxOS|StoragePhoneGap|Array.<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
+     * @param {StorageFirefoxOS|Array.<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
      * @param {String} path
      * @param {callbackZIMArchive} callbackReady
      */
@@ -109,22 +109,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.isReady = function() {
         return this._file !== null;
-    };
-    
-    /**
-     * 
-     * @returns {Boolean}
-     */
-    ZIMArchive.prototype.needsWikimediaCSS = function() {
-        return false;
-    };
-
-    /**
-     * 
-     * @returns {Boolean}
-     */
-    ZIMArchive.prototype.hasCoordinates = function() {
-        return false;
     };
     
     /**

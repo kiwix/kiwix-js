@@ -1,5 +1,5 @@
 /**
- * abstractBackend.js: Abstract interface to access Wikipedia archives.
+ * zimArchiveLoader.js: Functions to search and read ZIM archives.
  *
  * Copyright 2015 Mossroy and contributors
  * License GPL v3:
@@ -20,42 +20,28 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['archive', 'zimArchive', 'util', 'jquery'],
-       function(evopediaArchive, zimArchive, util, jQuery) {
-
-    var regexpZIMFileName = /\.zim[^\.]*$/i;
+define(['zimArchive', 'jquery'],
+       function(zimArchive, jQuery) {
 
     /**
-     * Create an archive (ZIM or Evopedia) from DeviceStorage location
+     * Create a ZIMArchive from DeviceStorage location
      * @param {DeviceStorage} storage
      * @param {String} path
      * @param {callbackZIMArchive} callback
-     * @returns {ZIMArchive|LocalArchive}
+     * @returns {ZIMArchive}
      */
     function loadArchiveFromDeviceStorage(storage, path, callback) {
-        if (regexpZIMFileName.test(path)) {
-            return new zimArchive.ZIMArchive(storage, path, callback);
-        }
-        else {
-            var archive = new evopediaArchive.LocalArchive();
-            archive.initializeFromDeviceStorage(storage, path, callback);
-            return archive;
-        }
+        return new zimArchive.ZIMArchive(storage, path, callback);
     };
     /**
-     * Create an archive (ZIM or Evopedia) from Files
+     * Create a ZIMArchive from Files
      * @param {Array.<File>} files
      * @param {callbackZIMArchive} callback
-     * @returns {ZIMArchive|LocalArchive}
+     * @returns {ZIMArchive}
      */
     function loadArchiveFromFiles(files, callback) {
-        if (files.length >= 1 && regexpZIMFileName.test(files[0].name)) {
+        if (files.length >= 1) {
             return new zimArchive.ZIMArchive(files, null, callback);
-        }
-        else {
-            var archive = new evopediaArchive.LocalArchive();
-            archive.initializeFromArchiveFiles(files, callback);
-            return archive;
         }
     };
     
@@ -87,7 +73,7 @@ define(['archive', 'zimArchive', 'util', 'jquery'],
                     + ". If you're using the Firefox OS Simulator, please put the archives in "
                     + "a 'fake-sdcard' directory inside your Firefox profile "
                     + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"
-                    + "profile/fake-sdcard/wikipedia_small_2010-08-14)");
+                    + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)");
             callbackFunction(null);
         });
     };
