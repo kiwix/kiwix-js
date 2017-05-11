@@ -21,6 +21,7 @@ module.exports = {
             .click('#searchTitles')
             .waitForElementVisible('#titleList', 20000)
             .useXpath()
+            .waitForElementVisible("//div[@id='titleList']/a[text()='Ray Charles']", 2000)
             .click("//div[@id='titleList']/a[text()='Ray Charles']")
             .useCss()
             .frame('articleContent')
