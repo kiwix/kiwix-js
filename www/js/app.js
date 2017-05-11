@@ -496,7 +496,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $("#btnAbout").click();
             var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
             if (isAndroid) {
-                alert("You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.");
+                alert("You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.");
             }
         }
     }
@@ -820,7 +820,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         || util.endsWith(lowerCaseUrl, ".svg")
                         || util.endsWith(lowerCaseUrl, ".jpg")
                         || util.endsWith(lowerCaseUrl, ".jpeg"))) {
-                    // It's a link to a file of wikipedia : change the URL to the online version and open in a new tab
+                    // It's a link to a file of Wikipedia : change the URL to the online version and open in a new tab
                     var onlineWikipediaUrl = url.replace(regexpImageLink, "https://" + selectedArchive._language + ".wikipedia.org/wiki/File:$1");
                     $(this).attr("href", onlineWikipediaUrl);
                     $(this).attr("target", "_blank");

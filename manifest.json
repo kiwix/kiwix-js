@@ -3,7 +3,7 @@
     "name": "Kiwix",
     "version": "2.0-WIP",
 
-    "description": "Kiwix : offline wikipedia reader",
+    "description": "Kiwix : offline Wikipedia reader",
     
     "icons": {
         "16": "www/img/icons/kiwix-16.png",

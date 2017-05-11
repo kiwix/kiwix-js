@@ -20,7 +20,7 @@
   "default_locale": "en",
   "permissions": {
     "device-storage:sdcard": {
-      "description": "Required to read wikipedia archives",
+      "description": "Required to read Wikipedia archives",
       "access": "readonly"
     },
     "geolocation": {
