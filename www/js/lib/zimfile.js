@@ -213,8 +213,18 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
          * @returns {Promise}
          */
         fromFileArray: function(fileArray) {
-            // Let's sort the file array in alphabetic order
-            fileArray.sort();
+            // Array of blob objects should be sorted by their name property
+            fileArray.sort(function(a, b) {
+                  var nameA = a.name.toUpperCase(); 
+                  var nameB = b.name.toUpperCase(); 
+                  if (nameA < nameB) {
+                    return -1;
+                  }
+                  if (nameA > nameB) {
+                    return 1;
+                  }
+                  return 0;
+            });
             return util.readFileSlice(fileArray[0], 0, 80).then(function(header)
             {
                 var zf = new ZIMFile(fileArray);
