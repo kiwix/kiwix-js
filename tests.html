@@ -39,8 +39,7 @@
 
     </head>
     <body>
-        These unit tests should be run with Firefox.<br/>
-        TODO : find out why they do not all run on Chromium
+        <b>NOTE:</b> These unit tests can be run with Firefox or Edge. Chrome by default does not allow access to local filesystem files used in testing. So to run tests on Chrome\Chromium launch a new browser instance (without any already open) with the --allow-file-access-from-files argument. Or start a local webserver and access this file through localhost.       
         <div id="qunit"></div>
         <div id="qunit-fixture"></div>
     </body>
