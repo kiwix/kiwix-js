@@ -37,9 +37,17 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
             xhr.onload = function () {
-                var blob = new Blob([xhr.response], {type: 'application/octet-stream'});
-                blob.name = name;
-                resolve(blob);
+                if ((this.status >= 200 && this.status < 300) || xhr.status == 0 ) {
+                    var blob = new Blob([xhr.response], {type: 'application/octet-stream'});
+                    blob.name = name;
+                    resolve(blob);
+                }else
+                {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                }
             };
             xhr.onerror = function () {
                 reject({
@@ -68,16 +76,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             runTests();
         });
     });
-    
-    /**
-     * Function to use in .fail() of an async test
-     * @param e Error
-     */
-    function errorHandlerAsyncTest(e) {
-        assert.ok(false, "Error in async call", e);
-        done();
-    }
- 
+     
     var runTests = function() {
 
         QUnit.module("environment");
@@ -296,7 +295,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
                         assert.equal(data.length, 41, "Data length is correct.");
                         data = utf8.parse(data);
                         var beginning = "console.log( \"mw.loader";
-                        assert.equal(data.slice(0, beginning.length), beginning, "Content dones correctly.");
+                        assert.equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
                         done();
                     });
                 }   
