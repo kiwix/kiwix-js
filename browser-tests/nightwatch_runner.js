@@ -16,12 +16,13 @@ module.exports = {
             .execute(function() {
                 window.setRemoteArchive('https://kiwix.github.io/kiwix-html5/tests/wikipedia_en_ray_charles_2015-06.zim');
             })
+            .waitForElementVisible('#formTitleSearch', 20000)
             .waitForElementVisible('#searchTitles', 20000)
             .setValue('#prefix', "Ray")
             .click('#searchTitles')
             .waitForElementVisible('#titleList', 20000)
             .useXpath()
-            .waitForElementVisible("//div[@id='titleList']/a[text()='Ray Charles']", 2000)
+            .waitForElementVisible("//div[@id='titleList']/a[text()='Ray Charles']", 20000)
             .click("//div[@id='titleList']/a[text()='Ray Charles']")
             .useCss()
             .frame('articleContent')
