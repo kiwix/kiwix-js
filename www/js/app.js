@@ -680,7 +680,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#prefix").val("");
         findTitleFromTitleIdAndLaunchArticleRead(titleId);
         var title = selectedArchive.parseTitleId(titleId);
-        pushBrowserHistoryState(title.name());
+        pushBrowserHistoryState(title.url);
         return false;
     }
     
@@ -838,9 +838,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         url = url.substring(1);
                     }
                     $(this).on('click', function(e) {
-                        var titleName = decodeURIComponent(url);
-                        pushBrowserHistoryState(titleName);
-                        goToArticle(titleName);
+                        var decodedURL = decodeURIComponent(url);
+                        pushBrowserHistoryState(decodedURL);
+                        goToArticle(decodedURL);
                         return false;
                     });
                 }
@@ -985,7 +985,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (title.namespace === 'A') {
                     $("#articleName").html(title.name());
-                    pushBrowserHistoryState(title.name());
+                    pushBrowserHistoryState(title.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(title);
@@ -1007,7 +1007,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (title.namespace === 'A') {
                     $("#articleName").html(title.name());
-                    pushBrowserHistoryState(title.name());
+                    pushBrowserHistoryState(title.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(title);

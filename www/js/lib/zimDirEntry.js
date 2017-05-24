@@ -54,7 +54,7 @@ define([], function() {
         this.redirectTarget = dirEntryData.redirectTarget;
         this.cluster = dirEntryData.cluster;
         this.blob = dirEntryData.blob;
-        this.url = dirEntryData.namespace + '/' + dirEntryData.url;
+        this.url = dirEntryData.url;
         this.title = dirEntryData.title;
     };
 
