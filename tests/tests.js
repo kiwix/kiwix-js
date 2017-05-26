@@ -251,7 +251,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             localZimArchive.getTitleByName("I/m/RayCharles_AManAndHisSoul.jpg").then(function(title) {
                 assert.ok(title !== null, "Title found");
                 if (title !== null) {
-                    assert.equal(title.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
+                    assert.equal(title.namespace +"/"+ title.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
                     localZimArchive.readBinaryFile(title, function(title, data) {
                         assert.equal(data.length, 4951, "Data length is correct.");
                         var beginning = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70,
@@ -271,7 +271,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             localZimArchive.getTitleByName("-/s/style.css").then(function(title) {
                 assert.ok(title !== null, "Title found");
                 if (title !== null) {
-                    assert.equal(title.url, "-/s/style.css", "URL is correct.");
+                    assert.equal(title.namespace +"/"+ title.url, "-/s/style.css", "URL is correct.");
                     localZimArchive.readBinaryFile(title, function(title, data) {
                         assert.equal(data.length, 104495, "Data length is correct.");
                         data = utf8.parse(data);
@@ -290,7 +290,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             localZimArchive.getTitleByName("-/j/local.js").then(function(title) {
                 assert.ok(title !== null, "Title found");
                 if (title !== null) {
-                    assert.equal(title.url, "-/j/local.js", "URL is correct.");
+                    assert.equal(title.namespace +"/"+ title.url, "-/j/local.js", "URL is correct.");
                     localZimArchive.readBinaryFile(title, function(title, data) {
                         assert.equal(data.length, 41, "Data length is correct.");
                         data = utf8.parse(data);
@@ -310,7 +310,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             localZimArchive.getTitleByName("A/Ray_Charles.html").then(function(title) {
                 assert.ok(title !== null, "Title found");
                 if (title !== null) {
-                    assert.equal(title.url, "A/Ray_Charles.html", "URL is correct.");
+                    assert.equal(title.namespace +"/"+ title.url, "A/Ray_Charles.html", "URL is correct.");
                     localZimArchive.readArticle(title, function(titleName, data) {
                         assert.equal(titleName, "Ray Charles", "Title is correct.");
                         assert.equal(data.length, 157186, "Data length is correct.");
