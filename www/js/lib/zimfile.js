@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
+define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util, utf8, Q, zimDirEntry) {
 
     var readInt = function(data, offset, size)
     {
@@ -113,7 +113,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
     /**
      * 
      * @param {Integer} offset
-     * @returns {unresolved} DirEntry data (without the file)
+     * @returns {DirEntry} DirEntry
      */
     ZIMFile.prototype.dirEntry = function(offset)
     {
@@ -126,27 +126,27 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
                 mimetype: readInt(data, 0, 2),
                 namespace: String.fromCharCode(data[3])
             };
-            dirEntry.isRedirect = (dirEntry.mimetype === 0xffff);
-            if (dirEntry.isRedirect)
+            dirEntry.redirect = (dirEntry.mimetype === 0xffff);
+            if (dirEntry.redirect)
                 dirEntry.redirectTarget = readInt(data, 8, 4);
             else
             {
                 dirEntry.cluster = readInt(data, 8, 4);
                 dirEntry.blob = readInt(data, 12, 4);
             }
-            var pos = dirEntry.isRedirect ? 12 : 16;
+            var pos = dirEntry.redirect ? 12 : 16;
             dirEntry.url = utf8.parse(data.subarray(pos), true);
             while (data[pos] !== 0)
                 pos++;
             dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
-            return dirEntry;
+            return new zimDirEntry.DirEntry(that, dirEntry);
         });
     };
 
     /**
      * 
      * @param {Integer} index
-     * @returns {unresolved} DirEntry data (without the file)
+     * @returns {DirEntry} DirEntry
      */
     ZIMFile.prototype.dirEntryByUrlIndex = function(index)
     {
@@ -160,7 +160,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q'], function(xz, util, utf8, Q) {
     /**
      * 
      * @param {Integer} index
-     * @returns {unresolved} DirEntry data (without the file)
+     * @returns {DirEntry} DirEntry
      */
     ZIMFile.prototype.dirEntryByTitleIndex = function(index)
     {

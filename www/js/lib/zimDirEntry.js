@@ -47,7 +47,7 @@ define([], function() {
      */    
     function DirEntry(zimfile, dirEntryData) {
         this._zimfile = zimfile;
-        this.redirect = dirEntryData.isRedirect;
+        this.redirect = dirEntryData.redirect;
         this.offset = dirEntryData.offset;
         this.mimetype = dirEntryData.mimetype;
         this.namespace = dirEntryData.namespace;
@@ -59,6 +59,8 @@ define([], function() {
     };
 
     /**
+     * Serialize some attributes of a DirEntry, to be able to store them in a HTML tag attribute,
+     * and retrieve them later.
      * 
      * @returns {String}
      */
@@ -66,22 +68,6 @@ define([], function() {
         //@todo also store isRedirect and redirectTarget
         return this.offset + '|' + this.mimetype + '|' + this.namespace + '|' + this.cluster + '|' +
                 this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
-    };
-    
-    /**
-     * 
-     * @returns {String}
-     */
-    DirEntry.prototype.getReadableName = function() {
-        return this.title;
-    };
-    
-    /**
-     * 
-     * @returns {String}
-     */
-    DirEntry.prototype.name = function() {
-        return this.title;
     };
     
     /**
@@ -116,7 +102,7 @@ define([], function() {
         data.blob = parseInt(idParts[4], 10);
         data.url = idParts[5];
         data.title = idParts[6];
-        data.isRedirect = ( idParts[7] === "true" );
+        data.redirect = ( idParts[7] === "true" );
         data.redirectTarget = idParts[8];
         return new DirEntry(zimfile, data);
     };

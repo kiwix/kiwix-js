@@ -78,16 +78,16 @@ define(['q'], function(q) {
     }
     
     /**
-     * Generates an array of Titles, where all duplicates have been removed
-     * (it also sorts the titles)
+     * Generates an array of DirEntry, where all duplicates (same title) have been removed
+     * (it also sorts them on their title)
      * 
-     * @param {Array.<Title>} array of Titles
-     * @returns {Array.<Title>} same array of Titles, without duplicates
+     * @param {Array.<DirEntry>} array of DirEntry
+     * @returns {Array.<DirEntry>} same array of DirEntry, without duplicates
      */
-    function removeDuplicateTitlesInArray(array) {
-        array.sort(function(titleA, titleB) {
-            if (titleA.title < titleB.title) return -1;
-            if (titleA.title > titleB.title) return 1;
+    function removeDuplicateTitlesInDirEntryArray(array) {
+        array.sort(function(dirEntryA, dirEntryB) {
+            if (dirEntryA.title < dirEntryB.title) return -1;
+            if (dirEntryA.title > dirEntryB.title) return 1;
             return 0;
         });
         for(var i = 1; i < array.length; ){
@@ -106,8 +106,8 @@ define(['q'], function(q) {
      * It is optimized for small arrays.
      * Source : http://codereview.stackexchange.com/questions/60128/removing-duplicates-from-an-array-quickly
      * 
-     * @param {Array.<Title>} array of String
-     * @returns {Array.<Title>} same array of Strings, without duplicates
+     * @param {Array} array of String
+     * @returns {Array} same array of Strings, without duplicates
      */
     function removeDuplicateStringsInSmallArray(array) {
         var unique = [];
@@ -316,7 +316,7 @@ define(['q'], function(q) {
         ucFirstLetter: ucFirstLetter,
         lcFirstLetter: lcFirstLetter,
         ucEveryFirstLetter: ucEveryFirstLetter,
-        removeDuplicateTitlesInArray: removeDuplicateTitlesInArray,
+        removeDuplicateTitlesInDirEntryArray: removeDuplicateTitlesInDirEntryArray,
         removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,

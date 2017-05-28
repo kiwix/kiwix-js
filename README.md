@@ -22,7 +22,8 @@ Technically, after reading an article from a ZIM file, there is a need to "injec
 
 This application is released under the GPL v3 license. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
 The source code can be found at https://github.com/kiwix/kiwix-html5
-Unit tests can be run by opening tests.html file on Firefox.
+Unit tests can be run by opening tests.html file on Firefox (or Chromium/Chrome with some tweaks).
 
-The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (now discontinued)
+The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (now discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0)
 These first versions were targeting Firefox OS (now discontinued too : we're not lucky ;-) ).
+Some Phonegap/Cordova port had been started but never finished (see in git history in versions<=2.0.0).
