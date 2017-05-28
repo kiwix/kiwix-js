@@ -433,7 +433,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Display the article when the user goes back in the browser history
     window.onpopstate = function(event) {
         if (event.state) {
-            var titleName = event.state.titleName;
+            var title = event.state.title;
             var titleSearch = event.state.titleSearch;
             
             $('#prefix').val("");
@@ -448,8 +448,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').hide();
             $('#articleContent').contents().empty();
             
-            if (titleName && !(""===titleName)) {
-                goToArticle(titleName);
+            if (title && !(""===title)) {
+                goToArticle(title);
             }
             else if (titleSearch && !(""===titleSearch)) {
                 $('#prefix').val(titleSearch);
@@ -659,7 +659,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var dirEntry = dirEntryArray[i];
             
             articleListDivHtml += "<a href='#' dirEntryId='" + dirEntry.toStringId().replace(/'/g,"&apos;")
-                    + "' class='list-group-item'>" + dirEntry.getReadableName() + "</a>";
+                    + "' class='list-group-item'>" + dirEntry.title + "</a>";
         }
         articleListDiv.html(articleListDivHtml);
         $("#articleList a").on("click",handleTitleClick);
@@ -693,7 +693,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
-            $("#articleName").html(dirEntry.name());
+            $("#articleName").html(dirEntry.title);
             $("#readingArticle").show();
             $("#articleContent").contents().html("");
             if (dirEntry.isRedirect()) {
@@ -736,24 +736,24 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             console.log("the ServiceWorker sent a message on port1", event.data);
             if (event.data.action === "askForContent") {
                 console.log("we are asked for a content : let's try to answer to this message");
-                var titleName = event.data.titleName;
+                var title = event.data.title;
                 var messagePort = event.ports[0];
                 var readFile = function(dirEntry) {
                     if (dirEntry === null) {
-                        console.error("Title " + titleName + " not found in archive.");
-                        messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': ''});
+                        console.error("Title " + title + " not found in archive.");
+                        messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': ''});
                     } else if (dirEntry.isRedirect()) {
                         selectedArchive.resolveRedirect(dirEntry, readFile);
                     } else {
                         console.log("Reading binary file...");
-                        selectedArchive.readBinaryFile(dirEntry, function(readableTitleName, content) {
-                            messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
+                        selectedArchive.readBinaryFile(dirEntry, function(readableTitle, content) {
+                            messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': content});
                             console.log("content sent to ServiceWorker");
                         });
                     }
                 };
-                selectedArchive.getDirEntryByTitleName(titleName).then(readFile).fail(function() {
-                    messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});
+                selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function() {
+                    messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': new UInt8Array()});
                 });
             }
             else {
@@ -853,14 +853,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 // We try to find its name (from an absolute or relative URL)
                 var imageMatch = image.attr("src").match(regexpImageUrl);
                 if (imageMatch) {
-                    var titleName = decodeURIComponent(imageMatch[1]);
-                    selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
-                        selectedArchive.readBinaryFile(dirEntry, function (readableTitleName, content) {
+                    var title = decodeURIComponent(imageMatch[1]);
+                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                        selectedArchive.readBinaryFile(dirEntry, function (readableTitle, content) {
                             // TODO : use the complete MIME-type of the image (as read from the ZIM file)
                             uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
                         });
                     }).fail(function (e) {
-                        console.error("could not find DirEntry for image:" + titleName, e);
+                        console.error("could not find DirEntry for image:" + title, e);
                     });
                 }
             });
@@ -872,9 +872,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var hrefMatch = link.attr("href").match(regexpMetadataUrl);
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
-                    var titleName = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
-                    selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
-                        selectedArchive.readBinaryFile(dirEntry, function (readableTitleName, content) {
+                    var title = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
+                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                        selectedArchive.readBinaryFile(dirEntry, function (readableTitle, content) {
                             var cssContent = util.uintToString(content);
                             // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
                             // So we replace the tag with a <style type="text/css">...</style>
@@ -899,7 +899,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             link.replaceWith(cssElement);
                         });
                     }).fail(function (e) {
-                        console.error("could not find DirEntry for CSS : " + titleName, e);
+                        console.error("could not find DirEntry for CSS : " + title, e);
                     });
                 }
             });
@@ -912,18 +912,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
-                    var titleName = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
-                    selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
+                    var title = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
+                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
                         if (dirEntry === null)
-                            console.log("Error: js file not found: " + titleName);
+                            console.log("Error: js file not found: " + title);
                         else
-                            selectedArchive.readBinaryFile(dirEntry, function (readableTitleName, content) {
+                            selectedArchive.readBinaryFile(dirEntry, function (readableTitle, content) {
                                 // TODO : I have to disable javascript for now
                                 // var jsContent = encodeURIComponent(util.uintToString(content));
                                 //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
                             });
                     }).fail(function (e) {
-                        console.error("could not find DirEntry for javascript : " + titleName, e);
+                        console.error("could not find DirEntry for javascript : " + title, e);
                     });
                 }
             });
@@ -934,17 +934,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     /**
      * Changes the URL of the browser page, so that the user might go back to it
      * 
-     * @param {String} titleName
+     * @param {String} title
      * @param {String} titleSearch
      */
-    function pushBrowserHistoryState(titleName, titleSearch) {
+    function pushBrowserHistoryState(title, titleSearch) {
         var stateObj = {};
         var urlParameters;
         var stateLabel;
-        if (titleName && !(""===titleName)) {
-            stateObj.titleName = titleName;
-            urlParameters = "?title=" + titleName;
-            stateLabel = "Wikipedia Article : " + titleName;
+        if (title && !(""===title)) {
+            stateObj.title = title;
+            urlParameters = "?title=" + title;
+            stateLabel = "Wikipedia Article : " + title;
         }
         else if (titleSearch && !(""===titleSearch)) {
             stateObj.titleSearch = titleSearch;
@@ -960,21 +960,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     /**
      * Replace article content with the one of the given title
-     * @param {String} titleName
+     * @param {String} title
      */
-    function goToArticle(titleName) {
-        selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
+    function goToArticle(title) {
+        selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#readingArticle").hide();
-                alert("Article with title " + titleName + " not found in the archive");
+                alert("Article with title " + title + " not found in the archive");
             }
             else {
-                $("#articleName").html(titleName);
+                $("#articleName").html(title);
                 $("#readingArticle").show();
                 $('#articleContent').contents().find('body').html("");
                 readArticle(dirEntry);
             }
-        }).fail(function() { alert("Error reading article with title " + titleName); });
+        }).fail(function() { alert("Error reading article with title " + title); });
     }
     
     function goToRandomArticle() {
@@ -984,7 +984,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
             else {
                 if (dirEntry.namespace === 'A') {
-                    $("#articleName").html(dirEntry.name());
+                    $("#articleName").html(dirEntry.title);
                     pushBrowserHistoryState(dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
@@ -1006,7 +1006,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
             else {
                 if (dirEntry.namespace === 'A') {
-                    $("#articleName").html(dirEntry.name());
+                    $("#articleName").html(dirEntry.title);
                     pushBrowserHistoryState(dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");

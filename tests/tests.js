@@ -172,15 +172,15 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitleName("A/(The_Night_Time_Is)_The_Right_Time.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("A/(The_Night_Time_Is)_The_Right_Time.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
-                    assert.equal(dirEntry.name(), "(The Night Time Is) The Right Time", "Correct redirect title name.");
+                    assert.equal(dirEntry.title, "(The Night Time Is) The Right Time", "Correct redirect title name.");
                     localZimArchive.resolveRedirect(dirEntry, function(dirEntry) {
                         assert.ok(dirEntry !== null, "DirEntry found");
                         assert.ok(!dirEntry.isRedirect(), "DirEntry is not a redirect.");
-                        assert.equal(dirEntry.name(), "Night Time Is the Right Time", "Correct redirected title name.");
+                        assert.equal(dirEntry.title, "Night Time Is the Right Time", "Correct redirected title name.");
                         done();
                     });
                 } else {
@@ -191,15 +191,15 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("article 'Raelettes' correctly redirects to 'The Raelettes'", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitleName("A/Raelettes.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("A/Raelettes.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
-                    assert.equal(dirEntry.name(), "Raelettes", "Correct redirect title name.");
+                    assert.equal(dirEntry.title, "Raelettes", "Correct redirect title name.");
                     localZimArchive.resolveRedirect(dirEntry, function(dirEntry) {
                         assert.ok(dirEntry !== null, "DirEntry found");
                         assert.ok(!dirEntry.isRedirect(), "DirEntry is not a redirect.");
-                        assert.equal(dirEntry.name(), "The Raelettes", "Correct redirected title name.");
+                        assert.equal(dirEntry.title, "The Raelettes", "Correct redirected title name.");
                         done();
                     });
                 } else {
@@ -210,15 +210,15 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("article 'Bein Green' correctly redirects to 'Bein' Green", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitleName("A/Bein_Green.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("A/Bein_Green.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
-                    assert.equal(dirEntry.name(), "Bein Green", "Correct redirect title name.");
+                    assert.equal(dirEntry.title, "Bein Green", "Correct redirect title name.");
                     localZimArchive.resolveRedirect(dirEntry, function(dirEntry) {
                         assert.ok(dirEntry !== null, "DirEntry found");
                         assert.ok(!dirEntry.isRedirect(), "DirEntry is not a redirect.");
-                        assert.equal(dirEntry.name(), "Bein' Green", "Correct redirected title name.");
+                        assert.equal(dirEntry.title, "Bein' Green", "Correct redirected title name.");
                         done();
                     });
                 } else {
@@ -229,15 +229,15 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("article 'America, the Beautiful' correctly redirects to 'America the Beautiful'", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitleName("A/America,_the_Beautiful.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("A/America,_the_Beautiful.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
-                    assert.equal(dirEntry.name(), "America, the Beautiful", "Correct redirect title name.");
+                    assert.equal(dirEntry.title, "America, the Beautiful", "Correct redirect title name.");
                     localZimArchive.resolveRedirect(dirEntry, function(dirEntry) {
                         assert.ok(dirEntry !== null, "DirEntry found");
                         assert.ok(!dirEntry.isRedirect(), "DirEntry is not a redirect.");
-                        assert.equal(dirEntry.name(), "America the Beautiful", "Correct redirected title name.");
+                        assert.equal(dirEntry.title, "America the Beautiful", "Correct redirected title name.");
                         done();
                     });
                 } else {
@@ -248,7 +248,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function(assert) {
             var done = assert.async();
             assert.expect(4);
-            localZimArchive.getDirEntryByTitleName("I/m/RayCharles_AManAndHisSoul.jpg").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("I/m/RayCharles_AManAndHisSoul.jpg").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
@@ -268,7 +268,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             var done = assert.async();
             
             assert.expect(4);
-            localZimArchive.getDirEntryByTitleName("-/s/style.css").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("-/s/style.css").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/s/style.css", "URL is correct.");
@@ -287,7 +287,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("Javascript '-/j/local.js' can be loaded", function(assert) {
             var done = assert.async();
             assert.expect(4);
-            localZimArchive.getDirEntryByTitleName("-/j/local.js").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("-/j/local.js").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/j/local.js", "URL is correct.");
@@ -307,12 +307,12 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         QUnit.test("Split article 'A/Ray_Charles.html' can be loaded", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitleName("A/Ray_Charles.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByTitle("A/Ray_Charles.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "Title found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "A/Ray_Charles.html", "URL is correct.");
-                    localZimArchive.readArticle(dirEntry, function(titleName, data) {
-                        assert.equal(titleName, "Ray Charles", "Title is correct.");
+                    localZimArchive.readArticle(dirEntry, function(title, data) {
+                        assert.equal(title, "Ray Charles", "Title is correct.");
                         assert.equal(data.length, 157186, "Data length is correct.");
                         assert.equal(data.indexOf("the only true genius in show business"), 5535, "Specific substring at beginning found.");
                         assert.equal(data.indexOf("Random Access Memories"), 154107, "Specific substring at end found.");
@@ -330,7 +330,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             assert.expect(2);
             var callbackRandomArticleFound = function(dirEntry) {
                 assert.ok(dirEntry !== null, "One DirEntry should be found");
-                assert.ok(dirEntry.name() !== null, "The random DirEntry should have a name" );
+                assert.ok(dirEntry.title !== null, "The random DirEntry should have a title" );
                
                 done();
             };
@@ -341,7 +341,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             assert.expect(2);
             var callbackMainPageArticleFound = function(dirEntry) {
                 assert.ok(dirEntry !== null, "Main DirEntry should be found");
-                assert.equal(dirEntry.name(), "Summary", "The main DirEntry should be called Summary" );
+                assert.equal(dirEntry.title, "Summary", "The main DirEntry should be called Summary" );
                
                 done();
             };

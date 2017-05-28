@@ -72,22 +72,6 @@ define([], function() {
     
     /**
      * 
-     * @returns {String}
-     */
-    DirEntry.prototype.getReadableName = function() {
-        return this.title;
-    };
-    
-    /**
-     * 
-     * @returns {String}
-     */
-    DirEntry.prototype.name = function() {
-        return this.title;
-    };
-    
-    /**
-     * 
      * @returns {Boolean}
      */
     DirEntry.prototype.isRedirect = function() {

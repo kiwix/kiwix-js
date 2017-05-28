@@ -226,8 +226,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackStringContent} callback
      */
     ZIMArchive.prototype.readArticle = function(dirEntry, callback) {
-        return dirEntry.readData().then(function(data) {
-            callback(dirEntry.name(), utf8.parse(data));
+        dirEntry.readData().then(function(data) {
+            callback(dirEntry.title, utf8.parse(data));
         });
     };
 
@@ -243,29 +243,29 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.readBinaryFile = function(dirEntry, callback) {
         return dirEntry.readData().then(function(data) {
-            callback(dirEntry.name(), data);
+            callback(dirEntry.title, data);
         });
     };
     
-    var regexpTitleNameWithoutNameSpace = /^[^\/]+$/;
+    var regexpTitleWithoutNameSpace = /^[^\/]+$/;
 
     /**
-     * Searches a title (article / page) by name.
-     * @param {String} titleName
-     * @return {Promise} resolving to the title object or null if not found.
+     * Searches a DirEntry (article / page) by its title.
+     * @param {String} title
+     * @return {Promise} resolving to the DirEntry object or null if not found.
      */
-    ZIMArchive.prototype.getDirEntryByTitleName = function(titleName) {
+    ZIMArchive.prototype.getDirEntryByTitle = function(title) {
         var that = this;
         // If no namespace is mentioned, it's an article, and we have to add it
-        if (regexpTitleNameWithoutNameSpace.test(titleName)) {
-            titleName= "A/" + titleName;
+        if (regexpTitleWithoutNameSpace.test(title)) {
+            title= "A/" + title;
         }
         return util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 var url = dirEntry.namespace + "/" + dirEntry.url;
-                if (titleName < url)
+                if (title < url)
                     return -1;
-                else if (titleName > url)
+                else if (title > url)
                     return 1;
                 else
                     return 0;
