@@ -66,13 +66,13 @@
 
 
                 <div class="container">
-                <form id="formTitleSearch">
+                <form id="formArticleSearch">
                     <div class="row">
                         <span class="nopadding col-md-offset-1 col-sm-offset-1 col-md-8 col-sm-8 col-xs-7">
                             <span class="input-group">
                                 <input type="search" id="prefix" placeholder="Search..." class="form-control" />
                                 <span class="input-group-btn">
-                                    <a class="btn btn-default" id="searchTitles"><span class="glyphicon glyphicon-search"></span></a>
+                                    <a class="btn btn-default" id="searchArticles"><span class="glyphicon glyphicon-search"></span></a>
                                 </span>
                             </span>
                         </span>
@@ -82,7 +82,7 @@
                             </span>
                         </span>
                     </div>
-                    <div id="searchingForTitles" class="floating" style="display: none;">
+                    <div id="searchingForArticles" class="floating" style="display: none;">
                         <img src="img/spinner.gif" alt="Please wait..." />
                     </div>
                 </form>
@@ -223,15 +223,9 @@
                 </div>
 
                 <!-- List of articles matching the typed prefix -->
-                <div id="titleListWithHeader" class="container">
-                    <span id="titleListHeaderMessage"></span>
-                    <span id="suggestEnlargeMaxDistance" style="display: none;">
-                        &nbsp;You can <a id="btnEnlargeMaxDistance">look more far away</a>
-                    </span>
-                    <span id="suggestReduceMaxDistance" style="display: none;">
-                        &nbsp;You can <a id="btnReduceMaxDistance">look closer</a> to your location
-                    </span>
-                    <div id="titleList" class="list-group">
+                <div id="articleListWithHeader" class="container">
+                    <span id="articleListHeaderMessage"></span>
+                    <div id="articleList" class="list-group">
                     </div>
                 </div>
                 <div id="readingArticle" style="display: none;" class="container">

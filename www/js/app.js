@@ -39,7 +39,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     };
     
     /**
-     * Maximum number of titles to display in a search
+     * Maximum number of articles to display in a search
      * @type Integer
      */
     var MAX_SEARCH_RESULT_SIZE = 50;
@@ -55,7 +55,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function resizeIFrame() {
         var height = $(window).outerHeight()
                 - $("#top").outerHeight(true)
-                - $("#titleListWithHeader").outerHeight(true)
+                - $("#articleListWithHeader").outerHeight(true)
                 // TODO : this 5 should be dynamically computed, and not hard-coded
                 - 5;
         $(".articleIFrame").css("height", height + "px");
@@ -64,9 +64,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     $(window).resize(resizeIFrame);
     
     // Define behavior of HTML elements
-    $('#searchTitles').on('click', function(e) {
+    $('#searchArticles').on('click', function(e) {
         pushBrowserHistoryState(null, $('#prefix').val());
-        searchTitlesFromPrefix($('#prefix').val());
+        searchDirEntriesFromPrefix($('#prefix').val());
         $("#welcomeText").hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
@@ -74,8 +74,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#navbarToggle').click();
         }
     });
-    $('#formTitleSearch').on('submit', function(e) {
-        document.getElementById("searchTitles").click();
+    $('#formArticleSearch').on('submit', function(e) {
+        document.getElementById("searchArticles").click();
         return false;
     });
     $('#prefix').on('keyup', function(e) {
@@ -87,10 +87,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#prefix').val("");
         goToRandomArticle();
         $("#welcomeText").hide();
-        $('#titleList').hide();
-        $('#titleListHeaderMessage').hide();
+        $('#articleList').hide();
+        $('#articleListHeaderMessage').hide();
         $("#readingArticle").hide();
-        $('#searchingForTitles').hide();
+        $('#searchingForArticles').hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
@@ -129,20 +129,20 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
-        $('#formTitleSearch').show();
+        $('#formArticleSearch').show();
         $("#welcomeText").show();
-        $('#titleList').show();
-        $('#titleListHeaderMessage').show();
+        $('#articleList').show();
+        $('#articleListHeaderMessage').show();
         $('#articleContent').show();
         // Give the focus to the search field, and clean up the page contents
         $("#prefix").val("");
         $('#prefix').focus();
-        $("#titleList").empty();
-        $('#titleListHeaderMessage').empty();
+        $("#articleList").empty();
+        $('#articleListHeaderMessage').empty();
         $("#readingArticle").hide();
         $("#articleContent").hide();
         $("#articleContent").contents().empty();
-        $('#searchingForTitles').hide();
+        $('#searchingForArticles').hide();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             $("#welcomeText").hide();
             goToMainArticle();
@@ -160,14 +160,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
-        $('#formTitleSearch').hide();
+        $('#formArticleSearch').hide();
         $("#welcomeText").hide();
-        $('#titleList').hide();
-        $('#titleListHeaderMessage').hide();
+        $('#articleList').hide();
+        $('#articleListHeaderMessage').hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
         $('#articleContent').hide();
-        $('#searchingForTitles').hide();
+        $('#searchingForArticles').hide();
         refreshAPIStatus();
         return false;
     });
@@ -182,14 +182,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
-        $('#formTitleSearch').hide();
+        $('#formArticleSearch').hide();
         $("#welcomeText").hide();
-        $('#titleList').hide();
-        $('#titleListHeaderMessage').hide();
+        $('#articleList').hide();
+        $('#articleListHeaderMessage').hide();
         $("#readingArticle").hide();
         $("#articleContent").hide();
         $('#articleContent').hide();
-        $('#searchingForTitles').hide();
+        $('#searchingForArticles').hide();
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
@@ -318,7 +318,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // If the focus is on the search field, we have to move it,
             // else the keyboard hides the message
             if ($("#prefix").is(":focus")) {
-                $("searchTitles").focus();
+                $("searchArticles").focus();
             }
             if (confirm("The 'Service Worker' mode is still UNSTABLE for now."
                 + " It happens that the application needs to be reinstalled (or the ServiceWorker manually removed)."
@@ -442,10 +442,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
                 $('#navbarToggle').click();
             }
-            $('#searchingForTitles').hide();
+            $('#searchingForArticles').hide();
             $('#configuration').hide();
-            $('#titleList').hide();
-            $('#titleListHeaderMessage').hide();
+            $('#articleList').hide();
+            $('#articleListHeaderMessage').hide();
             $('#articleContent').contents().empty();
             
             if (titleName && !(""===titleName)) {
@@ -453,13 +453,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
             else if (titleSearch && !(""===titleSearch)) {
                 $('#prefix').val(titleSearch);
-                searchTitlesFromPrefix($('#prefix').val());
+                searchDirEntriesFromPrefix($('#prefix').val());
             }
         }
     };
     
     /**
-     * Populate the drop-down list of titles with the given list
+     * Populate the drop-down list of archives with the given list
      * @param {Array.<String>} archiveDirectories
      */
     function populateDropDownListOfArchives(archiveDirectories) {
@@ -598,7 +598,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         window.timeoutKeyUpPrefix = window.setTimeout(function() {
             var prefix = $("#prefix").val();
             if (prefix && prefix.length>0) {
-                $('#searchTitles').click();
+                $('#searchArticles').click();
             }
         }
         ,500);
@@ -606,21 +606,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
 
     /**
-     * Search the index for titles that start with the given prefix (implemented
+     * Search the index for DirEntries with title that start with the given prefix (implemented
      * with a binary search inside the index file)
      * @param {String} prefix
      */
-    function searchTitlesFromPrefix(prefix) {
-        $('#searchingForTitles').show();
+    function searchDirEntriesFromPrefix(prefix) {
+        $('#searchingForArticles').show();
         $('#configuration').hide();
         $('#articleContent').contents().empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            selectedArchive.findTitlesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfTitles);
+            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
         } else {
-            $('#searchingForTitles').hide();
+            $('#searchingForArticles').hide();
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
-            $("#searchTitles").focus();
+            $("#searchArticles").focus();
             alert("Archive not set : please select an archive");
             $("#btnConfigure").click();
         }
@@ -628,79 +628,79 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
   
     /**
-     * Display the list of titles with the given array of titles
-     * @param {Array.<Title>} titleArray
-     * @param {Integer} maxTitles
+     * Display the list of articles with the given array of DirEntry
+     * @param {Array.<DirEntry>} dirEntryArray
+     * @param {Integer} maxArticles
      */
-    function populateListOfTitles(titleArray, maxTitles) {       
-        var titleListHeaderMessageDiv = $('#titleListHeaderMessage');
-        var nbTitles = 0;
-        if (titleArray) {
-            nbTitles = titleArray.length;
+    function populateListOfArticles(dirEntryArray, maxArticles) {       
+        var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
+        var nbDirEntry = 0;
+        if (dirEntryArray) {
+            nbDirEntry = dirEntryArray.length;
         }
 
         var message;
-        if (maxTitles >= 0 && nbTitles >= maxTitles) {
-            message = maxTitles + " first titles below (refine your search).";
+        if (maxArticles >= 0 && nbDirEntry >= maxArticles) {
+            message = maxArticles + " first articles below (refine your search).";
         }
         else {
-            message = nbTitles + " titles found.";
+            message = nbDirEntry + " articles found.";
         }
-        if (nbTitles === 0) {
-            message = "No titles found.";
+        if (nbDirEntry === 0) {
+            message = "No articles found.";
         }
               
-        titleListHeaderMessageDiv.html(message);
+        articleListHeaderMessageDiv.html(message);
         
 
-        var titleListDiv = $('#titleList');
-        var titleListDivHtml = "";
-        for (var i = 0; i < titleArray.length; i++) {
-            var title = titleArray[i];
+        var articleListDiv = $('#articleList');
+        var articleListDivHtml = "";
+        for (var i = 0; i < dirEntryArray.length; i++) {
+            var dirEntry = dirEntryArray[i];
             
-            titleListDivHtml += "<a href='#' titleid='" + title.toStringId().replace(/'/g,"&apos;")
-                    + "' class='list-group-item'>" + title.getReadableName() + "</a>";
+            articleListDivHtml += "<a href='#' dirEntryId='" + dirEntry.toStringId().replace(/'/g,"&apos;")
+                    + "' class='list-group-item'>" + dirEntry.getReadableName() + "</a>";
         }
-        titleListDiv.html(titleListDivHtml);
-        $("#titleList a").on("click",handleTitleClick);
-        $('#searchingForTitles').hide();
-        $('#titleList').show();
-        $('#titleListHeaderMessage').show();
+        articleListDiv.html(articleListDivHtml);
+        $("#articleList a").on("click",handleTitleClick);
+        $('#searchingForArticles').hide();
+        $('#articleList').show();
+        $('#articleListHeaderMessage').show();
     }
     
     /**
-     * Handles the click on a title
+     * Handles the click on the title of an article in search results
      * @param {Event} event
      * @returns {Boolean}
      */
     function handleTitleClick(event) {       
-        var titleId = event.target.getAttribute("titleId");
-        $("#titleList").empty();
-        $('#titleListHeaderMessage').empty();
+        var dirEntryId = event.target.getAttribute("dirEntryId");
+        $("#articleList").empty();
+        $('#articleListHeaderMessage').empty();
         $("#prefix").val("");
-        findTitleFromTitleIdAndLaunchArticleRead(titleId);
-        var title = selectedArchive.parseTitleId(titleId);
-        pushBrowserHistoryState(title.url);
+        findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
+        var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
+        pushBrowserHistoryState(dirEntry.url);
         return false;
     }
     
 
     /**
-     * Creates an instance of title from given titleId (including resolving redirects),
+     * Creates an instance of DirEntry from given dirEntryId (including resolving redirects),
      * and call the function to read the corresponding article
-     * @param {String} titleId
+     * @param {String} dirEntryId
      */
-    function findTitleFromTitleIdAndLaunchArticleRead(titleId) {
+    function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
-            var title = selectedArchive.parseTitleId(titleId);
-            $("#articleName").html(title.name());
+            var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
+            $("#articleName").html(dirEntry.name());
             $("#readingArticle").show();
             $("#articleContent").contents().html("");
-            if (title.isRedirect()) {
-                selectedArchive.resolveRedirect(title, readArticle);
+            if (dirEntry.isRedirect()) {
+                selectedArchive.resolveRedirect(dirEntry, readArticle);
             }
             else {
-                readArticle(title);
+                readArticle(dirEntry);
             }
         }
         else {
@@ -709,15 +709,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
-     * Read the article corresponding to the given title
-     * @param {Title|DirEntry} title
+     * Read the article corresponding to the given dirEntry
+     * @param {DirEntry} dirEntry
      */
-    function readArticle(title) {
-        if (title.isRedirect()) {
-            selectedArchive.resolveRedirect(title, readArticle);
+    function readArticle(dirEntry) {
+        if (dirEntry.isRedirect()) {
+            selectedArchive.resolveRedirect(dirEntry, readArticle);
         }
         else {
-            selectedArchive.readArticle(title, displayArticleInForm);
+            selectedArchive.readArticle(dirEntry, displayArticleInForm);
         }
     }
     
@@ -738,21 +738,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 console.log("we are asked for a content : let's try to answer to this message");
                 var titleName = event.data.titleName;
                 var messagePort = event.ports[0];
-                var readFile = function(title) {
-                    if (title === null) {
+                var readFile = function(dirEntry) {
+                    if (dirEntry === null) {
                         console.error("Title " + titleName + " not found in archive.");
                         messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': ''});
-                    } else if (title.isRedirect()) {
-                        selectedArchive.resolveRedirect(title, readFile);
+                    } else if (dirEntry.isRedirect()) {
+                        selectedArchive.resolveRedirect(dirEntry, readFile);
                     } else {
                         console.log("Reading binary file...");
-                        selectedArchive.readBinaryFile(title, function(readableTitleName, content) {
+                        selectedArchive.readBinaryFile(dirEntry, function(readableTitleName, content) {
                             messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': content});
                             console.log("content sent to ServiceWorker");
                         });
                     }
                 };
-                selectedArchive.getTitleByName(titleName).then(readFile).fail(function() {
+                selectedArchive.getDirEntryByTitleName(titleName).then(readFile).fail(function() {
                     messagePort.postMessage({'action': 'giveContent', 'titleName' : titleName, 'content': new UInt8Array()});
                 });
             }
@@ -774,10 +774,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
      * NB : in some error cases, the given title can be null, and the htmlArticle contains the error message
-     * @param {Title|DirEntry} title
+     * @param {DirEntry} dirEntry
      * @param {String} htmlArticle
      */
-    function displayArticleInForm(title, htmlArticle) {
+    function displayArticleInForm(dirEntry, htmlArticle) {
         $("#readingArticle").hide();
         $("#articleContent").show();
         // Scroll the iframe to its top
@@ -854,13 +854,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var imageMatch = image.attr("src").match(regexpImageUrl);
                 if (imageMatch) {
                     var titleName = decodeURIComponent(imageMatch[1]);
-                    selectedArchive.getTitleByName(titleName).then(function(title) {
-                        selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                    selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
+                        selectedArchive.readBinaryFile(dirEntry, function (readableTitleName, content) {
                             // TODO : use the complete MIME-type of the image (as read from the ZIM file)
                             uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
                         });
                     }).fail(function (e) {
-                        console.error("could not find title for image:" + titleName, e);
+                        console.error("could not find DirEntry for image:" + titleName, e);
                     });
                 }
             });
@@ -873,8 +873,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if (hrefMatch) {
                     // It's a CSS file contained in the ZIM file
                     var titleName = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
-                    selectedArchive.getTitleByName(titleName).then(function(title) {
-                        selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                    selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
+                        selectedArchive.readBinaryFile(dirEntry, function (readableTitleName, content) {
                             var cssContent = util.uintToString(content);
                             // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
                             // So we replace the tag with a <style type="text/css">...</style>
@@ -899,7 +899,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             link.replaceWith(cssElement);
                         });
                     }).fail(function (e) {
-                        console.error("could not find title for CSS : " + titleName, e);
+                        console.error("could not find DirEntry for CSS : " + titleName, e);
                     });
                 }
             });
@@ -913,17 +913,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
                     var titleName = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
-                    selectedArchive.getTitleByName(titleName).then(function(title) {
-                        if (title === null)
+                    selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
+                        if (dirEntry === null)
                             console.log("Error: js file not found: " + titleName);
                         else
-                            selectedArchive.readBinaryFile(title, function (readableTitleName, content) {
+                            selectedArchive.readBinaryFile(dirEntry, function (readableTitleName, content) {
                                 // TODO : I have to disable javascript for now
                                 // var jsContent = encodeURIComponent(util.uintToString(content));
                                 //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
                             });
                     }).fail(function (e) {
-                        console.error("could not find title for javascript : " + titleName, e);
+                        console.error("could not find DirEntry for javascript : " + titleName, e);
                     });
                 }
             });
@@ -963,8 +963,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} titleName
      */
     function goToArticle(titleName) {
-        selectedArchive.getTitleByName(titleName).then(function(title) {
-            if (title === null || title === undefined) {
+        selectedArchive.getDirEntryByTitleName(titleName).then(function(dirEntry) {
+            if (dirEntry === null || dirEntry === undefined) {
                 $("#readingArticle").hide();
                 alert("Article with title " + titleName + " not found in the archive");
             }
@@ -972,23 +972,23 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#articleName").html(titleName);
                 $("#readingArticle").show();
                 $('#articleContent').contents().find('body').html("");
-                readArticle(title);
+                readArticle(dirEntry);
             }
-        }).fail(function() { alert("Error reading title " + titleName); });
+        }).fail(function() { alert("Error reading article with title " + titleName); });
     }
     
     function goToRandomArticle() {
-        selectedArchive.getRandomTitle(function(title) {
-            if (title === null || title === undefined) {
+        selectedArchive.getRandomDirEntry(function(dirEntry) {
+            if (dirEntry === null || dirEntry === undefined) {
                 alert("Error finding random article.");
             }
             else {
-                if (title.namespace === 'A') {
-                    $("#articleName").html(title.name());
-                    pushBrowserHistoryState(title.url);
+                if (dirEntry.namespace === 'A') {
+                    $("#articleName").html(dirEntry.name());
+                    pushBrowserHistoryState(dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
-                    readArticle(title);
+                    readArticle(dirEntry);
                 }
                 else {
                     // If the random title search did not end up on an article,
@@ -1000,17 +1000,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
     
     function goToMainArticle() {
-        selectedArchive.getMainPageTitle(function(title) {
-            if (title === null || title === undefined) {
+        selectedArchive.getMainPageDirEntry(function(dirEntry) {
+            if (dirEntry === null || dirEntry === undefined) {
                 console.error("Error finding main article.");
             }
             else {
-                if (title.namespace === 'A') {
-                    $("#articleName").html(title.name());
-                    pushBrowserHistoryState(title.url);
+                if (dirEntry.namespace === 'A') {
+                    $("#articleName").html(dirEntry.name());
+                    pushBrowserHistoryState(dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
-                    readArticle(title);
+                    readArticle(dirEntry);
                 }
                 else {
                     console.error("The main page of this archive does not seem to be an article");

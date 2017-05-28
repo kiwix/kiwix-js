@@ -59,7 +59,7 @@
     padding-left: 1px !important;
 }
 
-#searchingForTitles .floating {
+#searchingForArticles .floating {
     position: relative;
     z-index: 10;
     top: 20px;

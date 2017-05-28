@@ -112,11 +112,11 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
     
     /**
-     * Looks for the title of the main page
-     * @param {callbackTitle} callback
-     * @returns {Promise} that resolves to the Title
+     * Looks for the DirEntry of the main page
+     * @param {callbackDirEntry} callback
+     * @returns {Promise} that resolves to the DirEntry
      */
-    ZIMArchive.prototype.getMainPageTitle = function(callback) {
+    ZIMArchive.prototype.getMainPageDirEntry = function(callback) {
         if (this.isReady()) {
             var mainPageUrlIndex = this._file.mainPage;
             var that=this;
@@ -128,20 +128,20 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
     /**
      * 
-     * @param {String} titleId
+     * @param {String} dirEntryId
      * @returns {DirEntry}
      */
-    ZIMArchive.prototype.parseTitleId = function(titleId) {
-        return zimDirEntry.DirEntry.fromStringId(this._file, titleId);
+    ZIMArchive.prototype.parseDirEntryId = function(dirEntryId) {
+        return zimDirEntry.DirEntry.fromStringId(this._file, dirEntryId);
     };
     
     /**
-     * @callback callbackTitleList
-     * @param {Array.<Title>} titleArray Array of Titles found
+     * @callback callbackDirEntryList
+     * @param {Array.<DirEntry>} dirEntryArray Array of DirEntries found
      */
 
     /**
-     * Look for titles starting with the given prefix.
+     * Look for DirEntries with title starting with the given prefix.
      * For now, ZIM titles are case sensitive.
      * So, as workaround, we try several variants of the prefix to find more results.
      * This should be enhanced when the ZIM format will be modified to store normalized titles
@@ -149,21 +149,21 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @param {String} prefix
      * @param {Integer} resultSize
-     * @param {callbackTitleList} callback
+     * @param {callbackDirEntryList} callback
      */
-    ZIMArchive.prototype.findTitlesWithPrefix = function(prefix, resultSize, callback) {
+    ZIMArchive.prototype.findDirEntriesWithPrefix = function(prefix, resultSize, callback) {
         var that = this;
         var prefixVariants = util.removeDuplicateStringsInSmallArray([prefix, util.ucFirstLetter(prefix), util.lcFirstLetter(prefix), util.ucEveryFirstLetter(prefix)]);
-        var titles = [];
+        var dirEntries = [];
         function searchNextVariant() {
-            if (prefixVariants.length === 0 || titles.length >= resultSize) {
-                callback(titles);
+            if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
+                callback(dirEntries);
                 return;
             }
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
-            that.findTitlesWithPrefixCaseSensitive(prefix, resultSize - titles.length, function (newTitles) {
-                titles.push.apply(titles, newTitles);
+            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries) {
+                dirEntries.push.apply(dirEntries, newDirEntries);
                 searchNextVariant();
             });
         }
@@ -171,13 +171,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
     
     /**
-     * Look for titles starting with the given prefix (case-sensitive)
+     * Look for DirEntries with title starting with the given prefix (case-sensitive)
      * 
      * @param {String} prefix
      * @param {Integer} resultSize
-     * @param {callbackTitleList} callback
+     * @param {callbackDirEntryList} callback
      */
-    ZIMArchive.prototype.findTitlesWithPrefixCaseSensitive = function(prefix, resultSize, callback) {
+    ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
@@ -190,43 +190,33 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 return prefix <= dirEntry.title ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
-            var titles = [];
-            var addTitles = function(index) {
+            var dirEntries = [];
+            var addDirEntries = function(index) {
                 if (index >= firstIndex + resultSize || index >= that._file.articleCount)
-                    return titles;
+                    return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     if (dirEntry.title.slice(0, prefix.length) === prefix && dirEntry.namespace === "A")
-                        titles.push(that._dirEntryToTitleObject(dirEntry));
-                    return addTitles(index + 1);
+                        dirEntries.push(that._dirEntryToTitleObject(dirEntry));
+                    return addDirEntries(index + 1);
                 });
             };
-            return addTitles(firstIndex);
+            return addDirEntries(firstIndex);
         }).then(callback);
-    };
-
-    /**
-     * 
-     * @param {rect} rectangle
-     * @param {Integer} resultSize
-     * @param {callbackTitleList} callback
-     */
-    ZIMArchive.prototype.getTitlesInCoords = function(rectangle, resultSize, callback) {
-        callback([]);
     };
     
     /**
-     * @callback callbackTitle
-     * @param {Title} title Title found
+     * @callback callbackDirEntry
+     * @param {DirEntry} dirEntry The DirEntry found
      */
 
     /**
      * 
-     * @param {DirEntry} title
-     * @param {callbackTitle} callback
+     * @param {DirEntry} dirEntry
+     * @param {callbackDirEntry} callback
      */
-    ZIMArchive.prototype.resolveRedirect = function(title, callback) {
+    ZIMArchive.prototype.resolveRedirect = function(dirEntry, callback) {
         var that = this;
-        this._file.dirEntryByUrlIndex(title.redirectTarget).then(function(dirEntry) {
+        this._file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(function(dirEntry) {
             return that._dirEntryToTitleObject(dirEntry);
         }).then(callback);
     };
@@ -238,12 +228,12 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     
     /**
      * 
-     * @param {DirEntry} title
+     * @param {DirEntry} dirEntry
      * @param {callbackStringContent} callback
      */
-    ZIMArchive.prototype.readArticle = function(title, callback) {
-        return title.readData().then(function(data) {
-            callback(title.name(), utf8.parse(data));
+    ZIMArchive.prototype.readArticle = function(dirEntry, callback) {
+        return dirEntry.readData().then(function(data) {
+            callback(dirEntry.name(), utf8.parse(data));
         });
     };
 
@@ -254,12 +244,12 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
     /**
      * Read a binary file.
-     * @param {DirEntry} title
+     * @param {DirEntry} dirEntry
      * @param {callbackBinaryContent} callback
      */
-    ZIMArchive.prototype.readBinaryFile = function(title, callback) {
-        return title.readData().then(function(data) {
-            callback(title.name(), data);
+    ZIMArchive.prototype.readBinaryFile = function(dirEntry, callback) {
+        return dirEntry.readData().then(function(data) {
+            callback(dirEntry.name(), data);
         });
     };
     
@@ -270,7 +260,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {String} titleName
      * @return {Promise} resolving to the title object or null if not found.
      */
-    ZIMArchive.prototype.getTitleByName = function(titleName) {
+    ZIMArchive.prototype.getDirEntryByTitleName = function(titleName) {
         var that = this;
         // If no namespace is mentioned, it's an article, and we have to add it
         if (regexpTitleNameWithoutNameSpace.test(titleName)) {
@@ -299,9 +289,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
     /**
      * 
-     * @param {callbackTitle} callback
+     * @param {callbackDirEntry} callback
      */
-    ZIMArchive.prototype.getRandomTitle = function(callback) {
+    ZIMArchive.prototype.getRandomDirEntry = function(callback) {
         var that = this;
         var index = Math.floor(Math.random() * this._file.articleCount);
         this._file.dirEntryByUrlIndex(index).then(function(dirEntry) {
@@ -311,11 +301,11 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
     /**
      * 
-     * @param dirEntry
+     * @param dirEntryData
      * @returns {DirEntry}
      */
-    ZIMArchive.prototype._dirEntryToTitleObject = function(dirEntry) {
-        return new zimDirEntry.DirEntry(this._file, dirEntry);
+    ZIMArchive.prototype._dirEntryToTitleObject = function(dirEntryData) {
+        return new zimDirEntry.DirEntry(this._file, dirEntryData);
     };
 
     /**

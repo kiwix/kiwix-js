@@ -59,6 +59,8 @@ define([], function() {
     };
 
     /**
+     * Serialize some attributes of a DirEntry, to be able to store them in a HTML tag attribute,
+     * and retrieve them later.
      * 
      * @returns {String}
      */
