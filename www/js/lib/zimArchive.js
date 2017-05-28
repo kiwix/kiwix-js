@@ -119,10 +119,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.getMainPageDirEntry = function(callback) {
         if (this.isReady()) {
             var mainPageUrlIndex = this._file.mainPage;
-            var that=this;
-            this._file.dirEntryByUrlIndex(mainPageUrlIndex).then(function(dirEntry){
-                return that._dirEntryToTitleObject(dirEntry);
-            }).then(callback);
+            this._file.dirEntryByUrlIndex(mainPageUrlIndex).then(callback);
         }
     };
 
@@ -196,7 +193,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     if (dirEntry.title.slice(0, prefix.length) === prefix && dirEntry.namespace === "A")
-                        dirEntries.push(that._dirEntryToTitleObject(dirEntry));
+                        dirEntries.push(dirEntry);
                     return addDirEntries(index + 1);
                 });
             };
@@ -215,10 +212,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackDirEntry} callback
      */
     ZIMArchive.prototype.resolveRedirect = function(dirEntry, callback) {
-        var that = this;
-        this._file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(function(dirEntry) {
-            return that._dirEntryToTitleObject(dirEntry);
-        }).then(callback);
+        this._file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(callback);
     };
     
     /**
@@ -280,10 +274,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             if (index === null) return null;
             return that._file.dirEntryByUrlIndex(index);
         }).then(function(dirEntry) {
-            if (dirEntry === null)
-                return null;
-            else
-                return that._dirEntryToTitleObject(dirEntry);
+            return dirEntry;
         });
     };
 
@@ -292,20 +283,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackDirEntry} callback
      */
     ZIMArchive.prototype.getRandomDirEntry = function(callback) {
-        var that = this;
         var index = Math.floor(Math.random() * this._file.articleCount);
-        this._file.dirEntryByUrlIndex(index).then(function(dirEntry) {
-            return that._dirEntryToTitleObject(dirEntry);
-        }).then(callback);
-    };
-
-    /**
-     * 
-     * @param dirEntryData
-     * @returns {DirEntry}
-     */
-    ZIMArchive.prototype._dirEntryToTitleObject = function(dirEntryData) {
-        return new zimDirEntry.DirEntry(this._file, dirEntryData);
+        this._file.dirEntryByUrlIndex(index).then(callback);
     };
 
     /**

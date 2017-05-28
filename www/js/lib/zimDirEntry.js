@@ -47,7 +47,7 @@ define([], function() {
      */    
     function DirEntry(zimfile, dirEntryData) {
         this._zimfile = zimfile;
-        this.redirect = dirEntryData.isRedirect;
+        this.redirect = dirEntryData.redirect;
         this.offset = dirEntryData.offset;
         this.mimetype = dirEntryData.mimetype;
         this.namespace = dirEntryData.namespace;
@@ -118,7 +118,7 @@ define([], function() {
         data.blob = parseInt(idParts[4], 10);
         data.url = idParts[5];
         data.title = idParts[6];
-        data.isRedirect = ( idParts[7] === "true" );
+        data.redirect = ( idParts[7] === "true" );
         data.redirectTarget = idParts[8];
         return new DirEntry(zimfile, data);
     };
