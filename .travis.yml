@@ -15,11 +15,10 @@ script:
     - pkill node
 deploy:
     provider: script
-    script: "./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh"
+    # This deployment handles 2 different cases :
+    # - the nightly builds (launched by cron)
+    # - the generation of packages for public releases (launched by a tag)
+    # In both cases, we run the same script, but with different command-line arguments
+    script: if [ "${TRAVIS_TAG}aa" = "aa" ]; then CMD_ARGS=""; else CMD_ARGS="-t -v ${TRAVIS_TAG}"; fi && ./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh $CMD_ARGS
     on:
-        condition: ( "$TRAVIS_EVENT_TYPE" = "cron" )
-deploy:
-    provider: script
-    script: "./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v $TRAVIS_TAG"
-    on:
-        tags: true
+        condition: ( "$TRAVIS_EVENT_TYPE" = "cron" || "${TRAVIS_TAG}bb" != "bb" )
