@@ -19,7 +19,7 @@ fi
 cd tmp
 if [ "${TAG}zz" == "zz" ]; then
     echo "Packaging unsigned Firefox extension, version $VERSION"
-    zip -r ../build/kiwix-firefox-unsigned-extension-$VERSION.xpi www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+    zip -r ../build/kiwix-firefox-unsigned-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 
     if [ "${DRYRUN}zz" == "zz" ]; then
         # Sign the extension with the Mozilla API through web-ext, if we're not packaging a public version
@@ -56,6 +56,6 @@ else
     sed -i -e "s/kiwix-html5-unlisted@kiwix.org/kiwix-html5-listed@kiwix.org/" manifest.json
 
     echo "Packaging unsigned 'listed' Firefox extension, version $VERSION"
-    zip -r ../build/kiwix-firefox-unsigned-listed-extension-$VERSION.xpi www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+    zip -r ../build/kiwix-firefox-unsigned-listed-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
     echo "This unsigned extension must be manually uploaded to Mozilla to be signed and distributed from their store"
 fi

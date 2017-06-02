@@ -12,7 +12,9 @@ while getopts tdv: option; do
 done
 
 echo "Packaging unsigned Chrome extension, version $VERSION"
-zip -r build/kiwix-chrome-unsigned-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+cd tmp
+zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+cd ..
 if [ "${TAG}zz" == "zz" ]; then
     # Package the extension with Chromium, if we're not packaging a public version
     echo "Signing the extension for Chrome with a local Chromium, version $VERSION"
