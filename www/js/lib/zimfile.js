@@ -97,7 +97,6 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
             return readRequests[0];
         } else {
             // Wait until all are resolved and concatenate.
-            console.log("CONCAT");
             return Q.all(readRequests).then(function(arrays) {
                 var concatenated = new Uint8Array(size);
                 var sizeSum = 0;
