@@ -55,3 +55,5 @@ www-ghdeploy
 /.vs/ProjectSettings.json
 /.vs/kiwix-html5/v15/.suo
 /.vs/kiwix-html5/v15
+/.vs/config/applicationhost.config
+/.vs/config
