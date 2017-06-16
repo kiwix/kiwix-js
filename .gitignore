@@ -50,3 +50,8 @@ www-ghdeploy
 /build/
 /scripts/travisci_builder_id_key
 /scripts/secret_files.tar.gz
+/.vs/VSWorkspaceState.json
+/.vs/slnx.sqlite
+/.vs/ProjectSettings.json
+/.vs/kiwix-html5/v15/.suo
+/.vs/kiwix-html5/v15
