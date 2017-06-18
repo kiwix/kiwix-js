@@ -50,3 +50,6 @@ www-ghdeploy
 /build/
 /scripts/travisci_builder_id_key
 /scripts/secret_files.tar.gz
+
+#Visual Studio
+/.vs/
