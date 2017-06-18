@@ -36,6 +36,7 @@
 }
 [role=region] > .view-content {
   margin: 0;
+  position: relative; /*Fixes #250 Random button display bug in W10M */
 }
 [role=region] > footer {
   background: rgba(0,0,0,.2);
