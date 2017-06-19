@@ -36,22 +36,26 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', url);
-            xhr.onload = function () {
-                if ((this.status >= 200 && this.status < 300) || xhr.status == 0 ) {
-                    var blob = new Blob([xhr.response], {type: 'application/octet-stream'});
-                    blob.name = name;
-                    resolve(blob);
-                }else
-                {
-                    reject({
-                        status: this.status,
-                        statusText: xhr.statusText
-                    });
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 0 ) {
+                        var blob = new Blob([xhr.response], {type: 'application/octet-stream'});
+                        blob.name = name;
+                        resolve(blob);
+                    }
+                    else {
+                        console.error("Error reading file " + url + " status:" + xhr.status + ", statusText:" + xhr.statusText);
+                        reject({
+                            status: xhr.status,
+                            statusText: xhr.statusText
+                        });
+                    }
                 }
             };
             xhr.onerror = function () {
+                console.error("Error reading file " + url + " status:" + xhr.status + ", statusText:" + xhr.statusText);
                 reject({
-                    status: this.status,
+                    status: xhr.status,
                     statusText: xhr.statusText
                 });
             };
