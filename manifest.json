@@ -29,7 +29,7 @@
     
     "applications": {
         "gecko": {
-            "id": "kiwix-html5-unlisted@kiwix.org"
+            "id": "kiwix-js-unlisted@kiwix.org"
         }
     },
 

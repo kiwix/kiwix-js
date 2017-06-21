@@ -1,4 +1,4 @@
-kiwix-html5
+kiwix-JS
 ==============
 
 Kiwix is an offline Wikipedia viewer. See the official site: http://www.kiwix.org/
@@ -21,7 +21,7 @@ Technically, after reading an article from a ZIM file, there is a need to "injec
 - maybe a "webRequest" mode will appear, which would use the webRequest API inside the Firefox extension (when the necessary APIs will be implemented by Mozilla)
 
 This application is released under the GPL v3 license. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
-The source code can be found at https://github.com/kiwix/kiwix-html5
+The source code can be found at https://github.com/kiwix/kiwix-js
 Unit tests can be run by opening tests.html file on Firefox (or Chromium/Chrome with some tweaks).
 
 The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (now discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0)

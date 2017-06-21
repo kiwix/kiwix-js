@@ -53,7 +53,7 @@ if [ "${TAG}zz" == "zz" ]; then
 else
     # When packaging a public version, we need to prepare a 'listed' extension package to submit to Mozilla
     echo "Replacing the Firefox 'unlisted' extension id by the 'listed' one to be accepted by Mozilla"
-    sed -i -e "s/kiwix-html5-unlisted@kiwix.org/kiwix-html5-listed@kiwix.org/" manifest.json
+    sed -i -e "s/kiwix-js-unlisted@kiwix.org/kiwix-js-listed@kiwix.org/" manifest.json
 
     echo "Packaging unsigned 'listed' Firefox extension, version $VERSION"
     zip -r ../build/kiwix-firefox-unsigned-listed-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
