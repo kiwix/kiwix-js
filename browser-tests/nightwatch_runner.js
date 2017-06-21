@@ -14,7 +14,7 @@ module.exports = {
             .url('http://localhost:8080/')
             .waitForElementVisible('body', 1000)
             .execute(function() {
-                window.setRemoteArchive('https://kiwix.github.io/kiwix-html5/tests/wikipedia_en_ray_charles_2015-06.zim');
+                window.setRemoteArchive('http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zim');
             })
             .waitForElementVisible('#formArticleSearch', 20000)
             .waitForElementVisible('#searchArticles', 20000)

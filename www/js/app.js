@@ -575,11 +575,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var request = new XMLHttpRequest();
         request.open("GET", url, true);
         request.responseType = "blob";
-        request.onload = function (e) {
-            if (request.response) {
-                // Hack to make this look similar to a file
-                request.response.name = url;
-                setLocalArchiveFromFileList([request.response]);
+        request.onreadystatechange = function () {
+            if (request.readyState === XMLHttpRequest.DONE) {
+                if ((request.status >= 200 && request.status < 300) || request.status === 0) {
+                    // Hack to make this look similar to a file
+                    request.response.name = url;
+                    setLocalArchiveFromFileList([request.response]);
+                }
             }
         };
         request.send(null);
