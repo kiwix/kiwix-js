@@ -1,4 +1,4 @@
-kiwix-JS
+Kiwix JS
 ==============
 
 Kiwix is an offline Wikipedia viewer. See the official site: http://www.kiwix.org/

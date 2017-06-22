@@ -18,7 +18,7 @@ cd ..
 if [ "${TAG}zz" == "zz" ]; then
     # Package the extension with Chromium, if we're not packaging a public version
     echo "Signing the extension for Chrome with a local Chromium, version $VERSION"
-    chromium-browser --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-js.pem
+    chromium-browser --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
     mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.crx
 else
     echo "This unsigned extension must be manually uploaded to Google to be signed and distributed from their store"
