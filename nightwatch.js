@@ -27,6 +27,7 @@ module.exports = {
     "firefox" : {
       "desiredCapabilities": {
         "browserName": "firefox",
+        "version": "47.0", // Workaround some timeouts in nightwatch on Firefox>=49. See https://github.com/kiwix/kiwix-js/issues/251
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "build": "build-" + TRAVIS_JOB_NUMBER,
