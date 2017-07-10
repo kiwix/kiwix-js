@@ -777,8 +777,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#articleContent").contents().scrollTop(0);
 
         // Display the article inside the web page.
+        //Fast-replace img with data-img and hide image [kiwix-js #272]
+        htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
         $('#articleContent').contents().find('body').html(htmlArticle);
-        
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
@@ -844,7 +845,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var image = $(this);
                 // It's a standard image contained in the ZIM file
                 // We try to find its name (from an absolute or relative URL)
-                var imageMatch = image.attr("src").match(regexpImageUrl);
+                var imageMatch = image.attr("data-kiwixsrc").match(regexpImageUrl); //kiwix-js #272
                 if (imageMatch) {
                     var title = decodeURIComponent(imageMatch[1]);
                     selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
