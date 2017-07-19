@@ -189,6 +189,7 @@
                 </div>
 
                 <div id="configuration" style="display: none;" class="category-padding">
+                <div id="returntoArticle_top" style="text-align: center;"></div>
                     <h2>Configuration</h2>
                     This application needs a ZIM archive to work. If you did not download one yet, please see the About section
                     <div id="openLocalFiles" style="display: none;">
@@ -208,13 +209,14 @@
                     <div id="contentInjectionModeDiv">
                         Do not touch unless you know what you're doing. <br />
                         Content injection mode : <br/>
-                        <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked><label for="jQueryModeRadio">JQuery</label> (slow and memory hungry, but safer)
+                    <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked><label for="jQueryModeRadio">&nbsp; JQuery</label> (slow and memory hungry, but safer)
                         <br>
-                        <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio"><label for="serviceworkerModeRadio">ServiceWorker</label> (faster but unstable, and not supported by all platforms. In particular, Firefox extensions do not allow ServiceWorkers for now)
+                    <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio"><label for="serviceworkerModeRadio">&nbsp; ServiceWorker</label> (faster but unstable, and not supported by all platforms. In particular, Firefox extensions do not allow ServiceWorkers for now)
                     </div>
                     <div id="serviceWorkerStatus"></div>
                     <div id="messageChannelStatus"></div>
                     <br />
+                <div id="returntoArticle_bottom" style="text-align: center;"></div>
                 </div>
 
                 <div id="welcomeText" class="container category-padding">
@@ -229,7 +231,8 @@
                     </div>
                 </div>
                 <div id="readingArticle" style="display: none;" class="container">
-                    Reading article <span id="articleName"></span> from archive... Please wait <img src="img/spinner.gif" alt="Please wait..." />
+                    <p>Reading article <span id="articleName"></span> from archive... Please wait <img src="img/spinner.gif" alt="Please wait..." /></p>
+                <div id="progressMessage"><p></p></div>
                 </div>
                 <iframe id="articleContent" src="A/dummyArticle.html" class="articleIFrame">&nbsp;</iframe>
             </article>
