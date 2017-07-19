@@ -185,6 +185,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
         if (checkWarnServiceWorkerMode(this.value)) {
+            document.getElementById('returntoArticle_top').innerHTML = "";
+            document.getElementById('returntoArticle_bottom').innerHTML = "";
             // Do the necessary to enable or disable the Service Worker
             setContentInjectionMode(this.value);
         }
@@ -195,7 +197,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     });
     
     /**
-     * Displays of refreshes the API status shown to the user
+     * Displays or refreshes the API status shown to the user
      */
     function refreshAPIStatus() {
         if (isMessageChannelAvailable()) {
@@ -771,15 +773,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleInForm(dirEntry, htmlArticle) {
+        // Display the article inside the web page.
+
+        //Fast-replace img with data-img and hide image [kiwix-js #272]
+        htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+        
+        //Void progress message
+        uiUtil.clear(); //Void progress messages
         $("#readingArticle").hide();
         $("#articleContent").show();
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
-
-        // Display the article inside the web page.
-        //Fast-replace img with data-img and hide image [kiwix-js #272]
-        htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
         $('#articleContent').contents().find('body').html(htmlArticle);
+        uiUtil.makeReturnLink(dirEntry); //[kiwix-js #127]
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
@@ -845,7 +851,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var image = $(this);
                 // It's a standard image contained in the ZIM file
                 // We try to find its name (from an absolute or relative URL)
-                var imageMatch = image.attr("data-kiwixsrc").match(regexpImageUrl); //kiwix-js #272
+                var imageMatch = image.attr('data-kiwixsrc').match(regexpImageUrl); //kiwix-js #272
                 if (imageMatch) {
                     var title = decodeURIComponent(imageMatch[1]);
                     selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
