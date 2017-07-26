@@ -1,0 +1,15 @@
+{
+  "name": "kiwix",
+  "description": "Kiwix : offline Wikipedia reader",
+  "architecture": "all",
+  "maintainer": "Kiwix team <contact+ubuntutouch@kiwix.org>",
+  "framework" : "ubuntu-sdk-15.04.5",
+  "version" : "2.2-WIP",
+  "title": "kiwix",
+  "hooks": {
+    "ubports-little-webapp": {
+      "apparmor": "kiwix.apparmor",
+      "desktop":  "kiwix.desktop"
+    }
+  }
+}

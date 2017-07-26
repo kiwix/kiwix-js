@@ -62,6 +62,9 @@ cp manifest.json tmp/
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
+cp -f ubuntu_touch/* tmp/
+sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
 if [ "${DRYRUN}zz" == "zz" ]; then
     CURRENT_DATE=$(date +'%Y-%m-%d')

@@ -1,3 +1,5 @@
+sudo : true
+dist : trusty
 language: node_js
 node_js:
   - "node"
@@ -16,11 +18,11 @@ script:
 deploy:
     - provider: script
       # Nightly builds (launched by cron)
-      script: ./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh
+      script: sudo apt-get update -q && sudo apt-get --yes install click click-reviewers-tools && ./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh
       on:
           condition: ( "$TRAVIS_EVENT_TYPE" = "cron" )
     - provider: script
       # Generation of packages for public releases (launched by a tag)
-      script: ./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v ${TRAVIS_TAG}
+      script: sudo apt-get update -q && sudo apt-get --yes install click click-reviewers-tools && ./scripts/setup_travis_env.sh && DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v ${TRAVIS_TAG}
       on:
           tags: true
