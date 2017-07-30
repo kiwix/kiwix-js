@@ -1,7 +1,7 @@
 #!/bin/bash
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 echo "BASEDIR is $BASEDIR"
-cd $BASEDIR
+cd "$BASEDIR"
 
 # Reading arguments
 while getopts tdv: option; do
