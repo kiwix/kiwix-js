@@ -14,7 +14,22 @@ module.exports = {
             .url('http://localhost:8080/')
             .waitForElementVisible('body', 1000)
             .execute(function() {
-                window.setRemoteArchive('http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zim');
+                window.setRemoteArchives('http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimaa',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimab',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimac',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimad',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimae',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimaf',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimag',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimah',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimai',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimaj',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimak',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimal',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimam',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.ziman',
+                    'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimao'
+                    );
             })
             .waitForElementVisible('#formArticleSearch', 20000)
             .waitForElementVisible('#searchArticles', 20000)
