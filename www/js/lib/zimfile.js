@@ -135,11 +135,13 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 dirEntry.blob = readInt(data, 12, 4);
             }
             var pos = dirEntry.redirect ? 12 : 16;
-            dirEntry.url = utf8.parse(data.subarray(pos), true);
-            while (data[pos] !== 0)
-                pos++;
-            dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
-            return new zimDirEntry.DirEntry(that, dirEntry);
+            if (data.subarray) {
+                dirEntry.url = utf8.parse(data.subarray(pos), true);
+                while (data[pos] !== 0)
+                    pos++;
+                dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
+                return new zimDirEntry.DirEntry(that, dirEntry);
+            }
         });
     };
 
