@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFilesystemAccess'],
- function($, zimArchiveLoader, util, uiUtil, cookies, abstractFilesystemAccess) {
+define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, util, uiUtil, cookies, abstractFilesystemAccess, q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -560,9 +560,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
-     * This is used in the testing interface to inject a remote archive.
+     * Reads a remote archive with given URL, and returns the response in a Promise.
+     * This function is used by setRemoteArchives below, for UI tests
+     * 
+     * @param url The URL of the archive to read
+     * @returns {Promise}
      */
-    window.setRemoteArchive = function(url) {
+    function readRemoteArchive(url) {
+        var deferred = q.defer();
         var request = new XMLHttpRequest();
         request.open("GET", url, true);
         request.responseType = "blob";
@@ -571,11 +576,32 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if ((request.status >= 200 && request.status < 300) || request.status === 0) {
                     // Hack to make this look similar to a file
                     request.response.name = url;
-                    setLocalArchiveFromFileList([request.response]);
+                    deferred.resolve(request.response);
+                }
+                else {
+                    deferred.reject("HTTP status " + request.status + " when reading " + url);
                 }
             }
         };
+        request.onabort = function (e) {
+            deferred.reject(e);
+        };
         request.send(null);
+        return deferred.promise;
+    }
+    
+    /**
+     * This is used in the testing interface to inject remote archives
+     */
+    window.setRemoteArchives = function() {
+        var readRequests = [];
+        var i;
+        for (i = 0; i < arguments.length; i++) {
+            readRequests[i] = readRemoteArchive(arguments[i]);
+        }
+        return q.all(readRequests).then(function(arrayOfArchives) {
+            setLocalArchiveFromFileList(arrayOfArchives);
+        });
     };
 
     /**
