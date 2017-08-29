@@ -189,37 +189,66 @@
                 </div>
 
                 <div id="configuration" style="display: none;" class="category-padding">
-                    <h2>Configuration</h2>
-                    This application needs a ZIM archive to work. If you did not download one yet, please see the About section
-                    <div id="openLocalFiles" style="display: none;">
-                        Please select the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)<br />
-                        <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.dat,.idx,.txt,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
-                        <strong>Only Wikimedia contents (wiki*.zim* files) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.<br />
+                    <div class="container">
+                        <div class="row">
+                            <h2>Configuration</h2>
+                            <div class="column">
+                                This application needs a ZIM archive to work. If you did not download one yet, please see the About section
+                                <div id="openLocalFiles" style="display: none;">
+                                    Please select the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)<br />
+                                    <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.dat,.idx,.txt,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
+                                    <strong>Only Wikimedia contents (wiki*.zim* files) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.<br />
+                                </div>
+                                <div id="scanningForArchives" style="display: none;">
+                                    <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
+                                </div>
+                                <div id="chooseArchiveFromLocalStorage" style="display: none;">
+                                    <br /> Please select the archive you want to use : <select id="archiveList" class="form-control"></select>
+                                    <br /> Click <a id="btnRescanDeviceStorage">here</a> to rescan your SD Cards and internal memory
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div id="scanningForArchives" style="display: none;">
-                        <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
-                    </div>
-                    <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                        <br /> Please select the archive you want to use : <select id="archiveList" class="form-control"></select>
-                        <br /> Click <a id="btnRescanDeviceStorage">here</a> to rescan your SD Cards and internal memory
+
+                    <div class="container">
+                        <div class="row">
+                            <h3>Expert settings</h3>
+                            <div class="column">
+                                <div class="panel panel-danger" id="contentInjectionModeDiv">
+                                    <div class="panel-heading">Content injection mode</div>
+                                    <div class="panel-body">
+                                        Don't touch unless you know what you're doing!
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked>
+                                                <strong>JQuery</strong> (slow and memory hungry, but safer)
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio">
+                                                <strong>ServiceWorker</strong> (faster but unstable, and not supported by all platforms)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-info" id="apiStatusDiv">
+                                    <div class="panel-heading">API Status</div>
+                                    <div class="panel-body">
+                                        <div id="serviceWorkerStatus"></div>
+                                        <div id="messageChannelStatus"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <br />
-                    <h2>Expert settings</h2>
-                    <div id="contentInjectionModeDiv">
-                        Do not touch unless you know what you're doing. <br />
-                        Content injection mode : <br/>
-                        <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked><label for="jQueryModeRadio">JQuery</label> (slow and memory hungry, but safer)
-                        <br>
-                        <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio"><label for="serviceworkerModeRadio">ServiceWorker</label> (faster but unstable, and not supported by all platforms. In particular, Firefox extensions do not allow ServiceWorkers for now)
-                    </div>
-                    <div id="serviceWorkerStatus"></div>
-                    <div id="messageChannelStatus"></div>
                     <br />
                 </div>
 
                 <div id="welcomeText" class="container category-padding">
                     You can search the content of your ZIM archive by typing in the above search field.
-                <br />It will suggest articles starting with the letters you type.
+                    <br />It will suggest articles starting with the letters you type.
                 </div>
 
                 <!-- List of articles matching the typed prefix -->
