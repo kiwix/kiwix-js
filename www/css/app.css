@@ -84,9 +84,9 @@
     color : orange;
 }
 
-/* Réduction de la taille des éléments en haut pour les petits écrans */
+/* Reduce the size of some elements for small screens */
 @media (max-width: 768px) {
-    /* Pour réduire la taille du menu en haut */
+    /* Reduce the height of top menu */
     .navbar {
         min-height: 20px !important;
         margin-bottom: 1px !important;
@@ -105,20 +105,20 @@
     [role=region] > header {
         margin-bottom: 0px !important;
     }
-    /* Pour supprimer l'espace entre la zone de recherche et l'iframe */
+    /* Remove space between search zone and iframe */
     .list-group {
         margin-bottom: 0px !important;
     }
-    /* Pour réduire la taille du champ de recherche */
+    /* Reduce height of the search field */
     .form-control {
         height: 28px !important;
         padding-bottom: 5px !important;
     }
-    /* Pour réduire la taille des boutons en haut de l'écran */
+    /* Reduce size of the top buttons */
     .btn-xs, .btn-sm, .btn-default, .btn-group-xs > .btn, .btn-group-sm > .btn {
         font-size: 10px !important;
     }
-    /* Pour réduire la taille des boutons en bas de l'écran */
+    /* Reduce size of the bottom buttons */
     .btn-lg, .btn-group-lg > .btn {
         padding-top: 1px !important;
         padding-bottom: 1px !important;
