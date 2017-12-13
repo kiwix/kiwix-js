@@ -247,7 +247,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         });
     };
     
-    var regexpTitleWithoutNameSpace = /^[^\/]+$/;
+    //Supports Stackexchange [kiwix-js #205]
+    var regexpTitleWithoutNameSpace = /^(?![\w-]\/[^\/]+?)/;
 
     /**
      * Searches a DirEntry (article / page) by its title.

@@ -850,13 +850,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // Add an onclick event to go to this article
                     // instead of following the link
                     
-                    if (url.substring(0, 2) === "./") {
-                        url = url.substring(2);
-                    }
-                    // Remove the initial slash if it's an absolute URL
-                    else if (url.substring(0, 1) === "/") {
-                        url = url.substring(1);
-                    }
+					//Get rid of any absolute or relative prefixes (../, ./../, /../.., etc.)
+                        url = url.replace(/^[.\/]*([\S\s]+)$/, "$1");
+
                     $(this).on('click', function(e) {
                         var decodedURL = decodeURIComponent(url);
                         pushBrowserHistoryState(decodedURL);
