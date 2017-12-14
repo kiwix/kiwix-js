@@ -699,7 +699,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#prefix").val("");
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
-        pushBrowserHistoryState(dirEntry.url);
+        pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
         return false;
     }
     
@@ -784,6 +784,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Compile some regular expressions needed to modify links
     var regexpImageLink = /^.?\/?[^:]+:(.*)/;
     var regexpPath = /^(.*\/)[^\/]+$/;
+    // Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
+    var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
     // These regular expressions match both relative and absolute URLs
     // Since late 2014, all ZIM files should use relative URLs
     var regexpImageUrl = /^(?:\.\.\/|\/)+(I\/.*)$/;
@@ -810,11 +812,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
+            
+            // Compute base URL
+            var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : "";
+            var baseUrl = dirEntry.namespace + "/" + urlPath;
+            // Create (or replace) the "base" tag with our base URL
+            $('#articleContent').contents().find('head').find("base").detach();
+            $('#articleContent').contents().find('head').append("<base href='" + baseUrl + "'>");
 
             // Convert links into javascript calls
             $('#articleContent').contents().find('body').find('a').each(function() {
-                // Store current link's url
-                var url = $(this).attr("href");
+                // Compute current link's url (with its namespace), if applicable
+                var url = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : $(this).attr("href");
                 if (url === null || url === undefined) {
                     return;
                 }
@@ -849,14 +858,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // It's a link to another article
                     // Add an onclick event to go to this article
                     // instead of following the link
-                    
-                    if (url.substring(0, 2) === "./") {
-                        url = url.substring(2);
-                    }
-                    // Remove the initial slash if it's an absolute URL
-                    else if (url.substring(0, 1) === "/") {
-                        url = url.substring(1);
-                    }
                     $(this).on('click', function(e) {
                         var decodedURL = decodeURIComponent(url);
                         pushBrowserHistoryState(decodedURL);
@@ -1005,7 +1006,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (dirEntry.namespace === 'A') {
                     $("#articleName").html(dirEntry.title);
-                    pushBrowserHistoryState(dirEntry.url);
+                    pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
@@ -1028,7 +1029,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (dirEntry.namespace === 'A') {
                     $("#articleName").html(dirEntry.title);
-                    pushBrowserHistoryState(dirEntry.url);
+                    pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
