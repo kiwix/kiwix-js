@@ -854,7 +854,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         url = url.replace(/^[.\/]*([\S\s]+)$/, "$1");
                         //Some Stackexchange links (e.g. "duplicate" and "related" questions) are missing the "question" path, so add it back
                         //Regex matches a pattern that looks like: 1234/what-is-mathematics.html and changes to: question/1234/what-is-mathematics.html
-                        url = url.replace(/^(\d+\/[\s\S]+\.html?)$/ig, "question/$1");
+                        url = url.replace(/^(\d+\/[\s\S]+\.html?)$/i, "question/$1");
 
                     $(this).on('click', function(e) {
                         var decodedURL = decodeURIComponent(url);
