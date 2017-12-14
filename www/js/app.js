@@ -850,13 +850,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // Add an onclick event to go to this article
                     // instead of following the link
                     
-                    if (url.substring(0, 2) === "./") {
-                        url = url.substring(2);
-                    }
-                    // Remove the initial slash if it's an absolute URL
-                    else if (url.substring(0, 1) === "/") {
-                        url = url.substring(1);
-                    }
+					//Get rid of any absolute or relative prefixes (../, ./../, /../.., etc.)
+                        url = url.replace(/^[.\/]*([\s\S]+)$/, "$1");
+                        //Some Stackexchange links (e.g. "duplicate" and "related" questions) are missing the "question" path, so add it back
+                        //Regex matches a pattern that looks like: 1234/what-is-mathematics.html and changes to: question/1234/what-is-mathematics.html. Some references are 1234.html so this also adds question to such patterns
+                        url = url.replace(/^(\d+(?:\/[\s\S]+)?\.html?)$/i, "question/$1");
+
                     $(this).on('click', function(e) {
                         var decodedURL = decodeURIComponent(url);
                         pushBrowserHistoryState(decodedURL);
