@@ -227,7 +227,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.readArticle = function(dirEntry, callback) {
         dirEntry.readData().then(function(data) {
-            callback(dirEntry.title, utf8.parse(data));
+            callback(dirEntry, utf8.parse(data));
         });
     };
 
@@ -243,11 +243,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.readBinaryFile = function(dirEntry, callback) {
         return dirEntry.readData().then(function(data) {
-            callback(dirEntry.title, data);
+            callback(dirEntry, data);
         });
     };
-    
-    var regexpTitleWithoutNameSpace = /^[^\/]+$/;
 
     /**
      * Searches a DirEntry (article / page) by its title.
@@ -256,10 +254,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getDirEntryByTitle = function(title) {
         var that = this;
-        // If no namespace is mentioned, it's an article, and we have to add it
-        if (regexpTitleWithoutNameSpace.test(title)) {
-            title= "A/" + title;
-        }
         return util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 var url = dirEntry.namespace + "/" + dirEntry.url;

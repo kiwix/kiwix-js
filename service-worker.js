@@ -83,8 +83,8 @@ var regexpPNG = new RegExp(/\.png$/i);
 var regexpJS = new RegExp(/\.js/i);
 var regexpCSS = new RegExp(/\.css$/i);
 
-var regexpContentUrlWithNamespace = new RegExp(/\/(.)\/(.*[^\/]+)$/);
-var regexpContentUrlWithoutNamespace = new RegExp(/^([^\/]+)$/);
+// Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
+var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
 var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
 
 function fetchEventListener(event) {
@@ -92,8 +92,7 @@ function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         // TODO handle the dummy article more properly
-        if ((regexpContentUrlWithNamespace.test(event.request.url)
-                || regexpContentUrlWithoutNamespace.test(event.request.url))
+        if (regexpZIMUrlWithNamespace.test(event.request.url)
             && !regexpDummyArticle.test(event.request.url)) {
 
             console.log('Asking app.js for a content', event.request.url);
@@ -102,17 +101,9 @@ function fetchEventListener(event) {
                 var title;
                 var titleWithNameSpace;
                 var contentType;
-                if (regexpContentUrlWithoutNamespace.test(event.request.url)) {
-                    // When the request URL is in the same folder,
-                    // it means it's a link to an article (namespace A)
-                    var regexpResult = regexpContentUrlWithoutNamespace.exec(event.request.url);
-                    nameSpace = 'A';
-                    title = regexpResult[1];
-                } else {
-                    var regexpResult = regexpContentUrlWithNamespace.exec(event.request.url);
-                    nameSpace = regexpResult[1];
-                    title = regexpResult[2];
-                }
+                var regexpResult = regexpZIMUrlWithNamespace.exec(event.request.url);
+                nameSpace = regexpResult[1];
+                title = regexpResult[2];
 
                 // The namespace defines the type of content. See http://www.openzim.org/wiki/ZIM_file_format#Namespaces
                 // TODO : read the contentType from the ZIM file instead of hard-coding it here
