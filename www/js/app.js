@@ -242,7 +242,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Firefox
         genericBrowser = browser;
     }
-    else {
+    else if (typeof chrome !== 'undefined') {
         // Chromium/Chrome
         genericBrowser = chrome;
     }
