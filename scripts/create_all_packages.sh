@@ -32,7 +32,15 @@ if [ ! "${VERSION}zz" == "zz" ]; then
 else
     COMMIT_ID=$(git rev-parse --short HEAD)
     VERSION="${MAJOR_NUMERIC_VERSION}commit-${COMMIT_ID}"
+    # Mozilla needs a unique version string for each version it signs
+    # and we have to comply with their version string : https://developer.mozilla.org/en-US/docs/Mozilla/Toolkit_version_format
+    # So we need to replace every number of the commit id by another string (with 32 cars max)
+    # We are allowed only a few special caracters : +*.-_ so we prefered to use capital letters
+    # (hopping this string is case-sensitive)
+    COMMIT_ID_FOR_MOZILLA_MANIFEST=$(echo $COMMIT_ID | tr '[0123456789]' '[ABCDEFGHIJ]')
+    VERSION_FOR_MOZILLA_MANIFEST="${MAJOR_NUMERIC_VERSION}commit${COMMIT_ID_FOR_MOZILLA_MANIFEST}"
     echo "Packaging version $VERSION"
+    echo "Version string for Mozilla extension signing : $VERSION_FOR_MOZILLA_MANIFEST"
 fi
 
 # Copy only the necessary files in a temporary directory
@@ -56,10 +64,10 @@ rm -rf build/*
 # Package for Chromium/Chrome
 scripts/package_chrome_extension.sh $DRYRUN $TAG -v $VERSION
 # Package for Firefox and Firefox OS
-# We have to put the real version string inside the manifest.json (which Chrome might not have accepted)
+# We have to put a unique version string inside the manifest.json (which Chrome might not have accepted)
 # So we take the original manifest again, and replace the version inside it again
 cp manifest.json tmp/
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+sed -i -e "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
