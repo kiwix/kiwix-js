@@ -1,5 +1,5 @@
-'use strict'
-var TRAVIS_JOB_NUMBER = process.env.TRAVIS_JOB_NUMBER
+'use strict';
+var TRAVIS_JOB_NUMBER = process.env.TRAVIS_JOB_NUMBER;
 
 module.exports = {
   "src_folders" : ["browser-tests"],
@@ -27,7 +27,6 @@ module.exports = {
     "firefox" : {
       "desiredCapabilities": {
         "browserName": "firefox",
-        "version": "47.0", // Workaround some timeouts in nightwatch on Firefox>=49. See https://github.com/kiwix/kiwix-js/issues/251
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "build": "build-" + TRAVIS_JOB_NUMBER,
@@ -35,4 +34,4 @@ module.exports = {
       }
     }
   }
-}
+};
