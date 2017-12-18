@@ -230,6 +230,12 @@
                                                 <strong>ServiceWorker</strong> (faster but unstable, and not supported by all platforms)
                                             </label>
                                         </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="contentInjectionMode" value="webrequest" id="webrequestModeRadio">
+                                                <strong>WebRequest</strong> (faster but unstable, and not supported by all platforms)
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="panel panel-info" id="apiStatusDiv">
@@ -237,6 +243,7 @@
                                     <div class="panel-body">
                                         <div id="serviceWorkerStatus"></div>
                                         <div id="messageChannelStatus"></div>
+                                        <div id="webRequestStatus"></div>
                                     </div>
                                 </div>
                             </div>

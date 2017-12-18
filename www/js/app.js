@@ -222,9 +222,30 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
         }
+        if (isWebRequestAvailable()) {
+            $('#webRequestStatus').html("WebRequest filterResponseData API available");
+            $('#webRequestStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiAvailable");
+        } else {
+            $('#webRequestStatus').html("WebRequest filterResponseData API unavailable");
+            $('#webRequestStatus').removeClass("apiAvailable apiUnavailable")
+                    .addClass("apiUnavailable");
+        }
     }
     
     var contentInjectionMode;
+    
+    // In order to work on both Firefox and Chromium/Chrome (and derivatives).
+    // browser and chrome variables expose almost the same APIs
+    var genericBrowser;
+    if (typeof browser !== 'undefined') {
+        // Firefox
+        genericBrowser = browser;
+    }
+    else {
+        // Chromium/Chrome
+        genericBrowser = chrome;
+    }
     
     /**
      * Sets the given injection mode.
@@ -289,12 +310,51 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 navigator.serviceWorker.controller.postMessage({'action': 'init'}, [messageChannel.port2]);
                 console.log("init message sent to ServiceWorker");
             }
+        } else if (value === 'webrequest') {
+            if (!isWebRequestAvailable()) {
+                alert("The WebRequest filterResponseData API is not available on your device. Falling back to JQuery mode");
+                setContentInjectionMode('jquery');
+                return;
+            }
+            // Find the current tab id
+            genericBrowser.tabs.getCurrent(function (tab) {
+                // Register the webRequest API
+                console.log("WebRequest Listener set for tab id " + tab.id);
+                genericBrowser.webRequest.onBeforeRequest.addListener(
+                    webRequestListener,
+                    {tabId: tab.id}
+                    ["blocking"]
+                );
+            });
+            
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
         // Save the value in a cookie, so that to be able to keep it after a reload/restart
         cookies.setItem('lastContentInjectionMode', value, Infinity);
+    }
+    
+    /**
+     * Listener triggered by the webRequest API
+     * @param details
+     */
+    function webRequestListener(details) {
+        console.log("webRequestListener triggered", details);
+        let filter = genericBrowser.webRequest.filterResponseData(details.requestId);
+        let decoder = new TextDecoder("utf-8");
+        let encoder = new TextEncoder();
+
+        filter.ondata = event => {
+            let str = decoder.decode(event.data, {stream: true});
+            // Just change any instance of Kiwix in the HTTP response
+            // to something else.
+            str = str.replace(/Kiwix/g, 'Kiwixzzz');
+            filter.write(encoder.encode(str));
+            filter.disconnect();
+        };
+
+        return {};
     }
     
     /**
@@ -344,6 +404,28 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function isServiceWorkerAvailable() {
         return ('serviceWorker' in navigator);
     }
+    
+    /**
+     * Tells if the WebRequest API is available
+     * https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/webRequest
+     * @returns {Boolean}
+     */
+    function isWebRequestAvailable() {
+        try {
+            if (genericBrowser) {
+                var webRequest = genericBrowser.webRequest;
+                return (webRequest.filterResponseData);
+            }
+            else {
+                return false;
+            }
+        }
+        catch (e){
+            return false;
+        }
+        return false;
+    }
+    
     
     /**
      * Tells if the MessageChannel API is available
