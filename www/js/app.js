@@ -782,10 +782,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     };
     
     // Compile some regular expressions needed to modify links
-    var regexpImageLink = /^.?\/?[^:]+:(.*)/;
+    // Pattern to find the path in a url
     var regexpPath = /^(.*\/)[^\/]+$/;
-    // Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
+    // Pattern to find a ZIM URL (with its namespace) - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
+    // Pattern to match a local anchor in a href
+    var regexpLocalAnchorHref = /^#/;
     // These regular expressions match both relative and absolute URLs
     // Since late 2014, all ZIM files should use relative URLs
     var regexpImageUrl = /^(?:\.\.\/|\/)+(I\/.*)$/;
@@ -819,39 +821,36 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Create (or replace) the "base" tag with our base URL
             $('#articleContent').contents().find('head').find("base").detach();
             $('#articleContent').contents().find('head').append("<base href='" + baseUrl + "'>");
+            
+            var currentProtocol = location.protocol;
+            var currentHost = location.host;
 
             // Convert links into javascript calls
             $('#articleContent').contents().find('body').find('a').each(function() {
+                var href = $(this).attr("href");
                 // Compute current link's url (with its namespace), if applicable
-                var url = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : $(this).attr("href");
-                if (url === null || url === undefined) {
-                    return;
+                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : "";
+                if (href === null || href === undefined) {
+                    // No href attribute
                 }
-                var lowerCaseUrl = url.toLowerCase();
-                var cssClass = $(this).attr("class");
-
-                if (cssClass === "new") {
-                    // It's a link to a missing article : display a message
+                else if (href.length === 0) {
+                    // It's a link with an empty href, pointing to the current page.
+                    // Because of the base tag, we need to modify it
                     $(this).on('click', function(e) {
-                        alert("Missing article in Wikipedia");
+                       return false; 
+                    });
+                }
+                else if (regexpLocalAnchorHref.test(href)) {
+                    // It's an anchor link : we need to make it work with javascript
+                    // because of the base tag
+                    $(this).on('click', function(e) {
+                        $('#articleContent').first()[0].contentWindow.location.hash = href;
                         return false;
                     });
                 }
-                else if (url.slice(0, 1) === "#") {
-                    // It's an anchor link : do nothing
-                }
-                else if (url.substring(0, 4) === "http") {
-                    // It's an external link : open in a new tab
-                    $(this).attr("target", "_blank");
-                }
-                else if (url.match(regexpImageLink)
-                    && (util.endsWith(lowerCaseUrl, ".png")
-                        || util.endsWith(lowerCaseUrl, ".svg")
-                        || util.endsWith(lowerCaseUrl, ".jpg")
-                        || util.endsWith(lowerCaseUrl, ".jpeg"))) {
-                    // It's a link to a file of Wikipedia : change the URL to the online version and open in a new tab
-                    var onlineWikipediaUrl = url.replace(regexpImageLink, "https://" + selectedArchive._language + ".wikipedia.org/wiki/File:$1");
-                    $(this).attr("href", onlineWikipediaUrl);
+                else if (this.protocol !== currentProtocol
+                    || this.host !== currentHost) {
+                    // It's an external URL : we should open it in a new tab
                     $(this).attr("target", "_blank");
                 }
                 else {
@@ -859,7 +858,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // Add an onclick event to go to this article
                     // instead of following the link
                     $(this).on('click', function(e) {
-                        var decodedURL = decodeURIComponent(url);
+                        var decodedURL = decodeURIComponent(zimUrl);
                         pushBrowserHistoryState(decodedURL);
                         goToArticle(decodedURL);
                         return false;
