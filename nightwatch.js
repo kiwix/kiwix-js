@@ -93,6 +93,26 @@ module.exports = {
         "tunnel-identifier": TRAVIS_JOB_NUMBER
       }
     },
+    "edge40" : {
+      "desiredCapabilities": {
+        "browserName": "MicrosoftEdge",
+        "version": "15.15063",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true,
+        "build": "build-" + TRAVIS_JOB_NUMBER,
+        "tunnel-identifier": TRAVIS_JOB_NUMBER
+      }
+    },
+    "edge42" : {
+      "desiredCapabilities": {
+        "browserName": "MicrosoftEdge",
+        "version": "17.17134",
+        "javascriptEnabled": true,
+        "acceptSslCerts": true,
+        "build": "build-" + TRAVIS_JOB_NUMBER,
+        "tunnel-identifier": TRAVIS_JOB_NUMBER
+      }
+    },
     "ie11" : {
       "desiredCapabilities": {
         "browserName": "internet explorer",
