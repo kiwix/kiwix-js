@@ -1,18 +1,44 @@
+/**
+ * nightwatch_runner.js : Tests to be run with nightwatch.
+ * 
+ * Copyright 2017 Mossroy and contributors
+ * License GPL v3:
+ * 
+ * This file is part of Kiwix.
+ * 
+ * Kiwix is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Kiwix is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
+ */
+'use strict';
 module.exports = {
     'Unit Tests': function(browser) {
-        browser
-            .url('http://localhost:8080/tests.html')
-            .waitForElementVisible('#qunit-testresult', 10000)
-            .pause(10000);
-        browser.expect.element('#qunit-testresult').text.to.contain('tests completed in');
-        browser.expect.element('#qunit-testresult .failed').text.to.equal('0');
-        browser.expect.element('#qunit-testresult .passed').text.not.to.equal('0');
-        browser.end();
+        // We need to skip the UI tests on Internet Explorer,
+        // because they are not supported, even if the UI tests are supported on this browser
+        if (browser.options.desiredCapabilities.browserName !== "internet explorer") {
+            browser
+                .url('http://localhost:8080/tests.html')
+                .waitForElementVisible('#qunit-testresult', 10000)
+                .pause(10000);
+            browser.expect.element('#qunit-testresult').text.to.contain('tests completed in');
+            browser.expect.element('#qunit-testresult .failed').text.to.equal('0');
+            browser.expect.element('#qunit-testresult .passed').text.not.to.equal('0');
+            browser.end();
+        }
     },
     'UI Tests': function(browser) {
         browser
             .url('http://localhost:8080/')
-            .waitForElementVisible('body', 1000)
+            .waitForElementVisible('#archiveFiles', 20000)
             .execute(function() {
                 window.setRemoteArchives('http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimaa',
                     'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimab',

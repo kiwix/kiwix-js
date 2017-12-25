@@ -13,7 +13,10 @@ before_script:
     - npm install nightwatch http-server
     - "./node_modules/http-server/bin/http-server . &"
 script:
-    - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox"
+    # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
+    # So we separate the recent and old browsers in order to respect this limit.
+    - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox,chrome,edge"
+    - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11"
     - pkill node
 deploy:
     - provider: script
