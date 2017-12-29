@@ -765,7 +765,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         selectedArchive.resolveRedirect(dirEntry, readFile);
                     } else {
                         console.log("Reading binary file...");
-                        selectedArchive.readBinaryFile(dirEntry, function(readableTitle, content) {
+                        selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
                             messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': content});
                             console.log("content sent to ServiceWorker");
                         });
@@ -875,7 +875,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if (imageMatch) {
                     var title = decodeURIComponent(imageMatch[1]);
                     selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                        selectedArchive.readBinaryFile(dirEntry, function (readableTitle, content) {
+                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             // TODO : use the complete MIME-type of the image (as read from the ZIM file)
                             uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
                         });
@@ -894,7 +894,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // It's a CSS file contained in the ZIM file
                     var title = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
                     selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                        selectedArchive.readBinaryFile(dirEntry, function (readableTitle, content) {
+                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var cssContent = util.uintToString(content);
                             // For some reason, Firefox OS does not accept the syntax <link rel="stylesheet" href="data:text/css,...">
                             // So we replace the tag with a <style type="text/css">...</style>
@@ -937,7 +937,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         if (dirEntry === null)
                             console.log("Error: js file not found: " + title);
                         else
-                            selectedArchive.readBinaryFile(dirEntry, function (readableTitle, content) {
+                            selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                                 // TODO : I have to disable javascript for now
                                 // var jsContent = encodeURIComponent(util.uintToString(content));
                                 //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
