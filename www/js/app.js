@@ -322,7 +322,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 console.log("WebRequest Listener set for tab id " + tab.id);
                 genericBrowser.webRequest.onBeforeRequest.addListener(
                     webRequestListener,
-                    {tabId: tab.id}
+                    {urls: ["https://example.com/*"], types: ["main_frame"]},
+                    ["blocking"]
+                );
+                genericBrowser.webRequest.onBeforeRequest.addListener(
+                    webRequestListener,
+                    {urls: ["<all_urls>"], tabId: tab.id},
                     ["blocking"]
                 );
             });
@@ -345,11 +350,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         let decoder = new TextDecoder("utf-8");
         let encoder = new TextEncoder();
 
-        filter.ondata = function(event) {
+        filter.ondata = event => {
             let str = decoder.decode(event.data, {stream: true});
-            // Just change any instance of Kiwix in the HTTP response
-            // to something else.
-            str = str.replace(/Kiwix/g, 'Kiwixzzz');
+            // Just change any instance of Example in the HTTP response
+            // to WebExtension Example.
+            str = str.replace(/Example/g, 'WebExtension Example');
+            str = str.replace(/Summary/g, 'WebExtension Summary');
             filter.write(encoder.encode(str));
             filter.disconnect();
         };

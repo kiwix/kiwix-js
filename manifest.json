@@ -38,7 +38,7 @@
     },
     
     "permissions": [
-        "<all_urls>", "webRequest", "webRequestBlocking"
+        "webRequest", "webRequestBlocking", "<all_urls>"
     ],
     
     "author": "mossroy",
