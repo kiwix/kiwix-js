@@ -7,7 +7,27 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), then was renamed Kiwix-JS.
 ## Kiwix-JS v2.2.0
 Released on TODO
 
-TODO
+Rename the project to Kiwix-JS instead of Kiwix-html5.
+
+Compatibility with split English wikipedia ZIM files (which now have more than 26 files).
+
+Slightly improved memory handling of content decompression.
+
+Library updates (jQuery, Bootstrap, requireJS).
+
+Improved continuous integration (automated testing on several browsers).
+
+Avoid unnecessary 404 errors on images.
+
+Ubuntu Touch support.
+
+Minor UI enhancements and fixes.
+
+Support for StackExchange ZIM files (and maybe for some other ZIM files with a structure different than the Mediawiki-based ZIM files).
+
+Some code refactoring/cleaning on the way we handle the jQuery mode.
+
+Make geo: and tel: links work.
 
 Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/6?closed=1
 
