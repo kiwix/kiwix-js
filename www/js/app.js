@@ -345,7 +345,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         let decoder = new TextDecoder("utf-8");
         let encoder = new TextEncoder();
 
-        filter.ondata = event => {
+        filter.ondata = function(event) {
             let str = decoder.decode(event.data, {stream: true});
             // Just change any instance of Kiwix in the HTTP response
             // to something else.
