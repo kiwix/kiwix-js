@@ -806,9 +806,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
 
+        if (contentInjectionMode === 'jquery') {
+            // Fast-replace img src with data-kiwixsrc [kiwix-js #272]
+            htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+        }
         // Display the article inside the web page.
-        //Fast-replace img with data-img and hide image [kiwix-js #272]
-        htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
         $('#articleContent').contents().find('body').html(htmlArticle);
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
