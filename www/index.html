@@ -106,8 +106,8 @@
                     <h3>Usage</h3>
                     <h4>Step 1 : download some content</h4>
                     from <a href="http://download.kiwix.org/zim" target="_blank">http://download.kiwix.org/zim/</a>, with a regular computer.
-                    <strong>Currently only Wikimedia contents (ZIM files in wiki* subdirectories, for instance <a href="http://download.kiwix.org/zim/wikipedia/" target="_blank">http://download.kiwix.org/zim/wikipedia/</a>) have been tested</strong>.
-                    There are known bugs when reading other contents; and audio/video/dynamic contents are not supported for now.
+                    <strong>Currently only Mediawiki-based contents (ZIM files in wiki* subdirectories, for instance <a href="http://download.kiwix.org/zim/wikipedia/" target="_blank">http://download.kiwix.org/zim/wikipedia/</a>) and StackExchange (<a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank">https://download.kiwix.org/zim/stack_exchange/</a>) have been tested</strong>.
+                    Audio/video/dynamic contents are not supported for now.
                     <br />For a quick test, you can start with the <a href="http://download.kiwix.org/zim/wikipedia/wikipedia_en_ray_charles_2015-06.zim" target="_blank">"Ray Charles" ZIM file</a> : it contains some wikipedia articles about Ray Charles.
                     <br />After that, you can download materials in your language. Check the size before you download files as many of the files are large (several Gigabytes).
                     <br />If the file is larger than 2 GB, it might not be supported by your device if your storage is formatted using a FAT filesystem. If so, it's possible to split the material into several 2GB files : see <a href="http://www.kiwix.org/wiki/FAQ">the Kiwix FAQ</a>
@@ -123,15 +123,7 @@
                     Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application.
                     <br />This application only reads the archive files of your device : it does not read any other files.
                     <h3>Feedback / helping / contributing</h3>
-                    This application is still a work in progress. There are many bugs and improvements that need to be done. In particular :
-                    <ul>
-                        <li><a href="https://github.com/kiwix/kiwix-js/issues/114" target="_blank">Issue #114</a> : Add a way to easily download ZIM files directly to the device</li>
-                        <li><a href="https://github.com/kiwix/kiwix-js/issues/13" target="_blank">Issue #13</a> : All the user interface is in English : I plan to translate it at least in French. If you feel able to translate it in your language, please contact me</li>
-                        <li><a href="https://github.com/kiwix/kiwix-js/issues/172" target="_blank">Issue #172</a> and <a href="https://github.com/kiwix/kiwix-js/issues/152" target="_blank">#152</a> : Handle video and javascript content</li>
-                        <li><a href="https://github.com/kiwix/kiwix-js/issues/126" target="_blank">Issue #126</a> : Load the welcome page at first startup</li>
-                        <li><a href="https://github.com/kiwix/kiwix-js/issues/117" target="_blank">Issue #117</a> : Better handle upper/lowercase and accents/diacritics in title search</li>
-                        <li>Performance improvements etc.</li>
-                    </ul>
+                    This application is still a work in progress. There are many bugs and improvements that need to be done.
                     Suggestions and patches/pull requests are welcome : the source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">github</a>.
                     The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bugtracker</a> is on github too. We use it as our roadmap.
                     <br />Alternatively, you can send your feedback <a href="mailto:mossroy@mossroy.fr?subject=%5BKiwix%5D%20Feedback%20about%20Kiwix%20JS">by email</a>.
@@ -155,7 +147,7 @@
                         <li>All the developers of libraries and tools I used for releasing them as Free software (see License paragraph)</li>
                     </ul>
                     <h3>License information</h3>
-                    Copyright 2013-2017 Mossroy, Peter-x and contributors
+                    Copyright 2013-2018 Mossroy, Peter-x, Jaifroid, sharun-s and other contributors
                     <br />This application is licensed under the GPL v3 license :
                     <br />
                     <i>
@@ -197,7 +189,7 @@
                                 <div id="openLocalFiles" style="display: none;">
                                     Please select the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)<br />
                                     <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.dat,.idx,.txt,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
-                                    <strong>Only Wikimedia contents (wiki*.zim* files) have been tested</strong> for now. There are known bugs on other contents, and audio/video/dynamic contents are not supported for now.<br />
+                                    <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia) and StackExchange contents have been tested</strong> for now. Audio/video/dynamic contents are not supported for now.<br />
                                 </div>
                                 <div id="scanningForArchives" style="display: none;">
                                     <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />

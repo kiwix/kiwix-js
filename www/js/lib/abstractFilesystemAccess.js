@@ -58,7 +58,7 @@ define(['q', 'jquery'], function(q, jQuery) {
     };
     
     // We try to match both a standalone ZIM file (.zim) or
-    // the first file of a splitted ZIM files collection (.zimaa)
+    // the first file of a split ZIM files collection (.zimaa)
     var regexpZIMFileName = /\.zim(aa)?$/i;
     
     /**
