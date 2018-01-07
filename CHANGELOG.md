@@ -5,7 +5,7 @@ It was first called Evopedia (and was using the file format of Evopedia)
 Then it was renamed Kiwix-html5 (and uses ZIM files), then was renamed Kiwix-JS.
 
 ## Kiwix-JS v2.2.0
-Released on TODO
+Released on 2018-01-07
 
 Rename the project to Kiwix-JS instead of Kiwix-html5.
 

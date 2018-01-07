@@ -26,6 +26,7 @@ fi
 # Use the passed version number, else use the commit id
 if [ ! "${VERSION}zz" == "zz" ]; then
     echo "Packaging version $VERSION because it has been passed as an argument"
+    VERSION_FOR_MOZILLA_MANIFEST="$VERSION"
     if [ ! "${TAG}zz" == "zz" ]; then
         echo "This version is a tag : we're releasing a public version"
     fi
