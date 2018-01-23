@@ -42,6 +42,36 @@ define([], function() {
         });
         jQueryNode.attr(nodeAttribute, url);
     }
+
+    /**
+     * Replace the given CSS link (from the DOM) with an inline CSS of the given content
+     * 
+     * Due to CSP, Firefox OS does not accept <link> syntax with href="data:text/css..." or href="blob:..."
+     * So we replace the tag with a <style type="text/css">...</style>
+     * while copying some attributes of the original tag
+     * Cf http://jonraasch.com/blog/javascript-style-node
+     * 
+     * @param {Element} link from the DOM
+     * @param {String} cssContent
+     */
+    function replaceCSSLinkWithInlineCSS (link, cssContent) {
+        var cssElement = document.createElement('style');
+        cssElement.type = 'text/css';
+        if (cssElement.styleSheet) {
+            cssElement.styleSheet.cssText = cssContent;
+        } else {
+            cssElement.appendChild(document.createTextNode(cssContent));
+        }
+        var mediaAttributeValue = link.attr('media');
+        if (mediaAttributeValue) {
+            cssElement.media = mediaAttributeValue;
+        }
+        var disabledAttributeValue = link.attr('disabled');
+        if (disabledAttributeValue) {
+            cssElement.disabled = disabledAttributeValue;
+        }
+        link.replaceWith(cssElement);
+    }
         
     var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
     
@@ -58,6 +88,7 @@ define([], function() {
      */
     return {
         feedNodeWithBlob: feedNodeWithBlob,
+        replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         removeUrlParameters: removeUrlParameters
     };
 });
