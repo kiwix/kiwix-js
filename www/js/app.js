@@ -748,6 +748,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             selectedArchive.resolveRedirect(dirEntry, readArticle);
         }
         else {
+            //Void the iframe
+            document.getElementById("articleContent").src = "dummyArticle.html";
             selectedArchive.readArticle(dirEntry, displayArticleInForm);
         }
     }
@@ -826,20 +828,20 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Fast-replace img src with data-kiwixsrc [kiwix-js #272]
             htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
         }
+
+        // Compute base URL
+        var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : "";
+        var baseUrl = dirEntry.namespace + "/" + urlPath;
+
+        //Inject base tag into html
+        htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
+
         // Display the article inside the web page.
-        $('#articleContent').contents().find('body').html(htmlArticle);
+        document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
-            
-            // Compute base URL
-            var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : "";
-            var baseUrl = dirEntry.namespace + "/" + urlPath;
-            // Create (or replace) the "base" tag with our base URL
-            $('#articleContent').contents().find('head').find("base").detach();
-            $('#articleContent').contents().find('head').append("<base href='" + baseUrl + "'>");
-            
             var currentProtocol = location.protocol;
             var currentHost = location.host;
 
