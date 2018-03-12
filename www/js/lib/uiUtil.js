@@ -73,14 +73,15 @@ define([], function() {
         link.replaceWith(cssElement);
     }
         
-    var regexpRemoveUrlParameters = new RegExp(/([^\?]+)\?.*$/);
+    var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
     
+    /**
+     * Removes parameters and anchors from a URL
+     * @param {type} url
+     * @returns {String} same URL without its parameters and anchors
+     */
     function removeUrlParameters(url) {
-        if (regexpRemoveUrlParameters.test(url)) {
-            return regexpRemoveUrlParameters.exec(url)[1];
-        } else {
-            return url;
-        }
+        return url.replace(regexpRemoveUrlParameters, "$1");
     }
 
     /**
