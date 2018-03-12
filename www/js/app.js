@@ -776,7 +776,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         console.error("Title " + title + " not found in archive.");
                         messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': ''});
                     } else if (dirEntry.isRedirect()) {
-                        selectedArchive.resolveRedirect(dirEntry, readFile);
+                        selectedArchive.resolveRedirect(dirEntry, function(resolvedDirEntry) {
+                            var redirectURL = resolvedDirEntry.namespace + "/" +resolvedDirEntry.url;
+                            // Ask the ServiceWork to send an HTTP redirect to the browser.
+                            // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
+                            // Else, if the redirect URL is in a different directory than the original URL,
+                            // the relative links in the HTML content would fail. See #312
+                            messagePort.postMessage({'action':'sendRedirect', 'title':title, 'redirectUrl': redirectURL});
+                            console.log("redirect to " + redirectURL + " sent to ServiceWorker");                            
+                        });
                     } else {
                         console.log("Reading binary file...");
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
