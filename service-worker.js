@@ -166,6 +166,9 @@ function fetchEventListener(event) {
                         console.log('ServiceWorker responding to the HTTP request for ' + titleWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
                         resolve(httpResponse);
                     }
+                    else if (event.data.action === 'sendRedirect') {
+                        resolve(Response.redirect(event.data.redirectUrl));
+                    }
                     else {
                         console.log('Invalid message received from app.js for ' + titleWithNameSpace, event.data);
                         reject(event.data);
