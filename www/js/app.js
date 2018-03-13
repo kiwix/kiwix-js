@@ -230,6 +230,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
         }
+        if (isWebAssemblyAvailable()) {
+            $('#webAssemblyStatus').html("WebAssembly available");
+            $('#webAssemblyStatus').removeClass("apiAvailable apiUnavailable")
+                        .addClass("apiAvailable");
+        } else {
+            $('#webAssemblyStatus').html("WebAssembly unavailable");
+            $('#webAssemblyStatus').removeClass("apiAvailable apiUnavailable")
+                        .addClass("apiUnavailable");
+        }
     }
     
     var contentInjectionMode;
@@ -388,6 +397,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             return false;
         }
         return false;
+    }
+    
+    /**
+     * Tells if the WebAssembly technology is available
+     * Based on https://tests.caniuse.com/?feat=wasm
+     * @returns {Boolean}
+     */
+    function isWebAssemblyAvailable() {
+        return 'WebAssembly' in window && typeof WebAssembly.compile === 'function';
     }
     
     /**
