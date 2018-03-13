@@ -25,7 +25,7 @@
 
         var script = document.createElement('script');
         script.src = basedirForWasmFiles + "js/lib/xzdec.js";
-        document.body.appendChild(script);
+        window.document.body.appendChild(script);
 
     };
     wasmXHR.send(null);
