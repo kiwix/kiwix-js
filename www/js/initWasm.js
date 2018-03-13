@@ -1,19 +1,17 @@
     Module = {};
-    var wasmURL = 'xzdec.wasm';
+    if (typeof basedirForWasmFiles === 'undefined') {
+        basedirForWasmFiles = "";
+    }
+    var wasmURL = basedirForWasmFiles + 'xzdec.wasm';
     var wasmXHR = new XMLHttpRequest();
     wasmXHR.open('GET', wasmURL, true);
     wasmXHR.responseType = 'arraybuffer';
     wasmXHR.onload = function () {
         if (wasmXHR.status === 200 || wasmXHR.status === 0) {
             Module.wasmBinary = wasmXHR.response;
-        } else {
-            var wasmURLBytes = tryParseAsDataURI(wasmURL);
-            if (wasmURLBytes) {
-                Module.wasmBinary = wasmURLBytes.buffer;
-            }
         }
 
-        var memoryInitializer = 'xzdec.js.mem';
+        var memoryInitializer = basedirForWasmFiles + 'xzdec.js.mem';
         if (typeof Module['locateFile'] === 'function') {
             memoryInitializer = Module['locateFile'](memoryInitializer);
         } else if (Module['memoryInitializerPrefixURL']) {
@@ -26,7 +24,7 @@
         meminitXHR.send(null);
 
         var script = document.createElement('script');
-        script.src = "js/lib/xzdec.js";
+        script.src = basedirForWasmFiles + "js/lib/xzdec.js";
         document.body.appendChild(script);
 
     };
