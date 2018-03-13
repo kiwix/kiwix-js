@@ -54,3 +54,5 @@ www-ghdeploy
 #Visual Studio
 /.vs/
 /.vscode/
+/emscripten/xzdec/xzdec
+/emscripten/xzdec/xz
