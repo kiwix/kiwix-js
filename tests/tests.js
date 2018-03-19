@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
- function($, zimArchive, zimDirEntry, util, utf8) {
+define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
+ function($, zimArchive, zimDirEntry, util, uiUtil, utf8) {
     
     var localZimArchive;
 
@@ -118,6 +118,16 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'utf8'],
             var array = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"a"}, {title:"c"}, {title:"d"}];
             var expectedArray = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"d"}];
             assert.deepEqual(util.removeDuplicateTitlesInDirEntryArray(array), expectedArray, "Duplicates should be removed from the array");
+        });
+        QUnit.test("check removal of parameters in URL", function(assert) {
+            var testUrl1 = "A/question.html";
+            var testUrl2 = "A/question.html?param1=toto&param2=titi";
+            var testUrl3 = "A/question.html?param1=toto&param2=titi#anchor";
+            var testUrl4 = "A/question.html#anchor";
+            assert.equal(uiUtil.removeUrlParameters(testUrl1), testUrl1);
+            assert.equal(uiUtil.removeUrlParameters(testUrl2), testUrl1);
+            assert.equal(uiUtil.removeUrlParameters(testUrl3), testUrl1);
+            assert.equal(uiUtil.removeUrlParameters(testUrl4), testUrl1);
         });
         
         QUnit.module("ZIM initialisation");
