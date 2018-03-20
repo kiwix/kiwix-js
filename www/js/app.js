@@ -850,10 +850,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
+            parseAnchorsJQuery();
+            loadImagesJQuery();
+            loadCSSJQuery();
+            //JavaScript loading currently disabled
+            //loadJavaScriptJQuery();            
+        }
+
+        function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
-
-            // Convert links into javascript calls
             $('#articleContent').contents().find('body').find('a').each(function() {
                 var href = $(this).attr("href");
                 // Compute current link's url (with its namespace), if applicable
@@ -893,8 +899,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     });
                 }
             });
-
-            // Load images
+        }
+        
+        function loadImagesJQuery() {
             $('#articleContent').contents().find('body').find('img').each(function() {
                 var image = $(this);
                 // It's a standard image contained in the ZIM file
@@ -912,8 +919,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     });
                 }
             });
+        }
 
-            // Load CSS content
+        function loadCSSJQuery() {
             $('#articleContent').contents().find('link[rel=stylesheet]').each(function() {
                 var link = $(this);
                 // We try to find its name (from an absolute or relative URL)
@@ -940,12 +948,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     }
                 }
             });
+        }
 
-            // Load Javascript content
+        function loadJavaScriptJQuery() {
             $('#articleContent').contents().find('script').each(function() {
                 var script = $(this);
                 // We try to find its name (from an absolute or relative URL)
-                var srcMatch = script.attr("src").match(regexpMetadataUrl);
+                var srcMatch = script.attr("src") ? script.attr("src").match(regexpMetadataUrl) : null;
                 // TODO check that the type of the script is text/javascript or application/javascript
                 if (srcMatch) {
                     // It's a Javascript file contained in the ZIM file
@@ -964,8 +973,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     });
                 }
             });
-
-        }  
+        }
     }
 
     /**
