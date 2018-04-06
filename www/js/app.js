@@ -749,7 +749,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         else {
             //Void the iframe
-            document.getElementById("articleContent").src = "dummyArticle.html";
+            //document.getElementById("articleContent").src = "dummyArticle.html";
             selectedArchive.readArticle(dirEntry, displayArticleInForm);
         }
     }
@@ -833,8 +833,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#articleContent").contents().scrollTop(0);
 
         if (contentInjectionMode === 'jquery') {
-            // Fast-replace img src with data-kiwixsrc [kiwix-js #272]
-            htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+            // Fast-replace img and script src with data-kiwixsrc [kiwix-js #272]
+            htmlArticle = htmlArticle.replace(/(<(?:img|script)\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+            // Neutralize script blocks added to mobile-style Wikimedia ZIMs (jQuery syntax causes unhandled exception)
+            htmlArticle = htmlArticle.replace(/<script>([^<]+?toggleOpenSection(?:[^<]|<(?!\/script))+)<\/script>/i, "<!-- script>$1</script --!>");
+            // Delete onclick event that causes app crash as above
+            htmlArticle = htmlArticle.replace(/onclick\s*=\s*["']\s*toggleOpenSection[^"']*['"]\s*/ig, "");
+            // Remove client-js class that causes all sections to be closed by default in mobile-style Wikimedia ZIMs
+            htmlArticle = htmlArticle.replace(/class\s*=\s*["']\s*client-js\s*["']\s*/i, "");
         }
 
         // Compute base URL
@@ -845,8 +851,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
 
         // Display the article inside the web page.
-        document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
-        
+        //document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
+        var articleContent = document.getElementById("articleContent").contentDocument;
+        articleContent.open();
+        articleContent.write(htmlArticle);
+        articleContent.close();
+
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
