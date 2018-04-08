@@ -897,28 +897,32 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 el && (fn(el) ? el : getClosest(el.parentNode, fn));
         }
         var refs = articleContent.getElementsByClassName("mw-reflink-text");
-        for (var l = 0; l < refs.length; l++) {
-            var reference = refs[l].parentElement;
-            if (reference) {
-                reference.addEventListener("click", function (obj) {
-                    var refID = obj.target.hash || obj.target.parentNode.hash;
-                    if (!refID) return;
-                    refID = refID.replace(/#/, "");
-                    var refLocation = articleContent.getElementById(refID);
-                    var refHead = getClosest(refLocation, function (el) {
-                        return el.tagName == "H2";
-                    });
-                    if (refHead) {
-                        refHead.classList.add("open-block");
-                        refHead.innerHTML = refHead.innerHTML.replace(/<br\s*\/?>$/i, "");
-                        var refNext = refHead.nextElementSibling;
-                        do {
-                            if (refNext) refNext.style.display = "block";
-                            refNext = refNext.nextElementSibling;
+        if (refs) {
+            for (var l = 0; l < refs.length; l++) {
+                var reference = refs[l].parentElement;
+                if (reference) {
+                    reference.addEventListener("click", function (obj) {
+                        var refID = obj.target.hash || obj.target.parentNode.hash;
+                        if (!refID) return;
+                        refID = refID.replace(/#/, "");
+                        var refLocation = articleContent.getElementById(refID);
+                        var refHead = getClosest(refLocation, function (el) {
+                            return el.tagName == "H2";
+                        });
+                        if (refHead) {
+                            refHead.classList.add("open-block");
+                            refHead.innerHTML = refHead.innerHTML.replace(/<br\s*\/?>$/i, "");
+                            var refNext = refHead.nextElementSibling;
+                            do {
+                                if (refNext) {
+                                    refNext.style.display = "block";
+                                    refNext = refNext.nextElementSibling;
+                                }
+                            }
+                            while (refNext && refNext.style.display == "none");
                         }
-                        while (refNext && refNext.style.display == "none");
-                    }
-                });
+                    });
+                }
             }
         }
 
