@@ -857,6 +857,69 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         articleContent.write(htmlArticle);
         articleContent.close();
 
+        // Attach listeners to headers to open-close following sections
+        var eles = ["H2", "H3"];
+        for (var i = 0; i < eles.length; i++) {
+            // Process headers
+            var collection = articleContent.getElementsByTagName(eles[i]);
+            for (var j = 0; j < collection.length; j++) {
+                collection[j].classList.add("open-block");
+                collection[j].addEventListener("click", function () {
+                    var topTag = this.tagName;
+                    this.classList.toggle("open-block");
+                    var nextElement = this.nextElementSibling;
+                    // Decide toggle direction based on first sibling element
+                    var toggleDirection = nextElement.style.display == "none" ? "block" : "none";
+                    var k = 0;
+                    do {
+                        if (nextElement) {
+                            nextElement.style.display = toggleDirection;
+                            if (!k) { //Only add or remove br for first element
+                                if (nextElement.style.display == "none") {
+                                    this.innerHTML += "<br />";
+                                } else {
+                                    this.innerHTML = this.innerHTML.replace(/<br\s*\/?>$/i, "");
+                                }
+                            }
+                            nextElement = nextElement.nextElementSibling;
+                        }
+                        k++;
+                    }
+                    while (nextElement && !~nextElement.tagName.indexOf(topTag) && !~nextElement.tagName.indexOf("H1"));
+                });
+            }
+        }
+        // Process endnote references (so they open the reference block if closed)
+        function getClosest(el, fn) {
+            return el && (fn(el) ? el : getClosest(el.previousElementSibling, fn)) ||
+                el && (fn(el) ? el : getClosest(el.parentNode, fn));
+        }
+        var refs = articleContent.getElementsByClassName("mw-reflink-text");
+        for (var l = 0; l < refs.length; l++) {
+            var reference = refs[l].parentElement;
+            if (reference) {
+                reference.addEventListener("click", function (obj) {
+                    var refID = obj.target.hash || obj.target.parentNode.hash;
+                    if (!refID) return;
+                    refID = refID.replace(/#/, "");
+                    var refLocation = articleContent.getElementById(refID);
+                    var refHead = getClosest(refLocation, function (el) {
+                        return el.tagName == "H2";
+                    });
+                    if (refHead) {
+                        refHead.classList.add("open-block");
+                        refHead.innerHTML = refHead.innerHTML.replace(/<br\s*\/?>$/i, "");
+                        var refNext = refHead.nextElementSibling;
+                        do {
+                            if (refNext) refNext.style.display = "block";
+                            refNext = refNext.nextElementSibling;
+                        }
+                        while (refNext && refNext.style.display == "none");
+                    }
+                });
+            }
+        }
+
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
