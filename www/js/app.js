@@ -749,7 +749,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         else {
             //Void the iframe
-            document.getElementById("articleContent").src = "dummyArticle.html";
+            //document.getElementById("articleContent").src = "dummyArticle.html";
             selectedArchive.readArticle(dirEntry, displayArticleInForm);
         }
     }
@@ -845,8 +845,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
 
         // Display the article inside the web page.
-        document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
-        
+        //document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
+        var articleContent = document.getElementById("articleContent").contentDocument;
+        articleContent.open();
+        articleContent.write(htmlArticle);
+        articleContent.close();
+
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
