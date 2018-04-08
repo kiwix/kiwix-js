@@ -749,7 +749,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         else {
             //Void the iframe
-            document.getElementById("articleContent").src = "dummyArticle.html";
+            //document.getElementById("articleContent").src = "dummyArticle.html";
             selectedArchive.readArticle(dirEntry, displayArticleInForm);
         }
     }
@@ -833,8 +833,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#articleContent").contents().scrollTop(0);
 
         if (contentInjectionMode === 'jquery') {
-            // Fast-replace img src with data-kiwixsrc [kiwix-js #272]
-            htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+            // Fast-replace img and script src with data-kiwixsrc [kiwix-js #272]
+            htmlArticle = htmlArticle.replace(/(<(?:img|script)\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+            // Neutralize script blocks added to mobile-style Wikimedia ZIMs (jQuery syntax causes unhandled exception)
+            htmlArticle = htmlArticle.replace(/<script>([^<]+?toggleOpenSection(?:[^<]|<(?!\/script))+)<\/script>/i, "<!-- script>$1</script --!>");
+            // Delete onclick event that causes app crash as above
+            htmlArticle = htmlArticle.replace(/onclick\s*=\s*["']\s*toggleOpenSection[^"']*['"]\s*/ig, "");
+            // Remove client-js class that causes all sections to be closed by default in mobile-style Wikimedia ZIMs
+            htmlArticle = htmlArticle.replace(/class\s*=\s*["']\s*client-js\s*["']\s*/i, "");
         }
 
         // Compute base URL
@@ -845,8 +851,81 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
 
         // Display the article inside the web page.
-        document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
-        
+        //document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
+        var articleContent = document.getElementById("articleContent").contentDocument;
+        articleContent.open();
+        articleContent.write(htmlArticle);
+        articleContent.close();
+
+        // Attach listeners to headers to open-close following sections
+        var eles = ["H2", "H3"];
+        for (var i = 0; i < eles.length; i++) {
+            // Process headers
+            var collection = articleContent.getElementsByTagName(eles[i]);
+            for (var j = 0; j < collection.length; j++) {
+                collection[j].classList.add("open-block");
+                collection[j].addEventListener("click", function () {
+                    var topTag = this.tagName;
+                    this.classList.toggle("open-block");
+                    var nextElement = this.nextElementSibling;
+                    if (!nextElement) nextElement = this.parentNode.nextElementSibling;
+                    if (!nextElement) return;
+                    // Decide toggle direction based on first sibling element
+                    var toggleDirection = nextElement.style.display == "none" ? "block" : "none";
+                    var k = 0;
+                    do {
+                        if (nextElement) {
+                            nextElement.style.display = toggleDirection;
+                            if (!k) { //Only add or remove br for first element
+                                if (nextElement.style.display == "none") {
+                                    this.innerHTML += "<br />";
+                                } else {
+                                    this.innerHTML = this.innerHTML.replace(/<br\s*\/?>$/i, "");
+                                }
+                            }
+                            nextElement = nextElement.nextElementSibling;
+                        }
+                        k++;
+                    }
+                    while (nextElement && !~nextElement.tagName.indexOf(topTag) && !~nextElement.tagName.indexOf("H1"));
+                });
+            }
+        }
+        // Process endnote references (so they open the reference block if closed)
+        function getClosest(el, fn) {
+            return el && (fn(el) ? el : getClosest(el.previousElementSibling, fn)) ||
+                el && (fn(el) ? el : getClosest(el.parentNode, fn));
+        }
+        var refs = articleContent.getElementsByClassName("mw-reflink-text");
+        if (refs) {
+            for (var l = 0; l < refs.length; l++) {
+                var reference = refs[l].parentElement;
+                if (reference) {
+                    reference.addEventListener("click", function (obj) {
+                        var refID = obj.target.hash || obj.target.parentNode.hash;
+                        if (!refID) return;
+                        refID = refID.replace(/#/, "");
+                        var refLocation = articleContent.getElementById(refID);
+                        var refHead = getClosest(refLocation, function (el) {
+                            return el.tagName == "H2";
+                        });
+                        if (refHead) {
+                            refHead.classList.add("open-block");
+                            refHead.innerHTML = refHead.innerHTML.replace(/<br\s*\/?>$/i, "");
+                            var refNext = refHead.nextElementSibling;
+                            do {
+                                if (refNext) {
+                                    refNext.style.display = "block";
+                                    refNext = refNext.nextElementSibling;
+                                }
+                            }
+                            while (refNext && refNext.style.display == "none");
+                        }
+                    });
+                }
+            }
+        }
+
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
