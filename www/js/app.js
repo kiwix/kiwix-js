@@ -868,6 +868,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     var topTag = this.tagName;
                     this.classList.toggle("open-block");
                     var nextElement = this.nextElementSibling;
+                    if (!nextElement) nextElement = this.parentNode.nextElementSibling;
+                    if (!nextElement) return;
                     // Decide toggle direction based on first sibling element
                     var toggleDirection = nextElement.style.display == "none" ? "block" : "none";
                     var k = 0;
