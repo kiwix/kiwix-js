@@ -127,19 +127,6 @@ function fetchEventListener(event) {
                     console.log("It's a layout dependency : " + title);
                     if (regexpJS.test(title)) {
                         contentType = 'text/javascript';
-                        var responseInit = {
-                            status: 200,
-                            statusText: 'OK',
-                            headers: {
-                                'Content-Type': contentType
-                            }
-                        };
-
-                        var httpResponse = new Response(';', responseInit);
-
-                        // TODO : temporary before the backend actually sends a proper content
-                        resolve(httpResponse);
-                        return;
                     }
                     else if (regexpCSS.test(title)) {
                         contentType = 'text/css';
