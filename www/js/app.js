@@ -860,6 +860,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 //loadJavaScriptJQuery();            
             };
         }
+        else {
+            // Removes the onload in case the user switches from jquery to serviceworker mode
+            iframeArticleContent.onload = function() {};
+        }
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
