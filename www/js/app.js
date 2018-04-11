@@ -748,8 +748,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             selectedArchive.resolveRedirect(dirEntry, readArticle);
         }
         else {
-            //Void the iframe
-            //document.getElementById("articleContent").src = "dummyArticle.html";
             selectedArchive.readArticle(dirEntry, displayArticleInForm);
         }
     }
@@ -841,11 +839,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : "";
         var baseUrl = dirEntry.namespace + "/" + urlPath;
 
-        //Inject base tag into html
+        // Inject base tag into html
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
 
         // Display the article inside the web page.
-        //document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
         var iframeArticleContent = document.getElementById("articleContent");
         var articleContent = iframeArticleContent.contentDocument;
         articleContent.open();
@@ -853,7 +850,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         articleContent.close();
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
-        // to inject math images, and replace some links with javascript calls
+        // to inject images, CSS etc, and replace links with javascript calls
         if (contentInjectionMode === 'jquery') {
             iframeArticleContent.onload = function() {
                 parseAnchorsJQuery();
