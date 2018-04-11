@@ -846,19 +846,22 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         // Display the article inside the web page.
         //document.getElementById("articleContent").contentDocument.documentElement.innerHTML = htmlArticle;
-        var articleContent = document.getElementById("articleContent").contentDocument;
+        var iframeArticleContent = document.getElementById("articleContent");
+        var articleContent = iframeArticleContent.contentDocument;
         articleContent.open();
         articleContent.write(htmlArticle);
         articleContent.close();
-
+        
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject math images, and replace some links with javascript calls
         if (contentInjectionMode === 'jquery') {
-            parseAnchorsJQuery();
-            loadImagesJQuery();
-            loadCSSJQuery();
-            //JavaScript loading currently disabled
-            //loadJavaScriptJQuery();            
+            iframeArticleContent.onload = function() {
+                parseAnchorsJQuery();
+                loadImagesJQuery();
+                loadCSSJQuery();
+                //JavaScript loading currently disabled
+                //loadJavaScriptJQuery();            
+            };
         }
 
         function parseAnchorsJQuery() {
