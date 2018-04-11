@@ -65,10 +65,10 @@ module.exports = {
             .useXpath()
             .waitForElementVisible("//div[@id='articleList']/a[text()='Ray Charles']", 20000)
             .click("//div[@id='articleList']/a[text()='Ray Charles']")
-            .useCss()
+            .useXpath()
             .frame('articleContent')
-                .waitForElementPresent('#mweQ', 2000000)
-                .assert.containsText('#mweQ', 'Life and career')
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 2000000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
             .end();
     }
 };
