@@ -847,7 +847,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var articleContent = iframeArticleContent.contentDocument;
         articleContent.open();
         articleContent.write(htmlArticle);
-        articleContent.close();
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
         // to inject images, CSS etc, and replace links with javascript calls
@@ -864,6 +863,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Removes the onload in case the user switches from jquery to serviceworker mode
             iframeArticleContent.onload = function() {};
         }
+     
+        // Close the article content after the onload event is set, to avoid a potential race condition
+        articleContent.close();
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
