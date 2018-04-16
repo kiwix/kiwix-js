@@ -87,15 +87,12 @@ var regexpCSS = new RegExp(/\.css$/i);
 
 // Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
-var regexpDummyArticle = new RegExp(/dummyArticle\.html$/);
 
 function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
-        // TODO handle the dummy article more properly
-        if (regexpZIMUrlWithNamespace.test(event.request.url)
-            && !regexpDummyArticle.test(event.request.url)) {
+        if (regexpZIMUrlWithNamespace.test(event.request.url)) {
 
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
