@@ -92,8 +92,8 @@ module.exports = {
 //                .pause(1000)
 //                .click("#mwBTI");
 //            })
-            .moveToElement('#mwcA', 10, 10)
-            .click("#mwcA")
+            .moveToElement('#mwBTI', 10, 10)
+            .click("#mwBTI")
             // Check the text of the article "Quincy Jones"
             .useXpath()
             .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 20000)
