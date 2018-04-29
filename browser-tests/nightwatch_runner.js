@@ -69,6 +69,7 @@ module.exports = {
             .useXpath()
             .waitForElementVisible("//div[@id='articleList']/a[text()='Ray Charles']", 20000)
             .click("//div[@id='articleList']/a[text()='Ray Charles']")
+
             .frame('articleContent')
             // Check the text in the article "Ray Charles"
             .useXpath()
@@ -84,12 +85,19 @@ module.exports = {
             .assert.cssProperty("#mwBA", "float", "right")
     
             // Click on a hypertext link to another article "Quincy Jones"
-            // It is necessary to move to the link before clicking, because it might be hidden below the bottom bar
-            .moveToElement('#mwBTI', 10, 10)
-            .click("#mwBTI")
+            // We first need to scroll to it, so that it is visible and clickable in the window
+            // Else it is sometimes under the bottom bar, and can not be clicked on
+            .getLocationInView("#mwBTI", function(result) {
+                browser.execute('scrollTo(' + result.value.x +',' + result.value.y+')')
+                .pause(1000)
+                .click("#mwBTI");
+            })
+            //.moveToElement('#mwBTI', 10, 10)
+            //.click("#mwBTI")
             // Check the text of the article "Quincy Jones"
-            .waitForElementPresent('#mwBQg', 20000)
-            .assert.containsText('#mwBQg', 'Concerts')
+            .useXpath()
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 20000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 'Personal life')
             // Wait for a particular image to be visible and check its size
             .waitForElementVisible("#mwAiI", 20000)
             .assert.attributeEquals("#mwAiI", "naturalWidth", "180")
