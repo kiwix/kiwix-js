@@ -4,10 +4,7 @@ language: node_js
 node_js:
   - "node"
 addons:
-  sauce_connect:
-    username: kiwix
-  jwt:
-    secure: nOIQrCbKeAtX7GKqbW2O+Rhf4Fpg44Fjhk+3YHkFT6+663ATNRMZLDMqxrQURaf2CzbnTNzWDG8PWsI/nljA9tR4UEAt13xLEDpgF2lllfxP+DxdJdVH2tnPrpPautH0be1lzYD09n3+brdx2QoggA6/BUnxpS3nWaHK9e+lMGnUODB+Ybw8c3WwJha9zHPQ8h9LsFXj1Uc15K6rbUR8Dkdbh0P+prGnb8q02oNRTKBw5njIBJcZ111QuO/9FBo41+TAbQV619ezoe3yeUsVaaSNSdDYNr7Pkf+jtPGA+t1OgBJMSgz/KAydi6TNTeCb/vVtFS26TfJ+FBwJovDNXUgWHo0mrQjbyJ+WWCYjNCLTWZWqdEDzLFJ5tOO6by+S3ZBplLo+6r0pCTcv9/VLML3Kl/0g06aKIF65askmIGBVMafkRX/QYuXTKHGHduxzhUNO2ENgU2A3XihWEf3kbygQUWUpBJ9ktcjhdbM5ZdIzRorcsHOOzCm6qex+l1zJQb8V5CK2B3VqCYeiq/uE0R44ZNSxfpbUKkAGcGokY5B5lPVMWVzAuNyuXdGGV3XFwuYQULlPJLN8OKQjF24f8IOcKsLHu+k06blY8SiE2o8tI9r2IDqGY5QjrLaW4OAytwsAmK2cYqTZmxk8IwQ6UyyChEpAItnlJS84Wuya5I8=
+  sauce_connect: true
   ssh_known_hosts: download.kiwix.org
 before_script:
     - npm install nightwatch http-server
