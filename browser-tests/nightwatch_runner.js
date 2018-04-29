@@ -99,6 +99,7 @@ module.exports = {
             .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 20000)
             .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 'Personal life')
             // Wait for a particular image to be visible and check its size
+            .useCss()
             .waitForElementVisible("#mwAiI", 20000)
             .assert.attributeEquals("#mwAiI", "naturalWidth", "180")
             // Check the CSS style
