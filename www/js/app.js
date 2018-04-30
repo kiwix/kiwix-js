@@ -913,8 +913,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         
         function loadImagesJQuery() {
-            $('#articleContent').contents().find('body').find('img').each(function() {
-                var image = $(this);
+            var iframe = document.getElementById('articleContent').contentDocument;
+            iframe.querySelectorAll('img').forEach(function(element) {
+                var image = $(element);
                 // It's a standard image contained in the ZIM file
                 // We try to find its name (from an absolute or relative URL)
                 var imageMatch = image.attr("data-kiwixsrc").match(regexpImageUrl); //kiwix-js #272
@@ -944,29 +945,32 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 collapsedBlocks[i].classList.add('open-block');
             }
             
-            $('#articleContent').contents().find('link[rel=stylesheet]').each(function() {
-                var link = $(this);
-                // We try to find its name (from an absolute or relative URL)
-                var hrefMatch = link.attr("href").match(regexpMetadataUrl);
-                if (hrefMatch) {
-                    // It's a CSS file contained in the ZIM file
-                    var title = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
-                    if (cssCache && cssCache.has(title)) {
-                        var cssContent = cssCache.get(title);
-                        uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
-                    } else {
-                        selectedArchive.getDirEntryByTitle(title)
-                        .then(function (dirEntry) {
-                            return selectedArchive.readBinaryFile(dirEntry,
-                                function (fileDirEntry, content) {
-                                    var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url; 
-                                    var contentString = util.uintToString(content);
-                                    if (cssCache) cssCache.set(fullUrl, contentString);
-                                    uiUtil.replaceCSSLinkWithInlineCSS(link, contentString); 
-                                });
-                        }).fail(function (e) {
-                            console.error("could not find DirEntry for CSS : " + title, e);
-                        });
+            // TODO only use the links that have a rel="stylesheet" attribute
+            iframe.querySelectorAll('link').forEach(function(element) {
+                if (element.getAttribute("rel") === "stylesheet" ){
+                    var link = $(element);
+                    // We try to find its name (from an absolute or relative URL)
+                    var hrefMatch = link.attr("href").match(regexpMetadataUrl);
+                    if (hrefMatch) {
+                        // It's a CSS file contained in the ZIM file
+                        var title = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
+                        if (cssCache && cssCache.has(title)) {
+                            var cssContent = cssCache.get(title);
+                            uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
+                        } else {
+                            selectedArchive.getDirEntryByTitle(title)
+                            .then(function (dirEntry) {
+                                return selectedArchive.readBinaryFile(dirEntry,
+                                    function (fileDirEntry, content) {
+                                        var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url; 
+                                        var contentString = util.uintToString(content);
+                                        if (cssCache) cssCache.set(fullUrl, contentString);
+                                        uiUtil.replaceCSSLinkWithInlineCSS(link, contentString); 
+                                    });
+                            }).fail(function (e) {
+                                console.error("could not find DirEntry for CSS : " + title, e);
+                            });
+                        }
                     }
                 }
             });
