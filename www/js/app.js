@@ -1042,6 +1042,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#articleName").html(title);
                 $("#readingArticle").show();
                 //$('#articleContent').contents().find('body').html("");
+                document.getElementById('articleContent').contentDocument.body.innerHTML = "";
                 readArticle(dirEntry);
             }
         }).fail(function() { alert("Error reading article with title " + title); });
