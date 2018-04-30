@@ -871,7 +871,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var currentProtocol = location.protocol;
             var currentHost = location.host;
             var iframe = document.getElementById('articleContent').contentDocument;
-            iframe.querySelectorAll('a').forEach(function(element) {
+            var anchors = Array.prototype.slice.call(iframe.querySelectorAll('a'));
+            anchors.forEach(function(element) {
             //$('#articleContent').contents().find('body').find('a').each(function() {
                 var href = $(element).attr("href");
                 // Compute current link's url (with its namespace), if applicable
@@ -914,7 +915,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         function loadImagesJQuery() {
             var iframe = document.getElementById('articleContent').contentDocument;
-            iframe.querySelectorAll('img').forEach(function(element) {
+            var images = Array.prototype.slice.call(iframe.querySelectorAll('img'));
+            images.forEach(function(element) {
                 var image = $(element);
                 // It's a standard image contained in the ZIM file
                 // We try to find its name (from an absolute or relative URL)
@@ -945,7 +947,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 collapsedBlocks[i].classList.add('open-block');
             }
             
-            iframe.querySelectorAll('link').forEach(function(element) {
+            var cssNodes = Array.prototype.slice.call(iframe.querySelectorAll('link'));
+            cssNodes.forEach(function(element) {
                 if (element.getAttribute("rel") === "stylesheet" ){
                     var link = $(element);
                     // We try to find its name (from an absolute or relative URL)
