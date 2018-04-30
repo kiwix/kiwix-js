@@ -870,38 +870,40 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
-            $('#articleContent').contents().find('body').find('a').each(function() {
-                var href = $(this).attr("href");
+            var iframe = document.getElementById('articleContent').contentDocument;
+            iframe.querySelectorAll('a').forEach(function(element) {
+            //$('#articleContent').contents().find('body').find('a').each(function() {
+                var href = $(element).attr("href");
                 // Compute current link's url (with its namespace), if applicable
-                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : "";
+                var zimUrl = regexpZIMUrlWithNamespace.test(element.href) ? element.href.match(regexpZIMUrlWithNamespace)[1] : "";
                 if (href === null || href === undefined) {
                     // No href attribute
                 }
                 else if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page.
                     // Because of the base tag, we need to modify it
-                    $(this).on('click', function(e) {
+                    $(element).on('click', function(e) {
                        return false; 
                     });
                 }
                 else if (regexpLocalAnchorHref.test(href)) {
                     // It's an anchor link : we need to make it work with javascript
                     // because of the base tag
-                    $(this).on('click', function(e) {
+                    $(element).on('click', function(e) {
                         $('#articleContent').first()[0].contentWindow.location.hash = href;
                         return false;
                     });
                 }
-                else if (this.protocol !== currentProtocol
-                    || this.host !== currentHost) {
+                else if (element.protocol !== currentProtocol
+                    || element.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
-                    $(this).attr("target", "_blank");
+                    $(element).attr("target", "_blank");
                 }
                 else {
                     // It's a link to another article
                     // Add an onclick event to go to this article
                     // instead of following the link
-                    $(this).on('click', function(e) {
+                    $(element).on('click', function(e) {
                         var decodedURL = decodeURIComponent(zimUrl);
                         goToArticle(decodedURL);
                         return false;
@@ -1039,7 +1041,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 $("#articleName").html(title);
                 $("#readingArticle").show();
-                $('#articleContent').contents().find('body').html("");
+                //$('#articleContent').contents().find('body').html("");
                 readArticle(dirEntry);
             }
         }).fail(function() { alert("Error reading article with title " + title); });
