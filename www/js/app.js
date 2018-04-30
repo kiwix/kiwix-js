@@ -945,7 +945,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 collapsedBlocks[i].classList.add('open-block');
             }
             
-            // TODO only use the links that have a rel="stylesheet" attribute
             iframe.querySelectorAll('link').forEach(function(element) {
                 if (element.getAttribute("rel") === "stylesheet" ){
                     var link = $(element);
