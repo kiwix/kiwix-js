@@ -874,7 +874,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var anchors = Array.prototype.slice.call(iframe.getElementsByTagName('a'));
             anchors.forEach(function(element) {
             //$('#articleContent').contents().find('body').find('a').each(function() {
-                var href = $(element).attr("href");
+                var href = element.getAttribute("href");
                 // Compute current link's url (with its namespace), if applicable
                 var zimUrl = regexpZIMUrlWithNamespace.test(element.href) ? element.href.match(regexpZIMUrlWithNamespace)[1] : "";
                 if (href === null || href === undefined) {
@@ -883,31 +883,31 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 else if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page.
                     // Because of the base tag, we need to modify it
-                    $(element).on('click', function(e) {
-                       return false; 
+                    element.addEventListener('click', function(e) {
+                       e.preventDefault(); 
                     });
                 }
                 else if (regexpLocalAnchorHref.test(href)) {
                     // It's an anchor link : we need to make it work with javascript
                     // because of the base tag
-                    $(element).on('click', function(e) {
-                        $('#articleContent').first()[0].contentWindow.location.hash = href;
-                        return false;
+                    element.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        document.getElementById('articleContent').contentWindow.location.hash = href;
                     });
                 }
                 else if (element.protocol !== currentProtocol
                     || element.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
-                    $(element).attr("target", "_blank");
+                    element.setAttribute("target", "_blank");
                 }
                 else {
                     // It's a link to another article
                     // Add an onclick event to go to this article
                     // instead of following the link
-                    $(element).on('click', function(e) {
+                    element.addEventListener('click', function(e) {
+                        e.preventDefault();
                         var decodedURL = decodeURIComponent(zimUrl);
                         goToArticle(decodedURL);
-                        return false;
                     });
                 }
             });
