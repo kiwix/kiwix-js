@@ -29,18 +29,18 @@ define([], function() {
      * 
      * This is useful to inject images (and other dependencies) inside an article
      * 
-     * @param {Object} jQueryNode
+     * @param {Object} node
      * @param {String} nodeAttribute
      * @param {Uint8Array} content
      * @param {String} mimeType
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
         var blob = new Blob([content], {type: mimeType});
         var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
+        node.addEventListener('load', function () {
             URL.revokeObjectURL(url);
         });
-        jQueryNode.attr(nodeAttribute, url);
+        node.setAttribute(nodeAttribute, url);
     }
 
     /**
@@ -62,15 +62,15 @@ define([], function() {
         } else {
             cssElement.appendChild(document.createTextNode(cssContent));
         }
-        var mediaAttributeValue = link.attr('media');
+        var mediaAttributeValue = link.getAttribute('media');
         if (mediaAttributeValue) {
             cssElement.media = mediaAttributeValue;
         }
-        var disabledAttributeValue = link.attr('disabled');
+        var disabledAttributeValue = link.getAttribute('disabled');
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);

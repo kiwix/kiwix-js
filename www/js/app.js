@@ -872,39 +872,38 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var currentHost = location.host;
             var iframe = document.getElementById('articleContent').contentDocument;
             var anchors = Array.prototype.slice.call(iframe.getElementsByTagName('a'));
-            anchors.forEach(function(element) {
-            //$('#articleContent').contents().find('body').find('a').each(function() {
-                var href = element.getAttribute("href");
+            anchors.forEach(function(anchor) {
+                var href = anchor.getAttribute("href");
                 // Compute current link's url (with its namespace), if applicable
-                var zimUrl = regexpZIMUrlWithNamespace.test(element.href) ? element.href.match(regexpZIMUrlWithNamespace)[1] : "";
+                var zimUrl = regexpZIMUrlWithNamespace.test(anchor.href) ? anchor.href.match(regexpZIMUrlWithNamespace)[1] : "";
                 if (href === null || href === undefined) {
                     // No href attribute
                 }
                 else if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page.
                     // Because of the base tag, we need to modify it
-                    element.addEventListener('click', function(e) {
+                    anchor.addEventListener('click', function(e) {
                        e.preventDefault(); 
                     });
                 }
                 else if (regexpLocalAnchorHref.test(href)) {
                     // It's an anchor link : we need to make it work with javascript
                     // because of the base tag
-                    element.addEventListener('click', function(e) {
+                    anchor.addEventListener('click', function(e) {
                         e.preventDefault();
                         document.getElementById('articleContent').contentWindow.location.hash = href;
                     });
                 }
-                else if (element.protocol !== currentProtocol
-                    || element.host !== currentHost) {
+                else if (anchor.protocol !== currentProtocol
+                    || anchor.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
-                    element.setAttribute("target", "_blank");
+                    anchor.setAttribute("target", "_blank");
                 }
                 else {
                     // It's a link to another article
                     // Add an onclick event to go to this article
                     // instead of following the link
-                    element.addEventListener('click', function(e) {
+                    anchor.addEventListener('click', function(e) {
                         e.preventDefault();
                         var decodedURL = decodeURIComponent(zimUrl);
                         goToArticle(decodedURL);
@@ -916,11 +915,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         function loadImagesJQuery() {
             var iframe = document.getElementById('articleContent').contentDocument;
             var images = Array.prototype.slice.call(iframe.getElementsByTagName('img'));
-            images.forEach(function(element) {
-                var image = $(element);
+            images.forEach(function(image) {
                 // It's a standard image contained in the ZIM file
                 // We try to find its name (from an absolute or relative URL)
-                var imageMatch = image.attr("data-kiwixsrc").match(regexpImageUrl); //kiwix-js #272
+                var imageMatch = image.dataset.kiwixsrc.match(regexpImageUrl); //kiwix-js #272
                 if (imageMatch) {
                     var title = decodeURIComponent(imageMatch[1]);
                     selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
@@ -948,11 +946,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
             
             var cssNodes = Array.prototype.slice.call(iframe.getElementsByTagName('link'));
-            cssNodes.forEach(function(element) {
-                if (element.getAttribute("rel") === "stylesheet" ){
-                    var link = $(element);
+            cssNodes.forEach(function(link) {
+                if (link.rel === "stylesheet" ){
                     // We try to find its name (from an absolute or relative URL)
-                    var hrefMatch = link.attr("href").match(regexpMetadataUrl);
+                    var hrefMatch = link.getAttribute("href").match(regexpMetadataUrl);
                     if (hrefMatch) {
                         // It's a CSS file contained in the ZIM file
                         var title = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
