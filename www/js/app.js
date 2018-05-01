@@ -871,7 +871,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var currentProtocol = location.protocol;
             var currentHost = location.host;
             var iframe = document.getElementById('articleContent').contentDocument;
-            var anchors = Array.prototype.slice.call(iframe.querySelectorAll('a'));
+            var anchors = Array.prototype.slice.call(iframe.getElementsByTagName('a'));
             anchors.forEach(function(element) {
             //$('#articleContent').contents().find('body').find('a').each(function() {
                 var href = $(element).attr("href");
@@ -915,7 +915,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         function loadImagesJQuery() {
             var iframe = document.getElementById('articleContent').contentDocument;
-            var images = Array.prototype.slice.call(iframe.querySelectorAll('img'));
+            var images = Array.prototype.slice.call(iframe.getElementsByTagName('img'));
             images.forEach(function(element) {
                 var image = $(element);
                 // It's a standard image contained in the ZIM file
@@ -947,7 +947,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 collapsedBlocks[i].classList.add('open-block');
             }
             
-            var cssNodes = Array.prototype.slice.call(iframe.querySelectorAll('link'));
+            var cssNodes = Array.prototype.slice.call(iframe.getElementsByTagName('link'));
             cssNodes.forEach(function(element) {
                 if (element.getAttribute("rel") === "stylesheet" ){
                     var link = $(element);
