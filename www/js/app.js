@@ -845,7 +845,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Display the article inside the web page.
         var iframeArticleContent = document.getElementById("articleContent");
         var articleContent = iframeArticleContent.contentDocument;
-        articleContent.open();
+        articleContent.open('text/html', 'replace');
         articleContent.write(htmlArticle);
         
         // If the ServiceWorker is not useable, we need to fallback to parse the DOM
