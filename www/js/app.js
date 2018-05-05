@@ -711,7 +711,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#prefix").val("");
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
-        pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
         return false;
     }
     
@@ -848,21 +847,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         articleContent.open('text/html', 'replace');
         articleContent.write(htmlArticle);
         
-        // If the ServiceWorker is not useable, we need to fallback to parse the DOM
-        // to inject images, CSS etc, and replace links with javascript calls
-        if (contentInjectionMode === 'jquery') {
-            iframeArticleContent.onload = function() {
+        iframeArticleContent.onload = function() {
+            pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
+            // If the ServiceWorker is not useable, we need to fallback to parse the DOM
+            // to inject images, CSS etc, and replace links with javascript calls
+            if (contentInjectionMode === 'jquery') {
                 parseAnchorsJQuery();
                 loadImagesJQuery();
                 loadCSSJQuery();
                 //JavaScript loading currently disabled
                 //loadJavaScriptJQuery();            
-            };
-        }
-        else {
-            // Removes the onload in case the user switches from jquery to serviceworker mode
-            iframeArticleContent.onload = function() {};
-        }
+            }
+        };
      
         // Close the article content after the onload event is set, to avoid a potential race condition
         articleContent.close();
@@ -903,7 +899,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // instead of following the link
                     $(this).on('click', function(e) {
                         var decodedURL = decodeURIComponent(zimUrl);
-                        pushBrowserHistoryState(decodedURL);
                         goToArticle(decodedURL);
                         return false;
                     });
@@ -1008,6 +1003,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var urlParameters;
         var stateLabel;
         if (title && !(""===title)) {
+            // Prevents creating a double history for the same page
+            if (history.state && history.state.title === title) return;
             stateObj.title = title;
             urlParameters = "?title=" + title;
             stateLabel = "Wikipedia Article : " + title;
@@ -1052,7 +1049,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (dirEntry.namespace === 'A') {
                     $("#articleName").html(dirEntry.title);
-                    pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
@@ -1075,7 +1071,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (dirEntry.namespace === 'A') {
                     $("#articleName").html(dirEntry.title);
-                    pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
