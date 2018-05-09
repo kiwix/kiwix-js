@@ -849,7 +849,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         var iframe = document.getElementById("articleContent");
         
-        articleContent.onload = function() {
+        iframe.onload = function() {
             iframe = document.getElementById("articleContent");
             iframe.onload = function(){};
             // Inject the new article's HTML into the iframe
