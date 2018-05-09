@@ -847,11 +847,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').empty();
         
-        var articleContent = document.getElementById("articleContent");
+        var iframe = document.getElementById("articleContent");
         
         articleContent.onload = function() {
-            // Inject the new article's HTML into the iframe (and replace now invalid articleContent variable)
-            articleContent = document.getElementById("articleContent").contentDocument.documentElement;
+            iframe = document.getElementById("articleContent");
+            iframe.onload = function(){};
+            // Inject the new article's HTML into the iframe
+            var articleContent = iframe.contentDocument.documentElement;
             articleContent.innerHTML = htmlArticle;
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
@@ -868,7 +870,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         };
      
         // Load the blank article to clear the iframe (NB articleContent.onload runs *after* this)
-        articleContent.src = "article.html";
+        iframe.src = "article.html";
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
