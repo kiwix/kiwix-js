@@ -841,13 +841,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Inject base tag into html
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
 
-        // Display the article inside the web page.
-        var iframeArticleContent = document.getElementById("articleContent");
-        var articleContent = iframeArticleContent.contentDocument;
-        articleContent.open('text/html', 'replace');
-        articleContent.write(htmlArticle);
+        // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
+        $('#articleContent').empty();
         
-        iframeArticleContent.onload = function() {
+        var articleContent = document.getElementById("articleContent");
+        
+        articleContent.onload = function() {
+            // Inject the new article's HTML into the iframe (and replace now invalid articleContent variable)
+            var articleContent = document.getElementById("articleContent").contentDocument;
+            articleContent.documentElement.innerHTML = htmlArticle;
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             // If the ServiceWorker is not useable, we need to fallback to parse the DOM
             // to inject images, CSS etc, and replace links with javascript calls
@@ -860,8 +862,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
         };
      
-        // Close the article content after the onload event is set, to avoid a potential race condition
-        articleContent.close();
+        // Load the blank article to clear the iframe (NB articleContent.onload runs *after* this)
+        articleContent.src = "article.html";
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
