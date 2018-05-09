@@ -840,7 +840,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         // Inject base tag into html
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
-
+        // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
+        var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*(["'])\s*([^"']+)/i);
+        htmlCSS = htmlCSS ? htmlCSS[2] : "";
+        
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').empty();
         
@@ -848,8 +851,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         articleContent.onload = function() {
             // Inject the new article's HTML into the iframe (and replace now invalid articleContent variable)
-            var articleContent = document.getElementById("articleContent").contentDocument;
-            articleContent.documentElement.innerHTML = htmlArticle;
+            articleContent = document.getElementById("articleContent").contentDocument.documentElement;
+            articleContent.innerHTML = htmlArticle;
+            // Add any missing classes stripped from the <html> tag
+            if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             // If the ServiceWorker is not useable, we need to fallback to parse the DOM
             // to inject images, CSS etc, and replace links with javascript calls
