@@ -840,23 +840,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         // Inject base tag into html
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
-        // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
-        var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*(["'])\s*([^"']+)/i);
-        htmlCSS = htmlCSS ? htmlCSS[2] : "";
         
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').empty();
         
-        var iframe = document.getElementById("articleContent");
+        var iframe = document.getElementById('articleContent');
+        var articleContent = iframe.contentDocument;
         
         iframe.onload = function() {
-            iframe = document.getElementById("articleContent");
-            iframe.onload = function(){};
-            // Inject the new article's HTML into the iframe
-            var articleContent = iframe.contentDocument.documentElement;
-            articleContent.innerHTML = htmlArticle;
-            // Add any missing classes stripped from the <html> tag
-            if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
+            // DEV: Check if line below is still needed for Service Worker
+                iframe.onload = function(){};
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             // If the ServiceWorker is not useable, we need to fallback to parse the DOM
             // to inject images, CSS etc, and replace links with javascript calls
@@ -869,8 +862,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
         };
      
-        // Load the blank article to clear the iframe (NB articleContent.onload runs *after* this)
-        iframe.src = "article.html";
+        // Completely void iframe [kiwix-js #341] and inject new article into it (NB iframe.onload runs *after* this)
+        articleContent.open('text/html', 'replace');
+        articleContent.write(htmlArticle);
+        articleContent.close();
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
