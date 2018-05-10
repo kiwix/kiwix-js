@@ -862,8 +862,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
         };
      
-        // Completely void iframe [kiwix-js #341] and inject new article into it (NB iframe.onload runs *after* this)
-        articleContent.open('text/html', 'replace');
+        // Completely void iframe [kiwix-js #341] and inject new article (NB iframe.onload runs *after* this)
+        articleContent.open('text/html', 'replace'); // Prevents incorrect history state in Firefox [kiwix-js #366] 
         articleContent.write(htmlArticle);
         articleContent.close();
 
