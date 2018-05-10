@@ -798,7 +798,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 console.error("Invalid message received", event.data);
             }
         }
-    };
+    }
     
     // Compile some regular expressions needed to modify links
     // Pattern to find the path in a url
