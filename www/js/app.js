@@ -711,7 +711,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#prefix").val("");
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
-        pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
         return false;
     }
     
@@ -832,40 +831,45 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         if (contentInjectionMode === 'jquery') {
             // Fast-replace img src with data-kiwixsrc [kiwix-js #272]
-            htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, "$1data-kiwixsrc$2");
+            htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, '$1data-kiwixsrc$2');
         }
 
         // Compute base URL
-        var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : "";
-        var baseUrl = dirEntry.namespace + "/" + urlPath;
+        var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : '';
+        var baseUrl = dirEntry.namespace + '/' + urlPath;
 
         // Inject base tag into html
         htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
-
-        // Display the article inside the web page.
-        var iframeArticleContent = document.getElementById("articleContent");
-        var articleContent = iframeArticleContent.contentDocument;
-        articleContent.open();
-        articleContent.write(htmlArticle);
+        // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
+        var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
+        htmlCSS = htmlCSS ? htmlCSS[1] : '';
         
-        // If the ServiceWorker is not useable, we need to fallback to parse the DOM
-        // to inject images, CSS etc, and replace links with javascript calls
-        if (contentInjectionMode === 'jquery') {
-            iframeArticleContent.onload = function() {
+        // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
+        $('#articleContent').contents().remove();
+        
+        var iframeArticleContent = document.getElementById('articleContent');
+        
+        iframeArticleContent.onload = function() {
+            iframeArticleContent.onload = function(){};
+            // Inject the new article's HTML into the iframe
+            var articleContent = iframeArticleContent.contentDocument.documentElement;
+            articleContent.innerHTML = htmlArticle;
+            // Add any missing classes stripped from the <html> tag
+            if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
+            pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
+            // If the ServiceWorker is not useable, we need to fallback to parse the DOM
+            // to inject images, CSS etc, and replace links with javascript calls
+            if (contentInjectionMode === 'jquery') {
                 parseAnchorsJQuery();
                 loadImagesJQuery();
                 loadCSSJQuery();
                 //JavaScript loading currently disabled
                 //loadJavaScriptJQuery();            
-            };
-        }
-        else {
-            // Removes the onload in case the user switches from jquery to serviceworker mode
-            iframeArticleContent.onload = function() {};
-        }
+            }
+        };
      
-        // Close the article content after the onload event is set, to avoid a potential race condition
-        articleContent.close();
+        // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
+        iframeArticleContent.src = "article.html";
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
@@ -903,7 +907,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // instead of following the link
                     $(this).on('click', function(e) {
                         var decodedURL = decodeURIComponent(zimUrl);
-                        pushBrowserHistoryState(decodedURL);
                         goToArticle(decodedURL);
                         return false;
                     });
@@ -1008,6 +1011,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var urlParameters;
         var stateLabel;
         if (title && !(""===title)) {
+            // Prevents creating a double history for the same page
+            if (history.state && history.state.title === title) return;
             stateObj.title = title;
             urlParameters = "?title=" + title;
             stateLabel = "Wikipedia Article : " + title;
@@ -1041,7 +1046,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#articleContent').contents().find('body').html("");
                 readArticle(dirEntry);
             }
-        }).fail(function() { alert("Error reading article with title " + title); });
+        }).fail(function(e) { alert("Error reading article with title " + title + " : " + e); });
     }
     
     function goToRandomArticle() {
@@ -1052,7 +1057,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (dirEntry.namespace === 'A') {
                     $("#articleName").html(dirEntry.title);
-                    pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
@@ -1075,7 +1079,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             else {
                 if (dirEntry.namespace === 'A') {
                     $("#articleName").html(dirEntry.title);
-                    pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
                     $("#readingArticle").show();
                     $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
