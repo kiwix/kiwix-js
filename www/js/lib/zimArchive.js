@@ -225,7 +225,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {DirEntry} dirEntry
      * @param {callbackStringContent} callback
      */
-    ZIMArchive.prototype.readArticle = function(dirEntry, callback) {
+    ZIMArchive.prototype.readUtf8File = function(dirEntry, callback) {
         dirEntry.readData().then(function(data) {
             callback(dirEntry, utf8.parse(data));
         });
