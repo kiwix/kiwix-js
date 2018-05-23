@@ -148,7 +148,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.ok(htmlArticle.match("^.*<h1[^>]*>A Fool for You</h1>"), "'A Fool for You' title somewhere in the article");
                 done();
             };
-            localZimArchive.readArticle(aFoolForYouDirEntry, callbackFunction);
+            localZimArchive.readUtf8File(aFoolForYouDirEntry, callbackFunction);
         });
         QUnit.test("check findDirEntriesWithPrefix 'A'", function(assert) {
             var done = assert.async();            
@@ -325,7 +325,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.ok(dirEntry !== null, "Title found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "A/Ray_Charles.html", "URL is correct.");
-                    localZimArchive.readArticle(dirEntry, function(dirEntry2, data) {
+                    localZimArchive.readUtf8File(dirEntry, function(dirEntry2, data) {
                         assert.equal(dirEntry2.title, "Ray Charles", "Title is correct.");
                         assert.equal(data.length, 157186, "Data length is correct.");
                         assert.equal(data.indexOf("the only true genius in show business"), 5535, "Specific substring at beginning found.");

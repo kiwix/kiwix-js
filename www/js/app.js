@@ -747,7 +747,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             selectedArchive.resolveRedirect(dirEntry, readArticle);
         }
         else {
-            selectedArchive.readArticle(dirEntry, displayArticleInForm);
+            selectedArchive.readUtf8File(dirEntry, displayArticleInForm);
         }
     }
     
@@ -959,13 +959,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     } else {
                         selectedArchive.getDirEntryByTitle(title)
                         .then(function (dirEntry) {
-                            return selectedArchive.readBinaryFile(dirEntry,
+                            return selectedArchive.readUtf8File(dirEntry,
                                 function (fileDirEntry, content) {
                                     var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url; 
-                                    var contentString = util.uintToString(content);
-                                    if (cssCache) cssCache.set(fullUrl, contentString);
-                                    uiUtil.replaceCSSLinkWithInlineCSS(link, contentString); 
-                                });
+                                    if (cssCache) cssCache.set(fullUrl, content);
+                                    uiUtil.replaceCSSLinkWithInlineCSS(link, content); 
+                                }
+                            );
                         }).fail(function (e) {
                             console.error("could not find DirEntry for CSS : " + title, e);
                         });
@@ -984,14 +984,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // It's a Javascript file contained in the ZIM file
                     var title = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
                     selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                        if (dirEntry === null)
+                        if (dirEntry === null) {
                             console.log("Error: js file not found: " + title);
-                        else
+                        } else {
                             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                                // TODO : I have to disable javascript for now
-                                // var jsContent = encodeURIComponent(util.uintToString(content));
-                                //script.attr("src", 'data:text/javascript;charset=UTF-8,' + jsContent);
+                                // TODO : JavaScript support not yet functional [kiwix-js #152]
+                                uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
                             });
+                        }
                     }).fail(function (e) {
                         console.error("could not find DirEntry for javascript : " + title, e);
                     });
