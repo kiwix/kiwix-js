@@ -4,10 +4,29 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia)
 Then it was renamed Kiwix-html5 (and uses ZIM files), then was renamed Kiwix-JS.
 
-## Kiwix-JS v2.3.0
+## Kiwix-JS v2.4.0
 Released on TODO
 
 TODO
+
+## Kiwix-JS v2.3.0
+Released on 2018-06-04
+
+Add a cache on CSS stylesheets to improve performance in jQuery mode
+
+Change the technical way to display articles, so that all CSS styles can be loaded, and to avoid other technical issues
+
+Make the content visible only when CSS styles are read, in order to avoir repaints that can be very slow
+
+Fix redirections in ServiceWorker mode in ZIM files like StackExchange, and make the ServiceWorker handle all the articles (including the main one, and the first displayed after a search or random search)
+
+Fix links with an anchor in the URL
+
+In recent wikipedia and other wikimedia ZIM files, open all the sections when using a small screen (mobile stylesheet), so that the content remains readable (it only works in jQuery mode, this should be fixed in ServiceWorker mode in next version)
+
+Fix CSS UTF-8 encoding
+
+Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/18?closed=1
 
 ## Kiwix-JS v2.2.0
 Released on 2018-01-07
