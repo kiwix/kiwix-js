@@ -824,8 +824,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleInForm(dirEntry, htmlArticle) {
-        $("#readingArticle").hide();
-        $("#articleContent").show();
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
 
@@ -856,6 +854,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             articleContent.innerHTML = htmlArticle;
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
+            // Actually display the iframe content
+            $("#readingArticle").hide();
+            $("#articleContent").show();
+            // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             // If the ServiceWorker is not useable, we need to fallback to parse the DOM
             // to inject images, CSS etc, and replace links with javascript calls
