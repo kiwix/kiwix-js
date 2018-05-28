@@ -807,10 +807,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
     // Pattern to match a local anchor in a href
     var regexpLocalAnchorHref = /^#/;
-    // These regular expressions match both relative and absolute URLs
-    // Since late 2014, all ZIM files should use relative URLs
-    var regexpImageUrl = /^(?:\.\.\/|\/)+(I\/.*)$/;
-    var regexpMetadataUrl = /^(?:\.\.\/|\/)+(-\/.*)$/;
+    // Regex below finds images, scripts and stylesheets with ZIM-type metadata and image namespaces [kiwix-js #378]
+    // It first searches for <img, <script, or <link, then scans forward to find, on a word boundary, either src=["'] 
+    // OR href=["'] (ignoring any extra whitespace), and it then tests everything up to the next ["'] against a pattern that
+    // matches ZIM URLs with namespaces [-I] ("-" = metadata or "I" = image). Finally it removes the relative or absolute path. 
+    // DEV: If you want to support more namespaces, add them to the END of the character set [-I] (not to the beginning) 
+    var regexpTagsWithZimUrl = /(<(?:img|script|link)\s+[^>]*?\b)(?:src|href)(\s*=\s*["']\s*)(?:\.\.\/|\/)+([-I]\/[^"']*)/ig;
     
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
@@ -828,8 +830,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#articleContent").contents().scrollTop(0);
 
         if (contentInjectionMode === 'jquery') {
-            // Fast-replace img src with data-kiwixsrc [kiwix-js #272]
-            htmlArticle = htmlArticle.replace(/(<img\s+[^>]*\b)src(\s*=)/ig, '$1data-kiwixsrc$2');
+            // Replaces ZIM-style URLs of img, script and link tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
+            // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
+            htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, "$1data-kiwixurl$2$3");            
         }
 
         // Compute base URL
@@ -917,22 +920,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         
         function loadImagesJQuery() {
-            $('#articleContent').contents().find('body').find('img').each(function() {
+            $('#articleContent').contents().find('body').find('img[data-kiwixurl]').each(function() {
                 var image = $(this);
-                // It's a standard image contained in the ZIM file
-                // We try to find its name (from an absolute or relative URL)
-                var imageMatch = image.attr("data-kiwixsrc").match(regexpImageUrl); //kiwix-js #272
-                if (imageMatch) {
-                    var title = decodeURIComponent(imageMatch[1]);
-                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                            // TODO : use the complete MIME-type of the image (as read from the ZIM file)
-                            uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
-                        });
-                    }).fail(function (e) {
-                        console.error("could not find DirEntry for image:" + title, e);
+                var imageUrl = image.attr("data-kiwixurl");
+                var title = decodeURIComponent(imageUrl);
+                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                    selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                        // TODO : use the complete MIME-type of the image (as read from the ZIM file)
+                        uiUtil.feedNodeWithBlob(image, 'src', content, 'image');
                     });
-                }
+                }).fail(function (e) {
+                    console.error("could not find DirEntry for image:" + title, e);
+                });
             });
         }
 
@@ -948,56 +947,48 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 collapsedBlocks[i].classList.add('open-block');
             }
             
-            $('#articleContent').contents().find('link[rel=stylesheet]').each(function() {
+            $('#articleContent').contents().find('link[data-kiwixurl]').each(function() {
                 var link = $(this);
-                // We try to find its name (from an absolute or relative URL)
-                var hrefMatch = link.attr("href").match(regexpMetadataUrl);
-                if (hrefMatch) {
-                    // It's a CSS file contained in the ZIM file
-                    var title = uiUtil.removeUrlParameters(decodeURIComponent(hrefMatch[1]));
-                    if (cssCache && cssCache.has(title)) {
-                        var cssContent = cssCache.get(title);
-                        uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
-                    } else {
-                        selectedArchive.getDirEntryByTitle(title)
-                        .then(function (dirEntry) {
-                            return selectedArchive.readUtf8File(dirEntry,
-                                function (fileDirEntry, content) {
-                                    var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url; 
-                                    if (cssCache) cssCache.set(fullUrl, content);
-                                    uiUtil.replaceCSSLinkWithInlineCSS(link, content); 
-                                }
-                            );
-                        }).fail(function (e) {
-                            console.error("could not find DirEntry for CSS : " + title, e);
-                        });
-                    }
+                var linkUrl = link.attr("data-kiwixurl");
+                var title = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
+                if (cssCache && cssCache.has(title)) {
+                    var cssContent = cssCache.get(title);
+                    uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
+                } else {
+                    selectedArchive.getDirEntryByTitle(title)
+                    .then(function (dirEntry) {
+                        return selectedArchive.readUtf8File(dirEntry,
+                            function (fileDirEntry, content) {
+                                var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url; 
+                                if (cssCache) cssCache.set(fullUrl, content);
+                                uiUtil.replaceCSSLinkWithInlineCSS(link, content); 
+                            }
+                        );
+                    }).fail(function (e) {
+                        console.error("could not find DirEntry for CSS : " + title, e);
+                    });
                 }
             });
         }
 
         function loadJavaScriptJQuery() {
-            $('#articleContent').contents().find('script').each(function() {
+            $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
                 var script = $(this);
-                // We try to find its name (from an absolute or relative URL)
-                var srcMatch = script.attr("src") ? script.attr("src").match(regexpMetadataUrl) : null;
+                var scriptUrl = script.attr("data-kiwixurl");
                 // TODO check that the type of the script is text/javascript or application/javascript
-                if (srcMatch) {
-                    // It's a Javascript file contained in the ZIM file
-                    var title = uiUtil.removeUrlParameters(decodeURIComponent(srcMatch[1]));
-                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                        if (dirEntry === null) {
-                            console.log("Error: js file not found: " + title);
-                        } else {
-                            selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                                // TODO : JavaScript support not yet functional [kiwix-js #152]
-                                uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
-                            });
-                        }
-                    }).fail(function (e) {
-                        console.error("could not find DirEntry for javascript : " + title, e);
-                    });
-                }
+                var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                    if (dirEntry === null) {
+                        console.log("Error: js file not found: " + title);
+                    } else {
+                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                            // TODO : JavaScript support not yet functional [kiwix-js #152]
+                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
+                        });
+                    }
+                }).fail(function (e) {
+                    console.error("could not find DirEntry for javascript : " + title, e);
+                });
             });
         }
     }
