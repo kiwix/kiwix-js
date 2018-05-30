@@ -80,8 +80,6 @@ define([], function() {
      * @param {String} html The html string to process
      * @param {String} attribute The attribute that stores the URL to be substituted
      * @param {Function} callback The function to call with the substituted html
-         
-     }}
      */
     function replaceCSSLinksInHtml(html, attribute, callback) {
         // This regex creates an array of all link tags that have the given attribute
