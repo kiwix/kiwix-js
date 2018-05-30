@@ -72,6 +72,41 @@ define([], function() {
         }
         link.replaceWith(cssElement);
     }
+
+    /**
+     * Replaces all CSS links that have the given attribute in the html string with inline script tags containing content
+     * from the cache entries. Returns the substituted html in the callback function (even if no substitutions were made).
+     * 
+     * @param {String} html The html string to process
+     * @param {String} attribute The attribute that stores the URL to be substituted
+     * @param {Function} callback The function to call with the substituted html
+     */
+    function replaceCSSLinksInHtml(html, attribute, callback) {
+        // This regex creates an array of all link tags that have the given attribute
+        var regexpLinksWithAttribute = new RegExp('<link[^>]+?' + attribute + '=["\']([^"\']+)[^>]*>', 'ig');
+        var titles = [];
+        var linkArray = regexpLinksWithAttribute.exec(html);
+        while (linkArray !== null) {
+            // Store both the link to be replaced and the decoded URL
+            titles.push([linkArray[0], 
+                decodeURIComponent(linkArray[1])]);
+            linkArray = regexpLinksWithAttribute.exec(html);
+        }
+        assetsCache.cssCount = 0;
+        assetsCache.cssFulfilled = 0;
+        titles.forEach(function(title) {
+            assetsCache.cssCount++;
+            var cssContent = assetsCache.get(title[1]);
+            if (cssContent) {
+                assetsCache.cssFulfilled++;
+                html = html.replace(title[0], 
+                    '<style ' + attribute + '="' + title[1] + '">' + cssContent + '</style>');
+            }
+            if (assetsCache.cssCount >= titles.length) {
+                callback(html);
+            }
+        });
+    }
         
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
     
@@ -90,6 +125,7 @@ define([], function() {
     return {
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
+        replaceCSSLinksInHtml: replaceCSSLinksInHtml,
         removeUrlParameters: removeUrlParameters
     };
 });

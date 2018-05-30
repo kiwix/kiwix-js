@@ -544,8 +544,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function resetCssCache() {
         // Reset the cssCache. Must be done when archive changes.
-        if (cssCache) {
-            cssCache = new Map();
+        if (assetsCache) {
+            assetsCache = new Map();
         }
     }
 
@@ -829,10 +829,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // DEV: If you want to support more namespaces, add them to the END of the character set [-I] (not to the beginning) 
     var regexpTagsWithZimUrl = /(<(?:img|script|link)\s+[^>]*?\b)(?:src|href)(\s*=\s*["']\s*)(?:\.\.\/|\/)+([-I]\/[^"']*)/ig;
     
-    // Cache for CSS styles contained in ZIM.
-    // It significantly speeds up subsequent page display. See kiwix-js issue #335
-    var cssCache = new Map();
-
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -857,6 +853,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
         htmlCSS = htmlCSS ? htmlCSS[1] : '';
+
+        // Check if any of the CSS is already in the cache, and if so, insert it in the html string
+        uiUtil.replaceCSSLinksInHtml(htmlArticle, 'data-kiwixurl', 
+            function(result) {
+                htmlArticle = result;
+            }
+        );
         
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
@@ -870,9 +873,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             articleContent.innerHTML = htmlArticle;
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
-            // Actually display the iframe content
-            $("#readingArticle").hide();
-            $("#articleContent").show();
+            // Display the article if CSS is fulfilled
+            isCSSFulfilled();
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             
@@ -956,29 +958,36 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             for (var i = collapsedBlocks.length; i--;) {
                 collapsedBlocks[i].classList.add('open-block');
             }
-            
-            $('#articleContent').contents().find('link[data-kiwixurl]').each(function() {
+            $('#articleContent').contents().find('link[data-kiwixurl]').each(function () {
                 var link = $(this);
                 var linkUrl = link.attr("data-kiwixurl");
                 var title = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
-                if (cssCache && cssCache.has(title)) {
-                    var cssContent = cssCache.get(title);
-                    uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
-                } else {
-                    selectedArchive.getDirEntryByTitle(title)
+                selectedArchive.getDirEntryByTitle(title)
                     .then(function (dirEntry) {
                         return selectedArchive.readUtf8File(dirEntry,
                             function (fileDirEntry, content) {
-                                var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url; 
-                                if (cssCache) cssCache.set(fullUrl, content);
-                                uiUtil.replaceCSSLinkWithInlineCSS(link, content); 
+                                var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
+                                if (assetsCache) assetsCache.set(fullUrl, content);
+                                uiUtil.replaceCSSLinkWithInlineCSS(link, content);
+                                assetsCache.cssFulfilled++;
+                                isCSSFulfilled();
                             }
                         );
                     }).fail(function (e) {
                         console.error("could not find DirEntry for CSS : " + title, e);
+                        assetsCache.cssCount--;
+                        isCSSFulfilled();
                     });
-                }
             });
+        }
+
+        // Some pages are extremely heavy to render, so we prevent rendering by keeping the iframe hidden
+        // until all CSS content is available [kiwix-js #381]
+        function isCSSFulfilled() {
+            if (assetsCache.cssFulfilled >= assetsCache.cssCount) {
+                document.getElementById('readingArticle').style.display = 'none';
+                document.getElementById('articleContent').style.display = 'block';
+            }
         }
 
         function loadJavaScriptJQuery() {
