@@ -743,11 +743,26 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry
      */
     function readArticle(dirEntry) {
-        if (dirEntry.isRedirect()) {
-            selectedArchive.resolveRedirect(dirEntry, readArticle);
+        if (contentInjectionMode === 'serviceworker') {
+            // In ServiceWorker mode, we simply set the iframe src and show it when it's ready.
+            // (reading the backend is handled by the ServiceWorker itself)
+            var iframeArticleContent = document.getElementById('articleContent');
+            iframeArticleContent.onload = function () {
+                iframeArticleContent.onload = function () {};
+                // Actually display the iframe content
+                $("#readingArticle").hide();
+                $("#articleContent").show();
+            };
+            iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
         }
         else {
-            selectedArchive.readUtf8File(dirEntry, displayArticleInForm);
+            // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
+            if (dirEntry.isRedirect()) {
+                selectedArchive.resolveRedirect(dirEntry, readArticle);
+            }
+            else {
+                selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
+            }
         }
     }
     
@@ -825,15 +840,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry
      * @param {String} htmlArticle
      */
-    function displayArticleInForm(dirEntry, htmlArticle) {
+    function displayArticleContentInIframe(dirEntry, htmlArticle) {
         // Scroll the iframe to its top
         $("#articleContent").contents().scrollTop(0);
 
-        if (contentInjectionMode === 'jquery') {
-            // Replaces ZIM-style URLs of img, script and link tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
-            // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
-            htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, "$1data-kiwixurl$2$3");            
-        }
+        // Replaces ZIM-style URLs of img, script and link tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
+        // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, "$1data-kiwixurl$2$3");            
 
         // Compute base URL
         var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : '';
@@ -862,15 +875,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $("#articleContent").show();
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
-            // If the ServiceWorker is not useable, we need to fallback to parse the DOM
-            // to inject images, CSS etc, and replace links with javascript calls
-            if (contentInjectionMode === 'jquery') {
-                parseAnchorsJQuery();
-                loadImagesJQuery();
-                loadCSSJQuery();
-                //JavaScript loading currently disabled
-                //loadJavaScriptJQuery();            
-            }
+            
+            parseAnchorsJQuery();
+            loadImagesJQuery();
+            loadCSSJQuery();
+            //JavaScript loading currently disabled
+            //loadJavaScriptJQuery();            
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
