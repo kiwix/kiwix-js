@@ -20,8 +20,7 @@ It is unfortunately not technically possible to "remember" the selected ZIM file
 ## Some technical details
 Technically, after reading an article from a ZIM file, there is a need to "inject" the dependencies (images, css etc). For compatibility reasons, there are several ways to do it :
 - the "jQuery" mode parses the DOM to find the HTML tags of these dependencies, and modifies them to put the Base64 content in it. It is compatible with any browser, but is slow and can use a lot of memory. It works well on Mediawiki-based content, but can miss some dependencies on some contents
-- the "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page would send, and reply with content read from the ZIM file. It is a generic and much cleaner way than jQuery mode, but it does not work on all browsers. And ServiceWorkers are disabled by Mozilla in Firefox extensions
-- maybe a "webRequest" mode will appear, which would use the webRequest API inside the Firefox extension (when the necessary APIs will be implemented by Mozilla)
+- the "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page would send, and reply with content read from the ZIM file. It is a generic and much cleaner way than jQuery mode, but it does not work on all browsers. And ServiceWorkers are currently disabled by Mozilla in Firefox extensions
 
 ## Compatibility
 This is written in HTML/javascript so it should work on many recent browser engines.
