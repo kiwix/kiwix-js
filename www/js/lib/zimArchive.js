@@ -23,6 +23,13 @@
 define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     function(zimfile, zimDirEntry, util, utf8) {
     
+    // DEV: This controls the number of jobs sent to the decompressor at any one time. The value should be set in
+    // init.js and will need fine-turning according to your build of xzdec, and the memory constraints of your target
+    // environment(s). Some low-end mobiles can only support a value of 1.
+    var MAX_DECOMPRESSOR_JOBS = params.xzMaxJobs || 4;
+    // Counter to track the number of decompression-type jobs sent to xz
+    var xzJobs = 0;
+
     /**
      * ZIM Archive
      * 
@@ -215,19 +222,43 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         this._file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(callback);
     };
     
+    // We have to guess the compression type because zimfile.js only gets the compressionType while reading 
+    // the blob's cluster (too late for us). Assume all files need decompressing unless we know otherwise. 
+    var regexpUncompressed = /\.(?:jpeg|png|gif|tiff)$/i;   
+    
+    /**
+     * Utility queue and store for dirEntries awaiting the decompressor
+     * See head of file for information about MAX_DECOMPRESSOR_JOBS
+     * 
+     * @param {DirEntry} dirEntry A directory entry to queue
+     * @param {callbackDirEntry} callback The function to call when the decompressor is freed up
+     * @returns {callback} Resumes the calling function
+     */
+    function xzAwait (dirEntry, callback) {
+        if (xzJobs < MAX_DECOMPRESSOR_JOBS) {
+            return callback(dirEntry);
+        } else {
+            setTimeout(xzAwait, 300, dirEntry, callback);
+        }
+    }
+
     /**
      * @callback callbackStringContent
      * @param {String} content String content
      */
-    
-    /**
+
+     /**
      * 
      * @param {DirEntry} dirEntry
      * @param {callbackStringContent} callback
      */
     ZIMArchive.prototype.readUtf8File = function(dirEntry, callback) {
-        dirEntry.readData().then(function(data) {
-            callback(dirEntry, utf8.parse(data));
+        return xzAwait(dirEntry, function(dirEntry) {
+            xzJobs++;
+            return dirEntry.readData().then(function(data) {
+                xzJobs--;
+                callback(dirEntry, utf8.parse(data));
+            });
         });
     };
 
@@ -242,9 +273,19 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackBinaryContent} callback
      */
     ZIMArchive.prototype.readBinaryFile = function(dirEntry, callback) {
-        return dirEntry.readData().then(function(data) {
-            callback(dirEntry, data);
-        });
+        if (regexpUncompressed.test(dirEntry.url)) {
+            return dirEntry.readData().then(function(data) {
+                callback(dirEntry, data);
+            }); 
+        } else {
+            return xzAwait(dirEntry, function(dirEntry) {
+                xzJobs++;
+                return dirEntry.readData().then(function(data) {
+                    xzJobs--;
+                    callback(dirEntry, data);
+                });
+            });
+        }
     };
 
     /**
