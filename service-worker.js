@@ -84,6 +84,7 @@ var regexpJPEG = new RegExp(/\.jpe?g$/i);
 var regexpPNG = new RegExp(/\.png$/i);
 var regexpJS = new RegExp(/\.js/i);
 var regexpCSS = new RegExp(/\.css$/i);
+var regexpSVG = new RegExp(/\.svg$/i);
 
 // Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
@@ -117,6 +118,9 @@ function fetchEventListener(event) {
                     }
                     else if (regexpPNG.test(title)) {
                         contentType = 'image/png';
+                    } 
+                    else if (regexpSVG.test(title)) {
+                        contentType = 'image/svg+xml';
                     }
                 }
                 else if (nameSpace === '-') {
