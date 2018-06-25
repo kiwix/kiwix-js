@@ -39,6 +39,7 @@ module.exports = {
         browser
             .url('http://localhost:8080/')
             .waitForElementVisible('#archiveFiles', 20000)
+            // Select the ZIM archive of Ray Charles
             .execute(function() {
                 window.setRemoteArchives('http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimaa',
                     'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimab',
@@ -57,18 +58,66 @@ module.exports = {
                     'http://localhost:8080/tests/wikipedia_en_ray_charles_2015-06.zimao'
                     );
             })
+            
             .waitForElementVisible('#formArticleSearch', 20000)
             .waitForElementVisible('#searchArticles', 20000)
+            // Start a search with the prefix "Ray"
             .setValue('#prefix', "Ray")
             .click('#searchArticles')
             .waitForElementVisible('#articleList', 20000)
+            // Choose the article "Ray Charles"
             .useXpath()
             .waitForElementVisible("//div[@id='articleList']/a[text()='Ray Charles']", 20000)
             .click("//div[@id='articleList']/a[text()='Ray Charles']")
-            .useXpath()
+
             .frame('articleContent')
+            // Check the text in the article "Ray Charles"
+            .useXpath()
             .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 2000000)
             .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
+            // Wait for a particular image to be visible and check its size
+            .useXpath()
+            .waitForElementVisible("//td[@id='mwCA']/p/span/img", 20000)
+            .assert.attributeEquals("//td[@id='mwCA']/p/span/img", "naturalWidth", "250")
+            // Check the CSS style
+            .useCss()
+            // TODO : how can we be sure that the CSS has already been applied?
+            .assert.cssProperty("#mwBA", "float", "right")
+    
+            // Click on a hypertext link to another article "Quincy Jones"
+            // We first need to scroll to it, so that it is visible and clickable in the window
+            // Else it is sometimes under the bottom bar, and can not be clicked on
+//            .getLocationInView("#mwBTI", function(result) {
+//                browser.execute('scrollTo(' + result.value.x +',' + result.value.y+')')
+//                .pause(1000)
+//                .click("#mwBTI");
+//            })
+            .moveToElement('#mwBTI', 10, 10)
+            .click("#mwBTI")
+            // Check the text of the article "Quincy Jones"
+            .useXpath()
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 20000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 'Personal life')
+            // Wait for a particular image to be visible and check its size
+            .useCss()
+            .waitForElementVisible("#mwAiI", 20000)
+            .assert.attributeEquals("#mwAiI", "naturalWidth", "180")
+            // Check the CSS style
+            // TODO : how can we be sure that the CSS has already been applied?
+            .assert.cssProperty("#mwBA", "float", "right")
+    
+            // Use the back button of the UI, to go back to "Ray Charles" article
+            .frame()
+            .click("#btnBack")
+            .frame('articleContent')
+            // Check the text in the article "Ray Charles"
+            .useXpath()
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 2000000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
+            // Wait for a particular image to be visible and check its size
+            .useXpath()
+            .waitForElementVisible("//td[@id='mwCA']/p/span/img", 20000)
+            .assert.attributeEquals("//td[@id='mwCA']/p/span/img", "naturalWidth", "250")
             .end();
     }
 };
