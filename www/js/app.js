@@ -876,12 +876,45 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             parseAnchorsJQuery();
             loadImagesJQuery();
             loadCSSJQuery();
+            showTextToSpeech();
             //JavaScript loading currently disabled
             //loadJavaScriptJQuery();            
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = "article.html";
+
+        function showTextToSpeech() {
+            var textToSpeechStart = $("#textToSpeech_start");   
+            var textToSpeechStop = $("#textToSpeech_stop");
+            
+            // First hide all the textToSpeech buttons 
+            textToSpeechStart.hide();
+            textToSpeechStop.hide();
+
+            if (!browserSupportsTextToSpeech()) {
+                return;
+            }
+            
+            textToSpeechStart.show();
+            textToSpeechStart.on('click', function() {
+                textToSpeechStart.hide();
+                textToSpeechStop.show();
+                var documentText = $('#articleContent').contents().find('body')[0].textContent;
+                var utterance = new SpeechSynthesisUtterance(documentText);
+                window.speechSynthesis.speak(utterance);
+            });
+
+            textToSpeechStop.on('click', function() {
+                textToSpeechStart.show();
+                textToSpeechStop.hide();
+                window.speechSynthesis.cancel();
+            });
+        }
+
+        function browserSupportsTextToSpeech() {
+            return SpeechSynthesisUtterance && window.speechSynthesis;
+        }
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
