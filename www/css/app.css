@@ -67,6 +67,10 @@
     height: 0px; 
 }
 
+#textToSpeech_voices {
+  margin-left: 4px;
+}
+
 .articleIFrame {
     width: 100%;
     border: 0;

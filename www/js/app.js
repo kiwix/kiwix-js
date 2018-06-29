@@ -193,6 +193,39 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         
     });
+
+    // Returns true if the browser supports text to speech APIs.
+    function browserSupportsTextToSpeech() {
+        return SpeechSynthesisUtterance && window.speechSynthesis;
+    }
+
+    // Populates the text to speech voice selected with local system voices.
+    function populateTextToSpeechVoices() {
+        if (!browserSupportsTextToSpeech()) {
+            return;
+        }
+        var populateFunction = function() {
+            var voiceSelect = $("#textToSpeech_voices");
+            var voices = window.speechSynthesis.getVoices();
+            for(var i = 0; i < voices.length ; i++) {
+                var voice = voices[i];
+                // Ignore non local voice services as we don't want to rely on connectivity.
+                if (!voice.localService) {
+                    continue;
+                }
+                var option = document.createElement('option');
+                option.textContent = voice.name + ' (' + voice.lang +')';
+                option.setAttribute('data-lang', voice.lang);
+                option.setAttribute('data-name', voice.name);
+                option.selected = voice.default;
+                voiceSelect.append(option);
+            }
+        }
+        // Populate the voice list with a timeout, this is necessary
+        // to let browser queue the voice API calls.
+        setTimeout(populateFunction, 0);
+    }
+    populateTextToSpeechVoices();
     
     /**
      * Displays of refreshes the API status shown to the user
@@ -887,32 +920,44 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Shows the text to speech button for the loaded article. 
         // If the speech API is not available, the button is not displayed.
         function showTextToSpeech() {
-            var textToSpeechStart = $("#textToSpeech_start");   
-            var textToSpeechStop = $("#textToSpeech_stop");
-
             if (!browserSupportsTextToSpeech()) {
                 return;
             }
+
+            var textToSpeechStart = $("#textToSpeech_start");   
+            var textToSpeechStop = $("#textToSpeech_stop");
+            var textToSpeechVoices = $("#textToSpeech_voices");
 
             textToSpeechStart.show();
             textToSpeechStart.on('click', function() {
                 textToSpeechStart.hide();
                 textToSpeechStop.show();
+                textToSpeechVoices.hide();
                 var documentText = $('#articleContent').contents().find('body')[0].textContent;
                 var utterance = new SpeechSynthesisUtterance(documentText);
+                // TODO: We currently allow user to manually select the voice/language. Ideally
+                // we need to match the content language to the voice language.
+                utterance.voice = getSelectedTextToSpeechVoice();
                 window.speechSynthesis.speak(utterance);
             });
 
             textToSpeechStop.on('click', function() {
                 textToSpeechStart.show();
                 textToSpeechStop.hide();
+                textToSpeechVoices.show();
                 window.speechSynthesis.cancel();
             });
+            textToSpeechVoices.show();
         }
 
-        // Returns true if the browser supports text to speech APIs.
-        function browserSupportsTextToSpeech() {
-            return SpeechSynthesisUtterance && window.speechSynthesis;
+        // Returns the selected text to speech voice object.
+        function getSelectedTextToSpeechVoice() {
+            var selectedTextToSpeechVoiceOption = $("#textToSpeech_voices")[0].selectedOptions[0];
+            var selectedVoiceName = selectedTextToSpeechVoiceOption.getAttribute("data-name");
+
+            return window.speechSynthesis.getVoices().filter(function(voice) { 
+                return voice.name == selectedVoiceName;
+            })[0];
         }
 
         function parseAnchorsJQuery() {
