@@ -884,18 +884,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = "article.html";
 
+        // Shows the text to speech button for the loaded article. 
+        // If the speech API is not available, the button is not displayed.
         function showTextToSpeech() {
             var textToSpeechStart = $("#textToSpeech_start");   
             var textToSpeechStop = $("#textToSpeech_stop");
-            
-            // First hide all the textToSpeech buttons 
-            textToSpeechStart.hide();
-            textToSpeechStop.hide();
 
             if (!browserSupportsTextToSpeech()) {
                 return;
             }
-            
+
             textToSpeechStart.show();
             textToSpeechStart.on('click', function() {
                 textToSpeechStart.hide();
@@ -912,6 +910,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             });
         }
 
+        // Returns true if the browser supports text to speech APIs.
         function browserSupportsTextToSpeech() {
             return SpeechSynthesisUtterance && window.speechSynthesis;
         }
