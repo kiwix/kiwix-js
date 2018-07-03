@@ -193,16 +193,16 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
-                    decompressor = { readSlice: plainBlobReader };
+                    decompressor = { readSliceSingleThread: plainBlobReader };
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
-                return decompressor.readSlice(blob * 4, 8).then(function(data) {
+                return decompressor.readSliceSingleThread(blob * 4, 8).then(function(data) {
                     var blobOffset = readInt(data, 0, 4);
                     var nextBlobOffset = readInt(data, 4, 4);
-                    return decompressor.readSlice(blobOffset, nextBlobOffset - blobOffset);
+                    return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset);
                 });
             });
         });
