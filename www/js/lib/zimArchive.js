@@ -61,10 +61,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     else {
                         that.readUtf8File(dirEntry, function(dirEntryRead, data) {
                             that.language = data;
+                            callbackReady(that);
                         });
                     }
-                }).fail(function(e) { console.warn("Language not found in the archive", e); });
-                callbackReady(that);
+                }).fail(function(e) { console.warn("Language not found in the archive", e); callbackReady(that);});
             });
         };
         if (storage && !path) {

@@ -133,6 +133,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.module("ZIM initialisation");
         QUnit.test("ZIM archive is ready", function(assert) {
             assert.ok(localZimArchive.isReady() === true, "ZIM archive should be set as ready");
+            assert.equal(localZimArchive.language, "eng", "ZIM file read uses the English language");
         });
                 
         QUnit.module("zim_direntry_search_and_read");
