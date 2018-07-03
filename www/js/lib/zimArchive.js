@@ -29,7 +29,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @typedef ZIMArchive
      * @property {ZIMFile} _file The ZIM file (instance of ZIMFile, that might physically be split into several actual files)
-     * @property {String} _language Language of the content
+     * @property {String} language Language(s) of the content, as defined in http://www.openzim.org/wiki/Metadata
      */
     
     /**
@@ -49,10 +49,21 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     function ZIMArchive(storage, path, callbackReady) {
         var that = this;
         that._file = null;
-        that._language = ""; //@TODO
+        that.language = null;
         var createZimfile = function(fileArray) {
             zimfile.fromFileArray(fileArray).then(function(file) {
                 that._file = file;
+                // Let's read the language inside the ZIM file
+                that.getDirEntryByTitle("M/Language").then(function(dirEntry) {
+                    if (dirEntry === null || dirEntry === undefined) {
+                        console.warn("Title M/Language not found in the archive");
+                    }
+                    else {
+                        that.readUtf8File(dirEntry, function(dirEntryRead, data) {
+                            that.language = data;
+                        });
+                    }
+                }).fail(function(e) { console.warn("Language not found in the archive", e); });
                 callbackReady(that);
             });
         };
