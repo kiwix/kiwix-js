@@ -37,6 +37,11 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {ZIMArchive} zimArchive Ready-to-use ZIMArchive
      */
     
+    /**
+     * @callback callbackMetadata
+     * @param {String} data metadata string
+     */
+    
     
     /**
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
@@ -54,17 +59,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             zimfile.fromFileArray(fileArray).then(function(file) {
                 that._file = file;
                 // Let's read the language inside the ZIM file
-                that.getDirEntryByTitle("M/Language").then(function(dirEntry) {
-                    if (dirEntry === null || dirEntry === undefined) {
-                        console.warn("Title M/Language not found in the archive");
-                    }
-                    else {
-                        that.readUtf8File(dirEntry, function(dirEntryRead, data) {
-                            that.language = data;
-                            callbackReady(that);
-                        });
-                    }
-                }).fail(function(e) { console.warn("Language not found in the archive", e); callbackReady(that);});
+                that.getMetadata("Language", function(data) {
+                    that.language = data;
+                    callbackReady(that);
+                });
             });
         };
         if (storage && !path) {
@@ -290,6 +288,28 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.getRandomDirEntry = function(callback) {
         var index = Math.floor(Math.random() * this._file.articleCount);
         this._file.dirEntryByUrlIndex(index).then(callback);
+    };
+    
+    /**
+     * Read a Metadata string inside the ZIM file.
+     * @param {String} key
+     * @param {callbackMetadata} callback
+     */
+    ZIMArchive.prototype.getMetadata = function(key, callback) {
+        var that = this;
+        this.getDirEntryByTitle("M/" + key).then(function (dirEntry) {
+            if (dirEntry === null || dirEntry === undefined) {
+                console.warn("Title M/" + key + " not found in the archive");
+                callback();
+            } else {
+                that.readUtf8File(dirEntry, function (dirEntryRead, data) {
+                    callback(data);
+                });
+            }
+        }).fail(function (e) {
+            console.warn("Metadata with key " + key + " not found in the archive", e);
+            callback();
+        });    
     };
 
     /**
