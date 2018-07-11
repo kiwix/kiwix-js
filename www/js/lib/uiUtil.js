@@ -91,7 +91,7 @@ define([], function() {
      * @param {Callback} callback to return the language code 
      */
     function readBCP47LanguageCode(archive, callback) {
-        var altName = archive._file._files[0].name.toLowerCase();
+        var altName = archive._file._files[0].name;
         archive.getMetadata('Name', function(zimName) {
             var bcp47Code;
             // In case the ZIM doesn't have a meta Name attribute, use the altName as a backup
@@ -100,7 +100,7 @@ define([], function() {
             if (/_\w+_/.test(zimName)) {
                 bcp47Code = zimName.replace(/.+?_(\w+)_.*/, '$1').toLowerCase();
                 // DEV: Add any known exceptions below following first pattern
-                bcp47Code = /eng/.test(bcp47Code) ? 'en' : bcp47Code;
+                bcp47Code = /^eng$/.test(bcp47Code) ? 'en' : bcp47Code;
             }
             callback (bcp47Code);
         });
