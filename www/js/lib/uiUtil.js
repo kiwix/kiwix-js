@@ -102,7 +102,7 @@ define([], function() {
                 // DEV: Add any known exceptions below following first pattern
                 bcp47Code = /^eng$/.test(bcp47Code) ? 'en' : bcp47Code;
             }
-            callback (bcp47Code);
+            callback(bcp47Code);
         });
     }
 
