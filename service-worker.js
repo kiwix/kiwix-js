@@ -94,6 +94,24 @@ function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
+//            for (let key of event.request.headers.keys()) {
+//                console.log("key=" + key + " value=" + event.request.headers.get(key));
+//            }
+
+            var headerIfNoneMatch = event.request.headers.get('If-None-Match');
+            console.log("If-None-Match=" +  headerIfNoneMatch + " for " + event.request.url);
+            
+            if (headerIfNoneMatch && headerIfNoneMatch === '"etag-test"') {
+                
+                // The content cached by the browser is up-to-date
+                // So we can tell it to keep it
+                var responseInit = {
+                    status: 304
+                };
+                var httpResponse = new Response('', responseInit);
+                resolve(httpResponse);
+                return;
+            }
 
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
@@ -160,7 +178,9 @@ function fetchEventListener(event) {
                             status: 200,
                             statusText: 'OK',
                             headers: {
-                                'Content-Type': contentType
+                                'Content-Type': contentType,
+                                'ETag': '"etag-test"',
+                                'Cache-Control': 'max-age=10, must-revalidate'
                             }
                         };
 
