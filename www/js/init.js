@@ -22,6 +22,12 @@
  */
 'use strict';
 
+// Parameters that define overall operation of app
+var params = {};
+params['xzMaxJobs'] = 1; // Controls the maximum number of jobs that can be sent simultaneously to the decompressor
+                         // WARNING: setting this value too high can crash the app: see note at head of zimArchive.js 
+
+// Do not touch unless you know what you are doing
 require.config({
     baseUrl: 'js/lib',
     paths: {
