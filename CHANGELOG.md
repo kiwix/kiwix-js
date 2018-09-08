@@ -9,6 +9,15 @@ Released on TODO
 
 TODO
 
+## Kiwix-JS v2.3.1
+Released on 2018-09-08
+
+Fix excessive memory consumption
+
+Fix SVG file handling
+
+Add favicon
+
 ## Kiwix-JS v2.3.0
 Released on 2018-06-04
 
