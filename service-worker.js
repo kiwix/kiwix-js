@@ -94,9 +94,7 @@ function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
-//            for (let key of event.request.headers.keys()) {
-//                console.log("key=" + key + " value=" + event.request.headers.get(key));
-//            }
+            console.log("event.request" , event.request);
 
             var headerIfNoneMatch = event.request.headers.get('If-None-Match');
             console.log("If-None-Match=" +  headerIfNoneMatch + " for " + event.request.url);
@@ -180,7 +178,7 @@ function fetchEventListener(event) {
                             headers: {
                                 'Content-Type': contentType,
                                 'ETag': '"etag-test"',
-                                'Cache-Control': 'max-age=10, must-revalidate'
+                                'Cache-Control': 'no-cache'
                             }
                         };
 
