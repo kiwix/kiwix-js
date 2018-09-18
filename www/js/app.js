@@ -767,6 +767,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
     }
 
+    // Declares a variable to track CSS sent to the Service Worker
+    var serviceWorkerCSSCount;
+
     /**
      * Read the article corresponding to the given dirEntry
      * @param {DirEntry} dirEntry
@@ -777,7 +780,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // (reading the backend is handled by the ServiceWorker itself)
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function () {
-                iframeArticleContent.onload = function () {};
                 // Actually display the iframe content
                 $("#readingArticle").hide();
                 $("#articleContent").show();
@@ -807,10 +809,24 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             console.error("Error in MessageChannel", event.data.error);
             reject(event.data.error);
         } else {
-            console.log("the ServiceWorker sent a message on port1", event.data);
+            //console.log("the ServiceWorker sent a message on port1", event.data);
             if (event.data.action === "askForContent") {
-                console.log("we are asked for a content : let's try to answer to this message");
+                //console.log("we are asked for a content : let's try to answer to this message");
                 var title = event.data.title;
+                
+                // Start a new CSS count for this page if we're loading html
+                if (/\.html?$/i.test(title)) {
+                    serviceWorkerCSSCount = 0;
+                    // Prevent render until CSS fulfilled
+                    $('#articleContent').hide();
+                    $("#articleName").html(title);
+                    $('#readingArticle').show();
+                }
+                // Increment the CSS count if Service Worker is requesting CSS
+                // We are relying on the fact that SW will ask for all CSS it wants before receiving any back
+                if (/\.css?$/i.test(title)) serviceWorkerCSSCount++;
+                if (/\.css?$/i.test(title)) console.log("* CSSCount++: " + serviceWorkerCSSCount);
+                
                 var messagePort = event.ports[0];
                 var readFile = function(dirEntry) {
                     if (dirEntry === null) {
@@ -824,25 +840,41 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // Else, if the redirect URL is in a different directory than the original URL,
                             // the relative links in the HTML content would fail. See #312
                             messagePort.postMessage({'action':'sendRedirect', 'title':title, 'redirectUrl': redirectURL});
-                            console.log("redirect to " + redirectURL + " sent to ServiceWorker");                            
+                            //console.log("redirect to " + redirectURL + " sent to ServiceWorker");                            
                         });
                     } else {
                         console.log("Reading binary file...");
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
                             messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': content});
-                            console.log("content sent to ServiceWorker");
+                            console.log("Content sent to ServiceWorker: " + title);
+                            // Decrement SW CSS count because CSS fulfilled
+                            if (/\.css$/i.test(title)) serviceWorkerCSSCount--; 
+                            if (/\.css$/i.test(title)) console.log("* CSSCount--: " + serviceWorkerCSSCount); 
+                            if (serviceWorkerCSSCount === 0 && !/\.html?$/i.test(title)) {
+                                // Render article because all CSS now processed
+                                console.log("** All CSS received. Rendering... **");
+                                $('#articleContent').show();
+                                serviceWorkerCSSCount = null;
+                            }
                         });
                     }
                 };
                 selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function() {
                     messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': new UInt8Array()});
+                    // Decrement SW CSS count because CSS unavailable or failed
+                    if (/\.css$/i.test(title)) serviceWorkerCSSCount--; 
+                    if (serviceWorkerCSSCount === 0 && !/\.html?$/i.test(title)) {
+                        // Render article because all CSS now processed
+                        $("#articleContent").show();
+                        serviceWorkerCSSCount = null;
+                    }
                 });
             }
             else {
                 console.error("Invalid message received", event.data);
             }
         }
-    };
+    }
     
     // Compile some regular expressions needed to modify links
     // Pattern to find the path in a url

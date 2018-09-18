@@ -91,11 +91,11 @@ var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
 
 function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
-        console.log('ServiceWorker handling fetch event for : ' + event.request.url);
+       // console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
 
-            console.log('Asking app.js for a content', event.request.url);
+            //console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
                 var nameSpace;
                 var title;
@@ -112,7 +112,7 @@ function fetchEventListener(event) {
                     contentType = 'text/html';
                 }
                 else if (nameSpace === 'I' || nameSpace === 'J') {
-                    console.log("It's an image : " + title);
+                   // console.log("It's an image : " + title);
                     if (regexpJPEG.test(title)) {
                         contentType = 'image/jpeg';
                     }
@@ -124,7 +124,7 @@ function fetchEventListener(event) {
                     }
                 }
                 else if (nameSpace === '-') {
-                    console.log("It's a layout dependency : " + title);
+                   // console.log("It's a layout dependency : " + title);
                     if (regexpJS.test(title)) {
                         contentType = 'text/javascript';
                         var responseInit = {
@@ -155,7 +155,7 @@ function fetchEventListener(event) {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function(event) {
                     if (event.data.action === 'giveContent') {
-                        console.log('content message received for ' + titleWithNameSpace, event.data);
+                        // console.log('content message received for ' + titleWithNameSpace, event.data);
                         var responseInit = {
                             status: 200,
                             statusText: 'OK',
@@ -166,7 +166,7 @@ function fetchEventListener(event) {
 
                         var httpResponse = new Response(event.data.content, responseInit);
 
-                        console.log('ServiceWorker responding to the HTTP request for ' + titleWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
+                        //console.log('ServiceWorker responding to the HTTP request for ' + titleWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
                         resolve(httpResponse);
                     }
                     else if (event.data.action === 'sendRedirect') {
@@ -177,9 +177,9 @@ function fetchEventListener(event) {
                         reject(event.data);
                     }
                 };
-                console.log('Eventlistener added to listen for an answer to ' + titleWithNameSpace);
+                //console.log('Eventlistener added to listen for an answer to ' + titleWithNameSpace);
                 outgoingMessagePort.postMessage({'action': 'askForContent', 'title': titleWithNameSpace}, [messageChannel.port2]);
-                console.log('Message sent to app.js through outgoingMessagePort');
+                // console.log('Message sent to app.js through outgoingMessagePort');
             }));
         }
         // If event.respondWith() isn't called because this wasn't a request that we want to handle,
