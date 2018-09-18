@@ -823,8 +823,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 }
                 // Increment the CSS count if Service Worker is requesting CSS
                 // We are relying on the fact that SW will ask for all CSS it wants before receiving any back
-                if (/\.css?$/i.test(title)) serviceWorkerCSSCount++;
-                if (/\.css?$/i.test(title)) console.log("* CSSCount++: " + serviceWorkerCSSCount);
+                if (/\.css?$/i.test(title)) { serviceWorkerCSSCount++; console.log("* CSSCount++: " + serviceWorkerCSSCount); }
                 
                 var messagePort = event.ports[0];
                 var readFile = function(dirEntry) {
