@@ -767,9 +767,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
     }
 
-    // Declares a variable to track CSS sent to the Service Worker
-    var serviceWorkerCSSCount;
-
     /**
      * Read the article corresponding to the given dirEntry
      * @param {DirEntry} dirEntry
@@ -797,6 +794,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
     }
     
+    // Declares a variable to track CSS sent to the Service Worker
+    var serviceWorkerCSSCount;
     var messageChannel;
     
     /**
@@ -847,32 +846,34 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
                             messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': content});
                             console.log("Content sent to ServiceWorker: " + title);
-                            // Decrement SW CSS count because CSS fulfilled
-                            if (/\.css$/i.test(title)) serviceWorkerCSSCount--; 
-                            if (/\.css$/i.test(title)) console.log("* CSSCount--: " + serviceWorkerCSSCount); 
-                            if (serviceWorkerCSSCount === 0 && !/\.html?$/i.test(title)) {
-                                // Render article because all CSS now processed
-                                console.log("** All CSS received. Rendering... **");
-                                $('#articleContent').show();
-                                serviceWorkerCSSCount = null;
-                            }
+                            renderifCSSFulfilledSW(title);                             
                         });
                     }
                 };
                 selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function() {
                     messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': new UInt8Array()});
-                    // Decrement SW CSS count because CSS unavailable or failed
-                    if (/\.css$/i.test(title)) serviceWorkerCSSCount--; 
-                    if (serviceWorkerCSSCount === 0 && !/\.html?$/i.test(title)) {
-                        // Render article because all CSS now processed
-                        $("#articleContent").show();
-                        serviceWorkerCSSCount = null;
-                    }
+                    renderifCSSFulfilledSW(title);
                 });
             }
             else {
                 console.error("Invalid message received", event.data);
             }
+        }
+    }
+
+    /**
+     * Checks to see whether all CSS has been fulfilled by Service Worker and renders the page if so
+     * @param {String} title Filename of asset to check 
+     */
+    function renderifCSSFulfilledSW(title) {
+        // Decrement SW CSS count because CSS fulfilled (or unavailable)
+        if (/\.css$/i.test(title)) serviceWorkerCSSCount--; 
+        if (/\.css$/i.test(title)) console.log("* CSSCount--: " + serviceWorkerCSSCount);
+        if (serviceWorkerCSSCount === 0 && !/\.html?$/i.test(title)) {
+            // Render article because all CSS now processed
+            console.log("** All CSS received. Rendering... **");
+            $('#articleContent').show();
+            serviceWorkerCSSCount = null;
         }
     }
     
