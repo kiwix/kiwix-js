@@ -94,22 +94,45 @@ function fetchEventListener(event) {
         console.log('ServiceWorker handling fetch event for : ' + event.request.url);
 
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
-            console.log("event.request" , event.request);
-
-            var headerIfNoneMatch = event.request.headers.get('If-None-Match');
-            console.log("If-None-Match=" +  headerIfNoneMatch + " for " + event.request.url);
             
-            if (headerIfNoneMatch && headerIfNoneMatch === '"etag-test"') {
-                
-                // The content cached by the browser is up-to-date
-                // So we can tell it to keep it
-                var responseInit = {
-                    status: 304
-                };
-                var httpResponse = new Response('', responseInit);
-                resolve(httpResponse);
-                return;
-            }
+            // We look into the browser HTTP cache if the resource is there
+            console.log("Look into the cache for " + event.request.url);
+            
+            var myHeaders = new Headers({"If-None-Match": '"etag-test"'});
+            var myInit = { method: 'GET',
+               headers: myHeaders,
+               mode: 'same-origin',
+               cache: 'only-if-cached' };
+
+            var myRequest = new Request(event.request.url, myInit);
+            fetch(myRequest)
+            .then(function (response) {
+                // The resource is in the browser cache
+                // It's no use trying to read it in the ZIM file again
+                if (response.ok) {
+                    console.log("File " + event.request.url + " read from cache", response);
+                    var responseInit = {
+                        status: 200,
+                        statusText: 'OK',
+                        headers: {
+                            'ETag': '"etag-test"',
+                            'Cache-Control': 'no-cache'
+                        }
+                    };
+
+                    var httpResponse = new Response(response.blob(), responseInit);
+                    resolve(httpResponse);
+                    return;
+                } else if (response.status === 504) {
+                    // TODO : might be useless
+                    console.log("File " + event.request.url + " not found in cache", response);
+                } else {
+                    console.log("Network response was not ok when reading from cache", response);
+                }
+            })
+            .catch(function (error) {
+                console.log("There has been a problem with your fetch operation on cache on " + event.request.url, error);
+            });
 
             console.log('Asking app.js for a content', event.request.url);
             event.respondWith(new Promise(function(resolve, reject) {
