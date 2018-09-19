@@ -773,16 +773,23 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function readArticle(dirEntry) {
         if (contentInjectionMode === 'serviceworker') {
-            // In ServiceWorker mode, we simply set the iframe src and show it when it's ready.
+            // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
+            // But we still need to empty the article content first.
+            $('#articleContent').contents().remove();
             var iframeArticleContent = document.getElementById('articleContent');
-            iframeArticleContent.onload = function () {
-                iframeArticleContent.onload = function () {};
-                // Actually display the iframe content
-                $("#readingArticle").hide();
+            iframeArticleContent.onload = function() {
+                // The iframe is empty
+                iframeArticleContent.onload = function () {
+                    // The content is fully loaded by the browser : we can hide the spinner
+                    iframeArticleContent.onload = function () {};
+                    $("#readingArticle").hide();
+                };
+                iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
+                // Display the iframe content
                 $("#articleContent").show();
             };
-            iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
+            iframeArticleContent.src = "article.html";
         }
         else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
