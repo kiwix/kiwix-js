@@ -778,18 +778,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // But we still need to empty the article content first.
             $('#articleContent').contents().remove();
             var iframeArticleContent = document.getElementById('articleContent');
-            iframeArticleContent.onload = function() {
-                // The iframe is empty
-                iframeArticleContent.onload = function () {
-                    // The content is fully loaded by the browser : we can hide the spinner
-                    iframeArticleContent.onload = function () {};
-                    $("#readingArticle").hide();
-                };
-                iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
-                // Display the iframe content
+            iframeArticleContent.onload = function () {
+                // Actually display the iframe content
+                $("#readingArticle").hide();
                 $("#articleContent").show();
             };
-            iframeArticleContent.src = "article.html";
+            iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
         }
         else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
@@ -801,7 +795,58 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
         }
     }
+
+    /**
+     * Declares a per-page object to keep track of the page state
+     * @type Object
+     */
+    var pageState = {
+        'cssCount': null,
+        'cssExtracted': null,
+        'imagesCount': null,
+        'imagesExtracted': null,
+        'scriptsCount': null,
+        'scriptsExtracted': null,
+        'fnQueue': []
+    };
+
+    /**
+     * Add a function to a queue. Functions will be executed only when val1 === val2 
+     * @param {Function} fn Function to be queued
+     * @param {String} val1 The name of an incremental counter declared in pageState (e.g. 'cssCount')
+     * @param {String} val2 The name of the corresponding counter declared in pageState (e.g. 'cssExtracted')
+     */
+    function qFns(fn, val1, val2) {
+        var newFunc = {
+            'fn': fn,
+            'val1': val1,
+            'val2': val2
+        };
+        pageState.fnQueue.push(newFunc);
+        queueControl();
+    }
     
+    function queueControl() {
+        if (!pageState.fnQueue.length) return;
+        if (pageState[pageState.fnQueue[0].val1] === pageState[pageState.fnQueue[0].val2]) {
+            var nextFn = pageState.fnQueue[0].fn;
+            console.log('* Starting function ' + nextFn.name + ': ' + pageState[pageState.fnQueue[0].val1] + ' = ' + pageState[pageState.fnQueue[0].val2]);
+            pageState.fnQueue.shift();
+            nextFn();
+            queueControl();
+        } else {
+            setTimeout(queueControl, 300);
+        }
+    }
+    
+    // Some pages are extremely heavy to render, so we prevent rendering by keeping the iframe hidden
+    // until all CSS content is available [kiwix-js #381]
+    function renderPage() {
+        $('#cachingCSS').hide();
+        $('#readingArticle').hide();
+        $('#articleContent').show();
+    }
+
     var messageChannel;
     
     /**
@@ -818,6 +863,23 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (event.data.action === "askForContent") {
                 console.log("we are asked for a content : let's try to answer to this message");
                 var title = event.data.title;
+                
+                // Start a new CSS count for this page if we're loading html
+                if (/\.html?$/i.test(title)) {
+                    // Prevent render until CSS fulfilled
+                    $('#articleContent').hide();
+                    $("#articleName").html(title);
+                    $('#readingArticle').show();
+                }
+                // Increment the CSS count if Service Worker is requesting CSS
+                // We are relying on the fact that SW will ask for all CSS it wants before receiving any back
+                if (/\.css?$/i.test(title)) { 
+                    pageState.cssCount++;
+                    console.log("* CSSCount++: " + pageState.cssCount); 
+                    // Queue an early page render on CSS load instead of on page load
+                    qFns(renderPage, 'cssCount', 'cssExtracted');
+                }
+                
                 var messagePort = event.ports[0];
                 var readFile = function(dirEntry) {
                     if (dirEntry === null) {
@@ -837,20 +899,30 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         console.log("Reading binary file...");
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
                             messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': content});
-                            console.log("content sent to ServiceWorker");
+                            console.log("Content sent to ServiceWorker: " + title);
+                            if (/\.css$/i.test(title)) pageState.cssExtracted++;                             
                         });
                     }
                 };
-                selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function() {
-                    messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': new UInt8Array()});
-                });
+                var executeRead = function() {
+                    selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function() {
+                        messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': new UInt8Array()});
+                        if (/\.css$/i.test(title)) pageState.cssCount--;
+                    });
+                };
+                // DEV: Extend the tests below for finer-grained control of execution order
+                if (!/\.html?$|\.css$/i.test(title)) {
+                    qFns(executeRead, 'cssCount', 'cssExtracted');
+                } else {
+                    executeRead();
+                }
             }
             else {
                 console.error("Invalid message received", event.data);
             }
         }
-    };
-    
+    }
+
     // Compile some regular expressions needed to modify links
     // Pattern to find the path in a url
     var regexpPath = /^(.*\/)[^\/]+$/;
@@ -910,10 +982,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             
             parseAnchorsJQuery();
-            loadImagesJQuery();
             loadCSSJQuery();
+            qFns(renderPage, 'cssCount', 'cssExtracted');
+            //We could do a qFns on loadImages, but we can extend to finer-grained control over SVGs by doing the queuing within the function
+            loadImagesJQuery();
             //JavaScript loading currently disabled
-            //loadJavaScriptJQuery();            
+            //qFns(loadJavaScriptJQuery, 'imagesCount', 'imagesExtracted');            
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -967,23 +1041,30 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var image = $(this);
                 var imageUrl = image.attr("data-kiwixurl");
                 var title = decodeURIComponent(imageUrl);
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                    selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        // TODO : use the complete MIME-type of the image (as read from the ZIM file)
-                        var url = fileDirEntry.url;
-                        // Attempt to construct a generic mimetype first as a catchall
-                        var mimetype = url.match(/\.(\w{2,4})$/);
-                        mimetype = mimetype ? "image/" + mimetype[1].toLowerCase() : "image";
-                        // Then make more specific for known image types
-                        mimetype = /\.jpg$/i.test(url) ? "image/jpeg" : mimetype;
-                        mimetype = /\.tif$/i.test(url) ? "image/tiff" : mimetype;
-                        mimetype = /\.ico$/i.test(url) ? "image/x-icon" : mimetype;
-                        mimetype = /\.svg$/i.test(url) ? "image/svg+xml" : mimetype;
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+                // Increment pageState image counter to keep track of number of images sent to decompressor
+                pageState.imagesCount++;
+                var extractImages = function() {
+                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                            // TODO : use the complete MIME-type of the image (as read from the ZIM file)
+                            var url = fileDirEntry.url;
+                            // Attempt to construct a generic mimetype first as a catchall
+                            var mimetype = url.match(/\.(\w{2,4})$/);
+                            mimetype = mimetype ? "image/" + mimetype[1].toLowerCase() : "image";
+                            // Then make more specific for known image types
+                            mimetype = /\.jpg$/i.test(url) ? "image/jpeg" : mimetype;
+                            mimetype = /\.tif$/i.test(url) ? "image/tiff" : mimetype;
+                            mimetype = /\.ico$/i.test(url) ? "image/x-icon" : mimetype;
+                            mimetype = /\.svg$/i.test(url) ? "image/svg+xml" : mimetype;
+                            uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+                            pageState.imagesExtracted++;
+                        });
+                    }).fail(function (e) {
+                        pageState.imagesCount--;
+                        console.error("could not find DirEntry for image:" + title, e);
                     });
-                }).fail(function (e) {
-                    console.error("could not find DirEntry for image:" + title, e);
-                });
+                };
+                qFns(extractImages, 'cssCount', 'cssExtracted');
             });
         }
 
@@ -998,18 +1079,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             for (var i = collapsedBlocks.length; i--;) {
                 collapsedBlocks[i].classList.add('open-block');
             }
-
-            var cssCount = 0;
-            var cssFulfilled = 0;
-            $('#articleContent').contents().find('link[data-kiwixurl]').each(function () {
-                cssCount++;
+            
+            $('#articleContent').contents().find('link[data-kiwixurl]').each(function() {
+                pageState.cssCount++;
                 var link = $(this);
                 var linkUrl = link.attr("data-kiwixurl");
                 var title = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
                 if (cssCache.has(title)) {
                     var cssContent = cssCache.get(title);
                     uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
-                    cssFulfilled++;
+                    pageState.cssExtracted++;
                 } else {
                     $('#cachingCSS').show();
                     selectedArchive.getDirEntryByTitle(title)
@@ -1019,28 +1098,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                                 var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
                                 cssCache.set(fullUrl, content);
                                 uiUtil.replaceCSSLinkWithInlineCSS(link, content);
-                                cssFulfilled++;
-                                renderIfCSSFulfilled();
+                                pageState.cssExtracted++;
                             }
                         );
                     }).fail(function (e) {
                         console.error("could not find DirEntry for CSS : " + title, e);
-                        cssCount--;
-                        renderIfCSSFulfilled();
+                        pageState.cssCount--;
                     });
                 }
             });
-            renderIfCSSFulfilled();
-
-            // Some pages are extremely heavy to render, so we prevent rendering by keeping the iframe hidden
-            // until all CSS content is available [kiwix-js #381]
-            function renderIfCSSFulfilled() {
-                if (cssFulfilled >= cssCount) {
-                    $('#cachingCSS').hide();
-                    $('#readingArticle').hide();
-                    $('#articleContent').show();
-                }
-            }
         }
 
         function loadJavaScriptJQuery() {
@@ -1049,9 +1115,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var scriptUrl = script.attr("data-kiwixurl");
                 // TODO check that the type of the script is text/javascript or application/javascript
                 var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+                pageState.scriptsCount++;
                 selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
                     if (dirEntry === null) {
                         console.log("Error: js file not found: " + title);
+                        pageState.scriptsCount--;
                     } else {
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             // TODO : JavaScript support not yet functional [kiwix-js #152]
@@ -1060,6 +1128,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     }
                 }).fail(function (e) {
                     console.error("could not find DirEntry for javascript : " + title, e);
+                        pageState.scriptsCount--;
                 });
             });
         }
