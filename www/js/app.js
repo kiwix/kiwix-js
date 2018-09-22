@@ -311,6 +311,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     refreshAPIStatus();
                 });
             } else {
+                // We need to set this variable earlier else the ServiceWorker does not get reactivated
+                contentInjectionMode = value;
                 initOrKeepAliveServiceWorker();
             }
         }
