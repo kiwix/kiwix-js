@@ -12,7 +12,7 @@ TODO
 ## Kiwix-JS v2.4.0
 Released on 2018-09-22
 
-Performance improvement on decompression of content (now twice faster)
+Performance improvement on decompression of content (now twice as fast)
 
 Stability improvement for the ServiceWorker mode
 
