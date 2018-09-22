@@ -836,7 +836,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     } else {
                         console.log("Reading binary file...");
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
-                            messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': content});
+                            var message = {'action': 'giveContent', 'title' : title, 'content': content.buffer};
+                            messagePort.postMessage(message, [content.buffer]);
                             console.log("content sent to ServiceWorker");
                         });
                     }
