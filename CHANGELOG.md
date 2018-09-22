@@ -4,10 +4,17 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia)
 Then it was renamed Kiwix-html5 (and uses ZIM files), then was renamed Kiwix-JS.
 
-## Kiwix-JS v2.4.0
+## Kiwix-JS v2.5.0
 Released on TODO
 
 TODO
+
+## Kiwix-JS v2.4.0
+Released on 2018-09-22
+
+Performance improvement on decompression of content (now twice faster)
+
+Stability improvement for the ServiceWorker mode
 
 ## Kiwix-JS v2.3.1
 Released on 2018-09-08
