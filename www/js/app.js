@@ -309,6 +309,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 }, function (err) {
                     console.error('error while registering serviceWorker', err);
                     refreshAPIStatus();
+                    alert("The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err);
+                    setContentInjectionMode("jquery");
+                    return;
                 });
             } else {
                 // We need to set this variable earlier else the ServiceWorker does not get reactivated
