@@ -786,7 +786,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             console.error("Error in MessageChannel", event.data.error);
             reject(event.data.error);
         } else {
-            console.log("the ServiceWorker sent a message on port1", event.data);
+            //console.log("the ServiceWorker sent a message on port1", event.data);
             if (event.data.action === "askForContent") {
                 console.log("we are asked for a content : let's try to answer to this message");
                 var title = event.data.title;
