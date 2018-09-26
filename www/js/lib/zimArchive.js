@@ -227,6 +227,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.readUtf8File = function(dirEntry, callback) {
         dirEntry.readData().then(function(data) {
+            console.log("Extracted " + dirEntry.url);
             callback(dirEntry, utf8.parse(data));
         });
     };
@@ -243,6 +244,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.readBinaryFile = function(dirEntry, callback) {
         return dirEntry.readData().then(function(data) {
+            console.log("Extracted " + dirEntry.url);
             callback(dirEntry, data);
         });
     };
