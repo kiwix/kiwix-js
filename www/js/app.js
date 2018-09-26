@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, util, uiUtil, cookies, abstractFilesystemAccess, q) {
+define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'utf8', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, util, uiUtil, utf8, cookies, abstractFilesystemAccess, q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -788,9 +788,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         } else {
             //console.log("the ServiceWorker sent a message on port1", event.data);
             if (event.data.action === "askForContent") {
-                console.log("we are asked for a content : let's try to answer to this message");
+                //console.log("we are asked for a content : let's try to answer to this message");
                 var title = event.data.title;
                 var messagePort = event.ports[0];
+                if (/\.css$/i.test(title) && cssCache.has(title)) {
+                    var content = cssCache.get(title);
+                    console.log("* Cache responded " + title);
+                    var message = {'action': 'giveContent', 'title' : title, 'content': content};
+                    messagePort.postMessage(message);
+                    return;
+                }
                 var readFile = function(dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
@@ -806,11 +813,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             console.log("redirect to " + redirectURL + " sent to ServiceWorker");                            
                         });
                     } else {
-                        console.log("Reading binary file...");
+                        //console.log("Reading binary file...");
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
+                            // Add content to cache if it's CSS
+                            if (/\.css$/i.test(fileDirEntry.url)) {
+                                var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
+                                var utf8data = utf8.parse(content);
+                                cssCache.set(fullUrl, utf8data);
+                            }
                             var message = {'action': 'giveContent', 'title' : title, 'content': content.buffer};
                             messagePort.postMessage(message, [content.buffer]);
-                            console.log("content sent to ServiceWorker");
+                            //console.log("content sent to ServiceWorker");
                         });
                     }
                 };
