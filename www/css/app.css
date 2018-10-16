@@ -60,11 +60,17 @@
     padding-left: 1px !important;
 }
 
-#searchingForArticles .floating {
-    position: relative;
-    z-index: 10;
-    top: 20px;
-    height: 0px; 
+#articleList {
+    margin-bottom: 12px !important;
+}
+
+#articleListWithHeader {
+    position: absolute; 
+    top: 0; 
+    left: 5%;
+    padding-left: 12px;
+    padding-right: 12px;
+    background: lightblue;
 }
 
 .articleIFrame {
@@ -82,6 +88,45 @@
 
 .apiUnavailable {
     color : orange;
+}
+
+.loader {
+    position: absolute;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    border: 5px solid lightgrey;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+    border-top: 5px solid steelblue;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+}
+
+.status {
+    position: absolute;
+    top: 50%;
+    width: 100%;
+    z-index: 1;
+}
+
+.message {
+    position: absolute;
+    margin: 70px auto 0;
+    left: 0;
+    right: 0;
+    font-size: smaller;
+    background: whitesmoke;
+    color: dimgrey;
+    border: 1px solid gainsboro;
+    padding: 1px 4px;
+    width: 200px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Reduce the size of some elements for small screens */

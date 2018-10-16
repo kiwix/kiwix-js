@@ -65,11 +65,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     
     // Define behavior of HTML elements
     $('#searchArticles').on('click', function(e) {
+        $("#welcomeText").hide();
+        $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
         searchDirEntriesFromPrefix($('#prefix').val());
-        $("#welcomeText").hide();
-        $("#readingArticle").hide();
-        $("#articleContent").hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
@@ -87,10 +86,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#prefix').val("");
         goToRandomArticle();
         $("#welcomeText").hide();
-        $('#articleList').hide();
-        $('#articleListHeaderMessage').hide();
-        $("#readingArticle").hide();
-        $('#searchingForArticles').hide();
+        $('#articleListWithHeader').hide();
+        $("#searchingArticles").hide();
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
@@ -131,18 +128,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#configuration').hide();
         $('#formArticleSearch').show();
         $("#welcomeText").show();
-        $('#articleList').show();
-        $('#articleListHeaderMessage').show();
         $('#articleContent').show();
         // Give the focus to the search field, and clean up the page contents
         $("#prefix").val("");
         $('#prefix').focus();
         $("#articleList").empty();
         $('#articleListHeaderMessage').empty();
-        $("#readingArticle").hide();
+        $("#searchingArticles").hide();
         $("#articleContent").hide();
         $("#articleContent").contents().empty();
-        $('#searchingForArticles').hide();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             $("#welcomeText").hide();
             goToMainArticle();
@@ -162,12 +156,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#configuration').show();
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
-        $('#articleList').hide();
-        $('#articleListHeaderMessage').hide();
-        $("#readingArticle").hide();
-        $("#articleContent").hide();
+        $('#articleListWithHeader').hide();
+        $("#searchingArticles").hide();
         $('#articleContent').hide();
-        $('#searchingForArticles').hide();
         refreshAPIStatus();
         return false;
     });
@@ -184,12 +175,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#configuration').hide();
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
-        $('#articleList').hide();
-        $('#articleListHeaderMessage').hide();
-        $("#readingArticle").hide();
-        $("#articleContent").hide();
+        $('#articleListWithHeader').hide();
+        $("#searchingArticles").hide();
         $('#articleContent').hide();
-        $('#searchingForArticles').hide();
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
@@ -294,6 +282,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     var serviceWorker = reg.installing || reg.waiting || reg.active;
                     serviceWorker.addEventListener('statechange', function(statechangeevent) {
                         if (statechangeevent.target.state === 'activated') {
+                            // Remove any jQuery hooks from a previous jQuery session
+                            $('#articleContent').contents().remove();
                             // Create the MessageChannel
                             // and send the 'init' message to the ServiceWorker
                             initOrKeepAliveServiceWorker();
@@ -430,14 +420,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             
             $('#prefix').val("");
             $("#welcomeText").hide();
-            $("#readingArticle").hide();
+            $("#searchingArticles").hide();
             if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
                 $('#navbarToggle').click();
             }
-            $('#searchingForArticles').hide();
             $('#configuration').hide();
-            $('#articleList').hide();
-            $('#articleListHeaderMessage').hide();
+            $('#articleListWithHeader').hide();
             $('#articleContent').contents().empty();
             
             if (title && !(""===title)) {
@@ -643,13 +631,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} prefix
      */
     function searchDirEntriesFromPrefix(prefix) {
-        $('#searchingForArticles').show();
-        $('#configuration').hide();
-        $('#articleContent').contents().empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
         } else {
-            $('#searchingForArticles').hide();
+            $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             $("#searchArticles").focus();
@@ -695,9 +680,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         articleListDiv.html(articleListDivHtml);
         $("#articleList a").on("click",handleTitleClick);
-        $('#searchingForArticles').hide();
-        $('#articleList').show();
-        $('#articleListHeaderMessage').show();
+        $('#searchingArticles').hide();
+        $('#articleListWithHeader').show();
     }
     
     /**
@@ -707,9 +691,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function handleTitleClick(event) {       
         var dirEntryId = event.target.getAttribute("dirEntryId");
-        $("#articleList").empty();
-        $('#articleListHeaderMessage').empty();
-        $("#prefix").val("");
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
         return false;
@@ -724,9 +705,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
-            $("#articleName").html(dirEntry.title);
-            $("#readingArticle").show();
-            $("#articleContent").contents().html("");
+            // Remove focus from search field to hide keyboard
+            $("#searchArticles").focus();
+            $("#searchingArticles").show();
             if (dirEntry.isRedirect()) {
                 selectedArchive.resolveRedirect(dirEntry, readArticle);
             }
@@ -747,28 +728,32 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
-            // But we still need to empty the article content first.
-            $('#articleContent').contents().remove();
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function() {
-                // The iframe is empty
+                // The iframe is empty, show spinner on load of landing page
+                $("#searchingArticles").show();
+                $("#articleList").empty();
+                $('#articleListHeaderMessage').empty();
+                $('#articleListWithHeader').hide();
+                $("#prefix").val("");
                 iframeArticleContent.onload = function () {
                     // The content is fully loaded by the browser : we can hide the spinner
                     iframeArticleContent.onload = function () {};
-                    $("#readingArticle").hide();
+                    $("#searchingArticles").hide();
                 };
                 iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
                 // Display the iframe content
                 $("#articleContent").show();
             };
             iframeArticleContent.src = "article.html";
-        }
-        else {
+        } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
                 selectedArchive.resolveRedirect(dirEntry, readArticle);
-            }
-            else {
+            } else {
+                // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
+                // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
+                $("#searchingArticles").show();
                 selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
             }
         }
@@ -850,9 +835,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
-        // Scroll the iframe to its top
-        $("#articleContent").contents().scrollTop(0);
-
         // Replaces ZIM-style URLs of img, script and link tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, "$1data-kiwixurl$2$3");            
@@ -874,6 +856,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         iframeArticleContent.onload = function() {
             iframeArticleContent.onload = function(){};
+            $("#articleList").empty();
+            $('#articleListHeaderMessage').empty();
+            $('#articleListWithHeader').hide();
+            $("#prefix").val("");
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
             articleContent.innerHTML = htmlArticle;
@@ -993,7 +979,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                                 cssCache.set(fullUrl, content);
                                 uiUtil.replaceCSSLinkWithInlineCSS(link, content);
                                 cssFulfilled++;
-                                renderIfCSSFulfilled();
+                                renderIfCSSFulfilled(fileDirEntry.url);
                             }
                         );
                     }).fail(function (e) {
@@ -1007,11 +993,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
             // Some pages are extremely heavy to render, so we prevent rendering by keeping the iframe hidden
             // until all CSS content is available [kiwix-js #381]
-            function renderIfCSSFulfilled() {
+            function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
+                    $('#cachingCSS').html('Caching styles...');
                     $('#cachingCSS').hide();
-                    $('#readingArticle').hide();
+                    $('#searchingArticles').hide();
                     $('#articleContent').show();
+                    // We have to resize here for devices with On Screen Keyboards when loading from the article search list
+                    resizeIFrame();
+                } else if (title) {
+                    title = title.replace(/[^/]+\//g, '').substring(0,18);
+                    $('#cachingCSS').html('Caching ' + title + '...');
                 }
             }
         }
@@ -1072,34 +1064,28 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} title
      */
     function goToArticle(title) {
+        $("#searchingArticles").show();
         title = uiUtil.removeUrlParameters(title);
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
-                $("#readingArticle").hide();
+                $("#searchingArticles").hide();
                 alert("Article with title " + title + " not found in the archive");
-            }
-            else {
-                $("#articleName").html(title);
-                $("#readingArticle").show();
-                $('#articleContent').contents().find('body').html("");
+            } else {
                 readArticle(dirEntry);
             }
         }).fail(function(e) { alert("Error reading article with title " + title + " : " + e); });
     }
     
     function goToRandomArticle() {
+        $("#searchingArticles").show();
         selectedArchive.getRandomDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
+                $("#searchingArticles").hide();
                 alert("Error finding random article.");
-            }
-            else {
+            } else {
                 if (dirEntry.namespace === 'A') {
-                    $("#articleName").html(dirEntry.title);
-                    $("#readingArticle").show();
-                    $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
-                }
-                else {
+                } else {
                     // If the random title search did not end up on an article,
                     // we try again, until we find one
                     goToRandomArticle();
@@ -1109,20 +1095,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
     
     function goToMainArticle() {
+        $("#searchingArticles").show();
         selectedArchive.getMainPageDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 console.error("Error finding main article.");
+                $("#searchingArticles").hide();
                 $("#welcomeText").show();
-            }
-            else {
+            } else {
                 if (dirEntry.namespace === 'A') {
-                    $("#articleName").html(dirEntry.title);
-                    $("#readingArticle").show();
-                    $('#articleContent').contents().find('body').html("");
                     readArticle(dirEntry);
-                }
-                else {
+                } else {
                     console.error("The main page of this archive does not seem to be an article");
+                    $("#searchingArticles").hide();
                     $("#welcomeText").show();
                 }
             }

@@ -44,6 +44,13 @@
         <link href="css/bootstrap-theme.css" rel="stylesheet" media="screen"/>
     </head>
     <body role="application">
+        <!-- Status indicators -->
+        <div id="searchingArticles" style="display: none;" class="status">
+            <div class="loader"></div>
+            <div id="cachingCSS" style="display: none;" class="message">
+                Caching styles...
+            </div>
+        </div>
         <section id="search-article" role="region">
             <header id="top">
                 <nav class="navbar navbar-default" role="navigation">
@@ -85,9 +92,6 @@
                                 <a class="btn btn-default btn-xs" id="btnRandomArticle"><span class="glyphicon glyphicon-random"></span><small><br/>Random</small></a>
                             </span>
                         </span>
-                    </div>
-                    <div id="searchingForArticles" class="floating" style="display: none;">
-                        <img src="img/spinner.gif" alt="Please wait..." />
                     </div>
                 </form>
                 </div>
@@ -252,16 +256,10 @@
                 </div>
 
                 <!-- List of articles matching the typed prefix -->
-                <div id="articleListWithHeader" class="container">
+                <div id="articleListWithHeader" style="display: none;" class="container">
                     <span id="articleListHeaderMessage"></span>
                     <div id="articleList" class="list-group">
                     </div>
-                </div>
-                <div id="readingArticle" style="display: none;" class="container">
-                    <p>Reading article <span id="articleName"></span> from archive... Please wait <img src="img/spinner.gif" alt="Please wait..." /></p>
-                </div>
-                <div id="cachingCSS" style="display: none;" class="container">
-                    <p>Caching styles to speed up future page display...</p>
                 </div>
                 <iframe id="articleContent" class="articleIFrame" src="article.html"></iframe>
             </article>
