@@ -134,6 +134,26 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("ZIM archive is ready", function(assert) {
             assert.ok(localZimArchive.isReady() === true, "ZIM archive should be set as ready");
         });
+        
+        QUnit.module("ZIM metadata");
+        QUnit.test("read ZIM language", function(assert) {
+            var done = assert.async();            
+            assert.expect(1);
+            var callbackFunction = function(language) {
+                assert.equal(language , 'eng', 'The language read inside the Metadata should be "eng" for "English"');
+                done();
+            };
+            localZimArchive.getMetadata("Language", callbackFunction);
+        });
+        QUnit.test("try to read a missing metadata", function(assert) {
+            var done = assert.async();            
+            assert.expect(1);
+            var callbackFunction = function(string) {
+                assert.equal(string, undefined, 'The metadata zzz should not be found inside the ZIM');
+                done();
+            };
+            localZimArchive.getMetadata("zzz", callbackFunction);
+        });
                 
         QUnit.module("zim_direntry_search_and_read");
         QUnit.test("check DirEntry.fromStringId 'A Fool for You'", function(assert) {
