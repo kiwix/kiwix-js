@@ -741,7 +741,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     iframeArticleContent.onload = function () {};
                     $("#searchingArticles").hide();
                 };
-                iframeArticleContent.src = dirEntry.namespace + "/" + dirEntry.url;
+                iframeArticleContent.src = dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
                 // Display the iframe content
                 $("#articleContent").show();
             };
@@ -814,8 +814,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var regexpPath = /^(.*\/)[^\/]+$/;
     // Pattern to find a ZIM URL (with its namespace) - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
-    // Pattern to match a local anchor in a href
-    var regexpLocalAnchorHref = /^#/;
     // Regex below finds images, scripts and stylesheets with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, or <link, then scans forward to find, on a word boundary, either src=["'] 
     // OR href=["'] (ignoring any extra whitespace), and it then tests everything up to the next ["'] against a pattern that
@@ -881,10 +879,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
+            // Percent-encode dirEntry.url and add regex escape character \ to the RegExp special characters - see https://www.regular-expressions.info/characters.html;
+            // NB dirEntry.url can also contain path separator / in some ZIMs (Stackexchange). } and ] do not need to be escaped as they have no meaning on their own. 
+            var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+\/()[{])/g, '\\$1');
+            // Pattern to match a local anchor in an href even if prefixed by escaped url
+            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]+$)');
             $('#articleContent').contents().find('body').find('a').each(function() {
-                var href = $(this).attr("href");
+                var href = $(this).attr('href');
                 // Compute current link's url (with its namespace), if applicable
-                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : "";
+                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : '';
                 if (href === null || href === undefined) {
                     // No href attribute
                 }
@@ -898,8 +901,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 else if (regexpLocalAnchorHref.test(href)) {
                     // It's an anchor link : we need to make it work with javascript
                     // because of the base tag
+                    var anchorRef = href.replace(regexpLocalAnchorHref, '$1');
                     $(this).on('click', function(e) {
-                        $('#articleContent').first()[0].contentWindow.location.hash = href;
+                        document.getElementById('articleContent').contentWindow.location.hash = anchorRef;
                         return false;
                     });
                 }
