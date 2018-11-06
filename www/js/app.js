@@ -884,39 +884,42 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+\/()[{])/g, '\\$1');
             // Pattern to match a local anchor in an href even if prefixed by escaped url
             var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]+$)');
-            $('#articleContent').contents().find('body').find('a').each(function() {
-                var href = $(this).attr('href');
-                // Compute current link's url (with its namespace), if applicable
-                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : '';
-                if (href === null || href === undefined) {
-                    // No href attribute
+            $('#articleContent').contents().find('body').find('a').each(function () {
+                // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
+                try {
+                    var testHref = this.href;
+                } catch (err) {
+                    console.error("Malformed href caused error:" + err.message);
+                    return;
                 }
-                else if (href.length === 0) {
+                var href = this.getAttribute('href');
+                if (href === null || href === undefined) return;
+                // Compute current link's url (with its namespace), if applicable
+                // NB We need to access 'this.href' here because, unlike 'this.getAttribute("href")', it contains the fully qualified URL [kiwix-js #432]
+                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : '';
+                if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page.
                     // Because of the base tag, we need to modify it
-                    $(this).on('click', function(e) {
-                       return false; 
+                    $(this).on('click', function (e) {
+                        return false;
                     });
-                }
-                else if (regexpLocalAnchorHref.test(href)) {
+                } else if (regexpLocalAnchorHref.test(href)) {
                     // It's an anchor link : we need to make it work with javascript
                     // because of the base tag
                     var anchorRef = href.replace(regexpLocalAnchorHref, '$1');
-                    $(this).on('click', function(e) {
+                    $(this).on('click', function (e) {
                         document.getElementById('articleContent').contentWindow.location.hash = anchorRef;
                         return false;
                     });
-                }
-                else if (this.protocol !== currentProtocol
-                    || this.host !== currentHost) {
+                } else if (this.protocol !== currentProtocol ||
+                    this.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
-                    $(this).attr("target", "_blank");
-                }
-                else {
+                    this.target = "_blank";
+                } else {
                     // It's a link to another article
                     // Add an onclick event to go to this article
                     // instead of following the link
-                    $(this).on('click', function(e) {
+                    $(this).on('click', function (e) {
                         var decodedURL = decodeURIComponent(zimUrl);
                         goToArticle(decodedURL);
                         return false;
