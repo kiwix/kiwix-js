@@ -172,23 +172,26 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
     
     /**
-     * Look for DirEntries with title starting with the given prefix (case-sensitive)
+     * Look for dirEntries with title starting with the given prefix (case-sensitive)
      * 
-     * @param {String} prefix
-     * @param {Integer} resultSize
-     * @param {callbackDirEntryList} callback
+     * @param {String} prefix The case-sensitive value against which dirEntry titles (or url) will be compared
+     * @param {Integer} resultSize The maximum number of results to return
+     * @param {callbackDirEntryList} callback The function to call with the array of dirEntries with titles that begin with prefix
      */
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                if (dirEntry.title === "")
-                    return -1; // ZIM sorts empty titles (assets) to the end
-                else if (dirEntry.namespace < "A")
-                    return 1;
-                else if (dirEntry.namespace > "A")
-                    return -1;
-                return prefix <= dirEntry.title ? -1 : 1;
+                if (dirEntry.namespace < "A") return 1;
+                if (dirEntry.namespace > "A") return -1;
+                // We should now be in namespace A
+                if (dirEntry.title) { 
+                    return prefix <= dirEntry.title ? -1 : 1;
+                } else {
+                    // Some dirEntries (e.g. subtitles) have no title, but are still sorted in the A namespace,
+                    // so, like libzim, we have to use the url as a comparator [kiwix-js #440 #443]
+                    return prefix <= dirEntry.url ? -1 : 1;
+                }
             });
         }, true).then(function(firstIndex) {
             var dirEntries = [];
@@ -196,7 +199,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 if (index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
-                    if (dirEntry.title.slice(0, prefix.length) === prefix && dirEntry.namespace === "A")
+                    var title = dirEntry.title ? dirEntry.title : dirEntry.url;
+                    if (!title.indexOf(prefix) && dirEntry.namespace === "A")
                         dirEntries.push(dirEntry);
                     return addDirEntries(index + 1);
                 });

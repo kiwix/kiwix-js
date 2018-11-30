@@ -227,10 +227,11 @@ define(['q'], function(q) {
      * continue the search.
      * If lowerBound is not set, returns only indices where query returns 0 and null otherwise.
      * If lowerBound is set, returns the smallest index where query does not return > 0.
-     * @param {Integer} begin
-     * @param {Integer} end
-     * @param query Function
-     * @param {Boolean} lowerBound
+     * @param {Integer} begin The beginning of the search window
+     * @param {Integer} end The end of the search window
+     * @param {Function} query The query to run to test the current point in the window
+     * @param {Boolean} lowerBound Determines the type of search
+     * @returns {Promise} Promise for the lowest dirEntry that fulfils (or fails to fulfil) the query
      */
     function binarySearch(begin, end, query, lowerBound) {
         if (end <= begin)
@@ -245,7 +246,7 @@ define(['q'], function(q) {
             else
                 return mid;
         });
-    };
+    }
     
     /**
      * Converts a Base64 Content to a Blob
