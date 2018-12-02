@@ -29,9 +29,10 @@ if [ "${TAG}zz" == "zz" ]; then
         echo "Skipping signing the extension with the Mozilla API, because it's a dryrun test"
     fi
 
-    # Check if the extension has been signed by Mozilla.
-    # The reason signing usually fails is because the same version has already been signed by Mozilla.
-    # So we try to find the signed extension of the same commit id in a previous nightly build
+    # Check if the extension has been signed by Mozilla.  The reason
+    # signing usually fails is because the same version has already
+    # been signed by Mozilla.  So we try to find the signed extension
+    # of the same commit id in a previous nightly build
     FILECOUNT=$(find web-ext-artifacts -name '*.xpi' | wc -l)
     if [ $FILECOUNT -ge 1 ]; then
             echo "Extension properly signed by Mozilla"
@@ -39,9 +40,9 @@ if [ "${TAG}zz" == "zz" ]; then
     else
             echo "Extension not signed by Mozilla. It might be because this commit id has already been signed : let's look for it in a previous nightly build"
             FOUND=0
-            for FILE in $(ssh -i ../scripts/travisci_builder_id_key nightlybot@download.kiwix.org "find /var/www/download.kiwix.org/nightly -name \"kiwix-firefox-signed-extension-$VERSION.xpi\""); do
+            for FILE in $(ssh -i ../scripts/travisci_builder_id_key ci@download.kiwix.org "find /data/download/nightly -name \"kiwix-firefox-signed-extension-$VERSION.xpi\""); do
     		echo "Signed extension found on the server in $FILE : copying it locally"
-                    scp -i ../scripts/travisci_builder_id_key nightlybot@download.kiwix.org:$FILE ../build/
+                    scp -i ../scripts/travisci_builder_id_key ci@download.kiwix.org:$FILE ../build/
                     FOUND=1
                     # We only need the first matching file
                     break
