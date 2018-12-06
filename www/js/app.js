@@ -809,12 +809,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var regexpPath = /^(.*\/)[^\/]+$/;
     // Pattern to find a ZIM URL (with its namespace) - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
-    // Regex below finds images, scripts and stylesheets with ZIM-type metadata and image namespaces [kiwix-js #378]
-    // It first searches for <img, <script, or <link, then scans forward to find, on a word boundary, either src=["'] 
+    // Regex below finds images, scripts, stylesheets and media sources with ZIM-type metadata and image namespaces [kiwix-js #378]
+    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] 
     // OR href=["'] (ignoring any extra whitespace), and it then tests everything up to the next ["'] against a pattern that
     // matches ZIM URLs with namespaces [-I] ("-" = metadata or "I" = image). Finally it removes the relative or absolute path. 
     // DEV: If you want to support more namespaces, add them to the END of the character set [-I] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link)\s+[^>]*?\b)(?:src|href)(\s*=\s*["']\s*)(?:\.\.\/|\/)+([-I]\/[^"']*)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\s+[^>]*?\b)(?:src|href)(\s*=\s*["']\s*)(?:\.\.\/|\/)+([-I]\/[^"']*)/ig;
     
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
@@ -828,7 +828,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
-        // Replaces ZIM-style URLs of img, script and link tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
+        // Replaces ZIM-style URLs of img, script, link and media tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, "$1data-kiwixurl$2$3");            
 
@@ -866,6 +866,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             loadCSSJQuery();
             //JavaScript loading currently disabled
             //loadJavaScriptJQuery();            
+            insertMediaBlobsJQuery();
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -1027,6 +1028,38 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     }
                 }).fail(function (e) {
                     console.error("could not find DirEntry for javascript : " + title, e);
+                });
+            });
+        }
+
+        function insertMediaBlobsJQuery() {
+            var iframe = iframeArticleContent.contentDocument;
+            Array.prototype.slice.call(iframe.querySelectorAll('video[data-kiwixurl], audio[data-kiwixurl], source[data-kiwixurl], track[data-kiwixurl]'))
+            .forEach(function(mediaSource) {
+                var source = mediaSource.dataset.kiwixurl;
+                if (!source || !regexpZIMUrlWithNamespace.test(source)) {
+                    console.error('No usable media source was found!');
+                    return;
+                }
+                var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
+                var mimeType = mediaSource.type;
+                // Check mimeType
+                if (!mimeType) {
+                    // Try to guess type from file extension
+                    var mediaType = mediaElement.tagName.toLowerCase();
+                    if (!/audio|video/i.test(mediaType)) mediaType = 'video';
+                    if (/track/i.test(mediaSource.tagName)) mediaType = 'text';
+                    mimeType = source.replace(/^.*\.([^.]+)$/, mediaType + '/$1');
+                }
+                selectedArchive.getDirEntryByTitle(decodeURIComponent(source)).then(function(dirEntry) {
+                    return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
+                        var blob = new Blob([mediaArray], { type: mimeType });
+                        mediaSource.src = URL.createObjectURL(blob);
+                        // In Firefox and Chromium it is necessary to re-register the inserted media source
+                        // but do not reload for text tracks (closed captions / subtitles)
+                        if (/track/i.test(mediaSource.tagName)) return;
+                        mediaElement.load();
+                    });
                 });
             });
         }
