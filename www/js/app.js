@@ -811,10 +811,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
     // Regex below finds images, scripts, stylesheets and media sources with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] 
-    // OR href=["'] (ignoring any extra whitespace), and it then tests everything up to the next ["'] against a pattern that
-    // matches ZIM URLs with namespaces [-I] ("-" = metadata or "I" = image). Finally it removes the relative or absolute path. 
+    // OR href=["'] (ignoring any extra whitespace), and it then tests everything up to the next ["'] against either a pattern 
+    // that matches ZIM URLs with namespaces [-IJ] ("-" = metadata or "I" / "J" = image), or (if that fails) a pattern that matches
+    // a relative URL. Finally it removes any relative or absolute path. 
     // DEV: If you want to support more namespaces, add them to the END of the character set [-I] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\s+[^>]*?\b)(?:src|href)(\s*=\s*["']\s*)(?:\.\.\/|\/)+([-I]\/[^"']*)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]+?\b)(?:src|href)\b[^'"]+['"](?:(?:\.\.\/|\/)+([-IJ]\/[^"']*)|([^\/:"']+[^"':]*))['"]/ig;
     
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
@@ -828,10 +829,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
-        // Replaces ZIM-style URLs of img, script, link and media tags with a data-url to prevent 404 errors [kiwix-js #272 #376]
-        // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, "$1data-kiwixurl$2$3");            
-
         // Compute base URL
         var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : '';
         var baseUrl = dirEntry.namespace + '/' + urlPath;
@@ -842,6 +839,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
         htmlCSS = htmlCSS ? htmlCSS[1] : '';
         
+        // Replaces relative and ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
+        // This replacement also processes ZIM URLs to remove the path so that the URL is ready for subsequent jQuery functions
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(p0, p1, p2, p3) { 
+            var url = regexpZIMUrlWithNamespace.test(p2) ? p2 : baseUrl + p3;
+            return p1 + 'data-kiwixurl="' + url + '"'; 
+        });
+
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
         
