@@ -810,7 +810,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Pattern to find a ZIM URL (with its namespace) - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
     // Regex below finds images, scripts, stylesheets and media sources with ZIM-type metadata and image namespaces [kiwix-js #378]
-    // or with URLs that are relative to the current article.
+    // or assets with URLs that are relative to the current article.
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] 
     // OR href=['"], and it then tests everything up to the next ['"] against either a pattern that matches ZIM URLs with 
     // namespaces [-IJ] ('-' = metadata or 'I'/'J' = image), or (if that fails) a pattern that matches a relative URL.
