@@ -816,7 +816,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // namespaces [-IJ] ('-' = metadata or 'I'/'J' = image), or (if that fails) a pattern that matches a relative URL.
     // When the regex is used below, it will also remove any relative or absolute path from ZIM-style URLs. 
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]+?\b)(?:src|href)\b[^'"]+['"](?:(?:\.\.\/|\/)+([-IJ]\/[^"']*)|([^\/:"']+[^"':]*))['"]/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]+?\b)(?:src|href)\b[^'"]+['"](?:(?:\.\.\/|\/)+([-IJ]\/[^"']*)|([^\/:."']+[^"':]*))['"]/ig;
     
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
