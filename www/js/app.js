@@ -843,7 +843,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Replaces relative and ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes ZIM URLs to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(p0, p1, p2, p3) { 
-            var url = regexpZIMUrlWithNamespace.test(p2) ? p2 : baseUrl + p3;
+            var url = p2 ? p2 : baseUrl + p3;
             return p1 + 'data-kiwixurl="' + url + '"'; 
         });
 
