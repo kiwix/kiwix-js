@@ -1034,9 +1034,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
-            Array.prototype.slice.call(iframe.querySelectorAll('video[data-kiwixurl], audio[data-kiwixurl], source[data-kiwixurl], track[data-kiwixurl]'))
+            Array.prototype.slice.call(iframe.querySelectorAll('video[data-kiwixurl], audio[data-kiwixurl], source[data-kiwixurl], track'))
             .forEach(function(mediaSource) {
                 var source = mediaSource.dataset.kiwixurl;
+                if (!source && mediaSource.src) {
+                    // Some ZIMs list text tracks as a relative link within the directory containing the article
+                    source = regexpZIMUrlWithNamespace.test(mediaSource.src) ? mediaSource.src.match(regexpZIMUrlWithNamespace)[1] : source;
+                }
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
                     console.error('No usable media source was found!');
                     return;
