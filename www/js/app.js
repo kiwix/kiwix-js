@@ -232,7 +232,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
             navigator.serviceWorker.controller.postMessage({'action': 'init'}, [tmpMessageChannel.port2]);
             messageChannel = tmpMessageChannel;
-            console.log("init message sent to ServiceWorker");
             // Schedule to do it again regularly to keep the 2-way communication alive.
             // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
             clearTimeout(keepAliveServiceWorkerHandle);
@@ -273,7 +272,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (!isServiceWorkerReady()) {
                 $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
                 navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
-                    console.log('serviceWorker registered', reg);
+                    // The ServiceWorker is registered
                     serviceWorkerRegistration = reg;
                     refreshAPIStatus();
                     
@@ -766,9 +765,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             console.error("Error in MessageChannel", event.data.error);
             reject(event.data.error);
         } else {
-            console.log("the ServiceWorker sent a message on port1", event.data);
+            // We received a message from the ServiceWorker
             if (event.data.action === "askForContent") {
-                console.log("we are asked for a content : let's try to answer to this message");
+                // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
                 var readFile = function(dirEntry) {
@@ -783,14 +782,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // Else, if the redirect URL is in a different directory than the original URL,
                             // the relative links in the HTML content would fail. See #312
                             messagePort.postMessage({'action':'sendRedirect', 'title':title, 'redirectUrl': redirectURL});
-                            console.log("redirect to " + redirectURL + " sent to ServiceWorker");                            
                         });
                     } else {
-                        console.log("Reading binary file...");
+                        // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
+                            // Let's send the content to the ServiceWorker
                             var message = {'action': 'giveContent', 'title' : title, 'content': content.buffer};
                             messagePort.postMessage(message, [content.buffer]);
-                            console.log("content sent to ServiceWorker");
                         });
                     }
                 };

@@ -25,7 +25,6 @@
 
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
-    console.log("ServiceWorker installed");
 });
 
 self.addEventListener('activate', function(event) {
@@ -33,7 +32,6 @@ self.addEventListener('activate', function(event) {
     // without the need to reload the page.
     // See https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim
     event.waitUntil(self.clients.claim());
-    console.log("ServiceWorker activated");
 });
 
 var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
@@ -53,28 +51,21 @@ var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
 function removeUrlParameters(url) {
     return url.replace(regexpRemoveUrlParameters, "$1");
 }
-    
-console.log("ServiceWorker startup");
 
 var outgoingMessagePort = null;
 var fetchCaptureEnabled = false;
 self.addEventListener('fetch', fetchEventListener);
-console.log('fetchEventListener set');
 
 self.addEventListener('message', function (event) {
     if (event.data.action === 'init') {
-        console.log('Init message received', event.data);
+        // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
         outgoingMessagePort = event.ports[0];
-        console.log('outgoingMessagePort initialized', outgoingMessagePort);
         fetchCaptureEnabled = true;
-        console.log('fetchEventListener enabled');
     }
     if (event.data.action === 'disable') {
-        console.log('Disable message received');
+        // On 'disable' message, we delete the outgoingMessagePort and disable the fetchEventListener
         outgoingMessagePort = null;
-        console.log('outgoingMessagePort deleted');
         fetchCaptureEnabled = false;
-        console.log('fetchEventListener disabled');
     }
 });
 
@@ -91,11 +82,9 @@ var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
 
 function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
-        console.log('ServiceWorker handling fetch event for : ' + event.request.url);
-
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
-
-            console.log('Asking app.js for a content', event.request.url);
+            // The ServiceWorker will handle this request
+            // Let's ask app.js for that content
             event.respondWith(new Promise(function(resolve, reject) {
                 var nameSpace;
                 var title;
@@ -108,11 +97,11 @@ function fetchEventListener(event) {
                 // The namespace defines the type of content. See http://www.openzim.org/wiki/ZIM_file_format#Namespaces
                 // TODO : read the contentType from the ZIM file instead of hard-coding it here
                 if (nameSpace === 'A') {
-                    console.log("It's an article : " + title);
+                    // It's an article
                     contentType = 'text/html';
                 }
                 else if (nameSpace === 'I' || nameSpace === 'J') {
-                    console.log("It's an image : " + title);
+                    // It's an image
                     if (regexpJPEG.test(title)) {
                         contentType = 'image/jpeg';
                     }
@@ -124,7 +113,7 @@ function fetchEventListener(event) {
                     }
                 }
                 else if (nameSpace === '-') {
-                    console.log("It's a layout dependency : " + title);
+                    // It's a layout dependency
                     if (regexpJS.test(title)) {
                         contentType = 'text/javascript';
                     }
@@ -142,7 +131,7 @@ function fetchEventListener(event) {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function(event) {
                     if (event.data.action === 'giveContent') {
-                        console.log('content message received for ' + titleWithNameSpace, event.data);
+                        // Content received from app.js
                         var responseInit = {
                             status: 200,
                             statusText: 'OK',
@@ -153,20 +142,18 @@ function fetchEventListener(event) {
 
                         var httpResponse = new Response(event.data.content, responseInit);
 
-                        console.log('ServiceWorker responding to the HTTP request for ' + titleWithNameSpace + ' (size=' + event.data.content.length + ' octets)' , httpResponse);
+                        // Let's send the content back from the ServiceWorker
                         resolve(httpResponse);
                     }
                     else if (event.data.action === 'sendRedirect') {
                         resolve(Response.redirect(event.data.redirectUrl));
                     }
                     else {
-                        console.log('Invalid message received from app.js for ' + titleWithNameSpace, event.data);
+                        console.error('Invalid message received from app.js for ' + titleWithNameSpace, event.data);
                         reject(event.data);
                     }
                 };
-                console.log('Eventlistener added to listen for an answer to ' + titleWithNameSpace);
                 outgoingMessagePort.postMessage({'action': 'askForContent', 'title': titleWithNameSpace}, [messageChannel.port2]);
-                console.log('Message sent to app.js through outgoingMessagePort');
             }));
         }
         // If event.respondWith() isn't called because this wasn't a request that we want to handle,
