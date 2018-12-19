@@ -76,6 +76,10 @@ var regexpPNG = new RegExp(/\.png$/i);
 var regexpJS = new RegExp(/\.js/i);
 var regexpCSS = new RegExp(/\.css$/i);
 var regexpSVG = new RegExp(/\.svg$/i);
+var regexpWEBM = new RegExp(/\.webm$/i);
+var regexpMP4 = new RegExp(/\.mp4$/i);
+var regexpOGG = new RegExp(/\.og[mvg]$/i);
+var regexpVTT = new RegExp(/\.vtt$/i);
 
 // Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
@@ -97,11 +101,17 @@ function fetchEventListener(event) {
                 // The namespace defines the type of content. See http://www.openzim.org/wiki/ZIM_file_format#Namespaces
                 // TODO : read the contentType from the ZIM file instead of hard-coding it here
                 if (nameSpace === 'A') {
-                    // It's an article
-                    contentType = 'text/html';
+                    if (regexpVTT.test(title)) {
+                        // It's a subtitle
+                        contentType = 'text/vtt';
+                    }
+                    else {
+                        // It's an article
+                        contentType = 'text/html';
+                    }
                 }
                 else if (nameSpace === 'I' || nameSpace === 'J') {
-                    // It's an image
+                    // It's an image or another kind of media
                     if (regexpJPEG.test(title)) {
                         contentType = 'image/jpeg';
                     }
@@ -111,6 +121,15 @@ function fetchEventListener(event) {
                     else if (regexpSVG.test(title)) {
                         contentType = 'image/svg+xml';
                     }
+                    else if (regexpWEBM.test(title)) {
+                        contentType = 'video/webm';
+                    }
+                    else if (regexpMP4.test(title)) {
+                        contentType = 'video/mp4';
+                    }
+                    else if (regexpOGG.test(title)) {
+                        contentType = 'video/ogg';
+                    }
                 }
                 else if (nameSpace === '-') {
                     // It's a layout dependency
@@ -119,6 +138,10 @@ function fetchEventListener(event) {
                     }
                     else if (regexpCSS.test(title)) {
                         contentType = 'text/css';
+                    }
+                    else if (regexpVTT.test(title)) {
+                        // It's a subtitle
+                        contentType = 'text/vtt';
                     }
                 }
 
@@ -132,12 +155,28 @@ function fetchEventListener(event) {
                 messageChannel.port1.onmessage = function(event) {
                     if (event.data.action === 'giveContent') {
                         // Content received from app.js
+                        var contentLength;
+                        var headers = new Headers ();
+                        if (event.data.content && event.data.content.byteLength) {
+                            contentLength = event.data.content.byteLength;
+                            headers.set('Content-Length', contentLength);
+                        }
+                        if (contentType) {
+                            headers.set('Content-Type', contentType);
+                        }
+                        // Test if the content is a video.
+                        // String.prototype.startsWith is not supported by IE11, but IE11 does not support service workers, so it's safe to use it here.
+                        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+                        if (contentLength && contentLength >= 1 && contentType && contentType.startsWith('video/')) {
+                            // In case of a video, Chrome and Edge need these HTTP headers else seeking doesn't work
+                            // (even if we always send all the video content, not the requested range, until the backend supports it)
+                            headers.set('Accept-Ranges', 'bytes');
+                            headers.set('Content-Range', 'bytes 0-' + (contentLength-1) + '/' + contentLength);
+                        }
                         var responseInit = {
                             status: 200,
                             statusText: 'OK',
-                            headers: {
-                                'Content-Type': contentType
-                            }
+                            headers: headers
                         };
 
                         var httpResponse = new Response(event.data.content, responseInit);
