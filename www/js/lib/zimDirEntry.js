@@ -25,7 +25,7 @@ define([], function() {
     /**
      * A Directory Entry in a ZIM File
      * 
-     * See http://www.openzim.org/wiki/ZIM_file_format#Directory_Entries
+     * See https://wiki.openzim.org/wiki/ZIM_file_format#Directory_Entries
      * 
      * @typedef DirEntry
      * @property {File} _zimfile The ZIM file
