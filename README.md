@@ -1,18 +1,18 @@
 # Kiwix JS
 
 ## Summary
-Kiwix is an offline Wikipedia viewer. See the official site: http://www.kiwix.org/
+Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/
 
 This is a browser extension developed in HTML5/Javascript.
 
 You can search among the article titles, and read any of them without any Internet access.
 All the content of Wikipedia is inside your device (including the images).
-It might also works with other content in the OpenZIM format: http://www.openzim.org/wiki/OpenZIM , but has been only tested on the Mediawiki-based (wikipedia, wikivoyage etc) and StackExchange ZIM files.
+It might also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM , but has been only tested on the Mediawiki-based (wikipedia, wikivoyage etc) and StackExchange ZIM files.
 
 If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing repository of knowledge and culture.
 
 ## Usage
-It uses ZIM files that you can download from http://download.kiwix.org/
+It uses ZIM files that you can download from https://download.kiwix.org/
 
 You have to download them separately, store them in your filesystem, and manually select them after starting the application.
 It is unfortunately not technically possible to "remember" the selected ZIM file and open it automatically (the browsers refuse that for security reasons).
@@ -46,9 +46,9 @@ The source code can be found at https://github.com/kiwix/kiwix-js
 Unit tests can be run by opening tests.html file on Firefox or Edge (or Chromium/Chrome with some tweaks).
 
 ## Public releases and nightly builds
-The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in http://download.kiwix.org/bin/browsers/ if necessary.
+The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in https://download.kiwix.org/bin/browsers/ if necessary.
 
-Some nightly builds are generated, and should only be used for testing purpose : http://download.kiwix.org/nightly/
+Some nightly builds are generated, and should only be used for testing purpose : https://download.kiwix.org/nightly/
 
 
 ## Previous versions

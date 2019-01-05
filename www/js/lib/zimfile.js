@@ -36,7 +36,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
     /**
      * A ZIM File
      * 
-     * See http://www.openzim.org/wiki/ZIM_file_format#Header
+     * See https://wiki.openzim.org/wiki/ZIM_file_format#Header
      * 
      * @typedef ZIMFile
      * @property {Array.<File>} _files Array of ZIM files

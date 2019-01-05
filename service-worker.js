@@ -77,7 +77,7 @@ var regexpJS = new RegExp(/\.js/i);
 var regexpCSS = new RegExp(/\.css$/i);
 var regexpSVG = new RegExp(/\.svg$/i);
 
-// Pattern for ZIM file namespace - see http://www.openzim.org/wiki/ZIM_file_format#Namespaces
+// Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
 
 function fetchEventListener(event) {
@@ -94,7 +94,7 @@ function fetchEventListener(event) {
                 nameSpace = regexpResult[1];
                 title = regexpResult[2];
 
-                // The namespace defines the type of content. See http://www.openzim.org/wiki/ZIM_file_format#Namespaces
+                // The namespace defines the type of content. See https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
                 // TODO : read the contentType from the ZIM file instead of hard-coding it here
                 if (nameSpace === 'A') {
                     // It's an article
