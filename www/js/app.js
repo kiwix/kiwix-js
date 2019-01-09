@@ -298,7 +298,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 }, function (err) {
                     console.error('error while registering serviceWorker', err);
                     refreshAPIStatus();
-                    alert("The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err);
+                    var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                    var protocol = window.location.protocol;
+                    if (protocol === 'moz-extension:') {
+                        message += "\n\nYou seem to be using kiwix-js through a Firefox extension : it's probably because ServiceWorkers ar disabled by Mozilla in extensions.";
+                        message += "\nPlease vote for https://bugzilla.mozilla.org/show_bug.cgi?id=1344561 so that some future Firefox versions support it";
+                    }
+                    else if (protocol === 'file:') {
+                        message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a distant one (but you need SSL : https://webserver/...)";
+                    }
+                    alert(message);                        
                     setContentInjectionMode("jquery");
                     return;
                 });
