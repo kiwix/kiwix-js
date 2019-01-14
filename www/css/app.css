@@ -124,6 +124,18 @@
     width: 200px;
 }
 
+.alert {
+    margin-bottom: 0 !important;
+}
+
+.alert-link {
+    text-decoration: underline;
+}
+
+#alertBoxHeader {
+    text-align: center;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
