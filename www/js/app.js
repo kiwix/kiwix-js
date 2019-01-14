@@ -50,6 +50,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var selectedArchive = null;
     
     /**
+     * A global parameter object for storing variables that need to be remembered between page loads
+     * or across different functions
+     * 
+     * @type Object
+     */
+    var params = {};
+
+    // Set parameters and associated UI elements from cookie
+    params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
+    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    
+    /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
     function resizeIFrame() {
@@ -159,6 +171,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('#articleContent').hide();
+        $('.alert').hide();
         refreshAPIStatus();
         return false;
     });
@@ -178,22 +191,31 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('#articleContent').hide();
+        $('.alert').hide();
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
     });
-    
+    $('input:checkbox[name=hideActiveContentWarning]').on('change', function (e) {
+        params.hideActiveContentWarning = this.checked ? true : false;
+        cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
+    });
+
     /**
      * Displays of refreshes the API status shown to the user
      */
     function refreshAPIStatus() {
+        var apiStatusPanel = document.getElementById('apiStatusDiv');
+        apiStatusPanel.classList.remove('panel-success', 'panel-warning');
+        var apiPanelClass = 'panel-success';
         if (isMessageChannelAvailable()) {
             $('#messageChannelStatus').html("MessageChannel API available");
             $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiAvailable");
         } else {
+            apiPanelClass = 'panel-warning';
             $('#messageChannelStatus').html("MessageChannel API unavailable");
             $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
@@ -204,15 +226,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                         .addClass("apiAvailable");
             } else {
+                apiPanelClass = 'panel-warning';
                 $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
                 $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                         .addClass("apiUnavailable");
             }
         } else {
+            apiPanelClass = 'panel-warning';
             $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
         }
+        apiStatusPanel.classList.add(apiPanelClass);
+
     }
     
     var contentInjectionMode;
@@ -640,6 +666,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
+            $('#activeContent').alert('close');
             selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
@@ -713,12 +740,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $("#searchingArticles").show();
             if (dirEntry.isRedirect()) {
                 selectedArchive.resolveRedirect(dirEntry, readArticle);
-            }
-            else {
+            } else {
+                params.isLandingPage = false;
                 readArticle(dirEntry);
             }
-        }
-        else {
+        } else {
             alert("Data files not set");
         }
     }
@@ -823,6 +849,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // remove any relative or absolute path from ZIM-style URLs.
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
     var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    // Regex below tests the html of an article for active content [kiwix-js #466]
+    // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
+    // 2) the script block has inline content that does not contain "importScript()" or "toggleOpenSection" (these strings are used widely
+    // in our fully supported wikimedia ZIMs, so they are excluded); 3) the script block is not of type "math" (these are MathJax markup
+    // scripts used extensively in Stackexchange ZIMs). Note that the regex will match ReactJS <script type="text/html"> markup, which is
+    // common in unsupported packaged UIs, e.g. PhET ZIMs.
+    var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]+src\b=["'][^"']+?app\.js))(?!>[^<]+(?:importScript\(\)|toggleOpenSection))(?![^>]+type\s*=\s*["'](?:math\/|[^"']*?math))/i;
     
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
@@ -836,6 +869,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
+        // Display Bootstrap warning alert if the landing page contains active content
+        if (!params.hideActiveContentWarning && params.isLandingPage) {
+            if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
+        }
+
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
@@ -1132,6 +1170,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#searchingArticles").hide();
                 alert("Article with title " + title + " not found in the archive");
             } else {
+                params.isLandingPage = false;
+                $('#activeContent').alert('close');
                 readArticle(dirEntry);
             }
         }).fail(function(e) { alert("Error reading article with title " + title + " : " + e); });
@@ -1145,6 +1185,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 alert("Error finding random article.");
             } else {
                 if (dirEntry.namespace === 'A') {
+                    params.isLandingPage = false;
+                    $('#activeContent').alert('close');
                     readArticle(dirEntry);
                 } else {
                     // If the random title search did not end up on an article,
@@ -1164,6 +1206,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#welcomeText").show();
             } else {
                 if (dirEntry.namespace === 'A') {
+                    params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
                     console.error("The main page of this archive does not seem to be an article");
