@@ -4,10 +4,23 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia)
 Then it was renamed Kiwix-html5 (and uses ZIM files), then was renamed Kiwix-JS.
 
-## Kiwix-JS v2.5.0
+## Kiwix-JS v2.6.0
 Released on TODO
 
-TODO
+Detailed changelog : TODO
+
+## Kiwix-JS v2.5.0
+Released on 2019-01-16
+
+Support for javascript content inside the ZIM file, only in ServiceWorker mode. Handle noscript tags in jQuery mode, and display a warning when some unhandled javascript is detected
+
+Preliminary support of video/audio content (including subtitles) : these content types are now supported. You can read them for example in TED/TEDx, dirtybiology, oer4schools etc. BUT the main page of these ZIM files needs javascript to work properly, which is only enabled in ServiceWorker mode. In jQuery mode, the user needs to reach the pages through a search
+
+Some technical fixes : footnotes in wikimedia ZIM files (and, more generally, anchors in hyperlinks), incomplete searches in some specific ZIM files (PhET and TED), compatibility with URLs that contain an apostrophe, remove debug logs in ServiceWorker mode
+
+In the UI, replace the spinner by a more modern one
+
+Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/19?closed=1
 
 ## Kiwix-JS v2.4.0
 Released on 2018-09-22
@@ -15,6 +28,8 @@ Released on 2018-09-22
 Performance improvement on decompression of content (now twice as fast)
 
 Stability improvement for the ServiceWorker mode
+
+Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/16?closed=1
 
 ## Kiwix-JS v2.3.1
 Released on 2018-09-08
