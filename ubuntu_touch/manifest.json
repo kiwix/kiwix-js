@@ -3,7 +3,7 @@
   "description": "Kiwix : offline Wikipedia reader",
   "architecture": "all",
   "maintainer": "Kiwix team <contact+ubuntutouch@kiwix.org>",
-  "framework" : "ubuntu-sdk-15.04.5",
+  "framework" : "ubuntu-sdk-16.04",
   "version" : "2.6-WIP",
   "title": "kiwix",
   "hooks": {
