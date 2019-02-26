@@ -13,6 +13,7 @@ script:
     # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
     # So we separate the recent and old browsers in order to respect this limit.
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox,chrome,edge"
+    - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env edge40,edge42"
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11"
     - pkill node
 deploy:

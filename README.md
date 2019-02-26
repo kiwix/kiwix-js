@@ -1,4 +1,5 @@
 # Kiwix JS
+[![Build Status](https://travis-ci.org/kiwix/kiwix-js.svg?branch=master)](https://travis-ci.org/kiwix/kiwix-js)
 
 ## Summary
 Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/
