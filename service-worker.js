@@ -80,6 +80,9 @@ var regexpWEBM = new RegExp(/\.webm$/i);
 var regexpMP4 = new RegExp(/\.mp4$/i);
 var regexpOGG = new RegExp(/\.og[mvg]$/i);
 var regexpVTT = new RegExp(/\.vtt$/i);
+var regexpPDF = new RegExp(/\.pdf$/i);
+var regexpZIP = new RegExp(/\.zip$/i);
+var regexpEPUB = new RegExp(/\.epub$/i);
 
 // Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
@@ -129,6 +132,15 @@ function fetchEventListener(event) {
                     }
                     else if (regexpOGG.test(title)) {
                         contentType = 'video/ogg';
+                    }
+                    else if (regexpPDF.test(title)) {
+                        contentType = 'application/pdf';
+                    }
+                    else if (regexpEPUB.test(title)) {
+                        contentType = 'application/epub+zip';
+                    }
+                    else if (regexpZIP.test(title)) {
+                        contentType = 'application/zip';
                     }
                 }
                 else if (nameSpace === '-') {
