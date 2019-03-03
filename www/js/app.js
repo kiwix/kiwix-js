@@ -971,7 +971,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     this.target = "_blank";
                 } else {
                     // It's a link to an article or file in the ZIM
-                    var decodedURL = decodeURIComponent(zimUrl);
+                    var uriComponent = uiUtil.removeUrlParameters(zimUrl);
+                    var decodedURL = decodeURIComponent(uriComponent);
                     var contentType;
                     var downloadAttrValue;
                     // Some file types need to be downloaded rather than displayed (e.g. *.epub)
@@ -1191,7 +1192,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function goToArticle(title, download, contentType) {
         $("#searchingArticles").show();
-        title = uiUtil.removeUrlParameters(title);
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
