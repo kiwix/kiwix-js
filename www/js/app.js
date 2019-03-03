@@ -78,6 +78,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Define behavior of HTML elements
     $('#searchArticles').on('click', function(e) {
         $("#welcomeText").hide();
+        $('.alert').hide();
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
         searchDirEntriesFromPrefix($('#prefix').val());
@@ -857,6 +858,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // common in unsupported packaged UIs, e.g. PhET ZIMs.
     var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]+src\b=["'][^"']+?app\.js))(?!>[^<]+(?:importScript\(\)|toggleOpenSection))(?![^>]+type\s*=\s*["'](?:math\/|[^"']*?math))/i;
     
+    // DEV: The regex below matches ZIM links (anchor hrefs) that should have the html5 "donwnload" attribute added to 
+    // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
+    // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
+    var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
+    
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
     var cssCache = new Map();
@@ -890,6 +896,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
+
+        // Remove from DOM any download alert box that was activated in uiUtil.displayFileDownloadAlert function
+        $('#downloadAlert').alert('close');
         
         var iframeArticleContent = document.getElementById('articleContent');
         
@@ -961,12 +970,26 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // It's an external URL : we should open it in a new tab
                     this.target = "_blank";
                 } else {
-                    // It's a link to another article
-                    // Add an onclick event to go to this article
+                    // It's a link to an article or file in the ZIM
+                    var decodedURL = decodeURIComponent(zimUrl);
+                    var contentType;
+                    var downloadAttrValue;
+                    // Some file types need to be downloaded rather than displayed (e.g. *.epub)
+                    // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
+                    // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
+                    // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
+                    // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
+                    var isDownloadableLink = this.hasAttribute('download') || regexpDownloadLinks.test(href);
+                    if (isDownloadableLink) {
+                        downloadAttrValue = this.getAttribute('download');
+                        // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
+                        downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
+                        contentType = this.getAttribute('type');
+                    }    
+                    // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     $(this).on('click', function (e) {
-                        var decodedURL = decodeURIComponent(zimUrl);
-                        goToArticle(decodedURL);
+                        goToArticle(decodedURL, downloadAttrValue, contentType);
                         return false;
                     });
                 }
@@ -1159,16 +1182,24 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
 
     /**
-     * Replace article content with the one of the given title
-     * @param {String} title
+     * Extracts the content of the given article title, or a downloadable file, from the ZIM
+     * 
+     * @param {String} title The path and filename to the article or file to be extracted
+     * @param {Boolean|String} download A Bolean value that will trigger download of title, or the filename that should
+     *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
+     * @param {String} contentType The mimetype of the downloadable file, if known 
      */
-    function goToArticle(title) {
+    function goToArticle(title, download, contentType) {
         $("#searchingArticles").show();
         title = uiUtil.removeUrlParameters(title);
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
                 alert("Article with title " + title + " not found in the archive");
+            } else if (download) {
+                selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                    uiUtil.displayFileDownloadAlert(title, download, contentType, content);
+                });
             } else {
                 params.isLandingPage = false;
                 $('#activeContent').alert('close');
