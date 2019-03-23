@@ -139,6 +139,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
+        $('#navigationButtons').show();
         $('#formArticleSearch').show();
         $("#welcomeText").show();
         $('#articleContent').show();
@@ -167,6 +168,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
+        $('#navigationButtons').hide();
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
@@ -187,6 +189,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
+        $('#navigationButtons').hide();
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
