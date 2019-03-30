@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define([], function() {
+define(['util'], function(util) {
     /**
      * Global variables
      */
@@ -39,9 +39,13 @@ define([], function() {
      * @param {Boolean} revokeBLOB If true or not set, revoke the object on load; if explicitly set to false, do not revoke
      */
     function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType, revokeBLOB) {
+        var url;
         var blob = new Blob([content], {type: mimeType});
-        var url = URL.createObjectURL(blob);
-        if (revokeBLOB !== false) {
+        if (revokeBLOB === false) {
+            url = 'data:' + mimeType + ';base64,' + btoa(util.uintToString(content));
+            jQueryNode.attr(nodeAttribute, url);
+        } else {
+            url = URL.createObjectURL(blob);
             jQueryNode.on('load', function () {
                 URL.revokeObjectURL(url);
             });
