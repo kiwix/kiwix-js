@@ -21,7 +21,10 @@
  */
 'use strict';
 define([], function() {
-
+    /**
+     * Global variables
+     */
+    var itemsCount = false;
     
     /**
      * Creates a Blob from the given content, then a URL from this Blob
@@ -33,13 +36,16 @@ define([], function() {
      * @param {String} nodeAttribute
      * @param {Uint8Array} content
      * @param {String} mimeType
+     * @param {Boolean} revokeBLOB If true or not set, revoke the object on load; if explicitly set to false, do not revoke
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
+    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType, revokeBLOB) {
         var blob = new Blob([content], {type: mimeType});
         var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
-            URL.revokeObjectURL(url);
-        });
+        if (revokeBLOB !== false) {
+            jQueryNode.on('load', function () {
+                URL.revokeObjectURL(url);
+            });
+        }
         jQueryNode.attr(nodeAttribute, url);
     }
 
@@ -128,8 +134,9 @@ define([], function() {
      *     be used to save the file in local FS
      * @param {String} contentType The mimetype of the downloadable file, if known
      * @param {Uint8Array} content The binary-format content of the downloadable file
+     * @param {Boolean} autoDismiss If true, dismiss the alert programmatically
      */
-    function displayFileDownloadAlert(title, download, contentType, content) {
+    function displayFileDownloadAlert(title, download, contentType, content, autoDismiss) {
         // We have to create the alert box in code, because Bootstrap removes it completely from the DOM when the user dismisses it
         document.getElementById('alertBoxFooter').innerHTML =
         '<div id="downloadAlert" class="alert alert-info alert-dismissible">' +
@@ -161,7 +168,11 @@ define([], function() {
         alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
         // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
         alertMessage.appendChild(a);
-        try { a.click(); }
+        try { 
+            a.click(); 
+            // Following line should run only if there was no error, leaving the alert showing in case of error
+            if (autoDismiss) $('#downloadAlert').alert('close');
+        }
         catch (err) {
             // If the click fails, user may be able to download by manually clicking the link
             // But for IE11 we need to force use of the saveBlob method with the onclick event 
@@ -172,8 +183,110 @@ define([], function() {
                 });
             }
         }
-        $("#searchingArticles").hide();
+        finally {
+            $("#searchingArticles").hide();
+        }
     }
+
+    /**
+     * Initiates XMLHttpRequest
+     * Can be used for loading local files; CSP may restrict access to remote files due to CORS
+     *
+     * @param {URL} url The Uniform Resource Locator to be read
+     * @param {String} responseType The response type to return (arraybuffer|blob|document|json|text);
+     *     (passing an empty or null string defaults to text)
+     * @param {Function} callback The function to call with the result: data, mimetype, and status or error code
+     */
+    function XHR(url, responseType, callback) {
+        var xhr = new XMLHttpRequest();
+        if (responseType) xhr.responseType = responseType;
+        xhr.onreadystatechange = function (e) {
+            if (this.readyState == 4) {
+                callback(this.response, this.response.type, this.status);
+            }
+        };
+        var err = false;
+        try {
+            xhr.open('GET', url, true);
+        }
+        catch (e) {
+            console.log("Exception during GET request: " + e);
+            err = true;
+        }
+        if (!err) {
+            xhr.send();
+        } else {
+            callback("Error", null, 500);
+        }
+    }
+
+    /**
+     * Inserts a link to break the page out to a new browser window
+     */
+    function insertBreakoutLink() {
+        var iframe = document.getElementById('articleContent').contentDocument;
+        var div = document.createElement('div');
+        div.style.cssText = 'font-size: xx-large; left: 90%; position: absolute; opacity: 0.5; z-index: 2;';
+        div.id = "openInTab";
+        div.innerHTML = '<a href="#">[⬈]</a>';
+        iframe.body.insertBefore(div, iframe.body.firstChild);
+        var openInTab = iframe.getElementById('openInTab');
+        // Have to use jQuery here becasue e.preventDefault is not working properly in some browsers
+        $(openInTab).on('click', function() {
+            extractHTML();
+            return false;
+        });
+    }
+    
+    /**
+     * Extracts self-contained HTML from the iframe DOM, transforming BLOB references to dataURIs
+     */
+    function extractHTML() {
+        var iframe = document.getElementById('articleContent').contentDocument;
+        // Store the html for the head section, to restore later (in SW mode, stylesheets will be transformed to dataURI links,
+        // which only work from file:/// URL, due to CORS, so they have to be restored)
+        var headHtml = iframe.head.innerHTML;
+        var title = iframe.title;
+        if (itemsCount === false) {
+            // Establish the source items that need to be extracted to self-contained URIs
+            // DEV: Add any further sources to the querySelector below
+            var items = iframe.querySelectorAll('img[src],link[href]');
+            itemsCount = items.length;
+            Array.prototype.slice.call(items).forEach(function (item) {
+                // Extract the BLOB itself from the URL (even if it's a blob: URL)                    
+                XHR(item.href || item.src, 'blob', function (response, mimetype, status) {
+                    if (status == 500) { 
+                        itemsCount--;
+                        return;
+                    }
+                    // Now read the data from the extracted blob
+                    var myReader = new FileReader();
+                    myReader.addEventListener("loadend", function () {
+                        if (item.href) item.href = myReader.result;
+                        if (item.src) item.src = myReader.result;
+                        itemsCount--;
+                        if (itemsCount === 0) extractHTML();
+                    });
+                    //Start the reading process.
+                    myReader.readAsDataURL(response);
+                });
+            });
+        }
+        if (itemsCount > 0) return; //Ensures function stops if we are still extracting images or css
+        // Construct filename (forbidden characters will be removed in the download function)
+        //title = title.replace(/([^/]\/)+/, '');
+        var filename = title.replace(/(\.html?)*$/i, '.html');
+        var html = iframe.documentElement.outerHTML;
+        // Remove openInTab div (we can't do this using DOM methods because it causes a navigation)
+        html = html.replace(/<div\s(?=[^<]+?openInTab)(?:[^<]|<(?!\/div>))+<\/div>\s*/, '');
+        var blob = new Blob([html], { type: 'text/html' });
+        // We can't use window.open() because pop-up blockers block it, so use explicit BLOB download
+        displayFileDownloadAlert(title, filename, 'text/html', blob, true);
+        // Restore original head section (to restore any transformed stylesheets)
+        iframe.head.innerHTML = headHtml;
+        itemsCount = false;
+    }
+
 
     /**
      * Functions and classes exposed by this module
@@ -183,6 +296,7 @@ define([], function() {
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
-        displayFileDownloadAlert: displayFileDownloadAlert
+        displayFileDownloadAlert: displayFileDownloadAlert,
+        insertBreakoutLink: insertBreakoutLink
     };
 });

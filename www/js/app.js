@@ -58,6 +58,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var params = {};
 
     // Set parameters and associated UI elements from cookie
+    params['allowHTMLExtraction'] = cookies.getItem('allowHTMLExtraction') === 'true';
+    document.getElementById('allowHTMLExtractionCheck').checked = params.allowHTMLExtraction;
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     
@@ -205,6 +207,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function (e) {
         params.hideActiveContentWarning = this.checked ? true : false;
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
+    });
+    $('input:checkbox[name=allowHTMLExtraction]').on('change', function (e) {
+        params.allowHTMLExtraction = this.checked ? true : false;
+        cookies.setItem('allowHTMLExtraction', params.allowHTMLExtraction, Infinity);
     });
 
     /**
@@ -771,8 +777,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#prefix").val("");
                 iframeArticleContent.onload = function () {
                     // The content is fully loaded by the browser : we can hide the spinner
-                    iframeArticleContent.onload = function () {};
+                    iframeArticleContent.onload = function () {
+                        if (params.allowHTMLExtraction) uiUtil.insertBreakoutLink();
+                    };
                     $("#searchingArticles").hide();
+                    if (params.allowHTMLExtraction) uiUtil.insertBreakoutLink();
                 };
                 iframeArticleContent.src = dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
                 // Display the iframe content
@@ -918,6 +927,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
+            if (params.allowHTMLExtraction) {
+                setTimeout(function() {
+                    uiUtil.insertBreakoutLink();
+                }, 2000);
+            }
             
             parseAnchorsJQuery();
             loadImagesJQuery();
@@ -1017,7 +1031,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         mimetype = /\.tif$/i.test(url) ? "image/tiff" : mimetype;
                         mimetype = /\.ico$/i.test(url) ? "image/x-icon" : mimetype;
                         mimetype = /\.svg$/i.test(url) ? "image/svg+xml" : mimetype;
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, !params.allowHTMLExtraction);
                     });
                 }).fail(function (e) {
                     console.error("could not find DirEntry for image:" + title, e);
@@ -1110,7 +1124,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     } else {
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             // TODO : JavaScript support not yet functional [kiwix-js #152]
-                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
+                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript', !params.allowHTMLExtraction);
                         });
                     }
                 }).fail(function (e) {
