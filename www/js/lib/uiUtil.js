@@ -199,7 +199,6 @@ define([], function() {
      */
     function XHR(url, responseType, callback) {
         var xhr = new XMLHttpRequest();
-        if (responseType) xhr.responseType = responseType;
         xhr.onreadystatechange = function (e) {
             if (this.readyState == 4) {
                 callback(this.response, this.response.type, this.status);
@@ -208,6 +207,7 @@ define([], function() {
         var err = false;
         try {
             xhr.open('GET', url, true);
+            if (responseType) xhr.responseType = responseType;
         }
         catch (e) {
             console.log("Exception during GET request: " + e);
