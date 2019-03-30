@@ -36,12 +36,12 @@ define(['util'], function(util) {
      * @param {String} nodeAttribute
      * @param {Uint8Array} content
      * @param {String} mimeType
-     * @param {Boolean} revokeBLOB If true or not set, revoke the object on load; if explicitly set to false, do not revoke
+     * @param {Boolean} makeDataURI If true, make a data: URI instead of a blob URL
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType, revokeBLOB) {
+    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType, makeDataURI) {
         var url;
         var blob = new Blob([content], {type: mimeType});
-        if (revokeBLOB === false) {
+        if (makeDataURI === true) {
             url = 'data:' + mimeType + ';base64,' + btoa(util.uintToString(content));
             jQueryNode.attr(nodeAttribute, url);
         } else {

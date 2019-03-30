@@ -1031,7 +1031,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         mimetype = /\.tif$/i.test(url) ? "image/tiff" : mimetype;
                         mimetype = /\.ico$/i.test(url) ? "image/x-icon" : mimetype;
                         mimetype = /\.svg$/i.test(url) ? "image/svg+xml" : mimetype;
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, !params.allowHTMLExtraction);
+                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, params.allowHTMLExtraction);
                     });
                 }).fail(function (e) {
                     console.error("could not find DirEntry for image:" + title, e);
@@ -1124,7 +1124,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     } else {
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             // TODO : JavaScript support not yet functional [kiwix-js #152]
-                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript', !params.allowHTMLExtraction);
+                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript', params.allowHTMLExtraction);
                         });
                     }
                 }).fail(function (e) {
