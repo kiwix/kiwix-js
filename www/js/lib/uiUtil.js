@@ -224,7 +224,7 @@ define(['util'], function(util) {
     }
 
     /**
-     * Inserts a link to break the page out to a new browser window
+     * Inserts a link to break the article out to a new browser tab
      */
     function insertBreakoutLink() {
         var iframe = document.getElementById('articleContent').contentDocument;
@@ -277,10 +277,9 @@ define(['util'], function(util) {
         }
         if (itemsCount > 0) return; //Ensures function stops if we are still extracting images or css
         // Construct filename (forbidden characters will be removed in the download function)
-        //title = title.replace(/([^/]\/)+/, '');
         var filename = title.replace(/(\.html?)*$/i, '.html');
         var html = iframe.documentElement.outerHTML;
-        // Remove openInTab div (we can't do this using DOM methods because it causes a navigation)
+        // Remove openInTab div (we can't do this using DOM methods because it aborts code spawned from onclick event)
         html = html.replace(/<div\s(?=[^<]+?openInTab)(?:[^<]|<(?!\/div>))+<\/div>\s*/, '');
         var blob = new Blob([html], { type: 'text/html' });
         // We can't use window.open() because pop-up blockers block it, so use explicit BLOB download

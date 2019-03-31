@@ -928,6 +928,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             if (params.allowHTMLExtraction) {
+                // Allow some time for images to load before breakout link is available
                 setTimeout(function() {
                     uiUtil.insertBreakoutLink();
                 }, 2000);
