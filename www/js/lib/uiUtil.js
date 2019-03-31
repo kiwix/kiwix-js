@@ -40,7 +40,7 @@ define(['util'], function(util) {
      */
     function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType, makeDataURI) {
         var url;
-        if (makeDataURI === true) {
+        if (makeDataURI) {
             url = 'data:' + mimeType + ';base64,' + btoa(util.uintToString(content));
         } else {
             var blob = new Blob([content], {type: mimeType});
@@ -227,11 +227,14 @@ define(['util'], function(util) {
      * Inserts a link to break the article out to a new browser tab
      */
     function insertBreakoutLink() {
+        var desc = "Open article in new tab or window";
         var iframe = document.getElementById('articleContent').contentDocument;
+        var prefix = document.location.origin + document.location.pathname.replace(/(.*\/)[^/]*$/, '$1');
         var div = document.createElement('div');
-        div.style.cssText = 'font-size: xx-large; left: 90%; position: absolute; opacity: 0.5; z-index: 2;';
+        div.style.cssText = 'left: 90%; position: absolute; z-index: 2;';
         div.id = "openInTab";
-        div.innerHTML = '<a href="#">[⬈]</a>';
+        div.innerHTML = '<a href="#"><img src="' + prefix + 'img/icons/new_window.svg" width="30" height="30" alt="'
+             + desc + '" title="' + desc + '"></a>';
         iframe.body.insertBefore(div, iframe.body.firstChild);
         var openInTab = iframe.getElementById('openInTab');
         // Have to use jQuery here becasue e.preventDefault is not working properly in some browsers
@@ -257,16 +260,20 @@ define(['util'], function(util) {
             itemsCount = items.length;
             Array.prototype.slice.call(items).forEach(function (item) {
                 // Extract the BLOB itself from the URL (even if it's a blob: URL)                    
-                XHR(item.href || item.src, 'blob', function (response, mimetype, status) {
+                var itemUrl = item.href || item.src;
+                XHR(itemUrl, 'blob', function (response, mimetype, status) {
                     if (status == 500) { 
                         itemsCount--;
                         return;
                     }
+                    // Pure SVG images may be missing the mimetype
+                    if (!mimetype) mimetype = /\.svg$/i.test(itemUrl) ? 'image/svg+xml' : '';
                     // Now read the data from the extracted blob
                     var myReader = new FileReader();
                     myReader.addEventListener("loadend", function () {
-                        if (item.href) item.href = myReader.result;
-                        if (item.src) item.src = myReader.result;
+                        var dataURL = myReader.result.replace(/data:;/, 'data:' + mimetype + ';');
+                        if (item.href) item.href = dataURL;
+                        if (item.src) item.src = dataURL;
                         itemsCount--;
                         if (itemsCount === 0) extractHTML();
                     });
