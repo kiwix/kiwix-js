@@ -40,11 +40,10 @@ define(['util'], function(util) {
      */
     function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType, makeDataURI) {
         var url;
-        var blob = new Blob([content], {type: mimeType});
         if (makeDataURI === true) {
             url = 'data:' + mimeType + ';base64,' + btoa(util.uintToString(content));
-            jQueryNode.attr(nodeAttribute, url);
         } else {
+            var blob = new Blob([content], {type: mimeType});
             url = URL.createObjectURL(blob);
             jQueryNode.on('load', function () {
                 URL.revokeObjectURL(url);
