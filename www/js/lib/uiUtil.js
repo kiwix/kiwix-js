@@ -229,7 +229,8 @@ define(['util'], function(util) {
     function insertBreakoutLink() {
         var desc = "Open article in new tab or window";
         var iframe = document.getElementById('articleContent').contentDocument;
-        var prefix = document.location.origin + document.location.pathname.replace(/(.*\/)[^/]*$/, '$1');
+        // Remove the file and any query string from href
+        var prefix = window.location.href.replace(/^((?!.*\?).*\/|(?=.*\/).*\/(?=[^\/]+\?)).*$/, '$1');
         var div = document.createElement('div');
         div.style.cssText = 'left: 90%; position: absolute; z-index: 2;';
         div.id = "openInTab";
