@@ -939,8 +939,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Percent-encode dirEntry.url and add regex escape character \ to the RegExp special characters - see https://www.regular-expressions.info/characters.html;
             // NB dirEntry.url can also contain path separator / in some ZIMs (Stackexchange). } and ] do not need to be escaped as they have no meaning on their own. 
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+\/()[{])/g, '\\$1');
-            // Pattern to match a local anchor in an href even if prefixed by escaped url
-            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]+$)');
+            // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
+            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
             $('#articleContent').contents().find('body').find('a').each(function () {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
@@ -961,11 +961,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         return false;
                     });
                 } else if (regexpLocalAnchorHref.test(href)) {
-                    // It's an anchor link : we need to make it work with javascript
-                    // because of the base tag
+                    // It's an anchor link : we need to make it work with javascript because of the base tag
                     var anchorRef = href.replace(regexpLocalAnchorHref, '$1');
+                    // DEV: If jQuery mode ever supports JS-in-the-ZIM, the check for an onclick event may need to be revisited
+                    var onClickAttr = this.getAttribute('onclick');
                     $(this).on('click', function (e) {
-                        document.getElementById('articleContent').contentWindow.location.hash = anchorRef;
+                        var iframeWindow = document.getElementById('articleContent').contentWindow;
+                        if (anchorRef)
+                            iframeWindow.location.hash = anchorRef;
+                        else if (!onClickAttr)
+                            // It's just a single # and there is no onclick in the HTML, so scroll to top
+                            iframeWindow.scrollTo({ top: 0, behavior: 'smooth' });
                         return false;
                     });
                 } else if (this.protocol !== currentProtocol ||
