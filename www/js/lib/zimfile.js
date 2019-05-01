@@ -111,6 +111,16 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
     };
 
     /**
+     * Reads the whole MIME Type list and returns it as a populated Map
+     * 
+     * @param {Function} callback The function to call with the returned mimeTypeList
+     */
+    ZIMFile.prototype.mimeTypeList = function(callback) {
+        // This is where the action will happen!
+
+    };
+    
+    /**
      * 
      * @param {Integer} offset
      * @returns {DirEntry} DirEntry
