@@ -111,15 +111,17 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
     };
 
     /**
-     * Reads the whole MIME Type list and returns it as a populated Map
+     * Reads the whole MIME type list and returns it as a populated Map
      * The mimeTypeMap is extracted once after the user has picked the ZIM file
      * and is stored as ZIMFile.mimetypes.
      * 
-     * @return {Promise} A promise for the MIME Type list as a Map
+     * @returns {Promise} A promise for the MIME Type list as a Map
      */
     ZIMFile.prototype._mimeTypeMap = function() {
         var typeMap = new Map;
         return this._readSlice(this.mimeListPos, 256).then(function(data) {
+            // DEV: We have read 256 bytes: increase this if you encounter longer MIME Type lists
+            // also change "while (pos < 255)" below
             if (data.subarray) {
                 var i = 1;
                 var pos = -1;
@@ -129,6 +131,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                     mimeString = utf8.parse(data.subarray(pos), true);
                     // If the parsed data is an empty string, we have reached the end of the MIME Type list, so break 
                     if (!mimeString) break;
+                    // Store the parsed string in the Map
                     typeMap.set(i, mimeString);
                     i++;
                     while (data[pos] !== 0) {
