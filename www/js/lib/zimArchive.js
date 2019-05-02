@@ -123,9 +123,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getMimetypeString = function(mimetype, callback) {
         if (this.isReady()) {
-            this._file.mimeTypeMap().then(function(data) {
-                callback(data.get(mimetype));
-            });
+            callback(this._file.mimeTypes.get(mimetype));
         }
     };
     

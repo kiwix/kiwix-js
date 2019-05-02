@@ -112,38 +112,32 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
 
     /**
      * Reads the whole MIME Type list and returns it as a populated Map
+     * The mimeTypeMap is extracted once after the user has picked the ZIM file
+     * and is stored as ZIMFile.mimetypes.
      * 
      * @return {Promise} A promise for the MIME Type list as a Map
      */
-    ZIMFile.prototype.mimeTypeMap = function() {
-        var typeMap = this.mimeTypes;
-        // If we have already populated mimeTypes, we can just return it
-        if (typeMap.size) {
-            return Q.resolve().then(function() {
-                return typeMap;
-            });
-        } else {
-            // Otherwise, we have to populate it
-            return this._readSlice(this.mimeListPos, 256).then(function(data) {
-                if (data.subarray) {
-                    var i = 1;
-                    var pos = -1;
-                    var mimeString;
-                    while (pos < 255) {
-                        pos++; 
-                        mimeString = utf8.parse(data.subarray(pos), true);
-                        // If the parsed data is an empty string, we have reached the end of the MIME Type list, so break 
-                        if (!mimeString) break;
-                        typeMap.set(i, mimeString);
-                        i++;
-                        while (data[pos] !== 0) {
-                            pos++;
-                        }
+    ZIMFile.prototype._mimeTypeMap = function() {
+        var typeMap = new Map;
+        return this._readSlice(this.mimeListPos, 256).then(function(data) {
+            if (data.subarray) {
+                var i = 1;
+                var pos = -1;
+                var mimeString;
+                while (pos < 255) {
+                    pos++; 
+                    mimeString = utf8.parse(data.subarray(pos), true);
+                    // If the parsed data is an empty string, we have reached the end of the MIME Type list, so break 
+                    if (!mimeString) break;
+                    typeMap.set(i, mimeString);
+                    i++;
+                    while (data[pos] !== 0) {
+                        pos++;
                     }
                 }
-                return typeMap;
-            });
-        }
+            }
+            return typeMap;
+        });
     };
     
     /**
@@ -274,7 +268,9 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 zf.mimeListPos = readInt(header, 56, 8);
                 zf.mainPage = readInt(header, 64, 4);
                 zf.layoutPage = readInt(header, 68, 4);
-                zf.mimeTypes = new Map;
+                zf.mimeTypes = zf._mimeTypeMap().then(function(data) {
+                    return data;
+                });
                 return zf;
             });
         }
