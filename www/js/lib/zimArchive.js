@@ -116,11 +116,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
     
     /**
-     * @param {Map} mimeTypeList Defines a Map to hold the MIME Type list
-     */
-    ZIMArchive.prototype.mimeTypeList = new Map;
-
-    /**
      * Populates mimeTypeList from the ZIM archive if necessary, and looks up the MIME type string from the given dirEntry's mimetype
      * 
      * @param {Integer} mimetype The mimetype number stored in dirEntry.mimetype, used as a lookup value
@@ -128,10 +123,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getMimetypeString = function(mimetype, callback) {
         if (this.isReady()) {
-            if (this.mimeTypeList.size === 0) {
-                // The mimeTypeList hasn't been populated yet, so let's populate it
-                
-            }
+            this._file.mimeTypeMap().then(function(data) {
+                callback(data.get(mimetype));
+            });
         }
     };
     

@@ -110,14 +110,43 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
         }
     };
 
+    // Variable to hold the mimeTypeMap between page reads
+    ZIMFile.prototype.mimeTypeMapCache = new Map;
+
     /**
      * Reads the whole MIME Type list and returns it as a populated Map
      * 
-     * @param {Function} callback The function to call with the returned mimeTypeList
+     * @return {Promise} A promise for the MIME Type list as a Map
      */
-    ZIMFile.prototype.mimeTypeList = function(callback) {
-        // This is where the action will happen!
-
+    ZIMFile.prototype.mimeTypeMap = function() {
+        var typeMap = this.mimeTypeMapCache;
+        // If we have already populated the mimeTypeMapCache, we can just return it
+        if (typeMap.size) {
+            return Q.resolve().then(function() {
+                return typeMap;
+            });
+        } else {
+            // Otherwise, we have to populate it
+            return this._readSlice(this.mimeListPos, 256).then(function(data) {
+                if (data.subarray) {
+                    var i = 1;
+                    var pos = -1;
+                    var mimeString;
+                    while (pos < 255) {
+                        pos++; 
+                        mimeString = utf8.parse(data.subarray(pos), true);
+                        // If the parsed data is an empty string, we have reached the end of the MIME Type list, so break 
+                        if (!mimeString) break;
+                        typeMap.set(i, mimeString);
+                        i++;
+                        while (data[pos] !== 0) {
+                            pos++;
+                        }
+                    }
+                }
+                return typeMap;
+            });
+        }
     };
     
     /**
