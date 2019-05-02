@@ -1013,9 +1013,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var title = decodeURIComponent(imageUrl);
                 selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        selectedArchive.getMimetypeString(dirEntry.mimetype, function(mimetype) {
-                            uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
-                        });
+                        var mimetype = selectedArchive.getMimetypeString(dirEntry.mimetype);
+                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
                     });
                 }).fail(function (e) {
                     console.error("could not find DirEntry for image:" + title, e);

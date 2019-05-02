@@ -119,12 +119,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * Gets the mimeTypeList from the ZIM archive and looks up the MIME type string from the given dirEntry's mimetype
      * 
      * @param {Integer} mimetype The mimetype number stored in dirEntry.mimetype, used as a lookup value
-     * @param {Function} callback The function to call with the result
+     * @return {String} The MIME Type corresponding to mimetype in the ZIM file's MIME Type list
      */
-    ZIMArchive.prototype.getMimetypeString = function(mimetype, callback) {
-        if (this.isReady()) {
-            callback(this._file.mimeTypes.get(mimetype));
-        }
+    ZIMArchive.prototype.getMimetypeString = function(mimetype) {
+            return this._file.mimeTypes.get(mimetype);
     };
     
     /**
