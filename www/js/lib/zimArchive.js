@@ -116,7 +116,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
     
     /**
-     * Populates mimeTypeList from the ZIM archive if necessary, and looks up the MIME type string from the given dirEntry's mimetype
+     * Gets the mimeTypeList from the ZIM archive and looks up the MIME type string from the given dirEntry's mimetype
      * 
      * @param {Integer} mimetype The mimetype number stored in dirEntry.mimetype, used as a lookup value
      * @param {Function} callback The function to call with the result

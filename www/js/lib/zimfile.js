@@ -110,17 +110,14 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
         }
     };
 
-    // Variable to hold the mimeTypeMap between page reads
-    ZIMFile.prototype.mimeTypeMapCache = new Map;
-
     /**
      * Reads the whole MIME Type list and returns it as a populated Map
      * 
      * @return {Promise} A promise for the MIME Type list as a Map
      */
     ZIMFile.prototype.mimeTypeMap = function() {
-        var typeMap = this.mimeTypeMapCache;
-        // If we have already populated the mimeTypeMapCache, we can just return it
+        var typeMap = this.mimeTypes;
+        // If we have already populated mimeTypes, we can just return it
         if (typeMap.size) {
             return Q.resolve().then(function() {
                 return typeMap;
@@ -277,6 +274,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 zf.mimeListPos = readInt(header, 56, 8);
                 zf.mainPage = readInt(header, 64, 4);
                 zf.layoutPage = readInt(header, 68, 4);
+                zf.mimeTypes = new Map;
                 return zf;
             });
         }
