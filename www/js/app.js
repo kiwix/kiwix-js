@@ -1013,20 +1013,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 var title = decodeURIComponent(imageUrl);
                 selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        // TODO : use the complete MIME-type of the image (as read from the ZIM file)
-                        //var url = fileDirEntry.url;
                         selectedArchive.getMimetypeString(dirEntry.mimetype, function(mimetype) {
                             uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
                         });
-                        // Attempt to construct a generic mimetype first as a catchall
-                        // var mimetype = url.match(/\.(\w{2,4})$/);
-                        // mimetype = mimetype ? "image/" + mimetype[1].toLowerCase() : "image";
-                        // // Then make more specific for known image types
-                        // mimetype = /\.jpg$/i.test(url) ? "image/jpeg" : mimetype;
-                        // mimetype = /\.tif$/i.test(url) ? "image/tiff" : mimetype;
-                        // mimetype = /\.ico$/i.test(url) ? "image/x-icon" : mimetype;
-                        // mimetype = /\.svg$/i.test(url) ? "image/svg+xml" : mimetype;
-                        // uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
                     });
                 }).fail(function (e) {
                     console.error("could not find DirEntry for image:" + title, e);
