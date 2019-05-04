@@ -134,7 +134,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                     // Store the parsed string in the Map
                     typeMap.set(i, mimeString);
                     i++;
-                    while (data[pos] !== 0) {
+                    while (data[pos]) {
                         pos++;
                     }
                 }
