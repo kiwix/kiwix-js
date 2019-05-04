@@ -271,7 +271,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 zf.mimeListPos = readInt(header, 56, 8);
                 zf.mainPage = readInt(header, 64, 4);
                 zf.layoutPage = readInt(header, 68, 4);
-                zf._mimeTypeMap(zf.mimeListPos).then(function(data) {
+                zf._mimeTypeMap().then(function(data) {
                     zf.mimeTypes = data;
                 });
                 return zf;
