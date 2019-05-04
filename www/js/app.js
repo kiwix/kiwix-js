@@ -940,43 +940,44 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+\/()[{])/g, '\\$1');
             // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
             var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
-            $('#articleContent').contents().find('body').find('a').each(function () {
+            var iframe = iframeArticleContent.contentDocument;
+            Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) { 
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
-                    var testHref = this.href;
+                    var testHref = anchor.href;
                 } catch (err) {
-                    console.error("Malformed href caused error:" + err.message);
+                    console.error('Malformed href caused error:' + err.message);
                     return;
                 }
-                var href = this.getAttribute('href');
+                var href = anchor.getAttribute('href');
                 if (href === null || href === undefined) return;
                 // Compute current link's url (with its namespace), if applicable
-                // NB We need to access 'this.href' here because, unlike 'this.getAttribute("href")', it contains the fully qualified URL [kiwix-js #432]
-                var zimUrl = regexpZIMUrlWithNamespace.test(this.href) ? this.href.match(regexpZIMUrlWithNamespace)[1] : '';
+                // NB We need to access 'anchor.href' here because, unlike 'anchor.getAttribute("href")', it contains the fully qualified URL [kiwix-js #432]
+                var zimUrl = regexpZIMUrlWithNamespace.test(anchor.href) ? anchor.href.match(regexpZIMUrlWithNamespace)[1] : '';
                 if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page.
                     // Because of the base tag, we need to modify it
-                    $(this).on('click', function (e) {
-                        return false;
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
                     });
                 } else if (regexpLocalAnchorHref.test(href)) {
                     // It's an anchor link : we need to make it work with javascript because of the base tag
                     var anchorRef = href.replace(regexpLocalAnchorHref, '$1');
                     // DEV: If jQuery mode ever supports JS-in-the-ZIM, the check for an onclick event may need to be revisited
-                    var onClickAttr = this.getAttribute('onclick');
-                    $(this).on('click', function (e) {
+                    var onClickAttr = anchor.getAttribute('onclick');
+                    anchor.addEventListener('click', function (e) {
                         var iframeWindow = document.getElementById('articleContent').contentWindow;
                         if (anchorRef)
                             iframeWindow.location.hash = anchorRef;
                         else if (!onClickAttr)
                             // It's just a single # and there is no onclick in the HTML, so scroll to top
                             iframeWindow.scrollTo({ top: 0, behavior: 'smooth' });
-                        return false;
+                        e.preventDefault();
                     });
-                } else if (this.protocol !== currentProtocol ||
-                    this.host !== currentHost) {
+                } else if (anchor.protocol !== currentProtocol ||
+                    anchor.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
-                    this.target = "_blank";
+                    anchor.target = '_blank';
                 } else {
                     // It's a link to an article or file in the ZIM
                     var uriComponent = uiUtil.removeUrlParameters(zimUrl);
@@ -988,18 +989,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
                     // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
                     // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
-                    var isDownloadableLink = this.hasAttribute('download') || regexpDownloadLinks.test(href);
+                    var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
                     if (isDownloadableLink) {
-                        downloadAttrValue = this.getAttribute('download');
+                        downloadAttrValue = anchor.getAttribute('download');
                         // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
                         downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
-                        contentType = this.getAttribute('type');
+                        contentType = anchor.getAttribute('type');
                     }    
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
-                    $(this).on('click', function (e) {
+                    anchor.addEventListener('click', function (e) {
                         goToArticle(decodedURL, downloadAttrValue, contentType);
-                        return false;
+                        e.preventDefault();
                     });
                 }
             });
