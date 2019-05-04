@@ -185,13 +185,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 if (dirEntry.namespace < "A") return 1;
                 if (dirEntry.namespace > "A") return -1;
                 // We should now be in namespace A
-                if (dirEntry.title) { 
-                    return prefix <= dirEntry.title ? -1 : 1;
-                } else {
-                    // Some dirEntries (e.g. subtitles) have no title, but are still sorted in the A namespace,
-                    // so, like libzim, we have to use the url as a comparator [kiwix-js #440 #443]
-                    return prefix <= dirEntry.url ? -1 : 1;
-                }
+                return prefix <= dirEntry.getTitleOrUrl() ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
             var dirEntries = [];
@@ -199,7 +193,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 if (index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
-                    var title = dirEntry.title ? dirEntry.title : dirEntry.url;
+                    var title = dirEntry.getTitleOrUrl();
                     if (!title.indexOf(prefix) && dirEntry.namespace === "A")
                         dirEntries.push(dirEntry);
                     return addDirEntries(index + 1);
