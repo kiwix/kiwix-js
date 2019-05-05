@@ -601,13 +601,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             document.getElementById('openLocalFiles').style.display = 'none';
             document.getElementById('downloadInstruction').style.display = 'none';
             document.getElementById('selectorsDisplay').style.display = 'block';
-            document.getElementById('selectorsDisplayLink').addEventListener('click', function(e){
+            document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
                 e.preventDefault();
                 document.getElementById('openLocalFiles').style.display = 'block';
                 this.style.display = 'none';
             });
         }
-        files = files.dataTransfer ? files.dataTransfer.files : files;
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
             // The archive is set : go back to home page to start searching
