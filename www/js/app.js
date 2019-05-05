@@ -600,13 +600,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             files = files.dataTransfer.files;
             document.getElementById('openLocalFiles').style.display = 'none';
             document.getElementById('downloadInstruction').style.display = 'none';
-            document.getElementById('selectorsDisplay').style.display = 'block';
-            document.getElementById('selectorsDisplayLink').style.display = 'inline';
-            document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('openLocalFiles').style.display = 'block';
-                this.style.display = 'none';
-            });
+            document.getElementById('selectorsDisplay').style.display = 'inline';
         }
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
@@ -615,6 +609,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             document.getElementById('downloadInstruction').style.display = 'none';
         });
     }
+    // Add event listener to link which allows user to show file selectors
+    document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('openLocalFiles').style.display = 'block';
+        this.parentElement.style.display = 'none';
+    });
+
     /**
      * Sets the localArchive from the File selects populated by user
      */
