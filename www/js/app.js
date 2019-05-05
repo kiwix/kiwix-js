@@ -602,6 +602,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             document.getElementById('downloadInstruction').style.display = 'none';
             document.getElementById('selectorsDisplay').style.display = 'inline';
         }
+        // Check for usable file types
+        for (var i = files.length; i--;) {
+            if (!/\.(?:zim\w{0,2}|dat|idx|txt)$/i.test(files[i].name)) {
+                alert("One or more files does not appear to be a ZIM file!");
+                return;
+            }    
+        }
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
             // The archive is set : go back to home page to start searching
