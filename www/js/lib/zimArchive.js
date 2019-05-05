@@ -122,7 +122,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @return {String} The MIME type corresponding to mimetype in the ZIM file's MIME type list
      */
     ZIMArchive.prototype.getMimetype = function(mimetype) {
-            return this._file.mimeTypes.get(mimetype);
+        return this._file.mimeTypes.get(mimetype);
     };
     
     /**

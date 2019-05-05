@@ -113,7 +113,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
     /**
      * Reads the whole MIME type list and returns it as a populated Map
      * The mimeTypeMap is extracted once after the user has picked the ZIM file
-     * and is stored as ZIMFile.mimetypes.
+     * and is stored as ZIMFile.mimeTypes
      * 
      * @returns {Promise} A promise for the MIME Type list as a Map
      */
