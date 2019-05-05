@@ -580,11 +580,34 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Displays the zone to select files from the archive
      */
     function displayFileSelect() {
-        $('#openLocalFiles').show();
-        $('#archiveFiles').on('change', setLocalArchiveFromFileSelect);
+        document.getElementById('openLocalFiles').style.display = 'block';
+        // Make the whole app a drop zone
+        var dropZone = document.getElementById('search-article');
+        dropZone.addEventListener('dragover', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }, false);
+        dropZone.addEventListener('drop', setLocalArchiveFromFileList);
+        document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
 
     function setLocalArchiveFromFileList(files) {
+        // Check to see if the files are from file select or from drag-and-drop
+        if (files.dataTransfer) {
+            files.stopPropagation();
+            files.preventDefault();
+            files = files.dataTransfer.files;
+            document.getElementById('openLocalFiles').style.display = 'none';
+            document.getElementById('downloadInstruction').style.display = 'none';
+            document.getElementById('selectorsDisplay').style.display = 'block';
+            document.getElementById('selectorsDisplayLink').addEventListener('click', function(e){
+                e.preventDefault();
+                document.getElementById('openLocalFiles').style.display = 'block';
+                this.style.display = 'none';
+            });
+        }
+        files = files.dataTransfer ? files.dataTransfer.files : files;
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
             // The archive is set : go back to home page to start searching
