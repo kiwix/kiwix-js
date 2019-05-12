@@ -586,7 +586,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         dropZone.addEventListener('dragover', function(e) {
             e.stopPropagation();
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
+            e.dataTransfer.dropEffect = 'link';
         }, false);
         dropZone.addEventListener('drop', setLocalArchiveFromFileList);
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
@@ -604,7 +604,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         // Check for usable file types
         for (var i = files.length; i--;) {
-            if (!/\.(?:zim\w{0,2}|dat|idx|txt)$/i.test(files[i].name)) {
+            // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
+            if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
                 alert("One or more files does not appear to be a ZIM file!");
                 return;
             }    
