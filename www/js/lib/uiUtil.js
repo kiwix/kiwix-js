@@ -84,6 +84,28 @@ define([], function() {
         return url.replace(regexpRemoveUrlParameters, "$1");
     }
 
+    var regexpParseZIMUrl = /(?:[./]*([-ABIJMUVWX]\/.+)|([./]*)(.+))$/;
+
+    /**
+     * Derives the URL.pathname from a relative or semi-relative URL using the given base ZIM URL
+     * 
+     * @param {String} url The (URI-encoded) URL to convert (e.g. "Einstein", "../Einstein",
+     *      "../../I/im%C3%A1gen.png", "-/s/style.css", "/A/Einstein.html")
+     * @param {String} base The base ZIM URL of the currently loaded article (e.g. "A/" or "A/subdir1/subdir2/")
+     * @returns {String} The derived ZIM URL in decoded form (e.g. "A/Einstein", "I/imágen.png")
+     */
+    function deriveURL(url, base) {
+        url = url.replace(regexpParseZIMUrl,
+            function (_match, zimUrl, urlPath, articleHref) {
+                if (zimUrl) return zimUrl;
+                urlPath.replace(/[^/]*\//g, function () {
+                    base = base.replace(/[^/]+\/$/, '');
+                });
+                return base + articleHref;
+            });
+        return decodeURIComponent(url);
+    }
+
     /**
      * Displays a Bootstrap warning alert with information about how to access content in a ZIM with unsupported active UI
      */
@@ -181,6 +203,7 @@ define([], function() {
     return {
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
+        URL: deriveURL,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert
