@@ -608,7 +608,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         document.getElementById('openLocalFiles').style.display = 'block';
         this.parentElement.style.display = 'none';
     });
-    
+
     function setLocalArchiveFromFileList(files) {
         // Check for usable file types
         for (var i = files.length; i--;) {
@@ -616,7 +616,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
                 alert("One or more files does not appear to be a ZIM file!");
                 return;
-            }    
+            }
         }
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
