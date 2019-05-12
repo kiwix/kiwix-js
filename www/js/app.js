@@ -588,20 +588,28 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             e.preventDefault();
             e.dataTransfer.dropEffect = 'link';
         }, false);
-        dropZone.addEventListener('drop', setLocalArchiveFromFileList);
+        dropZone.addEventListener('drop', setLocalArchiveFromDroppedFiles);
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
 
+    function setLocalArchiveFromDroppedFiles(packet) {
+        packet.stopPropagation();
+        packet.preventDefault();
+        var files = packet.dataTransfer.files;
+        document.getElementById('openLocalFiles').style.display = 'none';
+        document.getElementById('downloadInstruction').style.display = 'none';
+        document.getElementById('selectorsDisplay').style.display = 'inline';
+        setLocalArchiveFromFileList(files);
+    }
+
+    // Add event listener to link which allows user to show file selectors
+    document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('openLocalFiles').style.display = 'block';
+        this.parentElement.style.display = 'none';
+    });
+    
     function setLocalArchiveFromFileList(files) {
-        // Check to see if the files are from file select or from drag-and-drop
-        if (files.dataTransfer) {
-            files.stopPropagation();
-            files.preventDefault();
-            files = files.dataTransfer.files;
-            document.getElementById('openLocalFiles').style.display = 'none';
-            document.getElementById('downloadInstruction').style.display = 'none';
-            document.getElementById('selectorsDisplay').style.display = 'inline';
-        }
         // Check for usable file types
         for (var i = files.length; i--;) {
             // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
@@ -617,12 +625,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             document.getElementById('downloadInstruction').style.display = 'none';
         });
     }
-    // Add event listener to link which allows user to show file selectors
-    document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('openLocalFiles').style.display = 'block';
-        this.parentElement.style.display = 'none';
-    });
 
     /**
      * Sets the localArchive from the File selects populated by user
