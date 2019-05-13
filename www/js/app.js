@@ -583,13 +583,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         document.getElementById('openLocalFiles').style.display = 'block';
         // Make the whole app a drop zone
         var dropZone = document.getElementById('search-article');
-        dropZone.addEventListener('dragover', function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'link';
-        }, false);
+        dropZone.addEventListener('dragover', handleDragOver, false);
         dropZone.addEventListener('drop', setLocalArchiveFromDroppedFiles);
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
+    }
+
+    function handleDragOver(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'link';
     }
 
     function setLocalArchiveFromDroppedFiles(packet) {
@@ -949,7 +951,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var articleContent = iframeArticleContent.contentDocument.documentElement;
             articleContent.innerHTML = htmlArticle;
             // Add any missing classes stripped from the <html> tag
-            if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
+            var docBody = articleContent.getElementsByTagName('body')[0];
+            if (htmlCSS) docBody.classList.add(htmlCSS);
+            // Allow drag-and-drop of ZIM file into the iframe
+            docBody.addEventListener('dragover', handleDragOver, false);
+            docBody.addEventListener('drop', setLocalArchiveFromDroppedFiles);
+
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             
