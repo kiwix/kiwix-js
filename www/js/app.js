@@ -590,6 +590,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         configDropZone.addEventListener('dragleave', function(e) {
             configDropZone.style.border = '';
         });
+        globalDropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'link';
+        }, false);
         globalDropZone.addEventListener('drop', handleFileDrop);
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
