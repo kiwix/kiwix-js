@@ -61,6 +61,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     
+    // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
+    var globalDropZone = document.getElementById('search-article');
+    var configDropZone = document.getElementById('configuration');
+    
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
@@ -582,21 +586,36 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function displayFileSelect() {
         document.getElementById('openLocalFiles').style.display = 'block';
         // Make the whole app a drop zone
-        var dropZone = document.getElementById('search-article');
-        dropZone.addEventListener('dragover', handleDragOver, false);
-        dropZone.addEventListener('drop', setLocalArchiveFromDroppedFiles);
+        configDropZone.addEventListener('dragover', handleGlobalDragover, false);
+        configDropZone.addEventListener('dragleave', function(e) {
+            configDropZone.style.border = '';
+        });
+        globalDropZone.addEventListener('drop', handleFileDrop);
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
 
-    function handleDragOver(e) {
-        e.stopPropagation();
+    function handleGlobalDragover(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'link';
+        configDropZone.style.border = '3px dotted red';
     }
 
-    function setLocalArchiveFromDroppedFiles(packet) {
+    function handleIframeDragover(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'link';
+        document.getElementById('btnConfigure').click();
+    }
+
+    function handleIframeDrop(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+    }
+
+    function handleFileDrop(packet) {
         packet.stopPropagation();
         packet.preventDefault();
+        configDropZone.style.border = '';
         var files = packet.dataTransfer.files;
         document.getElementById('openLocalFiles').style.display = 'none';
         document.getElementById('downloadInstruction').style.display = 'none';
@@ -807,8 +826,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#prefix").val("");
                 iframeArticleContent.onload = function () {
                     // The content is fully loaded by the browser : we can hide the spinner
-                    iframeArticleContent.onload = function () {};
                     $("#searchingArticles").hide();
+                    // Deflect drag-and-drop of ZIM file on the iframe to Config
+                    var articleContent = document.getElementById('articleContent').contentDocument.documentElement;
+                    var docBody = articleContent.getElementsByTagName('body')[0];
+                    docBody.addEventListener('dragover', handleIframeDragover);
+                    docBody.addEventListener('drop', handleIframeDrop);
                 };
                 iframeArticleContent.src = dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
                 // Display the iframe content
@@ -953,9 +976,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Add any missing classes stripped from the <html> tag
             var docBody = articleContent.getElementsByTagName('body')[0];
             if (htmlCSS) docBody.classList.add(htmlCSS);
-            // Allow drag-and-drop of ZIM file into the iframe
-            docBody.addEventListener('dragover', handleDragOver, false);
-            docBody.addEventListener('drop', setLocalArchiveFromDroppedFiles);
+            // Deflect drag-and-drop of ZIM file on the iframe to Config
+            docBody.addEventListener('dragover', handleIframeDragover, false);
+            docBody.addEventListener('drop', handleIframeDrop);
 
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
