@@ -116,6 +116,15 @@ define([], function() {
     DirEntry.prototype.getTitleOrUrl = function() {
         return this.title ? this.title : this.url;
     };
+    
+    /**
+     * Looks up the dirEntry's mimetype number in the ZIM file's MIME type list, and returns the corresponding MIME type
+     * 
+     * @return {String} The MIME type corresponding to mimetype in the ZIM file's MIME type list
+     */
+    DirEntry.prototype.getMimetype = function() {
+        return this._zimfile.mimeTypes.get(this.mimetype);
+    };
 
     /**
      * Functions and classes exposed by this module
