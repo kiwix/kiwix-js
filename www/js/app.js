@@ -585,17 +585,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function displayFileSelect() {
         document.getElementById('openLocalFiles').style.display = 'block';
-        // Make the whole app a drop zone
+        // Set the main drop zone
         configDropZone.addEventListener('dragover', handleGlobalDragover, false);
         configDropZone.addEventListener('dragleave', function(e) {
             configDropZone.style.border = '';
         });
+        // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
         globalDropZone.addEventListener('dragover', function(e) {
             e.preventDefault();
             if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
             e.dataTransfer.dropEffect = 'link';
         }, false);
         globalDropZone.addEventListener('drop', handleFileDrop);
+        // This handles use of the file picker
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
 
@@ -626,6 +628,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         document.getElementById('downloadInstruction').style.display = 'none';
         document.getElementById('selectorsDisplay').style.display = 'inline';
         setLocalArchiveFromFileList(files);
+        // This clears the display of any previously picked archive in the file selector
         document.getElementById('archiveFiles').value = null;
     }
 
