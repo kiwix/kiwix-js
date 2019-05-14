@@ -833,7 +833,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#articleListHeaderMessage').empty();
                 $('#articleListWithHeader').hide();
                 $("#prefix").val("");
-                iframeArticleContent.onload = function () {
+                iframeArticleContent.onload = function() {
                     // The content is fully loaded by the browser : we can hide the spinner
                     $("#searchingArticles").hide();
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
@@ -841,6 +841,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     var docBody = articleContent.getElementsByTagName('body')[0];
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
+                    iframeArticleContent.contentWindow.onunload = function() {
+                        $("#searchingArticles").show();
+                    };
                 };
                 iframeArticleContent.src = dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
                 // Display the iframe content
