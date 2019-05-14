@@ -837,8 +837,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // The content is fully loaded by the browser : we can hide the spinner
                     $("#searchingArticles").hide();
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
-                    var articleContent = document.getElementById('articleContent').contentDocument.documentElement;
-                    var docBody = articleContent.getElementsByTagName('body')[0];
+                    var docBody = iframeArticleContent.contentDocument.documentElement.getElementsByTagName('body')[0];
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                     iframeArticleContent.contentWindow.onunload = function() {
