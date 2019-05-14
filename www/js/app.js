@@ -592,6 +592,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         });
         globalDropZone.addEventListener('dragover', function(e) {
             e.preventDefault();
+            if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
             e.dataTransfer.dropEffect = 'link';
         }, false);
         globalDropZone.addEventListener('drop', handleFileDrop);
@@ -625,13 +626,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         document.getElementById('downloadInstruction').style.display = 'none';
         document.getElementById('selectorsDisplay').style.display = 'inline';
         setLocalArchiveFromFileList(files);
+        document.getElementById('archiveFiles').value = null;
     }
 
     // Add event listener to link which allows user to show file selectors
     document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('openLocalFiles').style.display = 'block';
-        this.parentElement.style.display = 'none';
+        document.getElementById('selectorsDisplay').style.display = 'none';
     });
 
     function setLocalArchiveFromFileList(files) {
