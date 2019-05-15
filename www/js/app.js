@@ -837,9 +837,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // The content is fully loaded by the browser : we can hide the spinner
                     $("#searchingArticles").hide();
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
-                    var docBody = iframeArticleContent.contentDocument.documentElement.getElementsByTagName('body')[0];
-                    docBody.addEventListener('dragover', handleIframeDragover);
-                    docBody.addEventListener('drop', handleIframeDrop);
+                    var doc = iframeArticleContent.contentDocument.documentElement;
+                    var docBody = doc ? doc.getElementsByTagName('body') : null;
+                    docBody = docBody ? docBody[0] : null;
+                    if (docBody) {
+                        docBody.addEventListener('dragover', handleIframeDragover);
+                        docBody.addEventListener('drop', handleIframeDrop);
+                    }
                     iframeArticleContent.contentWindow.onunload = function() {
                         $("#searchingArticles").show();
                     };
@@ -981,15 +985,20 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
+            
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
             articleContent.innerHTML = htmlArticle;
-            // Add any missing classes stripped from the <html> tag
-            var docBody = articleContent.getElementsByTagName('body')[0];
-            if (htmlCSS) docBody.classList.add(htmlCSS);
-            // Deflect drag-and-drop of ZIM file on the iframe to Config
-            docBody.addEventListener('dragover', handleIframeDragover, false);
-            docBody.addEventListener('drop', handleIframeDrop);
+            
+            var docBody = articleContent.getElementsByTagName('body');
+            docBody = docBody ? docBody[0] : null;
+            if (docBody) {
+                // Add any missing classes stripped from the <html> tag
+                if (htmlCSS) docBody.classList.add(htmlCSS);
+                // Deflect drag-and-drop of ZIM file on the iframe to Config
+                docBody.addEventListener('dragover', handleIframeDragover);
+                docBody.addEventListener('drop', handleIframeDrop);
+            }
 
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
