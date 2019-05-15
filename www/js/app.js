@@ -586,7 +586,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function displayFileSelect() {
         document.getElementById('openLocalFiles').style.display = 'block';
         // Set the main drop zone
-        configDropZone.addEventListener('dragover', handleGlobalDragover, false);
+        configDropZone.addEventListener('dragover', handleGlobalDragover);
         configDropZone.addEventListener('dragleave', function(e) {
             configDropZone.style.border = '';
         });
@@ -595,7 +595,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             e.preventDefault();
             if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
             e.dataTransfer.dropEffect = 'link';
-        }, false);
+        });
         globalDropZone.addEventListener('drop', handleFileDrop);
         // This handles use of the file picker
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
