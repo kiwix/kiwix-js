@@ -158,10 +158,10 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
             var dirEntry =
             {
                 offset: offset,
-                mimetype: readInt(data, 0, 2),
+                mimetypeInteger: readInt(data, 0, 2),
                 namespace: String.fromCharCode(data[3])
             };
-            dirEntry.redirect = (dirEntry.mimetype === 0xffff);
+            dirEntry.redirect = (dirEntry.mimetypeInteger === 0xffff);
             if (dirEntry.redirect)
                 dirEntry.redirectTarget = readInt(data, 8, 4);
             else

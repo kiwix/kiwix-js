@@ -31,7 +31,7 @@ define([], function() {
      * @property {File} _zimfile The ZIM file
      * @property {Boolean} redirect
      * @property {Integer} offset
-     * @property {Integer} mimetype MIME type number as defined in the MIME type list
+     * @property {Integer} mimetypeInteger MIME type number as defined in the MIME type list
      * @property {String} namespace defines to which namespace this directory entry belongs 
      * @property {Integer} redirectTarget
      * @property {Integer} cluster cluster number in which the data of this directory entry is stored 
@@ -49,7 +49,7 @@ define([], function() {
         this._zimfile = zimfile;
         this.redirect = dirEntryData.redirect;
         this.offset = dirEntryData.offset;
-        this.mimetype = dirEntryData.mimetype;
+        this.mimetypeInteger = dirEntryData.mimetypeInteger;
         this.namespace = dirEntryData.namespace;
         this.redirectTarget = dirEntryData.redirectTarget;
         this.cluster = dirEntryData.cluster;
@@ -66,7 +66,7 @@ define([], function() {
      */
     DirEntry.prototype.toStringId = function() {
         //@todo also store isRedirect and redirectTarget
-        return this.offset + '|' + this.mimetype + '|' + this.namespace + '|' + this.cluster + '|' +
+        return this.offset + '|' + this.mimetypeInteger + '|' + this.namespace + '|' + this.cluster + '|' +
                 this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
     };
     
@@ -96,7 +96,7 @@ define([], function() {
         var data = {};
         var idParts = stringId.split("|");
         data.offset = parseInt(idParts[0], 10);
-        data.mimetype = parseInt(idParts[1], 10);
+        data.mimetypeInteger = parseInt(idParts[1], 10);
         data.namespace = idParts[2];
         data.cluster = parseInt(idParts[3], 10);
         data.blob = parseInt(idParts[4], 10);
@@ -120,10 +120,10 @@ define([], function() {
     /**
      * Looks up the dirEntry's mimetype number in the ZIM file's MIME type list, and returns the corresponding MIME type
      * 
-     * @return {String} The MIME type corresponding to mimetype in the ZIM file's MIME type list
+     * @return {String} The MIME type corresponding to mimetypeInteger in the ZIM file's MIME type list
      */
     DirEntry.prototype.getMimetype = function() {
-        return this._zimfile.mimeTypes.get(this.mimetype);
+        return this._zimfile.mimeTypes.get(this.mimetypeInteger);
     };
 
     /**
