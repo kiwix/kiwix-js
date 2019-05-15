@@ -95,15 +95,19 @@ define([], function() {
      * @returns {String} The derived ZIM URL in decoded form (e.g. "A/Einstein", "I/imágen.png")
      */
     function deriveURL(url, base) {
-        url = url.replace(regexpParseZIMUrl,
-            function (_match, zimUrl, urlPath, articleHref) {
-                if (zimUrl) return zimUrl;
-                urlPath.replace(/[^/]*\//g, function () {
-                    base = base.replace(/[^/]+\/$/, '');
-                });
-                return base + articleHref;
-            });
-        return decodeURIComponent(url);
+        // We use a dummy domain because URL API requires a valid URI
+        var dummy = 'http://d/';
+        var derive = function(url, base) {
+            if (typeof URL === 'function') return new URL(url, base);
+            // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
+            var d = document.implementation.createHTMLDocument('t');
+            d.head.innerHTML = '<base href="' + base + '">';
+            var a = d.createElement('a');
+            a.href = url;
+            return {pathname: a.href.replace(dummy, '')};            
+        }; 
+        var newUrl = derive(url, dummy + base);
+        return decodeURIComponent(newUrl.pathname.replace(/^\//, ''));
     }
 
     /**
