@@ -84,8 +84,6 @@ define([], function() {
         return url.replace(regexpRemoveUrlParameters, "$1");
     }
 
-    var regexpParseZIMUrl = /(?:[./]*([-ABIJMUVWX]\/.+)|([./]*)(.+))$/;
-
     /**
      * Derives the URL.pathname from a relative or semi-relative URL using the given base ZIM URL
      * 
