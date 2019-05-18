@@ -281,11 +281,12 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         });
         QUnit.test("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function(assert) {
             var done = assert.async();
-            assert.expect(4);
+            assert.expect(5);
             localZimArchive.getDirEntryByTitle("I/m/RayCharles_AManAndHisSoul.jpg").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
+                    assert.equal(dirEntry.getMimetype(), "image/jpeg", "MIME type is correct.");
                     localZimArchive.readBinaryFile(dirEntry, function(title, data) {
                         assert.equal(data.length, 4951, "Data length is correct.");
                         var beginning = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70,
@@ -301,11 +302,12 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("Stylesheet '-/s/style.css' can be loaded", function(assert) {
             var done = assert.async();
             
-            assert.expect(4);
+            assert.expect(5);
             localZimArchive.getDirEntryByTitle("-/s/style.css").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/s/style.css", "URL is correct.");
+                    assert.equal(dirEntry.getMimetype(), "text/css", "MIME type is correct.");
                     localZimArchive.readBinaryFile(dirEntry, function(dirEntry, data) {
                         assert.equal(data.length, 104495, "Data length is correct.");
                         data = utf8.parse(data);
@@ -320,11 +322,12 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         });
         QUnit.test("Javascript '-/j/local.js' can be loaded", function(assert) {
             var done = assert.async();
-            assert.expect(4);
+            assert.expect(5);
             localZimArchive.getDirEntryByTitle("-/j/local.js").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/j/local.js", "URL is correct.");
+                    assert.equal(dirEntry.getMimetype(), "application/javascript", "MIME type is correct.");
                     localZimArchive.readBinaryFile(dirEntry, function(dirEntry, data) {
                         assert.equal(data.length, 41, "Data length is correct.");
                         data = utf8.parse(data);
@@ -340,11 +343,12 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         });
         QUnit.test("Split article 'A/Ray_Charles.html' can be loaded", function(assert) {
             var done = assert.async();
-            assert.expect(6);
+            assert.expect(7);
             localZimArchive.getDirEntryByTitle("A/Ray_Charles.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "Title found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "A/Ray_Charles.html", "URL is correct.");
+                    assert.equal(dirEntry.getMimetype(), "text/html", "MIME type is correct.");
                     localZimArchive.readUtf8File(dirEntry, function(dirEntry2, data) {
                         assert.equal(dirEntry2.getTitleOrUrl(), "Ray Charles", "Title is correct.");
                         assert.equal(data.length, 157186, "Data length is correct.");

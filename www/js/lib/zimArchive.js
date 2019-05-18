@@ -84,7 +84,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 });
             }
         }
-    };
+    }
 
     /**
      * Searches the directory for all parts of a split archive.

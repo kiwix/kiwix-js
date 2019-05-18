@@ -123,10 +123,10 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
             var dirEntry =
             {
                 offset: offset,
-                mimetype: readInt(data, 0, 2),
+                mimetypeInteger: readInt(data, 0, 2),
                 namespace: String.fromCharCode(data[3])
             };
-            dirEntry.redirect = (dirEntry.mimetype === 0xffff);
+            dirEntry.redirect = (dirEntry.mimetypeInteger === 0xffff);
             if (dirEntry.redirect)
                 dirEntry.redirectTarget = readInt(data, 8, 4);
             else
@@ -208,6 +208,45 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
         });
     };
 
+    /**
+     * Reads the whole MIME type list and returns it as a populated Map
+     * The mimeTypeMap is extracted once after the user has picked the ZIM file
+     * and is stored as ZIMFile.mimeTypes
+     * 
+     * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list 
+*                      is to be extracted
+     * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
+     * @param {Integer} urlPtrPos The offset of the byte after the end of the MIME type list in <file>
+     * @returns {Promise} A promise for the MIME Type list as a Map
+     */
+    function readMimetypeMap(file, mimeListPos, urlPtrPos) {
+        var typeMap = new Map;
+        var size = urlPtrPos - mimeListPos;
+        return util.readFileSlice(file, mimeListPos, size).then(function(data) {
+            if (data.subarray) {
+                var i = 0;
+                var pos = -1;
+                var mimeString;
+                while (pos < size) {
+                    pos++; 
+                    mimeString = utf8.parse(data.subarray(pos), true);
+                    // If the parsed data is an empty string, we have reached the end of the MIME type list, so break 
+                    if (!mimeString) break;
+                    // Store the parsed string in the Map
+                    typeMap.set(i, mimeString);
+                    i++;
+                    while (data[pos]) {
+                        pos++;
+                    }
+                }
+            }
+            return typeMap;
+        }).fail(function(err) {
+            console.error('Unable to read MIME type list', err);
+            return new Map;
+        });
+    }
+    
     return {
         /**
          * 
@@ -227,18 +266,22 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                   }
                   return 0;
             });
-            return util.readFileSlice(fileArray[0], 0, 80).then(function(header)
-            {
-                var zf = new ZIMFile(fileArray);
-                zf.articleCount = readInt(header, 24, 4);
-                zf.clusterCount = readInt(header, 28, 4);
-                zf.urlPtrPos = readInt(header, 32, 8);
-                zf.titlePtrPos = readInt(header, 40, 8);
-                zf.clusterPtrPos = readInt(header, 48, 8);
-                zf.mimeListPos = readInt(header, 56, 8);
-                zf.mainPage = readInt(header, 64, 4);
-                zf.layoutPage = readInt(header, 68, 4);
-                return zf;
+            return util.readFileSlice(fileArray[0], 0, 80).then(function(header) {
+                var mimeListPos = readInt(header, 56, 8);
+                var urlPtrPos = readInt(header, 32, 8);
+                return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function(data) {
+                    var zf = new ZIMFile(fileArray);
+                    zf.articleCount = readInt(header, 24, 4);
+                    zf.clusterCount = readInt(header, 28, 4);
+                    zf.urlPtrPos = urlPtrPos;
+                    zf.titlePtrPos = readInt(header, 40, 8);
+                    zf.clusterPtrPos = readInt(header, 48, 8);
+                    zf.mimeListPos = mimeListPos;
+                    zf.mainPage = readInt(header, 64, 4);
+                    zf.layoutPage = readInt(header, 68, 4);
+                    zf.mimeTypes = data;
+                    return zf;
+                });
             });
         }
     };
