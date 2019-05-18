@@ -224,7 +224,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
         var size = urlPtrPos - mimeListPos;
         return util.readFileSlice(file, mimeListPos, size).then(function(data) {
             if (data.subarray) {
-                var i = 1;
+                var i = 0;
                 var pos = -1;
                 var mimeString;
                 while (pos < size) {
