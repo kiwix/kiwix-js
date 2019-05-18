@@ -176,6 +176,21 @@ define([], function() {
     }
 
     /**
+     * Checks whether an element is partially or fully inside the current viewport
+     * 
+     * @param {Element} el The DOM element for which to check visibility
+     * @param {Boolean} fully If true, checks that the entire element is inside the viewport
+     * @returns {Boolean} True if the element is fully or partially inside the current viewport
+     */
+    function isElementInView(el, fully) {
+        var rect = el.getBoundingClientRect();
+        if (fully)
+            return rect.top > 0 && rect.bottom < window.innerHeight && rect.left > 0 && rect.right < window.innerWidth;
+        else 
+            return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
+    }
+
+    /**
      * Functions and classes exposed by this module
      */
     return {
@@ -183,6 +198,7 @@ define([], function() {
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
-        displayFileDownloadAlert: displayFileDownloadAlert
+        displayFileDownloadAlert: displayFileDownloadAlert,
+        isElementInView: isElementInView
     };
 });

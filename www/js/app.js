@@ -93,15 +93,57 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         document.getElementById("searchArticles").click();
         return false;
     });
+    var keyPressHandled = false;
+    $('#prefix').on('keydown', function(e) {
+        if (/^Esc/.test(e.key)) {
+            // Hide the article list
+            e.preventDefault();
+            e.stopPropagation();
+            $('#articleListWithHeader').hide();
+            $('#articleContent').focus();
+            keyPressHandled = true;
+        }
+        // Keyboard selection code adapted from https://stackoverflow.com/a/14747926/9727685
+        if (/^((Arrow)?Down|(Arrow)?Up|Enter)$/.test(e.key)) {
+            // User pressed Down arrow or Up arrow or Enter
+            e.preventDefault();
+            e.stopPropagation();
+            // This is needed to prevent processing in the keyup event : https://stackoverflow.com/questions/9951274
+            keyPressHandled = true;
+            var activeElement = document.querySelector("#articleList .hover") || document.querySelector("#articleList a");
+            if (!activeElement) return;
+            if (/Enter/.test(e.key)) {
+                if (activeElement.classList.contains('hover')) {
+                    var dirEntryId = activeElement.getAttribute('dirEntryId');
+                    findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
+                    return;
+                }
+            }
+            if (/(Arrow)?Down/.test(e.key)) {
+                if (activeElement.classList.contains('hover')) {
+                    activeElement.classList.remove('hover');
+                    activeElement = activeElement.nextElementSibling || activeElement;
+                    var nextElement = activeElement.nextElementSibling || activeElement;
+                    if (!uiUtil.isElementInView(nextElement, true)) nextElement.scrollIntoView(false);
+                }
+            }
+            if (/(Arrow)?Up/.test(e.key)) {
+                activeElement.classList.remove('hover');
+                activeElement = activeElement.previousElementSibling || activeElement;
+                var previousElement = activeElement.previousElementSibling || activeElement;
+                if (!uiUtil.isElementInView(previousElement, true)) previousElement.scrollIntoView();
+                if (previousElement === activeElement) document.getElementById('top').scrollIntoView();
+            }
+            activeElement.classList.add('hover');
+            
+        }
+    });
     $('#prefix').on('keyup', function(e) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            if (/^Esc/.test(e.key)) {
-                // Hide the article list
-                $('#articleListWithHeader').hide();
-                $('#articleContent').focus();
-                return;
-            }
-            onKeyUpPrefix(e);
+            if (keyPressHandled)
+                keyPressHandled = false;
+            else
+                onKeyUpPrefix(e);
         }
     });
     $('#prefix').on('focus', function(e) {
@@ -807,7 +849,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function handleTitleClick(event) {       
         var dirEntryId = event.target.getAttribute("dirEntryId");
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
-        var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
         return false;
     }
     

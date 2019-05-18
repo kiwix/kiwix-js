@@ -73,6 +73,10 @@
     background: lightblue;
 }
 
+#articleList a:hover, #articleList a.hover {
+    background: lightblue;
+}
+
 .articleIFrame {
     width: 100%;
     border: 0;
