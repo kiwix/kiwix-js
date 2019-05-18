@@ -122,7 +122,7 @@
                     <br />
                     <h4>Step 2 : copy the content onto your device</h4>
                     If you have enough space, you can put several archives.
-                    <h4>Step 3 : open the extension, go to the "Configure" menu and select your ZIM file</h4>
+                    <h4>Step 3 : drag and drop the archive file into the open the app, or go to the "Configure" menu and select your ZIM file</h4>
                     <h4>Step 4 : enjoy Wikipedia offline!</h4>
                     <h3>Privacy policy</h3>
                     <h4>Short answer :</h4>
@@ -131,7 +131,7 @@
                     Anyway, if you think your Internet access can be watched and/or if you are paranoid, you should shut down your 3G and Wifi access before using the application.
                     <br />This application only reads the archive files of your device : it does not read any other files.
                     <h3>Feedback / helping / contributing</h3>
-                    This application is still a work in progress. There are many bugs and improvements that need to be done.
+                    This application is still work in progress. There may be bugs and issues, and new features are planned.
                     Suggestions and patches/pull requests are welcome : the source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">github</a>.
                     The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bugtracker</a> is on github too. We use it as our roadmap.
                     <br />Alternatively, you can send your feedback <a href="mailto:mossroy@mossroy.fr?subject=%5BKiwix%5D%20Feedback%20about%20Kiwix%20JS">by email</a>.
@@ -198,10 +198,13 @@
                         <div class="row">
                             <h2>Configuration</h2>
                             <div class="column">
-                                This application needs a ZIM archive to work. If you did not download one yet, please see the About section
+                                <p id="downloadInstruction">This application needs a ZIM archive to work. For download instructions, please see the About section</p>
+                                <div id="selectorsDisplay" style="display: none;">
+                                    <p>Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display file selectors</a></p>
+                                </div>
                                 <div id="openLocalFiles" style="display: none;">
-                                    Please select the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)<br />
-                                    <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.dat,.idx,.txt,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
+                                    <p>Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)</p>
+                                    <input type="file" id="archiveFiles" multiple class="btn" accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
                                     <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and some video-based ZIMs (e.g. TEDx) have been tested</strong>.
                                     Dynamic content is not currently supported in jQuery mode.<br />
                                 </div>

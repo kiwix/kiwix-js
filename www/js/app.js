@@ -61,6 +61,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     
+    // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
+    var globalDropZone = document.getElementById('search-article');
+    var configDropZone = document.getElementById('configuration');
+    
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
@@ -580,17 +584,78 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Displays the zone to select files from the archive
      */
     function displayFileSelect() {
-        $('#openLocalFiles').show();
-        $('#archiveFiles').on('change', setLocalArchiveFromFileSelect);
+        document.getElementById('openLocalFiles').style.display = 'block';
+        // Set the main drop zone
+        configDropZone.addEventListener('dragover', handleGlobalDragover);
+        configDropZone.addEventListener('dragleave', function(e) {
+            configDropZone.style.border = '';
+        });
+        // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
+        globalDropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
+            e.dataTransfer.dropEffect = 'link';
+        });
+        globalDropZone.addEventListener('drop', handleFileDrop);
+        // This handles use of the file picker
+        document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
 
+    function handleGlobalDragover(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'link';
+        configDropZone.style.border = '3px dotted red';
+    }
+
+    function handleIframeDragover(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'link';
+        document.getElementById('btnConfigure').click();
+    }
+
+    function handleIframeDrop(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+    }
+
+    function handleFileDrop(packet) {
+        packet.stopPropagation();
+        packet.preventDefault();
+        configDropZone.style.border = '';
+        var files = packet.dataTransfer.files;
+        document.getElementById('openLocalFiles').style.display = 'none';
+        document.getElementById('downloadInstruction').style.display = 'none';
+        document.getElementById('selectorsDisplay').style.display = 'inline';
+        setLocalArchiveFromFileList(files);
+        // This clears the display of any previously picked archive in the file selector
+        document.getElementById('archiveFiles').value = null;
+    }
+
+    // Add event listener to link which allows user to show file selectors
+    document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('openLocalFiles').style.display = 'block';
+        document.getElementById('selectorsDisplay').style.display = 'none';
+    });
+
     function setLocalArchiveFromFileList(files) {
+        // Check for usable file types
+        for (var i = files.length; i--;) {
+            // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
+            if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
+                alert("One or more files does not appear to be a ZIM file!");
+                return;
+            }
+        }
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
+            document.getElementById('downloadInstruction').style.display = 'none';
         });
     }
+
     /**
      * Sets the localArchive from the File selects populated by user
      */
@@ -768,10 +833,20 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#articleListHeaderMessage').empty();
                 $('#articleListWithHeader').hide();
                 $("#prefix").val("");
-                iframeArticleContent.onload = function () {
+                iframeArticleContent.onload = function() {
                     // The content is fully loaded by the browser : we can hide the spinner
-                    iframeArticleContent.onload = function () {};
                     $("#searchingArticles").hide();
+                    // Deflect drag-and-drop of ZIM file on the iframe to Config
+                    var doc = iframeArticleContent.contentDocument.documentElement;
+                    var docBody = doc ? doc.getElementsByTagName('body') : null;
+                    docBody = docBody ? docBody[0] : null;
+                    if (docBody) {
+                        docBody.addEventListener('dragover', handleIframeDragover);
+                        docBody.addEventListener('drop', handleIframeDrop);
+                    }
+                    iframeArticleContent.contentWindow.onunload = function() {
+                        $("#searchingArticles").show();
+                    };
                 };
                 iframeArticleContent.src = dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
                 // Display the iframe content
@@ -910,11 +985,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
+            
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
             articleContent.innerHTML = htmlArticle;
-            // Add any missing classes stripped from the <html> tag
-            if (htmlCSS) articleContent.getElementsByTagName('body')[0].classList.add(htmlCSS);
+            
+            var docBody = articleContent.getElementsByTagName('body');
+            docBody = docBody ? docBody[0] : null;
+            if (docBody) {
+                // Add any missing classes stripped from the <html> tag
+                if (htmlCSS) docBody.classList.add(htmlCSS);
+                // Deflect drag-and-drop of ZIM file on the iframe to Config
+                docBody.addEventListener('dragover', handleIframeDragover);
+                docBody.addEventListener('drop', handleIframeDrop);
+            }
+
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
             
