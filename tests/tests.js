@@ -327,7 +327,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/j/local.js", "URL is correct.");
-                    assert.equal(dirEntry.getMimetype(), "text/javascript", "MIME type is correct.");
+                    assert.equal(dirEntry.getMimetype(), "application/javascript", "MIME type is correct.");
                     localZimArchive.readBinaryFile(dirEntry, function(dirEntry, data) {
                         assert.equal(data.length, 41, "Data length is correct.");
                         data = utf8.parse(data);
