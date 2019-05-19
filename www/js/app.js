@@ -71,7 +71,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function resizeIFrame() {
         var height = $(window).outerHeight()
                 - $("#top").outerHeight(true)
-                - $("#articleListWithHeader").outerHeight(true)
                 // TODO : this 5 should be dynamically computed, and not hard-coded
                 - 5;
         $(".articleIFrame").css("height", height + "px");
@@ -96,8 +95,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     });
     $('#prefix').on('keyup', function(e) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
+            if (/^Esc/.test(e.key)) {
+                // Hide the article list
+                $('#articleListWithHeader').hide();
+                $('#articleContent').focus();
+                return;
+            }
             onKeyUpPrefix(e);
         }
+    });
+    $('#prefix').on('focus', function(e) {
+        if ($('#prefix').val() !== '') 
+            $('#articleListWithHeader').show();
+    });
+    $('#prefix').on('blur', function() {
+        $('#articleListWithHeader').hide();
     });
     $("#btnRandomArticle").on("click", function(e) {
         $('#prefix').val("");
@@ -777,7 +789,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
         }
         articleListDiv.html(articleListDivHtml);
-        $('#articleList a').on('click', handleTitleClick);
+        // We have to use mousedown below instead of click as otherwise the prefix blur event fires first 
+        // and prevents this event from firing; note that touch also triggers mousedown
+        $('#articleList a').on('mousedown', function (e) {
+            handleTitleClick(e);
+            return false;
+        });
         $('#searchingArticles').hide();
         $('#articleListWithHeader').show();
     }
