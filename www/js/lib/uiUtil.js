@@ -92,10 +92,10 @@ define([], function() {
      * @param {String} base The base ZIM URL of the currently loaded article (e.g. "A/" or "A/subdir1/subdir2/")
      * @returns {String} The derived ZIM URL in decoded form (e.g. "A/Einstein", "I/imágen.png")
      */
-    function deriveURL(url, base) {
+    function deriveZimUrlFromRelativeUrl(url, base) {
         // We use a dummy domain because URL API requires a valid URI
         var dummy = 'http://d/';
-        var derive = function(url, base) {
+        var deriveZimUrl = function(url, base) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');
@@ -104,8 +104,8 @@ define([], function() {
             a.href = url;
             return {pathname: a.href.replace(dummy, '')};            
         }; 
-        var newUrl = derive(url, dummy + base);
-        return decodeURIComponent(newUrl.pathname.replace(/^\//, ''));
+        var zimUrl = deriveZimUrl(url, dummy + base);
+        return decodeURIComponent(zimUrl.pathname.replace(/^\//, ''));
     }
 
     /**
@@ -205,7 +205,7 @@ define([], function() {
     return {
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
-        URL: deriveURL,
+        URL: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert
