@@ -97,7 +97,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var keyPressHandled = false;
     $('#prefix').on('keydown', function(e) {
         // If user presses Escape...
-        // (IE11 returns "Esc" and the other browsers "Escape"; regex below matches both)
+        // IE11 returns "Esc" and the other browsers "Escape"; regex below matches both
         if (/^Esc/.test(e.key)) {
             // Hide the article list
             e.preventDefault();
@@ -107,6 +107,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             keyPressHandled = true;
         }
         // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
+        // IE11 produces "Down" instead of "ArrowDown" and "Up" instead of "ArrowUp"
         if (/^((Arrow)?Down|(Arrow)?Up|Enter)$/.test(e.key)) {
             // User pressed Down arrow or Up arrow or Enter
             e.preventDefault();
@@ -123,8 +124,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     return;
                 }
             }
-            // If user presses ArrowDown (in IE11, we get "Down")...
-            if (/^(Arrow)?Down$/.test(e.key)) {
+            // If user presses ArrowDown...
+            // (NB selection is limited to five possibilities by regex above)
+            if (/Down/.test(e.key)) {
                 if (activeElement.classList.contains('hover')) {
                     activeElement.classList.remove('hover');
                     activeElement = activeElement.nextElementSibling || activeElement;
@@ -132,8 +134,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     if (!uiUtil.isElementInView(nextElement, true)) nextElement.scrollIntoView(false);
                 }
             }
-            // If user presses ArrowUp (in IE11, we get "Up")...
-            if (/^(Arrow)?Up$/.test(e.key)) {
+            // If user presses ArrowUp...
+            if (/Up/.test(e.key)) {
                 activeElement.classList.remove('hover');
                 activeElement = activeElement.previousElementSibling || activeElement;
                 var previousElement = activeElement.previousElementSibling || activeElement;
