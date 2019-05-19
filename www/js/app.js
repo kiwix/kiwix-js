@@ -937,13 +937,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var regexpPath = /^(.*\/)[^\/]+$/;
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /^[.\/]*([-ABIJMUVWX]\/.+)$/;
-    // Regex below finds images, scripts, stylesheets and media sources with ZIM-type metadata and image namespaces [kiwix-js #378]
+    // Regex below finds images, scripts, and stylesheets with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
     // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
     // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
     // remove any relative or absolute path from ZIM-style URLs.
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()" or "toggleOpenSection" (these strings are used widely
@@ -1028,6 +1028,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = "article.html";
 
+        // Calculate the current article's ZIM baseUrl to use when processing relative links
+        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
+
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
@@ -1075,9 +1078,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     }
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
-                    var base = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
                     anchor.addEventListener('click', function (e) {
-                        var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, base);
+                        var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                         goToArticle(zimUrl, downloadAttrValue, contentType);
                         e.preventDefault();
                     });
@@ -1197,29 +1199,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
-            Array.prototype.slice.call(iframe.querySelectorAll('video[data-kiwixurl], audio[data-kiwixurl], source[data-kiwixurl], track'))
+            Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function(mediaSource) {
-                var source = mediaSource.dataset.kiwixurl;
-                if (!source && mediaSource.src) {
-                    // Some ZIMs list text tracks as a relative link within the directory containing the article
-                    source = mediaSource.src.replace(regexpZIMUrlWithNamespace, '$1');
-                }
+                var source = mediaSource.getAttribute('src');
+                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
-                    console.error('No usable media source was found!');
+                    if (source) console.error('No usable media source was found for: ' + source);
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-                var mimeType = mediaSource.type;
-                // Check mimeType
-                if (!mimeType) {
-                    // Try to guess type from file extension
-                    var mediaType = mediaElement.tagName.toLowerCase();
-                    if (!/audio|video/i.test(mediaType)) mediaType = 'video';
-                    if (/track/i.test(mediaSource.tagName)) mediaType = 'text';
-                    mimeType = source.replace(/^.*\.([^.]+)$/, mediaType + '/$1');
-                }
                 selectedArchive.getDirEntryByTitle(decodeURIComponent(source)).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
+                        var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
                         mediaSource.src = URL.createObjectURL(blob);
                         // In Firefox and Chromium it is necessary to re-register the inserted media source
