@@ -1077,7 +1077,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // instead of following the link
                     var base = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
                     anchor.addEventListener('click', function (e) {
-                        var zimUrl = uiUtil.URL(uriComponent, base);
+                        var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, base);
                         goToArticle(zimUrl, downloadAttrValue, contentType);
                         e.preventDefault();
                     });

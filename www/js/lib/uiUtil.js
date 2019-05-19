@@ -102,8 +102,8 @@ define([], function() {
             d.head.innerHTML = '<base href="' + base + '">';
             var a = d.createElement('a');
             a.href = url;
-            return {pathname: a.href.replace(dummy, '')};            
-        }; 
+            return { pathname: a.href.replace(dummy, '') };
+        };
         var zimUrl = deriveZimUrl(url, dummy + base);
         return decodeURIComponent(zimUrl.pathname.replace(/^\//, ''));
     }
@@ -205,7 +205,7 @@ define([], function() {
     return {
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
-        URL: deriveZimUrlFromRelativeUrl,
+        deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert
