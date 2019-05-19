@@ -117,7 +117,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var activeElement = document.querySelector("#articleList .hover") || document.querySelector("#articleList a");
             if (!activeElement) return;
             // If user presses Enter, read the dirEntry
-            if (/^Enter$/.test(e.key)) {
+            if (/Enter/.test(e.key)) {
                 if (activeElement.classList.contains('hover')) {
                     var dirEntryId = activeElement.getAttribute('dirEntryId');
                     findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
