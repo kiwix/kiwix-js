@@ -103,10 +103,10 @@ module.exports = {
         "tunnel-identifier": TRAVIS_JOB_NUMBER
       }
     },
-    "edge42" : {
+    "edge44" : {
       "desiredCapabilities": {
         "browserName": "MicrosoftEdge",
-        "version": "17.17134",
+        "version": "18.17763",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "build": "build-" + TRAVIS_JOB_NUMBER,
