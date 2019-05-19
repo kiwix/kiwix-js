@@ -179,8 +179,10 @@ define([], function() {
      * Checks whether an element is partially or fully inside the current viewport
      * 
      * @param {Element} el The DOM element for which to check visibility
-     * @param {Boolean} fully If true, checks that the entire element is inside the viewport
-     * @returns {Boolean} True if the element is fully or partially inside the current viewport
+     * @param {Boolean} fully If true, checks that the entire element is inside the viewport; 
+     *          if false, checks whether any part of the element is inside the viewport
+     * @returns {Boolean} True if the element is fully or partially (depending on the value of <fully>)
+     *          inside the current viewport
      */
     function isElementInView(el, fully) {
         var rect = el.getBoundingClientRect();

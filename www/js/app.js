@@ -93,8 +93,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         document.getElementById("searchArticles").click();
         return false;
     });
+    // Handle keyboard events in the prefix (article search) field
     var keyPressHandled = false;
     $('#prefix').on('keydown', function(e) {
+        // If user presses Escape...
+        // (IE11 returns "Esc" and the other browsers "Escape"; regex below matches both)
         if (/^Esc/.test(e.key)) {
             // Hide the article list
             e.preventDefault();
@@ -103,7 +106,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleContent').focus();
             keyPressHandled = true;
         }
-        // Keyboard selection code adapted from https://stackoverflow.com/a/14747926/9727685
+        // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
         if (/^((Arrow)?Down|(Arrow)?Up|Enter)$/.test(e.key)) {
             // User pressed Down arrow or Up arrow or Enter
             e.preventDefault();
@@ -112,14 +115,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             keyPressHandled = true;
             var activeElement = document.querySelector("#articleList .hover") || document.querySelector("#articleList a");
             if (!activeElement) return;
-            if (/Enter/.test(e.key)) {
+            // If user presses Enter, read the dirEntry
+            if (/^Enter$/.test(e.key)) {
                 if (activeElement.classList.contains('hover')) {
                     var dirEntryId = activeElement.getAttribute('dirEntryId');
                     findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
                     return;
                 }
             }
-            if (/(Arrow)?Down/.test(e.key)) {
+            // If user presses ArrowDown (in IE11, we get "Down")...
+            if (/^(Arrow)?Down$/.test(e.key)) {
                 if (activeElement.classList.contains('hover')) {
                     activeElement.classList.remove('hover');
                     activeElement = activeElement.nextElementSibling || activeElement;
@@ -127,7 +132,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     if (!uiUtil.isElementInView(nextElement, true)) nextElement.scrollIntoView(false);
                 }
             }
-            if (/(Arrow)?Up/.test(e.key)) {
+            // If user presses ArrowUp (in IE11, we get "Up")...
+            if (/^(Arrow)?Up$/.test(e.key)) {
                 activeElement.classList.remove('hover');
                 activeElement = activeElement.previousElementSibling || activeElement;
                 var previousElement = activeElement.previousElementSibling || activeElement;
@@ -135,21 +141,24 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if (previousElement === activeElement) document.getElementById('top').scrollIntoView();
             }
             activeElement.classList.add('hover');
-            
         }
     });
+    // Search for titles as user types characters
     $('#prefix').on('keyup', function(e) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
+            // Prevent processing by keyup event if we already handled the keypress in keydown event
             if (keyPressHandled)
                 keyPressHandled = false;
             else
                 onKeyUpPrefix(e);
         }
     });
+    // Restore the search results if user goes back into prefix field
     $('#prefix').on('focus', function(e) {
         if ($('#prefix').val() !== '') 
             $('#articleListWithHeader').show();
     });
+    // Hide the search resutls if user moves out of prefix field
     $('#prefix').on('blur', function() {
         $('#articleListWithHeader').hide();
     });
