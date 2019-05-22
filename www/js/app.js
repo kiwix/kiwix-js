@@ -905,6 +905,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 iframeArticleContent.onload = function() {
                     // The content is fully loaded by the browser : we can hide the spinner
                     $("#searchingArticles").hide();
+                    // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
+                    iframeArticleContent.contentWindow.focus();
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
                     var doc = iframeArticleContent.contentDocument.documentElement;
                     var docBody = doc ? doc.getElementsByTagName('body') : null;
@@ -1054,6 +1056,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
+            // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
+            iframeArticleContent.contentWindow.focus();
             
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
@@ -1071,7 +1075,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
-            
+
             parseAnchorsJQuery();
             loadImagesJQuery();
             // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
