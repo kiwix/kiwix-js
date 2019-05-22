@@ -906,7 +906,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // The content is fully loaded by the browser : we can hide the spinner
                     $("#searchingArticles").hide();
                     // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
-                    iframeArticleContent.contentWindow.focus();
+                    if (!params.isLandingPage) iframeArticleContent.contentWindow.focus();
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
                     var doc = iframeArticleContent.contentDocument.documentElement;
                     var docBody = doc ? doc.getElementsByTagName('body') : null;
@@ -1058,7 +1058,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $("#prefix").val("");
             // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
             // NB Firefox requires this to be async, probably because the injection of the iframe is async
-            setTimeout(function(){
+            if (!params.isLandingPage) setTimeout(function() {
                 iframeArticleContent.contentWindow.focus();
             }, 1);
             
