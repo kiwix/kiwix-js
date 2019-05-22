@@ -1057,7 +1057,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
-            iframeArticleContent.contentWindow.focus();
+            // NB Firefox requires this to be async, probably because the injection of the iframe is async
+            setTimeout(function(){
+                iframeArticleContent.contentWindow.focus();
+            }, 1);
             
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
