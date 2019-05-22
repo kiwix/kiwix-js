@@ -1060,7 +1060,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // NB Firefox requires this to be async, probably because the injection of the iframe is async
             if (!params.isLandingPage) setTimeout(function() {
                 iframeArticleContent.contentWindow.focus();
-            }, 1);
+            }, 10);
             
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
