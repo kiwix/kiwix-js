@@ -872,8 +872,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
-            // Remove focus from search field to hide keyboard
-            $("#searchArticles").focus();
+            // Remove focus from search field to hide keyboard and to allow navigation keys to be used
+            document.getElementById('articleContent').contentWindow.focus();
             $("#searchingArticles").show();
             if (dirEntry.isRedirect()) {
                 selectedArchive.resolveRedirect(dirEntry, readArticle);
@@ -905,8 +905,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 iframeArticleContent.onload = function() {
                     // The content is fully loaded by the browser : we can hide the spinner
                     $("#searchingArticles").hide();
-                    // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
-                    if (!params.isLandingPage) iframeArticleContent.contentWindow.focus();
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
                     var doc = iframeArticleContent.contentDocument.documentElement;
                     var docBody = doc ? doc.getElementsByTagName('body') : null;
@@ -1056,11 +1054,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
-            // Place focus on document so that any mobile on-screen keyboard is removed and navigation keys work
-            // NB Firefox requires this to be async, probably because the injection of the iframe is async
-            if (!params.isLandingPage) setTimeout(function() {
-                iframeArticleContent.contentWindow.focus();
-            }, 10);
             
             // Inject the new article's HTML into the iframe
             var articleContent = iframeArticleContent.contentDocument.documentElement;
