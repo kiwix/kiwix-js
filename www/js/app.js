@@ -59,7 +59,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     // Set parameters and associated UI elements from cookie
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
+    params['imageDisplay'] = cookies.getItem('imageDisplayMode');
+    // Line below sets a default of true if there is no cookie entry for imageDisplayMode
+    params.imageDisplay = !params.imageDisplay ? true : params.imageDisplay === 'true';
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('imageDisplayModeCheck').checked = params.imageDisplay;
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -274,6 +278,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function (e) {
         params.hideActiveContentWarning = this.checked ? true : false;
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
+    });
+    $('input:checkbox[name=imageDisplayMode]').on('change', function (e) {
+        params.imageDisplay = this.checked ? true : false;
+        cookies.setItem('imageDisplayMode', params.imageDisplay, Infinity);
     });
 
     /**
@@ -1031,6 +1039,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
 
+        
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
         htmlCSS = htmlCSS ? htmlCSS[1] : '';
@@ -1141,21 +1150,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         
         function loadImagesJQuery() {
-            $('#articleContent').contents().find('body').find('img[data-kiwixurl]').each(function() {
-                var image = $(this);
-                var imageUrl = image.attr("data-kiwixurl");
-                var title = decodeURIComponent(imageUrl);
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                    selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        var mimetype = dirEntry.getMimetype();
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
-                    });
-                }).fail(function (e) {
-                    console.error("could not find DirEntry for image:" + title, e);
-                });
-            });
+            var imageNodes = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
+            if (!imageNodes.length) return;
+            if (params.imageDisplay) {
+                extractImages(imageNodes);
+            } else {
+                // User wishes to extract images manually
+                setupManualImageExtraction(imageNodes);
+            }
         }
-        
+
         function loadNoScriptTags() {
             // For each noscript tag, we replace it with its content, so that the browser interprets it
             $('#articleContent').contents().find('noscript').replaceWith(function () {
@@ -1276,6 +1280,54 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 });
             });
         }
+    }
+
+    /**
+     * Iterates over an array or collection of image nodes, extracting the image data from the ZIM
+     * and and inserting a BLOB URL to each image in the image's src attribute
+     * 
+     * @param {Object} images An array or collection of DOM image nodes
+     */
+    function extractImages (images) {
+        Array.prototype.slice.call(images).forEach(function (image) { 
+            var imageUrl = image.getAttribute('data-kiwixurl');
+            var title = decodeURIComponent(imageUrl);
+            selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                    var mimetype = dirEntry.getMimetype();
+                    uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+                    image.removeAttribute('data-kiwixurl');
+                });
+            }).fail(function(e) {
+                console.error('Could not find DirEntry for image: ' + title, e);
+                image.removeAttribute('data-kiwixurl');
+            });
+        });
+    }
+
+    /**
+     * Iterates over an array or collection of image nodes, preparing each node for manual image
+     * extraction when user taps the indicated area
+     * 
+     * @param {Object} images An array or collection of DOM image nodes
+     */
+    function setupManualImageExtraction (images) {
+        // NB we will be able to remove next two lines and associated variable below once we hav merged #496
+        var iframeDoc = document.getElementById('articleContent').contentDocument;
+        var treePath = iframeDoc.getElementsByTagName('base')[0].getAttribute('href').replace(/[^/]+\/(?:[^/]+$)?/g, "../");
+        Array.prototype.slice.call(images).forEach(function (image) {
+            var originalHeight = image.getAttribute('height');
+            //Ensure 36px clickable image height so user can request images by tapping
+            image.height = '36';
+            image.src = treePath + 'img/lightBlue.png';
+            image.setAttribute('style', 'color: lightblue; background-color: lightblue;');
+            image.dataset.kiwixheight = originalHeight;
+            image.addEventListener('click', function () {
+                image.height = image.dataset.kiwixheight;
+                image.style.background = "";
+                extractImages([image]);
+            });
+        });
     }
 
     /**

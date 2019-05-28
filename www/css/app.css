@@ -73,7 +73,7 @@
     background: lightblue;
 }
 
-#articleList a:hover, #articleList a.hover {
+#articleList a:hover, #articleList a.hover, .backgroundLightBlue {
     background: lightblue;
 }
 
