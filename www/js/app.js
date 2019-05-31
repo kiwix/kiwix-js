@@ -1316,14 +1316,15 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var iframeDoc = document.getElementById('articleContent').contentDocument;
         var treePath = iframeDoc.getElementsByTagName('base')[0].getAttribute('href').replace(/[^/]+\/(?:[^/]+$)?/g, "../");
         Array.prototype.slice.call(images).forEach(function (image) {
-            var originalHeight = image.getAttribute('height');
+            var originalHeight = image.getAttribute('height')||'';
             //Ensure 36px clickable image height so user can request images by tapping
             image.height = '36';
             image.src = treePath + 'img/lightBlue.png';
-            image.setAttribute('style', 'color: lightblue; background-color: lightblue;');
+            image.style.color = 'lightblue';
+            image.style.background = 'lightblue';
             image.dataset.kiwixheight = originalHeight;
             image.addEventListener('click', function () {
-                image.height = image.dataset.kiwixheight;
+                if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
                 image.style.background = "";
                 extractImages([image]);
             });
