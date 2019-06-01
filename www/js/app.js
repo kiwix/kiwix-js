@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, util, uiUtil, cookies, abstractFilesystemAccess, q) {
+define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, util, utf8, uiUtil, cookies, abstractFilesystemAccess, q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -921,11 +921,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         docBody.addEventListener('dragover', handleIframeDragover);
                         docBody.addEventListener('drop', handleIframeDrop);
                     }
+                    if (!params.imageDisplay) {
+                        var images = doc.querySelectorAll('img[data-kiwixurl]');
+                        if (images.length) { 
+                            setupManualImageExtraction(images);
+                        }                        
+                    }
                     iframeArticleContent.contentWindow.onunload = function() {
                         $("#searchingArticles").show();
                     };
                 };
-                iframeArticleContent.src = dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
+                iframeArticleContent.src = '../' + dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
                 // Display the iframe content
                 $("#articleContent").show();
             };
@@ -978,9 +984,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var mimetype = fileDirEntry.getMimetype();
+                            var html = processTransforms(content, fileDirEntry.getMimetype());
                             // Let's send the content to the ServiceWorker
-                            var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
-                            messagePort.postMessage(message, [content.buffer]);
+                            var message = { 'action': 'giveContent', 'title' : title, 'content': html || content.buffer };
+                            if (html) {
+                                messagePort.postMessage(message);    
+                            } else {
+                                messagePort.postMessage(message, [content.buffer]);
+                            }
                         });
                     }
                 };
@@ -1283,24 +1294,41 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
+     * Processes any data transforms for content received from the ZIM
+     * Currently only used to suppress the display of images in SW mode if the user has turned off
+     * image display in Config
+     * 
+     * @param {Uint8Array} data The binary content received from the ZIM file
+     * @param {String} mimeType The MIME type of the binary content
+     * @returns {null|String} Either null, if no transformation was made, or the transformed html
+     */
+    function processTransforms(data, mimeType) {
+        if (mimeType !== 'text/html' || params.imageDisplay) return null;
+        var html = utf8.parse(data);
+        // Prevent display of images
+        html = html.replace(/(<(?:img)\b[^>]*?\s)(?:src)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[IJ]\/)/ig, '$1data-kiwixurl$2');
+        return html;
+    }
+
+    /**
      * Iterates over an array or collection of image nodes, extracting the image data from the ZIM
      * and and inserting a BLOB URL to each image in the image's src attribute
      * 
      * @param {Object} images An array or collection of DOM image nodes
      */
-    function extractImages (images) {
-        Array.prototype.slice.call(images).forEach(function (image) { 
+    function extractImages(images) {
+        Array.prototype.slice.call(images).forEach(function (image) {
             var imageUrl = image.getAttribute('data-kiwixurl');
+            if (!imageUrl) return;
+            image.removeAttribute('data-kiwixurl');
             var title = decodeURIComponent(imageUrl);
-            selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+            selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
                 return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = dirEntry.getMimetype();
                     uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
-                    image.removeAttribute('data-kiwixurl');
                 });
-            }).fail(function(e) {
+            }).fail(function (e) {
                 console.error('Could not find DirEntry for image: ' + title, e);
-                image.removeAttribute('data-kiwixurl');
             });
         });
     }
@@ -1311,12 +1339,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * 
      * @param {Object} images An array or collection of DOM image nodes
      */
-    function setupManualImageExtraction (images) {
-        // NB we will be able to remove next two lines and associated variable below once we hav merged #496
+    function setupManualImageExtraction(images) {
         var iframeDoc = document.getElementById('articleContent').contentDocument;
-        var treePath = iframeDoc.getElementsByTagName('base')[0].getAttribute('href').replace(/[^/]+\/(?:[^/]+$)?/g, "../");
+        var treePath = contentInjectionMode === 'jquery' ?
+            iframeDoc.getElementsByTagName('base')[0].getAttribute('href').replace(/[^/]+\/(?:[^/]+$)?/g, "../") :
+            iframeDoc.head.baseURI.replace(/^.*?\/(A\/.*)$/, '$1').replace(/[^/]+\/(?:[^/]+$)?/g, "../") + 'www/';
         Array.prototype.slice.call(images).forEach(function (image) {
-            var originalHeight = image.getAttribute('height')||'';
+            var originalHeight = image.getAttribute('height') || '';
             //Ensure 36px clickable image height so user can request images by tapping
             image.height = '36';
             image.src = treePath + 'img/lightBlue.png';
@@ -1324,13 +1353,32 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             image.style.background = 'lightblue';
             image.dataset.kiwixheight = originalHeight;
             image.addEventListener('click', function () {
-                if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
-                image.style.background = "";
-                extractImages([image]);
+                var visibleImages = queueImages(images);
+                visibleImages.forEach(function (image) {
+                    if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
+                    image.style.background = "";
+                });
+                extractImages(visibleImages);
             });
         });
     }
 
+    /**
+     * Sorts an array or collection of image nodes, returning a list of those that are inside the visible viewport 
+     * 
+     * @param {Object} images An array or collection of DOÇM image nodes
+     * @returns {Array} An array of image nodes that are within the visible viewport 
+     */
+    function queueImages(images) {
+        var visibleImages = [];
+        for (var i = 0; i < images.length; i++) {
+            if (!images[i].dataset.kiwixurl) continue;
+            if (uiUtil.isElementInView(images[i])) {
+                visibleImages.push(images[i]);
+            }
+        }
+        return visibleImages;
+    }
     /**
      * Changes the URL of the browser page, so that the user might go back to it
      * 
