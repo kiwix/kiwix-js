@@ -1352,7 +1352,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
             image.style.color = 'lightblue';
             image.style.background = 'lightblue';
             image.dataset.kiwixheight = originalHeight;
-            image.addEventListener('click', function () {
+            image.addEventListener('mousedown', function (e) {
+                // If the image clicked on hasn't been extracted yet, cancel event bubbling, so that we don't navigate away from the
+                // article if the image is hyperlinked
+                if (image.dataset.kiwixurl) e.preventDefault();
                 var visibleImages = queueImages(images);
                 visibleImages.forEach(function (image) {
                     if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
