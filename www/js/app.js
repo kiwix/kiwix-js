@@ -937,13 +937,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var regexpPath = /^(.*\/)[^\/]+$/;
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /^[.\/]*([-ABIJMUVWX]\/.+)$/;
-    // Regex below finds images, scripts, and stylesheets with ZIM-type metadata and image namespaces [kiwix-js #378]
+    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
     // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
     // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
     // remove any relative or absolute path from ZIM-style URLs.
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()" or "toggleOpenSection" (these strings are used widely
@@ -1203,6 +1203,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             .forEach(function(mediaSource) {
                 var source = mediaSource.getAttribute('src');
                 source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
+                // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
+                source = source ? source : mediaSource.dataset.kiwixurl;
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
                     if (source) console.error('No usable media source was found for: ' + source);
                     return;
