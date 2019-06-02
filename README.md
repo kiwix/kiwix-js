@@ -47,7 +47,7 @@ The source code can be found at https://github.com/kiwix/kiwix-js
 Unit tests can be run by opening tests.html file on Firefox or Edge (or Chromium/Chrome with some tweaks).
 
 ## Public releases and nightly builds
-The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in https://download.kiwix.org/bin/browsers/ if necessary.
+The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in https://download.kiwix.org/release/browsers/ if necessary.
 
 Some nightly builds are generated, and should only be used for testing purpose : https://download.kiwix.org/nightly/
 
