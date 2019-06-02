@@ -967,11 +967,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
-                if (/<svg\s/i.test(title)) {
-                    var message = { 'action': 'giveContent', 'title' : 'Image', 'imageDisplay' : params.imageDisplay, 'content': title };
+
+                // If user has disabled image display, intercept image request and return an empty SVG:
+                // this avoids having broken placeholders showing in the browser window
+                if (!params.imageDisplay && /^[IJ]\//.test(title)) {
+                    var message = { 'action': 'giveContent', 'title' : title, 'mimetype' : 'image/svg+xml' };
+                    message.content = "<svg xmlns='http://www.w3.org/2000/svg'/>";
                     messagePort.postMessage(message);
                     return;
                 }
+
                 var readFile = function(dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
@@ -989,8 +994,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                         // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var mimetype = fileDirEntry.getMimetype();
+                            var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
-                            var message = { 'action': 'giveContent', 'title' : title, 'imageDisplay' : params.imageDisplay, 'content': content.buffer };
+                            var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 'mimetype': mimetype };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
