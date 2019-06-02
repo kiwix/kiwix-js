@@ -78,10 +78,6 @@ function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
             // The ServiceWorker will handle this request
-            
-            // Cancel fetch event if it is an image and images are not requested
-            if (!imageDisplay && /(?:^|\/)[IJ]\//.test(event.request.url)) return;
-            
             // Let's ask app.js for that content
             event.respondWith(new Promise(function(resolve, reject) {
                 var nameSpace;
@@ -96,6 +92,13 @@ function fetchEventListener(event) {
 
                 titleWithNameSpace = nameSpace + '/' + title;
 
+                // Intercept the image if user has disabled image display: this will force app.js to send back
+                // the svg string instead of looking for it in the ZIM, but the src will remain intact
+                if (!imageDisplay && /^[IJ]\//.test(titleWithNameSpace)) {
+                    titleWithNameSpace = "<svg xmlns='http://www.w3.org/2000/svg'/>";
+                    contentType = 'image/svg+xml';
+                }
+                
                 // Let's instanciate a new messageChannel, to allow app.s to give us the content
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = function(event) {

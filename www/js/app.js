@@ -967,7 +967,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
-                var readFile = function (dirEntry) {
+                if (/<svg\s/i.test(title)) {
+                    var message = { 'action': 'giveContent', 'title' : 'Image', 'imageDisplay' : params.imageDisplay, 'content': title };
+                    messagePort.postMessage(message);
+                    return;
+                }
+                var readFile = function(dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
                         messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': '' });
