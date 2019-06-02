@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, util, utf8, uiUtil, cookies, abstractFilesystemAccess, q) {
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, uiUtil, cookies, abstractFilesystemAccess, q) {
      
     /**
      * Maximum number of articles to display in a search
