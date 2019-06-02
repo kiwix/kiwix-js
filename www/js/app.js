@@ -988,14 +988,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Pattern to find the path in a url
     var regexpPath = /^(.*\/)[^\/]+$/;
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-    var regexpZIMUrlWithNamespace = /(?:^|\/)([-ABIJMUVWX]\/.+)/;
-    // Regex below finds images, scripts, stylesheets and media sources with ZIM-type metadata and image namespaces [kiwix-js #378]
+    var regexpZIMUrlWithNamespace = /^[.\/]*([-ABIJMUVWX]\/.+)$/;
+    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
     // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
     // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
     // remove any relative or absolute path from ZIM-style URLs.
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()" or "toggleOpenSection" (these strings are used widely
@@ -1030,12 +1030,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
 
-        // Compute base URL
-        var urlPath = regexpPath.test(dirEntry.url) ? urlPath = dirEntry.url.match(regexpPath)[1] : '';
-        var baseUrl = dirEntry.namespace + '/' + urlPath;
-
-        // Inject base tag into html
-        htmlArticle = htmlArticle.replace(/(<head[^>]*>\s*)/i, '$1<base href="' + baseUrl + '" />\r\n');
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
         htmlCSS = htmlCSS ? htmlCSS[1] : '';
@@ -1086,6 +1080,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = "article.html";
 
+        // Calculate the current article's ZIM baseUrl to use when processing relative links
+        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
+
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
@@ -1095,7 +1092,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
             var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
             var iframe = iframeArticleContent.contentDocument;
-            Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) { 
+            Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
                     var testHref = anchor.href;
@@ -1105,37 +1102,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 }
                 var href = anchor.getAttribute('href');
                 if (href === null || href === undefined) return;
-                // Compute current link's url (with its namespace), if applicable
-                // NB We need to access 'anchor.href' here because, unlike 'anchor.getAttribute("href")', it contains the fully qualified URL [kiwix-js #432]
-                var zimUrl = regexpZIMUrlWithNamespace.test(anchor.href) ? anchor.href.match(regexpZIMUrlWithNamespace)[1] : '';
                 if (href.length === 0) {
-                    // It's a link with an empty href, pointing to the current page.
-                    // Because of the base tag, we need to modify it
-                    anchor.addEventListener('click', function (e) {
-                        e.preventDefault();
-                    });
+                    // It's a link with an empty href, pointing to the current page: do nothing.
                 } else if (regexpLocalAnchorHref.test(href)) {
-                    // It's an anchor link : we need to make it work with javascript because of the base tag
-                    var anchorRef = href.replace(regexpLocalAnchorHref, '$1');
-                    // DEV: If jQuery mode ever supports JS-in-the-ZIM, the check for an onclick event may need to be revisited
-                    var onClickAttr = anchor.getAttribute('onclick');
-                    anchor.addEventListener('click', function (e) {
-                        var iframeWindow = document.getElementById('articleContent').contentWindow;
-                        if (anchorRef)
-                            iframeWindow.location.hash = anchorRef;
-                        else if (!onClickAttr)
-                            // It's just a single # and there is no onclick in the HTML, so scroll to top
-                            iframeWindow.scrollTo({ top: 0, behavior: 'smooth' });
-                        e.preventDefault();
-                    });
+                    // It's a local anchor link : remove escapedUrl if any (see above)
+                    anchor.setAttribute('href', href.replace(/^[^#]*/, ''));
                 } else if (anchor.protocol !== currentProtocol ||
                     anchor.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
                     anchor.target = '_blank';
                 } else {
                     // It's a link to an article or file in the ZIM
-                    var uriComponent = uiUtil.removeUrlParameters(zimUrl);
-                    var decodedURL = decodeURIComponent(uriComponent);
+                    var uriComponent = uiUtil.removeUrlParameters(href);
                     var contentType;
                     var downloadAttrValue;
                     // Some file types need to be downloaded rather than displayed (e.g. *.epub)
@@ -1149,11 +1127,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
                         downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
                         contentType = anchor.getAttribute('type');
-                    }    
+                    }
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     anchor.addEventListener('click', function (e) {
-                        goToArticle(decodedURL, downloadAttrValue, contentType);
+                        var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+                        goToArticle(zimUrl, downloadAttrValue, contentType);
                         e.preventDefault();
                     });
                 }
@@ -1272,29 +1251,20 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
-            Array.prototype.slice.call(iframe.querySelectorAll('video[data-kiwixurl], audio[data-kiwixurl], source[data-kiwixurl], track'))
+            Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function(mediaSource) {
-                var source = mediaSource.dataset.kiwixurl;
-                if (!source && mediaSource.src) {
-                    // Some ZIMs list text tracks as a relative link within the directory containing the article
-                    source = regexpZIMUrlWithNamespace.test(mediaSource.src) ? mediaSource.src.match(regexpZIMUrlWithNamespace)[1] : source;
-                }
+                var source = mediaSource.getAttribute('src');
+                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
+                // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
+                source = source ? source : mediaSource.dataset.kiwixurl;
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
-                    console.error('No usable media source was found!');
+                    if (source) console.error('No usable media source was found for: ' + source);
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-                var mimeType = mediaSource.type;
-                // Check mimeType
-                if (!mimeType) {
-                    // Try to guess type from file extension
-                    var mediaType = mediaElement.tagName.toLowerCase();
-                    if (!/audio|video/i.test(mediaType)) mediaType = 'video';
-                    if (/track/i.test(mediaSource.tagName)) mediaType = 'text';
-                    mimeType = source.replace(/^.*\.([^.]+)$/, mediaType + '/$1');
-                }
                 selectedArchive.getDirEntryByTitle(decodeURIComponent(source)).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
+                        var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
                         mediaSource.src = URL.createObjectURL(blob);
                         // In Firefox and Chromium it is necessary to re-register the inserted media source
