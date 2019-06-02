@@ -1318,16 +1318,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * @param {Object} images An array or collection of DOM image nodes
      */
     function setupManualImageExtraction(images) {
-        var iframeDoc = document.getElementById('articleContent').contentDocument;
-        var treePath = contentInjectionMode === 'jquery' ?
-            iframeDoc.getElementsByTagName('base')[0].getAttribute('href').replace(/[^/]+\/(?:[^/]+$)?/g, "../") :
-            iframeDoc.head.baseURI.replace(/^.*?\/(A\/.*)$/, '$1').replace(/[^/]+\/(?:[^/]+$)?/g, "../") + 'www/';
         Array.prototype.slice.call(images).forEach(function (image) {
             var originalHeight = image.getAttribute('height') || '';
             //Ensure 36px clickable image height so user can request images by tapping
             image.height = '36';
-            image.src = treePath + 'img/lightBlue.png';
-            image.style.color = 'lightblue';
+            image.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
             image.style.background = 'lightblue';
             image.dataset.kiwixheight = originalHeight;
             image.addEventListener('mousedown', function (e) {
@@ -1338,7 +1333,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 visibleImages.forEach(function (image) {
                     if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
                     image.style.background = '';
-                    image.style.color = '';
                 });
                 extractImages(visibleImages);
             });
