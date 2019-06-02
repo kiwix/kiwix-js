@@ -161,13 +161,7 @@ define([], function() {
         '    <span id="alertMessage"></span>' +
         '</div>';
         // Download code adapted from https://stackoverflow.com/a/19230668/9727685 
-        if (!contentType) {
-            // DEV: Add more contentTypes here for downloadable files
-            if (/\.epub$/.test(title)) contentType = 'application/epub+zip';
-            if (/\.pdf$/.test(title)) contentType = 'application/pdf';
-            if (/\.zip$/.test(title)) contentType = 'application/zip';
-        }
-        // Set default contentType if there has been no match
+        // Set default contentType if none was provided
         if (!contentType) contentType = 'application/octet-stream';
         var a = document.createElement('a');
         var blob = new Blob([content], { 'type': contentType });

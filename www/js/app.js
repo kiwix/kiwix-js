@@ -1323,6 +1323,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 alert("Article with title " + title + " not found in the archive");
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                    var mimetype = contentType || fileDirEntry.getMimetype();
                     uiUtil.displayFileDownloadAlert(title, download, contentType, content);
                 });
             } else {
