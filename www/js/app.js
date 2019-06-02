@@ -1337,7 +1337,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
                 var visibleImages = queueImages(images);
                 visibleImages.forEach(function (image) {
                     if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
-                    image.style.background = "";
+                    image.style.background = '';
+                    image.style.color = '';
                 });
                 extractImages(visibleImages);
             });
@@ -1347,7 +1348,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
     /**
      * Sorts an array or collection of image nodes, returning a list of those that are inside the visible viewport 
      * 
-     * @param {Object} images An array or collection of DOÇM image nodes
+     * @param {Object} images An array or collection of DOM image nodes
      * @returns {Array} An array of image nodes that are within the visible viewport 
      */
     function queueImages(images) {
@@ -1369,7 +1370,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
     function loadImagesServiceWorker (images) {
         var zimImages = [];
         images.forEach(function (image) {
-            if (/(?:^|\/)[IJ]\//.test(image.src)) {
+            if (/(^|\/)[IJ]\//.test(image.src)) {
                 image.dataset.kiwixurl = image.getAttribute('src').replace(/^[./]*?([IJ]\/)/, '$1');
                 image.src = '';
                 zimImages.push(image);
