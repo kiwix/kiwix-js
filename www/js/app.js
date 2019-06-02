@@ -970,7 +970,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
 
                 // If user has disabled image display, intercept image request and return an empty SVG:
                 // this avoids having broken placeholders showing in the browser window
-                if (!params.imageDisplay && /^[IJ]\//.test(title) && !/\.(webm|mp4|og[mvg])/i.test(title)) {
+                if (!params.imageDisplay && /^[IJ]\//.test(title) && !/\.(webm|mp4|og[mvg])$/i.test(title)) {
                     var message = { 'action': 'giveContent', 'title' : title, 'mimetype' : 'image/svg+xml' };
                     message.content = "<svg xmlns='http://www.w3.org/2000/svg'/>";
                     messagePort.postMessage(message);
@@ -1339,10 +1339,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             image.addEventListener('mousedown', function (e) {
                 // If the image clicked on hasn't been extracted yet, cancel event bubbling, so that we don't navigate away from the
                 // article if the image is hyperlinked
-                if (image.dataset.kiwixurl) e.preventDefault();
+                if (image.dataset.kiwixurl) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
                 var visibleImages = queueImages(images);
                 visibleImages.forEach(function (image) {
-                    if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
+                    if (image.dataset.kiwixheight)
+                        image.height = image.dataset.kiwixheight;
+                    else image.removeAttribute('height');
                     image.style.background = '';
                 });
                 extractImages(visibleImages);
