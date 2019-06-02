@@ -940,7 +940,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     /**
      * Function that handles a message of the messageChannel.
      * It tries to read the content in the backend, and sends it back to the ServiceWorker
-     * @param {Event} event
+     * 
+     * @param {Event} event The event object of the message channel
      */
     function handleMessageChannelMessage(event) {
         if (event.data.error) {
@@ -952,33 +953,33 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
-                var readFile = function(dirEntry) {
+                var readFile = function (dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
-                        messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': ''});
+                        messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': '' });
                     } else if (dirEntry.isRedirect()) {
-                        selectedArchive.resolveRedirect(dirEntry, function(resolvedDirEntry) {
-                            var redirectURL = resolvedDirEntry.namespace + "/" +resolvedDirEntry.url;
+                        selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+                            var redirectURL = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
                             // Ask the ServiceWork to send an HTTP redirect to the browser.
                             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
                             // Else, if the redirect URL is in a different directory than the original URL,
                             // the relative links in the HTML content would fail. See #312
-                            messagePort.postMessage({'action':'sendRedirect', 'title':title, 'redirectUrl': redirectURL});
+                            messagePort.postMessage({ 'action': 'sendRedirect', 'title': title, 'redirectUrl': redirectURL });
                         });
                     } else {
                         // Let's read the content in the ZIM file
-                        selectedArchive.readBinaryFile(dirEntry, function(fileDirEntry, content) {
+                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                            var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
-                            var message = {'action': 'giveContent', 'title' : title, 'content': content.buffer};
+                            var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
                 };
-                selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function() {
-                    messagePort.postMessage({'action': 'giveContent', 'title' : title, 'content': new UInt8Array()});
+                selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function () {
+                    messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new UInt8Array() });
                 });
-            }
-            else {
+            } else {
                 console.error("Invalid message received", event.data);
             }
         }
