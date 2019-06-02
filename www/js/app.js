@@ -970,7 +970,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
 
                 // If user has disabled image display, intercept image request and return an empty SVG:
                 // this avoids having broken placeholders showing in the browser window
-                if (!params.imageDisplay && /^[IJ]\//.test(title)) {
+                if (!params.imageDisplay && /^[IJ]\//.test(title) && !/\.(webm|mp4|og[mvg])/i.test(title)) {
                     var message = { 'action': 'giveContent', 'title' : title, 'mimetype' : 'image/svg+xml' };
                     message.content = "<svg xmlns='http://www.w3.org/2000/svg'/>";
                     messagePort.postMessage(message);
