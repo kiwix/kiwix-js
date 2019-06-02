@@ -922,9 +922,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
                         docBody.addEventListener('drop', handleIframeDrop);
                     }
                     if (!params.imageDisplay) {
-                        var images = doc.querySelectorAll('img[data-kiwixurl]');
+                        var images = doc.querySelectorAll('img');
                         if (images.length) { 
-                            setupManualImageExtraction(images);
+                            loadImagesServiceWorker(images);
                         }                        
                     }
                     iframeArticleContent.contentWindow.onunload = function() {
@@ -984,14 +984,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
                         // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var mimetype = fileDirEntry.getMimetype();
-                            var html = processTransforms(content, fileDirEntry.getMimetype());
                             // Let's send the content to the ServiceWorker
-                            var message = { 'action': 'giveContent', 'title' : title, 'content': html || content.buffer };
-                            if (html) {
-                                messagePort.postMessage(message);    
-                            } else {
-                                messagePort.postMessage(message, [content.buffer]);
-                            }
+                            var message = { 'action': 'giveContent', 'title' : title, 'imageDisplay' : params.imageDisplay, 'content': content.buffer };
+                            messagePort.postMessage(message, [content.buffer]);
                         });
                     }
                 };
@@ -1294,23 +1289,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
     }
 
     /**
-     * Processes any data transforms for content received from the ZIM
-     * Currently only used to suppress the display of images in SW mode if the user has turned off
-     * image display in Config
-     * 
-     * @param {Uint8Array} data The binary content received from the ZIM file
-     * @param {String} mimeType The MIME type of the binary content
-     * @returns {null|String} Either null, if no transformation was made, or the transformed html
-     */
-    function processTransforms(data, mimeType) {
-        if (mimeType !== 'text/html' || params.imageDisplay) return null;
-        var html = utf8.parse(data);
-        // Prevent display of images
-        html = html.replace(/(<(?:img)\b[^>]*?\s)(?:src)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[IJ]\/)/ig, '$1data-kiwixurl$2');
-        return html;
-    }
-
-    /**
      * Iterates over an array or collection of image nodes, extracting the image data from the ZIM
      * and and inserting a BLOB URL to each image in the image's src attribute
      * 
@@ -1382,6 +1360,24 @@ define(['jquery', 'zimArchiveLoader', 'util', 'utf8', 'uiUtil', 'cookies','abstr
         }
         return visibleImages;
     }
+
+    /**
+     * Prepares an array or collection of image nodes that have been disabled in Service Worker for manual extraction
+     * 
+     * @param {Object} images An array or collection of DOM image nodes
+     */
+    function loadImagesServiceWorker (images) {
+        var zimImages = [];
+        images.forEach(function (image) {
+            if (/(?:^|\/)[IJ]\//.test(image.src)) {
+                image.dataset.kiwixurl = image.getAttribute('src').replace(/^[./]*?([IJ]\/)/, '$1');
+                image.src = '';
+                zimImages.push(image);
+            }
+        });
+        setupManualImageExtraction(zimImages);
+    }
+
     /**
      * Changes the URL of the browser page, so that the user might go back to it
      * 

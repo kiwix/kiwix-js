@@ -23,6 +23,8 @@
  */
 'use strict';
 
+var imageDisplay;
+
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
 });
@@ -76,6 +78,10 @@ function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
             // The ServiceWorker will handle this request
+            
+            // Cancel fetch event if it is an image and images are not requested
+            if (!imageDisplay && /(?:^|\/)[IJ]\//.test(event.request.url)) return;
+            
             // Let's ask app.js for that content
             event.respondWith(new Promise(function(resolve, reject) {
                 var nameSpace;
