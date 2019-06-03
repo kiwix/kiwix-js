@@ -1328,22 +1328,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             var originalHeight = image.getAttribute('height') || '';
             //Ensure 36px clickable image height so user can request images by tapping
             image.height = '36';
-            if (contentInjectionMode ==='jquery') image.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
-            image.style.background = 'lightblue';
+            if (contentInjectionMode ==='jquery') {
+                image.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+                image.style.background = 'lightblue';
+            }
             image.dataset.kiwixheight = originalHeight;
             image.addEventListener('click', function (e) {
-                // If the image clicked on hasn't been extracted yet, cancel event bubbling, so that we don't navigate away from the
-                // article if the image is hyperlinked
+                // If the image clicked on hasn't been extracted yet, cancel event bubbling, so that we don't navigate
+                // away from the article if the image is hyperlinked
                 if (image.dataset.kiwixurl) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
                 var visibleImages = queueImages(images);
                 visibleImages.forEach(function (image) {
-                    if (image.dataset.kiwixheight)
-                        image.height = image.dataset.kiwixheight;
+                    if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
                     else image.removeAttribute('height');
-                    image.style.background = '';
+                    if (contentInjectionMode ==='jquery') image.style.background = '';
                 });
                 extractImages(visibleImages);
             });
@@ -1378,7 +1379,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             // DEV: make sure list of file types here is the same as the list in Service Worker code
             if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)$/i.test(image.src)) {
                 image.dataset.kiwixurl = image.getAttribute('src');
-                image.src = '';
                 zimImages.push(image);
             }
         });

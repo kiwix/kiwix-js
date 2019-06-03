@@ -88,7 +88,7 @@ function fetchEventListener(event) {
             // the image will be fetched by app.js  
             // DEV: If you need to hide more image types, add them to regex below
             if (!imageDisplay && /\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
-                event.respondWith(new Response("<svg xmlns='http://www.w3.org/2000/svg'/>", 
+                event.respondWith(new Response("<svg  xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue' /></svg>", 
                     { headers: { 'Content-Type': 'image/svg+xml' } }
                 ));
                 return;
