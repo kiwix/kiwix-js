@@ -1331,7 +1331,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             image.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
             image.style.background = 'lightblue';
             image.dataset.kiwixheight = originalHeight;
-            image.addEventListener('mousedown', function (e) {
+            image.addEventListener('click', function (e) {
                 // If the image clicked on hasn't been extracted yet, cancel event bubbling, so that we don't navigate away from the
                 // article if the image is hyperlinked
                 if (image.dataset.kiwixurl) {
