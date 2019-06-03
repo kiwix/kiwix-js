@@ -21,7 +21,6 @@
  */
 'use strict';
 define([], function() {
-
     
     /**
      * Creates a BLOB from the given content, then a URL from this BLOB

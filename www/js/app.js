@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, uiUtil, cookies, abstractFilesystemAccess, q) {
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, uiUtil, images, cookies, abstractFilesystemAccess, q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -427,6 +427,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
+        images.setContentInjectionMode(contentInjectionMode);
         // Save the value in a cookie, so that to be able to keep it after a reload/restart
         cookies.setItem('lastContentInjectionMode', value, Infinity);
     }
@@ -922,9 +923,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                         docBody.addEventListener('drop', handleIframeDrop);
                     }
                     if (!params.imageDisplay) {
-                        var images = doc.querySelectorAll('img');
-                        if (images.length) { 
-                            prepareImagesServiceWorker(images);
+                        var imageList = doc.querySelectorAll('img');
+                        if (imageList.length) { 
+                            images.prepareImagesServiceWorker(imageList);
                         }                        
                     }
                     iframeArticleContent.contentWindow.onunload = function() {
@@ -1161,10 +1162,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             var imageNodes = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
             if (!imageNodes.length) return;
             if (params.imageDisplay) {
-                extractImages(imageNodes);
+                // We have to pass the selectedArchive to the images module
+                images.extractImages(imageNodes, selectedArchive);
             } else {
                 // User wishes to extract images manually
-                setupManualImageExtraction(imageNodes);
+                images.setupManualImageExtraction(imageNodes, selectedArchive);
             }
         }
 
@@ -1291,104 +1293,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
     }
 
     /**
-     * Iterates over an array or collection of image nodes, extracting the image data from the ZIM
-     * and inserting a BLOB URL to each image in the image's src attribute
-     * 
-     * @param {Object} images An array or collection of DOM image nodes
-     */
-    function extractImages(images) {
-        Array.prototype.slice.call(images).forEach(function (image) {
-            var imageUrl = image.getAttribute('data-kiwixurl');
-            if (!imageUrl) return;
-            image.removeAttribute('data-kiwixurl');
-            var title = decodeURIComponent(imageUrl);
-            if (contentInjectionMode === 'serviceworker') {
-                image.src = imageUrl + '?kiwix-display';
-            } else {
-                selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
-                    return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        image.style.background = '';
-                        var mimetype = dirEntry.getMimetype();
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
-                    });
-                }).fail(function (e) {
-                    console.error('Could not find DirEntry for image: ' + title, e);
-                });
-            }
-        });
-    }
-
-    /**
-     * Iterates over an array or collection of image nodes, preparing each node for manual image
-     * extraction when user taps the indicated area
-     * 
-     * @param {Object} images An array or collection of DOM image nodes
-     */
-    function setupManualImageExtraction(images) {
-        Array.prototype.slice.call(images).forEach(function (image) {
-            var originalHeight = image.getAttribute('height') || '';
-            //Ensure 36px clickable image height so user can request images by tapping
-            image.height = '36';
-            if (contentInjectionMode ==='jquery') {
-                image.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
-                image.style.background = 'lightblue';
-            }
-            image.dataset.kiwixheight = originalHeight;
-            image.addEventListener('click', function (e) {
-                // If the image clicked on hasn't been extracted yet, cancel event bubbling, so that we don't navigate
-                // away from the article if the image is hyperlinked
-                if (image.dataset.kiwixurl) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-                var visibleImages = queueImages(images);
-                visibleImages.forEach(function (image) {
-                    if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
-                    else image.removeAttribute('height');
-                    // Line below provides a visual indication to users of slow browsers that their click has been registered and
-                    // images are being fetched; this is not necessary in SW mode because SW is only supported by faster browsers
-                    if (contentInjectionMode ==='jquery') image.style.background = 'lightgray';
-                });
-                extractImages(visibleImages);
-            });
-        });
-    }
-
-    /**
-     * Sorts an array or collection of image nodes, returning a list of those that are inside the visible viewport 
-     * 
-     * @param {Object} images An array or collection of DOM image nodes
-     * @returns {Array} An array of image nodes that are within the visible viewport 
-     */
-    function queueImages(images) {
-        var visibleImages = [];
-        for (var i = 0; i < images.length; i++) {
-            if (!images[i].dataset.kiwixurl) continue;
-            if (uiUtil.isElementInView(images[i])) {
-                visibleImages.push(images[i]);
-            }
-        }
-        return visibleImages;
-    }
-
-    /**
-     * Prepares an array or collection of image nodes that have been disabled in Service Worker for manual extraction
-     * 
-     * @param {Object} images An array or collection of DOM image nodes
-     */
-    function prepareImagesServiceWorker (images) {
-        var zimImages = [];
-        images.forEach(function (image) {
-            // DEV: make sure list of file types here is the same as the list in Service Worker code
-            if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])/i.test(image.src)) {
-                image.dataset.kiwixurl = image.getAttribute('src');
-                zimImages.push(image);
-            }
-        });
-        setupManualImageExtraction(zimImages);
-    }
-
-    /**
      * Changes the URL of the browser page, so that the user might go back to it
      * 
      * @param {String} title
@@ -1415,7 +1319,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         }
         window.history.pushState(stateObj, stateLabel, urlParameters);
     }
-
 
     /**
      * Extracts the content of the given article title, or a downloadable file, from the ZIM
