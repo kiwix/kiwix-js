@@ -1292,7 +1292,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
 
     /**
      * Iterates over an array or collection of image nodes, extracting the image data from the ZIM
-     * and and inserting a BLOB URL to each image in the image's src attribute
+     * and inserting a BLOB URL to each image in the image's src attribute
      * 
      * @param {Object} images An array or collection of DOM image nodes
      */

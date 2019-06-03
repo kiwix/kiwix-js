@@ -84,9 +84,9 @@ function fetchEventListener(event) {
             // The ServiceWorker will handle this request
 
             // If the user has disabled the display of images, and the browser wants an image, respond with empty SVG
-            // N.B. A URL with "?kiwix-display" query string acts as a passthrough so that the regex will not match and
+            // A URL with "?kiwix-display" query string acts as a passthrough so that the regex will not match and
             // the image will be fetched by app.js  
-            // DEV: If you need to hide more image types, add them to regex below
+            // DEV: If you need to hide more image types, add them to regex below and also edit equivalent regex in app.js
             if (!imageDisplay && /(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
                 event.respondWith(new Response("<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue'/></svg>", 
                     { headers: { 'Content-Type': 'image/svg+xml' } }
