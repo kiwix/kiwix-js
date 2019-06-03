@@ -1307,6 +1307,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             } else {
                 selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                        image.style.background = '';
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
                     });
@@ -1344,7 +1345,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 visibleImages.forEach(function (image) {
                     if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
                     else image.removeAttribute('height');
-                    if (contentInjectionMode ==='jquery') image.style.background = '';
                 });
                 extractImages(visibleImages);
             });
@@ -1377,7 +1377,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         var zimImages = [];
         images.forEach(function (image) {
             // DEV: make sure list of file types here is the same as the list in Service Worker code
-            if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)$/i.test(image.src)) {
+            if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])/i.test(image.src)) {
                 image.dataset.kiwixurl = image.getAttribute('src');
                 zimImages.push(image);
             }
