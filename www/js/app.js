@@ -1328,7 +1328,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             var originalHeight = image.getAttribute('height') || '';
             //Ensure 36px clickable image height so user can request images by tapping
             image.height = '36';
-            image.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+            if (contentInjectionMode ==='jquery') image.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
             image.style.background = 'lightblue';
             image.dataset.kiwixheight = originalHeight;
             image.addEventListener('click', function (e) {
@@ -1376,7 +1376,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         var zimImages = [];
         images.forEach(function (image) {
             // DEV: make sure list of file types here is the same as the list in Service Worker code
-            if (/(^|\/)[IJ]\/.*?\.(jpe?g|png|svg|gif)$/i.test(image.src)) {
+            if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)$/i.test(image.src)) {
                 image.dataset.kiwixurl = image.getAttribute('src');
                 image.src = '';
                 zimImages.push(image);
