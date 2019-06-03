@@ -1345,6 +1345,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 visibleImages.forEach(function (image) {
                     if (image.dataset.kiwixheight) image.height = image.dataset.kiwixheight;
                     else image.removeAttribute('height');
+                    // Line below provides a visual indication to users of slow browsers that their click has been registered and
+                    // images are being fetched; this is not necessary in SW mode because SW is only supported by faster browsers
+                    if (contentInjectionMode ==='jquery') image.style.background = 'lightgray';
                 });
                 extractImages(visibleImages);
             });
