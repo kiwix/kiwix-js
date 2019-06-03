@@ -23,6 +23,12 @@
  */
 'use strict';
 
+/**
+ * A global Boolean that governs whether images are displayed
+ * app.js can alter this variable via messaging
+ */
+var imageDisplay = true;
+
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
 });
@@ -76,6 +82,18 @@ function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
         if (regexpZIMUrlWithNamespace.test(event.request.url)) {
             // The ServiceWorker will handle this request
+
+            // If the user has disabled the display of images, and the browser wants an image, respond with empty SVG
+            // N.B. A URL with "?kiwix-display" query string acts as a passthrough so that the regex will not match and
+            // the image will be fetched by app.js  
+            // DEV: If you need to hide more image types, add them to regex below
+            if (!imageDisplay && /\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
+                event.respondWith(new Response("<svg xmlns='http://www.w3.org/2000/svg'/>", 
+                    { headers: { 'Content-Type': 'image/svg+xml' } }
+                ));
+                return;
+            }
+
             // Let's ask app.js for that content
             event.respondWith(new Promise(function(resolve, reject) {
                 var nameSpace;
@@ -98,6 +116,9 @@ function fetchEventListener(event) {
                         var contentLength = event.data.content ? event.data.content.byteLength : null;
                         var contentType = event.data.mimetype;
                         var contentType = event.data.mimetype;
+                        // Set the imageDisplay variable if it has been sent in the event data
+                        imageDisplay = typeof event.data.imageDisplay !== 'undefined' ? 
+                            event.data.imageDisplay : imageDisplay;
                         var headers = new Headers ();
                         if (contentLength) headers.set('Content-Length', contentLength);
                         if (contentType) headers.set('Content-Type', contentType);

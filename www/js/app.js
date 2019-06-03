@@ -924,7 +924,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                     if (!params.imageDisplay) {
                         var images = doc.querySelectorAll('img');
                         if (images.length) { 
-                            loadImagesServiceWorker(images);
+                            prepareImagesServiceWorker(images);
                         }                        
                     }
                     iframeArticleContent.contentWindow.onunload = function() {
@@ -1297,16 +1297,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * @param {Object} images An array or collection of DOM image nodes
      */
     function extractImages(images) {
-        var iframeDoc = document.getElementById('articleContent').contentDocument;
-        var treePath = iframeDoc.head.baseURI.replace(/^.*?\/(A\/.*)$/, '$1').replace(/[^/]+\/(?:[^/]+$)?/g, "../") + 'www/';
         Array.prototype.slice.call(images).forEach(function (image) {
             var imageUrl = image.getAttribute('data-kiwixurl');
             if (!imageUrl) return;
             image.removeAttribute('data-kiwixurl');
             var title = decodeURIComponent(imageUrl);
             if (contentInjectionMode === 'serviceworker') {
-                params.imageDisplay = true;
-                image.src = treePath + imageUrl;
+                image.src = imageUrl + '?kiwix-display';
             } else {
                 selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
@@ -1375,11 +1372,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * 
      * @param {Object} images An array or collection of DOM image nodes
      */
-    function loadImagesServiceWorker (images) {
+    function prepareImagesServiceWorker (images) {
         var zimImages = [];
         images.forEach(function (image) {
-            if (/(^|\/)[IJ]\//.test(image.src)) {
-                image.dataset.kiwixurl = image.getAttribute('src').replace(/^[./]*?([IJ]\/)/, '$1');
+            // DEV: make sure list of file types here is the same as the list in Service Worker code
+            if (/(^|\/)[IJ]\/.*?\.(jpe?g|png|svg|gif)$/i.test(image.src)) {
+                image.dataset.kiwixurl = image.getAttribute('src');
                 image.src = '';
                 zimImages.push(image);
             }
