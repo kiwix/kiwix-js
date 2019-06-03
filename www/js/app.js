@@ -967,16 +967,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
-
-                // If user has disabled image display, intercept image request and return an empty SVG:
-                // this avoids having broken placeholders showing in the browser window
-                if (!params.imageDisplay && /^[IJ]\//.test(title) && !/\.(webm|mp4|og[mvg]|epub|zip|pdf])$/i.test(title)) {
-                    var message = { 'action': 'giveContent', 'title' : title, 'mimetype' : 'image/svg+xml' };
-                    message.content = "<svg xmlns='http://www.w3.org/2000/svg'/>";
-                    messagePort.postMessage(message);
-                    return;
-                }
-
                 var readFile = function(dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
@@ -996,7 +986,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                             var mimetype = fileDirEntry.getMimetype();
                             var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
-                            var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 'mimetype': mimetype };
+                            var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 
+                                'mimetype': mimetype, 'imageDisplay': params.imageDisplay };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
@@ -1306,19 +1297,26 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * @param {Object} images An array or collection of DOM image nodes
      */
     function extractImages(images) {
+        var iframeDoc = document.getElementById('articleContent').contentDocument;
+        var treePath = iframeDoc.head.baseURI.replace(/^.*?\/(A\/.*)$/, '$1').replace(/[^/]+\/(?:[^/]+$)?/g, "../") + 'www/';
         Array.prototype.slice.call(images).forEach(function (image) {
             var imageUrl = image.getAttribute('data-kiwixurl');
             if (!imageUrl) return;
             image.removeAttribute('data-kiwixurl');
             var title = decodeURIComponent(imageUrl);
-            selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
-                return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                    var mimetype = dirEntry.getMimetype();
-                    uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+            if (contentInjectionMode === 'serviceworker') {
+                params.imageDisplay = true;
+                image.src = treePath + imageUrl;
+            } else {
+                selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
+                    return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                        var mimetype = dirEntry.getMimetype();
+                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+                    });
+                }).fail(function (e) {
+                    console.error('Could not find DirEntry for image: ' + title, e);
                 });
-            }).fail(function (e) {
-                console.error('Could not find DirEntry for image: ' + title, e);
-            });
+            }
         });
     }
 
