@@ -108,7 +108,7 @@ function fetchEventListener(event) {
                         // Test if the content is a video.
                         // String.prototype.startsWith is not supported by IE11, but IE11 does not support service workers, so it's safe to use it here.
                         // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-                        if (contentLength && contentLength >= 1 && contentType && contentType.startsWith('video/')) {
+                        if (contentLength && contentLength >= 1 && /video|mp4|webm|ogg/i.test(contentType)) {
                             // In case of a video, Chrome and Edge need these HTTP headers else seeking doesn't work
                             // (even if we always send all the video content, not the requested range, until the backend supports it)
                             headers.set('Accept-Ranges', 'bytes');
