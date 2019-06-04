@@ -102,7 +102,7 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
      */
     function queueImages(images) {
         var visibleImages = [];
-        for (var i = 0; i < images.length; i++) {
+        for (var i = 0, l = images.length; i < l; i++) {
             if (!images[i].dataset.kiwixurl) continue;
             if (uiUtil.isElementInView(images[i])) {
                 visibleImages.push(images[i]);
@@ -119,13 +119,13 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
      */
     function prepareImagesServiceWorker (images, selectedArchive) {
         var zimImages = [];
-        images.forEach(function (image) {
+        for (var i = 0, l = images.length; i < l; i++) {
             // DEV: make sure list of file types here is the same as the list in Service Worker code
-            if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])/i.test(image.src)) {
-                image.dataset.kiwixurl = image.getAttribute('src');
-                zimImages.push(image);
+            if (/(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])/i.test(images[i].src)) {
+                images[i].dataset.kiwixurl = images[i].getAttribute('src');
+                zimImages.push(images[i]);
             }
-        });
+        }
         setupManualImageExtraction(zimImages, selectedArchive);
     }
 
