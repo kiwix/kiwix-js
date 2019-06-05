@@ -95,19 +95,12 @@ function fetchEventListener(event) {
                 messageChannel.port1.onmessage = function(event) {
                     if (event.data.action === 'giveContent') {
                         // Content received from app.js
-                        var contentLength;
+                        var contentLength = event.data.content ? event.data.content.byteLength : null;
                         var contentType = event.data.mimetype;
                         var headers = new Headers ();
-                        if (event.data.content && event.data.content.byteLength) {
-                            contentLength = event.data.content.byteLength;
-                            headers.set('Content-Length', contentLength);
-                        }
-                        if (contentType) {
-                            headers.set('Content-Type', contentType);
-                        }
+                        if (contentLength) headers.set('Content-Length', contentLength);
+                        if (contentType) headers.set('Content-Type', contentType);
                         // Test if the content is a video.
-                        // String.prototype.startsWith is not supported by IE11, but IE11 does not support service workers, so it's safe to use it here.
-                        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
                         if (contentLength >= 1 && /video|mp4|webm|ogg/i.test(contentType)) {
                             // In case of a video, Chrome and Edge need these HTTP headers else seeking doesn't work
                             // (even if we always send all the video content, not the requested range, until the backend supports it)
