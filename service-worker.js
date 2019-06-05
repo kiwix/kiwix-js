@@ -100,8 +100,10 @@ function fetchEventListener(event) {
                         var headers = new Headers ();
                         if (contentLength) headers.set('Content-Length', contentLength);
                         if (contentType) headers.set('Content-Type', contentType);
-                        // Test if the content is a video.
-                        if (contentLength >= 1 && /video|audio|mp4|webm|og[gmv]|mpeg/i.test(contentType)) {
+                        // Test if the content is a video or audio file
+                        // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
+                        // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
+                        if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
                             // In case of a video (at least), Chrome and Edge need these HTTP headers else seeking doesn't work
                             // (even if we always send all the video content, not the requested range, until the backend supports it)
                             headers.set('Accept-Ranges', 'bytes');
