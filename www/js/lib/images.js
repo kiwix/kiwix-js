@@ -64,7 +64,7 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
      * @param {Object} images An array or collection of DOM image nodes
      * @param {Object} selectedArchive The ZIM archive picked by the user
      */
-    function setupManualImageExtraction(images, selectedArchive, injectionMode) {
+    function setupManualImageExtraction(images, selectedArchive) {
         Array.prototype.slice.call(images).forEach(function (image) {
             var originalHeight = image.getAttribute('height') || '';
             //Ensure 36px clickable image height so user can request images by tapping

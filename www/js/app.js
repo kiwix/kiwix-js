@@ -968,7 +968,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
-                var readFile = function(dirEntry) {
+                var readFile = function (dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
                         messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': '' });
@@ -984,7 +984,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                     } else {
                         // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                            var mimetype = fileDirEntry.getMimetype();
                             var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
                             var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 
@@ -1048,7 +1047,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
 
-        
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
         htmlCSS = htmlCSS ? htmlCSS[1] : '';

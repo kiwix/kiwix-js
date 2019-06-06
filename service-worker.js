@@ -115,7 +115,6 @@ function fetchEventListener(event) {
                         // Content received from app.js
                         var contentLength = event.data.content ? event.data.content.byteLength : null;
                         var contentType = event.data.mimetype;
-                        var contentType = event.data.mimetype;
                         // Set the imageDisplay variable if it has been sent in the event data
                         imageDisplay = typeof event.data.imageDisplay !== 'undefined' ? 
                             event.data.imageDisplay : imageDisplay;
