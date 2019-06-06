@@ -69,21 +69,6 @@ self.addEventListener('message', function (event) {
     }
 });
 
-// TODO : this way to recognize content types is temporary
-// It must be replaced by reading the actual MIME-Type from the backend
-var regexpJPEG = new RegExp(/\.jpe?g$/i);
-var regexpPNG = new RegExp(/\.png$/i);
-var regexpJS = new RegExp(/\.js/i);
-var regexpCSS = new RegExp(/\.css$/i);
-var regexpSVG = new RegExp(/\.svg$/i);
-var regexpWEBM = new RegExp(/\.webm$/i);
-var regexpMP4 = new RegExp(/\.mp4$/i);
-var regexpOGG = new RegExp(/\.og[mvg]$/i);
-var regexpVTT = new RegExp(/\.vtt$/i);
-var regexpPDF = new RegExp(/\.pdf$/i);
-var regexpZIP = new RegExp(/\.zip$/i);
-var regexpEPUB = new RegExp(/\.epub$/i);
-
 // Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
 
@@ -96,66 +81,9 @@ function fetchEventListener(event) {
                 var nameSpace;
                 var title;
                 var titleWithNameSpace;
-                var contentType;
                 var regexpResult = regexpZIMUrlWithNamespace.exec(event.request.url);
                 nameSpace = regexpResult[1];
                 title = regexpResult[2];
-
-                // The namespace defines the type of content. See https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-                // TODO : read the contentType from the ZIM file instead of hard-coding it here
-                if (nameSpace === 'A') {
-                    if (regexpVTT.test(title)) {
-                        // It's a subtitle
-                        contentType = 'text/vtt';
-                    }
-                    else {
-                        // It's an article
-                        contentType = 'text/html';
-                    }
-                }
-                else if (nameSpace === 'I' || nameSpace === 'J') {
-                    // It's an image or another kind of media
-                    if (regexpJPEG.test(title)) {
-                        contentType = 'image/jpeg';
-                    }
-                    else if (regexpPNG.test(title)) {
-                        contentType = 'image/png';
-                    } 
-                    else if (regexpSVG.test(title)) {
-                        contentType = 'image/svg+xml';
-                    }
-                    else if (regexpWEBM.test(title)) {
-                        contentType = 'video/webm';
-                    }
-                    else if (regexpMP4.test(title)) {
-                        contentType = 'video/mp4';
-                    }
-                    else if (regexpOGG.test(title)) {
-                        contentType = 'video/ogg';
-                    }
-                    else if (regexpPDF.test(title)) {
-                        contentType = 'application/pdf';
-                    }
-                    else if (regexpEPUB.test(title)) {
-                        contentType = 'application/epub+zip';
-                    }
-                    else if (regexpZIP.test(title)) {
-                        contentType = 'application/zip';
-                    }
-                }
-                else if (nameSpace === '-') {
-                    // It's a layout dependency
-                    if (regexpJS.test(title)) {
-                        contentType = 'text/javascript';
-                    }
-                    else if (regexpCSS.test(title)) {
-                        contentType = 'text/css';
-                    }
-                    else if (regexpVTT.test(title)) {
-                        // It's a subtitle
-                        contentType = 'text/vtt';
-                    }
-                }
 
                 // We need to remove the potential parameters in the URL
                 title = removeUrlParameters(decodeURIComponent(title));
@@ -167,20 +95,16 @@ function fetchEventListener(event) {
                 messageChannel.port1.onmessage = function(event) {
                     if (event.data.action === 'giveContent') {
                         // Content received from app.js
-                        var contentLength;
+                        var contentLength = event.data.content ? event.data.content.byteLength : null;
+                        var contentType = event.data.mimetype;
                         var headers = new Headers ();
-                        if (event.data.content && event.data.content.byteLength) {
-                            contentLength = event.data.content.byteLength;
-                            headers.set('Content-Length', contentLength);
-                        }
-                        if (contentType) {
-                            headers.set('Content-Type', contentType);
-                        }
-                        // Test if the content is a video.
-                        // String.prototype.startsWith is not supported by IE11, but IE11 does not support service workers, so it's safe to use it here.
-                        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-                        if (contentLength && contentLength >= 1 && contentType && contentType.startsWith('video/')) {
-                            // In case of a video, Chrome and Edge need these HTTP headers else seeking doesn't work
+                        if (contentLength) headers.set('Content-Length', contentLength);
+                        if (contentType) headers.set('Content-Type', contentType);
+                        // Test if the content is a video or audio file
+                        // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
+                        // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
+                        if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
+                            // In case of a video (at least), Chrome and Edge need these HTTP headers else seeking doesn't work
                             // (even if we always send all the video content, not the requested range, until the backend supports it)
                             headers.set('Accept-Ranges', 'bytes');
                             headers.set('Content-Range', 'bytes 0-' + (contentLength-1) + '/' + contentLength);
