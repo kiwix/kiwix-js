@@ -59,7 +59,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
 
     // Set parameters and associated UI elements from cookie
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
-    params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'progressive'; // Defaults to showing images progressively; other possible values are 'all' or 'manual'
+    params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'all'; // Defaults to showing all images; other possible values are 'manual' or 'progressive'
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('imageDisplayCheck').checked = params.imageDisplayMode !== 'manual';
     document.getElementById('progressiveImageDisplayCheck').checked = params.imageDisplayMode === 'progressive';
