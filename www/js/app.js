@@ -59,11 +59,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
 
     // Set parameters and associated UI elements from cookie
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
-    params['imageDisplay'] = cookies.getItem('imageDisplayMode');
-    // Line below sets a default of true if there is no cookie entry for imageDisplayMode
-    params.imageDisplay = !params.imageDisplay ? true : params.imageDisplay === 'true';
+    params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'progressive'; // Defaults to showing images progressively; other possible values are 'all' or 'manual'
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
-    document.getElementById('imageDisplayModeCheck').checked = params.imageDisplay;
+    document.getElementById('imageDisplayCheck').checked = params.imageDisplayMode !== 'manual';
+    document.getElementById('progressiveImageDisplayCheck').checked = params.imageDisplayMode === 'progressive';
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -279,9 +278,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         params.hideActiveContentWarning = this.checked ? true : false;
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
-    $('input:checkbox[name=imageDisplayMode]').on('change', function (e) {
-        params.imageDisplay = this.checked ? true : false;
-        cookies.setItem('imageDisplayMode', params.imageDisplay, Infinity);
+    $('input:checkbox[name=imageDisplay]').on('change', function (e) {
+        var progressiveImageDisplayCheck = document.getElementById('progressiveImageDisplayCheck');
+        if (!this.checked) progressiveImageDisplayCheck.checked = false;
+        params.imageDisplayMode = this.checked ? progressiveImageDisplayCheck.checked ? 'progressive' : 'all' : 'manual';
+        cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
+    });
+    $('input:checkbox[name=progressiveImageDisplay]').on('change', function (e) {
+        var imageDisplayCheck = document.getElementById('imageDisplayCheck');
+        if (this.checked) imageDisplayCheck.checked = true;
+        params.imageDisplayMode = this.checked ? 'progressive' : imageDisplayCheck.checked ? 'all' : 'manual';
+        cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
     });
 
     /**
@@ -922,10 +929,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                         docBody.addEventListener('dragover', handleIframeDragover);
                         docBody.addEventListener('drop', handleIframeDrop);
                     }
-                    if (!params.imageDisplay) {
+                    if (/manual|progressive/.test(params.imageDisplayMode)) {
                         var imageList = doc.querySelectorAll('img');
                         if (imageList.length) { 
-                            images.prepareImagesServiceWorker(imageList);
+                            images.prepareImagesServiceWorker(imageList, params.imageDisplayMode);
                         }                        
                     }
                     iframeArticleContent.contentWindow.onunload = function() {
@@ -987,7 +994,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                             var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
                             var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 
-                                'mimetype': mimetype, 'imageDisplay': params.imageDisplay };
+                                'mimetype': mimetype, 'imageDisplay': params.imageDisplayMode };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
@@ -1159,9 +1166,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         function loadImagesJQuery() {
             var imageNodes = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
             if (!imageNodes.length) return;
-            if (params.imageDisplay) {
+            if (params.imageDisplayMode === 'all') {
                 // We have to pass the selectedArchive to the images module
                 images.extractImages(imageNodes, selectedArchive);
+            } else if (params.imageDisplayMode === 'progressive') {
+                // Firefox squashes empty images, but we don't want to alter the vertical heights constantly as we scroll
+                // so substitute empty images with a plain svg
+                for (var i = imageNodes.length; i--;) {
+                    imageNodes[i].src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+                }
+                images.lazyLoad(imageNodes, selectedArchive);
             } else {
                 // User wishes to extract images manually
                 images.setupManualImageExtraction(imageNodes, selectedArchive);

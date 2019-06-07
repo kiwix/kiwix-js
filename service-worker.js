@@ -27,7 +27,7 @@
  * A global Boolean that governs whether images are displayed
  * app.js can alter this variable via messaging
  */
-var imageDisplay = true;
+var imageDisplay;
 
 self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
@@ -87,10 +87,13 @@ function fetchEventListener(event) {
             // A URL with "?kiwix-display" query string acts as a passthrough so that the regex will not match and
             // the image will be fetched by app.js  
             // DEV: If you need to hide more image types, add them to regex below and also edit equivalent regex in app.js
-            if (!imageDisplay && /(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
-                event.respondWith(new Response("<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue'/></svg>", 
-                    { headers: { 'Content-Type': 'image/svg+xml' } }
-                ));
+            if (imageDisplay !== 'all' && /(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
+                var svgResponse;
+                if (imageDisplay === 'manual') 
+                    svgResponse = "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue'/></svg>";
+                else
+                    svgResponse = "<svg xmlns='http://www.w3.org/2000/svg'/>";
+                    event.respondWith(new Response(svgResponse, { headers: { 'Content-Type': 'image/svg+xml' } }));
                 return;
             }
 

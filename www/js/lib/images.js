@@ -115,9 +115,9 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
      * Prepares an array or collection of image nodes that have been disabled in Service Worker for manual extraction
      * 
      * @param {Object} images An array or collection of DOM image nodes
-     * @param {Object} selectedArchive The ZIM archive picked by the user
+     * @param {String} displayType If 'progressive', lazyLoad will be used; if 'manual', setupManualImageExtraction will be used
      */
-    function prepareImagesServiceWorker (images, selectedArchive) {
+    function prepareImagesServiceWorker (images, displayType) {
         var zimImages = [];
         for (var i = 0, l = images.length; i < l; i++) {
             // DEV: make sure list of file types here is the same as the list in Service Worker code
@@ -126,7 +126,38 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
                 zimImages.push(images[i]);
             }
         }
-        setupManualImageExtraction(zimImages, selectedArchive);
+        if (displayType === 'manual') {
+            setupManualImageExtraction(zimImages);
+        } else {
+            lazyLoad(zimImages);
+        }
+    }
+
+    /**
+     * Processes an array or collection of image nodes so that they will be lazy loaded (progressive extraction)
+     * 
+     * @param {Object} images And array or collection of DOM image nodes which will be processed for 
+     *        progressive image extraction 
+     * @param {Object} selectedArchive The archive picked by the user
+     */
+    function lazyLoad(images, selectedArchive) {
+        var queue;
+        var getImages = function() {
+            queue = queueImages(images);
+            extractImages(queue, selectedArchive);
+        };
+        getImages();
+        // Sometimes the page hasn't been rendered when getImages() is run, especially in Firefox, so run again after delay
+        setTimeout(getImages, 700);
+        if (queue.length === images.length) return;
+        // There are images remaining, so set up an event listener to load more images once user has stopped scrolling the iframe
+        var iframe = document.getElementById('articleContent');
+        var iframeWindow = iframe.contentWindow;
+        iframeWindow.addEventListener('scroll', function() {
+            clearTimeout(timer);
+            // Waits for a period after scroll start to start checking for images
+            var timer = setTimeout(getImages, 600);
+        });
     }
 
     /**
@@ -146,6 +177,7 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
         extractImages: extractImages,
         setupManualImageExtraction: setupManualImageExtraction,
         prepareImagesServiceWorker: prepareImagesServiceWorker,
+        lazyLoad: lazyLoad,
         setContentInjectionMode: setContentInjectionMode
     };
 });
