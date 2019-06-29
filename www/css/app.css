@@ -25,32 +25,32 @@
     right: 0;
     bottom: 0;
     left: 0;
-    position: fixed;
-    overflow-x: hidden;
+  position: fixed;
+  overflow-x: hidden;
 }
 [role=region] > header {
-    margin: .5rem 0 1rem 0;
-    text-align: center;
+  margin: .5rem 0 1rem 0;
+  text-align: center;
 }
 [role=region] > header > h1 {
-    margin: 0;
+  margin: 0;
     text-shadow: 0 1px 1px rgba(0,0,0,.4);
 }
 [role=region] > .view-content {
-    margin: 0;
-    position: relative; /*Fixes #250 Random button display bug in W10M */
+  margin: 0;
+  position: relative; /*Fixes #250 Random button display bug in W10M */
 }
 [role=region] > footer {
-    background: rgba(0,0,0,.2);
+  background: rgba(0,0,0,.2);
     right: 0;
     bottom: 0;
     left: 0;
-    position: fixed;
-    text-align: center;
+  position: fixed;
+  text-align: center;
 }
 [role=region] > footer > menu[role=toolbar] {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 #navigationButtons .restrictedSize {
@@ -86,10 +86,7 @@
     border: 0;
 }
 
-.category-padding {
     margin: 0 1rem 0 1rem;
-}
-
 .apiAvailable {
     color : green;
 }
@@ -144,6 +141,40 @@
     text-align: center;
 }
 
+/* Modify default Bootstrap 4 colours */
+.card-info {
+    border-color: #bce8f1;
+}
+.card-info .card-header {
+    background-color: #d9edf7;
+    color: #31708f;
+}
+.card-success {
+    border-color: #d6e9c6;
+}
+.card-success .card-header{
+    background-color: #dff0d8;
+    color: #3c763d;
+}
+.card-danger {
+    border-color: #ebccd1;
+}
+.card-danger .card-header {
+    background-color: #f2dede;
+    color: #a94442;
+}
+.card-warning {
+    border-color: #faebcc;
+}
+.card-warning .card-header {
+    background-color: #fcf8e3;
+    color: #8a6d3b;
+}
+
+.btn-lg {
+    color: #337ab7;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -184,7 +215,7 @@
     }
 
     /* Reduce size of the top buttons */
-    .btn-xs, .btn-sm, .btn-default, .btn-group-xs > .btn, .btn-group-sm > .btn {
+    .btn-outline-secondary {
         font-size: 10px !important;
     }
 

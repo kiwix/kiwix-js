@@ -26,7 +26,7 @@ require.config({
     baseUrl: 'js/lib',
     paths: {
         'jquery': 'jquery-3.2.1.slim',
-        'bootstrap': 'bootstrap'
+        'bootstrap': 'bootstrap.bundle'
     },
     shim: {
         'jquery' : {

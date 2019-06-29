@@ -289,14 +289,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function refreshAPIStatus() {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
-        apiStatusPanel.classList.remove('panel-success', 'panel-warning');
-        var apiPanelClass = 'panel-success';
+        apiStatusPanel.classList.remove('card-success', 'card-warning');
+        var apiPanelClass = 'card-success';
         if (isMessageChannelAvailable()) {
             $('#messageChannelStatus').html("MessageChannel API available");
             $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiAvailable");
         } else {
-            apiPanelClass = 'panel-warning';
+            apiPanelClass = 'card-warning';
             $('#messageChannelStatus').html("MessageChannel API unavailable");
             $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
@@ -307,13 +307,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                         .addClass("apiAvailable");
             } else {
-                apiPanelClass = 'panel-warning';
+                apiPanelClass = 'card-warning';
                 $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
                 $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                         .addClass("apiUnavailable");
             }
         } else {
-            apiPanelClass = 'panel-warning';
+            apiPanelClass = 'card-warning';
             $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
