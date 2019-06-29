@@ -193,35 +193,30 @@
 
                 <div id="configuration" style="display: none;" class="category-padding">
                     <div class="container">
-                        <div class="row">
-                            <h2>Configuration</h2>
-                            <div>
-                                <p id="downloadInstruction">This application needs a ZIM archive to work. For download
-                                    instructions, please see the About section</p>
-                                <div id="selectorsDisplay" style="display: none;">
-                                    <p>Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
-                                            file selectors</a></p>
-                                </div>
-                                <div id="openLocalFiles" style="display: none;">
-                                    <p>Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
-                                        case of a split ZIM file)</p>
-                                    <input type="file" id="archiveFiles" multiple class="btn"
-                                        accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br>
-                                    <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
-                                        some video-based ZIMs (e.g. TEDx) have been tested</strong>.
-                                    Dynamic content is not currently supported in jQuery mode.<br>
-                                </div>
-                                <div id="scanningForArchives" style="display: none;">
-                                    <br> Scanning for archives... Please wait <img src="img/spinner.gif"
-                                        alt="Please wait..." />
-                                </div>
-                                <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                                    <br> Please select the archive you want to use : <select id="archiveList"
-                                        class="form-control"></select>
-                                    <br> Click <a id="btnRescanDeviceStorage">here</a> to rescan your SD Cards and
-                                    internal memory
-                                </div>
-                            </div>
+                        <h2>Configuration</h2>
+                        <p id="downloadInstruction">This application needs a ZIM archive to work. For download
+                            instructions, please see the About section</p>
+                        <div id="selectorsDisplay" style="display: none;">
+                            <p>Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
+                                    file selectors</a></p>
+                        </div>
+                        <div id="openLocalFiles" style="display: none;">
+                            <p>Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
+                                case of a split ZIM file)</p>
+                            <input type="file" id="archiveFiles" multiple class="btn"
+                                accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br>
+                            <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
+                                some video-based ZIMs (e.g. TEDx) have been tested</strong>.
+                            Dynamic content is not currently supported in jQuery mode.<br>
+                        </div>
+                        <div id="scanningForArchives" style="display: none;">
+                            <br> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
+                        </div>
+                        <div id="chooseArchiveFromLocalStorage" style="display: none;">
+                            <br> Please select the archive you want to use : <select id="archiveList"
+                                class="form-control"></select>
+                            <br> Click <a id="btnRescanDeviceStorage">here</a> to rescan your SD Cards and
+                            internal memory
                         </div>
                     </div>
                     <br>
