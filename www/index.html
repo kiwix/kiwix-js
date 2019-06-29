@@ -285,12 +285,25 @@
                     </div>
                 </div>
                 <!-- Bootstrap alert box -->
-                <div id="alertBoxHeader"></div>
+                <div id="alertBoxHeader">
+                    <div id="activeContent" style="display:none;" class="alert alert-warning alert-dismissible fade show">
+                        <button type="button" class="close" data-hide="alert">&times;</button>
+                        <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br>
+                        Content may be available by searching above (type a space or a letter of the alphabet), or else 
+                        <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to Service Worker mode</a>
+                        if your platform supports it. &nbsp;[<a id="stop" href="#displaySettingsDiv" class="alert-link">Permanently hide</a>]
+                    </div>
+                </div>
                 <iframe id="articleContent" class="articleIFrame" src="article.html"></iframe>
             </article>
             <footer>
                 <!-- Bootstrap alert box -->
-                <div id="alertBoxFooter"></div>
+                <div id="alertBoxFooter">
+                    <div id="downloadAlert" style="display:none;" class="alert alert-info alert-dismissible fade show">
+                        <button type="button" class="close" data-hide="alert">&times;</button>
+                        <span id="alertMessage"></span>
+                    </div>
+                </div>
                 <div id="navigationButtons" class="btn-group btn-block">
                     <a href="#" class="btn btn-lg" id="btnHomeBottom" title="Home"><i class="fas fa-home"></i></a>
                     <a href="#" class="btn btn-lg" id="btnBack" title="Back"><i class="fas fa-arrow-left"></i></a>
