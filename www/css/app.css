@@ -85,6 +85,10 @@
     padding-top: 1rem;
 }
 
+#configuration {
+    margin: 0 1rem;
+}
+
 .articleIFrame {
     width: 100%;
     border: 0;
