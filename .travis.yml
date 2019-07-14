@@ -7,7 +7,7 @@ addons:
   sauce_connect: true
   ssh_known_hosts: download.kiwix.org
 before_script:
-    - npm install nightwatch http-server
+    - npm install nightwatch http-server codecov
     - "./node_modules/http-server/bin/http-server . &"
 script:
     # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
@@ -17,6 +17,8 @@ script:
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env edge40,edge44"
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11"
     - pkill node
+after_success:
+    - codecov
 deploy:
     - provider: script
       # Nightly builds (launched by cron)
