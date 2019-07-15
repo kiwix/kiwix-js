@@ -39,7 +39,8 @@
 
     </head>
     <body>
-        <b>NOTE:</b> These unit tests can be run with Firefox or Edge. Chrome by default does not allow access to local filesystem files used in testing. So to run tests on Chrome\Chromium launch a new browser instance (without any already open) with the --allow-file-access-from-files argument. Or start a local webserver and access this file through localhost.       
+        <b>NOTE:</b> Firefox and Chrome do not allow access to some local filesystem files used in testing. So, if you're opening this through a file:// URL, you should instead go through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...).<br/>
+        Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config
         <div id="qunit"></div>
         <div id="qunit-fixture"></div>
     </body>

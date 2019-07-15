@@ -1050,8 +1050,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             
+            var iframeContentDocument = iframeArticleContent.contentDocument;
+            if (!iframeContentDocument && window.location.protocol === 'file:') {
+                alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
+                        + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
+                        + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
+                        + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+                return;
+            }
+            
             // Inject the new article's HTML into the iframe
-            var articleContent = iframeArticleContent.contentDocument.documentElement;
+            var articleContent = iframeContentDocument.documentElement;
             articleContent.innerHTML = htmlArticle;
             
             var docBody = articleContent.getElementsByTagName('body');
