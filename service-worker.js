@@ -70,7 +70,8 @@ self.addEventListener('message', function (event) {
 });
 
 // Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-var regexpZIMUrlWithNamespace = new RegExp(/(?:^|\/)([-ABIJMUVWX])\/(.+)/);
+// In our case, there is also the ZIM file name, used as a prefix in the URL
+var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABIJMUVWX])\/(.+)/;
 
 function fetchEventListener(event) {
     if (fetchCaptureEnabled) {
@@ -82,8 +83,9 @@ function fetchEventListener(event) {
                 var title;
                 var titleWithNameSpace;
                 var regexpResult = regexpZIMUrlWithNamespace.exec(event.request.url);
-                nameSpace = regexpResult[1];
-                title = regexpResult[2];
+                var prefix = regexpResult[1];
+                nameSpace = regexpResult[2];
+                title = regexpResult[3];
 
                 // We need to remove the potential parameters in the URL
                 title = removeUrlParameters(decodeURIComponent(title));
@@ -121,7 +123,7 @@ function fetchEventListener(event) {
                         resolve(httpResponse);
                     }
                     else if (event.data.action === 'sendRedirect') {
-                        resolve(Response.redirect(event.data.redirectUrl));
+                        resolve(Response.redirect(prefix + event.data.redirectUrl));
                     }
                     else {
                         console.error('Invalid message received from app.js for ' + titleWithNameSpace, event.data);
