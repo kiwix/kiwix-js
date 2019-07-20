@@ -4,10 +4,39 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia)
 Then it was renamed Kiwix-html5 (and uses ZIM files), then was renamed Kiwix-JS.
 
-## Kiwix-JS v2.6.0
+## Kiwix-JS v2.7.0
 Released on TODO
 
 Detailed changelog : TODO
+
+## Kiwix-JS v2.6.0
+Released on 2019-07-20
+
+Support for imagemaps (area tags) in jQuery mode, like for maps in wikivoyage
+
+Enable keyboard selection in search results
+
+Drag and drop support of ZIM files (on desktop)
+
+Support download of epub files (for Gutenberg ZIM files) and some other types of downloads
+
+Generic handling of MIME Types, instead of the previously hard-coded ones
+
+Add explanations and detect when there are CORS issues when running kiwix-js through file://
+
+Fix for some cache issues with Chromium extension in ServiceWorker mode, that were mixing content from different ZIM files
+
+Some fixes for filenames with question marks, hyperlinks with hashtags, articles with no title, and articles with special characters in their URL
+
+Fix for articles with a slash in their title in ServiceWorker mode (at least for StackOverflow ZIM files). Note that some wikivoyage ZIM files (of 2019-06) had incorrect links in their homepage, and are not working with this fix. This has been fixed in 2019-07 ZIM files (see https://github.com/openzim/mwoffliner/issues/726).
+
+Upgrade the underlying Ubuntu Touch platform to Xenial
+
+Improve the automated UI tests with a more complete scenario
+
+Simplify the code by removing the base tag
+
+Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/20?closed=1
 
 ## Kiwix-JS v2.5.0
 Released on 2019-01-16
