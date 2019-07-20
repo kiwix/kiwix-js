@@ -925,7 +925,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     };
                 };
                 // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-                iframeArticleContent.src = '../' + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
+                iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
                 // Display the iframe content
                 $("#articleContent").show();
             };
