@@ -888,12 +888,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     /**
      * Read the article corresponding to the given dirEntry
-     * @param {DirEntry} dirEntry
+     * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
+
+            // We will need the encoded URL on article load so that we can set the iframe's src correctly,
+            // but we must not encode the '/' character or else relative links may fail [kiwix-js #498]
+            var encodedUrl = dirEntry.url.replace(/[^/]+/g, function(matchedSubstring) {
+                return encodeURIComponent(matchedSubstring);
+            });
+            
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function() {
                 // The iframe is empty, show spinner on load of landing page
@@ -918,7 +925,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     };
                 };
                 // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-                iframeArticleContent.src = selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodeURIComponent(dirEntry.url);
+                iframeArticleContent.src = selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
                 // Display the iframe content
                 $("#articleContent").show();
             };
