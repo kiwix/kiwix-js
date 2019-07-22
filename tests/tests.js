@@ -1,33 +1,33 @@
 /**
  * tests.js : Unit tests implemented with qunit
- * 
+ *
  * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
- * 
+ *
  * This file is part of Kiwix.
- * 
+ *
  * Kiwix is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
  function($, zimArchive, zimDirEntry, util, uiUtil, utf8) {
-    
+
     var localZimArchive;
 
-    
+
     /**
      * Make an HTTP request for a Blob and return a Promise
-     * 
+     *
      * @param {String} url URL to download from
      * @param {String} name Name to give to the Blob instance
      * @returns {Promise}
@@ -63,10 +63,10 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             xhr.send();
         });
     }
-    
+
     // Let's try to download the ZIM files
     var zimArchiveFiles = new Array();
-    
+
     var splitBlobs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o'].map(function(c) {
         var filename = 'wikipedia_en_ray_charles_2015-06.zima' + c;
         return makeBlobRequest('tests/' + filename, filename);
@@ -80,7 +80,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             runTests();
         });
     });
-     
+
     var runTests = function() {
 
         QUnit.module("environment");
@@ -91,7 +91,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("check archive files are read", function(assert) {
             assert.ok(zimArchiveFiles && zimArchiveFiles[0] && zimArchiveFiles[0].size > 0, "ZIM file read and not empty");
         });
-        
+
         QUnit.module("utils");
         QUnit.test("check reading an IEEE_754 float from 4 bytes" ,function(assert) {
            var byteArray = new Uint8Array(4);
@@ -114,11 +114,6 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             assert.equal(util.ucEveryFirstLetter(testString3), "Le Couvre-Chef Est Sur Le Porte-Manteaux", "The first letter of every word should be upper-case");
             assert.equal(util.ucFirstLetter(testString4), "Épée", "The first letter should be upper-case (with accent)");
         });
-        QUnit.test("check remove duplicates of an array of dirEntry objects", function(assert) {
-            var array = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"a"}, {title:"c"}, {title:"d"}];
-            var expectedArray = [{title:"a"}, {title:"b"}, {title:"c"}, {title:"d"}];
-            assert.deepEqual(util.removeDuplicateTitlesInDirEntryArray(array), expectedArray, "Duplicates should be removed from the array");
-        });
         QUnit.test("check removal of parameters in URL", function(assert) {
             var testUrl1 = "A/question.html";
             var testUrl2 = "A/question.html?param1=toto&param2=titi";
@@ -129,15 +124,15 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             assert.equal(uiUtil.removeUrlParameters(testUrl3), testUrl1);
             assert.equal(uiUtil.removeUrlParameters(testUrl4), testUrl1);
         });
-        
+
         QUnit.module("ZIM initialisation");
         QUnit.test("ZIM archive is ready", function(assert) {
             assert.ok(localZimArchive.isReady() === true, "ZIM archive should be set as ready");
         });
-        
+
         QUnit.module("ZIM metadata");
         QUnit.test("read ZIM language", function(assert) {
-            var done = assert.async();            
+            var done = assert.async();
             assert.expect(1);
             var callbackFunction = function(language) {
                 assert.equal(language , 'eng', 'The language read inside the Metadata should be "eng" for "English"');
@@ -146,7 +141,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             localZimArchive.getMetadata("Language", callbackFunction);
         });
         QUnit.test("try to read a missing metadata", function(assert) {
-            var done = assert.async();            
+            var done = assert.async();
             assert.expect(1);
             var callbackFunction = function(string) {
                 assert.equal(string, undefined, 'The metadata zzz should not be found inside the ZIM');
@@ -154,7 +149,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             };
             localZimArchive.getMetadata("zzz", callbackFunction);
         });
-                
+
         QUnit.module("zim_direntry_search_and_read");
         QUnit.test("check DirEntry.fromStringId 'A Fool for You'", function(assert) {
             var done = assert.async();
@@ -171,7 +166,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             localZimArchive.readUtf8File(aFoolForYouDirEntry, callbackFunction);
         });
         QUnit.test("check findDirEntriesWithPrefix 'A'", function(assert) {
-            var done = assert.async();            
+            var done = assert.async();
             assert.expect(2);
             var callbackFunction = function(dirEntryList) {
                 assert.ok(dirEntryList && dirEntryList.length === 5, "Article list with 5 results");
@@ -182,7 +177,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             localZimArchive.findDirEntriesWithPrefix('A', 5, callbackFunction);
         });
         QUnit.test("check findDirEntriesWithPrefix 'a'", function(assert) {
-            var done = assert.async();            
+            var done = assert.async();
             assert.expect(2);
             var callbackFunction = function(dirEntryList) {
                 assert.ok(dirEntryList && dirEntryList.length === 5, "Article list with 5 results");
@@ -301,7 +296,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         });
         QUnit.test("Stylesheet '-/s/style.css' can be loaded", function(assert) {
             var done = assert.async();
-            
+
             assert.expect(5);
             localZimArchive.getDirEntryByTitle("-/s/style.css").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
@@ -335,7 +330,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                         assert.equal(data.slice(0, beginning.length), beginning, "Content starts correctly.");
                         done();
                     });
-                }   
+                }
                 else {
                     done();
                 }
@@ -361,7 +356,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 }
             });
         });
-        
+
         QUnit.module("zim_random_and_main_article");
         QUnit.test("check that a random article is found", function(assert) {
             var done = assert.async();
@@ -369,7 +364,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             var callbackRandomArticleFound = function(dirEntry) {
                 assert.ok(dirEntry !== null, "One DirEntry should be found");
                 assert.ok(dirEntry.getTitleOrUrl() !== null, "The random DirEntry should have a title" );
-               
+
                 done();
             };
             localZimArchive.getRandomDirEntry(callbackRandomArticleFound);
@@ -380,7 +375,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             var callbackMainPageArticleFound = function(dirEntry) {
                 assert.ok(dirEntry !== null, "Main DirEntry should be found");
                 assert.equal(dirEntry.getTitleOrUrl(), "Summary", "The main DirEntry should be called Summary" );
-               
+
                 done();
             };
             localZimArchive.getMainPageDirEntry(callbackMainPageArticleFound);

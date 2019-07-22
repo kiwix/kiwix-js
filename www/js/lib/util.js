@@ -1,21 +1,21 @@
 /**
  * util.js : Utility functions
- * 
+ *
  * Copyright 2013-2014 Mossroy and contributors
  * License GPL v3:
- * 
+ *
  * This file is part of Kiwix.
- * 
+ *
  * Kiwix is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
@@ -31,7 +31,7 @@ define(['q'], function(q) {
     function endsWith(str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
     }
-    
+
     /**
      * Returns the same String with the first letter in upper-case
      * @param {String} string
@@ -44,7 +44,7 @@ define(['q'], function(q) {
             return string;
         }
     }
-    
+
     /**
      * Returns the same String with the first letter in lower-case
      * @param {String} string
@@ -61,7 +61,7 @@ define(['q'], function(q) {
             return string;
         }
     }
-    
+
     /**
      * Returns the same String with the first letter of every word in upper-case
      * @param {String} string
@@ -76,36 +76,13 @@ define(['q'], function(q) {
             return string;
         }
     }
-    
-    /**
-     * Generates an array of DirEntry, where all duplicates (same title) have been removed
-     * (it also sorts them on their title)
-     * 
-     * @param {Array.<DirEntry>} array of DirEntry
-     * @returns {Array.<DirEntry>} same array of DirEntry, without duplicates
-     */
-    function removeDuplicateTitlesInDirEntryArray(array) {
-        array.sort(function(dirEntryA, dirEntryB) {
-            if (dirEntryA.title < dirEntryB.title) return -1;
-            if (dirEntryA.title > dirEntryB.title) return 1;
-            return 0;
-        });
-        for(var i = 1; i < array.length; ){
-            if(array[i-1].title === array[i].title){
-                array.splice(i, 1);
-            } else {
-                i++;
-            }
-        }
-        return array;
-    }
-    
+
     /**
      * Generates an array of Strings, where all duplicates have been removed
      * (without changing the order)
      * It is optimized for small arrays.
      * Source : http://codereview.stackexchange.com/questions/60128/removing-duplicates-from-an-array-quickly
-     * 
+     *
      * @param {Array} array of String
      * @returns {Array} same array of Strings, without duplicates
      */
@@ -118,7 +95,7 @@ define(['q'], function(q) {
         }
         return unique;
     }
-    
+
     /**
      * Read an integer encoded in 4 bytes, little endian
      * @param {Array} byteArray
@@ -142,7 +119,7 @@ define(['q'], function(q) {
         var integer = dataView.getUint16(0, true);
         return integer;
     }
-    
+
     /**
      * Read a float encoded in 2 bytes
      * @param {Array} byteArray
@@ -247,11 +224,11 @@ define(['q'], function(q) {
                 return mid;
         });
     }
-    
+
     /**
      * Converts a Base64 Content to a Blob
      * From https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
-     * 
+     *
      * @param {String} b64Data Base64-encoded data
      * @param {String} contentType
      * @param {Integer} sliceSize
@@ -280,11 +257,11 @@ define(['q'], function(q) {
         var blob = new Blob(byteArrays, {type: contentType});
         return blob;
     }
-    
+
     /**
      * Converts a UInt Array to a UTF-8 encoded string
      * source : http://michael-rushanan.blogspot.de/2014/03/javascript-uint8array-hacks-and-cheat.html
-     * 
+     *
      * @param {UIntArray} uintArray
      * @returns {String}
      */
@@ -295,12 +272,12 @@ define(['q'], function(q) {
         }
         return s;
     }
-    
+
     /**
      * Does a "left shift" on an integer.
      * It is equivalent to int << bits (which works only on 32-bit integers),
      * but compatible with 64-bit integers.
-     * 
+     *
      * @param {Integer} int
      * @param {Integer} bits
      * @returns {Integer}
@@ -317,7 +294,6 @@ define(['q'], function(q) {
         ucFirstLetter: ucFirstLetter,
         lcFirstLetter: lcFirstLetter,
         ucEveryFirstLetter: ucEveryFirstLetter,
-        removeDuplicateTitlesInDirEntryArray: removeDuplicateTitlesInDirEntryArray,
         removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
         readIntegerFrom2Bytes : readIntegerFrom2Bytes,
