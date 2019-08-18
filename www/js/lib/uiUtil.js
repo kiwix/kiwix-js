@@ -118,7 +118,7 @@ define([], function() {
         if (!activeContentWarningSetup) {
             // We are setting up the active content warning for the first time
             activeContentWarningSetup = true;
-            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function(e) {
+            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function() {
                 alertActiveContent.style.display = 'none';
             });
             ['swModeLink', 'stop'].forEach(function(id) {
@@ -158,7 +158,7 @@ define([], function() {
         var downloadAlert = document.getElementById('downloadAlert');
         downloadAlert.style.display = 'block';
         // If we are setting up the alert for the first time
-        if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function(e) {
+        if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function() {
             downloadAlert.style.display = 'none';
         });
         downloadAlertSetup = true;
