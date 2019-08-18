@@ -115,33 +115,32 @@ define([], function() {
     function displayActiveContentWarning() {
         var alertActiveContent = document.getElementById('activeContent');
         alertActiveContent.style.display = 'block';
-        if (activeContentWarningSetup) {
-            return;
-        }
-        // We are setting up the active content warning for the first time
-        alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function(e) {
-            alertActiveContent.style.display = 'none';
-        });
-        ['swModeLink', 'stop'].forEach(function(id) {
-            // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
-            // the options that the user needs to select
-            document.getElementById(id).addEventListener('click', function () {
-                var elementID = id === 'stop' ? 'hideActiveContentWarningCheck' : 'serviceworkerModeRadio';
-                var thisLabel = document.getElementById(elementID).parentNode;
-                thisLabel.style.borderColor = 'red';
-                thisLabel.style.borderStyle = 'solid';
-                var btnHome = document.getElementById('btnHome');
-                [thisLabel, btnHome].forEach(function (ele) {
-                    // Define event listeners to cancel the highlighting both on the highlighted element and on the Home tab
-                    ele.addEventListener('mousedown', function () {
-                        thisLabel.style.borderColor = '';
-                        thisLabel.style.borderStyle = '';
-                    });
-                });
-                document.getElementById('btnConfigure').click();
+        if (!activeContentWarningSetup) {
+            // We are setting up the active content warning for the first time
+            activeContentWarningSetup = true;
+            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function(e) {
+                alertActiveContent.style.display = 'none';
             });
-        });
-        activeContentWarningSetup = true;
+            ['swModeLink', 'stop'].forEach(function(id) {
+                // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
+                // the options that the user needs to select
+                document.getElementById(id).addEventListener('click', function () {
+                    var elementID = id === 'stop' ? 'hideActiveContentWarningCheck' : 'serviceworkerModeRadio';
+                    var thisLabel = document.getElementById(elementID).parentNode;
+                    thisLabel.style.borderColor = 'red';
+                    thisLabel.style.borderStyle = 'solid';
+                    var btnHome = document.getElementById('btnHome');
+                    [thisLabel, btnHome].forEach(function (ele) {
+                        // Define event listeners to cancel the highlighting both on the highlighted element and on the Home tab
+                        ele.addEventListener('mousedown', function () {
+                            thisLabel.style.borderColor = '';
+                            thisLabel.style.borderStyle = '';
+                        });
+                    });
+                    document.getElementById('btnConfigure').click();
+                });
+            });
+        }
     }
 
     /**
@@ -156,7 +155,6 @@ define([], function() {
      */
     var downloadAlertSetup = false;
     function displayFileDownloadAlert(title, download, contentType, content) {
-        // We have to create the alert box in code, because Bootstrap removes it completely from the DOM when the user dismisses it
         var downloadAlert = document.getElementById('downloadAlert');
         downloadAlert.style.display = 'block';
         // If we are setting up the alert for the first time
