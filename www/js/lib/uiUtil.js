@@ -157,8 +157,8 @@ define([], function() {
     function displayFileDownloadAlert(title, download, contentType, content) {
         var downloadAlert = document.getElementById('downloadAlert');
         downloadAlert.style.display = 'block';
-        // If we are setting up the alert for the first time
         if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function() {
+            // We are setting up the alert for the first time
             downloadAlert.style.display = 'none';
         });
         downloadAlertSetup = true;
