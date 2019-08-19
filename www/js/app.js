@@ -210,7 +210,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
-        $('.navbar-collapse').collapse('hide');
+        setTimeout(function() {
+            $('.navbar-collapse').collapse('hide');
+        });
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
@@ -237,7 +239,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
-        $('.navbar-collapse').collapse('hide');
+        setTimeout(function() {
+            $('.navbar-collapse').collapse('hide');
+        });
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
@@ -256,7 +260,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
-        $('.navbar-collapse').collapse('hide');
+        setTimeout(function() {
+            $('.navbar-collapse').collapse('hide');
+        });
         // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
