@@ -233,11 +233,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
-        // This code is first run before bootstrap has inserted its functions into jQuery
-        // so we must delay running it until the next tick of the event loop
-        setTimeout(function() {
-            $('.navbar-collapse').collapse('hide');
-        });
+        // This code can occasionally run before bootstrap has inserted its functions into jQuery
+        // so if the collapse function is missing, we use the css method to close the collapsible navbar
+        if (typeof jQuery().collapse === 'function') $('.navbar-collapse').collapse('hide');
+        else document.getElementById('collapsibleNavbar').classList.remove('show');
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
