@@ -86,9 +86,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
         searchDirEntriesFromPrefix($('#prefix').val());
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
         searchArticlesFocused = false;
@@ -178,9 +176,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
     });
     
     $('#btnRescanDeviceStorage').on("click", function(e) {
@@ -210,9 +206,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
-        setTimeout(function() {
-            $('.navbar-collapse').collapse('hide');
-        });
+        $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
@@ -239,6 +233,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
+        // This code is first run before bootstrap has inserted its functions into jQuery
+        // so we must delay running it until the next tick of the event loop
         setTimeout(function() {
             $('.navbar-collapse').collapse('hide');
         });
@@ -260,9 +256,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
-        setTimeout(function() {
-            $('.navbar-collapse').collapse('hide');
-        });
+        $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
@@ -536,9 +530,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#prefix').val("");
             $("#welcomeText").hide();
             $("#searchingArticles").hide();
-            if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-                $('#navbarToggle').click();
-            }
+            $('.navbar-collapse').collapse('hide');
             $('#configuration').hide();
             $('#articleListWithHeader').hide();
             $('#articleContent').contents().empty();
@@ -910,29 +902,31 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             });
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function() {
-                // The content is fully loaded by the browser : we can hide the spinner
-                $("#searchingArticles").hide();
-                // Display the iframe content
-                $("#articleContent").show();
-                // Deflect drag-and-drop of ZIM file on the iframe to Config
-                var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
-                var docBody = doc ? doc.getElementsByTagName('body') : null;
-                docBody = docBody ? docBody[0] : null;
-                if (docBody) {
-                    docBody.addEventListener('dragover', handleIframeDragover);
-                    docBody.addEventListener('drop', handleIframeDrop);
-                }
+                    // The content is fully loaded by the browser : we can hide the spinner
+                    $("#searchingArticles").hide();
+                    // Display the iframe content
+                    $("#articleContent").show();
+                    // Remove focus from the UI elements
+                    document.getElementById('articleContent').contentWindow.focus();
+                    // Deflect drag-and-drop of ZIM file on the iframe to Config
+                    var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
+                    var docBody = doc ? doc.getElementsByTagName('body') : null;
+                    docBody = docBody ? docBody[0] : null;
+                    if (docBody) {
+                        docBody.addEventListener('dragover', handleIframeDragover);
+                        docBody.addEventListener('drop', handleIframeDrop);
+                    }
                 // Reset UI when the article is unloaded
-                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function() {
+                    if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function() {
                     $("#articleList").empty();
                     $('#articleListHeaderMessage').empty();
                     $('#articleListWithHeader').hide();
                     $("#prefix").val("");
-                    $("#searchingArticles").show();
+                        $("#searchingArticles").show();
+                    };
                 };
-            };
-            // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
+                // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+                iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
@@ -1058,6 +1052,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
+            // Remove focus from the UI elements
+            document.getElementById('articleContent').contentWindow.focus();
             
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
