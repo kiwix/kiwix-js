@@ -596,7 +596,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (archiveDirectory && archiveDirectory.length > 0) {
             // Now, try to find which DeviceStorage has been selected by the user
             // It is the prefix of the archive directory
-            var regexpStorageName = /^\/([^\/]+)\//;
+            var regexpStorageName = /^\/([^/]+)\//;
             var regexpResults = regexpStorageName.exec(archiveDirectory);
             var selectedStorage = null;
             if (regexpResults && regexpResults.length>0) {
@@ -994,10 +994,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
     
     // Compile some regular expressions needed to modify links
-    // Pattern to find the path in a url
-    var regexpPath = /^(.*\/)[^\/]+$/;
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-    var regexpZIMUrlWithNamespace = /^[.\/]*([-ABIJMUVWX]\/.+)$/;
+    var regexpZIMUrlWithNamespace = /^[./]*([-ABIJMUVWX]\/.+)$/;
     // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
     // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
@@ -1106,7 +1104,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var currentHost = location.host;
             // Percent-encode dirEntry.url and add regex escape character \ to the RegExp special characters - see https://www.regular-expressions.info/characters.html;
             // NB dirEntry.url can also contain path separator / in some ZIMs (Stackexchange). } and ] do not need to be escaped as they have no meaning on their own. 
-            var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+\/()[{])/g, '\\$1');
+            var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+/()[{])/g, '\\$1');
             // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
             var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
             var iframe = iframeArticleContent.contentDocument;
