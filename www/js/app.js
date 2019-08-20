@@ -86,7 +86,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
         searchDirEntriesFromPrefix($('#prefix').val());
-        $('.navbar-collapse').collapse('hide');
+        if (typeof jQuery().collapse === 'function') $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
         searchArticlesFocused = false;
@@ -176,7 +176,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        $('.navbar-collapse').collapse('hide');
+        if (typeof jQuery().collapse === 'function') $('.navbar-collapse').collapse('hide');
     });
     
     $('#btnRescanDeviceStorage').on("click", function(e) {
@@ -206,7 +206,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
-        $('.navbar-collapse').collapse('hide');
+        if (typeof jQuery().collapse === 'function') $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
@@ -255,7 +255,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
-        $('.navbar-collapse').collapse('hide');
+        if (typeof jQuery().collapse === 'function') $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
@@ -529,7 +529,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#prefix').val("");
             $("#welcomeText").hide();
             $("#searchingArticles").hide();
-            $('.navbar-collapse').collapse('hide');
+            if (typeof jQuery().collapse === 'function') $('.navbar-collapse').collapse('hide');
             $('#configuration').hide();
             $('#articleListWithHeader').hide();
             $('#articleContent').contents().empty();
