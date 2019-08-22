@@ -1339,7 +1339,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = contentType || fileDirEntry.getMimetype();
-                    uiUtil.displayFileDownloadAlert(title, download, contentType, content);
+                    uiUtil.displayFileDownloadAlert(title, download, mimetype, content);
                 });
             } else {
                 params.isLandingPage = false;
