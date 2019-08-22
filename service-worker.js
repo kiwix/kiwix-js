@@ -25,6 +25,10 @@
 
 var CACHE = 'kiwixjs-cache';
 
+// Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
+// In our case, there is also the ZIM file name, used as a prefix in the URL
+var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABIJMUVWX])\/(.+)/;
+
 self.addEventListener('install', function (event) {
     event.waitUntil(self.skipWaiting());
 });
@@ -88,10 +92,6 @@ self.addEventListener('message', function (event) {
         fetchCaptureEnabled = false;
     }
 });
-
-// Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-// In our case, there is also the ZIM file name, used as a prefix in the URL
-var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABIJMUVWX])\/(.+)/;
 
 /**
  * Handles fetch events that need to be extracted from the ZIM
