@@ -26,16 +26,20 @@ require.config({
     baseUrl: 'js/lib',
     paths: {
         'jquery': 'jquery-3.2.1.slim',
-        'bootstrap': 'bootstrap.bundle'
+        'bootstrap': 'bootstrap.bundle',
+        'fontawesome': 'fontawesome/fontawesome',
+        'fontawesome-solid': 'fontawesome/solid'
     },
     shim: {
         'jquery' : {
             exports : '$'
         },
         'bootstrap': {
-            deps: ['jquery']
+            deps: ['jquery', 'fontawesome', 'fontawesome-solid']
         }
     }
 });
 
-requirejs(['bootstrap', '../app']);
+requirejs(['bootstrap'], function (bootstrap) {
+    requirejs(['../app']);
+});
