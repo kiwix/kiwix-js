@@ -86,7 +86,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
         searchDirEntriesFromPrefix($('#prefix').val());
-        //if (typeof jQuery().collapse === 'function') 
         $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
@@ -177,7 +176,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        //if (typeof jQuery().collapse === 'function') 
         $('.navbar-collapse').collapse('hide');
     });
     
@@ -208,7 +206,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
-        //if (typeof jQuery().collapse === 'function') 
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').hide();
@@ -236,11 +233,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
-        // This code can occasionally run before bootstrap has inserted its functions into jQuery
-        // so if the collapse function is missing, we use the css method to close the collapsible navbar
-        //if (typeof jQuery().collapse === 'function') 
         $('.navbar-collapse').collapse('hide');
-        //else document.getElementById('collapsibleNavbar').classList.remove('show');
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
@@ -259,7 +252,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
-        //if (typeof jQuery().collapse === 'function') 
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').show();
@@ -534,7 +526,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#prefix').val("");
             $("#welcomeText").hide();
             $("#searchingArticles").hide();
-            // if (typeof jQuery().collapse === 'function') 
             $('.navbar-collapse').collapse('hide');
             $('#configuration').hide();
             $('#articleListWithHeader').hide();
