@@ -29,10 +29,7 @@ var cachedContentTypesRegexp = /text\/css|text\/javascript|application\/javascri
 // DEV: add any URL schemata that should be excluded from caching with the Cache API to the regex below
 // As of 08-2019 the chrome-extension: schema is incompatible with the Cache API
 // 'example-extension' is included to show how to add another schema if necessary
-// You can test this code by temporarily changing 'example-extension' to 'http' and running on localhost
 var excludedURLSchema = /^(?:chrome-extension|example-extension):/i;
-// This Map will be used as a fallback volatile cache for the URL schemata not supported above
-var assetsCache = new Map();
 
 // Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
 // In our case, there is also the ZIM file name, used as a prefix in the URL
@@ -73,7 +70,7 @@ self.addEventListener('fetch', function (event) {
                     return fetchRequestFromZIM(event).then(function (response) {
                         // Add css or js assets to CACHE (or update their cache entries) unless the URL schema is not supported
                         if (cachedContentTypesRegexp.test(response.headers.get('Content-Type')) &&
-                                !excludedURLSchema.test(event.request.url)) {
+                            !excludedURLSchema.test(event.request.url)) {
                             console.log('[SW] Adding ' + event.request.url + ' to CACHE');
                             event.waitUntil(updateCache(event.request, response.clone()));
                         }
@@ -149,13 +146,6 @@ function fetchRequestFromZIM(fetchEvent) {
                     headers: headers
                 };
 
-                // If we are dealing with an excluded schema, store the response in assetsCache instead of Cache
-                // NB we have to store the data in its constitutent format, otherwise the Response is expired by the system 
-                if (excludedURLSchema.test(fetchEvent.request.url) && cachedContentTypesRegexp.test(contentType)) {
-                    console.log('[SW] Adding EXCLUDED schema URL ' + fetchEvent.request.url + ' to assetsCache');
-                    assetsCache.set(fetchEvent.request.url, [msgPortEvent.data.content, responseInit]);
-                }
-
                 var httpResponse = new Response(msgPortEvent.data.content, responseInit);
 
                 // Let's send the content back from the ServiceWorker
@@ -188,21 +178,14 @@ function removeUrlParameters(url) {
  * @returns {Response} The cached Response (as a Promise) 
  */
 function fromCache(request) {
-    // If the response has been stored in assetsCache, it is an excluded URL schema
-    if (assetsCache.has(request.url)) {
-        var data = assetsCache.get(request.url);
-        var response = new Response(data[0], data[1]);
-        return Promise.resolve(response);
-    } else {
-        return caches.open(CACHE).then(function (cache) {
-            return cache.match(request).then(function (matching) {
-                if (!matching || matching.status === 404) {
-                    return Promise.reject("no-match");
-                }
-                return matching;
-            });
+    return caches.open(CACHE).then(function (cache) {
+        return cache.match(request).then(function (matching) {
+            if (!matching || matching.status === 404) {
+                return Promise.reject("no-match");
+            }
+            return matching;
         });
-    }
+    });
 }
 
 /**
