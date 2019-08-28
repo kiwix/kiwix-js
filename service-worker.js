@@ -24,6 +24,7 @@
 'use strict';
 
 var CACHE = 'kiwixjs-cache';
+var useCache = true;
 // DEV: add any Content-Types you wish to cache to the regexp below, separated by '|'
 var cachedContentTypesRegexp = /text\/css|text\/javascript|application\/javascript/i;
 // DEV: add any URL schemata that should be excluded from caching with the Cache API to the regex below
@@ -61,7 +62,6 @@ self.addEventListener('fetch', function (event) {
             fromCache(event.request).then(
                 function (response) {
                     // The response was found in the cache so we respond with it 
-                    console.log('[SW] Supplying ' + event.request.url + ' from CACHE...');
                     return response;
                 },
                 function () {
@@ -71,7 +71,6 @@ self.addEventListener('fetch', function (event) {
                         // Add css or js assets to CACHE (or update their cache entries) unless the URL schema is not supported
                         if (cachedContentTypesRegexp.test(response.headers.get('Content-Type')) &&
                             !excludedURLSchema.test(event.request.url)) {
-                            console.log('[SW] Adding ' + event.request.url + ' to CACHE');
                             event.waitUntil(updateCache(event.request, response.clone()));
                         }
                         return response;
@@ -88,15 +87,21 @@ self.addEventListener('fetch', function (event) {
 });
 
 self.addEventListener('message', function (event) {
-    if (event.data.action === 'init') {
-        // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
-        outgoingMessagePort = event.ports[0];
-        fetchCaptureEnabled = true;
+    if (event.data.action) {
+        if (event.data.action === 'init') {
+            // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
+            outgoingMessagePort = event.ports[0];
+            fetchCaptureEnabled = true;
+        } else if (event.data.action === 'disable') {
+            // On 'disable' message, we delete the outgoingMessagePort and disable the fetchEventListener
+            outgoingMessagePort = null;
+            fetchCaptureEnabled = false;
+        }
     }
-    if (event.data.action === 'disable') {
-        // On 'disable' message, we delete the outgoingMessagePort and disable the fetchEventListener
-        outgoingMessagePort = null;
-        fetchCaptureEnabled = false;
+    if (event.data.useCache) {
+        // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
+        useCache = event.data.useCache === 'on';
+        console.log('[SW] Caching was turned ' + event.data.useCache);
     }
 });
 
@@ -178,11 +183,14 @@ function removeUrlParameters(url) {
  * @returns {Response} The cached Response (as a Promise) 
  */
 function fromCache(request) {
+    // Prevents use of Cache API if user has disabled it
+    if (!useCache) return Promise.reject('no-match');
     return caches.open(CACHE).then(function (cache) {
         return cache.match(request).then(function (matching) {
             if (!matching || matching.status === 404) {
                 return Promise.reject("no-match");
             }
+            console.log('[SW] Supplying ' + request.url + ' from CACHE...');
             return matching;
         });
     });
@@ -195,7 +203,10 @@ function fromCache(request) {
  * @returns {Promise} A Promise for the update action
  */
 function updateCache(request, response) {
+    // Prevents use of Cache API if user has disabled it
+    if (!useCache) return Promise.resolve();
     return caches.open(CACHE).then(function (cache) {
+        console.log('[SW] Adding ' + request.url + ' to CACHE');
         return cache.put(request, response);
     });
 }

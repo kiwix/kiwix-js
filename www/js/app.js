@@ -45,6 +45,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
 
     /**
+     * The name of the Cache API cache to use for caching Service Worker requests and responses
+     * DEV: Make sure the same name is used at the head of service-worker.js
+     */
+    var CACHE = 'kiwixjs-cache';
+    
+    /**
      * @type ZIMArchive
      */
     var selectedArchive = null;
@@ -60,6 +66,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Set parameters and associated UI elements from cookie
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
+    params['useCache'] = cookies.getItem('useCache') !== 'false';
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -245,6 +253,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#articleContent').hide();
         $('.alert').hide();
         refreshAPIStatus();
+        refreshCacheStatus();
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -273,9 +282,42 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         params.hideActiveContentWarning = this.checked ? true : false;
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
+    document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
+        if (e.target.checked) {
+            cookies.setItem('useCache', true, Infinity);
+            params.useCache = true;
+            document.getElementById('clearCacheResult').innerHTML = '';
+            refreshCacheStatus();
+        }
+    });
+    document.getElementById('cachedAssetsModeRadioFalse').addEventListener('change', function (e) {
+        if (e.target.checked) {
+            cookies.setItem('useCache', false, Infinity);
+            params.useCache = false;
+            var result;
+            refreshCacheStatus().then(function (itemsCount) {
+                result = itemsCount[0] + itemsCount[1];
+                cssCache = new Map();
+                if ('caches' in window) caches.delete(CACHE);
+                refreshCacheStatus().then(function () {
+                    document.getElementById('clearCacheResult').innerHTML = 'Items cleared: <b>' + result + '</b>';
+                });
+            });
+        }
+    });
+    document.getElementById('rememberLastVisitedPageCheck').addEventListener('change', function(e) {
+        var rememberLastPage = e.target.checked ? true : false;
+        cookies.setItem('rememberLastPage', rememberLastPage, Infinity);
+        if (!rememberLastPage) {
+            cache.clear('lastpages', refreshCacheStatus);
+        } else {
+            refreshCacheStatus();
+        }
+    });
+    
 
     /**
-     * Displays of refreshes the API status shown to the user
+     * Displays or refreshes the API status shown to the user
      */
     function refreshAPIStatus() {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
@@ -311,7 +353,59 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         apiStatusPanel.classList.add(apiPanelClass);
 
     }
+
+    // Determines cache capability and returns and array with the number of items in cssCache and CACHE
+    function checkCacheStatus() {
+        params.cacheCapability = 'memory';
+        var memCacheSize = cssCache ? cssCache.size : 0;
+        if ('caches' in window && /https?:/i.test(window.location.protocol))
+            params.cacheCapability = 'cacheAPI';
+        if (params.cacheCapability === 'memory') {
+            // Use Q because browsers without Cache might not have Promise API
+            return q.resolve([memCacheSize, 0]);
+        } else {
+            return caches.open(CACHE).then(function (cache) {
+                return cache.keys().then(function (keys) {
+                    if (contentInjectionMode === 'jquery') params.cacheCapability = 'memory';
+                    return [memCacheSize, keys.length];
+                });
+            });
+        }
+    }
     
+    // Refreshes the cache information displayed on the Configuration page and returns the assetsCount
+    function refreshCacheStatus() {
+        return checkCacheStatus().then(function(assetsCount) {
+            var cacheInUse = params.cacheCapability === 'cacheAPI' ? 'CacheAPI' : 'Memory';
+            cacheInUse = params.useCache ? cacheInUse : 'None'; 
+            document.getElementById('cacheStatus').innerHTML = '<div class="col-xs-8"><p>Cache used: <b>' + 
+                cacheInUse + '</b></p></div><div class="col-xs-4"><p>Assets: <b>' + 
+                (params.cacheCapability === 'memory' ? assetsCount[0] : assetsCount[1]) + '</b></p></div>';
+            var cacheSettings = document.getElementById('cacheSettingsDiv');
+            var cacheStatusPanel = document.getElementById('cacheStatusPanel');
+            [cacheSettings, cacheStatusPanel].forEach(function(panel) {
+                // IE11 cannot remove more than one class from a list at a time
+                panel.classList.remove('panel-success');
+                panel.classList.remove('panel-warning');
+                if (params.useCache) {
+                    panel.classList.add('panel-success');
+                } else {
+                    panel.classList.add('panel-warning');
+                }
+            });
+            // Clear count of deleted assets
+            document.getElementById('clearCacheResult').innerHTML = '';
+            // Update radio buttons and checkbox
+            params.rememberLastPage = true;
+            document.getElementById('rememberLastVisitedPageCheck').checked = params.rememberLastPage;
+            document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
+            // Send a message to Service Worker to turn caching on or off
+            if (contentInjectionMode === 'serviceworker')
+                navigator.serviceWorker.controller.postMessage({ 'useCache': params.useCache ? 'on' : 'off' });
+            return assetsCount;
+        });
+    }
+
     var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
     
@@ -419,6 +513,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         contentInjectionMode = value;
         // Save the value in a cookie, so that to be able to keep it after a reload/restart
         cookies.setItem('lastContentInjectionMode', value, Infinity);
+        refreshCacheStatus();
     }
             
     // At launch, we try to set the last content injection mode (stored in a cookie)
@@ -431,6 +526,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
     
     var serviceWorkerRegistration = null;
+    
+    // We need to establish the caching capabilities before first page launch
+    refreshCacheStatus();
     
     /**
      * Tells if the ServiceWorker API is available
@@ -1201,13 +1299,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
                     cssFulfilled++;
                 } else {
-                    $('#cachingCSS').show();
+                    if (params.useCache) $('#cachingCSS').show();
                     selectedArchive.getDirEntryByTitle(title)
                     .then(function (dirEntry) {
                         return selectedArchive.readUtf8File(dirEntry,
                             function (fileDirEntry, content) {
                                 var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
-                                cssCache.set(fullUrl, content);
+                                if (params.useCache) cssCache.set(fullUrl, content);
                                 uiUtil.replaceCSSLinkWithInlineCSS(link, content);
                                 cssFulfilled++;
                                 renderIfCSSFulfilled(fileDirEntry.url);
@@ -1234,7 +1332,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     resizeIFrame();
                 } else if (title) {
                     title = title.replace(/[^/]+\//g, '').substring(0,18);
-                    $('#cachingCSS').html('Caching ' + title + '...');
+                    if (params.useCache) $('#cachingCSS').html('Caching ' + title + '...');
                 }
             }
         }

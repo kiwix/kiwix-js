@@ -232,6 +232,72 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="container">
+                        <div class="row">
+                            <h3>Performance and privacy settings</h3>
+                            <div class="column">
+                                <div class="panel" id="cacheSettingsDiv">
+                                    <div class="panel-heading">Speed up archive access</div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <div class="radio">
+                                                    <p>Kiwix JS can speed up the display of articles by caching assets:</p>
+                                                    <label>
+                                                        <input type="radio" name="cachedAssetsMode" value="true" id="cachedAssetsModeRadioTrue" checked>
+                                                        <strong>Cache assets</strong> (recommended)
+                                                    </label>
+                                                </div>
+                                                <div class="radio">
+                                                    <label>
+                                                        <input type="radio" name="cachedAssetsMode" value="false" id="cachedAssetsModeRadioFalse">
+                                                        <strong>Do not cache assets</strong> (empties caches: for low-memory devices)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="checkbox">
+                                                    <label>
+                                                        <input type="checkbox" name="rememberLastVisitedPage" value="true" id="rememberLastVisitedPageCheck" checked>
+                                                        <strong>Return to last visited page when you open an archive</strong>
+                                                        <p>You will still need to pick the archive</p>
+                                                    </label>
+                                                </div>
+                                                <div id="cacheStatusPanel" class="panel panel-footer" style="overflow: hidden">
+                                                    <div><p><b>Cache status:</b></p></div>
+                                                    <div id="cacheStatus"></div>
+                                                    <div id="clearCacheResult" class="col-xs-12"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="container">
+                        <div class="row">
+                            <h3>Expert Settings</h3>
+                            <div class="column">
+                                <div class="panel panel-danger" id="contentInjectionModeDiv">
+                                    <div class="panel-heading">Content injection mode</div>
+                                    <div class="panel-body">
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked>
+                                                <strong>JQuery</strong> (stable and safe)
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio">
+                                                <strong>ServiceWorker</strong> (not available on all platforms, but supports more ZIM files)
+                                            </label>
+                                        </div>
+                                    </div>
+                    </div>
                     <br />
                     <div class="container">
                         <h3>Expert settings</h3>
