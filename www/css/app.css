@@ -1,52 +1,56 @@
 /*!
  * app.css : Main CSS of the application
- * 
- * Copyright 2013-2014 Mossroy and contributors
+ *
+ * Copyright 2013-2019 Mossroy and contributors
  * License GPL v3:
- * 
+ *
  * This file is part of Kiwix.
- * 
+ *
  * Kiwix is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
 [role=region] {
-  top: 0; right: 0; bottom: 0; left: 0;
- 
-  position: fixed;
-  overflow-x: hidden;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    overflow-x: hidden;
 }
 [role=region] > header {
-  margin: .5rem 0 1rem 0;
-  text-align: center;
+    margin: .5rem 0 1rem 0;
+    text-align: center;
 }
 [role=region] > header > h1 {
-  margin: 0;
-  text-shadow: 0px 1px 1px rgba(0,0,0,.4);
+    margin: 0;
+    text-shadow: 0 1px 1px rgba(0,0,0,.4);
 }
 [role=region] > .view-content {
-  margin: 0;
-  position: relative; /*Fixes #250 Random button display bug in W10M */
+    margin: 0;
+    position: relative; /*Fixes #250 Random button display bug in W10M */
 }
 [role=region] > footer {
-  background: rgba(0,0,0,.2);
-  right: 0; bottom: 0; left: 0;
-  position: fixed;
-  text-align: center;
+    background: rgba(0,0,0,.2);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    text-align: center;
 }
 [role=region] > footer > menu[role=toolbar] {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 #navigationButtons .restrictedSize {
@@ -65,8 +69,8 @@
 }
 
 #articleListWithHeader {
-    position: absolute; 
-    top: 0; 
+    position: absolute;
+    top: 0;
     left: 5%;
     padding-left: 12px;
     padding-right: 12px;
@@ -83,7 +87,7 @@
 }
 
 .category-padding {
-   margin: 0 1rem 0 1rem;
+    margin: 0 1rem 0 1rem;
 }
 
 .apiAvailable {
@@ -147,6 +151,7 @@
 
 /* Reduce the size of some elements for small screens */
 @media (max-width: 768px) {
+
     /* Reduce the height of top menu */
     .navbar {
         min-height: 20px !important;
@@ -161,28 +166,32 @@
         padding-top: 2px !important;
         padding-bottom: 2px !important;
         margin-top: 2px !important;
-        margin-bottom: 0px !important;
+        margin-bottom: 0 !important;
     }
     [role=region] > header {
-        margin-bottom: 0px !important;
+        margin-bottom: 0 !important;
     }
+
     /* Remove space between search zone and iframe */
     .list-group {
-        margin-bottom: 0px !important;
+        margin-bottom: 0 !important;
     }
+
     /* Reduce height of the search field */
     .form-control {
         height: 28px !important;
         padding-bottom: 5px !important;
     }
+
     /* Reduce size of the top buttons */
     .btn-xs, .btn-sm, .btn-default, .btn-group-xs > .btn, .btn-group-sm > .btn {
         font-size: 10px !important;
     }
+
     /* Reduce size of the bottom buttons */
     .btn-lg, .btn-group-lg > .btn {
         padding-top: 1px !important;
         padding-bottom: 1px !important;
         font-size: 16px !important;
-    }    
+    }
 }
