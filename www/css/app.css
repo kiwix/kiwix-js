@@ -1,7 +1,7 @@
 /*!
  * app.css : Main CSS of the application
  *
- * Copyright 2013-2014 Mossroy and contributors
+ * Copyright 2013-2019 Mossroy and contributors
  * License GPL v3:
  *
  * This file is part of Kiwix.
@@ -21,31 +21,36 @@
  */
 
 [role=region] {
-  top: 0; right: 0; bottom: 0; left: 0;
-  position: fixed;
-  overflow-x: hidden;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    overflow-x: hidden;
 }
 [role=region] > header {
-  margin: .5rem 0 1rem 0;
-  text-align: center;
+    margin: .5rem 0 1rem 0;
+    text-align: center;
 }
 [role=region] > header > h1 {
-  margin: 0;
-  text-shadow: 0px 1px 1px rgba(0,0,0,.4);
+    margin: 0;
+    text-shadow: 0px 1px 1px rgba(0,0,0,.4);
 }
 [role=region] > .view-content {
-  margin: 0;
-  position: relative; /*Fixes #250 Random button display bug in W10M */
+    margin: 0;
+    position: relative; /*Fixes #250 Random button display bug in W10M */
 }
 [role=region] > footer {
-  background: rgba(0,0,0,.2);
-  right: 0; bottom: 0; left: 0;
-  position: fixed;
-  text-align: center;
+    background: rgba(0,0,0,.2);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    text-align: center;
 }
 [role=region] > footer > menu[role=toolbar] {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 #navigationButtons .restrictedSize {
@@ -82,7 +87,7 @@
 }
 
 .category-padding {
-   margin: 0 1rem 0 1rem;
+    margin: 0 1rem 0 1rem;
 }
 
 .apiAvailable {
@@ -146,6 +151,7 @@
 
 /* Reduce the size of some elements for small screens */
 @media (max-width: 768px) {
+
     /* Reduce the height of top menu */
     .navbar {
         min-height: 20px !important;
@@ -165,19 +171,23 @@
     [role=region] > header {
         margin-bottom: 0px !important;
     }
+
     /* Remove space between search zone and iframe */
     .list-group {
         margin-bottom: 0px !important;
     }
+
     /* Reduce height of the search field */
     .form-control {
         height: 28px !important;
         padding-bottom: 5px !important;
     }
+
     /* Reduce size of the top buttons */
     .btn-xs, .btn-sm, .btn-default, .btn-group-xs > .btn, .btn-group-sm > .btn {
         font-size: 10px !important;
     }
+
     /* Reduce size of the bottom buttons */
     .btn-lg, .btn-group-lg > .btn {
         padding-top: 1px !important;
