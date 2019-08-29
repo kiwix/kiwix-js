@@ -1,7 +1,5 @@
 # Kiwix JS
-[![Build Status](https://travis-ci.org/kiwix/kiwix-js.svg?branch=master)](https://travis-ci.org/kiwix/kiwix-js)
 
-## Summary
 Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/
 
 This is a browser extension developed in HTML5/Javascript.
@@ -11,6 +9,12 @@ All the content of Wikipedia is inside your device (including the images).
 It might also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM , but has been only tested on the Mediawiki-based (wikipedia, wikivoyage etc) and StackExchange ZIM files.
 
 If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing repository of knowledge and culture.
+
+[![Build Status](https://travis-ci.org/kiwix/kiwix-js.svg?branch=master)](https://travis-ci.org/kiwix/kiwix-js)
+[![CodeFactor](https://www.codefactor.io/repository/github/kiwix/kiwix-js/badge)](https://www.codefactor.io/repository/github/kiwix/kiwix-js)
+[![Kiwix for Firefox](https://img.shields.io/amo/v/kiwix-offline?label=Kiwix%20for%20Firefox)](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+[![Kiwix for Chrome](https://img.shields.io/chrome-web-store/v/donaljnlmapmngakoipdmehbfcioahhk?label=Kiwix%20for%20Chrome)](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Usage
 It uses ZIM files that you can download from https://download.kiwix.org/
