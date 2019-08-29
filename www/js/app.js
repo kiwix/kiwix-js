@@ -79,7 +79,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     $(window).resize(resizeIFrame);
     
     // Define behavior of HTML elements
-    $('#searchArticles').on('click', function(e) {
+    var searchArticlesFocused = false;
+    $('#searchArticles').on('click', function() {
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
@@ -88,9 +89,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
+        document.getElementById('prefix').focus();
+        // This flag is set to true in the mousedown event below
+        searchArticlesFocused = false;
     });
-    $('#formArticleSearch').on('submit', function(e) {
-        document.getElementById("searchArticles").click();
+    $('#searchArticles').on('mousedown', function() {
+        // We set the flag so that the blur event of #prefix can know that the searchArticles button has been clicked
+        searchArticlesFocused = true;
+    });
+    $('#formArticleSearch').on('submit', function() {
+        document.getElementById('searchArticles').click();
         return false;
     });
     // Handle keyboard events in the prefix (article search) field
@@ -160,9 +168,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if ($('#prefix').val() !== '') 
             $('#articleListWithHeader').show();
     });
-    // Hide the search resutls if user moves out of prefix field
+    // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
-        $('#articleListWithHeader').hide();
+        if (!searchArticlesFocused) $('#articleListWithHeader').hide();
     });
     $("#btnRandomArticle").on("click", function(e) {
         $('#prefix').val("");
