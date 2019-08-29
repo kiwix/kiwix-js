@@ -168,7 +168,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if ($('#prefix').val() !== '') 
             $('#articleListWithHeader').show();
     });
-    // Hide the search resutls if user moves out of prefix field
+    // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
         if (!searchArticlesFocused) $('#articleListWithHeader').hide();
     });
