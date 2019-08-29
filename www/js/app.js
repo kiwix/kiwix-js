@@ -305,16 +305,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             });
         }
     });
-    document.getElementById('rememberLastVisitedPageCheck').addEventListener('change', function(e) {
-        var rememberLastPage = e.target.checked ? true : false;
-        cookies.setItem('rememberLastPage', rememberLastPage, Infinity);
-        if (!rememberLastPage) {
-            cache.clear('lastpages', refreshCacheStatus);
-        } else {
-            refreshCacheStatus();
-        }
-    });
-    
 
     /**
      * Displays or refreshes the API status shown to the user
@@ -396,8 +386,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // Clear count of deleted assets
             document.getElementById('clearCacheResult').innerHTML = '';
             // Update radio buttons and checkbox
-            params.rememberLastPage = true;
-            document.getElementById('rememberLastVisitedPageCheck').checked = params.rememberLastPage;
             document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
             // Send a message to Service Worker to turn caching on or off
             if (contentInjectionMode === 'serviceworker')
