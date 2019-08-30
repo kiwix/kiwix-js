@@ -1049,7 +1049,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             // Remove focus from the UI elements
-            document.getElementById('articleContent').contentWindow.focus();
+            // document.getElementById('articleContent').contentWindow.focus();
             
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
