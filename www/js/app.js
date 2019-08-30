@@ -893,36 +893,36 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
             // We will need the encoded URL on article load so that we can set the iframe's src correctly,
             // but we must not encode the '/' character or else relative links may fail [kiwix-js #498]
-            var encodedUrl = dirEntry.url.replace(/[^/]+/g, function(matchedSubstring) {
+            var encodedUrl = dirEntry.url.replace(/[^/]+/g, function (matchedSubstring) {
                 return encodeURIComponent(matchedSubstring);
             });
             var iframeArticleContent = document.getElementById('articleContent');
-            iframeArticleContent.onload = function() {
-                    // The content is fully loaded by the browser : we can hide the spinner
-                    $("#searchingArticles").hide();
-                    // Display the iframe content
-                    $("#articleContent").show();
-                    // Remove focus from the UI elements
-                    document.getElementById('articleContent').contentWindow.focus();
-                    // Deflect drag-and-drop of ZIM file on the iframe to Config
-                    var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
-                    var docBody = doc ? doc.getElementsByTagName('body') : null;
-                    docBody = docBody ? docBody[0] : null;
-                    if (docBody) {
-                        docBody.addEventListener('dragover', handleIframeDragover);
-                        docBody.addEventListener('drop', handleIframeDrop);
-                    }
+            iframeArticleContent.onload = function () {
+                // The content is fully loaded by the browser : we can hide the spinner
+                $("#searchingArticles").hide();
+                // Display the iframe content
+                $("#articleContent").show();
+                // Remove focus from the UI elements
+                document.getElementById('articleContent').contentWindow.focus();
+                // Deflect drag-and-drop of ZIM file on the iframe to Config
+                var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
+                var docBody = doc ? doc.getElementsByTagName('body') : null;
+                docBody = docBody ? docBody[0] : null;
+                if (docBody) {
+                    docBody.addEventListener('dragover', handleIframeDragover);
+                    docBody.addEventListener('drop', handleIframeDrop);
+                }
                 // Reset UI when the article is unloaded
-                    if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function() {
+                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
                     $("#articleList").empty();
                     $('#articleListHeaderMessage').empty();
                     $('#articleListWithHeader').hide();
                     $("#prefix").val("");
-                        $("#searchingArticles").show();
-                    };
+                    $("#searchingArticles").show();
                 };
-                // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-                iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
+            };
+            // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+            iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
