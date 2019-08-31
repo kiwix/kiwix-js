@@ -1039,6 +1039,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
         $('#downloadAlert').hide();
+
+        // Remove focus from the UI elements
+        document.getElementById('articleContent').contentWindow.focus();
         
         var iframeArticleContent = document.getElementById('articleContent');
         
@@ -1048,8 +1051,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
-            // Remove focus from the UI elements
-            // document.getElementById('articleContent').contentWindow.focus();
             
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
