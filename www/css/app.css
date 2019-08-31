@@ -29,8 +29,8 @@
     overflow-x: hidden;
 }
 [role=region] > header {
-    margin: .5rem 0 1rem 0;
-    text-align: center;
+     margin-bottom: 1rem;
+     text-align: center;
 }
 [role=region] > header > h1 {
     margin: 0;
@@ -81,13 +81,17 @@
     background: lightblue;
 }
 
+#formArticleSearch {
+    padding-top: 1rem;
+}
+
+#configuration {
+    margin: 0 1rem;
+}
+
 .articleIFrame {
     width: 100%;
     border: 0;
-}
-
-.category-padding {
-    margin: 0 1rem 0 1rem;
 }
 
 .apiAvailable {
@@ -144,6 +148,45 @@
     text-align: center;
 }
 
+/* Modify default Bootstrap 4 colours */
+.card-info {
+    border-color: #bce8f1;
+}
+.card-info .card-header {
+    background-color: #d9edf7;
+    color: #31708f;
+}
+.card-success {
+    border-color: #d6e9c6;
+}
+.card-success .card-header{
+    background-color: #dff0d8;
+    color: #3c763d;
+}
+.card-danger {
+    border-color: #ebccd1;
+}
+.card-danger .card-header {
+    background-color: #f2dede;
+    color: #a94442;
+}
+.card-warning {
+    border-color: #faebcc;
+}
+.card-warning .card-header {
+    background-color: #fcf8e3;
+    color: #8a6d3b;
+}
+
+.btn-lg {
+    color: #337ab7;
+}
+
+/* Add missing margin to buttons */
+button {
+    margin: 2px;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -182,9 +225,12 @@
         height: 28px !important;
         padding-bottom: 5px !important;
     }
-
+    #formArticleSearch {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
     /* Reduce size of the top buttons */
-    .btn-xs, .btn-sm, .btn-default, .btn-group-xs > .btn, .btn-group-sm > .btn {
+    .btn-outline-secondary {
         font-size: 10px !important;
     }
 

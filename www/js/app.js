@@ -86,9 +86,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
         searchDirEntriesFromPrefix($('#prefix').val());
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
         searchArticlesFocused = false;
@@ -178,9 +176,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
     });
     
     $('#btnRescanDeviceStorage').on("click", function(e) {
@@ -210,9 +206,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').hide();
@@ -239,9 +233,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').hide();
         $('#configuration').show();
@@ -260,9 +252,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
-        if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-            $('#navbarToggle').click();
-        }
+        $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         $('#about').show();
         $('#configuration').hide();
@@ -289,14 +279,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function refreshAPIStatus() {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
-        apiStatusPanel.classList.remove('panel-success', 'panel-warning');
-        var apiPanelClass = 'panel-success';
+        apiStatusPanel.classList.remove('card-success', 'card-warning');
+        var apiPanelClass = 'card-success';
         if (isMessageChannelAvailable()) {
             $('#messageChannelStatus').html("MessageChannel API available");
             $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiAvailable");
         } else {
-            apiPanelClass = 'panel-warning';
+            apiPanelClass = 'card-warning';
             $('#messageChannelStatus').html("MessageChannel API unavailable");
             $('#messageChannelStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
@@ -307,13 +297,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                         .addClass("apiAvailable");
             } else {
-                apiPanelClass = 'panel-warning';
+                apiPanelClass = 'card-warning';
                 $('#serviceWorkerStatus').html("ServiceWorker API available, but not registered");
                 $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                         .addClass("apiUnavailable");
             }
         } else {
-            apiPanelClass = 'panel-warning';
+            apiPanelClass = 'card-warning';
             $('#serviceWorkerStatus').html("ServiceWorker API unavailable");
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
@@ -536,9 +526,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             $('#prefix').val("");
             $("#welcomeText").hide();
             $("#searchingArticles").hide();
-            if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
-                $('#navbarToggle').click();
-            }
+            $('.navbar-collapse').collapse('hide');
             $('#configuration').hide();
             $('#articleListWithHeader').hide();
             $('#articleContent').contents().empty();
@@ -808,7 +796,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            $('#activeContent').alert('close');
+            $('#activeContent').hide();
             selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
@@ -899,17 +887,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
+        // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
+        // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
+        if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
 
             // We will need the encoded URL on article load so that we can set the iframe's src correctly,
             // but we must not encode the '/' character or else relative links may fail [kiwix-js #498]
-            var encodedUrl = dirEntry.url.replace(/[^/]+/g, function(matchedSubstring) {
+            var encodedUrl = dirEntry.url.replace(/[^/]+/g, function (matchedSubstring) {
                 return encodeURIComponent(matchedSubstring);
             });
             var iframeArticleContent = document.getElementById('articleContent');
-            iframeArticleContent.onload = function() {
+            iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
                 $("#searchingArticles").hide();
                 // Display the iframe content
@@ -923,7 +915,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
                 // Reset UI when the article is unloaded
-                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function() {
+                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
                     $("#articleList").empty();
                     $('#articleListHeaderMessage').empty();
                     $('#articleListWithHeader').hide();
@@ -1047,9 +1039,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
 
-        // Remove from DOM any download alert box that was activated in uiUtil.displayFileDownloadAlert function
-        $('#downloadAlert').alert('close');
-        
+        // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
+        $('#downloadAlert').hide();
+
         var iframeArticleContent = document.getElementById('articleContent');
         
         iframeArticleContent.onload = function() {
@@ -1346,7 +1338,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 });
             } else {
                 params.isLandingPage = false;
-                $('#activeContent').alert('close');
+                $('#activeContent').hide();
                 readArticle(dirEntry);
             }
         }).fail(function(e) { alert("Error reading article with title " + title + " : " + e); });
@@ -1361,7 +1353,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
-                    $('#activeContent').alert('close');
+                    $('#activeContent').hide();
                     readArticle(dirEntry);
                 } else {
                     // If the random title search did not end up on an article,

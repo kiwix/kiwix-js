@@ -111,36 +111,36 @@ define([], function() {
     /**
      * Displays a Bootstrap warning alert with information about how to access content in a ZIM with unsupported active UI
      */
+    var activeContentWarningSetup = false;
     function displayActiveContentWarning() {
-        // We have to add the alert box in code, because Bootstrap removes it completely from the DOM when the user dismisses it
-        var alertHTML =
-            '<div id="activeContent" class="alert alert-warning alert-dismissible fade in">' +
-                '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-                '<strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />' +
-                'Content may be available by searching above (type a space or a letter of the alphabet), or else ' +
-                '<a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to Service Worker mode</a> ' +
-                'if your platform supports it. &nbsp;[<a id="stop" href="#displaySettingsDiv" class="alert-link">Permanently hide</a>]' +
-            '</div>';
-        document.getElementById('alertBoxHeader').innerHTML = alertHTML;
-        ['swModeLink', 'stop'].forEach(function(id) {
-            // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
-            // the options that the user needs to select
-            document.getElementById(id).addEventListener('click', function () {
-                var elementID = id === 'stop' ? 'hideActiveContentWarningCheck' : 'serviceworkerModeRadio';
-                var thisLabel = document.getElementById(elementID).parentNode;
-                thisLabel.style.borderColor = 'red';
-                thisLabel.style.borderStyle = 'solid';
-                var btnHome = document.getElementById('btnHome');
-                [thisLabel, btnHome].forEach(function (ele) {
-                    // Define event listeners to cancel the highlighting both on the highlighted element and on the Home tab
-                    ele.addEventListener('mousedown', function () {
-                        thisLabel.style.borderColor = '';
-                        thisLabel.style.borderStyle = '';
-                    });
-                });
-                document.getElementById('btnConfigure').click();
+        var alertActiveContent = document.getElementById('activeContent');
+        alertActiveContent.style.display = 'block';
+        if (!activeContentWarningSetup) {
+            // We are setting up the active content warning for the first time
+            activeContentWarningSetup = true;
+            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function() {
+                alertActiveContent.style.display = 'none';
             });
-        });
+            ['swModeLink', 'stop'].forEach(function(id) {
+                // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
+                // the options that the user needs to select
+                document.getElementById(id).addEventListener('click', function () {
+                    var elementID = id === 'stop' ? 'hideActiveContentWarningCheck' : 'serviceworkerModeRadio';
+                    var thisLabel = document.getElementById(elementID).parentNode;
+                    thisLabel.style.borderColor = 'red';
+                    thisLabel.style.borderStyle = 'solid';
+                    var btnHome = document.getElementById('btnHome');
+                    [thisLabel, btnHome].forEach(function (ele) {
+                        // Define event listeners to cancel the highlighting both on the highlighted element and on the Home tab
+                        ele.addEventListener('mousedown', function () {
+                            thisLabel.style.borderColor = '';
+                            thisLabel.style.borderStyle = '';
+                        });
+                    });
+                    document.getElementById('btnConfigure').click();
+                });
+            });
+        }
     }
 
     /**
@@ -153,13 +153,15 @@ define([], function() {
      * @param {String} contentType The mimetype of the downloadable file, if known
      * @param {Uint8Array} content The binary-format content of the downloadable file
      */
+    var downloadAlertSetup = false;
     function displayFileDownloadAlert(title, download, contentType, content) {
-        // We have to create the alert box in code, because Bootstrap removes it completely from the DOM when the user dismisses it
-        document.getElementById('alertBoxFooter').innerHTML =
-        '<div id="downloadAlert" class="alert alert-info alert-dismissible">' +
-        '    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-        '    <span id="alertMessage"></span>' +
-        '</div>';
+        var downloadAlert = document.getElementById('downloadAlert');
+        downloadAlert.style.display = 'block';
+        if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function() {
+            // We are setting up the alert for the first time
+            downloadAlert.style.display = 'none';
+        });
+        downloadAlertSetup = true;
         // Download code adapted from https://stackoverflow.com/a/19230668/9727685 
         // Set default contentType if none was provided
         if (!contentType) contentType = 'application/octet-stream';
