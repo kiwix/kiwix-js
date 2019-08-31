@@ -61,4 +61,4 @@ The first versions of this application were originally part of the Evopedia proj
 These first versions were targeting Firefox OS (now discontinued too : we're not lucky ;-) ).
 Some Phonegap/Cordova port was started but never finished (see in git history in versions<=2.0.0).
 
-See the CHANGELOG.md file for the detail of previous versions.
+See [CHANGELOG.md](CHANGELOG.md) for the detail of previous versions.
