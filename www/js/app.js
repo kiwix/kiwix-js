@@ -887,6 +887,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
+        // Remove focus from the UI elements (for both jQeury and SW modes)
+        document.getElementById('articleContent').contentWindow.focus();
+
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
@@ -902,8 +905,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#searchingArticles").hide();
                 // Display the iframe content
                 $("#articleContent").show();
-                // Remove focus from the UI elements
-                document.getElementById('articleContent').contentWindow.focus();
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
                 var docBody = doc ? doc.getElementsByTagName('body') : null;
@@ -1040,9 +1041,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
         $('#downloadAlert').hide();
 
-        // Remove focus from the UI elements
-        document.getElementById('articleContent').contentWindow.focus();
-        
         var iframeArticleContent = document.getElementById('articleContent');
         
         iframeArticleContent.onload = function() {
