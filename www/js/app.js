@@ -887,8 +887,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-        // Remove focus from the UI elements (for both jQeury and SW modes)
-        document.getElementById('articleContent').contentWindow.focus();
+        // If we are not loading the landing page, remove focus from the UI elements (for both jQuery and SW modes)
+        if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
