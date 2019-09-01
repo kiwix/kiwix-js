@@ -344,7 +344,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     }
 
-    // Determines cache capability and returns and array with the number of items in cssCache and CACHE
+    // Determines cache capability and returns an array with the number of items in cssCache and CACHE
     function checkCacheStatus() {
         params.cacheCapability = 'memory';
         var memCacheSize = cssCache ? cssCache.size : 0;
@@ -1377,7 +1377,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     /**
      * Displays a message to the user that a style or other asset is being cached
-     * @param {String} title The title of the file to display in caching message block 
+     * @param {String} title The title of the file to display in the caching message block 
      */
     function updateCacheStatus(title) {
         if (params.useCache && /\.css$|\.js$/i.test(title)) {
