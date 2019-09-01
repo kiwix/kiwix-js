@@ -368,19 +368,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         return checkCacheStatus().then(function(assetsCount) {
             var cacheInUse = params.cacheCapability === 'cacheAPI' ? 'CacheAPI' : 'Memory';
             cacheInUse = params.useCache ? cacheInUse : 'None'; 
-            document.getElementById('cacheStatus').innerHTML = '<div class="col-xs-8"><p>Cache used: <b>' + 
-                cacheInUse + '</b></p></div><div class="col-xs-4"><p>Assets: <b>' + 
-                (params.cacheCapability === 'memory' ? assetsCount[0] : assetsCount[1]) + '</b></p></div>';
+            document.getElementById('cacheUsed').innerHTML = cacheInUse;
+            document.getElementById('assetsCount').innerHTML = (params.cacheCapability === 'memory' ? assetsCount[0] : assetsCount[1]);
             var cacheSettings = document.getElementById('cacheSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
-            [cacheSettings, cacheStatusPanel].forEach(function(panel) {
+            [cacheSettings, cacheStatusPanel].forEach(function(card) {
                 // IE11 cannot remove more than one class from a list at a time
-                panel.classList.remove('panel-success');
-                panel.classList.remove('panel-warning');
+                card.classList.remove('card-success');
+                card.classList.remove('card-warning');
                 if (params.useCache) {
-                    panel.classList.add('panel-success');
+                    card.classList.add('card-success');
                 } else {
-                    panel.classList.add('panel-warning');
+                    card.classList.add('card-warning');
                 }
             });
             // Clear count of deleted assets

@@ -232,64 +232,52 @@
                             </div>
                         </div>
                     </div>
-
+                    <br />
                     <div class="container">
-                        <div class="row">
-                            <h3>Performance settings</h3>
-                            <div class="column">
-                                <div class="panel" id="cacheSettingsDiv">
-                                    <div class="panel-heading">Speed up archive access</div>
-                                    <div class="panel-body">
-                                        <div class="row">
-                                            <div class="col-sm-6">
-                                                <div class="radio">
-                                                    <p>Kiwix JS can speed up the display of articles by caching assets:</p>
-                                                    <label>
-                                                        <input type="radio" name="cachedAssetsMode" value="true" id="cachedAssetsModeRadioTrue" checked>
-                                                        <strong>Cache assets</strong> (recommended)
-                                                    </label>
+                        <h3>Performance settings</h3>
+                        <div class="card card-warning" id="cacheSettingsDiv">
+                            <div class="card-header">Speed up archive access</div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="radio">
+                                            <p>Kiwix JS can speed up the display of articles by caching assets:</p>
+                                            <label>
+                                                <input type="radio" name="cachedAssetsMode" value="true"
+                                                    id="cachedAssetsModeRadioTrue" checked>
+                                                <strong>Cache assets</strong> (recommended)
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="cachedAssetsMode" value="false"
+                                                    id="cachedAssetsModeRadioFalse">
+                                                <strong>Do not cache assets</strong> (empties caches: for low-memory
+                                                devices)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div id="cacheStatusPanel" class="card card-footer" style="overflow: hidden">
+                                            <div>
+                                                <p><b>Cache status:</b></p>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-7">
+                                                    <p>Cache used: <b id="cacheUsed"></b></p>
                                                 </div>
-                                                <div class="radio">
-                                                    <label>
-                                                        <input type="radio" name="cachedAssetsMode" value="false" id="cachedAssetsModeRadioFalse">
-                                                        <strong>Do not cache assets</strong> (empties caches: for low-memory devices)
-                                                    </label>
+                                                <div class="col-5">
+                                                    <p>Assets: <b id="assetsCount"></b></p>
                                                 </div>
                                             </div>
-                                            <div class="col-sm-6">
-                                                <div id="cacheStatusPanel" class="panel panel-footer" style="overflow: hidden">
-                                                    <div><p><b>Cache status:</b></p></div>
-                                                    <div id="cacheStatus"></div>
-                                                    <div id="clearCacheResult" class="col-xs-12"></div>
-                                                </div>
+                                            <div class="row">
+                                                <div id="clearCacheResult" class="col-sm-12"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="container">
-                        <div class="row">
-                            <h3>Expert settings</h3>
-                            <div class="column">
-                                <div class="panel panel-danger" id="contentInjectionModeDiv">
-                                    <div class="panel-heading">Content injection mode</div>
-                                    <div class="panel-body">
-                                        <div class="radio">
-                                            <label>
-                                                <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio" checked>
-                                                <strong>JQuery</strong> (stable and safe)
-                                            </label>
-                                        </div>
-                                        <div class="radio">
-                                            <label>
-                                                <input type="radio" name="contentInjectionMode" value="serviceworker" id="serviceworkerModeRadio">
-                                                <strong>ServiceWorker</strong> (not available on all platforms, but supports more ZIM files)
-                                            </label>
-                                        </div>
-                                    </div>
                     </div>
                     <br />
                     <div class="container">
