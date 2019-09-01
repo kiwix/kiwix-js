@@ -988,6 +988,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
+                $("#cachingAssets").html("Caching assets...");
+                $("#cachingAssets").hide();
                 $("#searchingArticles").hide();
                 // Display the iframe content
                 $("#articleContent").show();
@@ -1061,6 +1063,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // Let's send the content to the ServiceWorker
                             var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
                             messagePort.postMessage(message, [content.buffer]);
+                            updateCacheStatus(title);
                         });
                     }
                 };
@@ -1286,7 +1289,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
                     cssFulfilled++;
                 } else {
-                    if (params.useCache) $('#cachingCSS').show();
+                    if (params.useCache) $('#cachingAssets').show();
                     selectedArchive.getDirEntryByTitle(title)
                     .then(function (dirEntry) {
                         return selectedArchive.readUtf8File(dirEntry,
@@ -1311,15 +1314,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // until all CSS content is available [kiwix-js #381]
             function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
-                    $('#cachingCSS').html('Caching styles...');
-                    $('#cachingCSS').hide();
+                    $('#cachingAssets').html('Caching styles...');
+                    $('#cachingAssets').hide();
                     $('#searchingArticles').hide();
                     $('#articleContent').show();
                     // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                     resizeIFrame();
-                } else if (title) {
-                    title = title.replace(/[^/]+\//g, '').substring(0,18);
-                    if (params.useCache) $('#cachingCSS').html('Caching ' + title + '...');
+                } else {
+                    updateCacheStatus(title);
                 }
             }
         }
@@ -1370,6 +1372,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     });
                 });
             });
+        }
+    }
+
+    /**
+     * Displays a message to the user that a style or other asset is being cached
+     * @param {String} title The title of the file to display in caching message block 
+     */
+    function updateCacheStatus(title) {
+        if (params.useCache && /\.css$|\.js$/i.test(title)) {
+            var cacheBlock = document.getElementById('cachingAssets');
+            cacheBlock.style.display = 'block';
+            title = title.replace(/[^/]+\//g, '').substring(0,18);
+            cacheBlock.innerHTML = 'Caching ' + title + '...';
         }
     }
 
