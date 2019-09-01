@@ -183,7 +183,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         goToRandomArticle();
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
-        $("#searchingArticles").hide();
         $('.navbar-collapse').collapse('hide');
     });
     
@@ -1454,6 +1453,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
+                    $('#searchingArticles').show();
                     readArticle(dirEntry);
                 } else {
                     // If the random title search did not end up on an article,
