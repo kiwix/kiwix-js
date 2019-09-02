@@ -30,6 +30,7 @@ var cachedContentTypesRegexp = /text\/css|text\/javascript|application\/javascri
 // DEV: add any URL schemata that should be excluded from caching with the Cache API to the regex below
 // As of 08-2019 the chrome-extension: schema is incompatible with the Cache API
 // 'example-extension' is included to show how to add another schema if necessary
+// See equivalent regex in app.js function refreshCacheStatus() and ensure both are the same
 var excludedURLSchema = /^(?:chrome-extension|example-extension):/i;
 
 // Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces

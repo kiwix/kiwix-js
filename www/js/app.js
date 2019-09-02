@@ -349,7 +349,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var memCacheSize = cssCache ? cssCache.size : 0;
         if ('caches' in window && /https?:/i.test(window.location.protocol))
             params.cacheCapability = 'cacheAPI';
-        if (params.cacheCapability === 'memory') {
+        // DEV: place in regex below any schemata that do not support CacheAPI even if Service Worker is supported
+        // See equivalent regex at head of service-worker.js
+        if (/^(?:chrome-extension|example-extension):/i.test(window.location.protocol) && contentInjectionMode === 'serviceworker')
+            params.cacheCapability = 'custom';
+        if (params.cacheCapability !== 'cacheAPI') {
             // Use Q because browsers without Cache might not have Promise API
             return q.resolve([memCacheSize, 0]);
         } else {
@@ -365,10 +369,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Refreshes the cache information displayed on the Configuration page and returns the assetsCount
     function refreshCacheStatus() {
         return checkCacheStatus().then(function(assetsCount) {
-            var cacheInUse = params.cacheCapability === 'cacheAPI' ? 'CacheAPI' : 'Memory';
+            var cacheInUse = params.cacheCapability === 'cacheAPI' ? 'CacheAPI' : params.cacheCapability === 'custom' ? 'Custom' : 'Memory';
             cacheInUse = params.useCache ? cacheInUse : 'None'; 
             document.getElementById('cacheUsed').innerHTML = cacheInUse;
-            document.getElementById('assetsCount').innerHTML = (params.cacheCapability === 'memory' ? assetsCount[0] : assetsCount[1]);
+            document.getElementById('assetsCount').innerHTML = params.cacheCapability === 'custom' ? '' : assetsCount[0] + assetsCount[1];
             var cacheSettings = document.getElementById('cacheSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function(card) {
@@ -1379,7 +1383,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} title The title of the file to display in the caching message block 
      */
     function updateCacheStatus(title) {
-        if (params.useCache && /\.css$|\.js$/i.test(title)) {
+        if (params.useCache && params.cacheCapability !== 'custom' && /\.css$|\.js$/i.test(title)) {
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
             title = title.replace(/[^/]+\//g, '').substring(0,18);
