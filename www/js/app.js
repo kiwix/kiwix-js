@@ -513,6 +513,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         else {
             $("#btnConfigure").click();
+            var oReq = new XMLHttpRequest();
+            oReq.onload = function(e) {
+                //var blobZIM = oReq.response; // not responseText
+                //file.name = "wikipedia_en_ray_charles_maxi_2019-08.zim";
+                //file.size = oReq.response.size;
+                oReq.response.name = "wikipedia_en_medicine_maxi_2019-08.zim";
+                setLocalArchiveFromFileList([oReq.response]);
+            };
+            oReq.open("GET", "../archives/wikipedia_en_medicine_maxi_2019-08.zim");
+            oReq.responseType = "blob";
+            oReq.send();
         }
     }
 
