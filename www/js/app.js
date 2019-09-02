@@ -372,7 +372,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var cacheInUse = params.cacheCapability === 'cacheAPI' ? 'CacheAPI' : params.cacheCapability === 'custom' ? 'Custom' : 'Memory';
             cacheInUse = params.useCache ? cacheInUse : 'None'; 
             document.getElementById('cacheUsed').innerHTML = cacheInUse;
-            document.getElementById('assetsCount').innerHTML = assetsCount[0] + assetsCount[1];
+            document.getElementById('assetsCount').innerHTML = params.cacheCapability === 'custom' ?
+                assetsCount[0] + assetsCount[1] || '-' : assetsCount[0] + assetsCount[1];
             var cacheSettings = document.getElementById('cacheSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function(card) {
