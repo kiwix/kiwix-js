@@ -285,7 +285,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (e.target.checked) {
             cookies.setItem('useCache', true, Infinity);
             params.useCache = true;
-            document.getElementById('clearCacheResult').innerHTML = '';
             refreshCacheStatus();
         }
     });
@@ -293,15 +292,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (e.target.checked) {
             cookies.setItem('useCache', false, Infinity);
             params.useCache = false;
-            var result;
-            refreshCacheStatus().then(function (itemsCount) {
-                result = itemsCount[0] + itemsCount[1];
-                cssCache = new Map();
-                if ('caches' in window) caches.delete(CACHE);
-                refreshCacheStatus().then(function () {
-                    document.getElementById('clearCacheResult').innerHTML = 'Items cleared: <b>' + result + '</b>';
-                });
-            });
+            cssCache = new Map();
+            if ('caches' in window) caches.delete(CACHE);
+            refreshCacheStatus();
         }
     });
 
@@ -386,8 +379,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     card.classList.add('card-warning');
                 }
             });
-            // Clear count of deleted assets
-            document.getElementById('clearCacheResult').innerHTML = '';
             // Update radio buttons and checkbox
             document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
             // Send a message to Service Worker to turn caching on or off
