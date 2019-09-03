@@ -48,7 +48,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * The name of the Cache API cache to use for caching Service Worker requests and responses
      * DEV: Make sure the same name is used at the head of service-worker.js
      */
-    var CACHE = 'kiwixjs-cache';
+    var CACHE = 'kiwixjs-assetCache';
     
     /**
      * @type ZIMArchive

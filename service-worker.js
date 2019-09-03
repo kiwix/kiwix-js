@@ -23,7 +23,7 @@
  */
 'use strict';
 
-var CACHE = 'kiwixjs-cache';
+var CACHE = 'kiwixjs-assetCache';
 var useCache = true;
 // DEV: add any Content-Types you wish to cache to the regexp below, separated by '|'
 var cachedContentTypesRegexp = /text\/css|text\/javascript|application\/javascript/i;
