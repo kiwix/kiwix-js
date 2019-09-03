@@ -188,14 +188,25 @@ define(['q'], function(q) {
      */
     function readFileSlice(file, begin, size) {
         var deferred = q.defer();
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            deferred.resolve(new Uint8Array(e.target.result));
+        // var reader = new FileReader();
+        // reader.onload = function(e) {
+        //     deferred.resolve(new Uint8Array(e.target.result));
+        // };
+        // reader.onerror = reader.onabort = function(e) {
+        //     deferred.reject(e);
+        // };
+        //reader.readAsArrayBuffer(file.slice(begin, begin + size));
+        var xhr = new XMLHttpRequest;
+        xhr.onreadystatechange = function (result) {
+            if (xhr.readyState != 4) {
+                return;
+            }
+            deferred.resolve(new Uint8Array(xhr.response));
         };
-        reader.onerror = reader.onabort = function(e) {
-            deferred.reject(e);
-        };
-        reader.readAsArrayBuffer(file.slice(begin, begin + size));
+        xhr.open('GET', file.path);
+        xhr.setRequestHeader('Range', 'bytes='+ begin + '-' + begin + size);
+        xhr.responseType = "arraybuffer";
+        xhr.send();
         return deferred.promise;
     }
 

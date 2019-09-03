@@ -513,17 +513,28 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         else {
             $("#btnConfigure").click();
-            var oReq = new XMLHttpRequest();
-            oReq.onload = function(e) {
-                //var blobZIM = oReq.response; // not responseText
-                //file.name = "wikipedia_en_ray_charles_maxi_2019-08.zim";
-                //file.size = oReq.response.size;
-                oReq.response.name = "wikipedia_en_medicine_maxi_2019-08.zim";
-                setLocalArchiveFromFileList([oReq.response]);
+            var packagedZIM = {};
+            packagedZIM.name = "wikipedia_en_ray_charles_maxi_2019-08.zim";
+            packagedZIM.path = "../archives/" + packagedZIM.name;
+            var xhr = new XMLHttpRequest();
+            xhr.onprogress = function(event) {
+                if (event.lengthComputable) {
+                    console.log("Packaged file size is: " + event.total);
+                    packagedZIM.size = event.total;
+                    setLocalArchiveFromFileList([packagedZIM]);
+                }
+                xhr.abort();
             };
-            oReq.open("GET", "../archives/wikipedia_en_medicine_maxi_2019-08.zim");
-            oReq.responseType = "blob";
-            oReq.send();
+            // oReq.onload = function(e) {
+            //     //var blobZIM = oReq.response; // not responseText
+            //     //file.name = "wikipedia_en_ray_charles_maxi_2019-08.zim";
+            //     //file.size = oReq.response.size;
+            //     oReq.response.name = packagedZIM;
+            //     setLocalArchiveFromFileList([oReq.response]);
+            // };
+            xhr.open("GET", packagedZIM.path);
+            //xhr.responseType = "blob";
+            xhr.send();
         }
     }
 
