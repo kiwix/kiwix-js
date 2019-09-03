@@ -512,29 +512,21 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             setLocalArchiveFromFileSelect();
         }
         else {
-            $("#btnConfigure").click();
-            var packagedZIM = {};
-            packagedZIM.name = "wikipedia_en_ray_charles_maxi_2019-08.zim";
-            packagedZIM.path = "../archives/" + packagedZIM.name;
+            $('#btnConfigure').click();
+            var archiveFile = 'wikipedia_en_ray_charles_maxi_2019-08.zim';
+            var archivePath = '../archives/' + archiveFile;
             var xhr = new XMLHttpRequest();
-            xhr.onprogress = function(event) {
-                if (event.lengthComputable) {
-                    console.log("Packaged file size is: " + event.total);
-                    packagedZIM.size = event.total;
-                    setLocalArchiveFromFileList([packagedZIM]);
-                }
-                xhr.abort();
+            xhr.onload = function(e) {
+                xhr.response.name = archiveFile;
+                setLocalArchiveFromFileList([xhr.response]);
             };
-            // oReq.onload = function(e) {
-            //     //var blobZIM = oReq.response; // not responseText
-            //     //file.name = "wikipedia_en_ray_charles_maxi_2019-08.zim";
-            //     //file.size = oReq.response.size;
-            //     oReq.response.name = packagedZIM;
-            //     setLocalArchiveFromFileList([oReq.response]);
-            // };
-            xhr.open("GET", packagedZIM.path);
-            //xhr.responseType = "blob";
+            xhr.open('GET', archivePath);
+            xhr.responseType = 'blob';
             xhr.send();
+            var loading = document.getElementById('cachingCSS');
+            document.getElementById('searchingArticles').style.display = 'block';
+            loading.innerHTML = 'Loading packaged ZIM...';
+            loading.style.display = 'block';
         }
     }
 
