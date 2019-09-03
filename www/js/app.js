@@ -1067,7 +1067,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // Let's send the content to the ServiceWorker
                             var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
                             messagePort.postMessage(message, [content.buffer]);
-                            updateCacheStatus(title);
                         });
                     }
                 };
