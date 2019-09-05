@@ -227,7 +227,7 @@ function updateCache(request, response) {
  * @returns {Promise} A Promise that resolves with an array of format [cacheType, cacheDescription, assetCount]
  */
 function testCacheAndCountAssets(url) {
-    if (excludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', 0]);
+    if (excludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
     if (!useCache) return Promise.resolve(['none', 'None', 0]);
     return caches.open(CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {

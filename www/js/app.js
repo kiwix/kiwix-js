@@ -345,7 +345,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
-     * Determines CACHE capability and returns an array with the number of items in cssCache and CACHE
+     * Queries Service Worker if possible to determine CACHE capability and returns an object with cache attributes
      * @returns {Promise} A Promise for an object with keys for 'type', 'description', and 'count'
      */
     function checkCacheTypeAndCountAssets() {
@@ -358,7 +358,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     var cache = event.data;
                     if (cache.error) reject(cache.error);
                     else {
-                        if (!cache.count && cache.type === 'custom') cache.count = '-';
                         resolve(cache);
                     }
                 };
