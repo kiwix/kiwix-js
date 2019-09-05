@@ -357,9 +357,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 channel.port1.onmessage = function (event) {
                     var cache = event.data;
                     if (cache.error) reject(cache.error);
-                    else {
-                        resolve(cache);
-                    }
+                    else resolve(cache);
                 };
                 // Ask Service Worker for its CACHE status and asset count
                 navigator.serviceWorker.controller.postMessage({
