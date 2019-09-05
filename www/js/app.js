@@ -46,10 +46,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     /**
      * The name of the Cache API cache to use for caching Service Worker requests and responses
-     * DEV: Make sure the same name is used at the head of service-worker.js
+     * This name will be passed to service-worker.js in messaging to avoid duplication
+     * @type {String}
      */
     var CACHE = 'kiwixjs-assetCache';
     
+    /**
+     * Cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
+     * @type {Map}
+     */
+    var cssCache = new Map();
+
     /**
      * @type ZIMArchive
      */
@@ -292,7 +299,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (e.target.checked) {
             cookies.setItem('useCache', false, Infinity);
             params.useCache = false;
-            cssCache = new Map();
+            // Delete all caches
+            resetCssCache();
             if ('caches' in window) caches.delete(CACHE);
             refreshCacheStatus();
         }
@@ -336,55 +344,59 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     }
 
-    // Determines cache capability and returns an array with the number of items in cssCache and CACHE
-    function checkCacheStatus() {
-        params.cacheCapability = 'memory';
-        var memCacheSize = cssCache ? cssCache.size : 0;
-        if ('caches' in window && /https?:/i.test(window.location.protocol))
-            params.cacheCapability = 'cacheAPI';
-        // DEV: place in regex below any schemata that do not support CacheAPI even if Service Worker is supported
-        // See equivalent regex at head of service-worker.js
-        if (/^(?:chrome-extension|example-extension):/i.test(window.location.protocol) && contentInjectionMode === 'serviceworker')
-            params.cacheCapability = 'custom';
-        if (params.cacheCapability !== 'cacheAPI') {
-            // Use Q because browsers without Cache might not have Promise API
-            return q.resolve([memCacheSize, 0]);
-        } else {
-            return caches.open(CACHE).then(function (cache) {
-                return cache.keys().then(function (keys) {
-                    if (contentInjectionMode === 'jquery') params.cacheCapability = 'memory';
-                    return [memCacheSize, keys.length];
+    /**
+     * Determines CACHE capability and returns an array with the number of items in cssCache and CACHE
+     * @returns {Promise} A Promise for an object with keys for 'type', 'description', and 'count'
+     */
+    function checkCacheTypeAndCountAssets() {
+        return q.Promise(function (resolve, reject) {
+            if (contentInjectionMode === 'serviceworker') {
+                // Create a Message Channel
+                var channel = new MessageChannel();
+                // Handler for recieving message reply from service worker
+                channel.port1.onmessage = function (event) {
+                    var cache = event.data;
+                    if (cache.error) reject(cache.error);
+                    else {
+                        if (!cache.count && cache.type === 'custom') cache.count = '-';
+                        resolve(cache);
+                    }
+                };
+                // Ask Service Worker for its CACHE status and asset count
+                navigator.serviceWorker.controller.postMessage({
+                        'useCache': params.useCache ? 'on' : 'off',
+                        'cacheName': CACHE,
+                        'checkCache': window.location.href
+                }, [channel.port2]);
+            } else {
+                // No Service Worker has been established, so we resolve the Promise with cssCache details only
+                resolve({
+                    'type': params.useCache ? 'memory' : 'none',
+                    'description': params.useCache ? 'Memory' : 'None',
+                    'count': cssCache.size
                 });
-            });
-        }
+            }
+        });
     }
     
     // Refreshes the cache information displayed on the Configuration page and returns the assetsCount
     function refreshCacheStatus() {
-        return checkCacheStatus().then(function(assetsCount) {
-            var cacheInUse = params.cacheCapability === 'cacheAPI' ? 'CacheAPI' : params.cacheCapability === 'custom' ? 'Custom' : 'Memory';
-            cacheInUse = params.useCache ? cacheInUse : 'None'; 
-            document.getElementById('cacheUsed').innerHTML = cacheInUse;
-            document.getElementById('assetsCount').innerHTML = params.cacheCapability === 'custom' ?
-                assetsCount[0] + assetsCount[1] || '-' : assetsCount[0] + assetsCount[1];
+        // Update radio buttons and checkbox
+        document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
+        // Get cache counts
+        return checkCacheTypeAndCountAssets().then(function(cache) {
+            document.getElementById('cacheUsed').innerHTML = cache.description;
+            document.getElementById('assetsCount').innerHTML = cache.count;
             var cacheSettings = document.getElementById('cacheSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function(card) {
                 // IE11 cannot remove more than one class from a list at a time
                 card.classList.remove('card-success');
                 card.classList.remove('card-warning');
-                if (params.useCache) {
-                    card.classList.add('card-success');
-                } else {
-                    card.classList.add('card-warning');
-                }
+                if (params.useCache) card.classList.add('card-success');
+                else card.classList.add('card-warning');
             });
-            // Update radio buttons and checkbox
-            document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
-            // Send a message to Service Worker to turn caching on or off
-            if (contentInjectionMode === 'serviceworker')
-                navigator.serviceWorker.controller.postMessage({ 'useCache': params.useCache ? 'on' : 'off' });
-            return assetsCount;
+            return cache;
         });
     }
 
@@ -430,6 +442,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 messageChannel = null;
             }
             refreshAPIStatus();
+            // User has switched to jQuery mode, so no longer needs CACHE
+            // We should empty it to prevent unnecessary space usage
+            if ('caches' in window) caches.delete(CACHE);
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
@@ -459,6 +474,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // Create the MessageChannel
                             // and send the 'init' message to the ServiceWorker
                             initOrKeepAliveServiceWorker();
+                            // We need to refresh cache status here on first activation because SW was inaccessible till now
+                            refreshCacheStatus();
                         }
                     });
                     if (serviceWorker.state === 'activated') {
@@ -489,6 +506,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 contentInjectionMode = value;
                 initOrKeepAliveServiceWorker();
             }
+            // User has switched to Service Worker mode, so no longer needs the memory cache
+            // We should empty it to ensure good memory management
+            resetCssCache();
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
@@ -1093,10 +1113,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
     var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
     
-    // Cache for CSS styles contained in ZIM.
-    // It significantly speeds up subsequent page display. See kiwix-js issue #335
-    var cssCache = new Map();
-
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -1374,7 +1390,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} title The title of the file to display in the caching message block 
      */
     function updateCacheStatus(title) {
-        if (params.useCache && params.cacheCapability !== 'custom' && /\.css$|\.js$/i.test(title)) {
+        if (params.useCache && /\.css$|\.js$/i.test(title)) {
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
             title = title.replace(/[^/]+\//g, '').substring(0,18);

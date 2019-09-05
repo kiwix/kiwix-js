@@ -23,7 +23,8 @@
  */
 'use strict';
 
-var CACHE = 'kiwixjs-assetCache';
+// We do not define CACHE here in order to avoid duplication; it will be given a value on init
+var CACHE;
 var useCache = true;
 // DEV: add any Content-Types you wish to cache to the regexp below, separated by '|'
 var cachedContentTypesRegexp = /text\/css|text\/javascript|application\/javascript/i;
@@ -102,7 +103,14 @@ self.addEventListener('message', function (event) {
     if (event.data.useCache) {
         // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
         useCache = event.data.useCache === 'on';
+        if (useCache) CACHE = event.data.cacheName;
         console.log('[SW] Caching was turned ' + event.data.useCache);
+    }
+    if (event.data.checkCache) {
+        // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
+        testCacheAndCountAssets(event.data.checkCache).then(function (cacheArr) {
+            event.ports[0].postMessage({ 'type': cacheArr[0], 'description': cacheArr[1], 'count': cacheArr[2] });
+        });
     }
 });
 
@@ -185,7 +193,7 @@ function removeUrlParameters(url) {
  */
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache) return Promise.reject('no-match');
+    if (!useCache) return Promise.reject('disabled');
     return caches.open(CACHE).then(function (cache) {
         return cache.match(request).then(function (matching) {
             if (!matching || matching.status === 404) {
@@ -209,5 +217,25 @@ function updateCache(request, response) {
     return caches.open(CACHE).then(function (cache) {
         console.log('[SW] Adding ' + request.url + ' to CACHE');
         return cache.put(request, response);
+    });
+}
+
+/**
+ * Tests the caching strategy available to this app and if it is Cache API, count the
+ * number of assets in CACHE
+ * @param {String} url A URL to test against excludedURLSchema
+ * @returns {Promise} A Promise that resolves with an array of format [cacheType, cacheDescription, assetCount]
+ */
+function testCacheAndCountAssets(url) {
+    if (excludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', 0]);
+    if (!useCache) return Promise.resolve(['none', 'None', 0]);
+    return caches.open(CACHE).then(function (cache) {
+        return cache.keys().then(function (keys) {
+            return ['cacheAPI', 'Cache API', keys.length];
+        }).catch(function(err) {
+            return err;
+        });
+    }).catch(function(err) {
+        return err;
     });
 }
