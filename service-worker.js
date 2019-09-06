@@ -23,16 +23,34 @@
  */
 'use strict';
 
-// We do not define CACHE here in order to avoid duplication; it will be given a value on init
+/**
+ * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
+ * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
+ * @type {String}
+ */
 var CACHE;
+
+/**
+ * A global Boolean that governs whether CACHE will be used
+ * Caching is on by default but can be turned off by the user in Configuration
+ * @type {Boolean}
+ */
 var useCache = true;
-// DEV: add any Content-Types you wish to cache to the regexp below, separated by '|'
-var cachedContentTypesRegexp = /text\/css|text\/javascript|application\/javascript/i;
-// DEV: add any URL schemata that should be excluded from caching with the Cache API to the regex below
-// As of 08-2019 the chrome-extension: schema is incompatible with the Cache API
-// 'example-extension' is included to show how to add another schema if necessary
-// See equivalent regex in app.js function refreshCacheStatus() and ensure both are the same
-var excludedURLSchema = /^(?:chrome-extension|example-extension):/i;
+
+/**  
+ * A regular expression that matches the Content-Types of assets that may be stored in CACHE
+ * Add any further Content-Types you wish to cache to the regexp, separated by '|'
+ * @type {RegExp}
+ */
+var regexpCachedContentTypes = /text\/css|text\/javascript|application\/javascript/i;
+
+/**
+ * A regular expression that excludes listed schemata from caching attempts
+ * As of 08-2019 the chrome-extension: schema is incompatible with the Cache API
+ * 'example-extension' is included to show how to add another schema if necessary
+ * @type {RegExp}
+ */
+var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
 
 // Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
 // In our case, there is also the ZIM file name, used as a prefix in the URL
@@ -71,8 +89,8 @@ self.addEventListener('fetch', function (event) {
                     // and add it to the cache if it is an asset type (css or js)
                     return fetchRequestFromZIM(event).then(function (response) {
                         // Add css or js assets to CACHE (or update their cache entries) unless the URL schema is not supported
-                        if (cachedContentTypesRegexp.test(response.headers.get('Content-Type')) &&
-                            !excludedURLSchema.test(event.request.url)) {
+                        if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
+                            !regexpExcludedURLSchema.test(event.request.url)) {
                             event.waitUntil(updateCache(event.request, response.clone()));
                         }
                         return response;
@@ -227,7 +245,7 @@ function updateCache(request, response) {
  * @returns {Promise} A Promise that resolves with an array of format [cacheType, cacheDescription, assetCount]
  */
 function testCacheAndCountAssets(url) {
-    if (excludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
+    if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
     if (!useCache) return Promise.resolve(['none', 'None', 0]);
     return caches.open(CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {

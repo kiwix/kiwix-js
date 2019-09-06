@@ -45,8 +45,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
 
     /**
-     * The name of the Cache API cache to use for caching Service Worker requests and responses
-     * This name will be passed to service-worker.js in messaging to avoid duplication
+     * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
+     * This name will be passed to service-worker.js in messaging to avoid duplication: see comment in service-worker.js
+     * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
      * @type {String}
      */
     var CACHE = 'kiwixjs-assetCache';
@@ -472,6 +473,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // and send the 'init' message to the ServiceWorker
                             initOrKeepAliveServiceWorker();
                             // We need to refresh cache status here on first activation because SW was inaccessible till now
+                            // We also initialize the CACHE constant in SW here
                             refreshCacheStatus();
                         }
                     });
@@ -1321,7 +1323,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // until all CSS content is available [kiwix-js #381]
             function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
-                    $('#cachingAssets').html('Caching styles...');
+                    $('#cachingAssets').html('Caching assets...');
                     $('#cachingAssets').hide();
                     $('#searchingArticles').hide();
                     $('#articleContent').show();
