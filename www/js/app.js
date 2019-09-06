@@ -53,7 +53,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var CACHE = 'kiwixjs-assetCache';
     
     /**
-     * Cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
+     * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
+     * This cache is used by default in jQuery mode, but can be turned off in Configuration for low-memory devices
+     * In Service Worker mode, the Cache API will be used instead
      * @type {Map}
      */
     var cssCache = new Map();

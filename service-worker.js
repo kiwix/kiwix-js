@@ -52,8 +52,11 @@ var regexpCachedContentTypes = /text\/css|text\/javascript|application\/javascri
  */
 var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
 
-// Pattern for ZIM file namespace - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-// In our case, there is also the ZIM file name, used as a prefix in the URL
+/** 
+ * Pattern for ZIM file namespace: see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
+ * In our case, there is also the ZIM file name used as a prefix in the URL
+ * @type {RegExp}
+ */
 var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABIJMUVWX])\/(.+)/;
 
 self.addEventListener('install', function (event) {
