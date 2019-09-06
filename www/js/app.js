@@ -349,9 +349,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
     /**
      * Queries Service Worker if possible to determine CACHE capability and returns an object with cache attributes
-     * @returns {Promise} A Promise for an object with keys for 'type', 'description', and 'count'
+     * If Service Worker is not available, the attributes of the memory cache are returned instead
+     * @returns {Promise} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
-    function checkCacheTypeAndCountAssets() {
+    function getCacheAttributes() {
         return q.Promise(function (resolve, reject) {
             if (contentInjectionMode === 'serviceworker') {
                 // Create a Message Channel
@@ -364,9 +365,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 };
                 // Ask Service Worker for its CACHE status and asset count
                 navigator.serviceWorker.controller.postMessage({
-                        'useCache': params.useCache ? 'on' : 'off',
-                        'cacheName': CACHE,
-                        'checkCache': window.location.href
+                    'useCache': params.useCache ? 'on' : 'off',
+                    'cacheName': CACHE,
+                    'checkCache': window.location.href
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
@@ -378,25 +379,26 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             }
         });
     }
-    
-    // Refreshes the cache information displayed on the Configuration page and returns the assetsCount
+
+    /** 
+     * Refreshes the UI (Configuration) with the cache attributes obtained from getCacheAttributes()
+     */
     function refreshCacheStatus() {
         // Update radio buttons and checkbox
         document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
-        // Get cache counts
-        return checkCacheTypeAndCountAssets().then(function(cache) {
+        // Get cache attributes, then update the UI with the obtained data
+        getCacheAttributes().then(function (cache) {
             document.getElementById('cacheUsed').innerHTML = cache.description;
             document.getElementById('assetsCount').innerHTML = cache.count;
             var cacheSettings = document.getElementById('cacheSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
-            [cacheSettings, cacheStatusPanel].forEach(function(card) {
+            [cacheSettings, cacheStatusPanel].forEach(function (card) {
                 // IE11 cannot remove more than one class from a list at a time
                 card.classList.remove('card-success');
                 card.classList.remove('card-warning');
                 if (params.useCache) card.classList.add('card-success');
                 else card.classList.add('card-warning');
             });
-            return cache;
         });
     }
 
