@@ -31,14 +31,14 @@
 var CACHE_NAME;
 
 /**
- * A global Boolean that governs whether CACHE will be used
+ * A global Boolean that governs whether CACHE_NAME will be used
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
  */
 var useCache = true;
 
 /**  
- * A regular expression that matches the Content-Types of assets that may be stored in CACHE
+ * A regular expression that matches the Content-Types of assets that may be stored in CACHE_NAME
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
  * @type {RegExp}
  */
@@ -78,7 +78,7 @@ self.addEventListener('fetch', function (event) {
         regexpZIMUrlWithNamespace.test(event.request.url) &&
         event.request.method === "GET") {
 
-        // The ServiceWorker will handle this request either from CACHE or from app.js
+        // The ServiceWorker will handle this request either from CACHE_NAME or from app.js
 
         event.respondWith(
             // First see if the content is in the cache
@@ -91,7 +91,7 @@ self.addEventListener('fetch', function (event) {
                     // The response was not found in the cache so we look for it in the ZIM
                     // and add it to the cache if it is an asset type (css or js)
                     return fetchRequestFromZIM(event).then(function (response) {
-                        // Add css or js assets to CACHE (or update their cache entries) unless the URL schema is not supported
+                        // Add css or js assets to CACHE_NAME (or update their cache entries) unless the URL schema is not supported
                         if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
                             !regexpExcludedURLSchema.test(event.request.url)) {
                             event.waitUntil(updateCache(event.request, response.clone()));
@@ -208,9 +208,10 @@ function removeUrlParameters(url) {
 }
 
 /**
- * Looks up a Request in CACHE and returns a Promise for the matched Response
- * @param {Request} request The Request to fulfill from CACHE
- * @returns {Promise<Response>} A Promise for the cached Response 
+ * Looks up a Request in CACHE_NAME and returns a Promise for the matched Response
+ * @param {Request} request The Request to fulfill from CACHE_NAME
+ * @returns {Promise<Response>} A Promise for the cached Response
+ * @throws {Promise<String>} A rejected Promise with strings 'disabled' or 'no-match'
  */
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
@@ -218,16 +219,16 @@ function fromCache(request) {
     return caches.open(CACHE_NAME).then(function (cache) {
         return cache.match(request).then(function (matching) {
             if (!matching || matching.status === 404) {
-                return Promise.reject("no-match");
+                return Promise.reject('no-match');
             }
-            console.log('[SW] Supplying ' + request.url + ' from CACHE...');
+            console.log('[SW] Supplying ' + request.url + ' from ' + CACHE_NAME + '...');
             return matching;
         });
     });
 }
 
 /**
- * Stores or updates in CACHE the given Request/Response pair
+ * Stores or updates in CACHE_NAME the given Request/Response pair
  * @param {Request} request The original Request object
  * @param {Response} response The Response received from the server/ZIM
  * @returns {Promise} A Promise for the update action
@@ -236,14 +237,14 @@ function updateCache(request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.resolve();
     return caches.open(CACHE_NAME).then(function (cache) {
-        console.log('[SW] Adding ' + request.url + ' to CACHE');
+        console.log('[SW] Adding ' + request.url + ' to ' + CACHE_NAME + '...');
         return cache.put(request, response);
     });
 }
 
 /**
  * Tests the caching strategy available to this app and if it is Cache API, count the
- * number of assets in CACHE
+ * number of assets in CACHE_NAME
  * @param {String} url A URL to test against excludedURLSchema
  * @returns {Promise<Array>} A Promise for an array of format [cacheType, cacheDescription, assetCount]
  */

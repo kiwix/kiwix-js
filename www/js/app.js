@@ -348,7 +348,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
-     * Queries Service Worker if possible to determine CACHE capability and returns an object with cache attributes
+     * Queries Service Worker if possible to determine cache capability and returns an object with cache attributes
      * If Service Worker is not available, the attributes of the memory cache are returned instead
      * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
@@ -363,7 +363,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     if (cache.error) reject(cache.error);
                     else resolve(cache);
                 };
-                // Ask Service Worker for its CACHE status and asset count
+                // Ask Service Worker for its cache status and asset count
                 navigator.serviceWorker.controller.postMessage({
                     'action': {
                         'useCache': params.useCache ? 'on' : 'off',
@@ -446,7 +446,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 messageChannel = null;
             }
             refreshAPIStatus();
-            // User has switched to jQuery mode, so no longer needs CACHE
+            // User has switched to jQuery mode, so no longer needs CACHE_NAME
             // We should empty it to prevent unnecessary space usage
             if ('caches' in window) caches.delete(CACHE_NAME);
         } else if (value === 'serviceworker') {
@@ -479,7 +479,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // and send the 'init' message to the ServiceWorker
                             initOrKeepAliveServiceWorker();
                             // We need to refresh cache status here on first activation because SW was inaccessible till now
-                            // We also initialize the CACHE constant in SW here
+                            // We also initialize the CACHE_NAME constant in SW here
                             refreshCacheStatus();
                         }
                     });
