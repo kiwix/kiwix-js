@@ -45,6 +45,22 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
 
     /**
+     * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
+     * This name will be passed to service-worker.js in messaging to avoid duplication: see comment in service-worker.js
+     * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
+     * @type {String}
+     */
+    var CACHE_NAME = 'kiwixjs-assetCache';
+    
+    /**
+     * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
+     * This cache is used by default in jQuery mode, but can be turned off in Configuration for low-memory devices
+     * In Service Worker mode, the Cache API will be used instead
+     * @type {Map}
+     */
+    var cssCache = new Map();
+
+    /**
      * @type ZIMArchive
      */
     var selectedArchive = null;
@@ -60,6 +76,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // Set parameters and associated UI elements from cookie
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
+    params['useCache'] = cookies.getItem('useCache') !== 'false';
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -175,7 +193,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         goToRandomArticle();
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
-        $("#searchingArticles").hide();
         $('.navbar-collapse').collapse('hide');
     });
     
@@ -245,6 +262,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         $('#articleContent').hide();
         $('.alert').hide();
         refreshAPIStatus();
+        refreshCacheStatus();
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -273,9 +291,26 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         params.hideActiveContentWarning = this.checked ? true : false;
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
+    document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
+        if (e.target.checked) {
+            cookies.setItem('useCache', true, Infinity);
+            params.useCache = true;
+            refreshCacheStatus();
+        }
+    });
+    document.getElementById('cachedAssetsModeRadioFalse').addEventListener('change', function (e) {
+        if (e.target.checked) {
+            cookies.setItem('useCache', false, Infinity);
+            params.useCache = false;
+            // Delete all caches
+            resetCssCache();
+            if ('caches' in window) caches.delete(CACHE_NAME);
+            refreshCacheStatus();
+        }
+    });
 
     /**
-     * Displays of refreshes the API status shown to the user
+     * Displays or refreshes the API status shown to the user
      */
     function refreshAPIStatus() {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
@@ -311,7 +346,64 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         apiStatusPanel.classList.add(apiPanelClass);
 
     }
-    
+
+    /**
+     * Queries Service Worker if possible to determine cache capability and returns an object with cache attributes
+     * If Service Worker is not available, the attributes of the memory cache are returned instead
+     * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
+     */
+    function getCacheAttributes() {
+        return q.Promise(function (resolve, reject) {
+            if (contentInjectionMode === 'serviceworker') {
+                // Create a Message Channel
+                var channel = new MessageChannel();
+                // Handler for recieving message reply from service worker
+                channel.port1.onmessage = function (event) {
+                    var cache = event.data;
+                    if (cache.error) reject(cache.error);
+                    else resolve(cache);
+                };
+                // Ask Service Worker for its cache status and asset count
+                navigator.serviceWorker.controller.postMessage({
+                    'action': {
+                        'useCache': params.useCache ? 'on' : 'off',
+                        'checkCache': window.location.href
+                    },
+                    'cacheName': CACHE_NAME
+                }, [channel.port2]);
+            } else {
+                // No Service Worker has been established, so we resolve the Promise with cssCache details only
+                resolve({
+                    'type': params.useCache ? 'memory' : 'none',
+                    'description': params.useCache ? 'Memory' : 'None',
+                    'count': cssCache.size
+                });
+            }
+        });
+    }
+
+    /** 
+     * Refreshes the UI (Configuration) with the cache attributes obtained from getCacheAttributes()
+     */
+    function refreshCacheStatus() {
+        // Update radio buttons and checkbox
+        document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
+        // Get cache attributes, then update the UI with the obtained data
+        getCacheAttributes().then(function (cache) {
+            document.getElementById('cacheUsed').innerHTML = cache.description;
+            document.getElementById('assetsCount').innerHTML = cache.count;
+            var cacheSettings = document.getElementById('cacheSettingsDiv');
+            var cacheStatusPanel = document.getElementById('cacheStatusPanel');
+            [cacheSettings, cacheStatusPanel].forEach(function (card) {
+                // IE11 cannot remove more than one class from a list at a time
+                card.classList.remove('card-success');
+                card.classList.remove('card-warning');
+                if (params.useCache) card.classList.add('card-success');
+                else card.classList.add('card-warning');
+            });
+        });
+    }
+
     var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
     
@@ -354,6 +446,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 messageChannel = null;
             }
             refreshAPIStatus();
+            // User has switched to jQuery mode, so no longer needs CACHE_NAME
+            // We should empty it to prevent unnecessary space usage
+            if ('caches' in window) caches.delete(CACHE_NAME);
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
@@ -383,6 +478,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // Create the MessageChannel
                             // and send the 'init' message to the ServiceWorker
                             initOrKeepAliveServiceWorker();
+                            // We need to refresh cache status here on first activation because SW was inaccessible till now
+                            // We also initialize the CACHE_NAME constant in SW here
+                            refreshCacheStatus();
                         }
                     });
                     if (serviceWorker.state === 'activated') {
@@ -413,12 +511,16 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 contentInjectionMode = value;
                 initOrKeepAliveServiceWorker();
             }
+            // User has switched to Service Worker mode, so no longer needs the memory cache
+            // We should empty it to ensure good memory management
+            resetCssCache();
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
         // Save the value in a cookie, so that to be able to keep it after a reload/restart
         cookies.setItem('lastContentInjectionMode', value, Infinity);
+        refreshCacheStatus();
     }
             
     // At launch, we try to set the last content injection mode (stored in a cookie)
@@ -431,6 +533,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
     
     var serviceWorkerRegistration = null;
+    
+    // We need to establish the caching capabilities before first page launch
+    refreshCacheStatus();
     
     /**
      * Tells if the ServiceWorker API is available
@@ -903,6 +1008,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
+                $("#cachingAssets").html("Caching assets...");
+                $("#cachingAssets").hide();
                 $("#searchingArticles").hide();
                 // Display the iframe content
                 $("#articleContent").show();
@@ -1011,10 +1118,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
     var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
     
-    // Cache for CSS styles contained in ZIM.
-    // It significantly speeds up subsequent page display. See kiwix-js issue #335
-    var cssCache = new Map();
-
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -1201,13 +1304,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
                     cssFulfilled++;
                 } else {
-                    $('#cachingCSS').show();
+                    if (params.useCache) $('#cachingAssets').show();
                     selectedArchive.getDirEntryByTitle(title)
                     .then(function (dirEntry) {
                         return selectedArchive.readUtf8File(dirEntry,
                             function (fileDirEntry, content) {
                                 var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
-                                cssCache.set(fullUrl, content);
+                                if (params.useCache) cssCache.set(fullUrl, content);
                                 uiUtil.replaceCSSLinkWithInlineCSS(link, content);
                                 cssFulfilled++;
                                 renderIfCSSFulfilled(fileDirEntry.url);
@@ -1226,15 +1329,14 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             // until all CSS content is available [kiwix-js #381]
             function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
-                    $('#cachingCSS').html('Caching styles...');
-                    $('#cachingCSS').hide();
+                    $('#cachingAssets').html('Caching assets...');
+                    $('#cachingAssets').hide();
                     $('#searchingArticles').hide();
                     $('#articleContent').show();
                     // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                     resizeIFrame();
-                } else if (title) {
-                    title = title.replace(/[^/]+\//g, '').substring(0,18);
-                    $('#cachingCSS').html('Caching ' + title + '...');
+                } else {
+                    updateCacheStatus(title);
                 }
             }
         }
@@ -1285,6 +1387,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     });
                 });
             });
+        }
+    }
+
+    /**
+     * Displays a message to the user that a style or other asset is being cached
+     * @param {String} title The title of the file to display in the caching message block 
+     */
+    function updateCacheStatus(title) {
+        if (params.useCache && /\.css$|\.js$/i.test(title)) {
+            var cacheBlock = document.getElementById('cachingAssets');
+            cacheBlock.style.display = 'block';
+            title = title.replace(/[^/]+\//g, '').substring(0,18);
+            cacheBlock.innerHTML = 'Caching ' + title + '...';
         }
     }
 
@@ -1354,6 +1469,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
+                    $('#searchingArticles').show();
                     readArticle(dirEntry);
                 } else {
                     // If the random title search did not end up on an article,
