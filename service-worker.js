@@ -139,7 +139,7 @@ self.addEventListener('message', function (event) {
  * Handles fetch events that need to be extracted from the ZIM
  * 
  * @param {Event} fetchEvent The fetch event to be processed
- * @returns {Response} A Promise for the Response or the rejected invalid message port data
+ * @returns {Promise<Response>} A Promise for the Response or the rejected invalid message port data
  */
 function fetchRequestFromZIM(fetchEvent) {
     return new Promise(function (resolve, reject) {
@@ -210,7 +210,7 @@ function removeUrlParameters(url) {
 /**
  * Looks up a Request in CACHE and returns a Promise for the matched Response
  * @param {Request} request The Request to fulfill from CACHE
- * @returns {Response} A Promise for the cached Response 
+ * @returns {Promise<Response>} A Promise for the cached Response 
  */
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
@@ -245,7 +245,7 @@ function updateCache(request, response) {
  * Tests the caching strategy available to this app and if it is Cache API, count the
  * number of assets in CACHE
  * @param {String} url A URL to test against excludedURLSchema
- * @returns {Array} A Promise for an array of format [cacheType, cacheDescription, assetCount]
+ * @returns {Promise<Array>} A Promise for an array of format [cacheType, cacheDescription, assetCount]
  */
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);

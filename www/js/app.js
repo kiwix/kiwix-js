@@ -350,7 +350,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     /**
      * Queries Service Worker if possible to determine CACHE capability and returns an object with cache attributes
      * If Service Worker is not available, the attributes of the memory cache are returned instead
-     * @returns {Object} A Promise for an object with cache attributes 'type', 'description', and 'count'
+     * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
     function getCacheAttributes() {
         return q.Promise(function (resolve, reject) {
