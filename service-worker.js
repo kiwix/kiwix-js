@@ -139,7 +139,7 @@ self.addEventListener('message', function (event) {
  * Handles fetch events that need to be extracted from the ZIM
  * 
  * @param {Event} fetchEvent The fetch event to be processed
- * @returns {Promise<Response>} A Promise for the Response or the rejected invalid message port data
+ * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
 function fetchRequestFromZIM(fetchEvent) {
     return new Promise(function (resolve, reject) {
@@ -210,8 +210,7 @@ function removeUrlParameters(url) {
 /**
  * Looks up a Request in CACHE_NAME and returns a Promise for the matched Response
  * @param {Request} request The Request to fulfill from CACHE_NAME
- * @returns {Promise<Response>} A Promise for the cached Response
- * @throws {Promise<String>} A rejected Promise with strings 'disabled' or 'no-match'
+ * @returns {Promise<Response>} A Promise for the cached Response, or rejects with strings 'disabled' or 'no-match'
  */
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
