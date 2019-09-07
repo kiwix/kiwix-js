@@ -28,7 +28,7 @@
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
  */
-var CACHE;
+var CACHE_NAME;
 
 /**
  * A global Boolean that governs whether CACHE will be used
@@ -120,18 +120,18 @@ self.addEventListener('message', function (event) {
             outgoingMessagePort = null;
             fetchCaptureEnabled = false;
         }
-    }
-    if (event.data.useCache) {
-        // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
-        useCache = event.data.useCache === 'on';
-        if (useCache) CACHE = event.data.cacheName;
-        console.log('[SW] Caching was turned ' + event.data.useCache);
-    }
-    if (event.data.checkCache) {
-        // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
-        testCacheAndCountAssets(event.data.checkCache).then(function (cacheArr) {
-            event.ports[0].postMessage({ 'type': cacheArr[0], 'description': cacheArr[1], 'count': cacheArr[2] });
-        });
+        if (event.data.action.useCache) {
+            // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
+            useCache = event.data.action.useCache === 'on';
+            if (useCache) CACHE_NAME = event.data.cacheName;
+            console.log('[SW] Caching was turned ' + event.data.action.useCache);
+        }
+        if (event.data.action.checkCache) {
+            // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
+            testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
+                event.ports[0].postMessage({ 'type': cacheArr[0], 'description': cacheArr[1], 'count': cacheArr[2] });
+            });
+        }
     }
 });
 
@@ -139,7 +139,7 @@ self.addEventListener('message', function (event) {
  * Handles fetch events that need to be extracted from the ZIM
  * 
  * @param {Event} fetchEvent The fetch event to be processed
- * @returns {Promise} A Promise for the Response or the rejected invalid message port data
+ * @returns {Response} A Promise for the Response or the rejected invalid message port data
  */
 function fetchRequestFromZIM(fetchEvent) {
     return new Promise(function (resolve, reject) {
@@ -210,12 +210,12 @@ function removeUrlParameters(url) {
 /**
  * Looks up a Request in CACHE and returns a Promise for the matched Response
  * @param {Request} request The Request to fulfill from CACHE
- * @returns {Response} The cached Response (as a Promise) 
+ * @returns {Response} A Promise for the cached Response 
  */
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.reject('disabled');
-    return caches.open(CACHE).then(function (cache) {
+    return caches.open(CACHE_NAME).then(function (cache) {
         return cache.match(request).then(function (matching) {
             if (!matching || matching.status === 404) {
                 return Promise.reject("no-match");
@@ -235,7 +235,7 @@ function fromCache(request) {
 function updateCache(request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.resolve();
-    return caches.open(CACHE).then(function (cache) {
+    return caches.open(CACHE_NAME).then(function (cache) {
         console.log('[SW] Adding ' + request.url + ' to CACHE');
         return cache.put(request, response);
     });
@@ -245,12 +245,12 @@ function updateCache(request, response) {
  * Tests the caching strategy available to this app and if it is Cache API, count the
  * number of assets in CACHE
  * @param {String} url A URL to test against excludedURLSchema
- * @returns {Promise} A Promise that resolves with an array of format [cacheType, cacheDescription, assetCount]
+ * @returns {Array} A Promise for an array of format [cacheType, cacheDescription, assetCount]
  */
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
     if (!useCache) return Promise.resolve(['none', 'None', 0]);
-    return caches.open(CACHE).then(function (cache) {
+    return caches.open(CACHE_NAME).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', 'Cache API', keys.length];
         }).catch(function(err) {

@@ -50,7 +50,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
      * @type {String}
      */
-    var CACHE = 'kiwixjs-assetCache';
+    var CACHE_NAME = 'kiwixjs-assetCache';
     
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
@@ -304,7 +304,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             params.useCache = false;
             // Delete all caches
             resetCssCache();
-            if ('caches' in window) caches.delete(CACHE);
+            if ('caches' in window) caches.delete(CACHE_NAME);
             refreshCacheStatus();
         }
     });
@@ -350,7 +350,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     /**
      * Queries Service Worker if possible to determine CACHE capability and returns an object with cache attributes
      * If Service Worker is not available, the attributes of the memory cache are returned instead
-     * @returns {Promise} A Promise for an object with cache attributes 'type', 'description', and 'count'
+     * @returns {Object} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
     function getCacheAttributes() {
         return q.Promise(function (resolve, reject) {
@@ -365,9 +365,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 };
                 // Ask Service Worker for its CACHE status and asset count
                 navigator.serviceWorker.controller.postMessage({
-                    'useCache': params.useCache ? 'on' : 'off',
-                    'cacheName': CACHE,
-                    'checkCache': window.location.href
+                    'action': {
+                        'useCache': params.useCache ? 'on' : 'off',
+                        'checkCache': window.location.href
+                    },
+                    'cacheName': CACHE_NAME
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
@@ -446,7 +448,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             refreshAPIStatus();
             // User has switched to jQuery mode, so no longer needs CACHE
             // We should empty it to prevent unnecessary space usage
-            if ('caches' in window) caches.delete(CACHE);
+            if ('caches' in window) caches.delete(CACHE_NAME);
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
