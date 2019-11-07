@@ -57,44 +57,29 @@
                     <!--<a class="navbar-brand">Kiwix 2.7-WIP</a> -->
                     <img src="img/icons/kiwix-32.png">
                     <!-- Toggler/collapsible Button -->
+                    
+                    <input type="search" id="prefix" placeholder="Search..." class="form-control" />
+                    <button type="button" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
+
                     <button class="navbar-toggler" type="button" data-toggle="collapse"
                         data-target=".navbar-collapse">
                         <i class="fas fa-bars"></i>
                     </button>
 
+
+
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="collapsibleNavbar">
                         <ul class="navbar-nav">
                             <li id="liHomeNav" class="nav-item"><button type="button" class="btn btn-light" id="btnHome"><i class="fas fa-home"></i></button></li>
-                            <input type="search" id="prefix" placeholder="Search..." class="form-control" />
-                            <button type="button" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
-			                <li id="btnRandomArticle" class="nav-item"><button type="button" class="btn btn-light" id="btnRandom"><i class="fas fa-random"></i></button></li>
+                            <li id="btnRandomArticle" class="nav-item"><button type="button" class="btn btn-light" id="btnRandom"><i class="fas fa-random"></i></button></li>
                             <li id="liConfigureNav" class="nav-item"><button type="button" class="btn btn-light" id="btnConfigure"><i class="fas fa-wrench"></i></button></li>
                             <li id="liAboutNav" class="nav-item"><button type="button" class="btn btn-light" id="btnAbout"><i class="fas fa-info-circle"></i></button></li>
                         </ul>
                     </div>
-
                 </nav>
-
-                <form id="formArticleSearch">
-                    <div class="container">
-                        <div class="row">
-                            <span class="col-10">
-                                <span class="input-group">
-                                    <input type="search" id="prefix" placeholder="Search..." class="form-control" />
-                                    <button type="button" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
-                                </span>
-                            </span>
-                            <span class="col-2">
-                                <span class="btn-group">
-                                    <button type="button" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                </form>
             </header>
-            
+
             <article class="view-content">
                 <div id="about" style="display: none;" class="container">
                     <h2>
@@ -342,7 +327,7 @@
                     <div id="activeContent" style="display:none;" class="alert alert-warning alert-dismissible fade show">
                         <button type="button" class="close" data-hide="alert">&times;</button>
                         <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />
-                        Content may be available by searching above (type a space or a letter of the alphabet), or else 
+                        Content may be available by searching above (type a space or a letter of the alphabet), or else
                         <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to Service Worker mode</a>
                         if your platform supports it. &nbsp;[<a id="stop" href="#displaySettingsDiv" class="alert-link">Permanently hide</a>]
                     </div>
