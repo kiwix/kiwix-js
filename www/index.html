@@ -54,8 +54,8 @@
         <section id="search-article" role="region">
             <header id="top">
                 <nav class="navbar navbar-expand-md bg-light" role="navigation">
-                    <a class="navbar-brand">Kiwix 2.7-WIP</a>
-
+                    <!--<a class="navbar-brand">Kiwix 2.7-WIP</a> -->
+                    <img src="img/icons/kiwix-32.png">
                     <!-- Toggler/collapsible Button -->
                     <button class="navbar-toggler" type="button" data-toggle="collapse"
                         data-target=".navbar-collapse">
@@ -65,9 +65,12 @@
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="collapsibleNavbar">
                         <ul class="navbar-nav">
-                            <li id="liHomeNav" class="nav-item"><button type="button" class="btn btn-light" id="btnHome">Home</button></li>
-                            <li id="liConfigureNav" class="nav-item"><button type="button" class="btn btn-light" id="btnConfigure">Configure</button></li>
-                            <li id="liAboutNav" class="nav-item"><button type="button" class="btn btn-light" id="btnAbout">About</button></li>
+                            <li id="liHomeNav" class="nav-item"><button type="button" class="btn btn-light" id="btnHome"><i class="fas fa-home"></i></button></li>
+                            <input type="search" id="prefix" placeholder="Search..." class="form-control" />
+                            <button type="button" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
+			                <li id="btnRandomArticle" class="nav-item"><button type="button" class="btn btn-light" id="btnRandom"><i class="fas fa-random"></i></button></li>
+                            <li id="liConfigureNav" class="nav-item"><button type="button" class="btn btn-light" id="btnConfigure"><i class="fas fa-wrench"></i></button></li>
+                            <li id="liAboutNav" class="nav-item"><button type="button" class="btn btn-light" id="btnAbout"><i class="fas fa-info-circle"></i></button></li>
                         </ul>
                     </div>
 
