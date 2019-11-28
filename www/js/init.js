@@ -22,6 +22,11 @@
  */
 'use strict';
 
+// Provides caching for assets contained in ZIM (variable needs to be available app-wide)
+// It significantly speeds up subsequent page display. See kiwix-js issue #335
+var assetsCache = new Map();
+
+// Do not touch unless you know what you are doing
 require.config({
     baseUrl: 'js/lib',
     paths: {

@@ -44,6 +44,112 @@ define([], function() {
     }
 
     /**
+     * Creates a Blob from a supplied script string and attaches it to the
+     * specified document or iframe. Attaches to document body in case the 
+     * document does not have a head. Returns the new URL for the Blob and
+     * sets a callback to run a specified function once the script has loaded
+     * 
+     * @param {Document} iframe document to which the script should be attached 
+     * @param {String} script string containing the script to attach
+     * @param {Node} node node object of the original script, if any
+     * @param {Boolean} keep set to true to prevent revocation of Blob URL
+     * @param {Function} callback a function to run once the script has loaded
+     * @returns {String} the URL of the new Blob
+     */
+    function createScriptBlob(iframe, script, node, keep, callback) {
+        var scriptBlob = new Blob([script], { type: 'text/javascript' });
+        var scriptUrl = URL.createObjectURL(scriptBlob);
+        var newScript = iframe.createElement('script');
+        if (node && node.dataset.kiwixsrc) newScript.dataset.kiwixsrc = node.dataset.kiwixsrc;
+        newScript.onload = function() {
+            if (callback) {
+                callback();
+            }
+            if (!keep) URL.revokeObjectURL(scriptUrl);
+        };
+        newScript.src = scriptUrl;
+        iframe.head.appendChild(newScript);
+        return scriptUrl;
+    }
+
+    // Transforms an asset (script or link) element string into a usable element containing the given content or a BLOB
+    // reference to the content
+    function createNewAssetElement(assetElement, attribute, content) {
+        var tag = assetElement.match(/^<([^\s]+)/)[1];
+        var regexpMatchAttr = new RegExp(attribute + '=["\']\\s*([^"\'\\s]+)');
+        var attrUri = assetElement.match(regexpMatchAttr);
+        attrUri = attrUri ? attrUri[1] : '';
+        var mimetype = /type=["']\s*([^"'\s]+)/.exec(assetElement);
+        mimetype = mimetype ? mimetype[1] : '';
+        var newAsset;
+        if (tag === 'link') {
+            // We use inline style replacements in this case for compatibility with FFOS
+            // If FFOS is no longer supported, we could use the more generic BLOB replacement below
+            mimetype = mimetype ? mimetype : 'text/css';
+            newAsset = '<style data-kiwixsrc="' + attrUri + '" type="' + mimetype + '">' + content + '</style>';
+        } else {
+            mimetype = mimetype ? mimetype : tag === 'script' ? 'text/javascript' : '';
+            var assetBlob = new Blob([content], { type: mimetype });
+            var assetUri = URL.createObjectURL(assetBlob);
+            var refAttribute = tag === 'script' ? 'src' : 'href';
+            newAsset = assetElement.replace(attribute, refAttribute);
+            newAsset = newAsset.replace(attrUri, assetUri);
+            newAsset = newAsset.replace(/>/, ' data-kiwixsrc="' + attrUri + '">');
+        }
+        return newAsset;
+    }
+
+    // Compile regular expressions for replaceInlineEvents function
+    // This regex matches any tag that contains an on- event attribute; case-sensitivity is intentional for speed
+    var regexpFindElesWithEvents = /<(?=[^>]+\son\w+=["'])[^>]+>/g;
+    // This regex matches all on- events inside a tag and saves the event name and the script
+    // It works with, e.g., onmousover="alert('\"Wow!\"');" and onclick='myfunction("Show \'me\'");'
+    var regexpParseInlineEvents = /\s(on\w+)=(["'])\s*((?:\\\2|(?!\2).)+)\2/g;
+    
+    function replaceInlineEvents(html) {
+        var matchCounter = 0;
+        var eventsSheet = "";
+        html = html.replace(regexpFindElesWithEvents, function(fullTag) {
+            var dataKiwixevents = "";
+            var match = regexpParseInlineEvents.exec(fullTag);
+            while (match) {
+                var functionID = match[1] + '_' + matchCounter + '_' + match.index;
+                // Store a string version of the function
+                eventsSheet += 'function ' + functionID + '() {\r\n' + match[3] + '\r\n}\r\n\r\n';
+                dataKiwixevents += functionID + ';';
+                match = regexpParseInlineEvents.exec(fullTag);
+            }
+            fullTag = fullTag.replace(regexpParseInlineEvents, '');
+            // Insert the functionID into a data attribute so it can be retrieved for attaching the event
+            fullTag = fullTag.replace(/>$/, ' data-kiwixevents="' + dataKiwixevents + '">');
+            matchCounter++;
+            return fullTag;
+        });
+        return [html, eventsSheet];
+    }
+        
+    /**
+     * Attaches a set of event handlers to corresponding functions in the iframe
+     * 
+     * @param {String} frame The name of the window to use (either "window" or iframe's element id)
+     * @param {Element} el An element as DOM node
+     * @param {Array} eventFns A list of event functions to attach to the node.
+     * Event functions must have the format "onevent_functionID".
+     */
+    function attachInlineFunctions(frame, el, eventFns) {
+        var context = frame == "window" ? window : document.getElementById(frame).contentWindow;
+        for (var e = 0; e < eventFns.length; e++) {
+            var thisEvent = eventFns[e].replace(/^on([^_]+).+/, '$1');
+            var thisFunction = context[eventFns[e]];
+            if (typeof thisFunction === 'function') {
+                el.addEventListener(thisEvent, thisFunction);
+            } else {
+                console.error('[attachInlineFunctions] The specified functions could not be found in the content window!');
+            }
+        }
+    }
+
+    /**
      * Replace the given CSS link (from the DOM) with an inline CSS of the given content
      * 
      * Due to CSP, Firefox OS does not accept <link> syntax with href="data:text/css..." or href="blob:..."
@@ -52,7 +158,7 @@ define([], function() {
      * Cf http://jonraasch.com/blog/javascript-style-node
      * 
      * @param {Element} link from the DOM
-     * @param {String} cssContent
+     * @param {String} cssContent to inject
      */
     function replaceCSSLinkWithInlineCSS (link, cssContent) {
         var cssElement = document.createElement('style');
@@ -62,15 +168,15 @@ define([], function() {
         } else {
             cssElement.appendChild(document.createTextNode(cssContent));
         }
-        var mediaAttributeValue = link.attr('media');
+        var mediaAttributeValue = link.media;
         if (mediaAttributeValue) {
             cssElement.media = mediaAttributeValue;
         }
-        var disabledAttributeValue = link.attr('disabled');
+        var disabledAttributeValue = link.disabled;
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
@@ -217,6 +323,10 @@ define([], function() {
      */
     return {
         feedNodeWithBlob: feedNodeWithBlob,
+        createScriptBlob: createScriptBlob,
+        createNewAssetElement: createNewAssetElement,
+        replaceInlineEvents: replaceInlineEvents,
+        attachInlineFunctions: attachInlineFunctions,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,
