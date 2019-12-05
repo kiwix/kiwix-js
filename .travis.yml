@@ -16,7 +16,7 @@ script:
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox,chrome"
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env edge40,edge44"
     - "./node_modules/nightwatch/bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11"
-    - pkill node
+    - pkill node || echo "Node process not running (anymore)"
 deploy:
     - provider: script
       # Nightly builds (launched by cron)
