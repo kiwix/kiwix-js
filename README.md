@@ -10,7 +10,7 @@ It might also works with other content in the OpenZIM format: https://wiki.openz
 
 If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing repository of knowledge and culture.
 
-[![Build Status](https://travis-ci.org/kiwix/kiwix-js.svg?branch=master)](https://travis-ci.org/kiwix/kiwix-js)
+[![Build Status](https://travis-ci.com/kiwix/kiwix-js.svg?branch=master)](https://travis-ci.com/kiwix/kiwix-js)
 [![CodeFactor](https://www.codefactor.io/repository/github/kiwix/kiwix-js/badge)](https://www.codefactor.io/repository/github/kiwix/kiwix-js)
 [![Kiwix for Firefox](https://img.shields.io/amo/v/kiwix-offline?label=Kiwix%20for%20Firefox)](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
 [![Kiwix for Chrome](https://img.shields.io/chrome-web-store/v/donaljnlmapmngakoipdmehbfcioahhk?label=Kiwix%20for%20Chrome)](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
