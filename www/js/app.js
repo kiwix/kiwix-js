@@ -939,7 +939,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         var listLength = dirEntryArray.length < MAX_SEARCH_RESULT_SIZE ? dirEntryArray.length : MAX_SEARCH_RESULT_SIZE;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
-            articleListDivHtml += '<a href="#" dirEntryId="' + dirEntry.toStringId().replace(/'/g, '&apos;') +
+            var dirEntryStringId = uiUtil.htmlEscapeChars(dirEntry.toStringId());
+            articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
         }
         articleListDiv.html(articleListDivHtml);
