@@ -305,6 +305,61 @@ define([], function() {
         }
     }
 
+
+    /**
+     * Applies the requested app and content theme
+     * 
+     * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
+     * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
+     * Currently supported themes are: light, dark, dark_invert, but code below is written for extensibility
+     * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
+     * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
+     * A rule may additionally be needed in app.css for full implementation of contentTheme
+     * 
+     * @param {String} theme The theme to apply (light|dark[_invert])
+     */
+    function applyAppTheme(theme) {
+        var htmlEl = document.getElementsByTagName('html')[0];
+        var oldTheme = htmlEl.dataset.theme || '';
+        var iframe = document.getElementById('articleContent');
+        var doc = iframe.contentDocument;
+        var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
+        var appTheme = theme.replace(/_.*$/, '');
+        var contentTheme = theme.replace(/^[^_]*/, '');
+        var oldAppTheme = oldTheme.replace(/_.*$/, '');
+        var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
+        // Remove oldAppTheme if necessary
+        if (oldAppTheme && oldAppTheme !== appTheme) htmlEl.classList.remove(oldAppTheme);
+        // Apply new appTheme (NB it will not be added twice if it's already there)
+        if (appTheme) htmlEl.classList.add(appTheme);
+        // Embed a reference to applied theme, so we can remove it generically in the future
+        htmlEl.dataset.theme = theme;
+        
+        // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
+        if (oldContentTheme && oldContentTheme !== contentTheme) {
+            iframe.classList.remove(oldContentTheme);
+            if (kiwixJSSheet) {
+                kiwixJSSheet.disabled = true;
+                kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
+            }
+        }
+        // Apply the requested ContentTheme (if not already attached)
+        if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search(contentTheme))) {
+            iframe.classList.add(contentTheme);
+            // Use an absolute reference becuase Service Worker needs this
+            var prefix = document.location.href.replace(/index\.html(?:$|[#?].*$)/, '');
+            if (doc) {
+                var link = doc.createElement('link');
+                link.setAttribute('id', 'kiwixJSTheme');
+                link.setAttribute('rel', 'stylesheet');
+                link.setAttribute('type', 'text/css');
+                link.setAttribute('href', prefix + 'css/kiwixJS' + contentTheme + '.css');
+                doc.head.appendChild(link);
+            }
+        }
+    }
+
+
     /**
      * Functions and classes exposed by this module
      */
@@ -318,6 +373,7 @@ define([], function() {
         isElementInView: isElementInView,
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
-        applyAnimationToSection: applyAnimationToSection
+        applyAnimationToSection: applyAnimationToSection,
+        applyAppTheme: applyAppTheme
     };
 });

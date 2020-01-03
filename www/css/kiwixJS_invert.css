@@ -1,0 +1,23 @@
+﻿/**
+ * This is a generic stylesheet that re-inverts images and videos so that they do not look like photographic negatives.
+ * The actual inversion is done by applying an inversion to the element in the outer document (e.g. iframe) that contains
+ * the embedded article. It could also be effected by adding the 'html' selector to the first rule, but this causes flashes
+ * to white between article loads.
+ *
+ * Two non-generic exceptions are applied to WikiMedia ZIMs: MathML embedded equations (which must be rendered inverted
+ * in order to be visible inline) and SVG drawings which are rendered with a soft-white background so that they are visible
+ * This mirrors proposals in https://github.com/openzim/mwoffliner/issues/1026
+ */
+
+img:not([class*="mwe-math-fallback-image"]),
+video {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+img[data-file-type*="drawing"] {
+    background: #ddd !important;
+}
+
+body {
+    background: black !important;
+}

@@ -75,6 +75,7 @@
     padding-left: 12px;
     padding-right: 12px;
     background: lightblue;
+    z-index: 1;
 }
 
 #articleList a:hover, #articleList a.hover {
@@ -87,6 +88,15 @@
 
 #configuration {
     margin: 0 1rem;
+}
+
+.dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
+.dark #alertBoxHeader, .dark footer, iframe._invert {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.dark body {
+    background: #171717;
 }
 
 .articleIFrame {
