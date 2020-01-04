@@ -14,10 +14,6 @@ video {
     filter: invert(1) hue-rotate(180deg);
 }
 
-img[data-file-type*="drawing"] {
+img[data-file-type^="drawing"] {
     background: #ddd !important;
 }
-
-/* body {
-    background: black !important;
-} */
