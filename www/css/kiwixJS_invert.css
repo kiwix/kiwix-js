@@ -9,11 +9,11 @@
  * This mirrors proposals in https://github.com/openzim/mwoffliner/issues/1026
  */
 
-img:not([class*="mwe-math-fallback-image"]),
+img:not([class|="mwe-math-fallback-image"]),
 video {
     filter: invert(1) hue-rotate(180deg);
 }
 
-img[data-file-type^="drawing"] {
+img[data-file-type~="drawing"] {
     background: #ddd !important;
 }
