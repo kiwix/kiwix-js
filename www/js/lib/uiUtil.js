@@ -334,6 +334,12 @@ define([], function() {
         if (appTheme) htmlEl.classList.add(appTheme);
         // Embed a reference to applied theme, so we can remove it generically in the future
         htmlEl.dataset.theme = theme;
+        // Hide any previously displayed help
+        var oldHelp = document.getElementById(oldTheme + '-help');
+        if (oldHelp) oldHelp.style.display = 'none';
+        // Show any specific help for selected contentTheme
+        var help = document.getElementById(theme + '-help');
+        if (help) help.style.display = 'block';
         
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
         if (oldContentTheme && oldContentTheme !== contentTheme) {
@@ -357,6 +363,26 @@ define([], function() {
                 doc.head.appendChild(link);
             }
         }
+        // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
+        if (/active/.test(document.getElementById('liConfigureNav').classList) &&
+            !/Placeholder\sfor\sinjecting\san\sarticle/.test(doc.title)) {
+            showReturnLink();
+        }
+    }
+
+    // Displays the return link and handles click event. Called by applyAppTheme()
+    function showReturnLink() {
+        var viewArticle = document.getElementById('viewArticle');
+        viewArticle.style.display = 'block';
+        viewArticle.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('liConfigureNav').classList.remove('active');
+            document.getElementById('liHomeNav').classList.add('active');
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('formArticleSearch').style.display = 'block';
+            document.getElementById('articleContent').style.display = 'block';
+            viewArticle.style.display = 'none';
+        });
     }
 
 

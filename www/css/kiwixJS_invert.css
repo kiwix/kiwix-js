@@ -1,27 +1,32 @@
-﻿/**
- * This is a generic stylesheet that re-inverts images and videos so that they do not look like photographic negatives.
- * The actual inversion is done by applying an inversion to the element in the outer document (e.g. iframe) that contains
- * the embedded article. It could also be effected by adding the 'html' selector to the first rule below, but this causes
- * non-WAI-compliant flashes (to white) between article loads.
+/*!
+ * kiwixJS_invert.css
+ * License GPL v3:
  *
- * Some non-generic exceptions are applied to WikiMedia ZIMs: MathML embedded equations (which must be rendered inverted
- * in order to be visible inline) and SVG drawings which are rendered with a soft-white background so that they are visible
- * This mirrors proposals in https://github.com/openzim/mwoffliner/issues/1026
- */ 
+ * Stylesheet for applying a content theme to articles extracted from a ZIM archive by Kiwix JS.
+ * 
+ * This is a purely generic stylesheet for inverting the display of content extracted from any ZIM.
+ * The actual inversion is done in app.css by applying a filter inversion to the element in the outer document (e.g. iframe)
+ * that contains the embedded article. This stylesheet re-inverts images and videos so that they do not look like
+ * photographic negatives. In principle, inversion could be achieved by adding the 'html' selector to the first rule below,
+ * but this causes non-WAI-compliant flashes (to white) between article loads.
+ *
+ * This file is part of Kiwix.
+ *
+ * Kiwix is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kiwix is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
+ */
 
-img:not([class|="mwe-math-fallback-image"]),
+img,
 video {
     filter: invert(1) hue-rotate(180deg);
-}
-
-img[data-file-type^="drawing"] {
-    background: #ddd !important;
-}
-
-/* Unfortunately, mw-offliner hard-codes a 'background: black' rule into its mobile stylesheet, which gets inverted to white by this
-filter and produces a jarring effect. This rule restores a black background (white will be inverted to black) */
-
-body[class*="mw-"] #container,
-body[class*="mw-"] #content {
-    background: white !important;
 }

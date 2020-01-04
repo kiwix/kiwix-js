@@ -91,7 +91,7 @@
 }
 
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
-.dark #alertBoxHeader, .dark footer, iframe._invert {
+.dark #alertBoxHeader, .dark footer, iframe._invert, iframe._mwInvert {
     filter: invert(1) hue-rotate(180deg);
 }
 
@@ -101,6 +101,11 @@
 
 .dark body {
     background: #171717;
+}
+
+.hidden {
+    display: none;
+    padding-top: 5px;
 }
 
 .articleIFrame {
