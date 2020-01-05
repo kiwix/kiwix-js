@@ -41,7 +41,7 @@ img[data-file-type^="drawing"], figure-inline img {
 }
 
 /* mw-offliner hard-codes a 'background: black' rule into its mobile stylesheet, which gets inverted to white by this
-filter and produces a jarring effect. This rule restores a black background (white will be inverted to black) */
+filter and produces a jarring effect. This rule removes the background, leaving a black base (after inversion). */
 
 #container,
 #content {

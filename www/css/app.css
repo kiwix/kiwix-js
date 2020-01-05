@@ -93,11 +93,7 @@
 /* App theme: dark */
 
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
-.dark #alertBoxHeader, .dark footer, iframe._invert, iframe._mwInvert {
-    filter: invert(1) hue-rotate(180deg);
-}
-
-.dark img {
+.dark #alertBoxHeader, .dark footer, .dark img {
     filter: invert(1) hue-rotate(180deg);
 }
 
@@ -106,6 +102,14 @@
 }
 
 /* End of app theme: dark */
+
+/* Content themes: _invert, _mwInvert */
+
+iframe._invert, iframe._mwInvert {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* End of content themes */
 
 .hidden {
     display: none;
