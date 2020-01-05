@@ -9,8 +9,8 @@
  * For more information about the inversion process, see kiwixJS_invert.css in this folder.
  *
  * Some non-generic exceptions are applied to WikiMedia ZIMs: fallback images for MathML embedded equations (which must
- * be rendered inverted in order to be visible inline) and SVG drawings which are rendered with a soft-white background
- * so that they are visible. This mirrors proposals in https://github.com/openzim/mwoffliner/issues/1026 .
+ * be rendered inverted in order to be visible inline) and drawings and figures which are rendered with an off-white
+ * background so that they are visible. This mirrors proposals in https://github.com/openzim/mwoffliner/issues/1026 .
  * If you are viewing a ZIM which has already implemented those proposals, try the generic inversion filter instead.
  *
  * This file is part of Kiwix.
@@ -34,7 +34,9 @@ video {
     filter: invert(1) hue-rotate(180deg);
 }
 
-img[data-file-type^="drawing"] {
+/* Add an off-white background to drawings and figures */
+
+img[data-file-type^="drawing"], figure-inline img {
     background: #ddd !important;
 }
 
@@ -43,5 +45,5 @@ filter and produces a jarring effect. This rule restores a black background (whi
 
 #container,
 #content {
-    background: white !important;
+    background: transparent !important;
 }
