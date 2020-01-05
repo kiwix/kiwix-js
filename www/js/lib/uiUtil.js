@@ -316,7 +316,7 @@ define([], function() {
      * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
      * A rule may additionally be needed in app.css for full implementation of contentTheme
      * 
-     * @param {String} theme The theme to apply (light|dark[_invert])
+     * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert])
      */
     function applyAppTheme(theme) {
         var htmlEl = document.getElementsByTagName('html')[0];

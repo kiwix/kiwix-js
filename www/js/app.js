@@ -81,7 +81,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = cookies.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-    params['appTheme'] = cookies.getItem('appTheme') || 'light'; // Currently implemented values: light|dark|dark_invert
+    params['appTheme'] = cookies.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
 
