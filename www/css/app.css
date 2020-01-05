@@ -90,6 +90,8 @@
     margin: 0 1rem;
 }
 
+/* App theme: dark */
+
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
 .dark #alertBoxHeader, .dark footer, iframe._invert, iframe._mwInvert {
     filter: invert(1) hue-rotate(180deg);
@@ -103,9 +105,11 @@
     background: #171717;
 }
 
+/* End of app theme: dark */
+
 .hidden {
     display: none;
-    padding-top: 5px;
+    margin: 5px;
 }
 
 .articleIFrame {
