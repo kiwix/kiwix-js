@@ -311,7 +311,7 @@ define([], function() {
      * 
      * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
      * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
-     * Currently supported themes are: light, dark, dark_invert, but code below is written for extensibility
+     * Current themes are: light, dark, dark_invert, dark_mwInvert but code below is written for extensibility
      * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
      * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
      * A rule may additionally be needed in app.css for full implementation of contentTheme
