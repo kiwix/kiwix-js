@@ -350,10 +350,11 @@ define([], function() {
             }
         }
         // Apply the requested ContentTheme (if not already attached)
-        if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search(contentTheme))) {
+        if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
             iframe.classList.add(contentTheme);
-            // Use an absolute reference becuase Service Worker needs this
-            var prefix = document.location.href.replace(/index\.html(?:$|[#?].*$)/, '');
+            // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
+            // subdirectory, then relative links injected into the article will not work as expected)
+            var prefix = document.location.origin + document.location.pathname;
             if (doc) {
                 var link = doc.createElement('link');
                 link.setAttribute('id', 'kiwixJSTheme');
@@ -364,8 +365,9 @@ define([], function() {
             }
         }
         // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
-        if (/active/.test(document.getElementById('liConfigureNav').classList) &&
-            !/Placeholder\sfor\sinjecting\san\sarticle/.test(doc.title)) {
+        // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
+        if (document.getElementById('liConfigureNav').classList.contains('active') &&
+            doc.title !== "Placeholder for injecting an article into the iframe") {
             showReturnLink();
         }
     }
