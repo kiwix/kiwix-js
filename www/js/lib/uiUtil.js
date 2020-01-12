@@ -211,13 +211,14 @@ define([], function() {
         else 
             return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
     }
+
     /**
      * Encodes the html escape characters in the string before using it as html class name,id etc.
      * 
      * @param {String} string The string in which html characters are to be escaped
      * 
      */
-    function htmlEscapeChars(string){
+    function htmlEscapeChars(string) {
         var escapechars = {
             '&': '&amp;',
             '<': '&lt;',
@@ -227,12 +228,83 @@ define([], function() {
             '/': '&#x2F;',
             '`': '&#x60;',
             '=': '&#x3D;'
-          };
-          string = String(string).replace(/[&<>"'`=/]/g, function (s) {
-            return escapechars[s];});
-          return string;
-
+        };
+        string = String(string).replace(/[&<>"'`=/]/g, function (s) {
+            return escapechars[s];
+        });
+        return string;
     }
+
+    /**
+     * Removes the animation effect between various sections
+     */
+    function removeAnimationClasses() {
+        $('#about').removeClass('slideIn_L').removeClass('slideOut_R');
+        $('#configuration').removeClass('slideIn_L').removeClass('slideIn_R').removeClass('slideOut_L').removeClass('slideOut_R');
+        $('#articleContent').removeClass('slideIn_R').removeClass('slideOut_L');
+    }
+    
+    /**
+     * Adds the slide animation between different sections
+     * 
+     * @param {String} section It takes the name of the section to which the animation is to be added
+     * 
+     */
+    function applyAnimationToSection(section) {
+        if (section == 'home') {
+            if (!$('#configuration').is(':hidden')) {
+                $('#configuration').addClass('slideOut_R');
+                setTimeout(function () {
+                    $('#configuration').hide();
+                }, 300);
+            }
+            if (!$('#about').is(':hidden')) {
+                $('#about').addClass('slideOut_R');
+                setTimeout(function () {
+                    $('#about').hide();
+                }, 300);
+            }
+            $('#articleContent').addClass('slideIn_R');
+            setTimeout(function () {
+                $('#articleContent').show();
+            }, 300);
+        } else if (section == 'config') {
+            if (!$('#about').is(':hidden')) {
+                $('#about').addClass('slideOut_R');
+                $('#configuration').addClass('slideIn_R');
+                setTimeout(function () {
+                    $('#about').hide();
+                }, 300);
+            } else if (!$('#articleContent').is(':hidden')) {
+                $('#articleContent').addClass('slideOut_L');
+                $('#configuration').addClass('slideIn_L');
+                setTimeout(function () {
+                    $('#articleContent').hide();
+                }, 300);
+            }
+            setTimeout(function () {
+                $('#configuration').show();
+            }, 300);
+        } else if (section == 'about') {
+            if (!$('#configuration').is(':hidden')) {
+                $('#configuration').addClass('slideOut_L');
+                setTimeout(function () {
+                    $('#configuration').hide();
+                }, 300);
+            }
+            if (!$('#articleContent').is(':hidden')) {
+                $('#articleContent').addClass('slideOut_L');
+                setTimeout(function () {
+                    $('#articleContent').hide();
+                }, 300);
+            }
+            $('#about').addClass('slideIn_L');
+            setTimeout(function () {
+                $('#about').show();
+            }, 300);
+        }
+    }
+
     /**
      * Functions and classes exposed by this module
      */
@@ -244,6 +316,8 @@ define([], function() {
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert,
         isElementInView: isElementInView,
-        htmlEscapeChars : htmlEscapeChars
+        htmlEscapeChars: htmlEscapeChars,
+        removeAnimationClasses: removeAnimationClasses,
+        applyAnimationToSection: applyAnimationToSection
     };
 });
