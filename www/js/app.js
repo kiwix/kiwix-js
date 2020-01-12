@@ -75,7 +75,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cache', 'utf8', 'cookie
 
     // Set parameters and associated UI elements from cookie
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
+    params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = cookies.getItem('useCache') !== 'false';
     
@@ -222,7 +224,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cache', 'utf8', 'cookie
     $('#btnHome').on('click', function(e) {
         prepareFormForDisplay();
         $("#welcomeText").show();
-        $('#articleContent').show();
         // Give the focus to the search field, and clean up the page contents
         $("#prefix").val("");
         $('#prefix').focus();
@@ -242,14 +243,18 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cache', 'utf8', 'cookie
         $('#liAboutNav').attr("class","");
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
-        $('#about').hide();
-        $('#configuration').show();
+        uiUtil.removeAnimationClasses();
+        if (params.showUIAnimations) { 
+            uiUtil.applyAnimationToSection("config");
+        } else {
+            $('#about').hide();
+            $('#configuration').show();
+            $('#articleContent').hide();
+        }    
         $('#navigationButtons').hide();
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
-        $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        $('#articleContent').hide();
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
@@ -262,20 +267,29 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cache', 'utf8', 'cookie
         $('#liAboutNav').attr("class","active");
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
-        $('#about').show();
-        $('#configuration').hide();
+        uiUtil.removeAnimationClasses();
+        if (params.showUIAnimations) { 
+            uiUtil.applyAnimationToSection("about");
+        } else {
+            $('#about').show();
+            $('#configuration').hide();
+            $('#articleContent').hide();
+        }
         $('#navigationButtons').hide();
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        $('#articleContent').hide();
         $('.alert').hide();
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
+    });
+    $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
+        params.showUIAnimations = this.checked ? true : false;
+        cookies.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {

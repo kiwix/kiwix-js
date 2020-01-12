@@ -39,6 +39,7 @@
         <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
         <!-- Local app.css must be loaded after boostrap.css so that any local style overrides work -->
         <link rel="stylesheet" href="css/app.css"/>
+        <link rel="stylesheet" href="css/transition.css"/>
         <link rel="icon" type="image/png" href="img/icons/kiwix-60.png" sizes="60x60"/>
         <link rel="icon" type="image/png" href="img/icons/kiwix-120.png" sizes="120x120"/>
         <link rel="icon" type="image/png" href="img/icons/kiwix-256.png" sizes="256x256"/>
@@ -238,6 +239,13 @@
                                             id="hideActiveContentWarningCheck">
                                         <strong>Permanently hide active content warning</strong> (for
                                         experienced users)
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
+                                            checked>
+                                        <strong>Animate transition between app pages</strong>
                                     </label>
                                 </div>
                             </div>
