@@ -305,7 +305,6 @@ define([], function() {
         }
     }
 
-
     /**
      * Applies the requested app and content theme
      * 
@@ -354,13 +353,14 @@ define([], function() {
             iframe.classList.add(contentTheme);
             // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
             // subdirectory, then relative links injected into the article will not work as expected)
-            var prefix = document.location.origin + document.location.pathname;
+            // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
+            var prefix = document.location.origin + document.location.pathname.replace(/\/[^/]*$/, '');
             if (doc) {
                 var link = doc.createElement('link');
                 link.setAttribute('id', 'kiwixJSTheme');
                 link.setAttribute('rel', 'stylesheet');
                 link.setAttribute('type', 'text/css');
-                link.setAttribute('href', prefix + 'css/kiwixJS' + contentTheme + '.css');
+                link.setAttribute('href', prefix + '/css/kiwixJS' + contentTheme + '.css');
                 doc.head.appendChild(link);
             }
         }
@@ -380,13 +380,17 @@ define([], function() {
             e.preventDefault();
             document.getElementById('liConfigureNav').classList.remove('active');
             document.getElementById('liHomeNav').classList.add('active');
-            document.getElementById('configuration').style.display = 'none';
+            removeAnimationClasses();
+            if (params.showUIAnimations) { 
+                applyAnimationToSection('home');
+            } else {
+                document.getElementById('configuration').style.display = 'none';
+                document.getElementById('articleContent').style.display = 'block';
+            }
             document.getElementById('formArticleSearch').style.display = 'block';
-            document.getElementById('articleContent').style.display = 'block';
             viewArticle.style.display = 'none';
         });
     }
-
 
     /**
      * Functions and classes exposed by this module
