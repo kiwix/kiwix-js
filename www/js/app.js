@@ -66,7 +66,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var selectedArchive = null;
     
     // Set parameters and associated UI elements from cookie
-    // DEV: The params global variable is declared in init.js so that it is available to modules
+    // DEV: The params global object is declared in init.js so that it is available to modules
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;

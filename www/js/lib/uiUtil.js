@@ -354,7 +354,7 @@ define([], function() {
             // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
             // subdirectory, then relative links injected into the article will not work as expected)
             // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
-            var prefix = document.location.origin + document.location.pathname.replace(/\/[^/]*$/, '');
+            var prefix = (window.location.protocol + '//' + window.location.hostname + window.location.pathname).replace(/\/[^/]*$/, '');
             if (doc) {
                 var link = doc.createElement('link');
                 link.setAttribute('id', 'kiwixJSTheme');
