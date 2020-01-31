@@ -87,7 +87,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     
     // Title for current url.
     var curTitle = "A/index";
-    
+
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
@@ -1022,9 +1022,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
         // Early return if article's title not equal current url's title
         var matchUrl = dirEntry['namespace'] + "/" + dirEntry["url"];
-        if(matchUrl !== curTitle) {
-            return;
-        }
+        if(matchUrl !== curTitle) return;
 
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
@@ -1162,9 +1160,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
         // Early return if article's title not equal current url's title
         var matchUrl = dirEntry['namespace'] + "/" + dirEntry["url"];
-        if(matchUrl !== curTitle) {
-            return;
-        }
+        if(matchUrl !== curTitle) return;
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
