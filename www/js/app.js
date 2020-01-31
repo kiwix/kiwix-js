@@ -85,6 +85,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
     
+    // Title for current url.
+    var curTitle = "A/index";
+    
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
@@ -1017,6 +1020,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
+        // Early return if article's title not equal current url's title
+        var matchUrl = dirEntry['namespace'] + "/" + dirEntry["url"];
+        if(matchUrl !== curTitle) {
+            return;
+        }
+
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
@@ -1150,6 +1159,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Display Bootstrap warning alert if the landing page contains active content
         if (!params.hideActiveContentWarning && params.isLandingPage) {
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
+        }
+        // Early return if article's title not equal current url's title
+        var matchUrl = dirEntry['namespace'] + "/" + dirEntry["url"];
+        if(matchUrl !== curTitle) {
+            return;
         }
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
@@ -1462,6 +1476,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
     function goToArticle(title, download, contentType) {
+        // Set curTitle to prevent loading other articles.
+        curTitle = title;
+
         $("#searchingArticles").show();
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
