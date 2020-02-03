@@ -65,22 +65,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     var selectedArchive = null;
     
-    /**
-     * A global parameter object for storing variables that need to be remembered between page loads
-     * or across different functions
-     * 
-     * @type Object
-     */
-    var params = {};
-
     // Set parameters and associated UI elements from cookie
+    // DEV: The params global object is declared in init.js so that it is available to modules
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = cookies.getItem('useCache') !== 'false';
-    
+    // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
+    params['appTheme'] = cookies.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
+    document.getElementById('appThemeSelect').value = params.appTheme;
+    uiUtil.applyAppTheme(params.appTheme);
+
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
@@ -310,6 +307,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
         params.showUIAnimations = this.checked ? true : false;
         cookies.setItem('showUIAnimations', params.showUIAnimations, Infinity);
+    });
+    document.getElementById('appThemeSelect').addEventListener('change', function (e) {
+        params.appTheme = e.target.value;
+        cookies.setItem('appTheme', params.appTheme, Infinity);
+        uiUtil.applyAppTheme(params.appTheme);
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
@@ -1032,6 +1034,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $("#cachingAssets").html("Caching assets...");
                 $("#cachingAssets").hide();
                 $("#searchingArticles").hide();
+                // Set the requested appTheme
+                uiUtil.applyAppTheme(params.appTheme);
                 // Display the iframe content
                 $("#articleContent").show();
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
@@ -1197,7 +1201,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
             }
-
+            // Set the requested appTheme
+            uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 

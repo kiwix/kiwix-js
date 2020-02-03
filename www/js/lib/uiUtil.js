@@ -306,6 +306,93 @@ define([], function() {
     }
 
     /**
+     * Applies the requested app and content theme
+     * 
+     * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
+     * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
+     * Current themes are: light, dark, dark_invert, dark_mwInvert but code below is written for extensibility
+     * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
+     * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
+     * A rule may additionally be needed in app.css for full implementation of contentTheme
+     * 
+     * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert])
+     */
+    function applyAppTheme(theme) {
+        var htmlEl = document.getElementsByTagName('html')[0];
+        var oldTheme = htmlEl.dataset.theme || '';
+        var iframe = document.getElementById('articleContent');
+        var doc = iframe.contentDocument;
+        var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
+        var appTheme = theme.replace(/_.*$/, '');
+        var contentTheme = theme.replace(/^[^_]*/, '');
+        var oldAppTheme = oldTheme.replace(/_.*$/, '');
+        var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
+        // Remove oldAppTheme if necessary
+        if (oldAppTheme && oldAppTheme !== appTheme) htmlEl.classList.remove(oldAppTheme);
+        // Apply new appTheme (NB it will not be added twice if it's already there)
+        if (appTheme) htmlEl.classList.add(appTheme);
+        // Embed a reference to applied theme, so we can remove it generically in the future
+        htmlEl.dataset.theme = theme;
+        // Hide any previously displayed help
+        var oldHelp = document.getElementById(oldTheme + '-help');
+        if (oldHelp) oldHelp.style.display = 'none';
+        // Show any specific help for selected contentTheme
+        var help = document.getElementById(theme + '-help');
+        if (help) help.style.display = 'block';
+        
+        // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
+        if (oldContentTheme && oldContentTheme !== contentTheme) {
+            iframe.classList.remove(oldContentTheme);
+            if (kiwixJSSheet) {
+                kiwixJSSheet.disabled = true;
+                kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
+            }
+        }
+        // Apply the requested ContentTheme (if not already attached)
+        if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
+            iframe.classList.add(contentTheme);
+            // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
+            // subdirectory, then relative links injected into the article will not work as expected)
+            // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
+            var prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname).replace(/\/[^/]*$/, '');
+            if (doc) {
+                var link = doc.createElement('link');
+                link.setAttribute('id', 'kiwixJSTheme');
+                link.setAttribute('rel', 'stylesheet');
+                link.setAttribute('type', 'text/css');
+                link.setAttribute('href', prefix + '/css/kiwixJS' + contentTheme + '.css');
+                doc.head.appendChild(link);
+            }
+        }
+        // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
+        // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
+        if (document.getElementById('liConfigureNav').classList.contains('active') &&
+            doc.title !== "Placeholder for injecting an article into the iframe") {
+            showReturnLink();
+        }
+    }
+
+    // Displays the return link and handles click event. Called by applyAppTheme()
+    function showReturnLink() {
+        var viewArticle = document.getElementById('viewArticle');
+        viewArticle.style.display = 'block';
+        viewArticle.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('liConfigureNav').classList.remove('active');
+            document.getElementById('liHomeNav').classList.add('active');
+            removeAnimationClasses();
+            if (params.showUIAnimations) { 
+                applyAnimationToSection('home');
+            } else {
+                document.getElementById('configuration').style.display = 'none';
+                document.getElementById('articleContent').style.display = 'block';
+            }
+            document.getElementById('formArticleSearch').style.display = 'block';
+            viewArticle.style.display = 'none';
+        });
+    }
+
+    /**
      * Functions and classes exposed by this module
      */
     return {
@@ -318,6 +405,7 @@ define([], function() {
         isElementInView: isElementInView,
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
-        applyAnimationToSection: applyAnimationToSection
+        applyAnimationToSection: applyAnimationToSection,
+        applyAppTheme: applyAppTheme
     };
 });

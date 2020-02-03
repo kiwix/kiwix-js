@@ -22,6 +22,14 @@
  */
 'use strict';
 
+/**
+ * A global parameter object for storing variables that need to be remembered between page loads,
+ * or across different functions and modules
+ * 
+ * @type Object
+ */
+var params = {};
+
 require.config({
     baseUrl: 'js/lib',
     paths: {

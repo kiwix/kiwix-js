@@ -75,6 +75,7 @@
     padding-left: 12px;
     padding-right: 12px;
     background: lightblue;
+    z-index: 1;
 }
 
 #articleList a:hover, #articleList a.hover {
@@ -87,6 +88,32 @@
 
 #configuration {
     margin: 0 1rem;
+}
+
+/* App theme: dark */
+
+.dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
+.dark #alertBoxHeader, .dark footer, .dark img {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.dark body {
+    background: #171717;
+}
+
+/* End of app theme: dark */
+
+/* Content themes: _invert, _mwInvert */
+
+iframe._invert, iframe._mwInvert {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* End of content themes */
+
+.appThemeInfo {
+    display: none;
+    margin: 5px;
 }
 
 .articleIFrame {
