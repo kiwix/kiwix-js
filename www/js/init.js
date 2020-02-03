@@ -22,6 +22,14 @@
  */
 'use strict';
 
+/**
+ * A global parameter object for storing variables that need to be remembered between page loads,
+ * or across different functions and modules
+ * 
+ * @type Object
+ */
+var params = {};
+
 // Provides caching for assets contained in ZIM (variable needs to be available app-wide)
 // It significantly speeds up subsequent page display. See kiwix-js issue #335
 var assetsCache = new Map();
