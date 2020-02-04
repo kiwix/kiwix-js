@@ -85,8 +85,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
     
-    // Title for current url.
-    var curTitle = "A/index";
+    // Title for current URL
+    var curTitle = "";
 
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
@@ -1011,6 +1011,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
     }
 
+
     /**
      * Read the article corresponding to the given dirEntry
      * @param {DirEntry} dirEntry The directory entry of the article to read
@@ -1021,8 +1022,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
         // Early return if article's title not equal current url's title
-        var matchUrl = dirEntry['namespace'] + "/" + dirEntry["url"];
-        if(matchUrl !== curTitle) return;
+        var expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
+        if(expectedArticleURLToBeDisplayed !== curTitle){
+            console.debug("Expected Article URL to be displayed:" + expectedArticleURLToBeDisplayed
+            + " does not match current URL " + curTitle)
+            return;
+        } 
 
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
@@ -1159,8 +1164,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
         }
         // Early return if article's title not equal current url's title
-        var matchUrl = dirEntry['namespace'] + "/" + dirEntry["url"];
-        if(matchUrl !== curTitle) return;
+        var expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
+        if(expectedArticleURLToBeDisplayed !== curTitle){
+            console.debug("Expected Article URL to be displayed:" + expectedArticleURLToBeDisplayed + 
+            " does not match current URL " + curTitle)
+            return;
+        } 
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
@@ -1524,6 +1533,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
+                    curTitle = dirEntry.namespace + "/" + dirEntry.url
                     readArticle(dirEntry);
                 } else {
                     console.error("The main page of this archive does not seem to be an article");
