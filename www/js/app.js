@@ -86,7 +86,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var configDropZone = document.getElementById('configuration');
     
     // Title for current URL
-    var curTitle = "";
+    var expectedArticleURLToBeDisplayed = "";
 
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
@@ -1011,6 +1011,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         }
     }
 
+    /**
+     * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
+     * @param {DirEntry} dirEntry The directory entry of the article to read
+     */
+    function entryIsToBeDisplayed(dirEntry) {
+        curTitle = dirEntry.namespace + "/" + dirEntry.url;
+        if (curTitle !== expectedArticleURLToBeDisplayed) {
+            console.debug("Expected Article URL to be displayed:" + expectedArticleURLToBeDisplayed
+            + " does not match current URL " + curTitle)
+            return false;
+        }
+        return true;
+    }
 
     /**
      * Read the article corresponding to the given dirEntry
@@ -1021,11 +1034,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
-        // Early return if article's title not equal current url's title
-        var expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
-        if(expectedArticleURLToBeDisplayed !== curTitle){
-            console.debug("Expected Article URL to be displayed:" + expectedArticleURLToBeDisplayed
-            + " does not match current URL " + curTitle)
+        // Early return if article's title is not expected to be displayed
+        // ZENGCHU2
+        if(! entryIsToBeDisplayed(dirEntry)){
             return;
         } 
 
@@ -1164,10 +1175,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
         }
         // Early return if article's title not equal current url's title
-        var expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
-        if(expectedArticleURLToBeDisplayed !== curTitle){
-            console.debug("Expected Article URL to be displayed:" + expectedArticleURLToBeDisplayed + 
-            " does not match current URL " + curTitle)
+        // ZENGCHU2
+        if(! entryIsToBeDisplayed(dirEntry)){
             return;
         } 
 
@@ -1482,7 +1491,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function goToArticle(title, download, contentType) {
         // Set curTitle to prevent loading other articles.
-        curTitle = title;
+        // ZENGCHU2
+        expectedArticleURLToBeDisplayed = title;
 
         $("#searchingArticles").show();
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
@@ -1511,7 +1521,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
-                    curTitle = dirEntry.namespace + "/" + dirEntry.url
+                    // ZENGCHU2
+                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url
                     $('#activeContent').hide();
                     $('#searchingArticles').show();
                     readArticle(dirEntry);
@@ -1534,7 +1545,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
-                    curTitle = dirEntry.namespace + "/" + dirEntry.url
+                    // ZENGCHU2
+                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url
                     readArticle(dirEntry);
                 } else {
                     console.error("The main page of this archive does not seem to be an article");
