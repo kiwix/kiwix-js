@@ -1511,6 +1511,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
+                    curTitle = dirEntry.namespace + "/" + dirEntry.url
                     $('#activeContent').hide();
                     $('#searchingArticles').show();
                     readArticle(dirEntry);
