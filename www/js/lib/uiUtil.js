@@ -318,7 +318,8 @@ define([], function() {
      * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert])
      */
     function applyAppTheme(theme) {
-        var htmlEl = document.getElementsByTagName('html')[0];
+        var htmlEl = document.querySelector('html');
+        var footer = document.querySelector('footer');
         var oldTheme = htmlEl.dataset.theme || '';
         var iframe = document.getElementById('articleContent');
         var doc = iframe.contentDocument;
@@ -327,10 +328,15 @@ define([], function() {
         var contentTheme = theme.replace(/^[^_]*/, '');
         var oldAppTheme = oldTheme.replace(/_.*$/, '');
         var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
-        // Remove oldAppTheme if necessary
-        if (oldAppTheme && oldAppTheme !== appTheme) htmlEl.classList.remove(oldAppTheme);
+        // Remove oldAppTheme and oldContentTheme
+        if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
+        // A missing contentTheme implies _light
+        footer.classList.remove(oldContentTheme || '_light');
         // Apply new appTheme (NB it will not be added twice if it's already there)
         if (appTheme) htmlEl.classList.add(appTheme);
+        // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
+        // is not dark (but we want it applied when the content is dark or inverted)
+        footer.classList.add(contentTheme || '_light');
         // Embed a reference to applied theme, so we can remove it generically in the future
         htmlEl.dataset.theme = theme;
         // Hide any previously displayed help
@@ -387,6 +393,7 @@ define([], function() {
                 document.getElementById('configuration').style.display = 'none';
                 document.getElementById('articleContent').style.display = 'block';
             }
+            document.getElementById('navigationButtons').style.display = 'inline-flex';
             document.getElementById('formArticleSearch').style.display = 'block';
             viewArticle.style.display = 'none';
         });
