@@ -85,9 +85,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
     
-    // Title for current URL
+    // Unique identifier of the article expected to be displayed
     var expectedArticleURLToBeDisplayed = "";
-
+    
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
@@ -1001,9 +1001,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             document.getElementById('articleContent').contentWindow.focus();
             $("#searchingArticles").show();
             if (dirEntry.isRedirect()) {
-                selectedArchive.resolveRedirect(dirEntry, readArticle);
+                // Update expectedArticleURLToBeDisplayed before redirect. 
+                selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+                    updatedExpectedURLOnRedirect(resolvedDirEntry, readArticle);
+                });
             } else {
                 params.isLandingPage = false;
+                expectedArticleURLToBeDisplayed  = dirEntry.namespace + "/" + dirEntry.url;
                 readArticle(dirEntry);
             }
         } else {
@@ -1015,14 +1019,27 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
-    function entryIsToBeDisplayed(dirEntry) {
-        curTitle = dirEntry.namespace + "/" + dirEntry.url;
-        if (curTitle !== expectedArticleURLToBeDisplayed) {
-            console.debug("Expected Article URL to be displayed:" + expectedArticleURLToBeDisplayed
-            + " does not match current URL " + curTitle)
+    function entryIsToExpectedBeDisplayed(dirEntry) {
+        var curArticleURL = dirEntry.namespace + "/" + dirEntry.url;
+
+        if (expectedArticleURLToBeDisplayed !== curArticleURL) {
+            console.debug("url of current article :" + curArticleURL + ", does not match the expected url :" + 
+            expectedArticleURLToBeDisplayed);
             return false;
         }
         return true;
+    }
+
+
+    /**
+     * Update the expectedArticleURLToBeDisplayed after redirect. Fires up the callback function with resolvedDirEntry
+     * @param {*} resolvedDirEntry The resolvedDirEntry returned from resolvedRedirect() function.
+     * @param {*} callback The callback function after updating the expectedArticleURLToBeDisplayed.
+     */
+    function updatedExpectedURLOnRedirect(resolvedDirEntry, callback){
+        expectedArticleURLToBeDisplayed = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
+        console.debug("On redirect, update expectedArticleURLToBeDisplayed to be :" + expectedArticleURLToBeDisplayed);
+        callback(resolvedDirEntry);
     }
 
     /**
@@ -1035,8 +1052,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
         // Early return if article's title is not expected to be displayed
-        // ZENGCHU2
-        if(! entryIsToBeDisplayed(dirEntry)){
+        // Cause an issue if the current dirEntry is redirected from another dirEntry since the urlExpecedToBedisplayed is not updated
+        // before redirecting.
+        if(! entryIsToExpectedBeDisplayed(dirEntry)){
+            console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
             return;
         } 
 
@@ -1079,7 +1098,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
-                selectedArchive.resolveRedirect(dirEntry, readArticle);
+                // Update expectedArticleURLToBeDisplayed before redirect then call readArticle.
+                selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+                    updatedExpectedURLOnRedirect(resolvedDirEntry, readArticle)
+                });
             } else {
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
@@ -1174,11 +1196,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         if (!params.hideActiveContentWarning && params.isLandingPage) {
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
         }
-        // Early return if article's title not equal current url's title
-        // ZENGCHU2
-        if(! entryIsToBeDisplayed(dirEntry)){
-            return;
-        } 
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
@@ -1490,8 +1507,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
     function goToArticle(title, download, contentType) {
-        // Set curTitle to prevent loading other articles.
-        // ZENGCHU2
+        // Set expectedArticleURLToBeDisplayed outside asyn code. Ensure only the last clicked aritcle is expected to be displayed.
         expectedArticleURLToBeDisplayed = title;
 
         $("#searchingArticles").show();
@@ -1521,9 +1537,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
-                    // ZENGCHU2
-                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url
-                    $('#activeContent').hide();
+                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
+                    $('#activeContent').hide(); 
                     $('#searchingArticles').show();
                     readArticle(dirEntry);
                 } else {
@@ -1545,8 +1560,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
-                    // ZENGCHU2
-                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url
+                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
                     readArticle(dirEntry);
                 } else {
                     console.error("The main page of this archive does not seem to be an article");
