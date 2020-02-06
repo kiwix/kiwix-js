@@ -1003,7 +1003,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (dirEntry.isRedirect()) {
                 // Update expectedArticleURLToBeDisplayed before redirect. 
                 selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                    updatedExpectedURLOnRedirect(resolvedDirEntry, readArticle);
+                    expectedArticleURLToBeDisplayed = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
+                    readArticle(resolvedDirEntry);
                 });
             } else {
                 params.isLandingPage = false;
@@ -1019,7 +1020,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
-    function entryIsToExpectedBeDisplayed(dirEntry) {
+    function isDirEntryExpectedToBeDisplayed(dirEntry) {
         var curArticleURL = dirEntry.namespace + "/" + dirEntry.url;
 
         if (expectedArticleURLToBeDisplayed !== curArticleURL) {
@@ -1028,18 +1029,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             return false;
         }
         return true;
-    }
-
-
-    /**
-     * Update the expectedArticleURLToBeDisplayed after redirect. Fires up the callback function with resolvedDirEntry
-     * @param {*} resolvedDirEntry The resolvedDirEntry returned from resolvedRedirect() function.
-     * @param {*} callback The callback function after updating the expectedArticleURLToBeDisplayed.
-     */
-    function updatedExpectedURLOnRedirect(resolvedDirEntry, callback){
-        expectedArticleURLToBeDisplayed = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
-        console.debug("On redirect, update expectedArticleURLToBeDisplayed to be :" + expectedArticleURLToBeDisplayed);
-        callback(resolvedDirEntry);
     }
 
     /**
@@ -1054,7 +1043,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Early return if article's title is not expected to be displayed
         // Cause an issue if the current dirEntry is redirected from another dirEntry since the urlExpecedToBedisplayed is not updated
         // before redirecting.
-        if(! entryIsToExpectedBeDisplayed(dirEntry)){
+        if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
             console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
             return;
         } 
@@ -1100,7 +1089,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             if (dirEntry.isRedirect()) {
                 // Update expectedArticleURLToBeDisplayed before redirect then call readArticle.
                 selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                    updatedExpectedURLOnRedirect(resolvedDirEntry, readArticle)
+                    expectedArticleURLToBeDisplayed = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
+                    readArticle(resolvedDirEntry)
                 });
             } else {
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
