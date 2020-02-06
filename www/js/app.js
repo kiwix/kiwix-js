@@ -1040,14 +1040,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
-        // Early return if article's title is not expected to be displayed
-        // Cause an issue if the current dirEntry is redirected from another dirEntry since the urlExpecedToBedisplayed is not updated
-        // before redirecting.
-        if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
-            console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
-            return;
-        } 
-
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
@@ -1082,6 +1074,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     $("#searchingArticles").show();
                 };
             };
+
+            if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+                console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
+                return;
+            } 
+
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
             iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
@@ -1096,6 +1094,10 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
                 $("#searchingArticles").show();
+                if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+                    console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
+                    return;
+                }         
                 selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
             }
         }
