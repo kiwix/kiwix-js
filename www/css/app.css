@@ -93,7 +93,7 @@
 /* App theme: dark */
 
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
-.dark #alertBoxHeader, .dark footer, .dark img {
+.dark #alertBoxHeader, .dark footer:not([class=_light]), .dark img {
     filter: invert(1) hue-rotate(180deg);
 }
 
