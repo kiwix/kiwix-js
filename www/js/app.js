@@ -1371,16 +1371,19 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cache', 'utf8', 'cookie
         if ($('#navbarToggle').is(":visible") && $('#liHomeNav').is(':visible')) {
             $('#navbarToggle').click();
         }
-        // Show the selected content in the page
-        $('#about').hide();
-        $('#configuration').hide();
         $('#navigationButtons').show();
         $('#formArticleSearch').show();
         $('#articleList').show();
-        $("#articleList").empty();
+        $('#articleList').empty();
         $('#articleListHeaderMessage').empty();
-        $("#articleContent").contents().empty();
-        //$('#searchingForArticles').hide();
+        $('#articleContent').contents().empty();
+        uiUtil.removeAnimationClasses();
+        if (params.showUIAnimations) { 
+           uiUtil.applyAnimationToSection('home');
+        } else {
+            $('#about').hide();
+            $('#configuration').hide();
+        }
     }
 
     /**
