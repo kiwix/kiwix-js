@@ -1001,14 +1001,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             document.getElementById('articleContent').contentWindow.focus();
             $("#searchingArticles").show();
             if (dirEntry.isRedirect()) {
-                // Update expectedArticleURLToBeDisplayed before redirect. 
-                selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                    expectedArticleURLToBeDisplayed = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
-                    readArticle(resolvedDirEntry);
-                });
+                selectedArchive.resolveRedirect(dirEntry, readArticle);
             } else {
                 params.isLandingPage = false;
-                expectedArticleURLToBeDisplayed  = dirEntry.namespace + "/" + dirEntry.url;
                 readArticle(dirEntry);
             }
         } else {
@@ -1036,6 +1031,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
+		// Only update for expectedArticleURLToBeDisplayed.
+        expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
@@ -1076,7 +1073,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             };
 
             if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
-                console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
                 return;
             } 
 
@@ -1085,19 +1081,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
-                // Update expectedArticleURLToBeDisplayed before redirect then call readArticle.
-                selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                    expectedArticleURLToBeDisplayed = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
-                    readArticle(resolvedDirEntry)
-                });
+                selectedArchive.resolveRedirect(dirEntry, readArticle);
             } else {
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
-                $("#searchingArticles").show();
-                if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
-                    console.debug(dirEntry, " is not expected to be displayed. Early retrun in readArticle().")
-                    return;
-                }         
+                $("#searchingArticles").show();         
                 selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
             }
         }
@@ -1184,6 +1172,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
+        if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+            return;
+        }		
         // Display Bootstrap warning alert if the landing page contains active content
         if (!params.hideActiveContentWarning && params.isLandingPage) {
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
@@ -1499,9 +1490,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
     function goToArticle(title, download, contentType) {
-        // Set expectedArticleURLToBeDisplayed outside asyn code. Ensure only the last clicked aritcle is expected to be displayed.
-        expectedArticleURLToBeDisplayed = title;
-
         $("#searchingArticles").show();
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
@@ -1529,7 +1517,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
-                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
                     $('#activeContent').hide(); 
                     $('#searchingArticles').show();
                     readArticle(dirEntry);
@@ -1552,7 +1539,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 if (dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
-                    expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
                     readArticle(dirEntry);
                 } else {
                     console.error("The main page of this archive does not seem to be an article");
