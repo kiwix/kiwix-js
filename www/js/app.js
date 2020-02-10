@@ -1085,7 +1085,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
             } else {
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
-                $("#searchingArticles").show();   
+                $("#searchingArticles").show();
                 selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
             }
         }
