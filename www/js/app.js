@@ -82,6 +82,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
     
+    // Unique identifier of the article expected to be displayed
+    var expectedArticleURLToBeDisplayed = "";
+    
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
@@ -1011,10 +1014,27 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
+     * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
+     * @param {DirEntry} dirEntry The directory entry of the article to read
+     */
+    function isDirEntryExpectedToBeDisplayed(dirEntry) {
+        var curArticleURL = dirEntry.namespace + "/" + dirEntry.url;
+
+        if (expectedArticleURLToBeDisplayed !== curArticleURL) {
+            console.debug("url of current article :" + curArticleURL + ", does not match the expected url :" + 
+            expectedArticleURLToBeDisplayed);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Read the article corresponding to the given dirEntry
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
+	    // Only update for expectedArticleURLToBeDisplayed.
+        expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
@@ -1055,6 +1075,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     $("#searchingArticles").show();
                 };
             };
+
+            if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+                return;
+            } 
+
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
             iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
@@ -1151,6 +1176,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
+        if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+            return;
+        }		
         // Display Bootstrap warning alert if the landing page contains active content
         if (!params.hideActiveContentWarning && params.isLandingPage) {
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
