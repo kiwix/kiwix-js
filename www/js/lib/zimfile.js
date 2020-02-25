@@ -257,12 +257,8 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
             fileArray.sort(function (a, b) {
                 var nameA = a.name.toUpperCase();
                 var nameB = b.name.toUpperCase();
-                if (nameA < nameB) {
-                    return -1;
-                }
-                if (nameA > nameB) {
-                    return 1;
-                }
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
                 return 0;
             });
             return util.readFileSlice(fileArray[0], 0, 80).then(function (header) {

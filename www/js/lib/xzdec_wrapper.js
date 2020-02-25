@@ -147,7 +147,7 @@ define(['q'], function(Q) {
      */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
         if (!xzdec._input_empty(this._decHandle)) {
-            // DEV: When converting to ES6 Promise, use Promise.resolve(0) here
+            // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
         var that = this;

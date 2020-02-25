@@ -862,7 +862,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * @returns {Promise<Blob>} A promise for the requested file (blob)
      */
     function readRemoteArchive(url) {
-        // DEV: This deferred can't be standardized to an ES6 Promise pattern (using Q) because
+        // DEV: This deferred can't be standardized to a Promise/A+ pattern (using Q) because
         // IE11 is unable to scope the callbacks inside the Promise correctly. See [kiwix.js #589]
         var deferred = Q.defer();
         var request = new XMLHttpRequest();
@@ -879,8 +879,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 }
             }
         };
-        request.onabort = deferred.reject;
-        request.onerror = deferred.reject;
+        request.onabort = request.onerror = deferred.reject;
         request.send();
         return deferred.promise;
     }
