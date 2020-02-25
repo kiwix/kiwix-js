@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q'], function(q) {
+define(['q'], function(Q) {
 
     /**
      * Utility function : return true if the given string ends with the suffix
@@ -180,23 +180,21 @@ define(['q'], function(q) {
 
     /**
      * Reads a Uint8Array from the given file starting at byte offset begin and
-     * for given size.
-     * @param {File} file
-     * @param {Integer} begin
-     * @param {Integer} size
-     * @returns {Promise} Promise
+     * for given size
+     * @param {File} file The file object to be read
+     * @param {Integer} begin The offset in <File> at which to begin reading
+     * @param {Integer} size The number of bytes to read
+     * @returns {Promise<Uint8Array>} A Promise for an array buffer with the read data 
      */
     function readFileSlice(file, begin, size) {
-        var deferred = q.defer();
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            deferred.resolve(new Uint8Array(e.target.result));
-        };
-        reader.onerror = reader.onabort = function(e) {
-            deferred.reject(e);
-        };
-        reader.readAsArrayBuffer(file.slice(begin, begin + size));
-        return deferred.promise;
+        return Q.Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                resolve(new Uint8Array(e.target.result));
+            };
+            reader.onerror = reader.onabort = reject;
+            reader.readAsArrayBuffer(file.slice(begin, begin + size));
+        });
     }
 
     /**

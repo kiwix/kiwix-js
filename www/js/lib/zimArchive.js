@@ -299,7 +299,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     callback(data);
                 });
             }
-        }).fail(function (e) {
+        }).catch(function (e) {
             console.warn("Metadata with key " + key + " not found in the archive", e);
             callback();
         });

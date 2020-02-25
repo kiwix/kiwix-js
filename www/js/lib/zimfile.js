@@ -214,7 +214,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
      * and is stored as ZIMFile.mimeTypes
      * 
      * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list 
-*                      is to be extracted
+     *      is to be extracted
      * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
      * @param {Integer} urlPtrPos The offset of the byte after the end of the MIME type list in <file>
      * @returns {Promise} A promise for the MIME Type list as a Map
@@ -222,13 +222,13 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
     function readMimetypeMap(file, mimeListPos, urlPtrPos) {
         var typeMap = new Map;
         var size = urlPtrPos - mimeListPos;
-        return util.readFileSlice(file, mimeListPos, size).then(function(data) {
+        return util.readFileSlice(file, mimeListPos, size).then(function (data) {
             if (data.subarray) {
                 var i = 0;
                 var pos = -1;
                 var mimeString;
                 while (pos < size) {
-                    pos++; 
+                    pos++;
                     mimeString = utf8.parse(data.subarray(pos), true);
                     // If the parsed data is an empty string, we have reached the end of the MIME type list, so break 
                     if (!mimeString) break;
@@ -241,35 +241,34 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 }
             }
             return typeMap;
-        }).fail(function(err) {
+        }).catch(function (err) {
             console.error('Unable to read MIME type list', err);
             return new Map;
         });
     }
-    
+
     return {
         /**
-         * 
-         * @param {Array.<File>} fileArray
-         * @returns {Promise}
+         * @param {Array.<File>} fileArray An array of picked archive files
+         * @returns {Promise<Object>} A Promise for the ZimFile Object
          */
-        fromFileArray: function(fileArray) {
+        fromFileArray: function (fileArray) {
             // Array of blob objects should be sorted by their name property
-            fileArray.sort(function(a, b) {
-                  var nameA = a.name.toUpperCase(); 
-                  var nameB = b.name.toUpperCase(); 
-                  if (nameA < nameB) {
+            fileArray.sort(function (a, b) {
+                var nameA = a.name.toUpperCase();
+                var nameB = b.name.toUpperCase();
+                if (nameA < nameB) {
                     return -1;
-                  }
-                  if (nameA > nameB) {
+                }
+                if (nameA > nameB) {
                     return 1;
-                  }
-                  return 0;
+                }
+                return 0;
             });
-            return util.readFileSlice(fileArray[0], 0, 80).then(function(header) {
+            return util.readFileSlice(fileArray[0], 0, 80).then(function (header) {
                 var mimeListPos = readInt(header, 56, 8);
                 var urlPtrPos = readInt(header, 32, 8);
-                return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function(data) {
+                return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (data) {
                     var zf = new ZIMFile(fileArray);
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
