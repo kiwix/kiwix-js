@@ -82,8 +82,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
     
-    // Unique identifier of the article expected to be displayed
-    var expectedArticleURLToBeDisplayed = "";
+    // Unique state to identify  latest asyn action that can result in false diaplyed.
+    // actionIdentifier can be either the key/url for searching or the url of expected article to be displayed.
+    var latestUserAsynAction = {"action": "", "actionIdentifier": ""};
     
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
@@ -918,6 +919,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         ,500);
     }
 
+    /**
+     * Update latestUserAsynAction.
+     * @param {*} action : An action that can cause wrong dispalying due to race condition.
+     * @param {*} actionIdentifier : The keyword used to perform action. Can be keyword for search or identifer for 
+     * article to be displayed.
+     */
+    function updateLatestAsynAction(action, actionIdentifier){
+        latestUserAsynAction.action = action;
+        latestUserAsynAction.actionIdentifier = actionIdentifier;
+        return {"action": action, "actionIdentifier": actionIdentifier};
+    }
 
     /**
      * Search the index for DirEntries with title that start with the given prefix (implemented
@@ -926,8 +938,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
+            var curAction = updateLatestAsynAction("Search", prefix);
+
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, function(archiveDirectories) {
+                populateListOfArticles(curAction, archiveDirectories);
+            });
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -941,16 +957,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
   
     /**
      * Display the list of articles with the given array of DirEntry
+     * @param {Object} originAction The action invoked this callback function.
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
      */
-    function populateListOfArticles(dirEntryArray) {
-        var prefixDisplayedInSearchBar = $('#prefix').val();
-        var testUrl = dirEntryArray.length > 0 ? dirEntryArray[0].url.toLowerCase() : null;
-        // Early return if dirEntryArray is not returned from previous search or the prefix displayed is empty.
-        if(!prefixDisplayedInSearchBar || (!testUrl && testUrl.startsWith(prefixDisplayedInSearchBar))) {
-            console.debug("Nonempty dirEntryArray is not returned by latest findDirEntriesWithPrefix, early return");
-            // Manually disable searchingArticles.
-            $('#searchingArticles').hide();
+    function populateListOfArticles(originAction, dirEntryArray) {
+        if(! isThisCallbackExpectedToBePerformed(originAction)){
             return;
         }
 
@@ -1024,15 +1035,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     }
 
     /**
-     * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
-     * @param {DirEntry} dirEntry The directory entry of the article to read
+     * Check whether the origin action equals the latest action latestAsynAction
+     * @param {Object} originAction The action invoked the parent asyn callback functions 
      */
-    function isDirEntryExpectedToBeDisplayed(dirEntry) {
-        var curArticleURL = dirEntry.namespace + "/" + dirEntry.url;
-
-        if (expectedArticleURLToBeDisplayed !== curArticleURL) {
-            console.debug("url of current article :" + curArticleURL + ", does not match the expected url :" + 
-            expectedArticleURLToBeDisplayed);
+    function isThisCallbackExpectedToBePerformed(originAction) {
+        if (originAction.action != latestUserAsynAction.action || originAction.actionIdentifier != latestUserAsynAction.actionIdentifier) {
+            console.debug("Result of asyn action : " + originAction.action + ":" + originAction.actionIdentifier + " won't be displayed \
+            since the latest asyn action is:" + latestUserAsynAction.action + ":" + latestUserAsynAction.actionIdentifier);
             return false;
         }
         return true;
@@ -1043,8 +1052,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-        // Only update for expectedArticleURLToBeDisplayed.
-        expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
+        var curAction = updateLatestAsynAction("Read",  dirEntry.namespace + "/" + dirEntry.url);
+
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
@@ -1100,7 +1109,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
                 $("#searchingArticles").show();
-                selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
+                selectedArchive.readUtf8File(dirEntry, function (dirEntry, htmlArticle) {
+                    displayArticleContentInIframe(curAction, dirEntry, htmlArticle);
+                });
             }
         }
     }
@@ -1182,11 +1193,12 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
      * NB : in some error cases, the given title can be null, and the htmlArticle contains the error message
+     * @param {Object}  originAction  The action to invoke this callback function.
      * @param {DirEntry} dirEntry
      * @param {String} htmlArticle
      */
-    function displayArticleContentInIframe(dirEntry, htmlArticle) {
-        if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+    function displayArticleContentInIframe(originAction, dirEntry, htmlArticle) {
+        if(! isThisCallbackExpectedToBePerformed(originAction)){
             return;
         }		
         // Display Bootstrap warning alert if the landing page contains active content
