@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, util, uiUtil, cookies, abstractFilesystemAccess, q) {
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, uiUtil, cookies, abstractFilesystemAccess, Q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -378,7 +378,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
     function getCacheAttributes() {
-        return q.Promise(function (resolve, reject) {
+        return Q.Promise(function (resolve, reject) {
             if (contentInjectionMode === 'serviceworker') {
                 // Create a Message Channel
                 var channel = new MessageChannel();
@@ -858,44 +858,45 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Reads a remote archive with given URL, and returns the response in a Promise.
      * This function is used by setRemoteArchives below, for UI tests
      * 
-     * @param url The URL of the archive to read
-     * @returns {Promise}
+     * @param {String} url The URL of the archive to read
+     * @returns {Promise<Blob>} A promise for the requested file (blob)
      */
     function readRemoteArchive(url) {
-        var deferred = q.defer();
+        // DEV: This deferred can't be standardized to a Promise/A+ pattern (using Q) because
+        // IE11 is unable to scope the callbacks inside the Promise correctly. See [kiwix.js #589]
+        var deferred = Q.defer();
         var request = new XMLHttpRequest();
-        request.open("GET", url, true);
+        request.open("GET", url);
         request.responseType = "blob";
         request.onreadystatechange = function () {
             if (request.readyState === XMLHttpRequest.DONE) {
-                if ((request.status >= 200 && request.status < 300) || request.status === 0) {
+                if (request.status >= 200 && request.status < 300 || request.status === 0) {
                     // Hack to make this look similar to a file
                     request.response.name = url;
                     deferred.resolve(request.response);
-                }
-                else {
+                } else {
                     deferred.reject("HTTP status " + request.status + " when reading " + url);
                 }
             }
         };
-        request.onabort = function (e) {
-            deferred.reject(e);
-        };
-        request.send(null);
+        request.onabort = request.onerror = deferred.reject;
+        request.send();
         return deferred.promise;
     }
     
     /**
      * This is used in the testing interface to inject remote archives
+     * @returns {Promise<Array>} A Promise for an array of archives  
      */
-    window.setRemoteArchives = function() {
+    window.setRemoteArchives = function () {
         var readRequests = [];
-        var i;
-        for (i = 0; i < arguments.length; i++) {
-            readRequests[i] = readRemoteArchive(arguments[i]);
-        }
-        return q.all(readRequests).then(function(arrayOfArchives) {
+        Array.prototype.slice.call(arguments).forEach(function (arg) {
+            readRequests.push(readRemoteArchive(arg));
+        });
+        return Q.all(readRequests).then(function (arrayOfArchives) {
             setLocalArchiveFromFileList(arrayOfArchives);
+        }).catch(function (e) {
+            console.error('Unable to load remote archive(s)', e);
         });
     };
 
@@ -1136,7 +1137,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         });
                     }
                 };
-                selectedArchive.getDirEntryByTitle(title).then(readFile).fail(function () {
+                selectedArchive.getDirEntryByTitle(title).then(readFile).catch(function () {
                     messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new UInt8Array() });
                 });
             } else {
@@ -1317,7 +1318,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
                     });
-                }).fail(function (e) {
+                }).catch(function (e) {
                     console.error("could not find DirEntry for image:" + title, e);
                 });
             });
@@ -1370,7 +1371,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                                 renderIfCSSFulfilled(fileDirEntry.url);
                             }
                         );
-                    }).fail(function (e) {
+                    }).catch(function (e) {
                         console.error("could not find DirEntry for CSS : " + title, e);
                         cssCount--;
                         renderIfCSSFulfilled();
@@ -1410,7 +1411,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
                         });
                     }
-                }).fail(function (e) {
+                }).catch(function (e) {
                     console.error("could not find DirEntry for javascript : " + title, e);
                 });
             });
@@ -1510,7 +1511,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 $('#activeContent').hide();
                 readArticle(dirEntry);
             }
-        }).fail(function(e) { alert("Error reading article with title " + title + " : " + e); });
+        }).catch(function(e) { alert("Error reading article with title " + title + " : " + e); });
     }
     
     function goToRandomArticle() {

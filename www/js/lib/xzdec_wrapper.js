@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q'], function(q) {
+define(['q'], function(Q) {
     var xzdec = Module; //@todo including via requirejs seems to not work
     xzdec._init();
     
@@ -78,29 +78,25 @@ define(['q'], function(q) {
     };
     
     /**
-     * Read length bytes, offset into the decompressed stream.
-     * This function ensures that only one decompression runs at a time.
-     * 
-     * @param {Integer} offset
-     * @param {Integer} length
+     * Reads stream of data from file offset for length of bytes to send to the decompresor
+     * This function ensures that only one decompression runs at a time
+     * @param {Integer} offset The file offset at which to begin reading compressed data
+     * @param {Integer} length The amount of data to read
+     * @returns {Promise} A Promise for the read data
      */
-    Decompressor.prototype.readSliceSingleThread = function(offset, length) {
+    Decompressor.prototype.readSliceSingleThread = function (offset, length) {
         if (!busy) {
             return this.readSlice(offset, length);
-        }
-        else {
+        } else {
             // The decompressor is already in progress.
             // To avoid using too much memory, we wait until it has finished
-            // before using it for another decompression.
-            // Inspired by https://codereview.stackexchange.com/questions/145563/angularjs-recursive-function-call-with-timeout
+            // before using it for another decompression
             var that = this;
-            var deferred = q.defer();
-
-            setTimeout(function(){
-                that.readSliceSingleThread(offset, length).then(deferred.resolve, deferred.reject);
-            }, DELAY_WAITING_IDLE_DECOMPRESSOR);
-
-            return deferred.promise;
+            return Q.Promise(function (resolve, reject) {
+                setTimeout(function () {
+                    that.readSliceSingleThread(offset, length).then(resolve, reject);
+                }, DELAY_WAITING_IDLE_DECOMPRESSOR);
+            });
         }
     };
 
@@ -150,8 +146,10 @@ define(['q'], function(q) {
      * @returns {Promise}
      */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
-        if (!xzdec._input_empty(this._decHandle))
-            return q.when(0);
+        if (!xzdec._input_empty(this._decHandle)) {
+            // DEV: When converting to Promise/A+, use Promise.resolve(0) here
+            return Q.when(0);
+        }
         var that = this;
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize)
