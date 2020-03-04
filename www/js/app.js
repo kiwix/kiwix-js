@@ -89,8 +89,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
     function resizeIFrame() {
+        var headerStyles = getComputedStyle(document.getElementById('top'));
         var height = window.innerHeight
-            - document.getElementById('top').getBoundingClientRect().height
+            - parseFloat(headerStyles.height)
+            - parseFloat(headerStyles.marginBottom)
             - 6; // TODO: These 6 pixels appear to be padding or margins added to some element, but it is not clear what
         document.getElementById('articleContent').style.height = height + 'px';
     }
