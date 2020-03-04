@@ -89,11 +89,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
     function resizeIFrame() {
-        var height = $(window).outerHeight()
-                - $("#top").outerHeight(true)
-                // TODO : this 5 should be dynamically computed, and not hard-coded
-                - 5;
-        $(".articleIFrame").css("height", height + "px");
+        var height = window.innerHeight
+            - document.getElementById('top').getBoundingClientRect().height
+            - 6; // TODO: These 6 pixels appear to be padding or margins added to some element, but it is not clear what
+        document.getElementById('articleContent').style.height = height + 'px';
     }
     $(document).ready(resizeIFrame);
     $(window).resize(resizeIFrame);
