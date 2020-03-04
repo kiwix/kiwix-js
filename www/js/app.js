@@ -90,11 +90,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      */
     function resizeIFrame() {
         var headerStyles = getComputedStyle(document.getElementById('top'));
-        var height = window.innerHeight
-            - parseFloat(headerStyles.height)
-            - parseFloat(headerStyles.marginBottom)
-            - 6; // TODO: These 6 pixels appear to be padding or margins added to some element, but it is not clear what
-        document.getElementById('articleContent').style.height = height + 'px';
+        var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+        var iframe = document.getElementById('articleContent');
+        var searchArticle = document.getElementById('search-article');
+        if (iframe.style.display === 'none') {
+            searchArticle.style.height = window.innerHeight + 'px';
+        } else { 
+            searchArticle.style.height = window.innerHeight + headerHeight + 'px';
+        }
+        document.getElementById('articleContent').style.height = window.innerHeight - headerHeight + 'px';
     }
     $(document).ready(resizeIFrame);
     $(window).resize(resizeIFrame);
@@ -275,6 +279,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
+        resizeIFrame();
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -298,6 +303,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('.alert').hide();
+        resizeIFrame();
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
