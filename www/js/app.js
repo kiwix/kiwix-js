@@ -91,15 +91,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
     function resizeIFrame() {
         var headerStyles = getComputedStyle(document.getElementById('top'));
         var iframe = document.getElementById('articleContent');
-        var searchArticle = document.getElementById('search-article');
+        var region = document.getElementById('search-article');
         if (iframe.style.display === 'none') {
-            searchArticle.style.height = window.innerHeight + 'px';
+            // We are in About or Configuration, so we only set the region height
+            region.style.height = window.innerHeight + 'px';
         } else { 
-            // IE cannot compute headerStyles fast enough, so we have to wait a few ticks
+            // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
             setTimeout(function() {
+                // Get  header height *including* its bottom margin
                 var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
                 iframe.style.height = window.innerHeight - headerHeight + 'px';
-                searchArticle.style.height = window.outerHeight + 'px';
+                region.style.height = window.outerHeight + 'px';
             }, 100);
         }
     }
