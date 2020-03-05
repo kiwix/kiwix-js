@@ -96,9 +96,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         if (iframe.style.display === 'none') {
             searchArticle.style.height = window.innerHeight + 'px';
         } else { 
-            searchArticle.style.height = window.innerHeight + headerHeight + 'px';
+            searchArticle.style.height = window.outerHeight + 'px';
+            iframe.style.height = window.innerHeight - headerHeight + 'px';
         }
-        document.getElementById('articleContent').style.height = window.innerHeight - headerHeight + 'px';
     }
     $(document).ready(resizeIFrame);
     $(window).resize(resizeIFrame);
@@ -255,6 +255,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             $("#welcomeText").hide();
             goToMainArticle();
         }
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
@@ -279,7 +281,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
-        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
     });
@@ -304,7 +305,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('.alert').hide();
-        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
     });
