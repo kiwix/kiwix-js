@@ -279,7 +279,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
-        resizeIFrame();
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -303,7 +304,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('.alert').hide();
-        resizeIFrame();
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
