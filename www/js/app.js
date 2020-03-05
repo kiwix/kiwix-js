@@ -90,14 +90,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      */
     function resizeIFrame() {
         var headerStyles = getComputedStyle(document.getElementById('top'));
-        var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
         var iframe = document.getElementById('articleContent');
         var searchArticle = document.getElementById('search-article');
         if (iframe.style.display === 'none') {
             searchArticle.style.height = window.innerHeight + 'px';
         } else { 
-            searchArticle.style.height = window.outerHeight + 'px';
-            iframe.style.height = window.innerHeight - headerHeight + 'px';
+            // IE cannot compute headerStyles fast enough, so we have to wait a few ticks
+            setTimeout(function() {
+                var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+                iframe.style.height = window.innerHeight - headerHeight + 'px';
+                searchArticle.style.height = window.outerHeight + 'px';
+            }, 100);
         }
     }
     $(document).ready(resizeIFrame);
