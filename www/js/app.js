@@ -101,7 +101,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 // Get  header height *including* its bottom margin
                 var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
                 iframe.style.height = window.innerHeight - headerHeight + 'px';
-                region.style.height = window.outerHeight + 'px';
+                // We have to allow a minimum safety margin of 5px for 'iframe' and 'header'
+                // to fit within 'region' without displaying an overflow
+                region.style.height = window.innerHeight + 5 + 'px';
             }, 100);
         }
     }
@@ -286,6 +288,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
     });
@@ -310,6 +313,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('.alert').hide();
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
     });
