@@ -37,6 +37,12 @@ var CACHE_NAME;
  */
 var useCache = true;
 
+/**
+ * A global Boolean that governs whether images are displayed
+ * app.js can alter this variable via messaging
+ */
+var imageDisplay;
+
 /**  
  * A regular expression that matches the Content-Types of assets that may be stored in CACHE_NAME
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
@@ -80,6 +86,20 @@ self.addEventListener('fetch', function (event) {
 
         // The ServiceWorker will handle this request either from CACHE_NAME or from app.js
 
+        // If the user has disabled the display of images, and the browser wants an image, respond with empty SVG
+        // A URL with "?kiwix-display" query string acts as a passthrough so that the regex will not match and
+        // the image will be fetched by app.js  
+        // DEV: If you need to hide more image types, add them to regex below and also edit equivalent regex in app.js
+        if (imageDisplay !== 'all' && /(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
+            var svgResponse;
+            if (imageDisplay === 'manual') 
+                svgResponse = "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue'/></svg>";
+            else
+                svgResponse = "<svg xmlns='http://www.w3.org/2000/svg'/>";
+                event.respondWith(new Response(svgResponse, { headers: { 'Content-Type': 'image/svg+xml' } }));
+            return;
+        }
+       
         event.respondWith(
             // First see if the content is in the cache
             fromCache(event.request).then(
@@ -163,6 +183,9 @@ function fetchRequestFromZIM(fetchEvent) {
                 // Content received from app.js
                 var contentLength = msgPortEvent.data.content ? msgPortEvent.data.content.byteLength : null;
                 var contentType = msgPortEvent.data.mimetype;
+                // Set the imageDisplay variable if it has been sent in the event data
+                imageDisplay = typeof msgPortEvent.data.imageDisplay !== 'undefined' ? 
+                    msgPortEvent.data.imageDisplay : imageDisplay;
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 if (contentType) headers.set('Content-Type', contentType);

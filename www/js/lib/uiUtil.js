@@ -21,26 +21,25 @@
  */
 'use strict';
 define([], function() {
-
     
     /**
-     * Creates a Blob from the given content, then a URL from this Blob
-     * And put this URL in the attribute of the DOM node
+     * Creates a BLOB from the given content, then a URL from this BLOB
+     * The URL is then injected into the nodeAttribute of node
      * 
-     * This is useful to inject images (and other dependencies) inside an article
+     * This is used to inject images (and other assets) into an article
      * 
-     * @param {Object} jQueryNode
-     * @param {String} nodeAttribute
-     * @param {Uint8Array} content
-     * @param {String} mimeType
+     * @param {Object} node The DOM node into which to inject the BLOB URL
+     * @param {String} nodeAttribute The attribute where the new URL will be added
+     * @param {Uint8Array} content The BLOB data to be referenced with the new URL
+     * @param {String} mimeType The MIME type of the BLOB
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
         var blob = new Blob([content], {type: mimeType});
         var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
+        node.addEventListener('load', function() {
             URL.revokeObjectURL(url);
         });
-        jQueryNode.attr(nodeAttribute, url);
+        node.setAttribute(nodeAttribute, url);
     }
 
     /**

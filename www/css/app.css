@@ -78,7 +78,7 @@
     z-index: 1;
 }
 
-#articleList a:hover, #articleList a.hover {
+#articleList a:hover, #articleList a.hover, .backgroundLightBlue {
     background: lightblue;
 }
 

@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, uiUtil, cookies, abstractFilesystemAccess, Q) {
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, uiUtil, images, cookies, abstractFilesystemAccess, Q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -69,7 +69,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
     // DEV: The params global object is declared in init.js so that it is available to modules
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
+    params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'all'; // Defaults to showing all images; other possible values are 'manual' or 'progressive'
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('imageDisplayCheck').checked = params.imageDisplayMode !== 'manual';
+    document.getElementById('progressiveImageDisplayCheck').checked = params.imageDisplayMode === 'progressive';
+    
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = cookies.getItem('useCache') !== 'false';
@@ -324,6 +328,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         params.hideActiveContentWarning = this.checked ? true : false;
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
+    $('input:checkbox[name=imageDisplay]').on('change', function (e) {
+        var progressiveImageDisplayCheck = document.getElementById('progressiveImageDisplayCheck');
+        if (!this.checked) progressiveImageDisplayCheck.checked = false;
+        params.imageDisplayMode = this.checked ? progressiveImageDisplayCheck.checked ? 'progressive' : 'all' : 'manual';
+        cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
+    });
+    $('input:checkbox[name=progressiveImageDisplay]').on('change', function (e) {
+        var imageDisplayCheck = document.getElementById('imageDisplayCheck');
+        if (this.checked) imageDisplayCheck.checked = true;
+        params.imageDisplayMode = this.checked ? 'progressive' : imageDisplayCheck.checked ? 'all' : 'manual';
+        cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
+    });
     $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
         params.showUIAnimations = this.checked ? true : false;
         cookies.setItem('showUIAnimations', params.showUIAnimations, Infinity);
@@ -560,6 +576,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
+        images.setContentInjectionMode(contentInjectionMode);
         // Save the value in a cookie, so that to be able to keep it after a reload/restart
         cookies.setItem('lastContentInjectionMode', value, Infinity);
         refreshCacheStatus();
@@ -1084,6 +1101,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
+                if (/manual|progressive/.test(params.imageDisplayMode)) {
+                    var imageList = doc.querySelectorAll('img');
+                    if (imageList.length) { 
+                        images.prepareImagesServiceWorker(imageList, params.imageDisplayMode);
+                    }                        
+                }
                 resizeIFrame();
                 // Reset UI when the article is unloaded
                 if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
@@ -1150,7 +1173,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
-                            var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
+                            var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 
+                                'mimetype': mimetype, 'imageDisplay': params.imageDisplayMode };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
@@ -1327,21 +1351,24 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         }
         
         function loadImagesJQuery() {
-            $('#articleContent').contents().find('body').find('img[data-kiwixurl]').each(function() {
-                var image = $(this);
-                var imageUrl = image.attr("data-kiwixurl");
-                var title = decodeURIComponent(imageUrl);
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                    selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        var mimetype = dirEntry.getMimetype();
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
-                    });
-                }).catch(function (e) {
-                    console.error("could not find DirEntry for image:" + title, e);
-                });
-            });
+            var imageNodes = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
+            if (!imageNodes.length) return;
+            if (params.imageDisplayMode === 'all') {
+                // We have to pass the selectedArchive to the images module
+                images.extractImages(imageNodes, selectedArchive);
+            } else if (params.imageDisplayMode === 'progressive') {
+                // Firefox squashes empty images, but we don't want to alter the vertical heights constantly as we scroll
+                // so substitute empty images with a plain svg
+                for (var i = imageNodes.length; i--;) {
+                    imageNodes[i].src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+                }
+                images.lazyLoad(imageNodes, selectedArchive);
+            } else {
+                // User wishes to extract images manually
+                images.setupManualImageExtraction(imageNodes, selectedArchive);
+            }
         }
-        
+
         function loadNoScriptTags() {
             // For each noscript tag, we replace it with its content, so that the browser interprets it
             $('#articleContent').contents().find('noscript').replaceWith(function () {
@@ -1503,7 +1530,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         }
         window.history.pushState(stateObj, stateLabel, urlParameters);
     }
-
 
     /**
      * Extracts the content of the given article title, or a downloadable file, from the ZIM
