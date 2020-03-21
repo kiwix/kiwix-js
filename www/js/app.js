@@ -1244,6 +1244,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             //loadJavaScriptJQuery();
             loadCSSJQuery();
             insertMediaBlobsJQuery();
+            if (articleContent.getElementsByTagName("body")[0].classList[0] == "tags")
+                document.getElementsByTagName("title")[0].innerHTML = articleContent.getElementsByClassName("title")[0].innerText;
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
