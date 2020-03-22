@@ -95,7 +95,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         if (iframe.style.display === 'none') {
             // We are in About or Configuration, so we only set the region height
             region.style.height = window.innerHeight + 'px';
-            region.style.overflowY = 'auto';
+            // region.style.overflowY = 'auto';
         } else { 
             // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
             setTimeout(function() {
@@ -104,7 +104,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 iframe.style.height = window.innerHeight - headerHeight + 'px';
                 // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
                 region.style.height = window.innerHeight + 10 + 'px';
-                region.style.overflowY = 'hidden';
+                // region.style.overflowY = 'hidden';
             }, 100);
         }
     }
