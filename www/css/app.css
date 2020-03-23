@@ -28,27 +28,33 @@
     position: fixed;
     overflow-x: hidden;
 }
-[role=region] > header {
-     margin-bottom: 1rem;
-     text-align: center;
+
+[role=region]>header {
+    margin-bottom: 1rem;
+    text-align: center;
 }
-[role=region] > header > h1 {
+
+[role=region]>header>h1 {
     margin: 0;
-    text-shadow: 0 1px 1px rgba(0,0,0,.4);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, .4);
 }
-[role=region] > .view-content {
+
+[role=region]>.view-content {
     margin: 0;
-    position: relative; /*Fixes #250 Random button display bug in W10M */
+    position: relative;
+    /*Fixes #250 Random button display bug in W10M */
 }
-[role=region] > footer {
-    background: rgba(0,0,0,.2);
+
+[role=region]>footer {
+    background: rgba(0, 0, 0, .2);
     right: 0;
     bottom: 0;
     left: 0;
     position: fixed;
     text-align: center;
 }
-[role=region] > footer > menu[role=toolbar] {
+
+[role=region]>footer>menu[role=toolbar] {
     margin: 0;
     padding: 0;
 }
@@ -78,7 +84,9 @@
     z-index: 1;
 }
 
-#articleList a:hover, #articleList a.hover {
+#articleList a:hover,
+#articleList a.hover,
+.backgroundLightBlue {
     background: lightblue;
 }
 
@@ -90,10 +98,22 @@
     margin: 0 1rem;
 }
 
+#imageDisplayWarning {
+    margin-bottom: 20px !important;
+}
+
+
 /* App theme: dark */
 
-.dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
-.dark #alertBoxHeader, .dark footer:not([class=_light]), .dark img {
+.dark header,
+.dark #cachingAssets,
+.dark #about,
+.dark #configuration,
+.dark #welcomeText,
+.dark #articleListWithHeader,
+.dark #alertBoxHeader,
+.dark footer:not([class=_light]),
+.dark img {
     filter: invert(1) hue-rotate(180deg);
 }
 
@@ -101,13 +121,17 @@
     background: #171717;
 }
 
+
 /* End of app theme: dark */
+
 
 /* Content themes: _invert, _mwInvert */
 
-iframe._invert, iframe._mwInvert {
+iframe._invert,
+iframe._mwInvert {
     filter: invert(1) hue-rotate(180deg);
 }
+
 
 /* End of content themes */
 
@@ -122,11 +146,11 @@ iframe._invert, iframe._mwInvert {
 }
 
 .apiAvailable {
-    color : green;
+    color: green;
 }
 
 .apiUnavailable {
-    color : orange;
+    color: orange;
 }
 
 .loader {
@@ -175,31 +199,40 @@ iframe._invert, iframe._mwInvert {
     text-align: center;
 }
 
+
 /* Modify default Bootstrap 4 colours */
+
 .card-info {
     border-color: #bce8f1;
 }
+
 .card-info .card-header {
     background-color: #d9edf7;
     color: #31708f;
 }
+
 .card-success {
     border-color: #d6e9c6;
 }
-.card-success .card-header{
+
+.card-success .card-header {
     background-color: #dff0d8;
     color: #3c763d;
 }
+
 .card-danger {
     border-color: #ebccd1;
 }
+
 .card-danger .card-header {
     background-color: #f2dede;
     color: #a94442;
 }
+
 .card-warning {
     border-color: #faebcc;
 }
+
 .card-warning .card-header {
     background-color: #fcf8e3;
     color: #8a6d3b;
@@ -209,19 +242,26 @@ iframe._invert, iframe._mwInvert {
     color: #337ab7;
 }
 
+
 /* Add missing margin to buttons */
+
 button {
     margin: 2px;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
-/* Reduce the size of some elements for small screens */
-@media (max-width: 768px) {
 
+/* Reduce the size of some elements for small screens */
+
+@media (max-width: 768px) {
     /* Reduce the height of top menu */
     .navbar {
         min-height: 20px !important;
@@ -238,15 +278,13 @@ button {
         margin-top: 2px !important;
         margin-bottom: 0 !important;
     }
-    [role=region] > header {
+    [role=region]>header {
         margin-bottom: 0 !important;
     }
-
     /* Remove space between search zone and iframe */
     .list-group {
         margin-bottom: 0 !important;
     }
-
     /* Reduce height of the search field */
     .form-control {
         height: 28px !important;
@@ -260,9 +298,9 @@ button {
     .btn-outline-secondary {
         font-size: 10px !important;
     }
-
     /* Reduce size of the bottom buttons */
-    .btn-lg, .btn-group-lg > .btn {
+    .btn-lg,
+    .btn-group-lg>.btn {
         padding-top: 1px !important;
         padding-bottom: 1px !important;
         font-size: 16px !important;

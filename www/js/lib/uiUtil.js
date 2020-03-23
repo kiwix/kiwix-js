@@ -22,25 +22,25 @@
 'use strict';
 define([], function() {
 
-    
+
     /**
-     * Creates a Blob from the given content, then a URL from this Blob
-     * And put this URL in the attribute of the DOM node
+     * Creates a BLOB from the given content, then a URL from this BLOB
+     * The URL is then injected into the nodeAttribute of node
      * 
-     * This is useful to inject images (and other dependencies) inside an article
+     * This is used to inject images (and other assets) into an article
      * 
-     * @param {Object} jQueryNode
-     * @param {String} nodeAttribute
-     * @param {Uint8Array} content
-     * @param {String} mimeType
+     * @param {Object} node The DOM node into which to inject the BLOB URL
+     * @param {String} nodeAttribute The attribute where the new URL will be added
+     * @param {Uint8Array} content The BLOB data to be referenced with the new URL
+     * @param {String} mimeType The MIME type of the BLOB
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
-        var blob = new Blob([content], {type: mimeType});
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
+        var blob = new Blob([content], { type: mimeType });
         var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
+        node.addEventListener('load', function() {
             URL.revokeObjectURL(url);
         });
-        jQueryNode.attr(nodeAttribute, url);
+        node.setAttribute(nodeAttribute, url);
     }
 
     /**
@@ -54,7 +54,7 @@ define([], function() {
      * @param {Element} link from the DOM
      * @param {String} cssContent
      */
-    function replaceCSSLinkWithInlineCSS (link, cssContent) {
+    function replaceCSSLinkWithInlineCSS(link, cssContent) {
         var cssElement = document.createElement('style');
         cssElement.type = 'text/css';
         if (cssElement.styleSheet) {
@@ -72,9 +72,9 @@ define([], function() {
         }
         link.replaceWith(cssElement);
     }
-        
+
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
-    
+
     /**
      * Removes parameters and anchors from a URL
      * @param {type} url
@@ -112,6 +112,7 @@ define([], function() {
      * Displays a Bootstrap warning alert with information about how to access content in a ZIM with unsupported active UI
      */
     var activeContentWarningSetup = false;
+
     function displayActiveContentWarning() {
         var alertActiveContent = document.getElementById('activeContent');
         alertActiveContent.style.display = 'block';
@@ -124,15 +125,15 @@ define([], function() {
             ['swModeLink', 'stop'].forEach(function(id) {
                 // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
                 // the options that the user needs to select
-                document.getElementById(id).addEventListener('click', function () {
+                document.getElementById(id).addEventListener('click', function() {
                     var elementID = id === 'stop' ? 'hideActiveContentWarningCheck' : 'serviceworkerModeRadio';
                     var thisLabel = document.getElementById(elementID).parentNode;
                     thisLabel.style.borderColor = 'red';
                     thisLabel.style.borderStyle = 'solid';
                     var btnHome = document.getElementById('btnHome');
-                    [thisLabel, btnHome].forEach(function (ele) {
+                    [thisLabel, btnHome].forEach(function(ele) {
                         // Define event listeners to cancel the highlighting both on the highlighted element and on the Home tab
-                        ele.addEventListener('mousedown', function () {
+                        ele.addEventListener('mousedown', function() {
                             thisLabel.style.borderColor = '';
                             thisLabel.style.borderStyle = '';
                         });
@@ -154,6 +155,7 @@ define([], function() {
      * @param {Uint8Array} content The binary-format content of the downloadable file
      */
     var downloadAlertSetup = false;
+
     function displayFileDownloadAlert(title, download, contentType, content) {
         var downloadAlert = document.getElementById('downloadAlert');
         downloadAlert.style.display = 'block';
@@ -181,8 +183,7 @@ define([], function() {
         alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
         // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
         alertMessage.appendChild(a);
-        try { a.click(); }
-        catch (err) {
+        try { a.click(); } catch (err) {
             // If the click fails, user may be able to download by manually clicking the link
             // But for IE11 we need to force use of the saveBlob method with the onclick event 
             if (window.navigator && window.navigator.msSaveBlob) {
@@ -208,7 +209,7 @@ define([], function() {
         var rect = el.getBoundingClientRect();
         if (fully)
             return rect.top > 0 && rect.bottom < window.innerHeight && rect.left > 0 && rect.right < window.innerWidth;
-        else 
+        else
             return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
     }
 
@@ -229,7 +230,7 @@ define([], function() {
             '`': '&#x60;',
             '=': '&#x3D;'
         };
-        string = String(string).replace(/[&<>"'`=/]/g, function (s) {
+        string = String(string).replace(/[&<>"'`=/]/g, function(s) {
             return escapechars[s];
         });
         return string;
@@ -243,7 +244,7 @@ define([], function() {
         $('#configuration').removeClass('slideIn_L').removeClass('slideIn_R').removeClass('slideOut_L').removeClass('slideOut_R');
         $('#articleContent').removeClass('slideIn_R').removeClass('slideOut_L');
     }
-    
+
     /**
      * Adds the slide animation between different sections
      * 
@@ -254,52 +255,52 @@ define([], function() {
         if (section == 'home') {
             if (!$('#configuration').is(':hidden')) {
                 $('#configuration').addClass('slideOut_R');
-                setTimeout(function () {
+                setTimeout(function() {
                     $('#configuration').hide();
                 }, 300);
             }
             if (!$('#about').is(':hidden')) {
                 $('#about').addClass('slideOut_R');
-                setTimeout(function () {
+                setTimeout(function() {
                     $('#about').hide();
                 }, 300);
             }
             $('#articleContent').addClass('slideIn_R');
-            setTimeout(function () {
+            setTimeout(function() {
                 $('#articleContent').show();
             }, 300);
         } else if (section == 'config') {
             if (!$('#about').is(':hidden')) {
                 $('#about').addClass('slideOut_R');
                 $('#configuration').addClass('slideIn_R');
-                setTimeout(function () {
+                setTimeout(function() {
                     $('#about').hide();
                 }, 300);
             } else if (!$('#articleContent').is(':hidden')) {
                 $('#articleContent').addClass('slideOut_L');
                 $('#configuration').addClass('slideIn_L');
-                setTimeout(function () {
+                setTimeout(function() {
                     $('#articleContent').hide();
                 }, 300);
             }
-            setTimeout(function () {
+            setTimeout(function() {
                 $('#configuration').show();
             }, 300);
         } else if (section == 'about') {
             if (!$('#configuration').is(':hidden')) {
                 $('#configuration').addClass('slideOut_L');
-                setTimeout(function () {
+                setTimeout(function() {
                     $('#configuration').hide();
                 }, 300);
             }
             if (!$('#articleContent').is(':hidden')) {
                 $('#articleContent').addClass('slideOut_L');
-                setTimeout(function () {
+                setTimeout(function() {
                     $('#articleContent').hide();
                 }, 300);
             }
             $('#about').addClass('slideIn_L');
-            setTimeout(function () {
+            setTimeout(function() {
                 $('#about').show();
             }, 300);
         }
@@ -345,7 +346,7 @@ define([], function() {
         // Show any specific help for selected contentTheme
         var help = document.getElementById(theme + '-help');
         if (help) help.style.display = 'block';
-        
+
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
         if (oldContentTheme && oldContentTheme !== contentTheme) {
             iframe.classList.remove(oldContentTheme);
@@ -387,7 +388,7 @@ define([], function() {
             document.getElementById('liConfigureNav').classList.remove('active');
             document.getElementById('liHomeNav').classList.add('active');
             removeAnimationClasses();
-            if (params.showUIAnimations) { 
+            if (params.showUIAnimations) {
                 applyAnimationToSection('home');
             } else {
                 document.getElementById('configuration').style.display = 'none';

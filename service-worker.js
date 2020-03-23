@@ -37,6 +37,11 @@ var CACHE_NAME;
  */
 var useCache = true;
 
+/**
+ * A global Boolean that governs whether images are displayed
+ * app.js can alter this variable via messaging
+ */
+var imageDisplay;
 /**  
  * A regular expression that matches the Content-Types of assets that may be stored in CACHE_NAME
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
@@ -59,11 +64,11 @@ var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
  */
 var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABIJMUVWX])\/(.+)/;
 
-self.addEventListener('install', function (event) {
+self.addEventListener('install', function(event) {
     event.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener('activate', function (event) {
+self.addEventListener('activate', function(event) {
     // "Claiming" the ServiceWorker is necessary to make it work right away,
     // without the need to reload the page.
     // See https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim
@@ -73,31 +78,45 @@ self.addEventListener('activate', function (event) {
 var outgoingMessagePort = null;
 var fetchCaptureEnabled = false;
 
-self.addEventListener('fetch', function (event) {
+self.addEventListener('fetch', function(event) {
     if (fetchCaptureEnabled &&
         regexpZIMUrlWithNamespace.test(event.request.url) &&
         event.request.method === "GET") {
 
         // The ServiceWorker will handle this request either from CACHE_NAME or from app.js
 
+        // If the user has disabled the display of images, and the browser wants an image, respond with empty SVG
+        // A URL with "?kiwix-display" query string acts as a passthrough so that the regex will not match and
+        // the image will be fetched by app.js  
+        // DEV: If you need to hide more image types, add them to regex below and also edit equivalent regex in app.js
+        if (imageDisplay !== 'all' && /(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
+            var svgResponse;
+            if (imageDisplay === 'manual')
+                svgResponse = "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue'/></svg>";
+            else
+                svgResponse = "<svg xmlns='http://www.w3.org/2000/svg'/>";
+            event.respondWith(new Response(svgResponse, { headers: { 'Content-Type': 'image/svg+xml' } }));
+            return;
+        }
+
         event.respondWith(
             // First see if the content is in the cache
             fromCache(event.request).then(
-                function (response) {
+                function(response) {
                     // The response was found in the cache so we respond with it 
                     return response;
                 },
-                function () {
+                function() {
                     // The response was not found in the cache so we look for it in the ZIM
                     // and add it to the cache if it is an asset type (css or js)
-                    return fetchRequestFromZIM(event).then(function (response) {
+                    return fetchRequestFromZIM(event).then(function(response) {
                         // Add css or js assets to CACHE_NAME (or update their cache entries) unless the URL schema is not supported
                         if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
                             !regexpExcludedURLSchema.test(event.request.url)) {
                             event.waitUntil(updateCache(event.request, response.clone()));
                         }
                         return response;
-                    }).catch(function (msgPortData, title) {
+                    }).catch(function(msgPortData, title) {
                         console.error('Invalid message received from app.js for ' + title, msgPortData);
                         return msgPortData;
                     });
@@ -109,7 +128,7 @@ self.addEventListener('fetch', function (event) {
     // then the default request/response behavior will automatically be used.
 });
 
-self.addEventListener('message', function (event) {
+self.addEventListener('message', function(event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
@@ -128,7 +147,7 @@ self.addEventListener('message', function (event) {
         }
         if (event.data.action.checkCache) {
             // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
-            testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
+            testCacheAndCountAssets(event.data.action.checkCache).then(function(cacheArr) {
                 event.ports[0].postMessage({ 'type': cacheArr[0], 'description': cacheArr[1], 'count': cacheArr[2] });
             });
         }
@@ -142,7 +161,7 @@ self.addEventListener('message', function (event) {
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
 function fetchRequestFromZIM(fetchEvent) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
         var nameSpace;
         var title;
         var titleWithNameSpace;
@@ -158,11 +177,13 @@ function fetchRequestFromZIM(fetchEvent) {
 
         // Let's instantiate a new messageChannel, to allow app.js to give us the content
         var messageChannel = new MessageChannel();
-        messageChannel.port1.onmessage = function (msgPortEvent) {
+        messageChannel.port1.onmessage = function(msgPortEvent) {
             if (msgPortEvent.data.action === 'giveContent') {
                 // Content received from app.js
                 var contentLength = msgPortEvent.data.content ? msgPortEvent.data.content.byteLength : null;
                 var contentType = msgPortEvent.data.mimetype;
+                // Set the imageDisplay variable if it has been sent in the event data
+                imageDisplay = typeof msgPortEvent.data.imageDisplay !== 'undefined' ? msgPortEvent.data.imageDisplay : imageDisplay;
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 if (contentType) headers.set('Content-Type', contentType);
@@ -215,8 +236,8 @@ function removeUrlParameters(url) {
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.reject('disabled');
-    return caches.open(CACHE_NAME).then(function (cache) {
-        return cache.match(request).then(function (matching) {
+    return caches.open(CACHE_NAME).then(function(cache) {
+        return cache.match(request).then(function(matching) {
             if (!matching || matching.status === 404) {
                 return Promise.reject('no-match');
             }
@@ -235,7 +256,7 @@ function fromCache(request) {
 function updateCache(request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.resolve();
-    return caches.open(CACHE_NAME).then(function (cache) {
+    return caches.open(CACHE_NAME).then(function(cache) {
         console.log('[SW] Adding ' + request.url + ' to ' + CACHE_NAME + '...');
         return cache.put(request, response);
     });
@@ -250,8 +271,8 @@ function updateCache(request, response) {
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
     if (!useCache) return Promise.resolve(['none', 'None', 0]);
-    return caches.open(CACHE_NAME).then(function (cache) {
-        return cache.keys().then(function (keys) {
+    return caches.open(CACHE_NAME).then(function(cache) {
+        return cache.keys().then(function(keys) {
             return ['cacheAPI', 'Cache API', keys.length];
         }).catch(function(err) {
             return err;
