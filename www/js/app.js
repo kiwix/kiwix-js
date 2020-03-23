@@ -1084,6 +1084,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
+                resizeIFrame();
                 // Reset UI when the article is unloaded
                 if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
                     $("#articleList").empty();
