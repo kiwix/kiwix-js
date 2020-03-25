@@ -5,5 +5,5 @@ Exec=webapp-container $@ ./www/index.html
 Terminal=false
 Type=Application
 X-Ubuntu-Touch=true
-Icon=./www/img/icons/kiwix-256.png
+Icon=./www/img/icons/kiwix_v3-256.png
 Name[en_US]=kiwix.desktop
