@@ -103,22 +103,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
     function resizeIFrame() {
-        var headerStyles = getComputedStyle(document.getElementById('top'));
-        var iframe = document.getElementById('articleContent');
-        var region = document.getElementById('search-article');
-        if (iframe.style.display === 'none') {
-            // We are in About or Configuration, so we only set the region height
-            region.style.height = window.innerHeight + 'px';
-        } else { 
-            // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-            setTimeout(function() {
-                // Get  header height *including* its bottom margin
-                var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-                iframe.style.height = window.innerHeight - headerHeight + 'px';
-                // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
-                region.style.height = window.innerHeight + 10 + 'px';
-            }, 100);
-        }
+        var height = $(window).outerHeight()
+                - $("#top").outerHeight(true)
+                // TODO : this 5 should be dynamically computed, and not hard-coded
+                - 5;
+        $(".articleIFrame").css("height", height + "px");
     }
     $(document).ready(resizeIFrame);
     $(window).resize(resizeIFrame);
@@ -275,8 +264,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
             $("#welcomeText").hide();
             goToMainArticle();
         }
-        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-        setTimeout(resizeIFrame, 400);
         return false;
     });
     $('#btnConfigure').on('click', function(e) {
@@ -301,8 +288,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
-        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-        setTimeout(resizeIFrame, 400);
         return false;
     });
     $('#btnAbout').on('click', function(e) {
@@ -326,8 +311,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
         $('.alert').hide();
-        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-        setTimeout(resizeIFrame, 400);
         return false;
     });
     $('input:radio[name=contentInjectionMode]').on('change', function(e) {
@@ -1285,6 +1268,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
+        if(!htmlArticle) {
+            loadImagesJQuery();
+        }
         if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
             return;
         }		
