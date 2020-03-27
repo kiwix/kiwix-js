@@ -26,7 +26,11 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
+<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
 define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFilesystemAccess','q'],
+=======
+define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFilesystemAccess','q'],
+>>>>>>> Image extraction #173
  function($, zimArchiveLoader, uiUtil, images, cookies, abstractFilesystemAccess, Q) {
      
     /**
@@ -69,11 +73,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
     // DEV: The params global object is declared in init.js so that it is available to modules
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
+<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
     params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'all'; // Defaults to showing all images; other possible values are 'manual' or 'progressive'
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('imageDisplayCheck').checked = params.imageDisplayMode !== 'manual';
     document.getElementById('progressiveImageDisplayCheck').checked = params.imageDisplayMode === 'progressive';
     
+=======
+    params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'all'; // Defaults to showing all images; other possible values are 'manual'
+    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('imageDisplayCheck').checked = (params.imageDisplayMode === 'all') ? true : false;
+>>>>>>> Image extraction #173
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = cookies.getItem('useCache') !== 'false';
@@ -329,6 +339,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
     $('input:checkbox[name=imageDisplay]').on('change', function (e) {
+<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
         var progressiveImageDisplayCheck = document.getElementById('progressiveImageDisplayCheck');
         if (!this.checked) progressiveImageDisplayCheck.checked = false;
         params.imageDisplayMode = this.checked ? progressiveImageDisplayCheck.checked ? 'progressive' : 'all' : 'manual';
@@ -338,12 +349,50 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         var imageDisplayCheck = document.getElementById('imageDisplayCheck');
         if (this.checked) imageDisplayCheck.checked = true;
         params.imageDisplayMode = this.checked ? 'progressive' : imageDisplayCheck.checked ? 'all' : 'manual';
+=======
+        var imageDisplayCheck = document.getElementById('imageDisplayCheck');
+        var imageDisplayWarning = document.getElementById('imageDisplayWarning').style.display;
+        if (this.checked) imageDisplayCheck.checked = true;
+        params.imageDisplayMode = this.checked ? 'all' : imageDisplayCheck.checked ? true : false;
+        document.querySelector('#imageDisplayWarning').style.display = imageDisplayWarning === 'none' ? 'block' : 'none';
+>>>>>>> Image extraction #173
         cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
     });
     $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
         params.showUIAnimations = this.checked ? true : false;
         cookies.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
+    document.getElementById('refreshArticle').addEventListener('click', function (e) {
+        var iframe = document.getElementById('articleContent');
+        var doc = iframe.contentDocument;
+
+        if (document.getElementById('liConfigureNav').classList.contains('active') &&
+            doc.title !== "Placeholder for injecting an article into the iframe") {
+                var viewArticle = document.getElementById('refreshArticle');
+                viewArticle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('liConfigureNav').classList.remove('active');
+                    document.getElementById('liHomeNav').classList.add('active');
+                    uiUtil.removeAnimationClasses();
+                    if (params.showUIAnimations) { 
+                        uiUtil.applyAnimationToSection('home');
+                    } else {
+                        document.getElementById('configuration').style.display = 'none';
+                        document.getElementById('articleContent').style.display = 'block';
+                    }
+                    document.getElementById('navigationButtons').style.display = 'inline-flex';
+                    document.getElementById('formArticleSearch').style.display = 'block';
+                    
+                    if(cookies.getItem("lastContentInjectionMode") === "jquery"){                        
+                        displayArticleContentInIframe(JSON.parse(cookies.getItem("lastReadDir")));                        
+                    }
+                    else{
+                        history.back();
+                        history.forward();
+                    }
+                });
+        }
+    })
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         cookies.setItem('appTheme', params.appTheme, Infinity);
@@ -464,7 +513,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
 
     var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
-    
+
     /**
      * Send an 'init' message to the ServiceWorker with a new MessageChannel
      * to initialize it, or to keep it alive.
@@ -485,7 +534,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
             keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER, false);
         }
     }
-    
+
     /**
      * Sets the given injection mode.
      * This involves registering (or re-enabling) the Service Worker if necessary
@@ -590,12 +639,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
     else {
         setContentInjectionMode('jquery');
     }
-    
+
     var serviceWorkerRegistration = null;
-    
+
     // We need to establish the caching capabilities before first page launch
     refreshCacheStatus();
-    
+
     /**
      * Tells if the ServiceWorker API is available
      * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
@@ -604,7 +653,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
     function isServiceWorkerAvailable() {
         return ('serviceWorker' in navigator);
     }
-    
+
     /**
      * Tells if the MessageChannel API is available
      * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
@@ -620,7 +669,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         }
         return false;
     }
-    
+
     /**
      * Tells if the ServiceWorker is registered, and ready to capture HTTP requests
      * and inject content in articles.
@@ -630,7 +679,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         // Return true if the serviceWorkerRegistration is not null and not undefined
         return (serviceWorkerRegistration);
     }
-    
+
     /**
      * 
      * @type Array.<StorageFirefoxOS>
@@ -666,7 +715,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
         // This way, it is only done once at this moment, instead of being done several times in callbacks
         // After that, we can start looking for archives
         storages[0].get("fake-file-to-read").then(searchForArchivesInPreferencesOrStorage,
-                                                  searchForArchivesInPreferencesOrStorage);
+                                                    searchForArchivesInPreferencesOrStorage);
     }
     else {
         // If DeviceStorage is not available, we display the file select components
@@ -704,7 +753,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
             }
         }
     };
-    
+
     /**
      * Populate the drop-down list of archives with the given list
      * @param {Array.<String>} archiveDirectories
@@ -794,7 +843,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
             
         }
     }
-    
+
     /**
      * Resets the CSS Cache (used only in jQuery mode)
      */
@@ -1068,6 +1117,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
+        cookies.setItem("lastReadDir", JSON.stringify(dirEntry), Infinity);
 	    // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
@@ -1101,13 +1151,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
+<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
                 if (/manual|progressive/.test(params.imageDisplayMode)) {
+=======
+                if (!params.imageDisplayMode) {
+>>>>>>> Image extraction #173
                     var imageList = doc.querySelectorAll('img');
                     if (imageList.length) { 
                         images.prepareImagesServiceWorker(imageList, params.imageDisplayMode);
                     }                        
                 }
+<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
                 resizeIFrame();
+=======
+>>>>>>> Image extraction #173
                 // Reset UI when the article is unloaded
                 if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
                     $("#articleList").empty();
@@ -1146,6 +1203,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
      * @param {Event} event The event object of the message channel
      */
     function handleMessageChannelMessage(event) {
+        cookies.setItem("lastEvent", event, Infinity);
+        
         if (event.data.error) {
             console.error("Error in MessageChannel", event.data.error);
             reject(event.data.error);
@@ -1155,6 +1214,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
+                
                 var readFile = function (dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
@@ -1162,6 +1222,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                     } else if (dirEntry.isRedirect()) {
                         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
                             var redirectURL = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
+                            cookies.setItem("lastTitle", title, Infinity);
+                            cookies.setItem("lastRedirectUrl", redirectURL, Infinity);
                             // Ask the ServiceWork to send an HTTP redirect to the browser.
                             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
                             // Else, if the redirect URL is in a different directory than the original URL,
@@ -1175,6 +1237,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFil
                             // Let's send the content to the ServiceWorker
                             var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 
                                 'mimetype': mimetype, 'imageDisplay': params.imageDisplayMode };
+<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
+=======
+                            var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
+>>>>>>> Image extraction #173
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
