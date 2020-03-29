@@ -5,113 +5,93 @@ It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
 ## Kiwix-JS v2.7.0
-Released on TODO
+Released on *2020-03-29*
 
-Detailed changelog : TODO
+* NEW: Selectable dark mode for app UI and for articles (does not work on IE11)
+* NEW: Optional transition between app pages
+* NEW: Native asset caching in Service Worker mode - considerably speeds up article load times in most contexts
+* UPDATE: Privacy Policy
+* UPDATE: Minor changes to Kiwix icon
+* UPDATE: Bootstrap updated to v4
+* UPDATE: Q Promise library updated to v1.5.1
+* UPDATE: Various code simplifications and cleanup
+* BUGFIX: Support details-summary tags to ensure all article subheadings are open in jQuery mode
+* BUGFIX: Broken display when search results have special characters
+* BUGFIX: Display of random article fragments when using back/forward buttons quickly
+* BUGFIX: Several UI bugs (search results disappearing, redundant scroll bar)
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/21?closed=1
 
 ## Kiwix-JS v2.6.0
 Released on *2019-07-20*
 
-Support for imagemaps (area tags) in jQuery mode, like for maps in Wikivoyage
-
-Enable keyboard selection in search results
-
-Drag and drop support of ZIM files (on desktop)
-
-Support download of epub files (for Gutenberg ZIM files) and some other types of downloads
-
-Generic handling of MIME Types, instead of the previously hard-coded ones
-
-Add explanations and detect when there are CORS issues when running kiwix-js through file://
-
-Fix for some cache issues with Chromium extension in ServiceWorker mode, that were mixing content from different ZIM files
-
-Some fixes for filenames with question marks, hyperlinks with hashtags, articles with no title, and articles with special characters in their URL
-
-Fix for articles with a slash in their title in ServiceWorker mode (at least for StackOverflow ZIM files). Note that some Wikivoyage ZIM files (of 2019-06) had incorrect links on their homepage, and are not working with this fix. This has been fixed in 2019-07 ZIM files (see https://github.com/openzim/mwoffliner/issues/726).
-
-Upgrade the underlying Ubuntu Touch platform to Xenial
-
-Improve the automated UI tests with a more complete scenario
-
-Simplify the code by removing the base tag
+* NEW: Support for imagemaps (area tags) in jQuery mode, like for maps in Wikivoyage
+* NEW: Enable keyboard selection in search results
+* NEW: Drag and drop support of ZIM files (on desktop)
+* NEW: Support download of epub files (for Gutenberg ZIM files) and some other types of downloads
+* NEW: Generic handling of MIME Types, instead of the previously hard-coded ones
+* NEW: Add explanations and detect when there are CORS issues when running kiwix-js through file://
+* UPDATE: Upgrade the underlying Ubuntu Touch platform to Xenial
+* UPDATE: Improve the automated UI tests with a more complete scenario
+* UPDATE: Simplify the code by removing the base tag
+* BUGFIX: Fix for some cache issues with Chromium extension in ServiceWorker mode, that were mixing content from different ZIM files
+* BUGFIX: Some fixes for filenames with question marks, hyperlinks with hashtags, articles with no title, and articles with special characters in their URL
+* BUGFIX: Fix for articles with a slash in their title in ServiceWorker mode (at least for StackOverflow ZIM files). Note that some Wikivoyage ZIM files (of 2019-06) had incorrect links on their homepage, and are not working with this fix. This has been fixed in 2019-07 ZIM files (see https://github.com/openzim/mwoffliner/issues/726).
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/20?closed=1
 
 ## Kiwix-JS v2.5.0
 Released on *2019-01-16*
 
-Support for javascript content inside the ZIM file, only in ServiceWorker mode. Handle noscript tags in jQuery mode, and display a warning when some unhandled javascript is detected
-
-Preliminary support of video/audio content (including subtitles): these content types are now supported. You can read them for example in TED/TEDx, dirtybiology, oer4schools, etc. BUT the main page of these ZIM files needs javascript to work properly, which is only enabled in ServiceWorker mode. In jQuery mode, the user needs to reach the pages through a search
-
-Some technical fixes: footnotes in Wikimedia ZIM files (and, more generally, anchors in hyperlinks), incomplete searches in some specific ZIM files (PhET and TED), compatibility with URLs that contain an apostrophe, remove debug logs in ServiceWorker mode
-
-In the UI, replace the spinner by a more modern one
+* NEW: Support for javascript content inside the ZIM file, only in ServiceWorker mode. Handle noscript tags in jQuery mode, and display a warning when some unhandled javascript is detected
+* NEW: Preliminary support of video/audio content (including subtitles): these content types are now supported. You can read them for example in TED/TEDx, dirtybiology, oer4schools, etc. BUT the main page of these ZIM files needs javascript to work properly, which is only enabled in ServiceWorker mode. In jQuery mode, the user needs to reach the pages through a search
+* UPDATE: In the UI, replace the spinner by a more modern one
+* BUGFIX: Some technical fixes: footnotes in Wikimedia ZIM files (and, more generally, anchors in hyperlinks), incomplete searches in some specific ZIM files (PhET and TED), compatibility with URLs that contain an apostrophe, remove debug logs in ServiceWorker mode
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/19?closed=1
 
 ## Kiwix-JS v2.4.0
 Released on *2018-09-22*
 
-Performance improvement on decompression of content (now twice as fast)
-
-Stability improvement for the ServiceWorker mode
+* UPDATE: Performance improvement on decompression of content (now twice as fast)
+* BUGFIX: Stability improvement for the ServiceWorker mode
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/16?closed=1
 
 ## Kiwix-JS v2.3.1
 Released on *2018-09-08*
 
-Fix excessive memory consumption
-
-Fix SVG file handling
-
-Add favicon
+* NEW: Add favicon
+* BUGFIX: Fix excessive memory consumption
+* BUGFIX: Fix SVG file handling
 
 ## Kiwix-JS v2.3.0
 Released on *2018-06-04*
 
-Add a cache on CSS stylesheets to improve performance in jQuery mode
-
-Change the technical way to display articles, so that all CSS styles can be loaded, and to avoid other technical issues
-
-Make the content visible only when CSS styles are read, to avoid repaints that can be very slow
-
-Fix redirections in ServiceWorker mode in ZIM files like StackExchange, and make the ServiceWorker handle all the articles (including the main one, and the first displayed after a search or random search)
-
-Fix links with an anchor in the URL
-
-In recent Wikipedia and other Wikimedia ZIM files, open all the sections when using a small screen (mobile stylesheet), so that the content remains readable (it only works in jQuery mode, this should be fixed in ServiceWorker mode in next version)
-
-Fix CSS UTF-8 encoding
+* NEW: Add a cache on CSS stylesheets to improve performance in jQuery mode
+* UPDATE: Change the technical way to display articles, so that all CSS styles can be loaded, and to avoid other technical issues
+* UPDATE: Make the content visible only when CSS styles are read, to avoid repaints that can be very slow
+* BUGFIX: Fix redirections in ServiceWorker mode in ZIM files like StackExchange, and make the ServiceWorker handle all the articles (including the main one, and the first displayed after a search or random search)
+* BUGFIX: Fix links with an anchor in the URL
+* BUGFIX: In recent Wikipedia and other Wikimedia ZIM files, open all the sections when using a small screen (mobile stylesheet), so that the content remains readable (it only works in jQuery mode, this should be fixed in ServiceWorker mode in next version)
+* BUGFIX: Fix CSS UTF-8 encoding
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/18?closed=1
 
 ## Kiwix-JS v2.2.0
 Released on *2018-01-07*
 
-Rename the project to Kiwix-JS instead of Kiwix-html5.
-
-Compatibility with split English Wikipedia ZIM files (which now have more than 26 files).
-
-Slightly improved memory handling of content decompression.
-
-Library updates (jQuery, Bootstrap, requireJS).
-
-Improved continuous integration (automated testing on several browsers).
-
-Avoid unnecessary 404 errors on images.
-
-Ubuntu Touch support.
-
-Minor UI enhancements and fixes.
-
-Support for StackExchange ZIM files (and maybe for some other ZIM files with a structure different than the Mediawiki-based ZIM files).
-
-Some code refactoring/cleaning on the way we handle the jQuery mode.
-
-Make geo: and tel: links work.
+* NEW: Support for StackExchange ZIM files (and maybe for some other ZIM files with a structure different than the Mediawiki-based ZIM files).
+* NEW: Make geo: and tel: links work.
+* NEW: Ubuntu Touch support.
+* UPDATE: Rename the project to Kiwix-JS instead of Kiwix-html5.
+* UPDATE: Compatibility with split English Wikipedia ZIM files (which now have more than 26 files).
+* UPDATE: Slightly improved memory handling of content decompression.
+* UPDATE: Library updates (jQuery, Bootstrap, requireJS).
+* UPDATE: Improved continuous integration (automated testing on several browsers).
+* UPDATE: Some code refactoring/cleaning on the way we handle the jQuery mode.
+* BUGFIX: Avoid unnecessary 404 errors on images.
+* BUGFIX: Minor UI enhancements and fixes.
 
 Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/6?closed=1
 
