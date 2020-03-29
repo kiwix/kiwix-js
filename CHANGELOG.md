@@ -7,7 +7,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 ## Kiwix-JS v2.7.0
 Released on *2020-03-29*
 
-* NEW: Selectable dark mode for app UI and for articles
+* NEW: Selectable dark mode for app UI and for articles (does not work on IE11)
 * NEW: Optional transition between app pages
 * NEW: Native asset caching in Service Worker mode - considerably speeds up article load times
 * UPDATE: Privacy Policy
