@@ -25,29 +25,18 @@ Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/21?closed=1
 ## Kiwix-JS v2.6.0
 Released on *2019-07-20*
 
-Support for imagemaps (area tags) in jQuery mode, like for maps in Wikivoyage
-
-Enable keyboard selection in search results
-
-Drag and drop support of ZIM files (on desktop)
-
-Support download of epub files (for Gutenberg ZIM files) and some other types of downloads
-
-Generic handling of MIME Types, instead of the previously hard-coded ones
-
-Add explanations and detect when there are CORS issues when running kiwix-js through file://
-
-Fix for some cache issues with Chromium extension in ServiceWorker mode, that were mixing content from different ZIM files
-
-Some fixes for filenames with question marks, hyperlinks with hashtags, articles with no title, and articles with special characters in their URL
-
-Fix for articles with a slash in their title in ServiceWorker mode (at least for StackOverflow ZIM files). Note that some Wikivoyage ZIM files (of 2019-06) had incorrect links on their homepage, and are not working with this fix. This has been fixed in 2019-07 ZIM files (see https://github.com/openzim/mwoffliner/issues/726).
-
-Upgrade the underlying Ubuntu Touch platform to Xenial
-
-Improve the automated UI tests with a more complete scenario
-
-Simplify the code by removing the base tag
+* NEW: Support for imagemaps (area tags) in jQuery mode, like for maps in Wikivoyage
+* NEW: Enable keyboard selection in search results
+* NEW: Drag and drop support of ZIM files (on desktop)
+* NEW: Support download of epub files (for Gutenberg ZIM files) and some other types of downloads
+* NEW: Generic handling of MIME Types, instead of the previously hard-coded ones
+* NEW: Add explanations and detect when there are CORS issues when running kiwix-js through file://
+* UPDATE: Upgrade the underlying Ubuntu Touch platform to Xenial
+* UPDATE: Improve the automated UI tests with a more complete scenario
+* UPDATE: Simplify the code by removing the base tag
+* BUGFIX: Fix for some cache issues with Chromium extension in ServiceWorker mode, that were mixing content from different ZIM files
+* BUGFIX: Some fixes for filenames with question marks, hyperlinks with hashtags, articles with no title, and articles with special characters in their URL
+* BUGFIX: Fix for articles with a slash in their title in ServiceWorker mode (at least for StackOverflow ZIM files). Note that some Wikivoyage ZIM files (of 2019-06) had incorrect links on their homepage, and are not working with this fix. This has been fixed in 2019-07 ZIM files (see https://github.com/openzim/mwoffliner/issues/726).
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/20?closed=1
 
