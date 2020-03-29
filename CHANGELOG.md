@@ -5,20 +5,20 @@ It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
 ## Kiwix-JS v2.7.0
-Released on *TODO*
+Released on *2020-03-29*
 
-ENHANCEMENT: Selectable dark mode for app UI and for articles
-ENHANCEMENT: Optional transition between app pages
-ENHANCEMENT: Native asset caching in Service Worker mode - considerably speeds up article load times
-UPDATE: Privacy Policy
-UPDATE: Minor changes to Kiwix icon
-UPDATE: Bootstrap updated to v4
-UPDATE: Q Promise library updated to v1.5.1
-UPDATE: Various code simplifications and cleanup
-FIX: Support details-summary tags to ensure all article subheadings are open in jQuery mode
-FIX: Broken display when search results have special characters
-FIX: Display of random article fragments when using back/forward buttons quickly
-FIX: Several UI bugs (search results disappearing, redundant scroll bar)
+* NEW: Selectable dark mode for app UI and for articles
+* NEW: Optional transition between app pages
+* NEW: Native asset caching in Service Worker mode - considerably speeds up article load times
+* UPDATE: Privacy Policy
+* UPDATE: Minor changes to Kiwix icon
+* UPDATE: Bootstrap updated to v4
+* UPDATE: Q Promise library updated to v1.5.1
+* UPDATE: Various code simplifications and cleanup
+* BUGFIX: Support details-summary tags to ensure all article subheadings are open in jQuery mode
+* BUGFIX: Broken display when search results have special characters
+* BUGFIX: Display of random article fragments when using back/forward buttons quickly
+* BUGFIX: Several UI bugs (search results disappearing, redundant scroll bar)
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/21?closed=1
 
