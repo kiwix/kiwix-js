@@ -9,7 +9,7 @@ Released on *2020-03-29*
 
 * NEW: Selectable dark mode for app UI and for articles (does not work on IE11)
 * NEW: Optional transition between app pages
-* NEW: Native asset caching in Service Worker mode - considerably speeds up article load times in most contexts
+* NEW: Native asset caching in Service Worker mode - considerably speeds up article load times in some contexts
 * UPDATE: Privacy Policy
 * UPDATE: Minor changes to Kiwix icon
 * UPDATE: Bootstrap updated to v4
