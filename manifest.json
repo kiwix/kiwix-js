@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Kiwix",
-    "version": "2.7-WIP",
+    "version": "2.8-WIP",
 
     "description": "Kiwix : offline Wikipedia reader",
     
