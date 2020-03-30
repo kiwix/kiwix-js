@@ -180,8 +180,4 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
         lazyLoad: lazyLoad,
         setContentInjectionMode: setContentInjectionMode
     };
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
 });
-=======
-});
->>>>>>> Image extraction #173

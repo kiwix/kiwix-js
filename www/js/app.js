@@ -26,11 +26,7 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-define(['jquery', 'zimArchiveLoader', 'uiUtil', 'images', 'cookies','abstractFilesystemAccess','q'],
-=======
 define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFilesystemAccess','q'],
->>>>>>> Image extraction #173
  function($, zimArchiveLoader, uiUtil, images, cookies, abstractFilesystemAccess, Q) {
      
     /**
@@ -73,17 +69,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
     // DEV: The params global object is declared in init.js so that it is available to modules
     params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-    params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'all'; // Defaults to showing all images; other possible values are 'manual' or 'progressive'
-    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
-    document.getElementById('imageDisplayCheck').checked = params.imageDisplayMode !== 'manual';
-    document.getElementById('progressiveImageDisplayCheck').checked = params.imageDisplayMode === 'progressive';
-    
-=======
     params['imageDisplayMode'] = cookies.getItem('imageDisplayMode') || 'all'; // Defaults to showing all images; other possible values are 'manual'
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('imageDisplayCheck').checked = (params.imageDisplayMode === 'all') ? true : false;
->>>>>>> Image extraction #173
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = cookies.getItem('useCache') !== 'false';
@@ -322,23 +310,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
         cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
     $('input:checkbox[name=imageDisplay]').on('change', function (e) {
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-        var progressiveImageDisplayCheck = document.getElementById('progressiveImageDisplayCheck');
-        if (!this.checked) progressiveImageDisplayCheck.checked = false;
-        params.imageDisplayMode = this.checked ? progressiveImageDisplayCheck.checked ? 'progressive' : 'all' : 'manual';
-        cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
-    });
-    $('input:checkbox[name=progressiveImageDisplay]').on('change', function (e) {
-        var imageDisplayCheck = document.getElementById('imageDisplayCheck');
-        if (this.checked) imageDisplayCheck.checked = true;
-        params.imageDisplayMode = this.checked ? 'progressive' : imageDisplayCheck.checked ? 'all' : 'manual';
-=======
         var imageDisplayCheck = document.getElementById('imageDisplayCheck');
         var imageDisplayWarning = document.getElementById('imageDisplayWarning').style.display;
         if (this.checked) imageDisplayCheck.checked = true;
         params.imageDisplayMode = this.checked ? 'all' : imageDisplayCheck.checked ? true : false;
         document.querySelector('#imageDisplayWarning').style.display = imageDisplayWarning === 'none' ? 'block' : 'none';
->>>>>>> Image extraction #173
         cookies.setItem('imageDisplayMode', params.imageDisplayMode, Infinity);
     });
     $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
@@ -1134,20 +1110,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-                if (/manual|progressive/.test(params.imageDisplayMode)) {
-=======
                 if (!params.imageDisplayMode) {
->>>>>>> Image extraction #173
                     var imageList = doc.querySelectorAll('img');
                     if (imageList.length) { 
                         images.prepareImagesServiceWorker(imageList, params.imageDisplayMode);
                     }                        
                 }
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-                resizeIFrame();
-=======
->>>>>>> Image extraction #173
                 // Reset UI when the article is unloaded
                 if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
                     $("#articleList").empty();
@@ -1220,10 +1188,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
                             // Let's send the content to the ServiceWorker
                             var message = { 'action': 'giveContent', 'title' : title, 'content': content.buffer, 
                                 'mimetype': mimetype, 'imageDisplay': params.imageDisplayMode };
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-=======
-                            var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
->>>>>>> Image extraction #173
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }

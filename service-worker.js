@@ -92,22 +92,11 @@ self.addEventListener('fetch', function (event) {
         // DEV: If you need to hide more image types, add them to regex below and also edit equivalent regex in app.js
         if (imageDisplay !== 'all' && /(^|\/)[IJ]\/.*\.(jpe?g|png|svg|gif)($|[?#])(?!kiwix-display)/i.test(event.request.url)) {
             var svgResponse;
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-            if (imageDisplay === 'manual') 
-                svgResponse = "<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'><rect width='1' height='1' style='fill:lightblue'/></svg>";
-            else
-                svgResponse = "<svg xmlns='http://www.w3.org/2000/svg'/>";
-                event.respondWith(new Response(svgResponse, { headers: { 'Content-Type': 'image/svg+xml' } }));
-            return;
-        }
-       
-=======
             svgResponse = "<svg xmlns='http://www.w3.org/2000/svg'/>";
             event.respondWith(new Response(svgResponse, { headers: { 'Content-Type': 'image/svg+xml' } }));
             return;
         }
 
->>>>>>> Image extraction #173
         event.respondWith(
             // First see if the content is in the cache
             fromCache(event.request).then(
@@ -191,15 +180,9 @@ function fetchRequestFromZIM(fetchEvent) {
                 // Content received from app.js
                 var contentLength = msgPortEvent.data.content ? msgPortEvent.data.content.byteLength : null;
                 var contentType = msgPortEvent.data.mimetype;
-<<<<<<< refs/remotes/origin/Allow-manual-extraction-of-images
-                // Set the imageDisplay variable if it has been sent in the event data
-                imageDisplay = typeof msgPortEvent.data.imageDisplay !== 'undefined' ? 
-                    msgPortEvent.data.imageDisplay : imageDisplay;
-=======
                  // Set the imageDisplay variable if it has been sent in the event data
                  imageDisplay = typeof msgPortEvent.data.imageDisplay !== 'undefined' ? 
                  msgPortEvent.data.imageDisplay : imageDisplay;
->>>>>>> Image extraction #173
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 if (contentType) headers.set('Content-Type', contentType);
