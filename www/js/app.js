@@ -345,8 +345,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
                     loadImagesJQuery(iframeArticleContent);
                 }
                 else{
-                    history.back();
-                    history.forward();
+                    setTimeout(() => {
+                        history.forward();
+                    }, 500)
+                    history.back()                    
                 }
         }
     })
