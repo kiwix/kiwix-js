@@ -67,8 +67,7 @@ define(['uiUtil', 'cookies'], function(uiUtil, cookies) {
     function setupManualImageExtraction(images, selectedArchive) {
         Array.prototype.slice.call(images).forEach(function (image) {
             var originalHeight = image.getAttribute('height') || '';
-            //Ensure 36px clickable image height so user can request images by tapping
-            image.height = '36';
+            //Clickable image height so user can request images by tapping
             if (contentInjectionMode ==='jquery') {
                 image.src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
                 image.style.background = 'lightblue';

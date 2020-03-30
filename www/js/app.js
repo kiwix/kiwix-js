@@ -327,29 +327,27 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
 
         if (document.getElementById('liConfigureNav').classList.contains('active') &&
             doc.title !== "Placeholder for injecting an article into the iframe") {
-                var viewArticle = document.getElementById('refreshArticle');
-                viewArticle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    document.getElementById('liConfigureNav').classList.remove('active');
-                    document.getElementById('liHomeNav').classList.add('active');
-                    uiUtil.removeAnimationClasses();
-                    if (params.showUIAnimations) { 
-                        uiUtil.applyAnimationToSection('home');
-                    } else {
-                        document.getElementById('configuration').style.display = 'none';
-                        document.getElementById('articleContent').style.display = 'block';
-                    }
-                    document.getElementById('navigationButtons').style.display = 'inline-flex';
-                    document.getElementById('formArticleSearch').style.display = 'block';
+                e.preventDefault();
+                document.getElementById('liConfigureNav').classList.remove('active');
+                document.getElementById('liHomeNav').classList.add('active');
+                uiUtil.removeAnimationClasses();
+                if (params.showUIAnimations) { 
+                    uiUtil.applyAnimationToSection('home');
+                } else {
+                    document.getElementById('configuration').style.display = 'none';
+                    document.getElementById('articleContent').style.display = 'block';
+                }
+                document.getElementById('navigationButtons').style.display = 'inline-flex';
+                document.getElementById('formArticleSearch').style.display = 'block';
                     
-                    if(cookies.getItem("lastContentInjectionMode") === "jquery"){                        
-                        displayArticleContentInIframe(JSON.parse(cookies.getItem("lastReadDir")));                        
-                    }
-                    else{
-                        history.back();
-                        history.forward();
-                    }
-                });
+                if(cookies.getItem("lastContentInjectionMode") === "jquery"){                        
+                    var iframeArticleContent = document.getElementById('articleContent');
+                    loadImagesJQuery(iframeArticleContent);
+                }
+                else{
+                    history.back();
+                    history.forward();
+                }
         }
     })
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
@@ -1076,7 +1074,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-        cookies.setItem("lastReadDir", JSON.stringify(dirEntry), Infinity);
+        cookies.setItem("lastOpenedFile", JSON.stringify(dirEntry), Infinity);
 	    // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
@@ -1200,6 +1198,29 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
             }
         }
     }
+
+    /**
+     * Function that loads images in JQuery mode.
+     * 
+     */
+    function loadImagesJQuery(iframeArticleContent) {
+        var imageNodes = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
+        if (!imageNodes.length) return;
+        if (params.imageDisplayMode === 'all') {
+            // We have to pass the selectedArchive to the images module
+            images.extractImages(imageNodes, selectedArchive);
+        } else if (params.imageDisplayMode === 'progressive') {
+            // Firefox squashes empty images, but we don't want to alter the vertical heights constantly as we scroll
+            // so substitute empty images with a plain svg
+            for (var i = imageNodes.length; i--;) {
+                imageNodes[i].src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+            }
+            images.lazyLoad(imageNodes, selectedArchive);
+        } else {
+            // User wishes to extract images manually
+            images.setupManualImageExtraction(imageNodes, selectedArchive);
+        }
+    }
     
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
@@ -1232,9 +1253,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
      * @param {String} htmlArticle
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
-        if(!htmlArticle) {
-            loadImagesJQuery();
-        }
         if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
             return;
         }		
@@ -1294,7 +1312,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
             parseAnchorsJQuery();
-            loadImagesJQuery();
+            loadImagesJQuery(iframeArticleContent);
             // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
             // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
             // and noscript tags should be ignored
@@ -1364,25 +1382,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil','images', 'cookies','abstractFile
                     });
                 }
             });
-        }
-        
-        function loadImagesJQuery() {
-            var imageNodes = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
-            if (!imageNodes.length) return;
-            if (params.imageDisplayMode === 'all') {
-                // We have to pass the selectedArchive to the images module
-                images.extractImages(imageNodes, selectedArchive);
-            } else if (params.imageDisplayMode === 'progressive') {
-                // Firefox squashes empty images, but we don't want to alter the vertical heights constantly as we scroll
-                // so substitute empty images with a plain svg
-                for (var i = imageNodes.length; i--;) {
-                    imageNodes[i].src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
-                }
-                images.lazyLoad(imageNodes, selectedArchive);
-            } else {
-                // User wishes to extract images manually
-                images.setupManualImageExtraction(imageNodes, selectedArchive);
-            }
         }
 
         function loadNoScriptTags() {
