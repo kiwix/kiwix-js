@@ -21,24 +21,29 @@ define([], function() {
 |*|
 \*/
 
-// Test for cookie support
-var storeType = 'cookie';
-document.cookie = 'kiwixCookie=working;expires=Fri, 31 Dec 9999 23:59:59 GMT';
-var kiwixCookie = /kiwixCookie=working/i.test(document.cookie);
-if (kiwixCookie) {
+var storeType = testStorageSupport();
+
+// Tests for cookie or localStorage support
+function testStorageSupport() {
+  var type = 'cookie';
+  document.cookie = 'kiwixCookie=working;expires=Fri, 31 Dec 9999 23:59:59 GMT';
+  var kiwixCookie = /kiwixCookie=working/i.test(document.cookie);
+  if (kiwixCookie) {
     document.cookie = 'kiwixCookie=broken;expires=Fri, 31 Dec 9999 23:59:59 GMT';
     kiwixCookie = !/kiwixCookie=working/i.test(document.cookie);
-}
-document.cookie = 'kiwixCookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-// Test for localStorage support
-var localStorageTest = false;
-try {
+  }
+  document.cookie = 'kiwixCookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  // Test for localStorage support
+  var localStorageTest = false;
+  try {
     localStorageTest = 'localStorage' in window && window['localStorage'] !== null;
-} catch (e) {
+  } catch (e) {
     console.log('LocalStorage is not supported!');
+  }
+  if (localStorageTest) type = 'local_storage';
+  console.log('Storage test: type: ' + type);
+  return type;
 }
-if (localStorageTest) storeType = 'local_storage';
-console.log('cookiesTest: storeType: ' + storeType);
 
 var docCookies = {
   getItem: function (sKey) {
@@ -90,11 +95,11 @@ var docCookies = {
   }
 };
 
-return {
-        getItem: docCookies.getItem,
-    	setItem: docCookies.setItem,
-    	removeItem: docCookies.removeItem,
-    	hasItem: docCookies.hasItem,
-    	keys: docCookies.keys
-    };
+  return {
+    getItem: docCookies.getItem,
+    setItem: docCookies.setItem,
+    removeItem: docCookies.removeItem,
+    hasItem: docCookies.hasItem,
+    keys: docCookies.keys
+  };
 });
