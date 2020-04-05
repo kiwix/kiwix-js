@@ -23,24 +23,17 @@ define([], function() {
 
 var storeType = testStorageSupport();
 
-// Tests for cookie or localStorage support
+// Tests for localStorage support
 function testStorageSupport() {
-  // Test for cookie support
-  // DEV: In Firefox running from the file:// protocol, this test passes, but no cookie is stored between sessions
-  var type = 'cookie';
-  document.cookie = 'kiwixCookie=working;expires=Fri, 31 Dec 9999 23:59:59 GMT';
-  var kiwixCookie = /kiwixCookie=working/i.test(document.cookie);
-  if (kiwixCookie) {
-    document.cookie = 'kiwixCookie=broken;expires=Fri, 31 Dec 9999 23:59:59 GMT';
-    kiwixCookie = !/kiwixCookie=working/i.test(document.cookie);
-  }
-  document.cookie = 'kiwixCookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  // Now test for localStorage support
+  // Prefer localStorage if supported due to some platforms blocking cookies in local contexts
+  // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
+  var type = 'local_storage';
+  // First test for localStorage support
   var localStorageTest = false;
   try {
     localStorageTest = 'localStorage' in window && window['localStorage'] !== null;
     // DEV: Above test returns true in IE11 running from file:// protocol, but attempting to write a key to
-    // localStorage causes an exception; so to test fully, we must now attempt to write a key
+    // localStorage causes an exception; so to test fully, we must now attempt to write and remove a test key
     if (localStorageTest) {
       localStorage.setItem('kiwixStorage', '');
       localStorage.removeItem('kiwixStorage');
@@ -49,9 +42,8 @@ function testStorageSupport() {
     localStorageTest = false;
     console.log('LocalStorage is not supported!');
   }
-  // Prefer localStorage if supported due to some platforms blocking cookies in local contexts
-  // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
-  if (localStorageTest) type = 'local_storage';
+  // Fall back to cookie if localStorage fails
+  if (!localStorageTest) type = 'cookie';
   console.log('Storage test: type: ' + type);
   return type;
 }
