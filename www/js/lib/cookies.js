@@ -39,8 +39,12 @@ function testStorageSupport() {
   var localStorageTest = false;
   try {
     localStorageTest = 'localStorage' in window && window['localStorage'] !== null;
-    localStorage.setItem('kiwixStorage', '');
-    localStorage.removeItem('kiwixStorage');
+    // DEV: Above test returns true in IE11 running from file:// protocol, but attempting to write a key to
+    // localStorage causes an exception; so to test fully, we must now attempt to write a key
+    if (localStorageTest) {
+      localStorage.setItem('kiwixStorage', '');
+      localStorage.removeItem('kiwixStorage');
+    }
   } catch (e) {
     localStorageTest = false;
     console.log('LocalStorage is not supported!');
