@@ -44,7 +44,7 @@ function testStorageSupport() {
   }
   // Fall back to cookie if localStorage fails
   if (!localStorageTest) type = 'cookie';
-  console.log('Storage test: type: ' + type);
+  console.log('Storage test: type = ' + type);
   return type;
 }
 
