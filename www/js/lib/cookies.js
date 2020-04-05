@@ -37,7 +37,10 @@ function testStorageSupport() {
   var localStorageTest = false;
   try {
     localStorageTest = 'localStorage' in window && window['localStorage'] !== null;
+    localStorage.setItem('kiwixStorage', '');
+    localStorage.removeItem('kiwixStorage');
   } catch (e) {
+    localStorageTest = false;
     console.log('LocalStorage is not supported!');
   }
   if (localStorageTest) type = 'local_storage';
