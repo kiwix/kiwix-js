@@ -35,12 +35,11 @@ function testStorageSupport() {
     // DEV: Above test returns true in IE11 running from file:// protocol, but attempting to write a key to
     // localStorage causes an exception; so to test fully, we must now attempt to write and remove a test key
     if (localStorageTest) {
-      localStorage.setItem('kiwixStorage', '');
-      localStorage.removeItem('kiwixStorage');
+      localStorage.setItem('temporaryKiwixStorageTest', '');
+      localStorage.removeItem('temporaryKiwixStorageTest');
     }
   } catch (e) {
     localStorageTest = false;
-    console.log('LocalStorage is not supported!');
   }
   // Fall back to cookie if localStorage fails
   if (!localStorageTest) type = 'cookie';
