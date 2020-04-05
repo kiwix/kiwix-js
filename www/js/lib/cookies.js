@@ -25,6 +25,8 @@ var storeType = testStorageSupport();
 
 // Tests for cookie or localStorage support
 function testStorageSupport() {
+  // Test for cookie support
+  // DEV: In Firefox running from the file:// protocol, this test passes, but no cookie is stored between sessions
   var type = 'cookie';
   document.cookie = 'kiwixCookie=working;expires=Fri, 31 Dec 9999 23:59:59 GMT';
   var kiwixCookie = /kiwixCookie=working/i.test(document.cookie);
@@ -33,7 +35,7 @@ function testStorageSupport() {
     kiwixCookie = !/kiwixCookie=working/i.test(document.cookie);
   }
   document.cookie = 'kiwixCookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  // Test for localStorage support
+  // Now test for localStorage support
   var localStorageTest = false;
   try {
     localStorageTest = 'localStorage' in window && window['localStorage'] !== null;
@@ -43,6 +45,8 @@ function testStorageSupport() {
     localStorageTest = false;
     console.log('LocalStorage is not supported!');
   }
+  // Prefer localStorage if supported due to some platforms blocking cookies in local contexts
+  // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
   if (localStorageTest) type = 'local_storage';
   console.log('Storage test: type: ' + type);
   return type;
