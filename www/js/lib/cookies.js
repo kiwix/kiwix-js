@@ -4,20 +4,22 @@ define([], function() {
 |*|
 |*|  :: settingsStore.js ::
 |*|
-|*|  A reader/writer framework for cookies or localStorage with full unicode support.
+|*|  A reader/writer framework for cookies or localStorage with full unicode support based on Mozilla cookie framework.
 |*|
-|*|  https://developer.mozilla.org/en-US/docs/DOM/document.cookie
+|*|  Revision #1 - September 4, 2014
+|*|
+|*|  https://developer.mozilla.org/en-US/docs/Web/API/document.cookie
+|*|  https://developer.mozilla.org/User:fusionchess
 |*|
 |*|  This framework is released under the GNU Public License, version 3 or later.
 |*|  http://www.gnu.org/licenses/gpl-3.0-standalone.html
 |*|
 |*|  Syntaxes:
 |*|
-|*|  * docCookies.setItem(name, value[, end[, path[, domain[, secure]]]])
-|*|  * docCookies.getItem(name)
-|*|  * docCookies.removeItem(name[, path])
-|*|  * docCookies.hasItem(name)
-|*|  * docCookies.keys()
+|*|  * settingsStore.setItem(name, value[, end[, path[, domain[, secure]]]])
+|*|  * settingsStore.getItem(name)
+|*|  * settingsStore.removeItem(name[, path[, domain]])
+|*|  * settingsStore.hasItem(name)
 |*|
 \*/
 
@@ -62,14 +64,19 @@ function testStorageSupport() {
 var settingsStore = {
   getItem: function (sKey) {
     if (storeType === 'cookie') {
-    return unescape(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+      if (!sKey) {
+        return null;
+      }
+      return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
     } else {
       return localStorage.getItem(sKey);
     }
   },
   setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
     if (storeType === 'cookie') {
-      if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+      if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
+        return false;
+      }
       var sExpires = "";
       if (vEnd) {
         switch (vEnd.constructor) {
@@ -80,28 +87,33 @@ var settingsStore = {
             sExpires = "; expires=" + vEnd;
             break;
           case Date:
-            sExpires = "; expires=" + vEnd.toGMTString();
+            sExpires = "; expires=" + vEnd.toUTCString();
             break;
         }
       }
-      document.cookie = escape(sKey) + "=" + escape(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+      document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
     } else {
       localStorage.setItem(sKey, sValue);
     }
     return true;
   },
-  removeItem: function (sKey, sPath) {
+  removeItem: function (sKey, sPath, sDomain) {
+    if (!this.hasItem(sKey)) {
+      return false;
+    }
     if (storeType === 'cookie') {
-      if (!sKey || !this.hasItem(sKey)) { return false; }
-      document.cookie = escape(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sPath ? "; path=" + sPath : "");
+      document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
     } else {
       localStorage.removeItem(sKey);
-    } 
+    }
     return true;
   },
   hasItem: function (sKey) {
+    if (!sKey) {
+      return false;
+    }
     if (storeType === 'cookie') {
-      return (new RegExp("(?:^|;\\s*)" + escape(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+      return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
     } else {
       return localStorage.getItem(sKey) === null ? false : true;
     }
