@@ -43,7 +43,9 @@ function testStorageSupport() {
   }
   // Fall back to cookie if localStorage fails
   if (!localStorageTest) type = 'cookie';
-  console.log('Storage test: type = ' + type);
+  // Update API panel with API name
+  var apiName = type === 'cookie' ? 'Cookie' : 'Local Storage';
+  document.getElementById('settingsStoreStatus').innerHTML = 'Settings Storage API in use: ' + apiName;
   return type;
 }
 
