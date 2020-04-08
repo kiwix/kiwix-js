@@ -56,14 +56,14 @@ define([], function () {
     settingsStoreStatusDiv.innerHTML = 'Settings Storage API in use: ' + apiName;
     settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
     settingsStoreStatusDiv.classList.add(type === 'none' ? 'apiUnavailable' : 'apiAvailable');
-    // To simplify code below, this function returns either 'local_storage' or 'cookie', but does not return 'none'
-    // This is because setting a cookie key does not cause an exception even if it is not stored (e.g. in an Extension)
+    // Note that if this function returns 'none', the cookie implementations below will run anyway. This is because storing a cookie
+    // does not cause an exception even if cookies are blocked in some contexts, whereas accessing localStorage may cause an exception
     return type;
   }
 
   var settingsStore = {
     getItem: function (sKey) {
-      if (storeType === 'cookie') {
+      if (storeType !== 'local_storage') {
         if (!sKey) {
           return null;
         }
@@ -73,7 +73,7 @@ define([], function () {
       }
     },
     setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
-      if (storeType === 'cookie') {
+      if (storeType !== 'local_storage') {
         if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
           return false;
         }
@@ -101,7 +101,7 @@ define([], function () {
       if (!this.hasItem(sKey)) {
         return false;
       }
-      if (storeType === 'cookie') {
+      if (storeType !== 'local_storage') {
         document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
       } else {
         localStorage.removeItem(sKey);
@@ -112,7 +112,7 @@ define([], function () {
       if (!sKey) {
         return false;
       }
-      if (storeType === 'cookie') {
+      if (storeType !== 'local_storage') {
         return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
       } else {
         return localStorage.getItem(sKey) === null ? false : true;
