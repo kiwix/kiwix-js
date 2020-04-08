@@ -65,8 +65,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     
-    // Set parameters and associated UI elements from cookie
+    // Set parameters and associated UI elements from the Settings Store
     // DEV: The params global object is declared in init.js so that it is available to modules
+    params['storeType'] = settingsStore.testStorageSupport(); // A parameter to determine the Settings Store API in use
     params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
@@ -77,7 +78,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
-
+    
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
@@ -385,8 +386,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
         }
-        apiStatusPanel.classList.add(apiPanelClass);
+        // Update Settings Store section of API panel with API name
+        var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
+        var apiName = params.storeType === 'cookie' ? 'Cookie' : params.storeType === 'local_storage' ? 'Local Storage' : 'None';
+        settingsStoreStatusDiv.innerHTML = 'Settings Storage API in use: ' + apiName;
+        settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
+        settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
+        apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
 
+        // Add a warning colour to the API Status Panel if any of the above tests failed
+        apiStatusPanel.classList.add(apiPanelClass);
     }
 
     /**

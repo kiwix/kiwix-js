@@ -23,8 +23,6 @@ define([], function () {
   |*|
   \*/
 
-  var storeType = testStorageSupport();
-
   // Tests for localStorage or cookie support
   function testStorageSupport() {
     // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
@@ -50,12 +48,6 @@ define([], function () {
     if (kiwixCookieTest) type = 'cookie';
     // Prefer localStorage if supported due to some platforms removing cookies once the session ends in some contexts
     if (localStorageTest) type = 'local_storage';
-    // Update API panel with API name
-    var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
-    var apiName = type === 'cookie' ? 'Cookie' : type === 'local_storage' ? 'Local Storage' : 'None';
-    settingsStoreStatusDiv.innerHTML = 'Settings Storage API in use: ' + apiName;
-    settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
-    settingsStoreStatusDiv.classList.add(type === 'none' ? 'apiUnavailable' : 'apiAvailable');
     // Note that if this function returns 'none', the cookie implementations below will run anyway. This is because storing a cookie
     // does not cause an exception even if cookies are blocked in some contexts, whereas accessing localStorage may cause an exception
     return type;
@@ -63,7 +55,7 @@ define([], function () {
 
   var settingsStore = {
     getItem: function (sKey) {
-      if (storeType !== 'local_storage') {
+      if (params.storeType !== 'local_storage') {
         if (!sKey) {
           return null;
         }
@@ -73,7 +65,7 @@ define([], function () {
       }
     },
     setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
-      if (storeType !== 'local_storage') {
+      if (params.storeType !== 'local_storage') {
         if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) {
           return false;
         }
@@ -101,7 +93,7 @@ define([], function () {
       if (!this.hasItem(sKey)) {
         return false;
       }
-      if (storeType !== 'local_storage') {
+      if (params.storeType !== 'local_storage') {
         document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
       } else {
         localStorage.removeItem(sKey);
@@ -112,7 +104,7 @@ define([], function () {
       if (!sKey) {
         return false;
       }
-      if (storeType !== 'local_storage') {
+      if (params.storeType !== 'local_storage') {
         return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
       } else {
         return localStorage.getItem(sKey) === null ? false : true;
@@ -124,6 +116,7 @@ define([], function () {
     getItem: settingsStore.getItem,
     setItem: settingsStore.setItem,
     removeItem: settingsStore.removeItem,
-    hasItem: settingsStore.hasItem
+    hasItem: settingsStore.hasItem,
+    testStorageSupport: testStorageSupport
   };
 });
