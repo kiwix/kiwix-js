@@ -4,8 +4,7 @@ define([], function () {
    * settingsStore.js
    * 
    * A reader/writer framework for cookies or localStorage with full unicode support based on the Mozilla cookies framework.
-   * The Mozilla code has been adapted to return Boolean values instead of 'true' or 'false' strings, and support for
-   * the localStorage API has been added.
+   * The Mozilla code has been adapted to test for the availability of the localStorage API, and to use it in preference to cookies.
    * 
    * Mozilla version information:
    * 
