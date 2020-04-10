@@ -115,7 +115,7 @@ define([], function () {
         return localStorage.getItem(sKey) === null ? false : true;
       }
     },
-    cookieKeys: function () {
+    _cookieKeys: function () {
       var aKeys = document.cookie.replace(/((?:^|\s*;)[^=]+)(?=;|$)|^\s*|\s*(?:=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:=[^;]*)?;\s*/);
       for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
       return aKeys;
@@ -125,7 +125,7 @@ define([], function () {
   // One-off migration of storage settings from cookies to localStorage
   function _migrateStorageSettings() {
     console.log('Migrating Settings Store from cookies to localStorage...');
-    var cookieKeys = settingsStore.cookieKeys();
+    var cookieKeys = settingsStore._cookieKeys();
     // Note that because migration occurs before setting params.storeType, settingsStore.getItem() will get the item from
     // document.cookie instead of localStorage, which is the intended behaviour
     for (var i = 0; i < cookieKeys.length; i++) {
@@ -141,7 +141,6 @@ define([], function () {
     setItem: settingsStore.setItem,
     removeItem: settingsStore.removeItem,
     hasItem: settingsStore.hasItem,
-    cookieKeys: settingsStore.cookieKeys,
     testStorageSupport: testStorageSupport
   };
 });
