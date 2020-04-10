@@ -569,12 +569,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
-        // Save the value in a cookie, so that to be able to keep it after a reload/restart
+        // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
         settingsStore.setItem('lastContentInjectionMode', value, Infinity);
         refreshCacheStatus();
     }
             
-    // At launch, we try to set the last content injection mode (stored in a cookie)
+    // At launch, we try to set the last content injection mode (stored in Settings Store)
     var lastContentInjectionMode = settingsStore.getItem('lastContentInjectionMode');
     if (lastContentInjectionMode) {
         setContentInjectionMode(lastContentInjectionMode);
@@ -629,10 +629,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
-        // First see if the list of archives is stored in the cookie
-        var listOfArchivesFromCookie = settingsStore.getItem("listOfArchives");
-        if (listOfArchivesFromCookie !== null && listOfArchivesFromCookie !== undefined && listOfArchivesFromCookie !== "") {
-            var directories = listOfArchivesFromCookie.split('|');
+        // First see if the list of archives is stored in the Settings Store
+        var listOfArchivesFromSettingsStore = settingsStore.getItem("listOfArchives");
+        if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== "") {
+            var directories = listOfArchivesFromSettingsStore.split('|');
             populateDropDownListOfArchives(directories);
         }
         else {
@@ -715,7 +715,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
         }
-        // Store the list of archives in a cookie, to avoid rescanning at each start
+        // Store the list of archives in the Settings Store, to avoid rescanning at each start
         settingsStore.setItem("listOfArchives", archiveDirectories.join('|'), Infinity);
         
         $('#archiveList').on('change', setLocalArchiveFromArchiveList);
