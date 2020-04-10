@@ -1,28 +1,31 @@
 'use strict';
 define([], function () {
-  /*\
-  |*|
-  |*|  :: settingsStore.js ::
-  |*|
-  |*|  A reader/writer framework for cookies or localStorage with full unicode support based on Mozilla cookies framework.
-  |*|
-  |*|  Revision #1 - September 4, 2014
-  |*|
-  |*|  https://developer.mozilla.org/en-US/docs/Web/API/document.cookie
-  |*|  https://developer.mozilla.org/User:fusionchess
-  |*|
-  |*|  This framework is released under the GNU Public License, version 3 or later.
-  |*|  http://www.gnu.org/licenses/gpl-3.0-standalone.html
-  |*|
-  |*|  Syntaxes:
-  |*|
-  |*|  * settingsStore.setItem(name, value[, end[, path[, domain[, secure]]]])
-  |*|  * settingsStore.getItem(name)
-  |*|  * settingsStore.removeItem(name[, path[, domain]])
-  |*|  * settingsStore.hasItem(name)
-  |*|
-  \*/
-
+  /**
+   * settingsStore.js
+   * 
+   * A reader/writer framework for cookies or localStorage with full unicode support based on the Mozilla cookies framework.
+   * The Mozilla code has been adapted to return Boolean values instead of 'true' or 'false' strings, and support for
+   * the localStorage API has been added.
+   * 
+   * Mozilla version information:
+   * 
+   * Revision #1 - September 4, 2014
+   * 
+   * https://developer.mozilla.org/en-US/docs/Web/API/document.cookie
+   * https://developer.mozilla.org/User:fusionchess
+   * 
+   * This framework is released under the GNU Public License, version 3 or later.
+   * http://www.gnu.org/licenses/gpl-3.0-standalone.html
+   *
+   * Syntaxes:
+   *
+   *  * settingsStore.setItem(name, value[, end[, path[, domain[, secure]]]])
+   *  * settingsStore.getItem(name)
+   *  * settingsStore.removeItem(name[, path[, domain]])
+   *  * settingsStore.hasItem(name)
+   * 
+   */
+  
   // Tests for localStorage or cookie support
   function testStorageSupport() {
     // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
