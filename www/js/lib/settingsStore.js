@@ -124,14 +124,16 @@ define([], function () {
 
   // One-off migration of storage settings from cookies to localStorage
   function _migrateStorageSettings() {
-    console.log('Migrating Settings Store from cookies to localStorage');
+    console.log('Migrating Settings Store from cookies to localStorage...');
     var cookieKeys = settingsStore.cookieKeys();
     // Note that because migration occurs before setting params.storeType, settingsStore.getItem() will get the item from
     // document.cookie instead of localStorage, which is the intended behaviour
     for (var i = 0; i < cookieKeys.length; i++) {
       localStorage.setItem(cookieKeys[i], settingsStore.getItem(cookieKeys[i]));
       settingsStore.removeItem(cookieKeys[i]);
-    }   
+      console.log('- ' + cookieKeys[i]);
+    }
+    console.log('Migration done.');
   }
 
   return {
