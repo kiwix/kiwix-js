@@ -6,6 +6,7 @@ define([], function () {
    * A reader/writer framework for cookies or localStorage with full unicode support based on the Mozilla cookies framework.
    * The Mozilla code has been adapted to return Boolean values instead of 'true' or 'false' strings, and support for
    * the localStorage API has been added. The method setItem() can also accept Boolean values as well as strings.
+   * The keys() method has been renamed cookieKeys() because we only use it to get cookie keys, not localStorage keys.
    * 
    * Mozilla version information:
    * 
@@ -23,6 +24,7 @@ define([], function () {
    *  * settingsStore.getItem(name)
    *  * settingsStore.removeItem(name[, path[, domain]])
    *  * settingsStore.hasItem(name)
+   *  * settingsStore.cookieKeys()
    * 
    */
   
@@ -51,6 +53,8 @@ define([], function () {
     if (kiwixCookieTest) type = 'cookie';
     // Prefer localStorage if supported due to some platforms removing cookies once the session ends in some contexts
     if (localStorageTest) type = 'local_storage';
+    // If both cookies and localStorage are supported, and document.cookie has not already been voided, migrate settings to use localStorage
+    if (kiwixCookieTest && localStorageTest && document.cookie !== '') _migrateStorageSettings(); 
     // Note that if this function returns 'none', the cookie implementations below will run anyway. This is because storing a cookie
     // does not cause an exception even if cookies are blocked in some contexts, whereas accessing localStorage may cause an exception
     return type;
@@ -71,7 +75,7 @@ define([], function () {
     },
     setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
       if (params.storeType !== 'local_storage') {
-        if (skey !== false && (!sKey || /^(?:expires|max-age|path|domain|secure)$/i.test(sKey))) {
+        if (sKey !== false && (!sKey || /^(?:expires|max-age|path|domain|secure)$/i.test(sKey))) {
           return false;
         }
         var sExpires = "";
@@ -114,14 +118,31 @@ define([], function () {
       } else {
         return localStorage.getItem(sKey) === null ? false : true;
       }
+    },
+    cookieKeys: function () {
+      var aKeys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:\=[^;]*)?;\s*/);
+      for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
+      return aKeys;
     }
   };
+
+  // One-off migration of storage settings from cookies to localStorage
+  function _migrateStorageSettings() {
+    var cookieKeys = settingsStore.cookieKeys();
+    // Note that because migration occurs before setting params.storeType, settingsStore.getItem() will get the item from
+    // document.cookie instead of localStorage, which is the intended behaviour
+    for (var i = 0; i < cookieKeys.length; i++) {
+      localStorage.setItem(cookieKeys[i], settingsStore.getItem(cookieKeys[i]));
+      settingsStore.removeItem(cookieKeys[i]);
+    }   
+  }
 
   return {
     getItem: settingsStore.getItem,
     setItem: settingsStore.setItem,
     removeItem: settingsStore.removeItem,
     hasItem: settingsStore.hasItem,
+    cookieKeys: settingsStore.cookieKeys,
     testStorageSupport: testStorageSupport
   };
 });
