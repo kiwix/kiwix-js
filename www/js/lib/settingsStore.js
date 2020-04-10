@@ -62,7 +62,9 @@ define([], function () {
         if (!sKey) {
           return null;
         }
-        return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[-.+*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+        var rtnString = decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[-.+*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1"));
+        // Return Boolean values if they match, or the retrieved string, or null 
+        return rtnString === 'true' || (rtnString === 'false' ? false : rtnString || null);
       } else {
         return localStorage.getItem(sKey);
       }
