@@ -22,7 +22,6 @@ define([], function () {
    *  * settingsStore.getItem(name)
    *  * settingsStore.removeItem(name[, path[, domain]])
    *  * settingsStore.hasItem(name)
-   *  * settingsStore.cookieKeys()
    * 
    */
   
