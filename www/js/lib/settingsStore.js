@@ -5,7 +5,7 @@ define([], function () {
    * 
    * A reader/writer framework for cookies or localStorage with full unicode support based on the Mozilla cookies framework.
    * The Mozilla code has been adapted to return Boolean values instead of 'true' or 'false' strings, and support for
-   * the localStorage API has been added.
+   * the localStorage API has been added. The method setItem() can also accept Boolean values as well as strings.
    * 
    * Mozilla version information:
    * 
@@ -71,7 +71,7 @@ define([], function () {
     },
     setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
       if (params.storeType !== 'local_storage') {
-        if (!sKey || /^(?:expires|max-age|path|domain|secure)$/i.test(sKey)) {
+        if (skey !== false && (!sKey || /^(?:expires|max-age|path|domain|secure)$/i.test(sKey))) {
           return false;
         }
         var sExpires = "";
