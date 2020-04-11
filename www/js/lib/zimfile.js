@@ -22,8 +22,6 @@
 'use strict';
 define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util, utf8, Q, zimDirEntry) {
 
-    var streaming;
-
     var readInt = function(data, offset, size)
     {
         var r = 0;
@@ -193,26 +191,28 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 var plainBlobReader = function(offset, size) {
                     return that._readSlice(clusterOffset + 1 + offset, size);
                 };
-                var zstdDecompressor = function (offset, size) {
-                    return that._readSlice(clusterOffset + 1 + offset, size).then(function (compressedData) {
-                        var result = streaming.decompress(compressedData);
-                        return streaming.decompress(compressedData).then(function (data) {
-                            return data;
-                        });
-                    });
-                };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
                     decompressor = { readSliceSingleThread: plainBlobReader };
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else if (compressionType[0] === 5) {
-                    if (!streaming) {
-                        ZstdCodec.run(zstd => {
-                            streaming = new zstd.Streaming();
+                    return ZstdCodec.run(function (zstd) {
+                        var simple = new zstd.Simple();
+                        decompressor = {
+                            readCompressed: function (offset, size) {
+                                return that._readSlice(clusterOffset + 1 + offset, size).then(function (data) {
+                                    var uncompressed = simple.decompress(data);
+                                    return uncompressed;
+                                });
+                            }
+                        };
+                        return decompressor.readCompressed(blob * 4, 8).then(function (data) {
+                            var blobOffset = readInt(data, 0, 4);
+                            var nextBlobOffset = readInt(data, 4, 4);
+                            return decompressor.readCompressed(blobOffset, nextBlobOffset - blobOffset);
                         });
-                    }
-                    decompressor = { readSliceSingleThread: zstdDecompressor};
+                    });
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
