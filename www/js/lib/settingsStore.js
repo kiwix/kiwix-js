@@ -30,7 +30,7 @@ define([], function () {
    * DEV: It should not be necessary to keep this list up-to-date because any keys added after this list was created 
    * (April 2020) will already be stored in localStorage if it is available to the client's browser or platform and 
    * will not need to be migrated
-   * @type Array
+   * @type {Array}
    */
   var keysToMigrate = ['hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
     'lastContentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
