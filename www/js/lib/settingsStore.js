@@ -24,7 +24,18 @@ define([], function () {
    *  * settingsStore.hasItem(name)
    * 
    */
-  
+
+  /**
+   * An array of the settings keys used in the cookie that should be migrated to localStorage if the API is available
+   * DEV: It should not be necessary to keep this list up-to-date because any keys added after this list was created 
+   * (April 2020) will already be stored in localStorage if it is available to the client's browser or platform and 
+   * will not need to be migrated
+   * @type Array
+   */
+  var keysToMigrate = ['hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
+    'lastContentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
+  ];
+
   // Tests for localStorage or cookie support
   function testStorageSupport() {
     // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
@@ -51,7 +62,7 @@ define([], function () {
     // Prefer localStorage if supported due to some platforms removing cookies once the session ends in some contexts
     if (localStorageTest) type = 'local_storage';
     // If both cookies and localStorage are supported, and document.cookie has not already been voided, migrate settings to use localStorage
-    if (kiwixCookieTest && localStorageTest && document.cookie !== '') _migrateStorageSettings(); 
+    if (kiwixCookieTest && localStorageTest && document.cookie !== '') _migrateStorageSettings();
     // Note that if this function returns 'none', the cookie implementations below will run anyway. This is because storing a cookie
     // does not cause an exception even if cookies are blocked in some contexts, whereas accessing localStorage may cause an exception
     return type;
@@ -116,7 +127,9 @@ define([], function () {
     },
     _cookieKeys: function () {
       var aKeys = document.cookie.replace(/((?:^|\s*;)[^=]+)(?=;|$)|^\s*|\s*(?:=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:=[^;]*)?;\s*/);
-      for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
+      for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) {
+        aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]);
+      }
       return aKeys;
     }
   };
@@ -124,13 +137,17 @@ define([], function () {
   // One-off migration of storage settings from cookies to localStorage
   function _migrateStorageSettings() {
     console.log('Migrating Settings Store from cookies to localStorage...');
+    // Compile list of keys to migrate
+    var regExpCookieKeys = new RegExp(keysToMigrate.join('|'));
     var cookieKeys = settingsStore._cookieKeys();
     // Note that because migration occurs before setting params.storeType, settingsStore.getItem() will get the item from
     // document.cookie instead of localStorage, which is the intended behaviour
     for (var i = 0; i < cookieKeys.length; i++) {
-      localStorage.setItem(cookieKeys[i], settingsStore.getItem(cookieKeys[i]));
-      settingsStore.removeItem(cookieKeys[i]);
-      console.log('- ' + cookieKeys[i]);
+      if (regExpCookieKeys.test(cookieKeys[i])) {
+        localStorage.setItem(cookieKeys[i], settingsStore.getItem(cookieKeys[i]));
+        settingsStore.removeItem(cookieKeys[i]);
+        console.log('- ' + cookieKeys[i]);
+      }
     }
     console.log('Migration done.');
   }
