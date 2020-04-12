@@ -26,7 +26,7 @@ define([], function () {
    */
 
   /**
-   * An array of the settings keys used in the cookie that should be migrated to localStorage if the API is available
+   * An RegExp of the settings keys used in the cookie that should be migrated to localStorage if the API is available
    * DEV: It should not be necessary to keep this list up-to-date because any keys added after this list was created 
    * (April 2020) will already be stored in localStorage if it is available to the client's browser or platform and 
    * will not need to be migrated
