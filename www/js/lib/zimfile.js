@@ -186,7 +186,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
         {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
-            var thisClusterLength = nextCluster - clusterOffset;
+            var thisClusterLength = nextCluster - clusterOffset - 1;
             return that._readSlice(clusterOffset, 1).then(function(compressionType) {
                 var decompressor;
                 var plainBlobReader = function(offset, size) {
@@ -199,11 +199,13 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else if (compressionType[0] === 5) {
                     return ZstdCodec.run(function (zstd) {
-                        var simple = new zstd.Simple();
+                        // var simple = new zstd.Simple();
+                        var streaming = new zstd.Streaming();
                         decompressor = {
                             readCompressedCluster: function () {
                                 return that._readSlice(clusterOffset + 1, thisClusterLength).then(function (data) {
-                                    var uncompressed = simple.decompress(data);
+                                    // var uncompressed = simple.decompress(data);
+                                    var uncompressed = streaming.decompress([data]);
                                     return uncompressed;
                                 });
                             },
