@@ -36,7 +36,13 @@ define([], function () {
     'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
     'lastContentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
   ].join('|'));
-  
+
+  /**
+   * A constant to set the prefix that will be added to keys when stored in localStorage: this is used to prevent
+   * potential collision of key names with localStorage keys used by code inside ZIM archives
+   * @type {String}
+   */
+  const keyPrefix = 'kiwixjs-';
 
   // Tests for available Storage APIs (document.cookie or localStorage) and returns the best available of these
   function getBestAvailableStorageAPI() {
@@ -79,8 +85,7 @@ define([], function () {
       if (params.storeType !== 'local_storage') {
         return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[-.+*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
       } else {
-        // For the reason why we add the 'kiwixjs-' prefix to key, see setItem below 
-        return localStorage.getItem('kiwixjs-' + sKey);
+        return localStorage.getItem(keyPrefix + sKey);
       }
     },
     setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
@@ -104,9 +109,7 @@ define([], function () {
         }
         document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
       } else {
-        // We add 'kiwixjs-' prefix to all keys that we store in localStorage as a measure to prevent potential collision of
-        // key names with localStorage keys used by code inside ZIM archives
-        localStorage.setItem('kiwixjs-' + sKey, sValue);
+        localStorage.setItem(keyPrefix + sKey, sValue);
       }
       return true;
     },
@@ -117,7 +120,7 @@ define([], function () {
       if (params.storeType !== 'local_storage') {
         document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
       } else {
-        localStorage.removeItem('kiwixjs-' + sKey);
+        localStorage.removeItem(keyPrefix + sKey);
       }
       return true;
     },
@@ -128,7 +131,7 @@ define([], function () {
       if (params.storeType !== 'local_storage') {
         return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[-.+*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
       } else {
-        return localStorage.getItem('kiwixjs-' + sKey) === null ? false : true;
+        return localStorage.getItem(keyPrefix + sKey) === null ? false : true;
       }
     },
     _cookieKeys: function () {
@@ -148,8 +151,7 @@ define([], function () {
     // document.cookie instead of localStorage, which is the intended behaviour
     for (var i = 0; i < cookieKeys.length; i++) {
       if (regexpCookieKeysToMigrate.test(cookieKeys[i])) {
-        // Add 'kiwixjs-' prefix (see setItem above for reason)
-        var migratedKey = 'kiwixjs-' + cookieKeys[i];
+        var migratedKey = keyPrefix + cookieKeys[i];
         localStorage.setItem(migratedKey, settingsStore.getItem(cookieKeys[i]));
         settingsStore.removeItem(cookieKeys[i]);
         console.log('- ' + migratedKey);
