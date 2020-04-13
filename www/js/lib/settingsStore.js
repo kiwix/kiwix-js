@@ -26,7 +26,7 @@ define([], function () {
    */
 
   /**
-   * An RegExp of the settings keys used in the cookie that should be migrated to localStorage if the API is available
+   * A RegExp of the settings keys used in the cookie that should be migrated to localStorage if the API is available
    * DEV: It should not be necessary to keep this list up-to-date because any keys added after this list was created 
    * (April 2020) will already be stored in localStorage if it is available to the client's browser or platform and 
    * will not need to be migrated
@@ -38,8 +38,8 @@ define([], function () {
   ].join('|'));
   
 
-  // Tests for localStorage or cookie support
-  function testStorageSupport() {
+  // Tests for available Storage APIs (document.cookie or localStorage) and returns the best available of these
+  function getBestAvailableStorageAPI() {
     // DEV: In FF extensions, cookies are blocked since at least FF 68.6 but possibly since FF 55 [kiwix-js #612]
     var type = 'none';
     // First test for localStorage API support
@@ -158,6 +158,6 @@ define([], function () {
     setItem: settingsStore.setItem,
     removeItem: settingsStore.removeItem,
     hasItem: settingsStore.hasItem,
-    testStorageSupport: testStorageSupport
+    getBestAvailableStorageAPI: getBestAvailableStorageAPI
   };
 });

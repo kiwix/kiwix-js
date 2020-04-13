@@ -67,7 +67,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Set parameters and associated UI elements from the Settings Store
     // DEV: The params global object is declared in init.js so that it is available to modules
-    params['storeType'] = settingsStore.testStorageSupport(); // A parameter to determine the Settings Store API in use
+    params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
     params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
