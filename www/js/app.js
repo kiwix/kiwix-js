@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, uiUtil, cookies, abstractFilesystemAccess, Q) {
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesystemAccess','q'],
+ function($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess, Q) {
      
     /**
      * Maximum number of articles to display in a search
@@ -65,16 +65,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      */
     var selectedArchive = null;
     
-    // Set parameters and associated UI elements from cookie
+    // Set parameters and associated UI elements from the Settings Store
     // DEV: The params global object is declared in init.js so that it is available to modules
-    params['hideActiveContentWarning'] = cookies.getItem('hideActiveContentWarning') === 'true';
-    params['showUIAnimations'] = cookies.getItem('showUIAnimations') ? cookies.getItem('showUIAnimations') === 'true' : true;
+    params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
+    params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
+    params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
-    params['useCache'] = cookies.getItem('useCache') !== 'false';
+    params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-    params['appTheme'] = cookies.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
+    params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
 
@@ -322,27 +323,27 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
     });
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function (e) {
         params.hideActiveContentWarning = this.checked ? true : false;
-        cookies.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
+        settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
     $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
         params.showUIAnimations = this.checked ? true : false;
-        cookies.setItem('showUIAnimations', params.showUIAnimations, Infinity);
+        settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
-        cookies.setItem('appTheme', params.appTheme, Infinity);
+        settingsStore.setItem('appTheme', params.appTheme, Infinity);
         uiUtil.applyAppTheme(params.appTheme);
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
-            cookies.setItem('useCache', true, Infinity);
+            settingsStore.setItem('useCache', true, Infinity);
             params.useCache = true;
             refreshCacheStatus();
         }
     });
     document.getElementById('cachedAssetsModeRadioFalse').addEventListener('change', function (e) {
         if (e.target.checked) {
-            cookies.setItem('useCache', false, Infinity);
+            settingsStore.setItem('useCache', false, Infinity);
             params.useCache = false;
             // Delete all caches
             resetCssCache();
@@ -385,8 +386,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             $('#serviceWorkerStatus').removeClass("apiAvailable apiUnavailable")
                     .addClass("apiUnavailable");
         }
-        apiStatusPanel.classList.add(apiPanelClass);
+        // Update Settings Store section of API panel with API name
+        var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
+        var apiName = params.storeType === 'cookie' ? 'Cookie' : params.storeType === 'local_storage' ? 'Local Storage' : 'None';
+        settingsStoreStatusDiv.innerHTML = 'Settings Storage API in use: ' + apiName;
+        settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
+        settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
+        apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
 
+        // Add a warning colour to the API Status Panel if any of the above tests failed
+        apiStatusPanel.classList.add(apiPanelClass);
     }
 
     /**
@@ -560,13 +569,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         contentInjectionMode = value;
-        // Save the value in a cookie, so that to be able to keep it after a reload/restart
-        cookies.setItem('lastContentInjectionMode', value, Infinity);
+        // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
+        settingsStore.setItem('lastContentInjectionMode', value, Infinity);
         refreshCacheStatus();
     }
             
-    // At launch, we try to set the last content injection mode (stored in a cookie)
-    var lastContentInjectionMode = cookies.getItem('lastContentInjectionMode');
+    // At launch, we try to set the last content injection mode (stored in Settings Store)
+    var lastContentInjectionMode = settingsStore.getItem('lastContentInjectionMode');
     if (lastContentInjectionMode) {
         setContentInjectionMode(lastContentInjectionMode);
     }
@@ -620,10 +629,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
      */
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
-        // First see if the list of archives is stored in the cookie
-        var listOfArchivesFromCookie = cookies.getItem("listOfArchives");
-        if (listOfArchivesFromCookie !== null && listOfArchivesFromCookie !== undefined && listOfArchivesFromCookie !== "") {
-            var directories = listOfArchivesFromCookie.split('|');
+        // First see if the list of archives is stored in the Settings Store
+        var listOfArchivesFromSettingsStore = settingsStore.getItem("listOfArchives");
+        if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== "") {
+            var directories = listOfArchivesFromSettingsStore.split('|');
             populateDropDownListOfArchives(directories);
         }
         else {
@@ -706,12 +715,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
         }
-        // Store the list of archives in a cookie, to avoid rescanning at each start
-        cookies.setItem("listOfArchives", archiveDirectories.join('|'), Infinity);
+        // Store the list of archives in the Settings Store, to avoid rescanning at each start
+        settingsStore.setItem("listOfArchives", archiveDirectories.join('|'), Infinity);
         
         $('#archiveList').on('change', setLocalArchiveFromArchiveList);
         if (comboArchiveList.options.length > 0) {
-            var lastSelectedArchive = cookies.getItem("lastSelectedArchive");
+            var lastSelectedArchive = settingsStore.getItem("lastSelectedArchive");
             if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== "") {
                 // Attempt to select the corresponding item in the list, if it exists
                 if ($("#archiveList option[value='"+lastSelectedArchive+"']").length > 0) {
@@ -770,7 +779,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'cookies','abstractFilesystemAcc
             }
             resetCssCache();
             selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function (archive) {
-                cookies.setItem("lastSelectedArchive", archiveDirectory, Infinity);
+                settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
                 // The archive is set : go back to home page to start searching
                 $("#btnHome").click();
             });
