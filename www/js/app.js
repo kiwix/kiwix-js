@@ -202,6 +202,30 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     $('#prefix').on('blur', function() {
         if (!searchArticlesFocused) $('#articleListWithHeader').hide();
     });
+
+    $('#btnSpeedRead').on("click", function(e) {
+        $('.navbar-collapse').collapse('hide');
+        if(params.isLandingPage){
+            // not to be encountered in normal operation
+            alert('Open an article first to use speed read');
+        } else {
+            // extract the article text and split it using white space
+            var articleText = $('#articleContent').contents()[0].body.innerText;
+            if(!articleText){
+                console.error("Can't find article text");
+            } else {
+                var articleWords = articleText.split(/\s+/);
+                var speedReadWindow = window.open('speedread.html', '_blank', 'width=400,height=100');
+                if(!speedReadWindow){
+                    console.error("Can't open a new window.");
+                } else {
+                    // pass the 
+                    speedReadWindow.words = articleWords;
+                }
+            }
+        }
+    });
+
     $("#btnRandomArticle").on("click", function(e) {
         $('#prefix').val("");
         goToRandomArticle();
@@ -1065,6 +1089,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+
+        // display the speedread button if we're on an article
+        if(params.isLandingPage){
+            $('#btnSpeedRead').hide();
+        } else {
+            $('#btnSpeedRead').show();
+        }
 
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.

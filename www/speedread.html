@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Speed Read</title>
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
+        <!-- Local app.css must be loaded after boostrap.css so that any local style overrides work -->
+        <link rel="stylesheet" href="css/app.css"/>
+        <script src="js/lib/fontawesome/fontawesome.js"></script>
+        <script src="js/lib/fontawesome/solid.js"></script>
+    </head>
+    <body>
+        <div class="container" style="padding-top: 10px; padding-left: 10%; padding-right: 10%; padding-bottom: 10px;">
+            <div class="border border-primary" style="padding:0;">
+                <center>
+                    <p id="wordHolder">Press play to start speed reading!</p>
+                </center>
+            </div>
+        </div>
+        <div class="container">
+            <center>
+            <div class="row">
+                <span class="col-4">
+                    <span class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary" id="playButton"><i class="fas fa-play"></i></button>
+                    </span>
+                </span>
+                <span class="col-4">
+                    <span class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary" id="pauseButton" style="display: none;"><i class="fas fa-pause"></i></button>
+                    </span>
+                </span>
+                <span class="col-4">
+                    <span class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary" id="resetButton"><i class="fas fa-undo"></i></button>
+                    </span>
+                </span>
+            </div>
+            </center>
+        </div>
+
+        <script language="javascript">
+
+            // speed reading configuration
+            var wordsPerSec = 4;
+            var delay = 1000 * (1 / wordsPerSec); 
+            var wordIndex = 0;
+
+            // state variable which defines if the speed read is running or not
+            var playing = false; 
+            
+            // DOM elements
+            var playButton = document.getElementById('playButton');
+            var pauseButton = document.getElementById('pauseButton');
+            var resetButton = document.getElementById('resetButton');
+            var wordHolder = document.getElementById('wordHolder');
+            
+            var speedRead = function() {
+                if(wordIndex === window.words.length){
+                    wordHolder.innerText = "You have reached the end of the article!";
+                    return;
+                } else {
+                    // display a word and then fire a recursive call
+                    wordHolder.innerText = window.words[wordIndex++];
+                    if(playing){
+                        setTimeout(speedRead, delay);
+                    } else {
+                        return;
+                    }
+                }
+            }
+
+            playButton.addEventListener('click', function(e){
+                if(!playing){
+                    // article is now playing, hide the play button and show the pause button
+                    playing = true;
+                    playButton.style.display = 'none';
+                    pauseButton.style.display = 'block';
+                    speedRead();
+                } else {
+                    // not supposed to encounter this in normal operation
+                    playButton.style.display = 'block';
+                    pauseButton.style.display = 'none';
+                }
+            });
+
+            pauseButton.addEventListener('click', function(e) {
+                if(playing){
+                    playing = false;
+                    // wait for the last possible speed read function call to end
+                    setTimeout(function(){
+                        playButton.style.display = 'block';
+                        pauseButton.style.display = 'none';
+                    }, delay+1);
+                } else {
+                    // not supposed to encounter this in normal operation
+                    playButton.style.display = 'none';
+                    pauseButton.style.display = 'block';
+                }
+            });
+
+            resetButton.addEventListener('click', function(e){
+                playing = false;
+                // wait for the last possible speedReader function call to end
+                setTimeout(function() {
+                    wordIndex = 0;
+                    playButton.style.display = 'block';
+                    pauseButton.style.display = 'none';
+                    wordHolder.innerText = "Press play to start speed reading!";
+                }, delay+1);
+            });
+        </script>
+
+        
+    </body>
+</html>
