@@ -148,13 +148,14 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * This should be enhanced when the ZIM format will be modified to store normalized titles
      * See https://phabricator.wikimedia.org/T108536
      * 
-     * @param {String} prefix
-     * @param {Integer} resultSize
-     * @param {callbackDirEntryList} callback
+     * @param {String} prefix The search string
+     * @param {Integer} resultSize The number of dirEntries to find
+     * @param {callbackDirEntryList} callback The funciton to call with the result
      */
-    ZIMArchive.prototype.findDirEntriesWithPrefix = function(prefix, resultSize, callback) {
+    ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback) {
         var that = this;
-        var prefixVariants = util.removeDuplicateStringsInSmallArray([prefix, util.ucFirstLetter(prefix), util.lcFirstLetter(prefix), util.ucEveryFirstLetter(prefix)]);
+        var prefixVariants = util.removeDuplicateStringsInSmallArray([prefix, util.ucFirstLetter(prefix), 
+            util.lcFirstLetter(prefix), util.ucEveryFirstLetter(prefix), util.lcEveryFirstLetter(prefix)]);
         var dirEntries = [];
         function searchNextVariant() {
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
