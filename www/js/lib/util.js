@@ -31,6 +31,7 @@ define(['q'], function(Q) {
 
     /**
      * Generates an array of strings with all possible combinations of first-letter case transformations
+     * NB may produce duplicate strings if string begins with punctuation or if it is in a language with no case
      * @param {String} string The string to be converted
      * @return {Array} An array containing strings with all possible combinations of first-letter cases
      */
@@ -42,7 +43,7 @@ define(['q'], function(Q) {
             var numCombos = Math.pow(2, strParts.length);
             var comboArray = [];
             var tempString, bitmask, caseBit;
-            // Iterate through every possible combinations
+            // Iterate through every possible combination
             for (var i = numCombos; i--;) {
                 tempString = '';
                 bitmask = 1;
