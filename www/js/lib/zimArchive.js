@@ -154,8 +154,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback) {
         var that = this;
-        var prefixVariants = util.removeDuplicateStringsInSmallArray([prefix, util.ucFirstLetter(prefix), 
-            util.lcFirstLetter(prefix), util.ucEveryFirstLetter(prefix), util.lcEveryFirstLetter(prefix)]);
+        var prefixVariants = util.removeDuplicateStringsInSmallArray(util.allCaseFirstLetters(prefix));
         var dirEntries = [];
         function searchNextVariant() {
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
