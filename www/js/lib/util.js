@@ -42,22 +42,26 @@ define(['q'], function(Q) {
             // numCombos can be thought of as a binary number of n bits, with each bit representing lcase (0) or ucase (1)
             var numCombos = Math.pow(2, strParts.length);
             var comboArray = [];
-            var tempString, bitmask, caseBit;
+            var firstLetterCaseStr, wholeWordCaseStr, bitmask, caseBit;
             // Iterate through every possible combination
             for (var i = numCombos; i--;) {
-                tempString = '';
+                firstLetterCaseStr = '';
+                wholeWordCaseStr = '';
                 bitmask = 1;
                 for (var j = strParts.length; j--;) {
                     // Use bitwise AND to check if combo number i has the case bit set for the current bitmask
                     caseBit = i & bitmask;
-                    tempString = strParts[j].replace(/^./, function (m) {
+                    firstLetterCaseStr = strParts[j].replace(/^./, function (m) {
                         // Set the case of the first letter according to the case bit
                         return caseBit ? m.toLocaleUpperCase() : m.toLocaleLowerCase();
-                    }) + tempString;
+                    }) + firstLetterCaseStr;
+                    wholeWordCaseStr = (caseBit ? strParts[j].toLocaleUpperCase() : strParts[j].toLocaleLowerCase())
+                        + wholeWordCaseStr;
                     // Shift bitmask to the next higher bit
                     bitmask *= 2;
                 }
-                comboArray.push(tempString);
+                comboArray.push(firstLetterCaseStr);
+                comboArray.push(wholeWordCaseStr);
             }
             return comboArray;
         } else {
