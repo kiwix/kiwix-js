@@ -37,11 +37,16 @@ define(['q'], function(Q) {
      */
     function allCaseFirstLetters(string) {
         if (string) {
+            var comboArray = [];
+            // Ensure a search is done on the string exactly as typed
+            comboArray.push(string);
+            // Normalize any spacing and make string all lowercase
+            string = string.replace(/\s+/g, ' ').toLocaleLowerCase();
+            // Split string into parts beginning with first word letters
             var strParts = string.match(regExpFindStringParts);
             // If n = strParts.length, then the number of possible first-letter case combinations (numCombos) is 2 ^ n;
             // numCombos can be thought of as a binary number of n bits, with each bit representing lcase (0) or ucase (1)
             var numCombos = Math.pow(2, strParts.length);
-            var comboArray = [];
             var firstLetterCaseStr, wholeWordCaseStr, bitmask, caseBit;
             // Iterate through every possible combination
             for (var i = numCombos; i--;) {
