@@ -70,6 +70,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
+    // A parameter to set the case matching type for title search (defaults to 'full')
+    params['titleSearchCaseMatchType'] = settingsStore.getItem('titleSearchCaseMatchType') || 'full';
+    document.querySelector('input[name="caseMatchType"][value="' + params.titleSearchCaseMatchType + '"]').checked = true;
+    // Maximum number of article titles to return (range is 5 - 50, default 25)
+    params['maxSearchResultSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
+    document.getElementById('titleSearchRange').value = params.maxSearchResultSize;
+    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
@@ -349,6 +356,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             refreshCacheStatus();
         }
     });
+    Array.prototype.slice.call(document.querySelectorAll('input[name="caseMatchType"]')).forEach(function(input) {
+        input.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                settingsStore.setItem('titleSearchCaseMatchType', e.target.value, Infinity);
+                params.titleSearchCaseMatchType = e.target.value;
+            }
+        });
+    });
+    document.getElementById('titleSearchRange').addEventListener('change', function(e) {
+        settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
+        document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
+    });
 
     /**
      * Displays or refreshes the API status shown to the user
@@ -441,7 +460,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         getCacheAttributes().then(function (cache) {
             document.getElementById('cacheUsed').innerHTML = cache.description;
             document.getElementById('assetsCount').innerHTML = cache.count;
-            var cacheSettings = document.getElementById('cacheSettingsDiv');
+            var cacheSettings = document.getElementById('performanceSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function (card) {
                 // IE11 cannot remove more than one class from a list at a time
@@ -952,7 +971,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), params.maxSearchResultSize, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -973,8 +992,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
-        if (nbDirEntry >= MAX_SEARCH_RESULT_SIZE) {
-            message = 'First ' + MAX_SEARCH_RESULT_SIZE + ' articles below (refine your search).';
+        if (nbDirEntry >= params.maxSearchResultSize) {
+            message = 'First ' + params.maxSearchResultSize + ' articles below (refine your search).';
         } else {
             message = nbDirEntry + ' articles found.';
         }
@@ -986,7 +1005,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         var articleListDiv = $('#articleList');
         var articleListDivHtml = '';
-        var listLength = dirEntryArray.length < MAX_SEARCH_RESULT_SIZE ? dirEntryArray.length : MAX_SEARCH_RESULT_SIZE;
+        var listLength = dirEntryArray.length < params.maxSearchResultSize ? dirEntryArray.length : params.maxSearchResultSize;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
             var dirEntryStringId = uiUtil.htmlEscapeChars(dirEntry.toStringId());

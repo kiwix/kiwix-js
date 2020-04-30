@@ -51,11 +51,19 @@ define(['q'], function(Q) {
             // numCombos can be thought of as a binary number of n bits, with each bit representing lcase (0) or ucase (1)
             var numCombos = Math.pow(2, strParts.length);
             var firstLetterCaseStr, wholeWordCaseStr, bitmask, caseBit;
-            // Iterate through every possible combination
+            // Iterate through every possible combination, starting with (2 ^ n) - 1 and decreasing; we go from high to low,
+            // because all uppercase (e.g. binary 1111) has lower Unicode value than lowercase (0000) so will be found first
             for (var i = numCombos; i--;) {
                 firstLetterCaseStr = '';
                 wholeWordCaseStr = '';
                 bitmask = 1;
+                if (params.titleSearchCaseMatchType === 'basic') {
+                    // For basic searches we skip all byte values that are not, e.g. 1111 (all first letters uc)
+                    // or 0000 (all first letters lc)
+                    if (i > 0 && i < numCombos -1) {
+                        continue;
+                    }
+                }
                 for (var j = strParts.length; j--;) {
                     // Use bitwise AND to check if combo number i has the case bit set for the current bitmask
                     caseBit = i & bitmask;
@@ -68,8 +76,9 @@ define(['q'], function(Q) {
                     // Shift bitmask to the next higher bit
                     bitmask *= 2;
                 }
+                // Push uppercase first
+                if (params.titleSearchCaseMatchType === 'full') comboArray.push(wholeWordCaseStr);
                 comboArray.push(firstLetterCaseStr);
-                comboArray.push(wholeWordCaseStr);
             }
             return comboArray;
         } else {
