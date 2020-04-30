@@ -157,7 +157,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         // We still have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
         // where uppercase and lowercase of the first "letter" are exactly the same, e.g. where prefix begins with punctuation
         // or currency signs, or potentially for languages without case
-        var prefixVariants = util.removeDuplicateStringsInSmallArray(util.allCaseFirstLetters(prefix));
+        var prefixVariants = util.removeDuplicateStringsInSmallArray(util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType));
         var dirEntries = [];
         function searchNextVariant() {
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
