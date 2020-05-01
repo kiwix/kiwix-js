@@ -74,9 +74,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['titleSearchCaseMatchType'] = settingsStore.getItem('titleSearchCaseMatchType') || 'full';
     document.querySelector('input[name="caseMatchType"][value="' + params.titleSearchCaseMatchType + '"]').checked = true;
     // Maximum number of article titles to return (range is 5 - 50, default 25)
-    params['maxSearchResultSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-    document.getElementById('titleSearchRange').value = params.maxSearchResultSize;
-    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultSize;
+    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
+    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
+    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
@@ -366,7 +366,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('titleSearchRange').addEventListener('change', function(e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
-        params.maxSearchResultSize = e.target.value;
+        params.maxSearchResultsSize = e.target.value;
     });
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
         document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
@@ -974,7 +974,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), params.maxSearchResultSize, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), params.maxSearchResultsSize, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -995,8 +995,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
-        if (nbDirEntry >= params.maxSearchResultSize) {
-            message = 'First ' + params.maxSearchResultSize + ' articles below (refine your search).';
+        if (nbDirEntry >= params.maxSearchResultsSize) {
+            message = 'First ' + params.maxSearchResultsSize + ' articles below (refine your search).';
         } else {
             message = nbDirEntry + ' articles found.';
         }
@@ -1008,7 +1008,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         var articleListDiv = $('#articleList');
         var articleListDivHtml = '';
-        var listLength = dirEntryArray.length < params.maxSearchResultSize ? dirEntryArray.length : params.maxSearchResultSize;
+        var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
             var dirEntryStringId = uiUtil.htmlEscapeChars(dirEntry.toStringId());
