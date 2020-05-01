@@ -94,7 +94,6 @@ define(['q'], function(Q) {
      * (without changing the order)
      * It is optimized for small arrays.
      * Source : http://codereview.stackexchange.com/questions/60128/removing-duplicates-from-an-array-quickly
-     *
      * @param {Array} array of String
      * @returns {Array} same array of Strings, without duplicates
      */

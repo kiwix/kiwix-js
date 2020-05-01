@@ -154,11 +154,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback) {
         var that = this;
-        // We still have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
-        // where uppercase and lowercase of the first "letter" are exactly the same, e.g. where prefix begins with punctuation
-        // or currency signs, or potentially for languages without case
-        var prefixVariants = util.removeDuplicateStringsInSmallArray(util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType));
+        // We have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
+        // where uppercase and lowercase combinations are exactly the same, e.g. where prefix begins with punctuation
+        // or currency signs, for languages without case, or where user-entered case duplicates calculated case
+        var prefixVariants = util.removeDuplicateStringsInSmallArray(
+            util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType));
         var dirEntries = [];
+
         function searchNextVariant() {
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
                 callback(dirEntries);
