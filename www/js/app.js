@@ -366,6 +366,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('titleSearchRange').addEventListener('change', function(e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
+        params.maxSearchResultSize = e.target.value;
+    });
+    document.getElementById('titleSearchRange').addEventListener('input', function(e) {
         document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
     });
 
