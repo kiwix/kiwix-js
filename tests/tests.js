@@ -172,38 +172,35 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("check findDirEntriesWithPrefix 'A'", function(assert) {
             var done = assert.async();
             assert.expect(2);
-            var callbackFunction = function(dirEntryList, stillSearching) {
-                if (stillSearching) return;
+            var callbackFunction = function(dirEntryList) {
                 assert.ok(dirEntryList && dirEntryList.length === 5, "Article list with 5 results");
                 var firstDirEntry = dirEntryList[0];
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix('A', 5, callbackFunction);
+            localZimArchive.findDirEntriesWithPrefix('A', 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'a'", function(assert) {
             var done = assert.async();
             assert.expect(2);
-            var callbackFunction = function(dirEntryList, stillSearching) {
-                if (stillSearching) return;
+            var callbackFunction = function(dirEntryList) {
                 assert.ok(dirEntryList && dirEntryList.length === 5, "Article list with 5 results");
                 var firstDirEntry = dirEntryList[0];
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix('a', 5, callbackFunction);
+            localZimArchive.findDirEntriesWithPrefix('a', 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'blues brothers'", function(assert) {
             var done = assert.async(3);
             assert.expect(6);
-            var callbackFunction = function(dirEntryList, stillSearching) {
-                if (stillSearching) return;
+            var callbackFunction = function(dirEntryList) {
                 assert.ok(dirEntryList && dirEntryList.length === 3, "Article list with 3 result");
                 var firstDirEntry = dirEntryList[0];
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'Blues Brothers (film)', 'First result should be "Blues Brothers (film)"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix('blues brothers', 5, callbackFunction);
+            localZimArchive.findDirEntriesWithPrefix('blues brothers', 5, callbackFunction, true);
         });
         QUnit.test("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function(assert) {
             var done = assert.async();

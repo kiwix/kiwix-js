@@ -151,8 +151,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {String} prefix The search string
      * @param {Integer} resultSize The number of dirEntries to find
      * @param {callbackDirEntryList} callback The funciton to call with the result
+     * @param {Boolean} noInterim A flag to prevent callback until all results are ready 
      */
-    ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback) {
+    ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback, noInterim) {
         var that = this;
         // We have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
         // where uppercase and lowercase combinations are exactly the same, e.g. where prefix begins with punctuation
@@ -172,7 +173,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 return;
             }
             // Dynamically populate list of articles
-            if (!params.cancelSearch) callback(dirEntries, true);
+            if (!params.cancelSearch && !noInterim) callback(dirEntries, true);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
             that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries) {
