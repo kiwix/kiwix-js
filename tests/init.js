@@ -22,6 +22,9 @@
  */
 'use strict';
 
+// Define global params
+var params = {};
+
 require.config({
     baseUrl: 'www/js/lib',
     paths: {
