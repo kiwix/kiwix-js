@@ -166,6 +166,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             )
         );
         var dirEntries = [];
+        var inProgressResults = [];
 
         function searchNextVariant() {
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
@@ -176,12 +177,18 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             if (!params.cancelSearch && !noInterim) callback(dirEntries, true);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
-            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries) {
-                dirEntries.push.apply(dirEntries, newDirEntries);
-                if (!params.cancelSearch) {
-                    searchNextVariant();
+            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries, interim) {
+                if (interim) {
+                    inProgressResults = inProgressResults.concat(newDirEntries);
+                    if (!params.cancelSearch) callback(inProgressResults, true);
                 } else {
-                    params.cancelSearch = false;
+                    dirEntries.push.apply(dirEntries, newDirEntries);
+                    if (!params.cancelSearch) {
+                        inProgressResults = dirEntries;
+                        searchNextVariant();
+                    } else {
+                        params.cancelSearch = false;
+                    }
                 }
             });
         }
@@ -211,8 +218,11 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
-                    if (~title.indexOf(prefix) && dirEntry.namespace === "A")
+                    if (~title.indexOf(prefix) && dirEntry.namespace === "A") {
                         dirEntries.push(dirEntry);
+                        // Report interim result
+                        callback(dirEntry, true);
+                    }
                     return addDirEntries(index + 1);
                 });
             };
