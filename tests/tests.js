@@ -172,7 +172,8 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("check findDirEntriesWithPrefix 'A'", function(assert) {
             var done = assert.async();
             assert.expect(2);
-            var callbackFunction = function(dirEntryList) {
+            var callbackFunction = function(dirEntryList, stillSearching) {
+                if (stillSearching) return;
                 assert.ok(dirEntryList && dirEntryList.length === 5, "Article list with 5 results");
                 var firstDirEntry = dirEntryList[0];
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
@@ -183,7 +184,8 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("check findDirEntriesWithPrefix 'a'", function(assert) {
             var done = assert.async();
             assert.expect(2);
-            var callbackFunction = function(dirEntryList) {
+            var callbackFunction = function(dirEntryList, stillSearching) {
+                if (stillSearching) return;
                 assert.ok(dirEntryList && dirEntryList.length === 5, "Article list with 5 results");
                 var firstDirEntry = dirEntryList[0];
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
@@ -194,7 +196,8 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("check findDirEntriesWithPrefix 'blues brothers'", function(assert) {
             var done = assert.async(3);
             assert.expect(6);
-            var callbackFunction = function(dirEntryList) {
+            var callbackFunction = function(dirEntryList, stillSearching) {
+                if (stillSearching) return;
                 assert.ok(dirEntryList && dirEntryList.length === 3, "Article list with 3 result");
                 var firstDirEntry = dirEntryList[0];
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'Blues Brothers (film)', 'First result should be "Blues Brothers (film)"');
