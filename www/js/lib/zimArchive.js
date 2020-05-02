@@ -172,7 +172,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 return;
             }
             // Dynamically populate list of articles
-            if (dirEntries.length && !params.cancelSearch) callback(dirEntries, true);
+            if (!params.cancelSearch) callback(dirEntries, true);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
             that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries) {

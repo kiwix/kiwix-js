@@ -1004,7 +1004,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             message = nbDirEntry + ' articles found' + (stillSearching ? ' (searching for more...)' : '.');
         }
         if (nbDirEntry === 0) {
-            message = 'No articles found.';
+            message = stillSearching ? 'Searching...' : 'No articles found.';
         }
 
         articleListHeaderMessageDiv.html(message);
