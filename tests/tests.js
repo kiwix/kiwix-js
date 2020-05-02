@@ -109,10 +109,14 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             var testString2 = "Paris";
             var testString3 = "le Couvre-chef Est sur le porte-manteaux";
             var testString4 = "épée";
-            assert.equal(util.ucFirstLetter(testString1), "Téléphone", "The first letter should be upper-case");
-            assert.equal(util.lcFirstLetter(testString2), "paris", "The first letter should be lower-case");
-            assert.equal(util.ucEveryFirstLetter(testString3), "Le Couvre-Chef Est Sur Le Porte-Manteaux", "The first letter of every word should be upper-case");
-            assert.equal(util.ucFirstLetter(testString4), "Épée", "The first letter should be upper-case (with accent)");
+            var testString5 = '“¡xριστός  $Άνέστη!”';
+            var testString6 = "Καλά Νερά Μαγνησίας";
+            assert.equal(util.allCaseFirstLetters(testString1)[1], "Téléphone", "The first letter should be uppercase");
+            assert.equal(util.allCaseFirstLetters(testString2)[2], "paris", "The first letter should be lowercase");
+            assert.equal(util.allCaseFirstLetters(testString3)[1], "Le Couvre-Chef Est Sur Le Porte-Manteaux", "The first letter of every word should be uppercase");
+            assert.equal(util.allCaseFirstLetters(testString4)[1], "Épée", "The first letter should be uppercase (with accent)");
+            assert.equal(util.allCaseFirstLetters(testString5)[6], '“¡Xριστός $άνέστη!”', "First non-punctuation Unicode letter should be uppercase, second (with accent) lowercase");
+            assert.equal(util.allCaseFirstLetters(testString6, "full")[1], "ΚΑΛΆ ΝΕΡΆ ΜΑΓΝΗΣΊΑΣ", "All Unicode letters should be uppercase");
         });
         QUnit.test("check removal of parameters in URL", function(assert) {
             var testUrl1 = "A/question.html";
