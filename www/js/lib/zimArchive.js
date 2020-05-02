@@ -158,7 +158,12 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         // where uppercase and lowercase combinations are exactly the same, e.g. where prefix begins with punctuation
         // or currency signs, for languages without case, or where user-entered case duplicates calculated case
         var prefixVariants = util.removeDuplicateStringsInSmallArray(
-            util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType));
+            // Get basic combinations first for speed of returning results
+            util.allCaseFirstLetters(prefix).concat(
+                params.titleSearchCaseMatchType === 'full' ?
+                    util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType) : []
+            )
+        );
         var dirEntries = [];
 
         function searchNextVariant() {
