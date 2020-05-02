@@ -166,11 +166,17 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 callback(dirEntries);
                 return;
             }
+            // Dynamically populate list of articles
+            if (dirEntries.length && !params.cancelSearch) callback(dirEntries, true);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
             that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries) {
                 dirEntries.push.apply(dirEntries, newDirEntries);
-                searchNextVariant();
+                if (!params.cancelSearch) {
+                    searchNextVariant();
+                } else {
+                    params.cancelSearch = false;
+                }
             });
         }
         searchNextVariant();
@@ -199,7 +205,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
-                    if (!title.indexOf(prefix) && dirEntry.namespace === "A")
+                    if (~title.indexOf(prefix) && dirEntry.namespace === "A")
                         dirEntries.push(dirEntry);
                     return addDirEntries(index + 1);
                 });

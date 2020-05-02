@@ -985,12 +985,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     }
 
-  
+    // Allows the search to be cancelled if user clicks on a found title
+    params.cancelSearch = false;
+    
     /**
      * Display the list of articles with the given array of DirEntry
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
+     * @param {Boolean} stillSearching A flag to indicate that the search is not complete
      */
-    function populateListOfArticles(dirEntryArray) {
+    function populateListOfArticles(dirEntryArray, stillSearching) {
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
@@ -998,7 +1001,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (nbDirEntry >= params.maxSearchResultsSize) {
             message = 'First ' + params.maxSearchResultsSize + ' articles below (refine your search).';
         } else {
-            message = nbDirEntry + ' articles found.';
+            message = nbDirEntry + ' articles found' + (stillSearching ? ' (searching for more...)' : '.');
         }
         if (nbDirEntry === 0) {
             message = 'No articles found.';
@@ -1019,10 +1022,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first 
         // and prevents this event from firing; note that touch also triggers mousedown
         $('#articleList a').on('mousedown', function (e) {
+            params.cancelSearch = true;
             handleTitleClick(e);
             return false;
         });
-        $('#searchingArticles').hide();
+        if (!stillSearching) $('#searchingArticles').hide();
         $('#articleListWithHeader').show();
     }
     

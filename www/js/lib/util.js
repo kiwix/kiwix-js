@@ -59,12 +59,12 @@ define(['q'], function(Q) {
             var numCombos = Math.pow(base, strParts.length);
             var typeCase, mixedTypeCaseStr, bitmask, caseBit;
             // Iterate through every possible combination, starting with (base ^ n) - 1 and decreasing; we go from high to low,
-            // because all uppercase (e.g. tertiary 2222) has lower Unicode value than all lowercase (0000) so will be found first
+            // because title case (e.g. tertiary 1111) is more common than all lowercase (0000) so will be found first
             for (var i = numCombos; i--;) {
                 mixedTypeCaseStr = '';
                 bitmask = 1;
-                for (var j = strParts.length; j--;) {
-                    // Get modulus of division (this is equivelent to bitwise AND for different bases)
+                for (var j = 0; j < strParts.length; j++) {
+                    // Get modulus of division (this is equivalent to bitwise AND for different bases)
                     // caseBit will be 0, 1 or 2 (latter only for 'full' case calcualation)
                     caseBit = ~~(i / bitmask % base);
                     if (caseBit === 2) {
@@ -77,7 +77,7 @@ define(['q'], function(Q) {
                             return caseBit ? m.toLocaleUpperCase() : m.toLocaleLowerCase();
                         });
                     }
-                    mixedTypeCaseStr = typeCase + mixedTypeCaseStr;
+                    mixedTypeCaseStr += typeCase;
                     // Shift bitmask to the next higher bit
                     bitmask *= base;
                 }
