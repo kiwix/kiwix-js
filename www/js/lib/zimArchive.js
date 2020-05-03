@@ -239,7 +239,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 });
             };
             return addDirEntries(firstIndex);
-        }).then(callback);
+        }).then(function (data) {
+            if (!params.cancelSearch) callback(data);
+        });
     };
     
     /**
