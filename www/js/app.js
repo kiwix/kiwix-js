@@ -950,25 +950,27 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         });
     };
 
+    // A variable to hold the last used prefix (to prevent searching the same string twice)
+    var lastPrefix = '';
+
     /**
      * Handle key input in the prefix input zone
-     * @param {Event} evt
+     * @param {Event} evt The event data to handle
      */
     function onKeyUpPrefix(evt) {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
         // It is also necessary for the words suggestions to work inside Firefox OS
-        if(window.timeoutKeyUpPrefix) {
+        if (window.timeoutKeyUpPrefix) {
             window.clearTimeout(window.timeoutKeyUpPrefix);
         }
-        window.timeoutKeyUpPrefix = window.setTimeout(function() {
+        window.timeoutKeyUpPrefix = window.setTimeout(function () {
             var prefix = $("#prefix").val();
-            if (prefix && prefix.length>0) {
+            if (prefix && prefix.length > 0 && prefix !== lastPrefix) {
                 $('#searchArticles').click();
+                lastPrefix = prefix;
             }
-        }
-        ,500);
+        }, 500);
     }
-
 
     /**
      * Search the index for DirEntries with title that start with the given prefix (implemented
