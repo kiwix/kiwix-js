@@ -44,10 +44,6 @@ define(['q'], function(Q) {
     function allCaseFirstLetters(string, caseMatchType) {
         if (string) {
             var comboArray = [];
-            // Ensure a search is done on the string exactly as typed
-            comboArray.push(string);
-            // Normalize any spacing and make string all lowercase
-            string = string.replace(/\s+/g, ' ').toLocaleLowerCase();
             // Split string into parts beginning with first word letters
             var strParts = string.match(regExpFindStringParts);
             // Set the base (binary or ternary) according to the complexity of the search
@@ -69,7 +65,7 @@ define(['q'], function(Q) {
                     caseBit = ~~(i / bitmask % base);
                     if (caseBit === 2) {
                         // All uppercase
-                        typeCase = strParts[j].toLocaleUpperCase()
+                        typeCase = strParts[j].toLocaleUpperCase();
                     } else {
                         // Modify only first letter
                         typeCase = strParts[j].replace(/^./, function (m) {

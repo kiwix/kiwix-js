@@ -156,14 +156,26 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback, noInterim) {
         params.cancelSearch = false;
         var that = this;
+        // Establish array of initial values that must be searched first
+        var startArray = [];
+        // Ensure a search is done on the string exactly as typed
+        startArray.push(prefix);
+        // Normalize any spacing and make string all lowercase
+        prefix = prefix.replace(/\s+/g, ' ').toLocaleLowerCase();
+        // Add lowercase string with initial uppercase (this is a very common pattern)
+        startArray.push(prefix.replace(/^./, function (m) {
+            return m.toLocaleUpperCase();
+        }));
         // We have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
         // where uppercase and lowercase combinations are exactly the same, e.g. where prefix begins with punctuation
         // or currency signs, for languages without case, or where user-entered case duplicates calculated case
         var prefixVariants = util.removeDuplicateStringsInSmallArray(
-            // Get basic combinations first for speed of returning results
-            util.allCaseFirstLetters(prefix).concat(
-                params.titleSearchCaseMatchType === 'full' ?
-                    util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType) : []
+            startArray.concat(
+                // Get basic combinations first for speed of returning results
+                util.allCaseFirstLetters(prefix).concat(
+                    params.titleSearchCaseMatchType === 'full' ?
+                        util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType) : []
+                )
             )
         );
         var dirEntries = [];
