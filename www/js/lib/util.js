@@ -55,7 +55,7 @@ define(['q'], function(Q) {
             var numCombos = Math.pow(base, strParts.length);
             var typeCase, mixedTypeCaseStr, bitmask, caseBit;
             // Iterate through every possible combination, starting with (base ^ n) - 1 and decreasing; we go from high to low,
-            // because title case (e.g. tertiary 1111) is more common than all lowercase (0000) so will be found first
+            // because title case (e.g. binary 1111) is more common than all lowercase (0000) so will be found first
             for (var i = numCombos; i--;) {
                 mixedTypeCaseStr = '';
                 bitmask = 1;
