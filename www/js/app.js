@@ -1088,6 +1088,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function readArticle(dirEntry) {
         params.cancelSearch = true;
+        // Reset lastPrefix to allow users to search the same string again if they want to
+        lastPrefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
