@@ -192,8 +192,8 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             localZimArchive.findDirEntriesWithPrefix('a', 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'blues brothers'", function(assert) {
-            var done = assert.async(3);
-            assert.expect(6);
+            var done = assert.async();
+            assert.expect(2);
             var callbackFunction = function(dirEntryList) {
                 assert.ok(dirEntryList && dirEntryList.length === 3, "Article list with 3 result");
                 var firstDirEntry = dirEntryList[0];
