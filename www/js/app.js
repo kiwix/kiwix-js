@@ -205,7 +205,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
-        if (!searchArticlesFocused) $('#articleListWithHeader').hide();
+        if (!searchArticlesFocused) {
+            params.cancelSearch = true;
+            $('#articleListWithHeader').hide();
+        }
     });
     $("#btnRandomArticle").on("click", function(e) {
         $('#prefix').val("");
@@ -985,9 +988,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     }
 
-    // Allows the search to be cancelled if user clicks on a found title
-    params.cancelSearch = false;
-    
     /**
      * Display the list of articles with the given array of DirEntry
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
@@ -1084,7 +1084,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-	    // Only update for expectedArticleURLToBeDisplayed.
+        params.cancelSearch = true;
+        // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
@@ -1566,6 +1567,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     
     function goToRandomArticle() {
+        params.cancelSearch = true;
         $("#searchingArticles").show();
         selectedArchive.getRandomDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
@@ -1587,6 +1589,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     
     function goToMainArticle() {
+        params.cancelSearch = true;
         $("#searchingArticles").show();
         selectedArchive.getMainPageDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {

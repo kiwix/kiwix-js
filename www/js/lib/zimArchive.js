@@ -154,6 +154,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {Boolean} noInterim A flag to prevent callback until all results are ready 
      */
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback, noInterim) {
+        params.cancelSearch = false;
         var that = this;
         // We have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
         // where uppercase and lowercase combinations are exactly the same, e.g. where prefix begins with punctuation
@@ -180,14 +181,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries, interim) {
                 if (interim) {
                     inProgressResults = inProgressResults.concat(newDirEntries);
-                    if (!params.cancelSearch) callback(inProgressResults, true);
+                    if (!params.cancelSearch && !noInterim) callback(inProgressResults, true);
+                    return;
                 } else {
-                    dirEntries.push.apply(dirEntries, newDirEntries);
+                    [].push.apply(dirEntries, newDirEntries);
                     if (!params.cancelSearch) {
                         inProgressResults = dirEntries;
                         searchNextVariant();
-                    } else {
-                        params.cancelSearch = false;
                     }
                 }
             });
