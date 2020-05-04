@@ -125,8 +125,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
-        pushBrowserHistoryState(null, state.searches[0].prefix);
-        searchDirEntriesFromPrefix();
+        pushBrowserHistoryState(null, $('#prefix').val());
+        searchDirEntriesFromPrefix($('#prefix').val());
         $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
@@ -713,9 +713,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
                 if (titleSearch !== state.searches[0].prefix) {
-                    state.searches.unshift({'prefix': titleSearch, 'state': ''});
-                    state.searches.pop();
-                    searchDirEntriesFromPrefix();
+                    searchDirEntriesFromPrefix(titleSearch);
                 } else {
                     $('#prefix').focus();
                 }
@@ -952,7 +950,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         });
     };
 
-
     /**
      * Handle key input in the prefix input zone
      * @param {Event} evt The event data to handle
@@ -966,22 +963,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         window.timeoutKeyUpPrefix = window.setTimeout(function () {
             var prefix = $("#prefix").val();
             if (prefix && prefix.length > 0 && prefix !== state.searches[0].prefix) {
-                state.searches.unshift({'prefix': prefix, 'state': ''});                
                 $('#searchArticles').click();
             }
         }, 500);
     }
 
     /**
-     * Search the title list for DirEntries with title that starts with the current search prefix of the state object
-     * (implemented with a binary search inside the index file)
+     * Search the index for DirEntries with title that start with the given prefix (implemented
+     * with a binary search inside the index file)
+     * @param {String} prefix The string that must appear at the start of any title searched for
      */
-    function searchDirEntriesFromPrefix() {
+    function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
+            // Cancel any previous search that may still be running
+            state.searches[0].state = 'cancelled';
+            // Store the new search term at the top of the state.searches array and initialize
+            state.searches.unshift({'prefix': prefix, 'state': 'init'});
             $('#activeContent').hide();
-            // Completely delete any existing search
-            state.searches[1].state = 'cancelled';
-            state.searches[0].state = 'init';
             selectedArchive.findDirEntriesWithPrefix(state.searches[0], params.maxSearchResultsSize, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
