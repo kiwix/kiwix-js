@@ -327,12 +327,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         speedReadConfig.playing = false;
         // wait for the last word display
         setTimeout(function () {
-            speedReadConfig.wordIndex = 0;
-            speedReadConfig.bufferIndex = 0;
-            speedReadConfig.buffer = [];
-            $('#btnSpeedReadPause').hide();
-            $('#btnSpeedReadPlay').show();
-            $('#speedReadwordHolder').html('Press play to start reading!');
+            var articleText = $('#articleContent').contents()[0].body.innerText;
+            if(!articleText){
+                console.error("Can't find article text");
+            } else {
+                $('#btnSpeedReadPlay').show();
+                $('#btnSpeedReadPause').hide();
+                var articleWords = articleText.split(/\s+/);
+                speedReadConfig.playing = false;
+                speedReadConfig.wordIndex = 0;
+                speedReadConfig.words = articleWords;
+                speedReadConfig.buffer = [];
+                speedReadConfig.bufferIndex = 0;
+                $('#speedReadwordHolder').html('Press play to start reading!');
+            }
         }, speedReadConfig.delay+1);
     });
 
