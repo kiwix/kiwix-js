@@ -173,8 +173,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             startArray.concat(
                 // Get basic combinations first for speed of returning results
                 util.allCaseFirstLetters(prefix).concat(
-                    params.titleSearchCaseMatchType === 'full' ?
-                        util.allCaseFirstLetters(prefix, params.titleSearchCaseMatchType) : []
+                    util.allCaseFirstLetters(prefix, 'full')
                 )
             )
         );

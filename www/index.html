@@ -271,36 +271,6 @@
                             <div class="card-header">Speed up archive access</div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div  title="Article title search is case-sensitive: *comprehensive* tries all first-letter and whole-word case combinations; *basic* tries only the most common combinations"
-                                        class="col-sm-6">
-                                        <div class="radio">
-                                            <p>Select type of article title search:</p>
-                                            <label>
-                                                <input type="radio" name="caseMatchType" value="full"
-                                                    id="caseMatchTypeRadioFull" checked>
-                                                <strong>Comprehensive case matching</strong> (slower, but will find more articles)
-                                            </label>
-                                        </div>
-                                        <div class="radio">
-                                            <label>
-                                                <input type="radio" name="caseMatchType" value="basic"
-                                                    id="caseMatchTypeRadioBasic">
-                                                <strong>Basic case matching</strong> (faster, but may find fewer articles)
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div class="range">
-                                            <p>Select max number of search results:</p>
-                                            <label>
-                                                <input type="range" class="form-control-range" min="5" max="50" id="titleSearchRange" value="25">
-                                                <span>Value: <span id="titleSearchRangeVal"></span> (<i>increases search time</i>)</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <br />
-                                <div class="row">
                                     <div class="col-sm-6">
                                         <div class="radio">
                                             <p>Kiwix JS can speed up the display of articles by caching assets:</p>
@@ -332,6 +302,20 @@
                                                     <p>Assets: <b id="assetsCount"></b></p>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <p>Select max number of search results:</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="range">
+                                            <label>
+                                                <input type="range" class="form-control-range" min="5" max="100" id="titleSearchRange" value="25">
+                                                <span>Value: <span id="titleSearchRangeVal"></span> (<i>increases search time</i>)</span>
+                                            </label>
                                         </div>
                                     </div>
                                 </div>

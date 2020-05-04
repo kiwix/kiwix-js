@@ -70,11 +70,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
-    // A parameter to set the case matching type for title search (defaults to 'full')
-    params['titleSearchCaseMatchType'] = settingsStore.getItem('titleSearchCaseMatchType') || 'full';
-    document.querySelector('input[name="caseMatchType"][value="' + params.titleSearchCaseMatchType + '"]').checked = true;
-    // Maximum number of article titles to return (range is 5 - 50, default 25)
-    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
+    // Maximum number of article titles to return (range is 5 - 100, default 30)
+    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 30;
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
     document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
@@ -366,14 +363,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if ('caches' in window) caches.delete(CACHE_NAME);
             refreshCacheStatus();
         }
-    });
-    Array.prototype.slice.call(document.querySelectorAll('input[name="caseMatchType"]')).forEach(function(input) {
-        input.addEventListener('change', function(e) {
-            if (e.target.checked) {
-                settingsStore.setItem('titleSearchCaseMatchType', e.target.value, Infinity);
-                params.titleSearchCaseMatchType = e.target.value;
-            }
-        });
     });
     document.getElementById('titleSearchRange').addEventListener('change', function(e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
