@@ -125,8 +125,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
-        pushBrowserHistoryState(null, $('#prefix').val());
-        searchDirEntriesFromPrefix(state.searches[0].prefix);
+        pushBrowserHistoryState(null, state.searches[0].prefix);
+        searchDirEntriesFromPrefix();
         $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
@@ -713,8 +713,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
                 if (titleSearch !== state.searches[0].prefix) {
-                    state.searches.push({'prefix': titleSearch, 'state': ''});
-                    searchDirEntriesFromPrefix(titleSearch);
+                    state.searches.unshift({'prefix': titleSearch, 'state': ''});
+                    state.searches.pop();
+                    searchDirEntriesFromPrefix();
                 } else {
                     $('#prefix').focus();
                 }
