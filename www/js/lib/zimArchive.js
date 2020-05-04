@@ -142,19 +142,19 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
 
     /**
-     * Look for DirEntries with title starting with the given prefix.
+     * Look for DirEntries with title starting with the prefix of the current search object.
      * For now, ZIM titles are case sensitive.
      * So, as workaround, we try several variants of the prefix to find more results.
      * This should be enhanced when the ZIM format will be modified to store normalized titles
      * See https://phabricator.wikimedia.org/T108536
      * 
-     * @param {String} prefix The search string
+     * @param {Object} search The current state.searches object
      * @param {Integer} resultSize The number of dirEntries to find
      * @param {callbackDirEntryList} callback The funciton to call with the result
      * @param {Boolean} noInterim A flag to prevent callback until all results are ready 
      */
-    ZIMArchive.prototype.findDirEntriesWithPrefix = function (prefix, resultSize, callback, noInterim) {
-        params.cancelSearch = false;
+    ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, resultSize, callback, noInterim) {
+        var prefix = search.prefix;
         var that = this;
         // Establish array of initial values that must be searched first
         var startArray = [];
@@ -182,26 +182,28 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var inProgressResults = [];
 
         function searchNextVariant() {
+            // If user has initiated a new search, cancel this one
+            if (search.state === 'cancelled') return;
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
-                callback(dirEntries);
+                search.state = 'complete';
+                callback(dirEntries, search);
                 return;
             }
             // Dynamically populate list of articles
-            if (!params.cancelSearch && !noInterim) callback(dirEntries, true);
+            search.state = 'interim';
+            if (!noInterim) callback(dirEntries, search);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
-            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, function (newDirEntries, interim) {
+            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, search, function (newDirEntries, interim) {
+                if (search.state === 'cancelled') return;
                 if (interim) {
                     inProgressResults = inProgressResults.concat(newDirEntries);
-                    if (!params.cancelSearch && !noInterim) callback(inProgressResults, true);
-                    return;
                 } else {
                     [].push.apply(dirEntries, newDirEntries);
-                    if (!params.cancelSearch) {
-                        inProgressResults = dirEntries;
-                        searchNextVariant();
-                    }
+                    inProgressResults = dirEntries;
+                    searchNextVariant();
                 }
+                if (!noInterim) callback(inProgressResults, search);
             });
         }
         searchNextVariant();
@@ -212,9 +214,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @param {String} prefix The case-sensitive value against which dirEntry titles (or url) will be compared
      * @param {Integer} resultSize The maximum number of results to return
+     * @param {Object} search The original state.searches search object (so that we can cancel long binary searches)
      * @param {callbackDirEntryList} callback The function to call with the array of dirEntries with titles that begin with prefix
      */
-    ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, callback) {
+    ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
@@ -226,7 +229,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         }, true).then(function(firstIndex) {
             var dirEntries = [];
             var addDirEntries = function(index) {
-                if (params.cancelSearch || index >= firstIndex + resultSize || index >= that._file.articleCount)
+                if (search.state === 'cancelled' || index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
@@ -239,9 +242,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 });
             };
             return addDirEntries(firstIndex);
-        }).then(function (data) {
-            if (!params.cancelSearch) callback(data);
-        });
+        }).then(callback);
     };
     
     /**
