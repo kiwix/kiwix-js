@@ -203,28 +203,140 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (!searchArticlesFocused) $('#articleListWithHeader').hide();
     });
 
-    $('#btnSpeedRead').on("click", function(e) {
-        $('.navbar-collapse').collapse('hide');
-        if(params.isLandingPage){
-            // not to be encountered in normal operation
-            alert('Open an article first to use speed read');
-        } else {
-            // extract the article text and split it using white space
-            var articleText = $('#articleContent').contents()[0].body.innerText;
-            if(!articleText){
-                console.error("Can't find article text");
-            } else {
-                var articleWords = articleText.split(/\s+/);
-                var speedReadWindow = window.open('speedread.html', '_blank', 'width=400,height=100');
-                if(!speedReadWindow){
-                    console.error("Can't open a new window.");
+    // speedreading controls
+    var speedReadConfig = {
+        wordsPerSec: 4,
+        // delay = 1000 * (1 / wordsPerSec)
+        delay: 1000 / 4,
+        // find the focus point of a word and add spacing
+        findFocusAndFormat: function(word) {
+            var focusPoint = Math.floor(word.length / 2);
+            while(focusPoint > 0){
+                if(/[aeiou]/.test(word[focusPoint])){
+                    break;
                 } else {
-                    // pass the 
-                    speedReadWindow.words = articleWords;
+                    focusPoint--;
                 }
             }
+            if(!(/[aeiou]/.test(word[focusPoint]))){
+                focusPoint = Math.floor(word.length / 2);
+            }
+
+            // add the necessary spacing
+            var front = Array(8-focusPoint).join('&nbsp;')+ 
+                    word.slice(0, focusPoint);
+            var middle = '<span style="color:red">'+word[focusPoint]+'</span>'
+            var end = word.slice(focusPoint+1, word.length)+
+                    Array(8-(word.length-focusPoint+1)).join('&nbsp;');
+
+            return front+middle+end;
+        }
+    };
+    function playWords() {
+        if(!speedReadConfig.playing){
+            return;
+        }
+
+        // there is a hyphenated portion of a word yet to be displayed
+        if(speedReadConfig.bufferIndex < speedReadConfig.buffer.length){
+            var word = speedReadConfig.buffer[speedReadConfig.bufferIndex++];
+            var displayText = speedReadConfig.findFocusAndFormat(word);
+            $('#speedReadwordHolder').html(displayText);
+            setTimeout(playWords, speedReadConfig.delay+1);
+        } else {
+            // end of article
+            if(speedReadConfig.wordIndex === speedReadConfig.words.length){
+                $('#speedReadwordHolder').html('Article Finished!');
+                $('#btnSpeedReadReset').click();
+                return;
+            }
+
+            // take the next word and hyphenate if necessary
+            var word = speedReadConfig.words[speedReadConfig.wordIndex++];
+
+            if(word.length <= 7) {
+                var displayText = speedReadConfig.findFocusAndFormat(word);
+                $('#speedReadwordHolder').html(displayText);
+                setTimeout(playWords, speedReadConfig.delay+1);
+            } else { // word is too big, needs to be hyphenated
+                speedReadConfig.buffer = [];
+                speedReadConfig.bufferIndex = 0;
+                
+                var start = 0;
+                while(start+7 < word.length){
+                    speedReadConfig.buffer.push(word.slice(start, start+7)+'-');
+                    start += 7;
+                }
+                speedReadConfig.buffer.push(word.slice(start, word.length));
+                playWords();
+            }
+        }
+    }
+    $('#btnSpeedRead').on("click", function() {
+        $('.navbar-collapse').collapse('hide');
+        // extract the text and split it using white space
+        var articleText = $('#articleContent').contents()[0].body.innerText;
+        if(!articleText){
+            console.error("Can't find article text");
+        } else {
+            $('#speedReadApp').show();
+            $('#btnSpeedReadPlay').show();
+            $('#btnSpeedReadPause').hide();
+            var articleWords = articleText.split(/\s+/);
+            speedReadConfig.playing = false;
+            speedReadConfig.wordIndex = 0;
+            speedReadConfig.words = articleWords;
+            speedReadConfig.buffer = [];
+            speedReadConfig.bufferIndex = 0;
+            $('#speedReadwordHolder').html('Press play to start reading!');
         }
     });
+    $('#btnSpeedReadClose').on("click", function() {
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
+    });
+    $('#btnSpeedReadPlay').on("click", function() {
+        if(!speedReadConfig.playing){
+            // article is now playing, hide the play button and show the pause button
+            speedReadConfig.playing = true;
+            $('#btnSpeedReadPlay').hide();
+            $('#btnSpeedReadPause').show();
+            playWords();
+        } else {
+            // not supposed to encounter this in normal operation
+            $('#btnSpeedReadPause').show();
+            $('#btnSpeedReadPlay').hide();
+        }
+    });
+    $('#btnSpeedReadPause').on('click', function() {
+        // wait for the last word display
+        speedReadConfig.playing = false;
+        setTimeout(function () {
+            if(speedReadConfig.playing){
+                // article was playing, hide the pause button and show the play button
+                $('#btnSpeedReadPause').hide();
+                $('#btnSpeedReadPlay').show();
+            } else {
+                // not supposed to encounter this in normal operation
+                $('#btnSpeedReadPause').hide();
+                $('#btnSpeedReadPlay').show();
+            }
+        }, speedReadConfig.delay+1);
+    });
+    $('#btnSpeedReadReset').on('click', function() {
+        speedReadConfig.playing = false;
+        // wait for the last word display
+        setTimeout(function () {
+            speedReadConfig.wordIndex = 0;
+            speedReadConfig.bufferIndex = 0;
+            speedReadConfig.buffer = [];
+            $('#btnSpeedReadPause').hide();
+            $('#btnSpeedReadPlay').show();
+            $('#speedReadwordHolder').html('Press play to start reading!');
+        }, speedReadConfig.delay+1);
+    });
+
+
 
     $("#btnRandomArticle").on("click", function(e) {
         $('#prefix').val("");
@@ -232,6 +344,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $('.navbar-collapse').collapse('hide');
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
     });
     
     $('#btnRescanDeviceStorage').on("click", function(e) {
@@ -262,6 +376,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","");
         $('.navbar-collapse').collapse('hide');
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
         if (params.showUIAnimations) { 
@@ -296,6 +412,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#liConfigureNav').attr("class","active");
         $('#liAboutNav').attr("class","");
         $('.navbar-collapse').collapse('hide');
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
         if (params.showUIAnimations) { 
@@ -322,6 +440,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#liConfigureNav').attr("class","");
         $('#liAboutNav').attr("class","active");
         $('.navbar-collapse').collapse('hide');
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
         if (params.showUIAnimations) { 
@@ -1049,6 +1169,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
+            $('#btnSpeedReadReset').click();
+            $('#speedReadApp').hide();
+
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
             // Remove focus from search field to hide keyboard and to allow navigation keys to be used
             document.getElementById('articleContent').contentWindow.focus();
@@ -1089,13 +1212,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
-
-        // display the speedread button if we're on an article
-        if(params.isLandingPage){
-            $('#btnSpeedRead').hide();
-        } else {
-            $('#btnSpeedRead').show();
-        }
 
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
@@ -1555,6 +1671,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function goToArticle(title, download, contentType) {
         $("#searchingArticles").show();
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
@@ -1595,6 +1713,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     function goToMainArticle() {
         $("#searchingArticles").show();
+        $('#btnSpeedReadReset').click();
+        $('#speedReadApp').hide();
         selectedArchive.getMainPageDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 console.error("Error finding main article.");
