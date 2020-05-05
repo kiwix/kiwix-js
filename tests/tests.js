@@ -104,19 +104,19 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
            var float = util.readFloatFrom4Bytes(byteArray, 0);
            assert.equal(float, -118.625, "the IEEE_754 float should be converted as -118.625");
         });
-        QUnit.test("check upper/lower case variations", function(assert) {
+        QUnit.test("check upper/lower case variations", function (assert) {
             var testString1 = "téléphone";
             var testString2 = "Paris";
             var testString3 = "le Couvre-chef Est sur le porte-manteaux";
             var testString4 = "épée";
-            var testString5 = '“¡xριστός $Ἀνέστη!”';
-            var testString6 = "Καλά Νερά Μαγνησίας";
-            assert.equal(util.allCaseFirstLetters(testString1)[0], "Téléphone", "The first letter should be uppercase");
-            assert.equal(util.allCaseFirstLetters(testString2)[1], "paris", "The first letter should be lowercase");
-            assert.equal(util.allCaseFirstLetters(testString3)[0], "Le Couvre-Chef Est Sur Le Porte-Manteaux", "The first letter of every word should be uppercase");
-            assert.equal(util.allCaseFirstLetters(testString4)[0], "Épée", "The first letter should be uppercase (with accent)");
-            assert.equal(util.allCaseFirstLetters(testString5)[4], '“¡Xριστός $ἀνέστη!”', "First non-punctuation Unicode letter should be uppercase, second (with breath mark) lowercase");
-            assert.equal(util.allCaseFirstLetters(testString6, "full")[0], "ΚΑΛΆ ΝΕΡΆ ΜΑΓΝΗΣΊΑΣ", "All Unicode letters should be uppercase");
+            var testString5 = '$￥€“«xριστός» †¡Ἀνέστη!”';
+            var testString6 = "Καλά Νερά Μαγνησίας žižek";
+            assert.equal(util.allCaseFirstLetters(testString1).indexOf("Téléphone") >= 0, true, "The first letter should be uppercase");
+            assert.equal(util.allCaseFirstLetters(testString2).indexOf("paris") >= 0, true, "The first letter should be lowercase");
+            assert.equal(util.allCaseFirstLetters(testString3).indexOf("Le Couvre-Chef Est Sur Le Porte-Manteaux") >= 0, true, "The first letter of every word should be uppercase");
+            assert.equal(util.allCaseFirstLetters(testString4).indexOf("Épée") >= 0, true, "The first letter should be uppercase (with accent)");
+            assert.equal(util.allCaseFirstLetters(testString5).indexOf('$￥€“«Xριστός» †¡ἀνέστη!”') >= 0, true, "First non-punctuation/non-currency Unicode letter should be uppercase, second (with breath mark) lowercase");
+            assert.equal(util.allCaseFirstLetters(testString6, "full").indexOf("ΚΑΛΆ ΝΕΡΆ ΜΑΓΝΗΣΊΑΣ ŽIŽEK") >= 0, true, "All Unicode letters should be uppercase");
         });
         QUnit.test("check removal of parameters in URL", function(assert) {
             var testUrl1 = "A/question.html";
