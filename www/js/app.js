@@ -85,7 +85,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // An array to hold searches and their state (allows modules to tell which search is current and cancel old searches)
     state['searches'] = [{
         'prefix': '', // A field to hold the original search string
-        'state': ''   // The state of the search: ''|'init'|'interim'|'cancelled'|'complete'
+        'state': '',  // The state of the search: ''|'init'|'interim'|'cancelled'|'complete'
+        'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     }];
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
@@ -126,6 +127,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('.alert').hide();
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, $('#prefix').val());
+        // Initiate the search
         searchDirEntriesFromPrefix($('#prefix').val());
         $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
@@ -978,7 +980,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Cancel any previous search that may still be running
             state.searches[0].state = 'cancelled';
             // Store the new search term at the top of the state.searches array and initialize
-            state.searches.unshift({'prefix': prefix, 'state': 'init'});
+            state.searches.unshift({'prefix': prefix, 'state': 'init', 'type': ''});
             $('#activeContent').hide();
             selectedArchive.findDirEntriesWithPrefix(state.searches[0], params.maxSearchResultsSize, populateListOfArticles);
         } else {
@@ -1006,10 +1008,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (nbDirEntry >= params.maxSearchResultsSize) {
             message = 'First ' + params.maxSearchResultsSize + ' articles below (refine your search).';
         } else {
-            message = nbDirEntry + ' articles found' + (stillSearching ? ' (searching for more...)' : '.');
+            message = nbDirEntry + ' articles found' + (stillSearching ? ' (searching for more...)' : 
+                search.type === 'full'? '.' : ' with basic search (try fewer words for full search).');
         }
         if (nbDirEntry === 0) {
-            message = stillSearching ? 'Searching...' : 'No articles found.';
+            message = stillSearching ? 'Searching... (' + search.type + ')' :
+                search.type === 'full' ? 'No articles found (full search).' : 'Basic search: no articles found (try fewer words for full search).';
         }
 
         articleListHeaderMessageDiv.html(message);
