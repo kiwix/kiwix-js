@@ -215,6 +215,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             state.searches[0].state = 'cancelled';
             $("#searchingArticles").hide();
             $('#articleListWithHeader').hide();
+            // Prune the searches array (most recent must be kept as comparator)
+            while (state.searches.length > 1) {
+                state.searches.pop();
+            }
         }
     });
     $("#btnRandomArticle").on("click", function(e) {
@@ -977,7 +981,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            // Cancel any previous search that may still be running
+            // Cancel any previous search that may still be running before creating new search
             state.searches[0].state = 'cancelled';
             // Store the new search term at the top of the state.searches array and initialize
             state.searches.unshift({'prefix': prefix, 'state': 'init', 'type': ''});
@@ -999,21 +1003,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {Object} search The original search object
      */
     function populateListOfArticles(dirEntryArray, search) {
+        // Do not allow cancelled searches to report
         if (search.state === 'cancelled') return;
         var stillSearching = search.state === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
-        if (nbDirEntry >= params.maxSearchResultsSize) {
-            message = 'First ' + params.maxSearchResultsSize + ' articles below (refine your search).';
+        if (stillSearching) {
+            message = 'Searching [' + search.type + ']... found: ' + nbDirEntry;
+        } else if (nbDirEntry >= params.maxSearchResultsSize) {
+            message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
         } else {
-            message = nbDirEntry + ' articles found' + (stillSearching ? ' (searching for more...)' : 
-                search.type === 'full'? '.' : ' with basic search (try fewer words for full search).');
-        }
-        if (nbDirEntry === 0) {
-            message = stillSearching ? 'Searching... (' + search.type + ')' :
-                search.type === 'full' ? 'No articles found (full search).' : 'Basic search: no articles found (try fewer words for full search).';
+            message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (search.type === 'basic' ? ': try fewer words for full search.' : '.');
         }
 
         articleListHeaderMessageDiv.html(message);
@@ -1031,17 +1033,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first 
         // and prevents this event from firing; note that touch also triggers mousedown
         $('#articleList a').on('mousedown', function (e) {
+            // Cancel search immediately (we'll prune in the blur event)
             state.searches[0].state = 'cancelled';
             handleTitleClick(e);
             return false;
         });
         if (!stillSearching) $('#searchingArticles').hide();
         $('#articleListWithHeader').show();
-        // We've finished searching, so we can trim state.search to prevent it from growing too large
-        if (search.state === 'complete') state.search.pop();
-        
     }
-    
+
     /**
      * Handles the click on the title of an article in search results
      * @param {Event} event
@@ -1096,7 +1096,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-        state.searches[0].state = 'cancelled';
         // Reset state.searches.lastPrefix to allow users to search the same string again if they want to
         state.searches[0].prefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
@@ -1581,7 +1580,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     
     function goToRandomArticle() {
-        state.searches[0].state = 'cancelled';
         $("#searchingArticles").show();
         selectedArchive.getRandomDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
@@ -1603,7 +1601,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     
     function goToMainArticle() {
-        state.searches[0].state = 'cancelled';
         $("#searchingArticles").show();
         selectedArchive.getMainPageDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
