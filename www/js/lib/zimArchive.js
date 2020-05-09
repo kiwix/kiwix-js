@@ -150,8 +150,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @param {Object} search The current state.searches object
      * @param {Integer} resultSize The number of dirEntries to find
-     * @param {callbackDirEntryList} callback The funciton to call with the result
-     * @param {Boolean} noInterim A flag to prevent callback until all results are ready 
+     * @param {callbackDirEntryList} callback The function to call with the result
+     * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing) 
      */
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, resultSize, callback, noInterim) {
         var prefix = search.prefix;
@@ -186,28 +186,29 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
-            if (search.state === 'cancelled') return;
+            if (search.state === 'cancelled') return callback([], search);
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
                 search.state = 'complete';
-                callback(dirEntries, search);
-                return;
+                return callback(dirEntries, search);
             }
             // Dynamically populate list of articles
             search.state = 'interim';
             if (!noInterim) callback(dirEntries, search);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
-            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, search, function (newDirEntries, interim) {
-                if (search.state === 'cancelled') return;
-                if (interim) {
-                    inProgressResults = inProgressResults.concat(newDirEntries);
-                } else {
-                    [].push.apply(dirEntries, newDirEntries);
-                    inProgressResults = dirEntries;
-                    searchNextVariant();
+            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, search,
+                function (newDirEntries, interim) {
+                    if (search.state === 'cancelled') return callback([], search);
+                    if (interim) {
+                        inProgressResults = inProgressResults.concat(newDirEntries);
+                    } else {
+                        [].push.apply(dirEntries, newDirEntries);
+                        inProgressResults = dirEntries;
+                        searchNextVariant();
+                    }
+                    if (!noInterim) callback(inProgressResults, search);
                 }
-                if (!noInterim) callback(inProgressResults, search);
-            });
+            );
         }
         searchNextVariant();
     };
@@ -239,7 +240,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     if (~title.indexOf(prefix) && dirEntry.namespace === "A") {
                         dirEntries.push(dirEntry);
                         // Report interim result
-                        callback(dirEntry, true);
+                        callback([dirEntry], true);
                     }
                     return addDirEntries(index + 1);
                 });

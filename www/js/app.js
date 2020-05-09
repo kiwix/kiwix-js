@@ -1015,7 +1015,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         } else if (nbDirEntry >= params.maxSearchResultsSize) {
             message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
         } else {
-            message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (search.type === 'basic' ? ': try fewer words for full search.' : '.');
+            message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (
+                search.type === 'basic' ? ': try fewer words for full search.' : '.'
+            );
         }
 
         articleListHeaderMessageDiv.html(message);
@@ -1096,7 +1098,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-        // Reset state.searches.lastPrefix to allow users to search the same string again if they want to
+        // Reset search prefix to allow users to search the same string again if they want to
         state.searches[0].prefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
