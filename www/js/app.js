@@ -70,8 +70,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
-    // Maximum number of article titles to return (range is 5 - 100, default 30)
-    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 30;
+    // Maximum number of article titles to return (range is 5 - 50, default 25)
+    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
     document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
