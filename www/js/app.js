@@ -33,7 +33,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Maximum number of articles to display in a search
      * @type Integer
      */
-    var MAX_SEARCH_RESULT_SIZE = 50;
+    const MAX_SEARCH_RESULT_SIZE = 50;
 
     /**
      * The delay (in milliseconds) between two "keepalive" messages
@@ -42,7 +42,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * with the application)
      * @type Integer
      */
-    var DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
+    const DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
 
     /**
      * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
@@ -50,7 +50,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
      * @type {String}
      */
-    var CACHE_NAME = 'kiwixjs-assetCache';
+    const CACHE_NAME = 'kiwixjs-assetCache';
     
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
