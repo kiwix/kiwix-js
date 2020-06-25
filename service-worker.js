@@ -28,7 +28,7 @@
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
  */
-var CACHE_NAME;
+const CACHE_NAME;
 
 /**
  * A global Boolean that governs whether CACHE_NAME will be used
