@@ -216,12 +216,16 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
      * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list 
      *      is to be extracted
      * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
-     * @param {Integer} urlPtrPos The offset of the byte after the end of the MIME type list in <file>
+     * @param {Integer} urlPtrPos The offset of URL Pointer List in the archive
      * @returns {Promise} A promise for the MIME Type list as a Map
      */
     function readMimetypeMap(file, mimeListPos, urlPtrPos) {
         var typeMap = new Map;
         var size = urlPtrPos - mimeListPos;
+        // ZIM archives produced since May 2020 relocate the URL Pointer List to the end of the archive
+        // so we limit the slice size to max 1024 bytes in order to prevent reading the entire archive into an array buffer
+        // See https://github.com/openzim/libzim/issues/353
+        size = size > 1024 ? 1024 : size;
         return util.readFileSlice(file, mimeListPos, size).then(function (data) {
             if (data.subarray) {
                 var i = 0;
