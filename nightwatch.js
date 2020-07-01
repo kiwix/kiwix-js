@@ -21,7 +21,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-var TRAVIS_JOB_NUMBER = process.env.TRAVIS_JOB_NUMBER;
+const TRAVIS_JOB_NUMBER = process.env.TRAVIS_JOB_NUMBER;
 
 module.exports = {
   "src_folders" : ["browser-tests"],
