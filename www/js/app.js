@@ -36,10 +36,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     const MAX_SEARCH_RESULT_SIZE = 50;
 
     /**
-     * The delay (in milliseconds) between two "keepalive" messages
-     * sent to the ServiceWorker (so that it is not stopped by
-     * the browser, and keeps the MessageChannel to communicate
-     * with the application)
+     * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
+     * by the browser, and keeps the MessageChannel to communicate with the application)
      * @type Integer
      */
     const DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
