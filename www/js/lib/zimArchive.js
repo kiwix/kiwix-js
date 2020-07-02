@@ -235,7 +235,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
-                    if (~title.indexOf(prefix) && dirEntry.namespace === "A") {
+                    // Only return dirEntries with titles that actually begin with prefix
+                    if (dirEntry.namespace === "A" && title.indexOf(prefix) === 0) {
                         dirEntries.push(dirEntry);
                         // Report interim result
                         callback([dirEntry], true);
