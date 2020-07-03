@@ -148,7 +148,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * This should be enhanced when the ZIM format will be modified to store normalized titles
      * See https://phabricator.wikimedia.org/T108536
      * 
-     * @param {Object} search The current state.searches object
+     * @param {Object} search The current state.search object
      * @param {Integer} resultSize The number of dirEntries to find
      * @param {callbackDirEntryList} callback The function to call with the result
      * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing) 
@@ -216,7 +216,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @param {String} prefix The case-sensitive value against which dirEntry titles (or url) will be compared
      * @param {Integer} resultSize The maximum number of results to return
-     * @param {Object} search The original state.searches search object (so that we can cancel long binary searches)
+     * @param {Object} search The original state.search object (so that we can cancel long binary searches)
      * @param {callbackDirEntryList} callback The function to call with the array of dirEntries with titles that begin with prefix
      */
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
