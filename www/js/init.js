@@ -31,11 +31,11 @@
 var params = {};
 
 /**
- * A global state object
+ * A global object for storing app state
  * 
  * @type Object
  */
-var state = {};
+var global = {};
 
 require.config({
     baseUrl: 'js/lib',
