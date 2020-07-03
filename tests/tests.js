@@ -24,6 +24,11 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
 
     var localZimArchive;
 
+    // Dummy search object so that we can simulate UI searches
+    var search = {
+        'prefix' : '',
+        'state' : ''
+    };
 
     /**
      * Make an HTTP request for a Blob and return a Promise
