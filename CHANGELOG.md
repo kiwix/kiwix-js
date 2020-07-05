@@ -5,11 +5,15 @@ It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
 ## Kiwix-JS v2.8.0
+
 Released on *TODO*
 
-Detailed changelog : TODO
+* NEW: Intelligently select the best Storage API for storing settings between sessions
+* UPDATE: Use `const` to declare constants, enabling better app memory management
+* BUGFIX: Major blocking bug causing high memory usage and slow load times when reading MIME type table of recent ZIM archives
 
 ## Kiwix-JS v2.7.0
+
 Released on *2020-03-29*
 
 * NEW: Selectable dark mode for app UI and for articles (does not work on IE11)
@@ -28,6 +32,7 @@ Released on *2020-03-29*
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/21?closed=1
 
 ## Kiwix-JS v2.6.0
+
 Released on *2019-07-20*
 
 * NEW: Support for imagemaps (area tags) in jQuery mode, like for maps in Wikivoyage
@@ -46,6 +51,7 @@ Released on *2019-07-20*
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/20?closed=1
 
 ## Kiwix-JS v2.5.0
+
 Released on *2019-01-16*
 
 * NEW: Support for javascript content inside the ZIM file, only in ServiceWorker mode. Handle noscript tags in jQuery mode, and display a warning when some unhandled javascript is detected
@@ -56,6 +62,7 @@ Released on *2019-01-16*
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/19?closed=1
 
 ## Kiwix-JS v2.4.0
+
 Released on *2018-09-22*
 
 * UPDATE: Performance improvement on decompression of content (now twice as fast)
@@ -64,6 +71,7 @@ Released on *2018-09-22*
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/16?closed=1
 
 ## Kiwix-JS v2.3.1
+
 Released on *2018-09-08*
 
 * NEW: Add favicon
@@ -71,6 +79,7 @@ Released on *2018-09-08*
 * BUGFIX: Fix SVG file handling
 
 ## Kiwix-JS v2.3.0
+
 Released on *2018-06-04*
 
 * NEW: Add a cache on CSS stylesheets to improve performance in jQuery mode
@@ -84,6 +93,7 @@ Released on *2018-06-04*
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/18?closed=1
 
 ## Kiwix-JS v2.2.0
+
 Released on *2018-01-07*
 
 * NEW: Support for StackExchange ZIM files (and maybe for some other ZIM files with a structure different than the Mediawiki-based ZIM files).
@@ -102,6 +112,7 @@ Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/6?closed=1
 
 
 ## Kiwix-html5 v2.1.0
+
 Released on *2017-06-05*
 
 Add more user info on which ZIM files are compatible.
@@ -119,6 +130,7 @@ Enhancements on nightly builds and automatic generation of packages for public r
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/15?closed=1
 
 ## Kiwix-html5 v2.0.0
+
 Released on *2017-04-08*
 
 This version targets browser extensions (Firefox and Chrome), even if still compatible with Firefox OS.
@@ -128,6 +140,7 @@ It also runs the unit tests and some UI tests on Travis.
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/14?closed=1
 
 ## Kiwix-html5 v2.0-beta
+
 Released on *2016-06-26*
 
 This is the first version of the HTML5 version of Kiwix, with Firefox OS as the main target.
@@ -139,6 +152,7 @@ This version has been submitted on the Firefox Marketplace, but was never review
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/12?closed=1
 
 ## Evopedia-html5 v1.1.4
+
 Released on *2015-01-29*
 
 Fix for wiktionary archives, where links between articles were not working
@@ -146,6 +160,7 @@ Fix for wiktionary archives, where links between articles were not working
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/2?closed=1
 
 ## Evopedia-html5 v1.1.3
+
 Released on *2015-01-29*
 
 Small bugfix for Android devices.
@@ -153,6 +168,7 @@ Small bugfix for Android devices.
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/10?closed=1
 
 ## Evopedia-html5 v1.1.2
+
 Released on *2015-01-28*
 
 Documentation update about the current status of Android compatibility
@@ -161,6 +177,7 @@ Documentation update about the current status of Android compatibility
 Detailed changelog : https://github.com/kiwix/kiwix-js/milestone/9?closed=1
 
 ## Evopedia-html5 v1.1.1
+
 Released on *2014-08-11*
 
 Solve an issue with articles containing a quote, and makes it compatible with Flatfish tablets.
@@ -168,6 +185,7 @@ Solve an issue with articles containing a quote, and makes it compatible with Fl
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/8?closed=1
 
 ## Evopedia-html5 v1.1.0
+
 Released on *2014-04-12*
 
 This version includes some refactoring of the code, and a new feature using the geolocation of the device (to find articles around this location).
@@ -176,6 +194,7 @@ The access to the SD-card has been put in an abstraction layer, to prepare for a
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/2?closed=1
 
 ## Evopedia-html5 v1.0.3
+
 Released on *2013-12-31*
 
 Add a warning about the size of text on the Geeksphone Peak device, when using Firefox OS <1.1
@@ -183,6 +202,7 @@ Add a warning about the size of text on the Geeksphone Peak device, when using F
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/7?closed=1
 
 ## Evopedia-html5 v1.0.2
+
 Released on *2013-10-06*
 
 Fix compatibility with Firefox OS >=1.1, due to changed in DeviceStorage API
@@ -190,6 +210,7 @@ Fix compatibility with Firefox OS >=1.1, due to changed in DeviceStorage API
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/5?closed=1
 
 ## Evopedia-html5 v1.0.1
+
 Released on *2013-08-25*
 
 Minor bugfix before submitting to the Marketplace
@@ -197,6 +218,7 @@ Minor bugfix before submitting to the Marketplace
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/4?closed=1
 
 ## Evopedia-html5 v1.0.0
+
 Released on *2013-08-23*
 
 First public version, targeting Firefox OS and deployed on the Firefox Marketplace
@@ -204,6 +226,7 @@ First public version, targeting Firefox OS and deployed on the Firefox Marketpla
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/1?closed=1
 
 ## Initial work
+
 The idea of porting Evopedia in javascript emerged in November 2012.
 
 Some work has started on this in December 2012.
