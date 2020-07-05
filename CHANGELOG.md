@@ -9,6 +9,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 Released on *TODO*
 
 * NEW: Intelligently select the best Storage API for storing settings between sessions
+* UPDATE: Better handling of case in title search, returning more accurate search results
 * UPDATE: Use `const` to declare constants, enabling better app memory management
 * BUGFIX: Major blocking bug causing high memory usage and slow load times when reading MIME type table of recent ZIM archives
 
