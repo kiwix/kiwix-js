@@ -1,0 +1,1 @@
+emcc --memory-init-file 0 -O3 -s WASM=0 -s MALLOC="emmalloc" -s TOTAL_MEMORY=83886080 -s NO_FILESYSTEM=1 -s AGGRESSIVE_VARIABLE_ELIMINATION=1 -s DOUBLE_MODE=0 -s NO_DYNAMIC_EXECUTION=1 -s LEGACY_VM_SUPPORT=1 -s EXPORTED_FUNCTIONS="['_ZSTD_createDStream', '_ZSTD_initDStream', '_ZSTD_decompressStream', '_ZSTD_freeDStream']" -DXZ_USE_CRC64=1 -DXZ_INTERNAL_CRC64=1 *.c -o zstdec.js
