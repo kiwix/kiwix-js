@@ -148,7 +148,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * This should be enhanced when the ZIM format will be modified to store normalized titles
      * See https://phabricator.wikimedia.org/T108536
      * 
-     * @param {Object} search The current state.search object
+     * @param {Object} search The current globalstate.search object
      * @param {Integer} resultSize The number of dirEntries to find
      * @param {callbackDirEntryList} callback The function to call with the result
      * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing) 
@@ -188,19 +188,19 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
-            if (search.state === 'cancelled') return callback([], search);
+            if (search.status === 'cancelled') return callback([], search);
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
-                search.state = 'complete';
+                search.status = 'complete';
                 return callback(dirEntries, search);
             }
             // Dynamically populate list of articles
-            search.state = 'interim';
+            search.status = 'interim';
             if (!noInterim) callback(dirEntries, search);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
             that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, search,
                 function (newDirEntries, interim) {
-                    if (search.state === 'cancelled') return callback([], search);
+                    if (search.status === 'cancelled') return callback([], search);
                     if (interim) {// Only push interim results (else results will be pushed again at end of variant loop)                    
                         [].push.apply(dirEntries, newDirEntries);
                         if (!noInterim && newDirEntries.length) callback(dirEntries, search);
@@ -216,7 +216,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @param {String} prefix The case-sensitive value against which dirEntry titles (or url) will be compared
      * @param {Integer} resultSize The maximum number of results to return
-     * @param {Object} search The original state.search object (so that we can cancel long binary searches)
+     * @param {Object} search The original globalstate.search object (so that we can cancel long binary searches)
      * @param {callbackDirEntryList} callback The function to call with the array of dirEntries with titles that begin with prefix
      */
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
@@ -231,7 +231,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         }, true).then(function(firstIndex) {
             var dirEntries = [];
             var addDirEntries = function(index) {
-                if (search.state === 'cancelled' || index >= firstIndex + resultSize || index >= that._file.articleCount)
+                if (search.status === 'cancelled' || index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();

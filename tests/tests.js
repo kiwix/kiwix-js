@@ -27,7 +27,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
     // Dummy search object so that we can simulate UI searches
     var search = {
         'prefix' : '',
-        'state' : ''
+        'status' : ''
     };
 
     /**

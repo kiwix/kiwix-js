@@ -75,11 +75,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
 
-    // Define global state
-    // An object to hold the current search and its state (allows cacncellation of search across modules)
-    global['search'] = {
+    // Define global state (declared in init.js)
+    // An object to hold the current search and its state (allows cancellation of search across modules)
+    globalstate['search'] = {
         'prefix': '', // A field to hold the original search string
-        'state': '',  // The state of the search: ''|'init'|'interim'|'cancelled'|'complete'
+        'status': '',  // The state of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
     
@@ -206,7 +206,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
         if (!searchArticlesFocused) {
-            global.search.state = 'cancelled';
+            globalstate.search.status = 'cancelled';
             $("#searchingArticles").hide();
             $('#articleListWithHeader').hide();
         }
@@ -708,7 +708,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
-                if (titleSearch !== global.search.prefix) {
+                if (titleSearch !== globalstate.search.prefix) {
                     searchDirEntriesFromPrefix(titleSearch);
                 } else {
                     $('#prefix').focus();
@@ -958,7 +958,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         window.timeoutKeyUpPrefix = window.setTimeout(function () {
             var prefix = $("#prefix").val();
-            if (prefix && prefix.length > 0 && prefix !== global.search.prefix) {
+            if (prefix && prefix.length > 0 && prefix !== globalstate.search.prefix) {
                 $('#searchArticles').click();
             }
         }, 500);
@@ -972,11 +972,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             // Cancel any previous search that may still be running before creating new search
-            global.search.state = 'cancelled';
-            // Store the new search term in the state.search global object and initialize
-            global.search = {'prefix': prefix, 'state': 'init', 'type': ''};
+            globalstate.search.status = 'cancelled';
+            // Store the new search term in the globalstate.search object and initialize
+            globalstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(global.search, params.maxSearchResultsSize, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(globalstate.search, params.maxSearchResultsSize, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -994,8 +994,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function populateListOfArticles(dirEntryArray, search) {
         // Do not allow cancelled searches to report
-        if (search.state === 'cancelled') return;
-        var stillSearching = search.state === 'interim';
+        if (search.status === 'cancelled') return;
+        var stillSearching = search.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
@@ -1025,8 +1025,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first 
         // and prevents this event from firing; note that touch also triggers mousedown
         $('#articleList a').on('mousedown', function (e) {
-            // Cancel search immediately (we'll prune in the blur event)
-            global.search.state = 'cancelled';
+            // Cancel search immediately
+            globalstate.search.status = 'cancelled';
             handleTitleClick(e);
             return false;
         });
@@ -1089,7 +1089,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function readArticle(dirEntry) {
         // Reset search prefix to allow users to search the same string again if they want to
-        global.search.prefix = '';
+        globalstate.search.prefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),

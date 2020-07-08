@@ -35,7 +35,7 @@ var params = {};
  * 
  * @type Object
  */
-var global = {};
+var globalstate = {};
 
 require.config({
     baseUrl: 'js/lib',
