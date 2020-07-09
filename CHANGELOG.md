@@ -10,6 +10,7 @@ Released on *TODO*
 
 * NEW: Intelligently select the best Storage API for storing settings between sessions (`cookie` or `localStorage`)
 * NEW: Display title search results progressively instead of waiting for search to complete before displaying them
+* NEW: User can change depth of title search from Configuration
 * UPDATE: Better handling of case in title search, returning more accurate search results
 * UPDATE: Use `const` to declare constants, enabling better app memory management
 * BUGFIX: Major blocking bug causing high memory usage and slow load times when reading MIME type table of recent ZIM archives
