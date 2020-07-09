@@ -990,23 +990,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Display the list of articles with the given array of DirEntry
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
-     * @param {Object} search The original search object
+     * @param {Object} reportingSearchPrefix The prefix of the reporting search
      */
-    function populateListOfArticles(dirEntryArray, search) {
-        // Do not allow cancelled searches to report
-        if (search.status === 'cancelled') return;
-        var stillSearching = search.status === 'interim';
+    function populateListOfArticles(dirEntryArray, reportingSearchPrefix) {
+        // Do not allow cancelled or changedsearches to report
+        if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== reportingSearchPrefix) return;
+        var stillSearching = globalstate.search.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
         if (stillSearching) {
-            message = 'Searching [' + search.type + ']... found: ' + nbDirEntry;
+            message = 'Searching [' + globalstate.search.type + ']... found: ' + nbDirEntry;
         } else if (nbDirEntry >= params.maxSearchResultsSize) {
             message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
         } else {
             message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (
-                search.type === 'basic' ? ': try fewer words for full search.' : '.'
+                globalstate.search.type === 'basic' ? ': try fewer words for full search.' : '.'
             );
         }
 
