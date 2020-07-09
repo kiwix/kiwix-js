@@ -117,12 +117,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Define behavior of HTML elements
     var searchArticlesFocused = false;
     $('#searchArticles').on('click', function() {
+        var prefix = document.getElementById('prefix').value;
+        // Do not initiate the same search if it is already in progress
+        if (globalstate.search.prefix === prefix && !/cancelled|complete/.test(globalstate.search.status)) return;
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
-        pushBrowserHistoryState(null, $('#prefix').val());
+        pushBrowserHistoryState(null, prefix);
         // Initiate the search
-        searchDirEntriesFromPrefix($('#prefix').val());
+        searchDirEntriesFromPrefix(prefix);
         $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
