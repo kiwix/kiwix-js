@@ -225,8 +225,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                if (dirEntry.namespace < "A") return 1;
-                if (dirEntry.namespace > "A") return -1;
+                if (dirEntry.namespace < 'A') return 1;
+                if (dirEntry.namespace > 'A') return -1;
                 // We should now be in namespace A
                 return prefix <= dirEntry.getTitleOrUrl() ? -1 : 1;
             });
@@ -238,7 +238,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
                     // Only return dirEntries with titles that actually begin with prefix
-                    if (dirEntry.namespace === "A" && title.indexOf(prefix) === 0) {
+                    if (dirEntry.namespace === 'A' && title.indexOf(prefix) === 0) {
                         dirEntries.push(dirEntry);
                         // Report interim result
                         callback([dirEntry], true);

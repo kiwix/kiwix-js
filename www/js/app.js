@@ -79,7 +79,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // An object to hold the current search and its state (allows cancellation of search across modules)
     globalstate['search'] = {
         'prefix': '', // A field to hold the original search string
-        'status': '',  // The state of the search: ''|'init'|'interim'|'cancelled'|'complete'
+        'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
     
@@ -971,8 +971,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            // Cancel any previous search that may still be running before creating new search
-            globalstate.search.status = 'cancelled';
             // Store the new search term in the globalstate.search object and initialize
             globalstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
             $('#activeContent').hide();
@@ -993,7 +991,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {Object} reportingSearchPrefix The prefix of the reporting search
      */
     function populateListOfArticles(dirEntryArray, reportingSearchPrefix) {
-        // Do not allow cancelled or changedsearches to report
+        // Do not allow cancelled or changed searches to report
         if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== reportingSearchPrefix) return;
         var stillSearching = globalstate.search.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
