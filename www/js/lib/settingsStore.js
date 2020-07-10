@@ -62,10 +62,10 @@ define([], function () {
       localStorageTest = false;
     }
     // Now test for document.cookie API support
-    document.cookie = 'tempKiwixCookieTest=working;expires=Fri, 31 Dec 9999 23:59:59 GMT;samesite=Strict';
+    document.cookie = 'tempKiwixCookieTest=working;expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict';
     var kiwixCookieTest = /tempKiwixCookieTest=working/.test(document.cookie);
     // Remove test value by expiring the key
-    document.cookie = 'tempKiwixCookieTest=;expires=Thu, 01 Jan 1970 00:00:00 GMT;samesite=Strict';
+    document.cookie = 'tempKiwixCookieTest=;expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     if (kiwixCookieTest) type = 'cookie';
     // Prefer localStorage if supported due to some platforms removing cookies once the session ends in some contexts
     if (localStorageTest) type = 'local_storage';
