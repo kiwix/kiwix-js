@@ -25,6 +25,13 @@
 // Define global params needed for tests to run on existing app code
 var params = {};
 
+/**
+ * A global object for storing app state
+ * 
+ * @type Object
+ */
+var globalstate = {};
+
 require.config({
     baseUrl: 'www/js/lib',
     paths: {
