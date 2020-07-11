@@ -30,12 +30,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
  function($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess, Q) {
      
     /**
-     * Maximum number of articles to display in a search
-     * @type Integer
-     */
-    const MAX_SEARCH_RESULT_SIZE = 50;
-
-    /**
      * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
      * by the browser, and keeps the MessageChannel to communicate with the application)
      * @type Integer
@@ -70,6 +64,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
+    // Maximum number of article titles to return (range is 5 - 50, default 25)
+    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
+    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
+    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
@@ -77,6 +75,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
 
+    // Define global state (declared in init.js)
+    // An object to hold the current search and its state (allows cancellation of search across modules)
+    globalstate['search'] = {
+        'prefix': '', // A field to hold the original search string
+        'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
+        'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
+    };
+    
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
@@ -111,11 +117,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Define behavior of HTML elements
     var searchArticlesFocused = false;
     $('#searchArticles').on('click', function() {
+        var prefix = document.getElementById('prefix').value;
+        // Do not initiate the same search if it is already in progress
+        if (globalstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(globalstate.search.status)) return;
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
-        pushBrowserHistoryState(null, $('#prefix').val());
-        searchDirEntriesFromPrefix($('#prefix').val());
+        pushBrowserHistoryState(null, prefix);
+        // Initiate the search
+        searchDirEntriesFromPrefix(prefix);
         $('.navbar-collapse').collapse('hide');
         document.getElementById('prefix').focus();
         // This flag is set to true in the mousedown event below
@@ -198,7 +208,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
-        if (!searchArticlesFocused) $('#articleListWithHeader').hide();
+        if (!searchArticlesFocused) {
+            globalstate.search.status = 'cancelled';
+            $("#searchingArticles").hide();
+            $('#articleListWithHeader').hide();
+        }
     });
     $("#btnRandomArticle").on("click", function(e) {
         $('#prefix').val("");
@@ -349,6 +363,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             refreshCacheStatus();
         }
     });
+    document.getElementById('titleSearchRange').addEventListener('change', function(e) {
+        settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
+        params.maxSearchResultsSize = e.target.value;
+    });
+    document.getElementById('titleSearchRange').addEventListener('input', function(e) {
+        document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
+    });
 
     /**
      * Displays or refreshes the API status shown to the user
@@ -441,7 +462,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         getCacheAttributes().then(function (cache) {
             document.getElementById('cacheUsed').innerHTML = cache.description;
             document.getElementById('assetsCount').innerHTML = cache.count;
-            var cacheSettings = document.getElementById('cacheSettingsDiv');
+            var cacheSettings = document.getElementById('performanceSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function (card) {
                 // IE11 cannot remove more than one class from a list at a time
@@ -688,9 +709,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (title && !(""===title)) {
                 goToArticle(title);
             }
-            else if (titleSearch && !(""===titleSearch)) {
+            else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
-                searchDirEntriesFromPrefix($('#prefix').val());
+                if (titleSearch !== globalstate.search.prefix) {
+                    searchDirEntriesFromPrefix(titleSearch);
+                } else {
+                    $('#prefix').focus();
+                }
             }
         }
     };
@@ -926,33 +951,33 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     /**
      * Handle key input in the prefix input zone
-     * @param {Event} evt
+     * @param {Event} evt The event data to handle
      */
     function onKeyUpPrefix(evt) {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
         // It is also necessary for the words suggestions to work inside Firefox OS
-        if(window.timeoutKeyUpPrefix) {
+        if (window.timeoutKeyUpPrefix) {
             window.clearTimeout(window.timeoutKeyUpPrefix);
         }
-        window.timeoutKeyUpPrefix = window.setTimeout(function() {
+        window.timeoutKeyUpPrefix = window.setTimeout(function () {
             var prefix = $("#prefix").val();
-            if (prefix && prefix.length>0) {
+            if (prefix && prefix.length > 0 && prefix !== globalstate.search.prefix) {
                 $('#searchArticles').click();
             }
-        }
-        ,500);
+        }, 500);
     }
-
 
     /**
      * Search the index for DirEntries with title that start with the given prefix (implemented
      * with a binary search inside the index file)
-     * @param {String} prefix
+     * @param {String} prefix The string that must appear at the start of any title searched for
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
+            // Store the new search term in the globalstate.search object and initialize
+            globalstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(prefix.trim(), MAX_SEARCH_RESULT_SIZE, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(globalstate.search, params.maxSearchResultsSize, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -963,30 +988,34 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     }
 
-  
     /**
      * Display the list of articles with the given array of DirEntry
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
+     * @param {Object} reportingSearchPrefix The prefix of the reporting search
      */
-    function populateListOfArticles(dirEntryArray) {
+    function populateListOfArticles(dirEntryArray, reportingSearchPrefix) {
+        // Do not allow cancelled or changed searches to report
+        if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== reportingSearchPrefix) return;
+        var stillSearching = globalstate.search.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
-        if (nbDirEntry >= MAX_SEARCH_RESULT_SIZE) {
-            message = 'First ' + MAX_SEARCH_RESULT_SIZE + ' articles below (refine your search).';
+        if (stillSearching) {
+            message = 'Searching [' + globalstate.search.type + ']... found: ' + nbDirEntry;
+        } else if (nbDirEntry >= params.maxSearchResultsSize) {
+            message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
         } else {
-            message = nbDirEntry + ' articles found.';
-        }
-        if (nbDirEntry === 0) {
-            message = 'No articles found.';
+            message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (
+                globalstate.search.type === 'basic' ? ': try fewer words for full search.' : '.'
+            );
         }
 
         articleListHeaderMessageDiv.html(message);
 
         var articleListDiv = $('#articleList');
         var articleListDivHtml = '';
-        var listLength = dirEntryArray.length < MAX_SEARCH_RESULT_SIZE ? dirEntryArray.length : MAX_SEARCH_RESULT_SIZE;
+        var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
             var dirEntryStringId = uiUtil.htmlEscapeChars(dirEntry.toStringId());
@@ -997,13 +1026,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first 
         // and prevents this event from firing; note that touch also triggers mousedown
         $('#articleList a').on('mousedown', function (e) {
+            // Cancel search immediately
+            globalstate.search.status = 'cancelled';
             handleTitleClick(e);
             return false;
         });
-        $('#searchingArticles').hide();
+        if (!stillSearching) $('#searchingArticles').hide();
         $('#articleListWithHeader').show();
     }
-    
+
     /**
      * Handles the click on the title of an article in search results
      * @param {Event} event
@@ -1058,7 +1089,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function readArticle(dirEntry) {
-	    // Only update for expectedArticleURLToBeDisplayed.
+        // Reset search prefix to allow users to search the same string again if they want to
+        globalstate.search.prefix = '';
+        // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)

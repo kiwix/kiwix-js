@@ -24,13 +24,12 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
 
     var localZimArchive;
 
-
     /**
      * Make an HTTP request for a Blob and return a Promise
      *
      * @param {String} url URL to download from
      * @param {String} name Name to give to the Blob instance
-     * @returns {Promise}
+     * @returns {Promise<Blob>} A Promise for the Blob
      */
     function makeBlobRequest(url, name) {
         return new Promise(function (resolve, reject) {
@@ -104,15 +103,19 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
            var float = util.readFloatFrom4Bytes(byteArray, 0);
            assert.equal(float, -118.625, "the IEEE_754 float should be converted as -118.625");
         });
-        QUnit.test("check upper/lower case variations", function(assert) {
+        QUnit.test("check upper/lower case variations", function (assert) {
             var testString1 = "téléphone";
             var testString2 = "Paris";
             var testString3 = "le Couvre-chef Est sur le porte-manteaux";
             var testString4 = "épée";
-            assert.equal(util.ucFirstLetter(testString1), "Téléphone", "The first letter should be upper-case");
-            assert.equal(util.lcFirstLetter(testString2), "paris", "The first letter should be lower-case");
-            assert.equal(util.ucEveryFirstLetter(testString3), "Le Couvre-Chef Est Sur Le Porte-Manteaux", "The first letter of every word should be upper-case");
-            assert.equal(util.ucFirstLetter(testString4), "Épée", "The first letter should be upper-case (with accent)");
+            var testString5 = '$￥€“«xριστός» †¡Ἀνέστη!”';
+            var testString6 = "Καλά Νερά Μαγνησίας žižek";
+            assert.equal(util.allCaseFirstLetters(testString1).indexOf("Téléphone") >= 0, true, "The first letter should be uppercase");
+            assert.equal(util.allCaseFirstLetters(testString2).indexOf("paris") >= 0, true, "The first letter should be lowercase");
+            assert.equal(util.allCaseFirstLetters(testString3).indexOf("Le Couvre-Chef Est Sur Le Porte-Manteaux") >= 0, true, "The first letter of every word should be uppercase");
+            assert.equal(util.allCaseFirstLetters(testString4).indexOf("Épée") >= 0, true, "The first letter should be uppercase (with accent)");
+            assert.equal(util.allCaseFirstLetters(testString5).indexOf('$￥€“«Xριστός» †¡ἀνέστη!”') >= 0, true, "First non-punctuation/non-currency Unicode letter should be uppercase, second (with breath mark) lowercase");
+            assert.equal(util.allCaseFirstLetters(testString6, "full").indexOf("ΚΑΛΆ ΝΕΡΆ ΜΑΓΝΗΣΊΑΣ ŽIŽEK") >= 0, true, "All Unicode letters should be uppercase");
         });
         QUnit.test("check removal of parameters in URL", function(assert) {
             var testUrl1 = "A/question.html";
@@ -174,7 +177,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix('A', 5, callbackFunction);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'A'}, 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'a'", function(assert) {
             var done = assert.async();
@@ -185,7 +188,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix('a', 5, callbackFunction);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'a'}, 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'blues brothers'", function(assert) {
             var done = assert.async();
@@ -196,7 +199,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'Blues Brothers (film)', 'First result should be "Blues Brothers (film)"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix('blues brothers', 5, callbackFunction);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'blues brothers'}, 5, callbackFunction, true);
         });
         QUnit.test("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function(assert) {
             var done = assert.async();

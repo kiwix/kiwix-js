@@ -22,6 +22,9 @@
  */
 'use strict';
 
+// Define global params needed for tests to run on existing app code
+var params = {};
+
 require.config({
     baseUrl: 'www/js/lib',
     paths: {

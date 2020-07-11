@@ -267,7 +267,7 @@
                     <br />
                     <div class="container">
                         <h3>Performance settings</h3>
-                        <div class="card card-warning" id="cacheSettingsDiv">
+                        <div class="card card-warning" id="performanceSettingsDiv">
                             <div class="card-header">Speed up archive access</div>
                             <div class="card-body">
                                 <div class="row">
@@ -302,6 +302,20 @@
                                                     <p>Assets: <b id="assetsCount"></b></p>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <p>Select max number of search results:</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="range">
+                                            <label>
+                                                <input type="range" class="form-control-range" min="5" max="50" id="titleSearchRange" value="25">
+                                                <span>Value: <span id="titleSearchRangeVal"></span> (<i>default 25, higher values increase search time</i>)</span>
+                                            </label>
                                         </div>
                                     </div>
                                 </div>
