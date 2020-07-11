@@ -4,7 +4,7 @@
   "architecture": "all",
   "maintainer": "Kiwix team <contact+ubuntutouch@kiwix.org>",
   "framework" : "ubuntu-sdk-16.04",
-  "version" : "2.8-WIP",
+  "version" : "2.9-WIP",
   "title": "kiwix",
   "hooks": {
     "ubports-little-webapp": {
