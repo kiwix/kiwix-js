@@ -13,6 +13,7 @@ Released on *TODO*
 * NEW: User can change depth of title search from Configuration
 * UPDATE: Better handling of case in title search, returning more accurate search results
 * UPDATE: Use `const` to declare constants, enabling better app memory management
+* UPDATE: Use `SameSite=Strict` for any residual cookie usage to conform to new security standards
 * BUGFIX: Major blocking bug causing high memory usage and slow load times when reading MIME type table of recent ZIM archives
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/22?closed=1
