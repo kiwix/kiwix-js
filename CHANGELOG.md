@@ -6,7 +6,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v2.8.0
 
-Released on *TODO*
+Released on *2020-07-11*
 
 * NEW: Intelligently select the best Storage API for storing settings between sessions (`cookie` or `localStorage`)
 * NEW: Display title search results progressively instead of waiting for search to complete before displaying them
