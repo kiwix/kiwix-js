@@ -24,13 +24,6 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
 
     var localZimArchive;
 
-    // Define global state (declared in init.js) - needed to run tests on live code
-    globalstate['search'] = {
-        'prefix': '', // A field to hold the original search string
-        'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
-        'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
-    };
-
     /**
      * Make an HTTP request for a Blob and return a Promise
      *
@@ -184,8 +177,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            globalstate.search.prefix = 'A';
-            localZimArchive.findDirEntriesWithPrefix(globalstate.search, 5, callbackFunction, true);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'A'}, 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'a'", function(assert) {
             var done = assert.async();
@@ -196,8 +188,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            globalstate.search.prefix = 'a';
-            localZimArchive.findDirEntriesWithPrefix(globalstate.search, 5, callbackFunction, true);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'a'}, 5, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'blues brothers'", function(assert) {
             var done = assert.async();
@@ -208,8 +199,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'Blues Brothers (film)', 'First result should be "Blues Brothers (film)"');
                 done();
             };
-            globalstate.search.prefix = 'blues brothers';
-            localZimArchive.findDirEntriesWithPrefix(globalstate.search, 5, callbackFunction, true);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'blues brothers'}, 5, callbackFunction, true);
         });
         QUnit.test("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function(assert) {
             var done = assert.async();
