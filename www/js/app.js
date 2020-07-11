@@ -119,7 +119,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     $('#searchArticles').on('click', function() {
         var prefix = document.getElementById('prefix').value;
         // Do not initiate the same search if it is already in progress
-        if (globalstate.search.prefix === prefix && !/cancelled|complete/.test(globalstate.search.status)) return;
+        if (globalstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(globalstate.search.status)) return;
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
