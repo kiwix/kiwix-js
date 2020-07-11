@@ -189,8 +189,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
-            if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== localPrefix)
-                return callback([], localPrefix);
+            if (search.status === 'cancelled' || search.prefix !== localPrefix) return callback([], localPrefix);
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
                 search.status = 'complete';
                 return callback(dirEntries, localPrefix);
@@ -200,10 +199,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             if (!noInterim) callback(dirEntries, localPrefix);
             var prefix = prefixVariants[0];
             prefixVariants = prefixVariants.slice(1);
-            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, localPrefix, 
+            that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, localPrefix, search,
                 function (newDirEntries, interim) {
-                    if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== localPrefix) 
-                        return callback([], localPrefix);
+                    if (search.status === 'cancelled' || search.prefix !== localPrefix) return callback([], localPrefix);
                     if (interim) {// Only push interim results (else results will be pushed again at end of variant loop)                    
                         [].push.apply(dirEntries, newDirEntries);
                         if (!noInterim && newDirEntries.length) callback(dirEntries, localPrefix);
@@ -220,15 +218,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {String} prefix The case-sensitive value against which dirEntry titles (or url) will be compared
      * @param {Integer} resultSize The maximum number of results to return
      * @param {String} originalPrefix The original prefix typed by the user to initiate the local search 
+     * @param {Object} search The globalstate.search object (for comparison, so that we can cancel long binary searches)
      * @param {callbackDirEntryList} callback The function to call with the array of dirEntries with titles that begin with prefix
      */
-    ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, originalPrefix, callback) {
+    ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, originalPrefix, search, callback) {
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                // Return early if the search is no longer needed
-                if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== originalPrefix)
-                    return 0;
                 if (dirEntry.namespace < 'A') return 1;
                 if (dirEntry.namespace > 'A') return -1;
                 // We should now be in namespace A
@@ -237,8 +233,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         }, true).then(function(firstIndex) {
             var dirEntries = [];
             var addDirEntries = function(index) {
-                if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== originalPrefix || 
-                    index >= firstIndex + resultSize || index >= that._file.articleCount)
+                if (search.status === 'cancelled' || search.prefix !== originalPrefix || index >= firstIndex + resultSize || index >= that._file.articleCount)
                     return dirEntries;
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
