@@ -30,13 +30,6 @@
  */
 var params = {};
 
-/**
- * A global object for storing app state
- * 
- * @type Object
- */
-var globalstate = {};
-
 require.config({
     baseUrl: 'js/lib',
     paths: {
