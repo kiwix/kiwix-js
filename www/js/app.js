@@ -999,24 +999,27 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Display the list of articles with the given array of DirEntry
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
-     * @param {Object} reportingSearchStatus The status of the reporting search
+     * @param {Object} reportingSearch The reporting search object
      */
-    function populateListOfArticles(dirEntryArray, reportingSearchStatus) {
+    function populateListOfArticles(dirEntryArray, reportingSearch) {
         // Do not allow cancelled searches to report
-        if (reportingSearchStatus !== 'interim') console.log("*** Reporting search status was: '" + reportingSearchStatus + "'");
-        if (reportingSearchStatus === 'cancelled') return;
-        var stillSearching = appstate.search.status === 'interim';
+        if (!/cancelled/.test(reportingSearch.status)) console.log("Reporting search is: " + reportingSearch.prefix + " [" + reportingSearch.status + "]");
+        if (reportingSearch.status === 'cancelled') {
+            console.log("*** Reporting search is: " + reportingSearch.prefix + " [" + reportingSearch.status + "]");
+            return;
+        }
+        var stillSearching = reportingSearch.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
         if (stillSearching) {
-            message = 'Searching [' + appstate.search.type + ']... found: ' + nbDirEntry;
+            message = 'Searching [' + reportingSearch.type + ']... found: ' + nbDirEntry;
         } else if (nbDirEntry >= params.maxSearchResultsSize) {
             message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
         } else {
             message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (
-                appstate.search.type === 'basic' ? ': try fewer words for full search.' : '.'
+                reportingSearch.type === 'basic' ? ': try fewer words for full search.' : '.'
             );
         }
 
