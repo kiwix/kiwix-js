@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util, utf8, Q, zimDirEntry) {
+define(['xzdec_wrapper', 'zstdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, zstd, util, utf8, Q, zimDirEntry) {
 
     var readInt = function(data, offset, size)
     {
@@ -198,29 +198,7 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else if (compressionType[0] === 5) {
-                    return ZstdCodec.run(function (zstd) {
-                        // var simple = new zstd.Simple();
-                        var streaming = new zstd.Streaming();
-                        decompressor = {
-                            readCompressedCluster: function () {
-                                return that._readSlice(clusterOffset + 1, thisClusterLength).then(function (data) {
-                                    // var uncompressed = simple.decompress(data);
-                                    var uncompressed = streaming.decompress([data]);
-                                    return uncompressed;
-                                });
-                            },
-                            dataBlobReader: function(data) {
-                                // Data should be entire cluster: we want to extract blobs from it
-                                // Code below is obviously wrong
-                                var blobOffset = readInt(data, 0, 4);
-                                var nextBlobOffset = readInt(data, 4, 4);
-                                return decompressor.dataBlobReader(blobOffset, nextBlobOffset - blobOffset);
-                            }
-                        };
-                        return decompressor.readCompressedCluster().then(function (decompressedData) {
-                            return decompressor.dataBlobReader(decompressedData);
-                        });
-                    });
+                    decompressor = new zstd.Decompressor(plainBlobReader);
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
