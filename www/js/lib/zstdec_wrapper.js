@@ -65,15 +65,18 @@ define(['q'], function(Q) {
     Decompressor.prototype.readSlice = function(offset, length) {
         busy = true;
         this._decHandle = zstdec._ZSTD_createDStream();
-        var init_length = zstdec._ZSTD_initDStream(this._decHandle);
-        length = length > init_length ? init_length : length;
+        var ret = zstdec._ZSTD_initDStream(this._decHandle);
+        if (zstdec._ZSTD_isError(this._decHandle)) {
+            return Q.reject('Failed to initialize ZSTD decompression');
+        }
+        //length = length > init_length ? init_length : length;
         var that = this;
         this._inStreamPos = 0;
         this._outStreamPos = 0;
         this._outBuffer = new Int8Array(new ArrayBuffer(length));
         this._outBufferPos = 0;
         return this._readLoop(offset, length).then(function(data) {
-            zstdec._release(that._decHandle);
+            zstdec._ZSTD_freeDStream(that._decHandle);
             busy = false;
             return data;
         });
@@ -111,7 +114,7 @@ define(['q'], function(Q) {
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded().then(function() {
-            var ret = zstdec._decompress(that._decHandle);
+            var ret = zstdec._ZSTD_decompressStream(that._decHandle);
             var finished = false;
             if (ret === 0) {
                 // supply more data or free output buffer
@@ -156,8 +159,9 @@ define(['q'], function(Q) {
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize)
                 data = data.slice(0, that._chunkSize);
+            var decompArray = zstdec._get_in_buffer(that._decHandle);
             // For some reason, zstdec.writeArrayToMemory does not seem to be available, and is equivalent to zstdec.HEAP8.set
-            zstdec.HEAP8.set(data, zstdec._get_in_buffer(that._decHandle));
+            // zstdec.HEAP8.set(data, zstdec._get_in_buffer(that._decHandle));
             that._inStreamPos += data.length;
             zstdec._set_new_input(that._decHandle, data.length);
             return 0;
