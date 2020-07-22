@@ -22,7 +22,7 @@
 'use strict';
 define(['q'], function(Q) {
     var zstdec = Module; //@todo including via requirejs seems to not work
-    zstdec._init();
+    //zstdec._init();
     
     /**
      * Number of milliseconds to wait for the decompressor to be available for another chunk
