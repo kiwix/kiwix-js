@@ -20,8 +20,10 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q'], function(Q) {
-    var xzdec = Module; //@todo including via requirejs seems to not work
+define(['q', 'xzdec'], function(Q) {
+    // DEV: xzdec.js emits a global Module variable, which cannot be set in requireJS function line above, though it can be loaded in definition
+    var xzdec = Module;
+    
     xzdec._init();
     
     /**
