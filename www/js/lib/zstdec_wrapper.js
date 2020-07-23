@@ -20,9 +20,15 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q'], function(Q) {
-    var zstdec = Module; //@todo including via requirejs seems to not work
-    //zstdec._init();
+define(['q', 'zstdec'], function(Q) {
+    // DEV: zstdec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec which uses "Module" as its exported object
+    // Note that we include zstdec above in requireJS definition, but we cannot change the name in the function list
+    // There is no longer any need to load it in index.html
+    // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
+    var zd;
+    ZD().then(function(instance) {
+        zd = instance;
+    });
     
     /**
      * Number of milliseconds to wait for the decompressor to be available for another chunk
@@ -64,9 +70,9 @@ define(['q'], function(Q) {
      */
     Decompressor.prototype.readSlice = function(offset, length) {
         busy = true;
-        this._decHandle = zstdec._ZSTD_createDStream();
-        var ret = zstdec._ZSTD_initDStream(this._decHandle);
-        if (zstdec._ZSTD_isError(this._decHandle)) {
+        this._decHandle = zd._ZSTD_createDStream();
+        var ret = zd._ZSTD_initDStream(this._decHandle);
+        if (zd._ZSTD_isError(this._decHandle)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
         //length = length > init_length ? init_length : length;
@@ -76,7 +82,7 @@ define(['q'], function(Q) {
         this._outBuffer = new Int8Array(new ArrayBuffer(length));
         this._outBufferPos = 0;
         return this._readLoop(offset, length).then(function(data) {
-            zstdec._ZSTD_freeDStream(that._decHandle);
+            zd._ZSTD_freeDStream(that._decHandle);
             busy = false;
             return data;
         });
@@ -114,7 +120,7 @@ define(['q'], function(Q) {
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded().then(function() {
-            var ret = zstdec._ZSTD_decompressStream(that._decHandle);
+            var ret = zd._ZSTD_decompressStream(that._decHandle);
             var finished = false;
             if (ret === 0) {
                 // supply more data or free output buffer
@@ -126,19 +132,19 @@ define(['q'], function(Q) {
                 finished = true;
             }
 
-            var outPos = zstdec._get_out_pos(that._decHandle);
+            var outPos = zd._get_out_pos(that._decHandle);
             if (outPos > 0 && that._outStreamPos + outPos >= offset)
             {
-                var outBuffer = zstdec._get_out_buffer(that._decHandle);
+                var outBuffer = zd._get_out_buffer(that._decHandle);
                 var copyStart = offset - that._outStreamPos;
                 if (copyStart < 0)
                     copyStart = 0;
                 for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++)
-                    that._outBuffer[that._outBufferPos++] = zstdec.HEAP8[outBuffer + i];
+                    that._outBuffer[that._outBufferPos++] = zd.HEAP8[outBuffer + i];
             }
             that._outStreamPos += outPos;
             if (outPos > 0)
-                zstdec._out_buffer_cleared(that._decHandle);
+                zd._out_buffer_cleared(that._decHandle);
             if (finished || that._outStreamPos >= offset + length)
                 return that._outBuffer;
             else
@@ -151,7 +157,7 @@ define(['q'], function(Q) {
      * @returns {Promise}
      */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
-        if (!zstdec._input_empty(this._decHandle)) {
+        if (!zd._input_empty(this._decHandle)) {
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
@@ -159,11 +165,11 @@ define(['q'], function(Q) {
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize)
                 data = data.slice(0, that._chunkSize);
-            var decompArray = zstdec._get_in_buffer(that._decHandle);
+            var decompArray = zd._get_in_buffer(that._decHandle);
             // For some reason, zstdec.writeArrayToMemory does not seem to be available, and is equivalent to zstdec.HEAP8.set
             // zstdec.HEAP8.set(data, zstdec._get_in_buffer(that._decHandle));
             that._inStreamPos += data.length;
-            zstdec._set_new_input(that._decHandle, data.length);
+            zd._set_new_input(that._decHandle, data.length);
             return 0;
         });
     };
