@@ -1,4 +1,12 @@
 
+var ZD = (function() {
+  var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
+  if (typeof __filename !== 'undefined') _scriptDir = _scriptDir || __filename;
+  return (
+function(ZD) {
+  ZD = ZD || {};
+
+
 
 // The Module object: Our interface to the outside world. We import
 // and export values on it. There are various ways Module can be used:
@@ -13,7 +21,7 @@
 // after the generated code, you will need to define   var Module = {};
 // before the code. Then that object will be used in the code, and you
 // can continue to use Module afterwards as well.
-var Module = typeof Module !== 'undefined' ? Module : {};
+var Module = typeof ZD !== 'undefined' ? ZD : {};
 
 // Include a Promise polyfill for legacy browsers. This is needed either for
 // wasm2js, where we polyfill the wasm API which needs Promises, or when using
@@ -292,6 +300,96 @@ var Promise = (function() {
 
 
 
+// Set up the promise that indicates the Module is initialized
+var readyPromiseResolve, readyPromiseReject;
+Module['ready'] = new Promise(function(resolve, reject) {
+  readyPromiseResolve = resolve;
+  readyPromiseReject = reject;
+});
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_ZSTD_createDStream')) {
+        Object.defineProperty(Module['ready'], '_ZSTD_createDStream', { configurable: true, get: function() { abort('You are getting _ZSTD_createDStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_ZSTD_createDStream', { configurable: true, set: function() { abort('You are setting _ZSTD_createDStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_ZSTD_initDStream')) {
+        Object.defineProperty(Module['ready'], '_ZSTD_initDStream', { configurable: true, get: function() { abort('You are getting _ZSTD_initDStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_ZSTD_initDStream', { configurable: true, set: function() { abort('You are setting _ZSTD_initDStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_ZSTD_decompressStream')) {
+        Object.defineProperty(Module['ready'], '_ZSTD_decompressStream', { configurable: true, get: function() { abort('You are getting _ZSTD_decompressStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_ZSTD_decompressStream', { configurable: true, set: function() { abort('You are setting _ZSTD_decompressStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_ZSTD_isError')) {
+        Object.defineProperty(Module['ready'], '_ZSTD_isError', { configurable: true, get: function() { abort('You are getting _ZSTD_isError on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_ZSTD_isError', { configurable: true, set: function() { abort('You are setting _ZSTD_isError on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_ZSTD_freeDStream')) {
+        Object.defineProperty(Module['ready'], '_ZSTD_freeDStream', { configurable: true, get: function() { abort('You are getting _ZSTD_freeDStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_ZSTD_freeDStream', { configurable: true, set: function() { abort('You are setting _ZSTD_freeDStream on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_malloc')) {
+        Object.defineProperty(Module['ready'], '_malloc', { configurable: true, get: function() { abort('You are getting _malloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_malloc', { configurable: true, set: function() { abort('You are setting _malloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_free')) {
+        Object.defineProperty(Module['ready'], '_free', { configurable: true, get: function() { abort('You are getting _free on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_free', { configurable: true, set: function() { abort('You are setting _free on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_stackSave')) {
+        Object.defineProperty(Module['ready'], '_stackSave', { configurable: true, get: function() { abort('You are getting _stackSave on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_stackSave', { configurable: true, set: function() { abort('You are setting _stackSave on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_stackRestore')) {
+        Object.defineProperty(Module['ready'], '_stackRestore', { configurable: true, get: function() { abort('You are getting _stackRestore on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_stackRestore', { configurable: true, set: function() { abort('You are setting _stackRestore on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '_stackAlloc')) {
+        Object.defineProperty(Module['ready'], '_stackAlloc', { configurable: true, get: function() { abort('You are getting _stackAlloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '_stackAlloc', { configurable: true, set: function() { abort('You are setting _stackAlloc on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '___data_end')) {
+        Object.defineProperty(Module['ready'], '___data_end', { configurable: true, get: function() { abort('You are getting ___data_end on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '___data_end', { configurable: true, set: function() { abort('You are setting ___data_end on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '___wasm_call_ctors')) {
+        Object.defineProperty(Module['ready'], '___wasm_call_ctors', { configurable: true, get: function() { abort('You are getting ___wasm_call_ctors on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '___wasm_call_ctors', { configurable: true, set: function() { abort('You are setting ___wasm_call_ctors on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], '___errno_location')) {
+        Object.defineProperty(Module['ready'], '___errno_location', { configurable: true, get: function() { abort('You are getting ___errno_location on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], '___errno_location', { configurable: true, set: function() { abort('You are setting ___errno_location on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
+
+      if (!Object.getOwnPropertyDescriptor(Module['ready'], 'onRuntimeInitialized')) {
+        Object.defineProperty(Module['ready'], 'onRuntimeInitialized', { configurable: true, get: function() { abort('You are getting onRuntimeInitialized on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+        Object.defineProperty(Module['ready'], 'onRuntimeInitialized', { configurable: true, set: function() { abort('You are setting onRuntimeInitialized on the Promise object, instead of the instance. Use .then() to get called back with the instance, see the MODULARIZE docs in src/settings.js') } });
+      }
+    
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
@@ -393,9 +491,7 @@ if (ENVIRONMENT_IS_NODE) {
 
   arguments_ = process['argv'].slice(2);
 
-  if (typeof module !== 'undefined') {
-    module['exports'] = Module;
-  }
+  // MODULARIZE will export the module in the proper place outside, we don't need to export here
 
   process['on']('uncaughtException', function(ex) {
     // suppress ExitStatus exceptions from showing an error
@@ -472,6 +568,11 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
     scriptDirectory = self.location.href;
   } else if (document.currentScript) { // web
     scriptDirectory = document.currentScript.src;
+  }
+  // When MODULARIZE, this JS may be executed later, after document.currentScript
+  // is gone, so we saved it, and we use it here instead of any other info.
+  if (_scriptDir) {
+    scriptDirectory = _scriptDir;
   }
   // blob urls look like blob:http://site.com/etc/etc and we cannot infer anything from them.
   // otherwise, slice off the final part of the url to find the script directory.
@@ -848,19 +949,24 @@ var noExitRuntime;if (Module['noExitRuntime']) noExitRuntime = Module['noExitRun
 /** @suppress{const} */
 var
 WebAssembly = {
-  Memory: /** @constructor */ function(opts) {
-    return {
-      buffer: new ArrayBuffer(opts['initial'] * 65536),
-      grow: function(amount) {
-        var oldBuffer = this.buffer;
-        var ret = __growWasmMemory(amount);
-        assert(this.buffer !== oldBuffer); // the call should have updated us
-        return ret;
-      }
+  // Note that we do not use closure quoting (this['buffer'], etc.) on these
+  // functions, as they are just meant for internal use. In other words, this is
+  // not a fully general polyfill.
+  Memory: function(opts) {
+    this.buffer = new ArrayBuffer(opts['initial'] * 65536);
+    this.grow = function(amount) {
+      var oldBuffer = this.buffer;
+      var ret = __growWasmMemory(amount);
+      assert(this.buffer !== oldBuffer); // the call should have updated us
+      return ret;
     };
   },
 
-  Table: function(opts) {
+  // Table is not a normal constructor and instead returns the array object.
+  // That lets us use the length property automatically, which is simpler and
+  // smaller (but instanceof will not report that an instance of Table is an
+  // instance of this function).
+  Table: /** @constructor */ function(opts) {
     var ret = new Array(opts['initial']);
     ret.grow = function(by) {
       if (ret.length >= 1 + 0) {
@@ -880,14 +986,13 @@ WebAssembly = {
   Module: function(binary) {
     // TODO: use the binary and info somehow - right now the wasm2js output is embedded in
     // the main JS
-    return {};
   },
 
   Instance: function(module, info) {
     // TODO: use the module and info somehow - right now the wasm2js output is embedded in
     // the main JS
     // This will be replaced by the actual wasm2js code.
-    var exports = (
+    this.exports = (
 function instantiate(asmLibraryArg, wasmMemory, wasmTable) {
 
 function asmFunc(global, env, buffer) {
@@ -18484,18 +18589,17 @@ function asmFunc(global, env, buffer) {
  
  function $140($0_1) {
   $0_1 = $0_1 | 0;
-  var $2_1 = 0, $1_1 = 0, i64toi32_i32$2 = 0, i64toi32_i32$1 = 0, i64toi32_i32$0 = 0, $3_1 = 0, i64toi32_i32$4 = 0, $4_1 = 0, $5_1 = 0, $6_1 = 0, $16_1 = 0, $187 = 0, $187$hi = 0, $189$hi = 0, $190$hi = 0, $191 = 0;
-  $1_1 = 0;
+  var $4_1 = 0, $2_1 = 0, $1_1 = 0, i64toi32_i32$2 = 0, i64toi32_i32$1 = 0, i64toi32_i32$0 = 0, i64toi32_i32$4 = 0, $3_1 = 0, $5_1 = 0, $6_1 = 0, $16_1 = 0, $187 = 0, $187$hi = 0, $189$hi = 0, $190$hi = 0, $191 = 0;
   label$1 : {
-   $2_1 = $147($0_1 | 0) | 0;
-   if (($2_1 | 0) < (1 | 0)) {
+   $1_1 = $147($0_1 | 0) | 0;
+   if (($1_1 | 0) < (1 | 0)) {
     break label$1
    }
-   $3_1 = 16;
-   $4_1 = $2_1 + $0_1 | 0;
-   $1_1 = $4_1 + -16 | 0;
-   HEAP32[($1_1 + 12 | 0) >> 2] = 16;
-   HEAP32[$1_1 >> 2] = 16;
+   $2_1 = 16;
+   $3_1 = $1_1 + $0_1 | 0;
+   $4_1 = $3_1 + -16 | 0;
+   HEAP32[($4_1 + 12 | 0) >> 2] = 16;
+   HEAP32[$4_1 >> 2] = 16;
    label$2 : {
     label$3 : {
      label$4 : {
@@ -18503,14 +18607,14 @@ function asmFunc(global, env, buffer) {
       if (!$0_1) {
        break label$4
       }
-      if (($2_1 | 0) != (HEAP32[($0_1 + 8 | 0) >> 2] | 0 | 0)) {
+      if (($1_1 | 0) != (HEAP32[($0_1 + 8 | 0) >> 2] | 0 | 0)) {
        break label$4
       }
-      $3_1 = HEAP32[($2_1 + -4 | 0) >> 2] | 0;
-      $5_1 = $2_1 - (($3_1 >> 31 | 0) ^ $3_1 | 0) | 0;
+      $2_1 = HEAP32[($1_1 + -4 | 0) >> 2] | 0;
+      $5_1 = $1_1 - (($2_1 >> 31 | 0) ^ $2_1 | 0) | 0;
       $6_1 = HEAP32[($5_1 + -4 | 0) >> 2] | 0;
-      HEAP32[($0_1 + 8 | 0) >> 2] = $4_1;
-      $3_1 = -16;
+      HEAP32[($0_1 + 8 | 0) >> 2] = $3_1;
+      $2_1 = -16;
       $0_1 = $5_1 - ($6_1 ^ ($6_1 >> 31 | 0) | 0) | 0;
       if ((HEAP32[(($0_1 + (HEAP32[$0_1 >> 2] | 0) | 0) + -4 | 0) >> 2] | 0 | 0) > (-1 | 0)) {
        break label$3
@@ -18518,71 +18622,71 @@ function asmFunc(global, env, buffer) {
       $2_1 = HEAP32[($0_1 + 4 | 0) >> 2] | 0;
       HEAP32[($2_1 + 8 | 0) >> 2] = HEAP32[($0_1 + 8 | 0) >> 2] | 0;
       HEAP32[((HEAP32[($0_1 + 8 | 0) >> 2] | 0) + 4 | 0) >> 2] = $2_1;
-      $2_1 = $1_1 - $0_1 | 0;
-      HEAP32[$0_1 >> 2] = $2_1;
-      HEAP32[((($2_1 & -4 | 0) + $0_1 | 0) + -4 | 0) >> 2] = $2_1 ^ -1 | 0;
+      $4_1 = $4_1 - $0_1 | 0;
+      HEAP32[$0_1 >> 2] = $4_1;
+      HEAP32[((($4_1 & -4 | 0) + $0_1 | 0) + -4 | 0) >> 2] = $4_1 ^ -1 | 0;
       label$5 : {
        label$6 : {
-        $2_1 = (HEAP32[$0_1 >> 2] | 0) + -8 | 0;
-        if ($2_1 >>> 0 > 127 >>> 0) {
+        $4_1 = (HEAP32[$0_1 >> 2] | 0) + -8 | 0;
+        if ($4_1 >>> 0 > 127 >>> 0) {
          break label$6
         }
-        $2_1 = ($2_1 >>> 3 | 0) + -1 | 0;
+        $4_1 = ($4_1 >>> 3 | 0) + -1 | 0;
         break label$5;
        }
-       $1_1 = Math_clz32($2_1);
+       $2_1 = Math_clz32($4_1);
        label$7 : {
-        if ($2_1 >>> 0 > 4095 >>> 0) {
+        if ($4_1 >>> 0 > 4095 >>> 0) {
          break label$7
         }
-        $2_1 = ((($2_1 >>> (29 - $1_1 | 0) | 0) ^ 4 | 0) - ($1_1 << 2 | 0) | 0) + 110 | 0;
+        $4_1 = ((($4_1 >>> (29 - $2_1 | 0) | 0) ^ 4 | 0) - ($2_1 << 2 | 0) | 0) + 110 | 0;
         break label$5;
        }
-       $2_1 = ((($2_1 >>> (30 - $1_1 | 0) | 0) ^ 2 | 0) - ($1_1 << 1 | 0) | 0) + 71 | 0;
-       $2_1 = $2_1 >>> 0 < 63 >>> 0 ? $2_1 : 63;
+       $4_1 = ((($4_1 >>> (30 - $2_1 | 0) | 0) ^ 2 | 0) - ($2_1 << 1 | 0) | 0) + 71 | 0;
+       $4_1 = $4_1 >>> 0 < 63 >>> 0 ? $4_1 : 63;
       }
-      $1_1 = $2_1 << 4 | 0;
-      HEAP32[($0_1 + 4 | 0) >> 2] = $1_1 + 3984 | 0;
-      $1_1 = $1_1 + 3992 | 0;
-      HEAP32[($0_1 + 8 | 0) >> 2] = HEAP32[$1_1 >> 2] | 0;
+      $2_1 = $4_1 << 4 | 0;
+      HEAP32[($0_1 + 4 | 0) >> 2] = $2_1 + 3984 | 0;
+      $2_1 = $2_1 + 3992 | 0;
+      HEAP32[($0_1 + 8 | 0) >> 2] = HEAP32[$2_1 >> 2] | 0;
       break label$2;
      }
-     HEAP32[($2_1 + 12 | 0) >> 2] = 16;
-     HEAP32[$2_1 >> 2] = 16;
-     HEAP32[($2_1 + 8 | 0) >> 2] = $4_1;
-     HEAP32[($2_1 + 4 | 0) >> 2] = $0_1;
-     HEAP32[(0 + 5008 | 0) >> 2] = $2_1;
+     HEAP32[($1_1 + 12 | 0) >> 2] = 16;
+     HEAP32[$1_1 >> 2] = 16;
+     HEAP32[($1_1 + 8 | 0) >> 2] = $3_1;
+     HEAP32[($1_1 + 4 | 0) >> 2] = $0_1;
+     HEAP32[(0 + 5008 | 0) >> 2] = $1_1;
     }
-    $0_1 = $2_1 + $3_1 | 0;
-    $2_1 = $1_1 - $0_1 | 0;
-    HEAP32[$0_1 >> 2] = $2_1;
-    HEAP32[((($2_1 & -4 | 0) + $0_1 | 0) + -4 | 0) >> 2] = $2_1 ^ -1 | 0;
+    $0_1 = $1_1 + $2_1 | 0;
+    $4_1 = $4_1 - $0_1 | 0;
+    HEAP32[$0_1 >> 2] = $4_1;
+    HEAP32[((($4_1 & -4 | 0) + $0_1 | 0) + -4 | 0) >> 2] = $4_1 ^ -1 | 0;
     label$8 : {
      label$9 : {
-      $2_1 = (HEAP32[$0_1 >> 2] | 0) + -8 | 0;
-      if ($2_1 >>> 0 > 127 >>> 0) {
+      $4_1 = (HEAP32[$0_1 >> 2] | 0) + -8 | 0;
+      if ($4_1 >>> 0 > 127 >>> 0) {
        break label$9
       }
-      $2_1 = ($2_1 >>> 3 | 0) + -1 | 0;
+      $4_1 = ($4_1 >>> 3 | 0) + -1 | 0;
       break label$8;
      }
-     $1_1 = Math_clz32($2_1);
+     $2_1 = Math_clz32($4_1);
      label$10 : {
-      if ($2_1 >>> 0 > 4095 >>> 0) {
+      if ($4_1 >>> 0 > 4095 >>> 0) {
        break label$10
       }
-      $2_1 = ((($2_1 >>> (29 - $1_1 | 0) | 0) ^ 4 | 0) - ($1_1 << 2 | 0) | 0) + 110 | 0;
+      $4_1 = ((($4_1 >>> (29 - $2_1 | 0) | 0) ^ 4 | 0) - ($2_1 << 2 | 0) | 0) + 110 | 0;
       break label$8;
      }
-     $2_1 = ((($2_1 >>> (30 - $1_1 | 0) | 0) ^ 2 | 0) - ($1_1 << 1 | 0) | 0) + 71 | 0;
-     $2_1 = $2_1 >>> 0 < 63 >>> 0 ? $2_1 : 63;
+     $4_1 = ((($4_1 >>> (30 - $2_1 | 0) | 0) ^ 2 | 0) - ($2_1 << 1 | 0) | 0) + 71 | 0;
+     $4_1 = $4_1 >>> 0 < 63 >>> 0 ? $4_1 : 63;
     }
-    $1_1 = $2_1 << 4 | 0;
-    HEAP32[($0_1 + 4 | 0) >> 2] = $1_1 + 3984 | 0;
-    $1_1 = $1_1 + 3992 | 0;
-    HEAP32[($0_1 + 8 | 0) >> 2] = HEAP32[$1_1 >> 2] | 0;
+    $2_1 = $4_1 << 4 | 0;
+    HEAP32[($0_1 + 4 | 0) >> 2] = $2_1 + 3984 | 0;
+    $2_1 = $2_1 + 3992 | 0;
+    HEAP32[($0_1 + 8 | 0) >> 2] = HEAP32[$2_1 >> 2] | 0;
    }
-   HEAP32[$1_1 >> 2] = $0_1;
+   HEAP32[$2_1 >> 2] = $0_1;
    HEAP32[((HEAP32[($0_1 + 8 | 0) >> 2] | 0) + 4 | 0) >> 2] = $0_1;
    i64toi32_i32$2 = 0;
    i64toi32_i32$0 = HEAP32[(i64toi32_i32$2 + 5016 | 0) >> 2] | 0;
@@ -18594,8 +18698,8 @@ function asmFunc(global, env, buffer) {
    i64toi32_i32$1 = 0;
    i64toi32_i32$2 = 1;
    i64toi32_i32$0 = $189$hi;
-   i64toi32_i32$4 = $2_1 & 31 | 0;
-   if (32 >>> 0 <= ($2_1 & 63 | 0) >>> 0) {
+   i64toi32_i32$4 = $4_1 & 31 | 0;
+   if (32 >>> 0 <= ($4_1 & 63 | 0) >>> 0) {
     i64toi32_i32$0 = i64toi32_i32$2 << i64toi32_i32$4 | 0;
     $16_1 = 0;
    } else {
@@ -18611,9 +18715,8 @@ function asmFunc(global, env, buffer) {
    i64toi32_i32$1 = 0;
    HEAP32[(i64toi32_i32$1 + 5016 | 0) >> 2] = $191;
    HEAP32[(i64toi32_i32$1 + 5020 | 0) >> 2] = i64toi32_i32$2;
-   $1_1 = 1;
   }
-  return $1_1 | 0;
+  return ($1_1 | 0) > (0 | 0) | 0;
  }
  
  function $141($0_1, $1_1) {
@@ -19761,6 +19864,7 @@ function asmFunc(global, env, buffer) {
  };
 }
 
+var bufferView = new Uint8Array(wasmMemory.buffer);
 for (var base64ReverseLookup = new Uint8Array(123/*'z'+1*/), i = 25; i >= 0; --i) {
     base64ReverseLookup[48+i] = 52+i; // '0-9'
     base64ReverseLookup[65+i] = i; // 'A-Z'
@@ -19777,10 +19881,9 @@ for (var base64ReverseLookup = new Uint8Array(123/*'z'+1*/), i = 25; i >= 0; --i
       uint8Array[j++] = base64ReverseLookup[b64.charCodeAt(i)] << 2 | b1 >> 4;
       if (j < end) uint8Array[j++] = b1 << 4 | b2 >> 2;
       if (j < end) uint8Array[j++] = b2 << 6 | base64ReverseLookup[b64.charCodeAt(i+3)];
-    }
+    } 
   }
-var bufferView = new Uint8Array(wasmMemory.buffer);
-base64DecodeToExistingUint8Array(bufferView, 1024, "AAAAAAAAAAABAAAAAQAAAAIAAAACAAAAAAAAAAAAAAABAAAAAQAAAAIAAAACAAAAJgAAAIIAAAAhBQAASgAAAGcIAAAmAAAAwAEAAIAAAABJBQAASgAAAL4IAAApAAAALAIAAIAAAABJBQAASgAAAL4IAAAvAAAAygIAAIAAAACKBQAASgAAAIQJAAA1AAAAcwMAAIAAAACdBQAASgAAAKAJAAA9AAAAgQMAAIAAAADrBQAASwAAAD4KAABEAAAAngMAAIAAAABNBgAASwAAAKoKAABLAAAAswMAAIAAAADBBgAATQAAAB8NAABNAAAAUwQAAIAAAAAjCAAAUQAAAKYPAABUAAAAmQQAAIAAAABLCQAAVwAAALESAABYAAAA2gQAAIAAAABvCQAAXQAAACMUAABUAAAARQUAAIAAAABUCgAAagAAAIwUAABqAAAArwUAAIAAAAB2CQAAfAAAAE4QAAB8AAAA0gIAAIAAAABjBwAAkQAAAJAHAACSAAAAAAAAAAEAAAABAAAABQAAAA0AAAAdAAAAPQAAAH0AAAD9AAAA/QEAAP0DAAD9BwAA/Q8AAP0fAAD9PwAA/X8AAP3/AAD9/wEA/f8DAP3/BwD9/w8A/f8fAP3/PwD9/38A/f//AP3//wH9//8D/f//B/3//w/9//8f/f//P/3//38AAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABEAAAASAAAAEwAAABQAAAAVAAAAFgAAABcAAAAYAAAAGQAAABoAAAAbAAAAHAAAAB0AAAAeAAAAHwAAAAMAAAAEAAAABQAAAAYAAAAHAAAACAAAAAkAAAAKAAAACwAAAAwAAAANAAAADgAAAA8AAAAQAAAAEQAAABIAAAATAAAAFAAAABUAAAAWAAAAFwAAABgAAAAZAAAAGgAAABsAAAAcAAAAHQAAAB4AAAAfAAAAIAAAACEAAAAiAAAAIwAAACUAAAAnAAAAKQAAACsAAAAvAAAAMwAAADsAAABDAAAAUwAAAGMAAACDAAAAAwEAAAMCAAADBAAAAwgAAAMQAAADIAAAA0AAAAOAAAADAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAEAAAABAAAAAgAAAAIAAAADAAAAAwAAAAQAAAAEAAAABQAAAAcAAAAIAAAACQAAAAoAAAALAAAADAAAAA0AAAAOAAAADwAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABIAAAAUAAAAFgAAABgAAAAcAAAAIAAAACgAAAAwAAAAQAAAAIAAAAAAAQAAAAIAAAAEAAAACAAAABAAAAAgAAAAQAAAAIAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAQAAAAIAAAACAAAAAwAAAAMAAAAEAAAABgAAAAcAAAAIAAAACQAAAAoAAAALAAAADAAAAA0AAAAOAAAADwAAABAAAAABAAAABAAAAAgAAAAAAAAAAQABAQYAAAAAAAAEAAAAABAAAAQAAAAAIAAABQEAAAAAAAAFAwAAAAAAAAUEAAAAAAAABQYAAAAAAAAFBwAAAAAAAAUJAAAAAAAABQoAAAAAAAAFDAAAAAAAAAYOAAAAAAABBRAAAAAAAAEFFAAAAAAAAQUWAAAAAAACBRwAAAAAAAMFIAAAAAAABAUwAAAAIAAGBUAAAAAAAAcFgAAAAAAACAYAAQAAAAAKBgAEAAAAAAwGABAAACAAAAQAAAAAAAAABAEAAAAAAAAFAgAAACAAAAUEAAAAAAAABQUAAAAgAAAFBwAAAAAAAAUIAAAAIAAABQoAAAAAAAAFCwAAAAAAAAYNAAAAIAABBRAAAAAAAAEFEgAAACAAAQUWAAAAAAACBRgAAAAgAAMFIAAAAAAAAwUoAAAAAAAGBEAAAAAQAAYEQAAAACAABwWAAAAAAAAJBgACAAAAAAsGAAgAADAAAAQAAAAAEAAABAEAAAAgAAAFAgAAACAAAAUDAAAAIAAABQUAAAAgAAAFBgAAACAAAAUIAAAAIAAABQkAAAAgAAAFCwAAACAAAAUMAAAAAAAABg8AAAAgAAEFEgAAACAAAQUUAAAAIAACBRgAAAAgAAIFHAAAACAAAwUoAAAAIAAEBTAAAAAAABAGAAABAAAADwYAgAAAAAAOBgBAAAAAAA0GACAAAAAAAAAAAAAAAQABAQUAAAAAAAAFAAAAAAAABgQ9AAAAAAAJBf0BAAAAAA8F/X8AAAAAFQX9/x8AAAADBQUAAAAAAAcEfQAAAAAADAX9DwAAAAASBf3/AwAAABcF/f9/AAAABQUdAAAAAAAIBP0AAAAAAA4F/T8AAAAAFAX9/w8AAAACBQEAAAAQAAcEfQAAAAAACwX9BwAAAAARBf3/AQAAABYF/f8/AAAABAUNAAAAEAAIBP0AAAAAAA0F/R8AAAAAEwX9/wcAAAABBQEAAAAQAAYEPQAAAAAACgX9AwAAAAAQBf3/AAAAABwF/f//DwAAGwX9//8HAAAaBf3//wMAABkF/f//AQAAGAX9//8AAAAAAAAAAAABAAEBBgAAAAAAAAYDAAAAAAAABAQAAAAgAAAFBQAAAAAAAAUGAAAAAAAABQgAAAAAAAAFCQAAAAAAAAULAAAAAAAABg0AAAAAAAAGEAAAAAAAAAYTAAAAAAAABhYAAAAAAAAGGQAAAAAAAAYcAAAAAAAABh8AAAAAAAAGIgAAAAAAAQYlAAAAAAABBikAAAAAAAIGLwAAAAAAAwY7AAAAAAAEBlMAAAAAAAcGgwAAAAAACQYDAgAAEAAABAQAAAAAAAAEBQAAACAAAAUGAAAAAAAABQcAAAAgAAAFCQAAAAAAAAUKAAAAAAAABgwAAAAAAAAGDwAAAAAAAAYSAAAAAAAABhUAAAAAAAAGGAAAAAAAAAYbAAAAAAAABh4AAAAAAAAGIQAAAAAAAQYjAAAAAAABBicAAAAAAAIGKwAAAAAAAwYzAAAAAAAEBkMAAAAAAAUGYwAAAAAACAYDAQAAIAAABAQAAAAwAAAEBAAAABAAAAQFAAAAIAAABQcAAAAgAAAFCAAAACAAAAUKAAAAIAAABQsAAAAAAAAGDgAAAAAAAAYRAAAAAAAABhQAAAAAAAAGFwAAAAAAAAYaAAAAAAAABh0AAAAAAAAGIAAAAAAAEAYDAAEAAAAPBgOAAAAAAA4GA0AAAAAADQYDIAAAAAAMBgMQAAAAAAsGAwgAAAAACgYDBAAAAQAAAAAAAAAAAAAAAQAAAAMAAAAHAAAADwAAAB8AAAA/AAAAfwAAAP8AAAD/AQAA/wMAAP8HAAD/DwAA/x8AAP8/AAD/fwAA//8AAP//AQD//wMA//8HAP//DwD//x8A//8/AP//fwD///8A////Af///wP///8H////D////x////8/////fwAAAAABAAAAAgAAAAQAAAAAAAAAAgAAAAQAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAgAAAAEAAAAEAAAABAAAAAQAAAAEAAAACAAAAAgAAAAIAAAABwAAAAgAAAAJAAAACgAAAAsAAAA=");
+  base64DecodeToExistingUint8Array(bufferView, 1024, "AAAAAAAAAAABAAAAAQAAAAIAAAACAAAAAAAAAAAAAAABAAAAAQAAAAIAAAACAAAAJgAAAIIAAAAhBQAASgAAAGcIAAAmAAAAwAEAAIAAAABJBQAASgAAAL4IAAApAAAALAIAAIAAAABJBQAASgAAAL4IAAAvAAAAygIAAIAAAACKBQAASgAAAIQJAAA1AAAAcwMAAIAAAACdBQAASgAAAKAJAAA9AAAAgQMAAIAAAADrBQAASwAAAD4KAABEAAAAngMAAIAAAABNBgAASwAAAKoKAABLAAAAswMAAIAAAADBBgAATQAAAB8NAABNAAAAUwQAAIAAAAAjCAAAUQAAAKYPAABUAAAAmQQAAIAAAABLCQAAVwAAALESAABYAAAA2gQAAIAAAABvCQAAXQAAACMUAABUAAAARQUAAIAAAABUCgAAagAAAIwUAABqAAAArwUAAIAAAAB2CQAAfAAAAE4QAAB8AAAA0gIAAIAAAABjBwAAkQAAAJAHAACSAAAAAAAAAAEAAAABAAAABQAAAA0AAAAdAAAAPQAAAH0AAAD9AAAA/QEAAP0DAAD9BwAA/Q8AAP0fAAD9PwAA/X8AAP3/AAD9/wEA/f8DAP3/BwD9/w8A/f8fAP3/PwD9/38A/f//AP3//wH9//8D/f//B/3//w/9//8f/f//P/3//38AAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABEAAAASAAAAEwAAABQAAAAVAAAAFgAAABcAAAAYAAAAGQAAABoAAAAbAAAAHAAAAB0AAAAeAAAAHwAAAAMAAAAEAAAABQAAAAYAAAAHAAAACAAAAAkAAAAKAAAACwAAAAwAAAANAAAADgAAAA8AAAAQAAAAEQAAABIAAAATAAAAFAAAABUAAAAWAAAAFwAAABgAAAAZAAAAGgAAABsAAAAcAAAAHQAAAB4AAAAfAAAAIAAAACEAAAAiAAAAIwAAACUAAAAnAAAAKQAAACsAAAAvAAAAMwAAADsAAABDAAAAUwAAAGMAAACDAAAAAwEAAAMCAAADBAAAAwgAAAMQAAADIAAAA0AAAAOAAAADAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAEAAAABAAAAAgAAAAIAAAADAAAAAwAAAAQAAAAEAAAABQAAAAcAAAAIAAAACQAAAAoAAAALAAAADAAAAA0AAAAOAAAADwAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAIAAAADAAAABAAAAAUAAAAGAAAABwAAAAgAAAAJAAAACgAAAAsAAAAMAAAADQAAAA4AAAAPAAAAEAAAABIAAAAUAAAAFgAAABgAAAAcAAAAIAAAACgAAAAwAAAAQAAAAIAAAAAAAQAAAAIAAAAEAAAACAAAABAAAAAgAAAAQAAAAIAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAQAAAAIAAAACAAAAAwAAAAMAAAAEAAAABgAAAAcAAAAIAAAACQAAAAoAAAALAAAADAAAAA0AAAAOAAAADwAAABAAAAABAAAABAAAAAgAAAAAAAAAAQABAQYAAAAAAAAEAAAAABAAAAQAAAAAIAAABQEAAAAAAAAFAwAAAAAAAAUEAAAAAAAABQYAAAAAAAAFBwAAAAAAAAUJAAAAAAAABQoAAAAAAAAFDAAAAAAAAAYOAAAAAAABBRAAAAAAAAEFFAAAAAAAAQUWAAAAAAACBRwAAAAAAAMFIAAAAAAABAUwAAAAIAAGBUAAAAAAAAcFgAAAAAAACAYAAQAAAAAKBgAEAAAAAAwGABAAACAAAAQAAAAAAAAABAEAAAAAAAAFAgAAACAAAAUEAAAAAAAABQUAAAAgAAAFBwAAAAAAAAUIAAAAIAAABQoAAAAAAAAFCwAAAAAAAAYNAAAAIAABBRAAAAAAAAEFEgAAACAAAQUWAAAAAAACBRgAAAAgAAMFIAAAAAAAAwUoAAAAAAAGBEAAAAAQAAYEQAAAACAABwWAAAAAAAAJBgACAAAAAAsGAAgAADAAAAQAAAAAEAAABAEAAAAgAAAFAgAAACAAAAUDAAAAIAAABQUAAAAgAAAFBgAAACAAAAUIAAAAIAAABQkAAAAgAAAFCwAAACAAAAUMAAAAAAAABg8AAAAgAAEFEgAAACAAAQUUAAAAIAACBRgAAAAgAAIFHAAAACAAAwUoAAAAIAAEBTAAAAAAABAGAAABAAAADwYAgAAAAAAOBgBAAAAAAA0GACAAAAAAAAAAAAAAAQABAQUAAAAAAAAFAAAAAAAABgQ9AAAAAAAJBf0BAAAAAA8F/X8AAAAAFQX9/x8AAAADBQUAAAAAAAcEfQAAAAAADAX9DwAAAAASBf3/AwAAABcF/f9/AAAABQUdAAAAAAAIBP0AAAAAAA4F/T8AAAAAFAX9/w8AAAACBQEAAAAQAAcEfQAAAAAACwX9BwAAAAARBf3/AQAAABYF/f8/AAAABAUNAAAAEAAIBP0AAAAAAA0F/R8AAAAAEwX9/wcAAAABBQEAAAAQAAYEPQAAAAAACgX9AwAAAAAQBf3/AAAAABwF/f//DwAAGwX9//8HAAAaBf3//wMAABkF/f//AQAAGAX9//8AAAAAAAAAAAABAAEBBgAAAAAAAAYDAAAAAAAABAQAAAAgAAAFBQAAAAAAAAUGAAAAAAAABQgAAAAAAAAFCQAAAAAAAAULAAAAAAAABg0AAAAAAAAGEAAAAAAAAAYTAAAAAAAABhYAAAAAAAAGGQAAAAAAAAYcAAAAAAAABh8AAAAAAAAGIgAAAAAAAQYlAAAAAAABBikAAAAAAAIGLwAAAAAAAwY7AAAAAAAEBlMAAAAAAAcGgwAAAAAACQYDAgAAEAAABAQAAAAAAAAEBQAAACAAAAUGAAAAAAAABQcAAAAgAAAFCQAAAAAAAAUKAAAAAAAABgwAAAAAAAAGDwAAAAAAAAYSAAAAAAAABhUAAAAAAAAGGAAAAAAAAAYbAAAAAAAABh4AAAAAAAAGIQAAAAAAAQYjAAAAAAABBicAAAAAAAIGKwAAAAAAAwYzAAAAAAAEBkMAAAAAAAUGYwAAAAAACAYDAQAAIAAABAQAAAAwAAAEBAAAABAAAAQFAAAAIAAABQcAAAAgAAAFCAAAACAAAAUKAAAAIAAABQsAAAAAAAAGDgAAAAAAAAYRAAAAAAAABhQAAAAAAAAGFwAAAAAAAAYaAAAAAAAABh0AAAAAAAAGIAAAAAAAEAYDAAEAAAAPBgOAAAAAAA4GA0AAAAAADQYDIAAAAAAMBgMQAAAAAAsGAwgAAAAACgYDBAAAAQAAAAAAAAAAAAAAAQAAAAMAAAAHAAAADwAAAB8AAAA/AAAAfwAAAP8AAAD/AQAA/wMAAP8HAAD/DwAA/x8AAP8/AAD/fwAA//8AAP//AQD//wMA//8HAP//DwD//x8A//8/AP//fwD///8A////Af///wP///8H////D////x////8/////fwAAAAABAAAAAgAAAAQAAAAAAAAAAgAAAAQAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAgAAAAEAAAAEAAAABAAAAAQAAAAEAAAACAAAAAgAAAAIAAAABwAAAAgAAAAJAAAACgAAAAsAAAA=");
 base64DecodeToExistingUint8Array(bufferView, 3984, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 return asmFunc({
     'Int8Array': Int8Array,
@@ -19801,16 +19904,14 @@ return asmFunc({
 
 }
 )(asmLibraryArg, wasmMemory, wasmTable);
-    return {
-      'exports': exports
-    };
   },
 
   instantiate: /** @suppress{checkTypes} */ function(binary, info) {
     return {
       then: function(ok) {
+        var module = new WebAssembly.Module(binary);
         ok({
-          'instance': new WebAssembly.Instance(new WebAssembly.Module(binary))
+          'instance': new WebAssembly.Instance(module)
         });
         // Emulate a simple WebAssembly.instantiate(..).then(()=>{}).catch(()=>{}) syntax.
         return { catch: function() {} };
@@ -19827,7 +19928,7 @@ wasmBinary = [];
 
 
 if (typeof WebAssembly !== 'object') {
-  abort('No WebAssembly support found. Build with -s WASM=0 to target JavaScript instead.');
+  abort('no native wasm support detected');
 }
 
 
@@ -20884,7 +20985,6 @@ function abort(what) {
   }
 
   what += '';
-  out(what);
   err(what);
 
   ABORT = true;
@@ -20893,10 +20993,16 @@ function abort(what) {
   var output = 'abort(' + what + ') at ' + stackTrace();
   what = output;
 
-  // Throw a wasm runtime error, because a JS error might be seen as a foreign
+  // Use a wasm runtime error, because a JS error might be seen as a foreign
   // exception, which means we'd run destructors on it. We need the error to
   // simply make the program stop.
-  throw new WebAssembly.RuntimeError(what);
+  var e = new WebAssembly.RuntimeError(what);
+
+  readyPromiseReject(e);
+  // Throw the error whether or not MODULARIZE is set because abort is used
+  // in code paths apart from instantiation where an exception is expected
+  // to be thrown when abort is called.
+  throw e;
 }
 
 
@@ -21062,6 +21168,8 @@ function createWasm() {
       return WebAssembly.instantiate(binary, info);
     }).then(receiver, function(reason) {
       err('failed to asynchronously prepare wasm: ' + reason);
+
+
       abort(reason);
     });
   }
@@ -21357,7 +21465,7 @@ var __growWasmMemory = Module["__growWasmMemory"] = createExportWrapper("__growW
 
 if (!Object.getOwnPropertyDescriptor(Module, "intArrayFromString")) Module["intArrayFromString"] = function() { abort("'intArrayFromString' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "intArrayToString")) Module["intArrayToString"] = function() { abort("'intArrayToString' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
-Module["ccall"] = ccall;
+if (!Object.getOwnPropertyDescriptor(Module, "ccall")) Module["ccall"] = function() { abort("'ccall' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 Module["cwrap"] = cwrap;
 if (!Object.getOwnPropertyDescriptor(Module, "setValue")) Module["setValue"] = function() { abort("'setValue' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "getValue")) Module["getValue"] = function() { abort("'getValue' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
@@ -21422,6 +21530,8 @@ if (!Object.getOwnPropertyDescriptor(Module, "UNWIND_CACHE")) Module["UNWIND_CAC
 if (!Object.getOwnPropertyDescriptor(Module, "readAsmConstArgs")) Module["readAsmConstArgs"] = function() { abort("'readAsmConstArgs' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "jstoi_q")) Module["jstoi_q"] = function() { abort("'jstoi_q' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "jstoi_s")) Module["jstoi_s"] = function() { abort("'jstoi_s' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
+if (!Object.getOwnPropertyDescriptor(Module, "listenOnce")) Module["listenOnce"] = function() { abort("'listenOnce' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
+if (!Object.getOwnPropertyDescriptor(Module, "autoResumeAudioContext")) Module["autoResumeAudioContext"] = function() { abort("'autoResumeAudioContext' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "abortStackOverflow")) Module["abortStackOverflow"] = function() { abort("'abortStackOverflow' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "reallyNegative")) Module["reallyNegative"] = function() { abort("'reallyNegative' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "formatString")) Module["formatString"] = function() { abort("'formatString' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
@@ -21454,6 +21564,7 @@ if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGet")) Module["emsc
 if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGetTexPixelData")) Module["emscriptenWebGLGetTexPixelData"] = function() { abort("'emscriptenWebGLGetTexPixelData' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGetUniform")) Module["emscriptenWebGLGetUniform"] = function() { abort("'emscriptenWebGLGetUniform' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "emscriptenWebGLGetVertexAttrib")) Module["emscriptenWebGLGetVertexAttrib"] = function() { abort("'emscriptenWebGLGetVertexAttrib' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
+if (!Object.getOwnPropertyDescriptor(Module, "writeGLArray")) Module["writeGLArray"] = function() { abort("'writeGLArray' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "AL")) Module["AL"] = function() { abort("'AL' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "SDL_unicode")) Module["SDL_unicode"] = function() { abort("'SDL_unicode' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
 if (!Object.getOwnPropertyDescriptor(Module, "SDL_ttfContext")) Module["SDL_ttfContext"] = function() { abort("'SDL_ttfContext' was not exported. add it to EXTRA_EXPORTED_RUNTIME_METHODS (see the FAQ)") };
@@ -21543,6 +21654,7 @@ function run(args) {
 
     preMain();
 
+    readyPromiseResolve(Module);
     if (Module['onRuntimeInitialized']) Module['onRuntimeInitialized']();
 
     assert(!Module['_main'], 'compiled without a main, but one is present. if you added it from JS, use Module["onRuntimeInitialized"]');
@@ -21612,6 +21724,7 @@ function exit(status, implicit) {
     // if exit() was called, we may warn the user if the runtime isn't actually being shut down
     if (!implicit) {
       var msg = 'program exited (with status: ' + status + '), but EXIT_RUNTIME is not set, so halting execution but not exiting the runtime or preventing further async execution (build with EXIT_RUNTIME=1, if you want a true shutdown)';
+      readyPromiseReject(msg);
       err(msg);
     }
   } else {
@@ -21648,3 +21761,16 @@ run();
 
 
 
+
+
+  return ZD.ready
+}
+);
+})();
+if (typeof exports === 'object' && typeof module === 'object')
+      module.exports = ZD;
+    else if (typeof define === 'function' && define['amd'])
+      define([], function() { return ZD; });
+    else if (typeof exports === 'object')
+      exports["ZD"] = ZD;
+    
