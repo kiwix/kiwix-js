@@ -73,8 +73,9 @@ define(['q', 'zstdec'], function(Q) {
     /**
      * Read length bytes, offset into the decompressed stream. Consecutive calls may only
      * advance in the stream and may not overlap.
-     * @param {Integer} offset
-     * @param {Integer} length
+     * @param {Integer} offset Offset from which to start reading
+     * @param {Integer} length Number of bytes to read
+     * @returns {Promise<ArrayBuffer>} Promise for an ArrayBuffer with decoded data
      */
     Decompressor.prototype.readSlice = function(offset, length) {
         busy = true;
@@ -94,6 +95,10 @@ define(['q', 'zstdec'], function(Q) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
         // this._inBufferPtr = zd.HEAPU32[(this._stream.decoder_stream >> 2) + 8];
+        // TODO: Check which of these variables should be a _stream property
+        this._outStreamPos = 0;
+        this._outBuffer = new Int8Array(new ArrayBuffer(length));
+        this._outBufferPos = 0;
         var that = this;
         return this._readLoop(offset, length).then(function(data) {
             zd._ZSTD_freeDStream(that._stream.decoder_stream);
@@ -149,7 +154,7 @@ define(['q', 'zstdec'], function(Q) {
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded().then(function() {
-            var ret = zd._ZSTD_decompressStream(that._stream.decoder_stream);
+            var ret = zd._ZSTD_decompressStream(that._stream.decoder_stream, that._inBufferPtr, that._outBufferPtr);
             var finished = false;
             if (ret === 0) {
                 // supply more data or free output buffer
@@ -182,25 +187,27 @@ define(['q', 'zstdec'], function(Q) {
     };
     
     /**
-     * 
-     * @returns {Promise}
+     * Fills in the instream buffer if needed
+     * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
-        // if (!zd._input_empty(this._stream.decoder_stream)) {
-        //     // DEV: When converting to Promise/A+, use Promise.resolve(0) here
-        //     return Q.when(0);
-        // }
+        if (this._stream.next_in) {
+            // DEV: When converting to Promise/A+, use Promise.resolve(0) here
+            return Q.when(0);
+        }
         var that = this;
-        return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
+        return this._reader(this._stream.next_in, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
-            // var inBufferPtr = zd._ZSTD_getInBuffer();
-            // var outBufferPtr = zd._ZSTD_getOutBuffer();
             // Populate inBuffer in asm/wasm memory
-            
-            zd.HEAPU8.set(data, inBufferPtr);
-            zd._ZSTD_decompressStream(that._stream.decoder_stream, inBufferPtr, outBufferPtr);
-            that._inStreamPos += data.length;
-            zd._set_new_input(that._stream.decoder_stream, data.length);
+            that._inBufferPtr = that._mallocOrDie(data.length);
+            // DEV For now, guess compression ratio of 1:4 max ** THIS IS UNSAFE!!! ***
+            that._outBufferPtr = that._mallocOrDie(data.length * 4);
+            // Transfer the data
+            zd.HEAPU8.set(data, that._inBufferPtr);
+            that._stream.next_in += data.length;
+            // TODO: Need to make a new C++ function to set new instreamPos (below is old xz implementation) 
+            // Although ZSTD seems to update this automatically, so we'll need to check it
+            // zd._set_new_input(that._stream.decoder_stream, data.length);
             return 0;
         });
     };
