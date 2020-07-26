@@ -54,7 +54,7 @@ define(['q', 'zstdec'], function(Q) {
      * @typedef Decompressor
      * @property {Integer} _chunkSize
      * @property {FileReader} _reader
-     * @property {unresolved} _decHandle
+     * @property {unresolved} _stream.decoder_stream
      * @property {Integer} _inStreamPos
      * @property {Integer} _outStreamPos
      * @property {Array} _outBuffer
@@ -93,32 +93,29 @@ define(['q', 'zstdec'], function(Q) {
         if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
-        // Instantiate JavaScript versions of buffer control objects
-        // NB Not sure this is needed, or if we should expose setter functions in C++
-        this._inBuffer = [
-            null, /* void* src   < start of input buffer */
-            0,    /* size_t size < size of input buffer */
-            0     /* size_t pos; < position where reading stopped. Will be updated. Necessarily 0 <= pos <= size */
-        ];
-        this._outBuffer = [
-            null, /* void* dst   < start of output buffer (pointer) */
-            0,    /* size_t size < size of output buffer */
-            0     /* size_t pos  < position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
-        ]
-        // this._inBufferPtr = zd.HEAPU32[(this._decHandle >> 2) + 8];
-        // Limit length to initial value suggested by decompressor
-        length = length > init_length ? init_length : length;
+        // this._inBufferPtr = zd.HEAPU32[(this._stream.decoder_stream >> 2) + 8];
         var that = this;
-        this._inStreamPos = 0;
-        this._outStreamPos = 0;
-        this._outBuffer = new Int8Array(new ArrayBuffer(length));
-        this._outBufferPos = 0;
         return this._readLoop(offset, length).then(function(data) {
-            zd._ZSTD_freeDStream(that._decHandle);
+            zd._ZSTD_freeDStream(that._stream.decoder_stream);
             busy = false;
             return data;
         });
     };
+
+    /**
+     * Provision asm/wasm data block and get a pointer to the assigned location
+     * @param {Number} sizeOfData The number of bytes to be allocated
+     * @returns {Number} Pointer to the assigned data block
+     */
+    Decompressor.prototype._mallocOrDie = function (sizeOfData) {
+		const dataPointer = zd._malloc(sizeOfData);
+        if (dataPointer === 0) { // error allocating memory
+            var errorMessage = 'Failed allocation of ' + sizeOfData + ' bytes.';
+            console.error(errorMessage);
+            throw new Error(errorMessage);
+		}
+		return dataPointer;
+	};
     
     /**
      * Reads stream of data from file offset for length of bytes to send to the decompresor
@@ -152,7 +149,7 @@ define(['q', 'zstdec'], function(Q) {
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded().then(function() {
-            var ret = zd._ZSTD_decompressStream(that._decHandle);
+            var ret = zd._ZSTD_decompressStream(that._stream.decoder_stream);
             var finished = false;
             if (ret === 0) {
                 // supply more data or free output buffer
@@ -164,10 +161,10 @@ define(['q', 'zstdec'], function(Q) {
                 finished = true;
             }
 
-            var outPos = zd._get_out_pos(that._decHandle);
+            var outPos = zd._get_out_pos(that._stream.decoder_stream);
             if (outPos > 0 && that._outStreamPos + outPos >= offset)
             {
-                var outBuffer = zd._get_out_buffer(that._decHandle);
+                var outBuffer = zd._get_out_buffer(that._stream.decoder_stream);
                 var copyStart = offset - that._outStreamPos;
                 if (copyStart < 0)
                     copyStart = 0;
@@ -176,7 +173,7 @@ define(['q', 'zstdec'], function(Q) {
             }
             that._outStreamPos += outPos;
             if (outPos > 0)
-                zd._out_buffer_cleared(that._decHandle);
+                zd._out_buffer_cleared(that._stream.decoder_stream);
             if (finished || that._outStreamPos >= offset + length)
                 return that._outBuffer;
             else
@@ -189,20 +186,21 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Promise}
      */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
-        // if (!zd._input_empty(this._decHandle)) {
+        // if (!zd._input_empty(this._stream.decoder_stream)) {
         //     // DEV: When converting to Promise/A+, use Promise.resolve(0) here
         //     return Q.when(0);
         // }
         var that = this;
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
-            var inBufferPtr = zd._ZSTD_getInBuffer();
-            var outBufferPtr = zd._ZSTD_getOutBuffer();
+            // var inBufferPtr = zd._ZSTD_getInBuffer();
+            // var outBufferPtr = zd._ZSTD_getOutBuffer();
             // Populate inBuffer in asm/wasm memory
+            
             zd.HEAPU8.set(data, inBufferPtr);
-            zd._ZSTD_decompressStream(that._decHandle, inBufferPtr, outBufferPtr);
+            zd._ZSTD_decompressStream(that._stream.decoder_stream, inBufferPtr, outBufferPtr);
             that._inStreamPos += data.length;
-            zd._set_new_input(that._decHandle, data.length);
+            zd._set_new_input(that._stream.decoder_stream, data.length);
             return 0;
         });
     };
