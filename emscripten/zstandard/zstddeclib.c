@@ -3664,6 +3664,15 @@ typedef struct ZSTD_outBuffer_s {
   size_t pos;         /**< position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
 } ZSTD_outBuffer;
 
+const void* ZSTD_getInBuffer(ZSTD_inBuffer* z)
+{
+    return z;
+}
+
+void* ZSTD_getOutBuffer(ZSTD_outBuffer* z)
+{
+    return z;
+}
 
 
 /*-***********************************************************************

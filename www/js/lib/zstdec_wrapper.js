@@ -26,8 +26,16 @@ define(['q', 'zstdec'], function(Q) {
     // There is no longer any need to load it in index.html
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
     var zd;
+    // var createDStream, initDStream, decompressStream, isError, freeDStream;
     ZD().then(function(instance) {
+        // Instantiate the zd object
         zd = instance;
+        // Create JS API by wrapping C++ functions
+        // createDStream = zd.cwrap('ZSTD_createDStream');
+        // initDStream = zd.cwrap('ZSTD_initDStream');
+        // decompressStream = zd.cwrap('ZSTD_decompressStream');
+        // isError = zd.cwrap('ZSTD_isError');
+        // freeDStream = zd.cwrap('ZSTD_freeDStream');
     });
     
     /**
@@ -70,12 +78,36 @@ define(['q', 'zstdec'], function(Q) {
      */
     Decompressor.prototype.readSlice = function(offset, length) {
         busy = true;
-        this._decHandle = zd._ZSTD_createDStream();
-        var ret = zd._ZSTD_initDStream(this._decHandle);
-        if (zd._ZSTD_isError(this._decHandle)) {
+        // Iniitialize stream tracking object (see https://github.com/openzim/libzim/blob/master/src/compression.cpp)
+        this._stream = {
+            next_in: null,
+            avail_in: 0,
+            next_out: null,
+            avail_out: 0,
+            total_out: 0,
+            decoder_stream: null
+        };
+        // Initialize stream decoder
+        this._stream.decoder_stream = zd._ZSTD_createDStream();
+        var ret = zd._ZSTD_initDStream(this._stream.decoder_stream);
+        if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
-        //length = length > init_length ? init_length : length;
+        // Instantiate JavaScript versions of buffer control objects
+        // NB Not sure this is needed, or if we should expose setter functions in C++
+        this._inBuffer = [
+            null, /* void* src   < start of input buffer */
+            0,    /* size_t size < size of input buffer */
+            0     /* size_t pos; < position where reading stopped. Will be updated. Necessarily 0 <= pos <= size */
+        ];
+        this._outBuffer = [
+            null, /* void* dst   < start of output buffer (pointer) */
+            0,    /* size_t size < size of output buffer */
+            0     /* size_t pos  < position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
+        ]
+        // this._inBufferPtr = zd.HEAPU32[(this._decHandle >> 2) + 8];
+        // Limit length to initial value suggested by decompressor
+        length = length > init_length ? init_length : length;
         var that = this;
         this._inStreamPos = 0;
         this._outStreamPos = 0;
@@ -157,17 +189,18 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Promise}
      */
     Decompressor.prototype._fillInBufferIfNeeded = function() {
-        if (!zd._input_empty(this._decHandle)) {
-            // DEV: When converting to Promise/A+, use Promise.resolve(0) here
-            return Q.when(0);
-        }
+        // if (!zd._input_empty(this._decHandle)) {
+        //     // DEV: When converting to Promise/A+, use Promise.resolve(0) here
+        //     return Q.when(0);
+        // }
         var that = this;
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
-            if (data.length > that._chunkSize)
-                data = data.slice(0, that._chunkSize);
-            var decompArray = zd._get_in_buffer(that._decHandle);
-            // For some reason, zstdec.writeArrayToMemory does not seem to be available, and is equivalent to zstdec.HEAP8.set
-            // zstdec.HEAP8.set(data, zstdec._get_in_buffer(that._decHandle));
+            if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
+            var inBufferPtr = zd._ZSTD_getInBuffer();
+            var outBufferPtr = zd._ZSTD_getOutBuffer();
+            // Populate inBuffer in asm/wasm memory
+            zd.HEAPU8.set(data, inBufferPtr);
+            zd._ZSTD_decompressStream(that._decHandle, inBufferPtr, outBufferPtr);
             that._inStreamPos += data.length;
             zd._set_new_input(that._decHandle, data.length);
             return 0;
