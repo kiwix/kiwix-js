@@ -237,7 +237,7 @@ define(['q', 'zstdec'], function(Q) {
             var outBufferStruct = new Int32Array([that._outBuffer.dst, that._outBuffer.size, that._outBuffer.pos]);
             // Write outBuffer structure to w/asm memory
             zd.HEAP32.set(outBufferStruct, that._outBuffer.ptr >> 2);
-            // Transfer the (newe) data to be read to the inBuffer
+            // Transfer the (new) data to be read to the inBuffer
             zd.HEAPU8.set(data, that._inBuffer.src + that._inBuffer.pos);
             that._stream.next_in += data.length;
             // TODO: Need to make a new C++ function to set new instreamPos (below is old xz implementation) 
