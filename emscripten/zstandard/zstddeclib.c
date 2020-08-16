@@ -3664,13 +3664,6 @@ typedef struct ZSTD_outBuffer_s {
   size_t pos;         /**< position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
 } ZSTD_outBuffer;
 
-EMSCRIPTEN_BINDINGS(kiwix_js) {
-    value_object<ZSTD_inBuffer>("ZSTD_inBuffer")
-    .field("src", &ZSTD_inBuffer::src)
-    .field("size", &ZSTD_inBuffer::size)
-    .field("pos", &ZSTD_inBuffer::pos)
-}
-
 const void* ZSTD_getInBuffer(ZSTD_inBuffer* inBuff)
 {
     return inBuff;
