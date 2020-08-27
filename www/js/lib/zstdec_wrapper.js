@@ -115,6 +115,7 @@ define(['q', 'zstdec'], function(Q) {
         if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
+        this._inBuffer.size = ret;
 
         // this._inBufferPtr = zd.HEAPU32[(this._stream.decoder_stream >> 2) + 8];
         // TODO: Check which of these variables should be a _stream property
@@ -176,12 +177,14 @@ define(['q', 'zstdec'], function(Q) {
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded().then(function() {
-            var ret = zd._ZSTD_decompressStream(that._stream.decoder_stream, that._inBuffer.ptr, that._outBuffer.ptr);
+            var ret = zd._ZSTD_decompressStream(that._stream.decoder_stream, that._outBuffer.ptr, that._inBuffer.ptr);
+            // var ret = zd._ZSTD_decompressStream_simpleArgs(that._stream.decoder_stream, that._outBuffer.ptr, that._outBuffer.size, 0, that._inBuffer.ptr, that._inBuffer.size, 0);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!";
                 console.error(errorMessage);
                 throw new Error(errorMessage);
             }
+            that._inBuffer.size = ret;
             var finished = false;
             if (ret === 0) {
                 // supply more data or free output buffer
@@ -226,7 +229,7 @@ define(['q', 'zstdec'], function(Q) {
         return this._reader(this._stream.next_in, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
             // Populate inBuffer and assign asm/wasm memory
-            that._inBuffer.size = data.length;
+            // that._inBuffer.size = data.length;
             that._inBuffer.src = that._mallocOrDie(data.length);
             var inBufferStruct = new Int32Array([that._inBuffer.src, that._inBuffer.size, that._inBuffer.pos]);
             // Write inBuffer structure to previously assigned w/asm memory
