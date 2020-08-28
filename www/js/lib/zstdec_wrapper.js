@@ -190,18 +190,17 @@ define(['q', 'zstdec'], function(Q) {
                 finished = true;
             } else if (ret > 0) {
                 // supply more data
-                that._inBuffer.size = ret;
             }
 
             // Get updated inbuffer values for processing on the JS sice
             // NB the zd.Decoder will read these values from its own buffers
             var ibx32ptr = that._inBuffer.ptr >> 2;
-            that._inBuffer.size = zd.HEAP32[ibx32ptr + 1];
+            //zd.HEAP32[ibx32ptr + 1] = that._inBuffer.size;
             that._inBuffer.pos = zd.HEAP32[ibx32ptr + 2];
 
             // Get update outbuffer values
             var obx32ptr = that._outBuffer.ptr >> 2;
-            that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
+            // that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
             that._outBuffer.pos = zd.HEAP32[obx32ptr + 2];
             
             // var inBuffer32Array = zd.HEAP32.slice(that._inBuffer.ptr >> 2, (that._inBuffer.ptr >> 2) + 3);
@@ -242,10 +241,10 @@ define(['q', 'zstdec'], function(Q) {
         return this._reader(this._stream.next_in, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
             // Populate inBuffer and assign asm/wasm memory
-            // that._inBuffer.size = data.length;
+            that._inBuffer.size = data.length + 256;
             if (!that._inBuffer.src) {
                 // We add 256 bytes here to ensure we can re-use this inBuffer even if we have some bytes left at the end of the buffer
-                that._inBuffer.src = that._mallocOrDie(data.length + 256);
+                that._inBuffer.src = that._mallocOrDie(that._inBuffer.size);
                 var inBufferStruct = new Int32Array([that._inBuffer.src, that._inBuffer.size, that._inBuffer.pos]);
                 // Write inBuffer structure to previously assigned w/asm memory
                 zd.HEAP32.set(inBufferStruct, that._inBuffer.ptr >> 2);
