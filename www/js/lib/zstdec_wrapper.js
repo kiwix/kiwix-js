@@ -176,7 +176,7 @@ define(['q', 'zstdec'], function(Q) {
      */
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
-        return this._fillInBufferIfNeeded(offse + length).then(function() {
+        return this._fillInBufferIfNeeded(offset + length).then(function() {
             var ret = zd._ZSTD_decompressStream(that._stream.decoder_stream, that._outBuffer.ptr, that._inBuffer.ptr);
             // var ret = zd._ZSTD_decompressStream_simpleArgs(that._stream.decoder_stream, that._outBuffer.ptr, that._outBuffer.size, 0, that._inBuffer.ptr, that._inBuffer.size, 0);
             if (zd._ZSTD_isError(ret)) {
@@ -193,6 +193,20 @@ define(['q', 'zstdec'], function(Q) {
                 that._inBuffer.size = ret;
             }
 
+            // Get updated inbuffer values for processing on the JS sice
+            // NB the zd.Decoder will read these values from its own buffers
+            var ibx32ptr = that._inBuffer.ptr >> 2;
+            that._inBuffer.size = zd.HEAP32[ibx32ptr + 1];
+            that._inBuffer.pos = zd.HEAP32[ibx32ptr + 2];
+
+            // Get update outbuffer values
+            var obx32ptr = that._outBuffer.ptr >> 2;
+            that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
+            that._outBuffer.pos = zd.HEAP32[obx32ptr + 2];
+            
+            // var inBuffer32Array = zd.HEAP32.slice(that._inBuffer.ptr >> 2, (that._inBuffer.ptr >> 2) + 3);
+            
+            
             // var outPos = zd._get_out_pos(that._stream.decoder_stream);
             // if (outPos > 0 && that._outStreamPos + outPos >= offset)
             // {
@@ -209,7 +223,7 @@ define(['q', 'zstdec'], function(Q) {
             if (finished)
                 return that._outBuffer;
             else
-                return that._readLoop(offset, length);
+                return that._readLoop(that._inBuffer.pos, that._inBuffer.size);
         });
     };
     
