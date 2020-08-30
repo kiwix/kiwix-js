@@ -113,8 +113,11 @@ define(['q', 'zstdec'], function(Q) {
 
         var that = this;
         return this._readLoop(offset, length).then(function(data) {
+            zd._free(that._inBuffer.src);
+            zd._free(that._inBuffer.ptr);
+            zd._free(that._outBuffer.dst);
+            zd._free(that._outBuffer.ptr);
             zd._ZSTD_freeDStream(that._decHandle);
-            // DEV: Don't forget to free the malloc memory now!!!
             busy = false;
             return data;
         });
@@ -175,7 +178,7 @@ define(['q', 'zstdec'], function(Q) {
                 throw new Error(errorMessage);
             }
             var finished = false;
-            if (ret === 0) {
+            if (ret <= 3) {
                 // stream ended
                 finished = true;
             } else if (ret > 0) {
@@ -194,7 +197,8 @@ define(['q', 'zstdec'], function(Q) {
             // that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
             var outPos = zd.HEAP32[obx32ptr + 2];
             
-            if (that._inBuffer.pos === that._chunkSize && that._outStreamPos + that._outBuffer.size >= offset + length) {
+            if (outPos > 0 && that._outStreamPos + outPos >= offset) {
+                finished = true;
                 var copyStart = offset - that._outStreamPos;
                 if (copyStart < 0) copyStart = 0;
                 for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
@@ -203,10 +207,10 @@ define(['q', 'zstdec'], function(Q) {
             that._outStreamPos += outPos;
             if (outPos > 0) {
                 // Clear outBuffer (but re-use)
-                zd._outBuffer.pos = 0;
+                that._outBuffer.pos = 0;
             }
             if (finished) {
-                return that._outBuffer;
+                return that._outDataBuf;
             } else {
                 return that._readLoop(that._inBuffer.pos, that._inBuffer.size);
             }
