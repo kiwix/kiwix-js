@@ -54,7 +54,7 @@ define(['q', 'zstdec'], function(Q) {
      * @typedef Decompressor
      * @property {Integer} _chunkSize
      * @property {FileReader} _reader
-     * @property {unresolved} _stream.DCtx
+     * @property {unresolved} _decHandle
      * @property {Integer} _inStreamPos
      * @property {Integer} _outStreamPos
      * @property {Array} _outBuffer
@@ -67,7 +67,8 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Decompressor}
      */
     function Decompressor(reader, chunkSize) {
-        this._chunkSize = chunkSize || 2048;
+        this._chunkSize = chunkSize || 1024 * 5;
+        // this._chunkSize = 31735;
         this._reader = reader;
     };
     /**
@@ -79,15 +80,12 @@ define(['q', 'zstdec'], function(Q) {
      */
     Decompressor.prototype.readSlice = function(offset, length) {
         busy = true;
-        // Iniitialize stream tracking object (see https://github.com/openzim/libzim/blob/master/src/compression.cpp)
-        this._stream = {
-            next_in: null,
-            avail_in: 0,
-            next_out: null,
-            avail_out: 0,
-            total_out: 0,
-            DCtx: null
-        };
+        this._inStreamPos = 0;
+        this._outStreamPos = 0;
+        this._decHandle = zd._ZSTD_createDStream();
+        this._outDataBuf = new Int8Array(new ArrayBuffer(length));
+        this._outDataBufPos = 0;
+        
         // Initialize inBuffer
         this._inBuffer = {
             ptr: null, /* pointer to this inBuffer structure in w/asm memory */
@@ -101,21 +99,20 @@ define(['q', 'zstdec'], function(Q) {
         this._outBuffer = {
             ptr: null, /* pointer to this outBuffer structure in asm/wasm memory */
             dst: null, /* void* dst   < start of output buffer (pointer) */
-            size: this._chunkSize,   /* size_t size < size of output buffer */
+            size: length,   /* size_t size < size of output buffer */
             pos: 0     /* size_t pos  < position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
         };
         this._outBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
-        // Initialize stream decoder
-        this._stream.DCtx = zd._ZSTD_createDStream();
-        var ret = zd._ZSTD_initDStream(this._stream.DCtx);
+        var ret = zd._ZSTD_initDStream(this._decHandle);
         if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
-        this._inBuffer.size = ret;
+        // this._inBuffer.size = ret;
 
         var that = this;
         return this._readLoop(offset, length).then(function(data) {
-            zd._ZSTD_freeDStream(that._stream.DCtx);
+            zd._ZSTD_freeDStream(that._decHandle);
+            // DEV: Don't forget to free the malloc memory now!!!
             busy = false;
             return data;
         });
@@ -168,8 +165,8 @@ define(['q', 'zstdec'], function(Q) {
     Decompressor.prototype._readLoop = function(offset, length) {
         var that = this;
         return this._fillInBufferIfNeeded(offset + length).then(function() {
-            var ret = zd._ZSTD_decompressStream(that._stream.DCtx, that._outBuffer.ptr, that._inBuffer.ptr);
-            // var ret = zd._ZSTD_decompressStream_simpleArgs(that._stream.DCtx, that._outBuffer.ptr, that._outBuffer.size, 0, that._inBuffer.ptr, that._inBuffer.size, 0);
+            var ret = zd._ZSTD_decompressStream(that._decHandle, that._outBuffer.ptr, that._inBuffer.ptr);
+            // var ret = zd._ZSTD_decompressStream_simpleArgs(that._decHandle, that._outBuffer.ptr, that._outBuffer.size, 0, that._inBuffer.ptr, that._inBuffer.size, 0);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!";
                 console.error(errorMessage);
@@ -181,6 +178,7 @@ define(['q', 'zstdec'], function(Q) {
                 finished = true;
             } else if (ret > 0) {
                 // supply more data
+                that._inBuffer.size = ret;
             }
 
             // Get updated inbuffer values for processing on the JS sice
@@ -192,44 +190,40 @@ define(['q', 'zstdec'], function(Q) {
             // Get update outbuffer values
             var obx32ptr = that._outBuffer.ptr >> 2;
             // that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
-            that._outBuffer.pos = zd.HEAP32[obx32ptr + 2];
+            var outPos = zd.HEAP32[obx32ptr + 2];
             
-            // var inBuffer32Array = zd.HEAP32.slice(that._inBuffer.ptr >> 2, (that._inBuffer.ptr >> 2) + 3);
-            
-            
-            // var outPos = zd._get_out_pos(that._stream.DCtx);
-            // if (outPos > 0 && that._outStreamPos + outPos >= offset)
-            // {
-            //     var outBuffer = zd._get_out_buffer(that._stream.DCtx);
-            //     var copyStart = offset - that._outStreamPos;
-            //     if (copyStart < 0)
-            //         copyStart = 0;
-            //     for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++)
-            //         that._outBuffer[that._outBufferPos++] = zd.HEAP8[outBuffer + i];
-            // }
-            // that._outStreamPos += outPos;
-            // if (outPos > 0)
-            //     zd._out_buffer_cleared(that._stream.DCtx);
-            if (finished)
+            if (that._inBuffer.pos === that._chunkSize && that._outStreamPos + that._outBuffer.size >= offset + length) {
+                var copyStart = offset - that._outStreamPos;
+                if (copyStart < 0) copyStart = 0;
+                for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
+                    that._outDataBuf[that._outDataBufPos++] = zd.HEAP8[that._outBuffer.dst + i];
+            }
+            that._outStreamPos += outPos;
+            if (outPos > 0) {
+                // Clear outBuffer (but re-use)
+                zd._outBuffer.pos = 0;
+            }
+            if (finished) {
                 return that._outBuffer;
-            else
+            } else {
                 return that._readLoop(that._inBuffer.pos, that._inBuffer.size);
+            }
         });
     };
     
     /**
      * Fills in the instream buffer if needed
-     * @param {Integer} pos The current read offset
+     * @param {Integer} len The current read offset
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
-    Decompressor.prototype._fillInBufferIfNeeded = function(pos) {
-        if (pos < this._stream.next_in) {
+    Decompressor.prototype._fillInBufferIfNeeded = function(len) {
+        if (len <= this._inStreamPos) {
             // We still have enough data in the buffer
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
         var that = this;
-        return this._reader(this._stream.next_in, this._chunkSize).then(function(data) {
+        return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
             if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
             // Populate inBuffer and assign asm/wasm memory
             that._inBuffer.size = data.length;
@@ -243,17 +237,14 @@ define(['q', 'zstdec'], function(Q) {
                 // DEV For now, guess compression ratio of 1:4 max ** IS THIS SAFE??? ***
                 // that._outBuffer.dst = mallocOrDie(data.length * 4);
                 that._outBuffer.dst = mallocOrDie(data.length);
-                that._outBuffer.size = that._chunkSize;
+                that._outBuffer.size = len;
                 var outBufferStruct = new Int32Array([that._outBuffer.dst, that._outBuffer.size, that._outBuffer.pos]);
                 // Write outBuffer structure to w/asm memory
                 zd.HEAP32.set(outBufferStruct, that._outBuffer.ptr >> 2);
             }
             // Transfer the (new) data to be read to the inBuffer
-            zd.HEAPU8.set(data, that._inBuffer.src + that._inBuffer.pos);
-            that._stream.next_in += data.length;
-            // TODO: Need to make a new C++ function to set new instreamPos (below is old xz implementation) 
-            // Although ZSTD seems to update this automatically, so we'll need to check it
-            // zd._set_new_input(that._stream.DCtx, data.length);
+            zd.HEAP8.set(data, that._inBuffer.src);
+            that._inStreamPos += data.length;
             return 0;
         });
     };
