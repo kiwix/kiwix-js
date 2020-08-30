@@ -67,7 +67,7 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Decompressor}
      */
     function Decompressor(reader, chunkSize) {
-        this._chunkSize = chunkSize || 1024 * 5;
+        this._chunkSize = chunkSize || zd._ZSTD_DStreamInSize();
         // this._chunkSize = 31735;
         this._reader = reader;
     };
@@ -87,6 +87,8 @@ define(['q', 'zstdec'], function(Q) {
         this._outDataBufPos = 0;
         
         // Initialize inBuffer
+        // var recommendedInBufSize = zd._ZSTD_DStreamInSize();
+        var reommendedOutBufSize = zd._ZSTD_DStreamOutSize();
         this._inBuffer = {
             ptr: null, /* pointer to this inBuffer structure in w/asm memory */
             src: null, /* void* src   < start of input buffer */
