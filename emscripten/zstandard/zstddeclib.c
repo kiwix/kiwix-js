@@ -40,7 +40,7 @@
 #define ZSTD_LIB_COMPRESSION 0
 #define ZSTD_LIB_DEPRECATED 0
 #define ZSTD_NOBENCH
-#define ZSTD_STRIP_ERROR_STRINGS
+// #define ZSTD_STRIP_ERROR_STRINGS
 
 /**** start inlining common/debug.c ****/
 /* ******************************************************************
