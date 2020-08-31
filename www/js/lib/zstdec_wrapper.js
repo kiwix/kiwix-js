@@ -198,7 +198,7 @@ define(['q', 'zstdec'], function(Q) {
             var outPos = zd.HEAP32[obx32ptr + 2];
             
             if (outPos > 0 && that._outStreamPos + outPos >= offset) {
-                finished = true;
+                // finished = true;
                 var copyStart = offset - that._outStreamPos;
                 if (copyStart < 0) copyStart = 0;
                 for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
@@ -206,8 +206,9 @@ define(['q', 'zstdec'], function(Q) {
             }
             that._outStreamPos += outPos;
             if (outPos > 0) {
-                // Clear outBuffer (but re-use)
-                that._outBuffer.pos = 0;
+                // We have either copied all data from outBuffer, or we can throw those data away because they are before our required offset
+                // This resets the outbuffer->ptr to 0, so we can re-use the outbuffer memory space without re-initializing
+                zd.HEAP32[obx32ptr + 2] = 0;
             }
             if (finished) {
                 return that._outDataBuf;
