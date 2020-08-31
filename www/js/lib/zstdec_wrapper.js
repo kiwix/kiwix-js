@@ -67,8 +67,8 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Decompressor}
      */
     function Decompressor(reader, chunkSize) {
-        this._chunkSize = chunkSize || zd._ZSTD_DStreamInSize();
-        // this._chunkSize = 31735;
+        this._chunkSize = chunkSize || 5 * 1024;
+        // this._chunkSize = chunkSize || zd._ZSTD_DStreamInSize();
         this._reader = reader;
     };
     /**
@@ -199,7 +199,7 @@ define(['q', 'zstdec'], function(Q) {
             
             // If data have been decompressed, check to see whether the data are in the offset range we need
             if (outPos > 0 && that._outStreamPos + outPos >= offset) {
-                var copyStart = offset - that._inStreamPos;
+                var copyStart = offset - that._outStreamPos;
                 console.log('copyStart: ' + copyStart);
                 if (copyStart < 0) copyStart = 0;
                 for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
@@ -221,7 +221,7 @@ define(['q', 'zstdec'], function(Q) {
                 console.log("Read loop finished.");
                 return that._outDataBuf;
             } else {
-                return that._readLoop(offset, that._inBuffer.size);
+                return that._readLoop(offset, length);
             }
         });
     };
