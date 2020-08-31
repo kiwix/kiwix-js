@@ -26,7 +26,6 @@ define(['q', 'zstdec'], function(Q) {
     // There is no longer any need to load it in index.html
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
     var zd;
-    // var createDStream, initDStream, decompressStream, isError, freeDStream;
     ZD().then(function(instance) {
         // Instantiate the zd object
         zd = instance;
@@ -36,7 +35,7 @@ define(['q', 'zstdec'], function(Q) {
         // decompressStream = zd.cwrap('ZSTD_decompressStream');
         // isError = zd.cwrap('ZSTD_isError');
         zd.getErrorString = zd.cwrap('ZSTD_getErrorName', 'string', ['number']);
-        // freeDStream = zd.cwrap('ZSTD_freeDStream');
+        zd._decHandle = zd._ZSTD_createDStream();
     });
     
     /**
@@ -82,8 +81,8 @@ define(['q', 'zstdec'], function(Q) {
     Decompressor.prototype.readSlice = function(offset, length) {
         busy = true;
         this._inStreamPos = 0;
+        this._inStreamChunkedPos = 0;
         this._outStreamPos = 0;
-        this._decHandle = zd._ZSTD_createDStream();
         this._outDataBuf = new Int8Array(new ArrayBuffer(length));
         this._outDataBufPos = 0;
         
@@ -105,7 +104,7 @@ define(['q', 'zstdec'], function(Q) {
             pos: 0               /* size_t pos  < position where writing stopped. Will be updated. Necessarily 0 <= pos <= size */
         };
         this._outBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
-        var ret = zd._ZSTD_initDStream(this._decHandle);
+        var ret = zd._ZSTD_initDStream(zd._decHandle);
         if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
@@ -117,8 +116,9 @@ define(['q', 'zstdec'], function(Q) {
             zd._free(that._inBuffer.ptr);
             zd._free(that._outBuffer.dst);
             zd._free(that._outBuffer.ptr);
-            zd._ZSTD_freeDStream(that._decHandle);
+            // zd._ZSTD_freeDStream(zd._decHandle);
             busy = false;
+            console.log("Freed all data structures.");
             return data;
         });
     };
@@ -168,9 +168,10 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Array}
      */
     Decompressor.prototype._readLoop = function(offset, length) {
+        console.log("Offset: " + offset + "\nLength: " + length + "\ninStreamPos: " + this._inStreamPos);
         var that = this;
         return this._fillInBufferIfNeeded(offset, length).then(function() {
-            var ret = zd._ZSTD_decompressStream(that._decHandle, that._outBuffer.ptr, that._inBuffer.ptr);
+            var ret = zd._ZSTD_decompressStream(zd._decHandle, that._outBuffer.ptr, that._inBuffer.ptr);
             // var ret = zd._ZSTD_decompressStream_simpleArgs(that._decHandle, that._outBuffer.ptr, that._outBuffer.size, 0, that._inBuffer.ptr, that._inBuffer.size, 0);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
@@ -190,7 +191,7 @@ define(['q', 'zstdec'], function(Q) {
             // NB the zd.Decoder will read these values from its own buffers
             var ibx32ptr = that._inBuffer.ptr >> 2;
             that._inBuffer.pos = zd.HEAP32[ibx32ptr + 2];
-
+            
             // Get update outbuffer values
             var obx32ptr = that._outBuffer.ptr >> 2;
             // that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
@@ -198,13 +199,18 @@ define(['q', 'zstdec'], function(Q) {
             
             // If data have been decompressed, check to see whether the data are in the offset range we need
             if (outPos > 0 && that._outStreamPos + outPos >= offset) {
-                var copyStart = offset - that._outStreamPos;
+                var copyStart = offset - that._inStreamPos;
+                console.log('copyStart: ' + copyStart);
                 if (copyStart < 0) copyStart = 0;
                 for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
                     that._outDataBuf[that._outDataBufPos++] = zd.HEAP8[that._outBuffer.dst + i];
             }
             if (that._outDataBufPos === that._outDataBuf.length) finished = true;
+            // Increment the byte stream positions
+            that._inStreamPos += that._inBuffer.pos;
             that._outStreamPos += outPos;
+            console.log("inStreamPos: " + that._inStreamPos + "\noutStreamPos: " + that._outStreamPos);
+            
             if (outPos > 0) {
                 // We have either copied all data from outBuffer, or we can throw those data away because they are before our required offset
                 // This resets the outbuffer->ptr to 0, so we can re-use the outbuffer memory space without re-initializing
@@ -212,9 +218,10 @@ define(['q', 'zstdec'], function(Q) {
                 that._outBuffer.pos = 0;
             }
             if (finished) {
+                console.log("Read loop finished.");
                 return that._outDataBuf;
             } else {
-                return that._readLoop(that._inBuffer.pos, that._inBuffer.size);
+                return that._readLoop(offset, that._inBuffer.size);
             }
         });
     };
@@ -222,23 +229,24 @@ define(['q', 'zstdec'], function(Q) {
     /**
      * Fills in the instream buffer if needed
      * @param {Integer} currOffset The current read offset
-     * @param {Integer} len The length of data requested
+     * @param {Integer} len The decompressed length of data requested
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function(currOffset, len) {
-        if (currOffset + len <= this._inStreamPos) {
-            // We still have enough data in the buffer
+        if (this._inStreamPos + len < this._inStreamChunkedPos) {
+            // We should still have enough data in the buffer (because decompressed len > compressed len)
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
         var that = this;
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
-            if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
+            // if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
             // Populate inBuffer and assign asm/wasm memory if not already assigned
             that._inBuffer.size = data.length;
             if (!that._inBuffer.src) {
                 that._inBuffer.src = mallocOrDie(that._inBuffer.size);
             }
+            // Re-use inBuffer
             that._inBuffer.pos = 0;
             var inBufferStruct = new Int32Array([that._inBuffer.src, that._inBuffer.size, that._inBuffer.pos]);
             // Write inBuffer structure to previously assigned w/asm memory
@@ -256,7 +264,7 @@ define(['q', 'zstdec'], function(Q) {
             
             // Transfer the (new) data to be read to the inBuffer
             zd.HEAP8.set(data, that._inBuffer.src);
-            that._inStreamPos += data.length;
+            that._inStreamChunkedPos += data.length;
             return 0;
         });
     };
