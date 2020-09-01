@@ -70,7 +70,7 @@ define(['q', 'zstdec'], function(Q) {
         this._chunkSize = chunkSize || 5 * 1024;
         // this._chunkSize = chunkSize || zd._ZSTD_DStreamInSize();
         this._reader = reader;
-    };
+    }
     /**
      * Read length bytes, offset into the decompressed stream. Consecutive calls may only
      * advance in the stream and may not overlap.

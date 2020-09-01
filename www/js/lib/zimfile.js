@@ -186,7 +186,8 @@ define(['xzdec_wrapper', 'zstdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], 
         {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
-            var thisClusterLength = nextCluster - clusterOffset - 1;
+            // This method of calculating cluster size is not safe: see https://github.com/openzim/libzim/issues/84#issuecomment-612962250
+            // var thisClusterLength = nextCluster - clusterOffset - 1;
             return that._readSlice(clusterOffset, 1).then(function(compressionType) {
                 var decompressor;
                 var plainBlobReader = function(offset, size) {
