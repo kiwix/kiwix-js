@@ -30,11 +30,10 @@ define(['q', 'zstdec'], function(Q) {
         // Instantiate the zd object
         zd = instance;
         // Create JS API by wrapping C++ functions
-        // createDStream = zd.cwrap('ZSTD_createDStream');
-        // initDStream = zd.cwrap('ZSTD_initDStream');
-        // decompressStream = zd.cwrap('ZSTD_decompressStream');
-        // isError = zd.cwrap('ZSTD_isError');
+        // DEV: Functions with simple types (integers, pointers) do not need to be wrapped
         zd.getErrorString = zd.cwrap('ZSTD_getErrorName', 'string', ['number']);
+        // Get a permanent decoder handle (pointer to control structure)
+        // NB there is no need to change this handle even between ZIM loads: zstddeclib encourages re-using assigned structures
         zd._decHandle = zd._ZSTD_createDStream();
     });
     
@@ -52,12 +51,15 @@ define(['q', 'zstdec'], function(Q) {
     
     /**
      * @typedef Decompressor
-     * @property {Integer} _chunkSize
-     * @property {FileReader} _reader
-     * @property {unresolved} _decHandle
-     * @property {Integer} _inStreamPos
-     * @property {Integer} _outStreamPos
-     * @property {Array} _outBuffer
+     * @property {Integer} _chunkSize The amount to feed to the decompressor in any one read loop
+     * @property {FileReader} _reader The filereader to use (uses plain blob reader defined in zimfile.js)
+     * @property {Integer} _inStreamPos The current known position in the steam of compressed bytes 
+     * @property {Integer} _inStreamChunkedPos The position once the currently loaded chunk will have been consumed
+     * @property {Integer} _outStreamPos The position in the decoded byte stream (offset from start of cluster)
+     * @property {Array} _outDataBuf The buffer that stores decoded bytes (it is set to the requested blob's lenght, and when full, the data are returned)
+     * @property {Integer} _outDataBufPos The number of bytes of the requested blob decoded so far
+     * @property {Object} _inBuffer A JS copy of the inBuffer structure to be set in decompressor memory (malloc)
+     * @property {Object} _outBuffer A JS copy of the outBuffer structure to be set in decompressor memory (malloc)
      */
     
     /**
@@ -87,7 +89,6 @@ define(['q', 'zstdec'], function(Q) {
         this._outDataBufPos = 0;
         
         // Initialize inBuffer
-        var recOutbufSize = zd._ZSTD_DStreamOutSize();
         this._inBuffer = {
             ptr: null,      /* pointer to this inBuffer structure in w/asm memory */
             src: null,      /* void* src   < start of input buffer */
@@ -95,7 +96,11 @@ define(['q', 'zstdec'], function(Q) {
             pos: 0          /* size_t pos; < position where reading stopped. Will be updated. Necessarily 0 <= pos <= size */
         };
         // Reserve w/asm memory for the outBuffer structure
-        this._inBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes (IS THIS CORRECT? -> zstdec.js always uses HEAP32.set)
+        this._inBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
+        // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
+        // memory issues, it may be possible to reduce memory consumption by setting asmaller outBuffer size here and
+        // reompiling zstdec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstdec.js and change it)
+        var recOutbufSize = zd._ZSTD_DStreamOutSize();
         // Initialize outBuffer
         this._outBuffer = {
             ptr: null,           /* pointer to this outBuffer structure in asm/wasm memory */
@@ -108,14 +113,17 @@ define(['q', 'zstdec'], function(Q) {
         if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
-        // this._inBuffer.size = ret;
 
         var that = this;
         return this._readLoop(offset, length).then(function(data) {
+            // DEV: These structures are a known fixed length and could be assigned once, avoiding the need to free them
+            // currently they are re-assigned on each blob request; consider changing this if memory usage appears to grow over time
             zd._free(that._inBuffer.src);
             zd._free(that._inBuffer.ptr);
             zd._free(that._outBuffer.dst);
             zd._free(that._outBuffer.ptr);
+            // DEV: Freeing zd._decHandle is not needed, and actually increases memory consumption (crashing zstddeclib)
+            // The library explicitly encourages re-using assigned structures and handles
             // zd._ZSTD_freeDStream(zd._decHandle);
             busy = false;
             console.log("Freed all data structures.");
@@ -123,21 +131,6 @@ define(['q', 'zstdec'], function(Q) {
         });
     };
 
-    /**
-     * Provision asm/wasm data block and get a pointer to the assigned location
-     * @param {Number} sizeOfData The number of bytes to be allocated
-     * @returns {Number} Pointer to the assigned data block
-     */
-    function mallocOrDie(sizeOfData) {
-        const dataPointer = zd._malloc(sizeOfData);
-        if (dataPointer === 0) { // error allocating memory
-            var errorMessage = 'Failed allocation of ' + sizeOfData + ' bytes.';
-            console.error(errorMessage);
-            throw new Error(errorMessage);
-        }
-        return dataPointer;
-    }
-    
     /**
      * Reads stream of data from file offset for length of bytes to send to the decompresor
      * This function ensures that only one decompression runs at a time
@@ -162,13 +155,12 @@ define(['q', 'zstdec'], function(Q) {
     };
 
     /**
-     * 
-     * @param {Integer} offset
-     * @param {Integer} length
-     * @returns {Array}
+     * The main loop for sending compressed data to the decompressor and retrieving decompressed bytes
+     * @param {Integer} offset The offset in the *decompressed* byte stream at which the requeste blob resides
+     * @param {Integer} length The deomcpressed size of the requested blob
+     * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
      */
     Decompressor.prototype._readLoop = function(offset, length) {
-        console.log("Offset: " + offset + "\nLength: " + length + "\ninStreamPos: " + this._inStreamPos);
         var that = this;
         return this._fillInBufferIfNeeded(offset, length).then(function() {
             var ret = zd._ZSTD_decompressStream(zd._decHandle, that._outBuffer.ptr, that._inBuffer.ptr);
@@ -192,7 +184,7 @@ define(['q', 'zstdec'], function(Q) {
             var ibx32ptr = that._inBuffer.ptr >> 2;
             that._inBuffer.pos = zd.HEAP32[ibx32ptr + 2];
             
-            // Get update outbuffer values
+            // Get updated outbuffer values
             var obx32ptr = that._outBuffer.ptr >> 2;
             // that._outBuffer.size = zd.HEAP32[obx32ptr + 1];
             var outPos = zd.HEAP32[obx32ptr + 2];
@@ -200,7 +192,7 @@ define(['q', 'zstdec'], function(Q) {
             // If data have been decompressed, check to see whether the data are in the offset range we need
             if (outPos > 0 && that._outStreamPos + outPos >= offset) {
                 var copyStart = offset - that._outStreamPos;
-                console.log('copyStart: ' + copyStart);
+                console.log('**Copying decompressed bytes**\ncopyStart: ' + copyStart);
                 if (copyStart < 0) copyStart = 0;
                 for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
                     that._outDataBuf[that._outDataBufPos++] = zd.HEAP8[that._outBuffer.dst + i];
@@ -209,11 +201,14 @@ define(['q', 'zstdec'], function(Q) {
             // Increment the byte stream positions
             that._inStreamPos += that._inBuffer.pos;
             that._outStreamPos += outPos;
-            console.log("inStreamPos: " + that._inStreamPos + "\noutStreamPos: " + that._outStreamPos);
+            
+            // TESTING (remove before merge)
+            console.log("Offset: " + offset + "\nLength: " + length + "\ninStreamPos: " + that._inStreamPos + "\noutStreamPos: " + that._outStreamPos);
             
             if (outPos > 0) {
                 // We have either copied all data from outBuffer, or we can throw those data away because they are before our required offset
                 // This resets the outbuffer->ptr to 0, so we can re-use the outbuffer memory space without re-initializing
+                // Below is the 'raw' way to do this for info, but the JS copy will be set in fillInBufferIfNeeded()
                 // zd.HEAP32[obx32ptr + 2] = 0;
                 that._outBuffer.pos = 0;
             }
@@ -240,7 +235,6 @@ define(['q', 'zstdec'], function(Q) {
         }
         var that = this;
         return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
-            // if (data.length > that._chunkSize) data = data.slice(0, that._chunkSize);
             // Populate inBuffer and assign asm/wasm memory if not already assigned
             that._inBuffer.size = data.length;
             if (!that._inBuffer.src) {
@@ -251,9 +245,9 @@ define(['q', 'zstdec'], function(Q) {
             var inBufferStruct = new Int32Array([that._inBuffer.src, that._inBuffer.size, that._inBuffer.pos]);
             // Write inBuffer structure to previously assigned w/asm memory
             zd.HEAP32.set(inBufferStruct, that._inBuffer.ptr >> 2);
-            // Populate outBuffer (but re-use existing if it was already assinge)
-            // DEV: because we're re-using the allocated memory (malloc), you cannot change the _outBuffer.size field
-            // Remember _outBuffer.size is the maximum amount the ZSTD codec is allowed to decode in one go
+            // Populate outBuffer (but re-use existing if it was already assinged)
+            // DEV: because we're re-using the allocated memory (malloc), you cannot change the _outBuffer.size field locally
+            // _outBuffer.size is the maximum amount the ZSTD codec is allowed to decode in one go
             // so if we need more data, we just copy those decoded bytes and reset _ouBuffer.pos to 0
             if (!that._outBuffer.dst) {
                 that._outBuffer.dst = mallocOrDie(that._outBuffer.size);
@@ -268,6 +262,21 @@ define(['q', 'zstdec'], function(Q) {
             return 0;
         });
     };
+
+    /**
+     * Provision asm/wasm data block and get a pointer to the assigned location
+     * @param {Number} sizeOfData The number of bytes to be allocated
+     * @returns {Number} Pointer to the assigned data block
+     */
+    function mallocOrDie(sizeOfData) {
+        const dataPointer = zd._malloc(sizeOfData);
+        if (dataPointer === 0) { // error allocating memory
+            var errorMessage = 'Failed allocation of ' + sizeOfData + ' bytes.';
+            console.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+        return dataPointer;
+    }
 
     return {
         Decompressor: Decompressor
