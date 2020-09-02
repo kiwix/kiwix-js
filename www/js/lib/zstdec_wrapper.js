@@ -30,9 +30,9 @@ define(['q', 'zstdec'], function(Q) {
      * The ZSTD Decoder instance
      * @constructor Constructs the zd object representing a ZSTD decoder Emscripten instance
      * @property {Integer} _decHandle The decoder stream context object in asm memory (to be re-used for each decoder operation)
-     * @property {Object} _inBuffer A JS copy of the inBuffer structure to be set in decompressor memory (malloc)
-     * @property {Object} _outBuffer A JS copy of the outBuffer structure to be set in decompressor memory (malloc)
-     * @property {Integer} _chunkSize The size of chunks to send to the decompressor
+     * @property {Object} _inBuffer A JS copy of the inBuffer structure to be set in asm memory (malloc)
+     * @property {Object} _outBuffer A JS copy of the outBuffer structure to be set in asm memory (malloc)
+     * @property {Integer} _chunkSize The number of compressed bytes to feed to the decompressor in any one read loop
      
      */
     var zd;
@@ -45,8 +45,9 @@ define(['q', 'zstdec'], function(Q) {
         // Get a permanent decoder handle (pointer to control structure)
         // NB there is no need to change this handle even between ZIM loads: zstddeclib encourages re-using assigned structures
         zd._decHandle = zd._ZSTD_createDStream();
-        zd._chunkSize = 5 * 1024; // DEV set this according to memory environment; for systems with plenty of memory, zd can provide a hint with
-        // zd._ZSTD_DStreamInSize();
+        // DEV set chunkSize according to memory environment; for systems with plenty of memory,
+        // zd can provide a max recommended size with zd._chunkSize = zd._ZSTD_DStreamInSize();
+        zd._chunkSize = 5 * 1024;
         
         // Initialize inBuffer
         zd._inBuffer = {
@@ -60,7 +61,7 @@ define(['q', 'zstdec'], function(Q) {
         zd._inBuffer.src = mallocOrDie(zd._inBuffer.size);
                 
         // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
-        // memory issues, it may be possible to reduce memory consumption by setting asmaller outBuffer size here and
+        // memory issues, it may be possible to reduce memory consumption by setting a smaller outBuffer size here and
         // reompiling zstdec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstdec.js and change it)
         var outBufSize = zd._ZSTD_DStreamOutSize();
         // var outBufSize = zd._chunkSize * 6;
@@ -97,7 +98,7 @@ define(['q', 'zstdec'], function(Q) {
      * @property {Integer} _inStreamPos The current known position in the steam of compressed bytes 
      * @property {Integer} _inStreamChunkedPos The position once the currently loaded chunk will have been consumed
      * @property {Integer} _outStreamPos The position in the decoded byte stream (offset from start of cluster)
-     * @property {Array} _outDataBuf The buffer that stores decoded bytes (it is set to the requested blob's lenght, and when full, the data are returned)
+     * @property {Array} _outDataBuf The buffer that stores decoded bytes (it is set to the requested blob's length, and when full, the data are returned)
      * @property {Integer} _outDataBufPos The number of bytes of the requested blob decoded so far
      */
     
@@ -110,10 +111,10 @@ define(['q', 'zstdec'], function(Q) {
     }
 
     /**
-     * Read length bytes, offset into the decompressed stream. Consecutive calls may only
-     * advance in the stream and may not overlap.
-     * @param {Integer} offset Offset from which to start reading
-     * @param {Integer} length Number of bytes to read
+     * Set up the decompression stream, and initiate a read loop to decompress from the beginning of the cluster
+     * until we reach <offset> in the decompressed byte stream
+     * @param {Integer} offset Cluster offset (in deocmpressed stream) from which to start reading
+     * @param {Integer} length Number of decompressed bytes to read
      * @returns {Promise<ArrayBuffer>} Promise for an ArrayBuffer with decoded data
      */
     Decompressor.prototype.readSlice = function(offset, length) {
@@ -146,11 +147,11 @@ define(['q', 'zstdec'], function(Q) {
     };
 
     /**
-     * Reads stream of data from file offset for length of bytes to send to the decompresor
-     * This function ensures that only one decompression runs at a time
-     * @param {Integer} offset The file offset at which to begin reading compressed data
-     * @param {Integer} length The amount of data to read
-     * @returns {Promise} A Promise for the read data
+     * This function ensures that only one decompression runs at a time, launching readSlice() only when
+     * the decompressor is no longer busy
+     * @param {Integer} offset The cluster offset (in decompressed stream) at which the requested blob resides
+     * @param {Integer} length The number of decompressed bytes to read
+     * @returns {Promise} A Promise for the readSlice() function
      */
     Decompressor.prototype.readSliceSingleThread = function (offset, length) {
         if (!busy) {
@@ -170,7 +171,8 @@ define(['q', 'zstdec'], function(Q) {
 
     /**
      * The main loop for sending compressed data to the decompressor and retrieving decompressed bytes
-     * @param {Integer} offset The offset in the *decompressed* byte stream at which the requeste blob resides
+     * Consecutive calls to readLoop may only advance in the stream and may not overlap
+     * @param {Integer} offset The offset in the *decompressed* byte stream at which the requested blob resides
      * @param {Integer} length The deomcpressed size of the requested blob
      * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
      */
@@ -200,7 +202,6 @@ define(['q', 'zstdec'], function(Q) {
             
             // Get updated outbuffer values
             var obx32ptr = zd._outBuffer.ptr >> 2;
-            // zd._outBuffer.size = zd.HEAP32[obx32ptr + 1];
             var outPos = zd.HEAP32[obx32ptr + 2];
 
             // If data have been decompressed, check to see whether the data are in the offset range we need
@@ -237,8 +238,8 @@ define(['q', 'zstdec'], function(Q) {
     
     /**
      * Fills in the instream buffer if needed
-     * @param {Integer} currOffset The current read offset
-     * @param {Integer} len The decompressed length of data requested
+     * @param {Integer} currOffset The current read offset in the decompressed stream
+     * @param {Integer} len The length of data requested in the decompressed stream
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function(currOffset, len) {
@@ -271,8 +272,9 @@ define(['q', 'zstdec'], function(Q) {
 
     /**
      * Provision asm/wasm data block and get a pointer to the assigned location
-     * @param {Number} sizeOfData The number of bytes to be allocated
-     * @returns {Number} Pointer to the assigned data block
+     * Code used from excellent WASM tutorial here: https://marcoselvatici.github.io/WASM_tutorial/
+     * @param {Integer} sizeOfData The number of bytes to be allocated
+     * @returns {Integer} Pointer to the assigned data block
      */
     function mallocOrDie(sizeOfData) {
         const dataPointer = zd._malloc(sizeOfData);
