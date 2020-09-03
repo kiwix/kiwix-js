@@ -247,8 +247,6 @@ define(['q', 'zstdec'], function(Q) {
         var that = this;
         return this._reader(this._inStreamPos, zd._chunkSize).then(function(data) {
             // Populate inBuffer and assign asm/wasm memory if not already assigned
-            // NOTE: Is it possible to read too much data? I.e. read beyond end of cluster, leading to corrupt stream?
-            // should we check for this - but how, if this thread knows nothing about the next cluster?
             zd._inBuffer.size = data.length;
             // Reset inBuffer
             zd._inBuffer.pos = 0;

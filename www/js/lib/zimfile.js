@@ -191,7 +191,17 @@ define(['xzdec_wrapper', 'zstdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], 
             return that._readSlice(clusterOffset, 1).then(function(compressionType) {
                 var decompressor;
                 var plainBlobReader = function(offset, size) {
-                    return that._readSlice(clusterOffset + 1 + offset, size);
+                    // DEV: old algorithm merely returned requested data size
+                    // but I believe we need to check that we are not reading beyond the end of the cluster
+                    // Is this an oversight in original code or an unnecessary protection?
+                    // return that._readSlice(clusterOffset + 1 + offset, size);
+                    var offsetStart = clusterOffset + 1 + offset;
+                    if ( offsetStart < nextCluster) {
+                        size = offsetStart + size <= nextCluster ? size : nextCluster - offsetStart;
+                        return that._readSlice(offsetStart, size);
+                    } else {
+                        return Q(new Uint8Array(0).buffer);
+                    }
                 };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
