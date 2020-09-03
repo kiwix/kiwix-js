@@ -56,15 +56,18 @@ define(['q', 'zstdec'], function(Q) {
             size: zd._chunkSize,    /* size_t size < size of input buffer */
             pos: 0                  /* size_t pos; < position where reading stopped. Will be updated. Necessarily 0 <= pos <= size */
         };
-        // Reserve w/asm memory for the inBuffer structure
+        // Reserve w/asm memory for the inBuffer structure (we will populate assigned memory later)
         zd._inBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
+        // Reserve w/asm memory for the inBuffer data stream
         zd._inBuffer.src = mallocOrDie(zd._inBuffer.size);
                 
         // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
         // memory issues, it may be possible to reduce memory consumption by setting a smaller outBuffer size here and
         // reompiling zstdec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstdec.js and change it)
+        // var recOutBufSize = zd._chunkSize * 7;
         var outBufSize = zd._ZSTD_DStreamOutSize();
-        // var outBufSize = zd._chunkSize * 6;
+        // var outBufSize = recOutBufSize > maxOutBufSize ? maxOutBufSize : recOutBufSize;
+
         // Initialize outBuffer
         zd._outBuffer = {
             ptr: null,           /* pointer to this outBuffer structure in asm/wasm memory */
@@ -74,9 +77,7 @@ define(['q', 'zstdec'], function(Q) {
         };
         // Reserve w/asm memory for the outBuffer structure
         zd._outBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
-        // DEV: because we're re-using the allocated memory (malloc), you cannot change the _outBuffer.size field locally
-        // _outBuffer.size is the maximum amount the ZSTD codec is allowed to decode in one go
-        // so if we need more data, we just copy those decoded bytes and reset _ouBuffer.pos to 0
+        // Reserve w/asm memory for the outBuffer data steam
         zd._outBuffer.dst = mallocOrDie(zd._outBuffer.size);
     });
     
@@ -131,17 +132,13 @@ define(['q', 'zstdec'], function(Q) {
 
         var that = this;
         return this._readLoop(offset, length).then(function(data) {
-            // DEV: These structures are a known fixed length and could be assigned once, avoiding the need to free them
-            // currently they are re-assigned on each blob request; consider changing this if memory usage appears to grow over time
-            // zd._free(zd._inBuffer.src);
-            // zd._free(zd._inBuffer.ptr);
-            // zd._free(zd._outBuffer.dst);
-            // zd._free(zd._outBuffer.ptr);
-            // DEV: Freeing zd._decHandle is not needed, and actually increases memory consumption (crashing zstddeclib)
-            // The library explicitly encourages re-using assigned structures and handles
+            // DEV: We are re-using all the allocated w/asm memory, so we do not need to free any of structures assigned wiht _malloc
+            // However, should you need to free assigned structures use, e.g., zd._free(zd._inBuffer.src);
+            // Additionally, freeing zd._decHandle is not needed, and actually increases memory consumption (crashing zstddeclib)
+            // Should you need to free the decoder stream handle, use command below, but be sure to create a new stream control object
+            // before attempting further decompression
             // zd._ZSTD_freeDStream(zd._decHandle);
             busy = false;
-            // console.log("Freed all data structures.");
             return data;
         });
     };
@@ -180,7 +177,6 @@ define(['q', 'zstdec'], function(Q) {
         var that = this;
         return this._fillInBufferIfNeeded(offset, length).then(function() {
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
-            // var ret = zd._ZSTD_decompressStream_simpleArgs(that._decHandle, zd._outBuffer.ptr, zd._outBuffer.size, 0, zd._inBuffer.ptr, zd._inBuffer.size, 0);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
                 console.error(errorMessage);
@@ -216,17 +212,17 @@ define(['q', 'zstdec'], function(Q) {
             // Increment the byte stream positions
             that._inStreamPos += zd._inBuffer.pos;
             that._outStreamPos += outPos;
-
+            // DEV: if outPos is > 0, then we have either copied all data from outBuffer, or we can now throw those data away
+            // because they are before our required offset
+            // Se we can now reset the asm outBuffer.pos field to 0
+            zd.HEAP32[obx32ptr + 2] = 0;
+            // However, this isn't necessary becasuse zd._outBuffer.pos is always 0, and the buffer will be reset - WILL IT???
+            // do not change the _outBuffer.size field locally; _outBuffer.size is the maximum amount the ZSTD codec is allowed
+            // to decode in one go, but even if it is only partially written, we just copy the decoded bytes and reset _ouBuffer.pos to 0
+        
             // TESTING (remove before merge)
             console.log("Offset: " + offset + "\nLength: " + length + "\ninStreamPos: " + that._inStreamPos + "\noutStreamPos: " + that._outStreamPos);
-            // Redundant code bloc: outBuffer.pos is always 0 becasue we either copy all the data or throw them away!
-            // if (outPos > 0) {
-            //     // We have either copied all data from outBuffer, or we can throw those data away because they are before our required offset
-            //     // This resets the outbuffer->ptr to 0, so we can re-use the outbuffer memory space without re-initializing
-            //     // Below is the 'raw' way to do this for info, but the JS copy will be set in fillInBufferIfNeeded()
-            //     // zd.HEAP32[obx32ptr + 2] = 0;
-            //     zd._outBuffer.pos = 0;
-            // }
+            
             if (finished) {
                 console.log("Read loop finished.");
                 return that._outDataBuf;
