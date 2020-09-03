@@ -64,9 +64,9 @@ define(['q', 'zstdec'], function(Q) {
         // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
         // memory issues, it may be possible to reduce memory consumption by setting a smaller outBuffer size here and
         // reompiling zstdec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstdec.js and change it)
-        // var recOutBufSize = zd._chunkSize * 7;
-        var outBufSize = zd._ZSTD_DStreamOutSize();
-        // var outBufSize = recOutBufSize > maxOutBufSize ? maxOutBufSize : recOutBufSize;
+        var recOutBufSize = zd._chunkSize * 4;
+        var maxOutBufSize = zd._ZSTD_DStreamOutSize();
+        var outBufSize = recOutBufSize > maxOutBufSize ? maxOutBufSize : recOutBufSize;
 
         // Initialize outBuffer
         zd._outBuffer = {
@@ -171,11 +171,12 @@ define(['q', 'zstdec'], function(Q) {
      * Consecutive calls to readLoop may only advance in the stream and may not overlap
      * @param {Integer} offset The offset in the *decompressed* byte stream at which the requested blob resides
      * @param {Integer} length The deomcpressed size of the requested blob
+     * @param {Integer} dataRequest The recommended number of bytes the docompressor has requested
      * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
      */
-    Decompressor.prototype._readLoop = function(offset, length) {
+    Decompressor.prototype._readLoop = function(offset, length, dataRequest) {
         var that = this;
-        return this._fillInBufferIfNeeded(offset, length).then(function() {
+        return this._fillInBufferIfNeeded(offset, length, dataRequest).then(function() {
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
@@ -227,20 +228,20 @@ define(['q', 'zstdec'], function(Q) {
                 console.log("Read loop finished.");
                 return that._outDataBuf;
             } else {
-                return that._readLoop(offset, length);
+                return that._readLoop(offset, length, ret);
             }
         });
     };
     
     /**
      * Fills in the instream buffer if needed
-     * @param {Integer} currOffset The current read offset in the decompressed stream
-     * @param {Integer} len The length of data requested in the decompressed stream
+     * @param {Integer} req The requested number of compressed bytes (optional)
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
-    Decompressor.prototype._fillInBufferIfNeeded = function(currOffset, len) {
-        if (this._inStreamPos + len < this._inStreamChunkedPos) {
-            // We should still have enough data in the buffer (because decompressed len > compressed len)
+    Decompressor.prototype._fillInBufferIfNeeded = function(req) {
+        req = req || 0;
+        if (this._inStreamPos + req < this._inStreamChunkedPos) {
+            // We should still have enough data in the buffer
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
@@ -258,7 +259,7 @@ define(['q', 'zstdec'], function(Q) {
             zd.HEAP32.set(outBufferStruct, zd._outBuffer.ptr >> 2);
             
             // Transfer the (new) data to be read to the inBuffer
-            zd.HEAP8.set(data, zd._inBuffer.src);
+            zd.HEAPU8.set(data, zd._inBuffer.src);
             that._inStreamChunkedPos += data.length;
             return 0;
         });
