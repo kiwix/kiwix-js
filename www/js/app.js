@@ -983,6 +983,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Cancel the old search (zimArchive search object will receive this change)
             appstate.search.status = 'cancelled';
             // Initiate a new search object and point appstate.search to it (the zimAcrhive search object will continue to point to the old object)
+            // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
+            // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
+            // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
             appstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
             $('#activeContent').hide();
             selectedArchive.findDirEntriesWithPrefix(appstate.search, params.maxSearchResultsSize, populateListOfArticles);
