@@ -64,9 +64,10 @@ define(['q', 'zstdec'], function(Q) {
         // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
         // memory issues, it may be possible to reduce memory consumption by setting a smaller outBuffer size here and
         // reompiling zstdec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstdec.js and change it)
-        var recOutBufSize = zd._chunkSize * 4;
+        var recOutBufSize = zd._chunkSize * 500;
         var maxOutBufSize = zd._ZSTD_DStreamOutSize();
         var outBufSize = recOutBufSize > maxOutBufSize ? maxOutBufSize : recOutBufSize;
+        console.log('*** Initiating ZSTD decoder with DStreamoutSize: ' + outBufSize + ' ***');
 
         // Initialize outBuffer
         zd._outBuffer = {
@@ -130,7 +131,6 @@ define(['q', 'zstdec'], function(Q) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
 
-        var that = this;
         return this._readLoop(offset, length).then(function(data) {
             // DEV: We are re-using all the allocated w/asm memory, so we do not need to free any of structures assigned wiht _malloc
             // However, should you need to free assigned structures use, e.g., zd._free(zd._inBuffer.src);
