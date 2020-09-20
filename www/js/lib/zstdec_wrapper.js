@@ -64,9 +64,7 @@ define(['q', 'zstdec'], function(Q) {
         // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
         // memory issues, it may be possible to reduce memory consumption by setting a smaller outBuffer size here and
         // reompiling zstdec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstdec.js and change it)
-        var recOutBufSize = zd._chunkSize * 500;
-        var maxOutBufSize = zd._ZSTD_DStreamOutSize();
-        var outBufSize = recOutBufSize > maxOutBufSize ? maxOutBufSize : recOutBufSize;
+        var outBufSize = zd._ZSTD_DStreamOutSize();
         console.log('*** Initiating ZSTD decoder with DStreamoutSize: ' + outBufSize + ' ***');
 
         // Initialize outBuffer
@@ -217,11 +215,10 @@ define(['q', 'zstdec'], function(Q) {
             // because they are before our required offset
             // Se we can now reset the asm outBuffer.pos field to 0
             zd.HEAP32[obx32ptr + 2] = 0;
-            // However, this isn't necessary becasuse zd._outBuffer.pos is always 0, and the buffer will be reset - WILL IT???
             // do not change the _outBuffer.size field locally; _outBuffer.size is the maximum amount the ZSTD codec is allowed
             // to decode in one go, but even if it is only partially written, we just copy the decoded bytes and reset _ouBuffer.pos to 0
         
-            // TESTING (remove before merge)
+            // TESTING (remove all console logging before merge)
             console.log("Offset: " + offset + "\nLength: " + length + "\ninStreamPos: " + that._inStreamPos + "\noutStreamPos: " + that._outStreamPos);
             
             if (finished) {

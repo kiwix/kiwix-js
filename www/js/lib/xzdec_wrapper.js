@@ -23,6 +23,7 @@
 define(['q', 'xzdec'], function(Q) {
     // DEV: xzdec.js emits a global Module variable, which cannot be set in requireJS function line above, though it can be loaded in definition
     var xzdec = Module;
+    // TESTING: remove before merge
     console.log('*** Initiating xzdec decoder ***');
     xzdec._init();
     
