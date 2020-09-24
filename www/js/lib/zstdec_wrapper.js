@@ -191,8 +191,8 @@ define(['q', 'zstdec'], function(Q) {
 
             // Get updated inbuffer values for processing on the JS sice
             // NB the zd.Decoder will read these values from its own buffers
-            var ibx32ptr = zd._inBuffer.ptr >> 2;
-            zd._inBuffer.pos = zd.HEAP32[ibx32ptr + 2];
+            var ibxPtr32Bit = zd._inBuffer.ptr >> 2;
+            zd._inBuffer.pos = zd.HEAP32[ibxPtr32Bit + 2];
             
             // Get updated outbuffer values
             var obxPtr32Bit = zd._outBuffer.ptr >> 2;
