@@ -167,33 +167,18 @@ define(['q', 'zstdec'], function(Q) {
      * The main loop for sending compressed data to the decompressor and retrieving decompressed bytes
      * Consecutive calls to readLoop may only advance in the stream and may not overlap
      * @param {Integer} offset The offset in the *decompressed* byte stream at which the requested blob resides
-     * @param {Integer} length The deomcpressed size of the requested blob
-     * @param {Integer} dataRequest The recommended number of bytes the docompressor has requested
      * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
      */
-    Decompressor.prototype._readLoop = function(offset, length, dataRequest) {
+    Decompressor.prototype._readLoop = function(offset) {
         var that = this;
-        return this._fillInBufferIfNeeded(offset, length, dataRequest).then(function() {
+        return this._fillInBufferIfNeeded(offset).then(function() {
+            var finished = false;
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
                 console.error(errorMessage);
                 throw new Error(errorMessage);
             }
-            var finished = false;
-            if (ret === 0) {
-                // stream ended
-                finished = true;
-            } else if (ret > 0) {
-                // supply more data
-                zd._inBuffer.size = ret;
-            }
-
-            // Get updated inbuffer values for processing on the JS sice
-            // NB the zd.Decoder will read these values from its own buffers
-            var ibxPtr32Bit = zd._inBuffer.ptr >> 2;
-            zd._inBuffer.pos = zd.HEAP32[ibxPtr32Bit + 2];
-            
             // Get updated outbuffer values
             var obxPtr32Bit = zd._outBuffer.ptr >> 2;
             var outPos = zd.HEAP32[obxPtr32Bit + 2];
@@ -206,21 +191,23 @@ define(['q', 'zstdec'], function(Q) {
                     that._outDataBuf[that._outDataBufPos++] = zd.HEAP8[zd._outBuffer.dst + i];
             }
             if (that._outDataBufPos === that._outDataBuf.length) finished = true;
+            // Return without further processing if decompressor has finished
+            if (finished) return that._outDataBuf;
+            
+            // Get updated inbuffer values for processing on the JS sice
+            // NB the zd.Decoder will read these values from its own buffers
+            var ibxPtr32Bit = zd._inBuffer.ptr >> 2;
+            zd._inBuffer.pos = zd.HEAP32[ibxPtr32Bit + 2];
+            
             // Increment the byte stream positions
             that._inStreamPos += zd._inBuffer.pos;
             that._outStreamPos += outPos;
             // DEV: if outPos is > 0, then we have either copied all data from outBuffer, or we can now throw those data away
             // because they are before our required offset
             // Se we can now reset the asm outBuffer.pos field to 0
-            zd.HEAP32[obxPtr32Bit + 2] = 0;
-            // do not change the _outBuffer.size field locally; _outBuffer.size is the maximum amount the ZSTD codec is allowed
-            // to decode in one go, but even if it is only partially written, we just copy the decoded bytes and reset _ouBuffer.pos to 0
-        
-            if (finished) {
-                return that._outDataBuf;
-            } else {
-                return that._readLoop(offset, length, ret);
-            }
+            // Testing outPos is not strictly necessary, but there may be an overhead in writing to HEAP32
+            if (!outPos) zd.HEAP32[obxPtr32Bit + 2] = 0;
+            return that._readLoop(offset);
         });
     };
     
