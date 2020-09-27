@@ -123,6 +123,7 @@ define(['q', 'zstdec'], function(Q) {
         this._outStreamPos = 0;
         this._outDataBuf = new Int8Array(new ArrayBuffer(length));
         this._outDataBufPos = 0;
+        zd._inBuffer.pos = 0;
         var ret = zd._ZSTD_initDStream(zd._decHandle);
         if (zd._ZSTD_isError(ret)) {
             return Q.reject('Failed to initialize ZSTD decompression');
@@ -218,7 +219,7 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function(req) {
-        if (this._inStreamPos + req < this._inStreamChunkedPos) {
+        if (this._inStreamPos < this._inStreamChunkedPos) {
             // We should still have enough data in the buffer
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
