@@ -178,7 +178,7 @@ define(['q', 'zstdec'], function(Q) {
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
                 console.error(errorMessage);
-                return Q.reject(errorMessage);
+                throw new Error(errorMessage);
             }
             // Get updated outbuffer values
             var obxPtr32Bit = zd._outBuffer.ptr >> 2;
@@ -218,14 +218,11 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function(req) {
-        if (this._inStreamPos + req < this._inStreamChunkedPos) {
+        if (this._inStreamPos && zd._inBuffer.pos + req <= zd._inBuffer.size) {
             // We should still have enough data in the buffer
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
-        console.log('Reading more data:\n' + 
-        '% inBuffer consumed: ' + Math.floor(zd._inBuffer.pos / zd._inBuffer.size * 100));
-            
         var that = this;
         return this._reader(this._inStreamPos, zd._chunkSize).then(function(data) {
             // Populate inBuffer and assign asm/wasm memory if not already assigned
