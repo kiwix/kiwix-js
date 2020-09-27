@@ -186,7 +186,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
         {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
-            // This method of calculating cluster size is not safe: see https://github.com/openzim/libzim/issues/84#issuecomment-612962250
+            // DEV: The method below of calculating cluster size is not safe: see https://github.com/openzim/libzim/issues/84#issuecomment-612962250
             // var thisClusterLength = nextCluster - clusterOffset - 1;
             return that._readSlice(clusterOffset, 1).then(function(compressionType) {
                 var decompressor;
@@ -197,7 +197,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
                     // return that._readSlice(clusterOffset + 1 + offset, size);
                     var offsetStart = clusterOffset + 1 + offset;
                     if ( offsetStart < nextCluster) {
-                        size = offsetStart + size <= nextCluster ? size : nextCluster - offsetStart;
+                        // Gratuitous parentheses added for legibility
+                        size = (offsetStart + size) <= nextCluster ? size : (nextCluster - offsetStart);
                         return that._readSlice(offsetStart, size);
                     } else {
                         return Q(new Uint8Array(0).buffer);

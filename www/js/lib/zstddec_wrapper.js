@@ -113,7 +113,7 @@ define(['q', 'zstddec'], function(Q) {
     /**
      * Set up the decompression stream, and initiate a read loop to decompress from the beginning of the cluster
      * until we reach <offset> in the decompressed byte stream
-     * @param {Integer} offset Cluster offset (in deocmpressed stream) from which to start reading
+     * @param {Integer} offset Cluster offset (in decompressed stream) from which to start reading
      * @param {Integer} length Number of decompressed bytes to read
      * @returns {Promise<ArrayBuffer>} Promise for an ArrayBuffer with decoded data
      */
