@@ -167,11 +167,12 @@ define(['q', 'zstdec'], function(Q) {
      * The main loop for sending compressed data to the decompressor and retrieving decompressed bytes
      * Consecutive calls to readLoop may only advance in the stream and may not overlap
      * @param {Integer} offset The offset in the *decompressed* byte stream at which the requested blob resides
+     * @param {Integer} dataRequest The recommended number of bytes the docompressor should handle
      * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
      */
-    Decompressor.prototype._readLoop = function(offset) {
+    Decompressor.prototype._readLoop = function(offset, dataRequest) {
         var that = this;
-        return this._fillInBufferIfNeeded(offset).then(function() {
+        return this._fillInBufferIfNeeded(dataRequest).then(function() {
             var finished = false;
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
             if (zd._ZSTD_isError(ret)) {
@@ -207,18 +208,17 @@ define(['q', 'zstdec'], function(Q) {
             // Se we can now reset the asm outBuffer.pos field to 0
             // Testing outPos is not strictly necessary, but there may be an overhead in writing to HEAP32
             if (!outPos) zd.HEAP32[obxPtr32Bit + 2] = 0;
-            return that._readLoop(offset);
+            return that._readLoop(offset, ret);
         });
     };
     
     /**
      * Fills in the instream buffer if needed
-     * @param {Integer} req The requested number of compressed bytes (optional)
+     * @param {Integer} req The requested number of bytes to decompress
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function(req) {
-        req = req || 0;
-        if (this._inStreamPos + req < this._inStreamChunkedPos) {
+        if (this._inStreamPos && zd._inBuffer.pos + req <= zd._inBuffer.size) {
             // We should still have enough data in the buffer
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
