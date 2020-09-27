@@ -169,15 +169,14 @@ define(['q', 'zstdec'], function(Q) {
      * @param {Integer} offset The offset in the *decompressed* byte stream at which the requested blob resides
      * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
      */
-    Decompressor.prototype._readLoop = function(offset) {
+    Decompressor.prototype._readLoop = function (offset) {
         var that = this;
-        return this._fillInBufferIfNeeded(offset).then(function() {
+        return this._fillInBuffer().then(function () {
             var finished = false;
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
-                console.error(errorMessage);
-                throw new Error(errorMessage);
+                return Q.reject(errorMessage);
             }
             // Get updated outbuffer values
             var obxPtr32Bit = zd._outBuffer.ptr >> 2;
@@ -193,12 +192,12 @@ define(['q', 'zstdec'], function(Q) {
             if (that._outDataBufPos === that._outDataBuf.length) finished = true;
             // Return without further processing if decompressor has finished
             if (finished) return that._outDataBuf;
-            
+
             // Get updated inbuffer values for processing on the JS sice
             // NB the zd.Decoder will read these values from its own buffers
             var ibxPtr32Bit = zd._inBuffer.ptr >> 2;
             zd._inBuffer.pos = zd.HEAP32[ibxPtr32Bit + 2];
-            
+
             // Increment the byte stream positions
             that._inStreamPos += zd._inBuffer.pos;
             that._outStreamPos += outPos;
@@ -208,21 +207,16 @@ define(['q', 'zstdec'], function(Q) {
             // Testing outPos is not strictly necessary, but there may be an overhead in writing to HEAP32
             if (!outPos) zd.HEAP32[obxPtr32Bit + 2] = 0;
             return that._readLoop(offset);
+        }).catch(function (err) {
+            console.error(err);
         });
     };
     
     /**
-     * Fills in the instream buffer if needed
-     * @param {Integer} req The requested number of compressed bytes (optional)
+     * Fills in the instream buffer
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
-    Decompressor.prototype._fillInBufferIfNeeded = function(req) {
-        req = req || 0;
-        if (this._inStreamPos + req < this._inStreamChunkedPos) {
-            // We should still have enough data in the buffer
-            // DEV: When converting to Promise/A+, use Promise.resolve(0) here
-            return Q.when(0);
-        }
+    Decompressor.prototype._fillInBuffer = function() {
         var that = this;
         return this._reader(this._inStreamPos, zd._chunkSize).then(function(data) {
             // Populate inBuffer and assign asm/wasm memory if not already assigned
