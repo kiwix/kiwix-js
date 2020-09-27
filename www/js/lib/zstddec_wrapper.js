@@ -27,13 +27,16 @@ define(['q', 'zstddec'], function(Q) {
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
     
     /**
-     * The ZSTD Decoder instance
-     * @constructor Constructs the zd object representing a ZSTD decoder Emscripten instance
+     * @typedef EMSInstanceExt An object type representing an Emscripten instance with extended properties
      * @property {Integer} _decHandle The decoder stream context object in asm memory (to be re-used for each decoder operation)
      * @property {Object} _inBuffer A JS copy of the inBuffer structure to be set in asm memory (malloc)
      * @property {Object} _outBuffer A JS copy of the outBuffer structure to be set in asm memory (malloc)
      * @property {Integer} _chunkSize The number of compressed bytes to feed to the decompressor in any one read loop
-     
+     */
+
+    /**
+     * The ZSTD Decoder instance
+     * @type EMSInstanceExt
      */
     var zd;
     ZD().then(function(instance) {
