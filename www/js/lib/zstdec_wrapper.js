@@ -219,8 +219,8 @@ define(['q', 'zstdec'], function(Q) {
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
     Decompressor.prototype._fillInBufferIfNeeded = function(req) {
-        if (this._inStreamPos < this._inStreamChunkedPos) {
-            // We should still have enough data in the buffer
+        if (this._inStreamPos !== this._inStreamChunkedPos) {
+            // Buffer is not empty
             // DEV: When converting to Promise/A+, use Promise.resolve(0) here
             return Q.when(0);
         }
