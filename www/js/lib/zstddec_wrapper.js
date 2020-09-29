@@ -20,12 +20,12 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q', 'zstddec'], function(Q) {
+define(['q', 'zstddec'], function (Q) {
     // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec which uses "Module" as its exported object
     // Note that we include zstddec above in requireJS definition, but we cannot change the name in the function list
     // There is no longer any need to load it in index.html
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
-    
+
     /**
      * @typedef EMSInstanceExt An object type representing an Emscripten instance with extended properties
      * @property {Integer} _decHandle The decoder stream context object in asm memory (to be re-used for each decoder operation)
@@ -39,7 +39,7 @@ define(['q', 'zstddec'], function(Q) {
      * @type EMSInstanceExt
      */
     var zd;
-    ZD().then(function(instance) {
+    ZD().then(function (instance) {
         // Instantiate the zd object
         zd = instance;
         // Create JS API by wrapping C++ functions
@@ -53,7 +53,7 @@ define(['q', 'zstddec'], function(Q) {
         // Change _chunkSize if you need a more conservative memory environment, but you may need to experiment with INITIAL_MEMORY
         // in zstddec.js (see below) for this to make any difference
         // zd._chunkSize = 5 * 1024;
-        
+
         // Initialize inBuffer
         zd._inBuffer = {
             ptr: null,              /* pointer to this inBuffer structure in w/asm memory */
@@ -65,7 +65,7 @@ define(['q', 'zstddec'], function(Q) {
         zd._inBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
         // Reserve w/asm memory for the inBuffer data stream
         zd._inBuffer.src = mallocOrDie(zd._inBuffer.size);
-                
+
         // DEV: Size of outBuffer is currently set as recommended by zd._ZSTD_DStreamOutSize() below; if you are running into
         // memory issues, it may be possible to reduce memory consumption by setting a smaller outBuffer size here and
         // reompiling zstddec.js with lower TOTAL_MEMORY (or just search for INITIAL_MEMORY in zstddec.js and change it)
@@ -83,19 +83,19 @@ define(['q', 'zstddec'], function(Q) {
         // Reserve w/asm memory for the outBuffer data steam
         zd._outBuffer.dst = mallocOrDie(zd._outBuffer.size);
     });
-    
+
     /**
      * Number of milliseconds to wait for the decompressor to be available for another chunk
      * @type Integer
      */
     var DELAY_WAITING_IDLE_DECOMPRESSOR = 50;
-    
+
     /**
      * Is the decompressor already working?
      * @type Boolean
      */
     var busy = false;
-    
+
     /**
      * @typedef Decompressor
      * @property {FileReader} _reader The filereader to use (uses plain blob reader defined in zimfile.js)
@@ -105,7 +105,7 @@ define(['q', 'zstddec'], function(Q) {
      * @property {Array} _outDataBuf The buffer that stores decoded bytes (it is set to the requested blob's length, and when full, the data are returned)
      * @property {Integer} _outDataBufPos The number of bytes of the requested blob decoded so far
      */
-    
+
     /**
      * @constructor
      * @param {FileReader} reader The reader used to extract file slices (defined in zimfile.js)
@@ -121,7 +121,7 @@ define(['q', 'zstddec'], function(Q) {
      * @param {Integer} length Number of decompressed bytes to read
      * @returns {Promise<ArrayBuffer>} Promise for an ArrayBuffer with decoded data
      */
-    Decompressor.prototype.readSlice = function(offset, length) {
+    Decompressor.prototype.readSlice = function (offset, length) {
         busy = true;
         this._inStreamPos = 0;
         this._inStreamChunkedPos = 0;
@@ -133,7 +133,7 @@ define(['q', 'zstddec'], function(Q) {
             return Q.reject('Failed to initialize ZSTD decompression');
         }
 
-        return this._readLoop(offset, length).then(function(data) {
+        return this._readLoop(offset, length).then(function (data) {
             // DEV: We are re-using all the allocated w/asm memory, so we do not need to free any of structures assigned wiht _malloc
             // However, should you need to free assigned structures use, e.g., zd._free(zd._inBuffer.src);
             // Additionally, freeing zd._decHandle is not needed, and actually increases memory consumption (crashing zstddeclib)
@@ -216,14 +216,14 @@ define(['q', 'zstddec'], function(Q) {
             console.error(err);
         });
     };
-    
+
     /**
      * Fills in the instream buffer
      * @returns {Promise<0>} A Promise for 0 when all data have been added to the stream
      */
-    Decompressor.prototype._fillInBuffer = function() {
+    Decompressor.prototype._fillInBuffer = function () {
         var that = this;
-        return this._reader(this._inStreamPos, zd._chunkSize).then(function(data) {
+        return this._reader(this._inStreamPos, zd._chunkSize).then(function (data) {
             // Populate inBuffer and assign asm/wasm memory if not already assigned
             zd._inBuffer.size = data.length;
             // Reset inBuffer
@@ -234,7 +234,7 @@ define(['q', 'zstddec'], function(Q) {
             var outBufferStruct = new Int32Array([zd._outBuffer.dst, zd._outBuffer.size, zd._outBuffer.pos]);
             // Write outBuffer structure to w/asm memory
             zd.HEAP32.set(outBufferStruct, zd._outBuffer.ptr >> 2);
-            
+
             // Transfer the (new) data to be read to the inBuffer
             zd.HEAPU8.set(data, zd._inBuffer.src);
             that._inStreamChunkedPos += data.length;
