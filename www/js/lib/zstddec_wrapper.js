@@ -48,9 +48,10 @@ define(['q', 'zstddec'], function(Q) {
         // Get a permanent decoder handle (pointer to control structure)
         // NB there is no need to change this handle even between ZIM loads: zstddeclib encourages re-using assigned structures
         zd._decHandle = zd._ZSTD_createDStream();
-        // DEV set chunkSize according to memory environment; for systems with plenty of memory,
-        // zd can provide a max recommended size with 
+        // In-built function below provides a max recommended chunk size 
         zd._chunkSize = zd._ZSTD_DStreamInSize();
+        // Change _chunkSize if you need a more conservative memory environment, but you may need to experiment with INITIAL_MEMORY
+        // in zstddec.js (see below) for this to make any difference
         // zd._chunkSize = 5 * 1024;
         
         // Initialize inBuffer
