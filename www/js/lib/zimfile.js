@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util, utf8, Q, zimDirEntry) {
+define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, zstd, util, utf8, Q, zimDirEntry) {
 
     var readInt = function(data, offset, size)
     {
@@ -186,16 +186,28 @@ define(['xzdec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, util,
         {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
+            // DEV: The method below of calculating cluster size is not safe: see https://github.com/openzim/libzim/issues/84#issuecomment-612962250
+            // var thisClusterLength = nextCluster - clusterOffset - 1;
             return that._readSlice(clusterOffset, 1).then(function(compressionType) {
                 var decompressor;
                 var plainBlobReader = function(offset, size) {
-                    return that._readSlice(clusterOffset + 1 + offset, size);
+                    // Check that we are not reading beyond the end of the cluster
+                    var offsetStart = clusterOffset + 1 + offset;
+                    if ( offsetStart < nextCluster) {
+                        // Gratuitous parentheses added for legibility
+                        size = (offsetStart + size) <= nextCluster ? size : (nextCluster - offsetStart);
+                        return that._readSlice(offsetStart, size);
+                    } else {
+                        return Q(new Uint8Array(0).buffer);
+                    }
                 };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
                     decompressor = { readSliceSingleThread: plainBlobReader };
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
+                } else if (compressionType[0] === 5) {
+                    decompressor = new zstd.Decompressor(plainBlobReader);
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }

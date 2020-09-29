@@ -1196,7 +1196,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     }
                 };
                 selectedArchive.getDirEntryByTitle(title).then(readFile).catch(function () {
-                    messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new UInt8Array() });
+                    messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new Uint8Array() });
                 });
             } else {
                 console.error("Invalid message received", event.data);
