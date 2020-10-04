@@ -6,7 +6,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.0.0
 
-Released on *TODO*
+Released on *2020-10-04*
 
 * NEW: Add support for reading ZIM archives compressed with the zstandard compression algorithm
 * UPDATE: Make Privacy Policy publicly accessible
