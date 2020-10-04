@@ -4,11 +4,14 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
-## Kiwix-JS v2.9.0
+## Kiwix-JS v3.0.0
 
-Released on *TODO*
+Released on *2020-10-04*
 
-Detailed changelog: TODO
+* NEW: Add support for reading ZIM archives compressed with the zstandard compression algorithm
+* UPDATE: Make Privacy Policy publicly accessible
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/23?closed=1
 
 ## Kiwix-JS v2.8.0
 
