@@ -54,3 +54,4 @@ www-ghdeploy
 #Visual Studio
 /.vs/
 /.vscode/
+package-lock.json
