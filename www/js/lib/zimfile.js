@@ -99,12 +99,16 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
             // Wait until all are resolved and concatenate.
             console.log("CONCAT");
             return Q.all(readRequests).then(function(arrays) {
-                var concatenated = new Uint8Array(size);
-                var sizeSum = 0;
-                for (var i = 0; i < arrays.length; ++i) {
-                    concatenated.set(new Uint8Array(arrays[i]), sizeSum);
-                    sizeSum += arrays[i].byteLength;
-                }
+                var length = 0;
+                arrays.forEach(function (item) {
+                    length += item.byteLength;
+                });
+                var concatenated = new Uint8Array(length);
+                var offset = 0;
+                arrays.forEach(function (item) {
+                    concatenated.set(new Uint8Array(item), offset);
+                    offset += item.byteLength;
+                });
                 return concatenated;
             });
         }
