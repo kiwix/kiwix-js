@@ -161,7 +161,9 @@ define(['q'], function(Q) {
     };
     var readInternal = function (file, begin, end) {
         if ('arrayBuffer' in Blob.prototype) {
-            // DEV: This method uses the Native FS handle if available
+            // DEV: This method uses the native arrayBuffer method of Blob, if available, as it eliminates
+            // the need to use FileReader and set up event listeners; it also uses the method's native Promise
+            // rather than setting up potentially hundreds of new Q promises for small byte range reads
             return file.slice(begin, end).arrayBuffer().then(function (buffer) {
                 return new Uint8Array(buffer);
             });
