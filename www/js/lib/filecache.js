@@ -51,7 +51,9 @@ define(['q'], function(Q) {
 
     /**
      * Tries to retrieve an element by its namespace and id. If it is not present in the cache,
-     * returns undefined.
+     * returns undefined
+     * @param {Integer} id The block cache entry id
+     * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function(id) {
         var entry = this._entries[id]; 
@@ -114,7 +116,10 @@ define(['q'], function(Q) {
     /**
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
      * If a read of more than blocksize (bytes) is requested, do not use the cache
-     * @return {Promise} promise that resolves to the correctly concatenated data.
+     * @param {Object} file The requested file to read from
+     * @param {Integer} begin The byte from which to start reading
+     * @param {Integer} end The last byte to read
+     * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data
      */
     var read = function(file, begin, end) {
         // Read large chunks bypassing the block cache because we would have to
