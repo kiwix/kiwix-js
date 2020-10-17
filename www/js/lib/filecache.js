@@ -36,7 +36,7 @@ define(['q'], function(Q) {
 
     /**
      * Creates a new cache with max size limit
-     * @param {Integer} limit The maximum number of 2048-byte blocks to be cached
+     * @param {Integer} limit The maximum number of blocks of BLOCK_SIZE to be cached
      */
     function LRUCache(limit) {
         console.log("Creating cache of size " + limit);
@@ -50,7 +50,7 @@ define(['q'], function(Q) {
     }
 
     /**
-     * Tries to retrieve an element by its namespace and id. If it is not present in the cache,
+     * Tries to retrieve an element by its id. If it is not present in the cache,
      * returns undefined
      * @param {Integer} id The block cache entry id
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
