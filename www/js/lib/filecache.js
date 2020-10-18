@@ -124,7 +124,7 @@ define(['q', 'util'], function(Q, util) {
     var read = function(file, begin, end) {
         // Read large chunks bypassing the block cache because we would have to
         // stitch together too many blocks and would clog the cache
-        if (end - begin > BLOCK_SIZE * 2) return directRead(file, begin, end);
+        if (end - begin > BLOCK_SIZE * 2) return file._readSplitSlice(begin, end);
         var readRequests = [];
         var blocks = {};
         for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
@@ -132,7 +132,7 @@ define(['q', 'util'], function(Q, util) {
             if (block === undefined) {
                 misses++;
                 readRequests.push(function(offset) {
-                    return directRead(file, offset, offset + BLOCK_SIZE).then(function(result) {
+                    return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function(result) {
                         cache.store(file.name + offset, result);
                         blocks[offset] = result;
                     });
@@ -159,44 +159,8 @@ define(['q', 'util'], function(Q, util) {
             return result;
         });
     };
-    var directRead = function (file, begin, end) {
-        var readRequests = [];
-        var currentOffset = 0;
-        for (var i = 0; i < file._files.length; currentOffset += file._files[i].size, ++i) {
-            var currentSize = file._files[i].size;
-            if (begin < currentOffset + currentSize && currentOffset < end) {
-                // DEV: Math.max is used below because we could be reading the last part of a blob split across two files,
-                // in which case (begin - currentOffset) could be negative!
-                var readStart = Math.max(0, begin - currentOffset);
-                var readEnd = Math.min(currentSize, end - currentOffset);
-                readRequests.push(util.readFileSlice(file._files[i], readStart, readEnd));
-            }
-        }
-        if (readRequests.length === 0) {
-            return Q(new Uint8Array(0).buffer);
-        } else if (readRequests.length === 1) {
-            return readRequests[0];
-        } else {
-            // Wait until all are resolved and concatenate.
-            console.log("CONCAT");
-            return Q.all(readRequests).then(function(arrays) {
-                var length = 0;
-                arrays.forEach(function (item) {
-                    length += item.byteLength;
-                });
-                var concatenated = new Uint8Array(length);
-                var offset = 0;
-                arrays.forEach(function (item) {
-                    concatenated.set(new Uint8Array(item), offset);
-                    offset += item.byteLength;
-                });
-                return concatenated;
-            });
-        }
-    };
 
     return {
-        read: read,
-        directRead: directRead
+        read: read
     };
 });

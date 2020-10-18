@@ -83,6 +83,49 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     };
 
     /**
+     * Read a slice from a set of one or more ZIM files constituting a single archive, and concatenate the data parts
+     * @param {Integer} begin The absolute byte offset from which to start reading 
+     * @param {Integer} end The absolute byte offset where reading should stop (the end byte is not read)
+     * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the concatenated data 
+     */
+    ZIMFile.prototype._readSplitSlice = function(begin, end) {
+        var file = this;
+        var readRequests = [];
+        var currentOffset = 0;
+        for (var i = 0; i < file._files.length; currentOffset += file._files[i].size, ++i) {
+            var currentSize = file._files[i].size;
+            if (begin < currentOffset + currentSize && currentOffset < end) {
+                // DEV: Math.max is used below because we could be reading the last part of a blob split across two files,
+                // in which case (begin - currentOffset) could be negative!
+                var readStart = Math.max(0, begin - currentOffset);
+                var readEnd = Math.min(currentSize, end - currentOffset);
+                readRequests.push(util.readFileSlice(file._files[i], readStart, readEnd));
+            }
+        }
+        if (readRequests.length === 0) {
+            return Q(new Uint8Array(0).buffer);
+        } else if (readRequests.length === 1) {
+            return readRequests[0];
+        } else {
+            // Wait until all are resolved and concatenate.
+            console.log("CONCAT");
+            return Q.all(readRequests).then(function(arrays) {
+                var length = 0;
+                arrays.forEach(function (item) {
+                    length += item.byteLength;
+                });
+                var concatenated = new Uint8Array(length);
+                var offset = 0;
+                arrays.forEach(function (item) {
+                    concatenated.set(new Uint8Array(item), offset);
+                    offset += item.byteLength;
+                });
+                return concatenated;
+            });
+        }
+    };
+
+    /**
      * 
      * @param {Integer} offset
      * @returns {DirEntry} DirEntry
