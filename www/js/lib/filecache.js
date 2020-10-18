@@ -50,9 +50,9 @@ define(['q'], function(Q) {
     }
 
     /**
-     * Tries to retrieve an element by its id. If it is not present in the cache,
-     * returns undefined
-     * @param {Integer} id The block cache entry id
+     * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
+     * then the value is returned and the entry is moved to the top of the cache
+     * @param {String} id The block cache entry key
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function(id) {
@@ -63,6 +63,11 @@ define(['q'], function(Q) {
         this.moveToTop(entry);
         return entry.value;
     };
+    /**
+     * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
+     * @param {String} id The key under which to store the value (consists of filename + file number)
+     * @param {Uint16Array} value The value to store in the cache 
+     */
     LRUCache.prototype.store = function(id, value) {
         var entry = this._entries[id];
         if (entry === undefined) {
@@ -80,6 +85,11 @@ define(['q'], function(Q) {
             this.moveToTop(entry);
         }
     };
+
+    /**
+     * Delete a cache entry
+     * @param {String} entry The entry to delete 
+     */
     LRUCache.prototype.unlink = function(entry) {
         if (entry.next === null) {
             this._last = entry.prev;
@@ -92,6 +102,11 @@ define(['q'], function(Q) {
             entry.prev.next = entry.next;
         }
     };
+
+    /**
+     * Insert a cache entry at the top of the cache
+     * @param {String} entry The entry to insert 
+     */
     LRUCache.prototype.insertAtTop = function(entry) {
         if (this._first === null) {
             this._first = this._last = entry;
@@ -101,6 +116,11 @@ define(['q'], function(Q) {
             this._first = entry;
         }
     };
+
+    /**
+     * Move a cache entry to the top of the cache
+     * @param {String} entry The entry to move 
+     */
     LRUCache.prototype.moveToTop = function(entry) {
         this.unlink(entry);
         this.insertAtTop(entry);

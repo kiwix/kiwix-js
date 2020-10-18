@@ -228,7 +228,6 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * Reads the whole MIME type list and returns it as a populated Map
      * The mimeTypeMap is extracted once after the user has picked the ZIM file
      * and is stored as ZIMFile.mimeTypes
-     * 
      * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list 
      *      is to be extracted
      * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
