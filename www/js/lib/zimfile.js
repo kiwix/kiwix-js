@@ -22,11 +22,9 @@
 'use strict';
 define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, Q, zimDirEntry, FileCache) {
 
-    var readInt = function(data, offset, size)
-    {
+    var readInt = function (data, offset, size) {
         var r = 0;
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             var c = (data[offset + i] + 256) & 0xff;
             r += util.leftShift(c, 8 * i);
         }
@@ -49,22 +47,21 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * @property {Integer} mimeListPos position of the MIME type list (also header size)
      * @property {Integer} mainPage main page or 0xffffffff if no main page
      * @property {Integer} layoutPage layout page or 0xffffffffff if no layout page
-     * 
      */
     
     /**
-     * @param {Array<File>} abstractFileArray
+     * Abstract an array of one or more (split) ZIM archives
+     * @param {Array<File>} abstractFileArray An array of ZIM file parts
      */
-    function ZIMFile(abstractFileArray)
-    {
+    function ZIMFile(abstractFileArray) {
         this._files = abstractFileArray;
     }
 
     /**
-     * 
-     * @param {Integer} offset
-     * @param {Integer} size
-     * @returns {Integer}
+     * Read and decode an integer value from the ZIM archive
+     * @param {Integer} offset The offset at which the integer is found
+     * @param {Integer} size The size of data to read
+     * @returns {Promise<Integer>} A Promise for the returned value 
      */
     ZIMFile.prototype._readInteger = function (offset, size) {
         return this._readSlice(offset, size).then(function (data) {
@@ -88,7 +85,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * @param {Integer} end The absolute byte offset where reading should stop (the end byte is not read)
      * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the concatenated data 
      */
-    ZIMFile.prototype._readSplitSlice = function(begin, end) {
+    ZIMFile.prototype._readSplitSlice = function (begin, end) {
         var file = this;
         var readRequests = [];
         var currentOffset = 0;
@@ -109,7 +106,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
         } else {
             // Wait until all are resolved and concatenate.
             console.log("CONCAT");
-            return Q.all(readRequests).then(function(arrays) {
+            return Q.all(readRequests).then(function (arrays) {
                 var length = 0;
                 arrays.forEach(function (item) {
                     length += item.byteLength;
@@ -126,16 +123,14 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     };
 
     /**
-     * 
-     * @param {Integer} offset
-     * @returns {DirEntry} DirEntry
+     * Read and parse a a Directory Entry at the given archive offset
+     * @param {Integer} offset The offset at which the DirEntry is located
+     * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
-    ZIMFile.prototype.dirEntry = function(offset) {
+    ZIMFile.prototype.dirEntry = function (offset) {
         var that = this;
-        return this._readSlice(offset, 2048).then(function(data)
-        {
-            var dirEntry =
-            {
+        return this._readSlice(offset, 2048).then(function (data) {
+            var dirEntry = {
                 offset: offset,
                 mimetypeInteger: readInt(data, 0, 2),
                 namespace: String.fromCharCode(data[3])
@@ -143,8 +138,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             dirEntry.redirect = (dirEntry.mimetypeInteger === 0xffff);
             if (dirEntry.redirect)
                 dirEntry.redirectTarget = readInt(data, 8, 4);
-            else
-            {
+            else {
                 dirEntry.cluster = readInt(data, 8, 4);
                 dirEntry.blob = readInt(data, 12, 4);
             }
@@ -160,54 +154,48 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     };
 
     /**
-     * 
-     * @param {Integer} index
-     * @returns {DirEntry} DirEntry
+     * Find a Directory Entry based on its URL Pointer index
+     * @param {Integer} index The URL Pointer index to the DirEntry
+     * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
-    ZIMFile.prototype.dirEntryByUrlIndex = function(index)
-    {
+    ZIMFile.prototype.dirEntryByUrlIndex = function (index) {
         var that = this;
-        return this._readInteger(this.urlPtrPos + index * 8, 8).then(function(dirEntryPos)
-        {
+        return this._readInteger(this.urlPtrPos + index * 8, 8).then(function (dirEntryPos) {
             return that.dirEntry(dirEntryPos);
         });
     };
 
     /**
-     * 
-     * @param {Integer} index
-     * @returns {DirEntry} DirEntry
+     * Find a Directory Entry based on its Title Pointer index
+     * @param {Integer} index The Title Pointer index to the DirEntry
+     * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
-    ZIMFile.prototype.dirEntryByTitleIndex = function(index)
-    {
+    ZIMFile.prototype.dirEntryByTitleIndex = function (index) {
         var that = this;
-        return this._readInteger(this.titlePtrPos + index * 4, 4).then(function(urlIndex)
-        {
+        return this._readInteger(this.titlePtrPos + index * 4, 4).then(function (urlIndex) {
             return that.dirEntryByUrlIndex(urlIndex);
         });
     };
 
     /**
-     * 
-     * @param {Integer} cluster
-     * @param {Integer} blob
-     * @returns {String}
+     * Read and if necessary decompress a BLOB based on its cluster number and blob number
+     * @param {Integer} cluster The cluster number where the blob is to be found
+     * @param {Integer} blob The blob number within the cluster
+     * @returns {Promise<Uint8Array>} A Promise for the BLOB's data
      */
-    ZIMFile.prototype.blob = function(cluster, blob)
-    {
+    ZIMFile.prototype.blob = function (cluster, blob) {
         var that = this;
-        return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function(clusterOffsets)
-        {
+        return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function (clusterOffsets) {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
             // DEV: The method below of calculating cluster size is not safe: see https://github.com/openzim/libzim/issues/84#issuecomment-612962250
             // var thisClusterLength = nextCluster - clusterOffset - 1;
-            return that._readSlice(clusterOffset, 1).then(function(compressionType) {
+            return that._readSlice(clusterOffset, 1).then(function (compressionType) {
                 var decompressor;
-                var plainBlobReader = function(offset, size) {
+                var plainBlobReader = function (offset, size) {
                     // Check that we are not reading beyond the end of the cluster
                     var offsetStart = clusterOffset + 1 + offset;
-                    if ( offsetStart < nextCluster) {
+                    if (offsetStart < nextCluster) {
                         // Gratuitous parentheses added for legibility
                         size = (offsetStart + size) <= nextCluster ? size : (nextCluster - offsetStart);
                         return that._readSlice(offsetStart, size);
@@ -217,7 +205,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
-                    decompressor = { readSliceSingleThread: plainBlobReader };
+                    decompressor = {
+                        readSliceSingleThread: plainBlobReader
+                    };
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else if (compressionType[0] === 5) {
@@ -225,7 +215,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
-                return decompressor.readSliceSingleThread(blob * 4, 8).then(function(data) {
+                return decompressor.readSliceSingleThread(blob * 4, 8).then(function (data) {
                     var blobOffset = readInt(data, 0, 4);
                     var nextBlobOffset = readInt(data, 4, 4);
                     return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset);
