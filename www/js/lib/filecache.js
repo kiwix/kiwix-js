@@ -20,7 +20,7 @@
  * along with Kiwix JS (file LICENSE).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q', 'util'], function(Q, util) {
+define(['q'], function(Q) {
     /**
      * Set maximum number of cache blocks of BLOCK_SIZE bytes each
      * Maximum size of cache in bytes = MAX_CACHE_SIZE * BLOCK_SIZE
