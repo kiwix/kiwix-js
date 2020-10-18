@@ -26,13 +26,13 @@ define(['q'], function(Q) {
      * Maximum size of cache in bytes = MAX_CACHE_SIZE * BLOCK_SIZE
      * @type {Integer}
      */
-    var MAX_CACHE_SIZE = 4000;
+    const MAX_CACHE_SIZE = 4000;
 
     /**
      * The maximum blocksize to read or store via the block cache (bytes)
      * @type {Integer}
     */
-    var BLOCK_SIZE = 4096;
+    const BLOCK_SIZE = 4096;
 
     /**
      * Creates a new cache with max size limit
