@@ -20,7 +20,7 @@
  * along with Kiwix JS (file LICENSE).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q'], function(Q) {
+define(['q', 'util'], function(Q, util) {
     /**
      * Set maximum number of cache blocks of BLOCK_SIZE bytes each
      * Maximum size of cache in bytes = MAX_CACHE_SIZE * BLOCK_SIZE
@@ -116,15 +116,15 @@ define(['q'], function(Q) {
     /**
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
      * If a read of more than blocksize (bytes) is requested, do not use the cache
-     * @param {Object} file The requested file to read from
+     * @param {Object} file The requested ZIM archive to read from
      * @param {Integer} begin The byte from which to start reading
-     * @param {Integer} end The last byte to read
-     * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data
+     * @param {Integer} end The byte at which to stop reading (end will not be read)
+     * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data from the split ZIM file set
      */
     var read = function(file, begin, end) {
         // Read large chunks bypassing the block cache because we would have to
         // stitch together too many blocks and would clog the cache
-        if (end - begin > BLOCK_SIZE * 2) return readInternal(file, begin, end);
+        if (end - begin > BLOCK_SIZE * 2) return util.readFileSlice(file, begin, end);
         var readRequests = [];
         var blocks = {};
         for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
@@ -160,22 +160,35 @@ define(['q'], function(Q) {
         });
     };
     var readInternal = function (file, begin, end) {
-        if ('arrayBuffer' in Blob.prototype) {
-            // DEV: This method uses the native arrayBuffer method of Blob, if available, as it eliminates
-            // the need to use FileReader and set up event listeners; it also uses the method's native Promise
-            // rather than setting up potentially hundreds of new Q promises for small byte range reads
-            return file.slice(begin, end).arrayBuffer().then(function (buffer) {
-                return new Uint8Array(buffer);
-            });
+        var readRequests = [];
+        var currentOffset = 0;
+        for (var i = 0; i < file._files.length; currentOffset += file._files[i].size, ++i) {
+            var currentSize = file._files[i].size;
+            if (begin < currentOffset + currentSize && currentOffset < end) {
+                var readStart = Math.max(0, begin - currentOffset);
+                var readSize = Math.min(currentSize, end - currentOffset - readStart);
+                readRequests.push(util.readFileSlice(file._files[i], readStart, readStart + readSize));
+            }
+        }
+        if (readRequests.length === 0) {
+            return Q(new Uint8Array(0).buffer);
+        } else if (readRequests.length === 1) {
+            return readRequests[0];
         } else {
-            return Q.Promise(function (resolve, reject) {
-                var reader = new FileReader();
-                reader.readAsArrayBuffer(file.slice(begin, end));
-                reader.addEventListener('load', function (e) {
-                    resolve(new Uint8Array(e.target.result));
+            // Wait until all are resolved and concatenate.
+            console.log("CONCAT");
+            return Q.all(readRequests).then(function(arrays) {
+                var length = 0;
+                arrays.forEach(function (item) {
+                    length += item.byteLength;
                 });
-                reader.addEventListener('error', reject);
-                reader.addEventListener('abort', reject);
+                var concatenated = new Uint8Array(length);
+                var offset = 0;
+                arrays.forEach(function (item) {
+                    concatenated.set(new Uint8Array(item), offset);
+                    offset += item.byteLength;
+                });
+                return concatenated;
             });
         }
     };

@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q', 'filecache'], function(Q, FileCache) {
+define(['q'], function(Q) {
 
     /**
      * A Regular Expression to match the first letter of a word even if preceded by Unicode punctuation
@@ -196,15 +196,31 @@ define(['q', 'filecache'], function(Q, FileCache) {
     }
 
     /**
-     * Reads a Uint8Array from the given file starting at byte offset begin and
-     * for given size
+     * Reads a Uint8Array from the given file starting at byte offset begin until end
      * @param {File} file The file object to be read
      * @param {Integer} begin The offset in <File> at which to begin reading
-     * @param {Integer} size The number of bytes to read
+     * @param {Integer} end The byte at whcih to stop reading (reads up to and including end - 1)
      * @returns {Promise<Uint8Array>} A Promise for an array buffer with the read data 
      */
-    function readFileSlice(file, begin, size) {
-        return FileCache.read(file, begin, begin + size);
+    function readFileSlice(file, begin, end) {
+        if ('arrayBuffer' in Blob.prototype) {
+            // DEV: This method uses the native arrayBuffer method of Blob, if available, as it eliminates
+            // the need to use FileReader and set up event listeners; it also uses the method's native Promise
+            // rather than setting up potentially hundreds of new Q promises for small byte range reads
+            return file.slice(begin, end).arrayBuffer().then(function (buffer) {
+                return new Uint8Array(buffer);
+            });
+        } else {
+            return Q.Promise(function (resolve, reject) {
+                var reader = new FileReader();
+                reader.readAsArrayBuffer(file.slice(begin, end));
+                reader.addEventListener('load', function (e) {
+                    resolve(new Uint8Array(e.target.result));
+                });
+                reader.addEventListener('error', reject);
+                reader.addEventListener('abort', reject);
+            });
+        }
     }
 
     /**

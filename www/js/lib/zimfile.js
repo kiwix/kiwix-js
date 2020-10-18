@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, zstd, util, utf8, Q, zimDirEntry) {
+define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, Q, zimDirEntry, FileCache) {
 
     var readInt = function(data, offset, size)
     {
@@ -39,7 +39,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
      * See https://wiki.openzim.org/wiki/ZIM_file_format#Header
      * 
      * @typedef ZIMFile
-     * @property {Array.<File>} _files Array of ZIM files
+     * @property {Array<File>} _files Array of ZIM files
+     * @property {String} name Abstract name of ZIM file set
      * @property {Integer} articleCount total number of articles
      * @property {Integer} clusterCount total number of clusters
      * @property {Integer} urlPtrPos position of the directory pointerlist ordered by URL
@@ -52,7 +53,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
      */
     
     /**
-     * @param {Array.<File>} abstractFileArray
+     * @param {Array<File>} abstractFileArray
      */
     function ZIMFile(abstractFileArray)
     {
@@ -74,44 +75,13 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
     };
 
     /**
-     * 
-     * @param {Integer} offset
-     * @param {Integer} size
-     * @returns {Promise}
+     * Read a slice from the ZIM set starting at offset for size of bytes
+     * @param {Integer} offset The absolute offset from the start of the ZIM file or file set at which to start reading
+     * @param {Integer} size The number of bytes to read
+     * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the requested data
      */
-    ZIMFile.prototype._readSlice = function(offset, size)
-    {
-        var readRequests = [];
-        var currentOffset = 0;
-        for (var i = 0; i < this._files.length; currentOffset += this._files[i].size, ++i) {
-            var currentSize = this._files[i].size;
-            if (offset < currentOffset + currentSize && currentOffset < offset + size) {
-                var readStart = Math.max(0, offset - currentOffset);
-                var readSize = Math.min(currentSize, offset + size - currentOffset - readStart);
-                readRequests.push(util.readFileSlice(this._files[i], readStart, readSize));
-            }
-        }
-        if (readRequests.length == 0) {
-            return Q(new Uint8Array(0).buffer);
-        } else if (readRequests.length == 1) {
-            return readRequests[0];
-        } else {
-            // Wait until all are resolved and concatenate.
-            console.log("CONCAT");
-            return Q.all(readRequests).then(function(arrays) {
-                var length = 0;
-                arrays.forEach(function (item) {
-                    length += item.byteLength;
-                });
-                var concatenated = new Uint8Array(length);
-                var offset = 0;
-                arrays.forEach(function (item) {
-                    concatenated.set(new Uint8Array(item), offset);
-                    offset += item.byteLength;
-                });
-                return concatenated;
-            });
-        }
+    ZIMFile.prototype._readSlice = function(offset, size) {
+        return FileCache.read(this, offset, offset + size);
     };
 
     /**
@@ -119,8 +89,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
      * @param {Integer} offset
      * @returns {DirEntry} DirEntry
      */
-    ZIMFile.prototype.dirEntry = function(offset)
-    {
+    ZIMFile.prototype.dirEntry = function(offset) {
         var that = this;
         return this._readSlice(offset, 2048).then(function(data)
         {
@@ -242,7 +211,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
         // so we limit the slice size to max 1024 bytes in order to prevent reading the entire archive into an array buffer
         // See https://github.com/openzim/libzim/issues/353
         size = size > 1024 ? 1024 : size;
-        return util.readFileSlice(file, mimeListPos, size).then(function (data) {
+        return util.readFileSlice(file, mimeListPos, mimeListPos + size).then(function (data) {
             if (data.subarray) {
                 var i = 0;
                 var pos = -1;
@@ -286,6 +255,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
                 var urlPtrPos = readInt(header, 32, 8);
                 return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (data) {
                     var zf = new ZIMFile(fileArray);
+                    zf.name = fileArray[0].name.replace(/(\.zim)[a-z]{2}$/i, '$1');
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
