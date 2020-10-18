@@ -66,10 +66,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * @param {Integer} size
      * @returns {Integer}
      */
-    ZIMFile.prototype._readInteger = function(offset, size)
-    {
-        return this._readSlice(offset, size).then(function(data)
-        {
+    ZIMFile.prototype._readInteger = function (offset, size) {
+        return this._readSlice(offset, size).then(function (data) {
             return readInt(data, 0, size);
         });
     };
