@@ -153,7 +153,7 @@ define(['q', 'util'], function(Q, util) {
             for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
                 var b = Math.max(i, begin) - i;
                 var e = Math.min(end, i + BLOCK_SIZE) - i;
-                result.set(blocks[i].subarray(b, e), pos);
+                if (blocks[i].subarray) result.set(blocks[i].subarray(b, e), pos);
                 pos += e - b;
             }
             return result;
