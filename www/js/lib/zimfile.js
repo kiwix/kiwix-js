@@ -107,11 +107,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             // Wait until all are resolved and concatenate.
             console.log("CONCAT");
             return Q.all(readRequests).then(function (arrays) {
-                var length = 0;
-                arrays.forEach(function (item) {
-                    length += item.byteLength;
-                });
-                var concatenated = new Uint8Array(length);
+                var concatenated = new Uint8Array(end - begin);
                 var offset = 0;
                 arrays.forEach(function (item) {
                     concatenated.set(new Uint8Array(item), offset);
@@ -136,9 +132,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 namespace: String.fromCharCode(data[3])
             };
             dirEntry.redirect = (dirEntry.mimetypeInteger === 0xffff);
-            if (dirEntry.redirect)
+            if (dirEntry.redirect) {
                 dirEntry.redirectTarget = readInt(data, 8, 4);
-            else {
+            } else {
                 dirEntry.cluster = readInt(data, 8, 4);
                 dirEntry.blob = readInt(data, 12, 4);
             }
@@ -205,9 +201,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 };
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
-                    decompressor = {
-                        readSliceSingleThread: plainBlobReader
-                    };
+                    decompressor = { readSliceSingleThread: plainBlobReader };
                 } else if (compressionType[0] === 4) {
                     decompressor = new xz.Decompressor(plainBlobReader);
                 } else if (compressionType[0] === 5) {
@@ -285,6 +279,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 var urlPtrPos = readInt(header, 32, 8);
                 return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (data) {
                     var zf = new ZIMFile(fileArray);
+                    // Line below provides an abstracted filename in case the ZIM file is split into multiple parts;
+                    // it greatly simplifies coding of the block cache, as it can store and respond to offsets from the start of the file set
                     zf.name = fileArray[0].name.replace(/(\.zim)[a-z]{2}$/i, '$1');
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);

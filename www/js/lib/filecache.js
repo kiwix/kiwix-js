@@ -63,6 +63,7 @@ define(['q'], function(Q) {
         this.moveToTop(entry);
         return entry.value;
     };
+    
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
      * @param {String} id The key under which to store the value (consists of filename + file number)
