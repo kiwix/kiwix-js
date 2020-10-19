@@ -262,7 +262,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
 
     return {
         /**
-         * @param {Array.<File>} fileArray An array of picked archive files
+         * @param {Array<File>} fileArray An array of picked archive files
          * @returns {Promise<Object>} A Promise for the ZimFile Object
          */
         fromFileArray: function (fileArray) {
