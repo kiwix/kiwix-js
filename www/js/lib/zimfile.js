@@ -281,7 +281,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                     var zf = new ZIMFile(fileArray);
                     // Line below provides an abstracted filename in case the ZIM file is split into multiple parts;
                     // it greatly simplifies coding of the block cache, as it can store and respond to offsets from the start of the file set
-                    zf.name = fileArray[0].name.replace(/(\.zim)[a-z]{2}$/i, '$1');
+                    zf.name = fileArray[0].name.replace(/(\.zim)\w\w$/i, '$1');
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
