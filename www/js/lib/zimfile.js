@@ -297,3 +297,4 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
         }
     };
 });
+ 
