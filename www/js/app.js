@@ -490,7 +490,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
             // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
             navigator.serviceWorker.controller.postMessage({'action': 'init'}, [tmpMessageChannel.port2]);
-            messageChannel = tmpMessageChannel;
             // Schedule to do it again regularly to keep the 2-way communication alive.
             // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
             clearTimeout(keepAliveServiceWorkerHandle);
@@ -513,6 +512,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // is indeed unregistered but still active...
                 // So we have to disable it manually (even if it's still registered and active)
                 navigator.serviceWorker.controller.postMessage({'action': 'disable'});
+                messageChannel = null;
               }
             refreshAPIStatus();
             // User has switched to jQuery mode, so no longer needs CACHE_NAME
@@ -1321,6 +1321,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
+                    var testHref = anchor.href;
                 } catch (err) {
                     console.error('Malformed href caused error:' + err.message);
                     return;
@@ -1451,7 +1452,27 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             }
         }
-    function insertMediaBlobsJQuery() {
+       /* function loadJavaScriptJQuery() {
+            $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
+                var script = $(this);
+                var scriptUrl = script.attr("data-kiwixurl");
+                // TODO check that the type of the script is text/javascript or application/javascript
+                var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                    if (dirEntry === null) {
+                        console.log("Error: js file not found: " + title);
+                    } else {
+                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                            // TODO : JavaScript support not yet functional [kiwix-js #152]
+                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
+                        });
+                    }
+                }).catch(function (e) {
+                    console.error("could not find DirEntry for javascript : " + title, e);
+                });
+            });
+        }*/
+        function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
             Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function(mediaSource) {
