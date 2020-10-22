@@ -20,7 +20,7 @@
  * along with Kiwix JS (file LICENSE).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q'], function(Q) {
+define(['q'], function (Q) {
     /**
      * Set maximum number of cache blocks of BLOCK_SIZE bytes each
      * Maximum size of cache in bytes = MAX_CACHE_SIZE * BLOCK_SIZE
@@ -31,7 +31,7 @@ define(['q'], function(Q) {
     /**
      * The maximum blocksize to read or store via the block cache (bytes)
      * @type {Integer}
-    */
+     */
     const BLOCK_SIZE = 4096;
 
     /**
@@ -55,24 +55,24 @@ define(['q'], function(Q) {
      * @param {String} id The block cache entry key
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
-    LRUCache.prototype.get = function(id) {
-        var entry = this._entries[id]; 
+    LRUCache.prototype.get = function (id) {
+        var entry = this._entries[id];
         if (entry === undefined) {
             return entry;
         }
         this.moveToTop(entry);
         return entry.value;
     };
-    
+
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
      * @param {String} id The key under which to store the value (consists of filename + file number)
      * @param {Uint16Array} value The value to store in the cache 
      */
-    LRUCache.prototype.store = function(id, value) {
+    LRUCache.prototype.store = function (id, value) {
         var entry = this._entries[id];
         if (entry === undefined) {
-            entry = this._entries[id] = {id: id, prev: null, next: null, value: value};
+            entry = this._entries[id] = { id: id, prev: null, next: null, value: value };
             this.insertAtTop(entry);
             if (this._size >= this._limit) {
                 var e = this._last;
@@ -91,7 +91,7 @@ define(['q'], function(Q) {
      * Delete a cache entry
      * @param {String} entry The entry to delete 
      */
-    LRUCache.prototype.unlink = function(entry) {
+    LRUCache.prototype.unlink = function (entry) {
         if (entry.next === null) {
             this._last = entry.prev;
         } else {
@@ -108,7 +108,7 @@ define(['q'], function(Q) {
      * Insert a cache entry at the top of the cache
      * @param {String} entry The entry to insert 
      */
-    LRUCache.prototype.insertAtTop = function(entry) {
+    LRUCache.prototype.insertAtTop = function (entry) {
         if (this._first === null) {
             this._first = this._last = entry;
         } else {
@@ -122,14 +122,14 @@ define(['q'], function(Q) {
      * Move a cache entry to the top of the cache
      * @param {String} entry The entry to move 
      */
-    LRUCache.prototype.moveToTop = function(entry) {
+    LRUCache.prototype.moveToTop = function (entry) {
         this.unlink(entry);
         this.insertAtTop(entry);
     };
 
     // Create a new cache
     var cache = new LRUCache(MAX_CACHE_SIZE);
-    
+
     // Counters for reporting only
     var hits = 0;
     var misses = 0;
@@ -142,7 +142,7 @@ define(['q'], function(Q) {
      * @param {Integer} end The byte at which to stop reading (end will not be read)
      * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data from the split ZIM file set
      */
-    var read = function(file, begin, end) {
+    var read = function (file, begin, end) {
         // Read large chunks bypassing the block cache because we would have to
         // stitch together too many blocks and would clog the cache
         if (end - begin > BLOCK_SIZE * 2) return file._readSplitSlice(begin, end);
@@ -152,8 +152,8 @@ define(['q'], function(Q) {
             var block = cache.get(file.name + i);
             if (block === undefined) {
                 misses++;
-                readRequests.push(function(offset) {
-                    return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function(result) {
+                readRequests.push(function (offset) {
+                    return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
                         cache.store(file.name + offset, result);
                         blocks[offset] = result;
                     });
@@ -168,7 +168,7 @@ define(['q'], function(Q) {
             hits = 0;
             misses = 0;
         }
-        return Q.all(readRequests).then(function() {
+        return Q.all(readRequests).then(function () {
             var result = new Uint8Array(end - begin);
             var pos = 0;
             for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
