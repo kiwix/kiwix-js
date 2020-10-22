@@ -1321,7 +1321,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
-                    var testHref = anchor.href;
                 } catch (err) {
                     console.error('Malformed href caused error:' + err.message);
                     return;
