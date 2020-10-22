@@ -952,7 +952,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Handle key input in the prefix input zone
      * @param {Event} evt The event data to handle
      */
-    function onKeyUpPrefix(evt) {
+    function onKeyUpPrefix() {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
         // It is also necessary for the words suggestions to work inside Firefox OS
         if (window.timeoutKeyUpPrefix) {
