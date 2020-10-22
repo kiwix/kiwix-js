@@ -888,7 +888,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         }
         resetCssCache();
-        selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
+        selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
             document.getElementById('downloadInstruction').style.display = 'none';
