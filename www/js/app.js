@@ -800,7 +800,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             }
             resetCssCache();
-            selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function (archive) {
+            selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
                 settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
                 // The archive is set : go back to home page to start searching
                 $("#btnHome").click();
