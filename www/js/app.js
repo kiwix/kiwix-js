@@ -202,7 +202,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     // Restore the search results if user goes back into prefix field
-    $('#prefix').on('focus', function(e) {
+    $('#prefix').on('focus', function() {
         if ($('#prefix').val() !== '') 
             $('#articleListWithHeader').show();
     });
@@ -214,7 +214,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListWithHeader').hide();
         }
     });
-    $("#btnRandomArticle").on("click", function(e) {
+    $("#btnRandomArticle").on("click", function() {
         $('#prefix').val("");
         goToRandomArticle();
         $("#welcomeText").hide();
@@ -222,29 +222,29 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('.navbar-collapse').collapse('hide');
     });
     
-    $('#btnRescanDeviceStorage').on("click", function(e) {
+    $('#btnRescanDeviceStorage').on("click", function() {
         searchForArchivesInStorage();
     });
     // Bottom bar :
-    $('#btnBack').on('click', function(e) {
+    $('#btnBack').on('click', function() {
         history.back();
         return false;
     });
-    $('#btnForward').on('click', function(e) {
+    $('#btnForward').on('click', function() {
         history.forward();
         return false;
     });
-    $('#btnHomeBottom').on('click', function(e) {
+    $('#btnHomeBottom').on('click', function() {
         $('#btnHome').click();
         return false;
     });
-    $('#btnTop').on('click', function(e) {
+    $('#btnTop').on('click', function() {
         $("#articleContent").contents().scrollTop(0);
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
     });
     // Top menu :
-    $('#btnHome').on('click', function(e) {
+    $('#btnHome').on('click', function() {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
@@ -278,7 +278,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnConfigure').on('click', function(e) {
+    $('#btnConfigure').on('click', function() {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
@@ -304,7 +304,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnAbout').on('click', function(e) {
+    $('#btnAbout').on('click', function() {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
@@ -329,15 +329,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('input:radio[name=contentInjectionMode]').on('change', function(e) {
+    $('input:radio[name=contentInjectionMode]').on('change', function() {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
     });
-    $('input:checkbox[name=hideActiveContentWarning]').on('change', function (e) {
+    $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
-    $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
+    $('input:checkbox[name=showUIAnimations]').on('change', function () {
         params.showUIAnimations = this.checked ? true : false;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
@@ -513,8 +513,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // is indeed unregistered but still active...
                 // So we have to disable it manually (even if it's still registered and active)
                 navigator.serviceWorker.controller.postMessage({'action': 'disable'});
-                messageChannel = null;
-            }
+              }
             refreshAPIStatus();
             // User has switched to jQuery mode, so no longer needs CACHE_NAME
             // We should empty it to prevent unnecessary space usage
@@ -827,7 +826,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('openLocalFiles').style.display = 'block';
         // Set the main drop zone
         configDropZone.addEventListener('dragover', handleGlobalDragover);
-        configDropZone.addEventListener('dragleave', function(e) {
+        configDropZone.addEventListener('dragleave', function() {
             configDropZone.style.border = '';
         });
         // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
