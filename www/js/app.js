@@ -1451,29 +1451,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             }
         }
-
-        function loadJavaScriptJQuery() {
-            $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
-                var script = $(this);
-                var scriptUrl = script.attr("data-kiwixurl");
-                // TODO check that the type of the script is text/javascript or application/javascript
-                var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                    if (dirEntry === null) {
-                        console.log("Error: js file not found: " + title);
-                    } else {
-                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                            // TODO : JavaScript support not yet functional [kiwix-js #152]
-                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
-                        });
-                    }
-                }).catch(function (e) {
-                    console.error("could not find DirEntry for javascript : " + title, e);
-                });
-            });
-        }
-
-        function insertMediaBlobsJQuery() {
+    function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
             Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function(mediaSource) {
