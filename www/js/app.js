@@ -1154,6 +1154,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     }
     
+    var messageChannel;
     
     /**
      * Function that handles a message of the messageChannel.
