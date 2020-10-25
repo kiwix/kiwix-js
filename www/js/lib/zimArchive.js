@@ -187,10 +187,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
-            if (search.status === 'cancelled') {
-                console.log("*** Variant search 1 for " + search.prefix + " [" + search.status + "]");
-                return callback([], search);
-            }
+            if (search.status === 'cancelled') return callback([], search);
             if (prefixVariants.length === 0 || dirEntries.length >= resultSize) {
                 search.status = 'complete';
                 return callback(dirEntries, search);
@@ -202,10 +199,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             prefixVariants = prefixVariants.slice(1);
             that.findDirEntriesWithPrefixCaseSensitive(prefix, resultSize - dirEntries.length, search,
                 function (newDirEntries, interim) {
-                    if (search.status === 'cancelled') {
-                        console.log("*** Variant search 2 for " + search.prefix + " [" + search.status + "]");
-                        return callback([], search);
-                    }
+                    if (search.status === 'cancelled') return callback([], search);
                     if (interim) {// Only push interim results (else results will be pushed again at end of variant loop)                    
                         [].push.apply(dirEntries, newDirEntries);
                         if (!noInterim && newDirEntries.length) callback(dirEntries, search);
@@ -228,10 +222,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
-                if (search.status === 'cancelled') {
-                    console.log("*** Binary search 1 for " + search.prefix + " [" + search.status + "]");
-                    return 0;
-                }
+                if (search.status === 'cancelled') return 0;
                 if (dirEntry.namespace < 'A') return 1;
                 if (dirEntry.namespace > 'A') return -1;
                 // We should now be in namespace A
@@ -241,8 +232,6 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             var dirEntries = [];
             var addDirEntries = function(index) {
                 if (search.status === 'cancelled' || index >= firstIndex + resultSize || index >= that._file.articleCount) {
-                    if (search.status === 'cancelled') console.log("*** Binary search 2 for " + search.prefix + " [" + search.status + "]");
-                    
                     return dirEntries;
                 }
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {

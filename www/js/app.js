@@ -1006,11 +1006,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function populateListOfArticles(dirEntryArray, reportingSearch) {
         // Do not allow cancelled searches to report
-        if (!/cancelled/.test(reportingSearch.status)) console.log("Reporting search is: " + reportingSearch.prefix + " [" + reportingSearch.status + "]");
-        if (reportingSearch.status === 'cancelled') {
-            console.log("*** Reporting search is: " + reportingSearch.prefix + " [" + reportingSearch.status + "]");
-            return;
-        }
+        if (reportingSearch.status === 'cancelled') return;
         var stillSearching = reportingSearch.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
