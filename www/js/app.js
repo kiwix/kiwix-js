@@ -53,6 +53,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var assetsCache = new Map();
 
     /**
+     * A global object for storing app state
+     * 
+     * @type Object
+     */
+    var appstate = {};
+
+    /**
      * @type ZIMArchive
      */
     var selectedArchive = null;
@@ -75,9 +82,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
 
-    // Define global state (declared in init.js)
     // An object to hold the current search and its state (allows cancellation of search across modules)
-    globalstate['search'] = {
+    appstate['search'] = {
         'prefix': '', // A field to hold the original search string
         'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
@@ -119,7 +125,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     $('#searchArticles').on('click', function() {
         var prefix = document.getElementById('prefix').value;
         // Do not initiate the same search if it is already in progress
-        if (globalstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(globalstate.search.status)) return;
+        if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
@@ -209,7 +215,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
         if (!searchArticlesFocused) {
-            globalstate.search.status = 'cancelled';
+            appstate.search.status = 'cancelled';
             $("#searchingArticles").hide();
             $('#articleListWithHeader').hide();
         }
@@ -711,7 +717,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
-                if (titleSearch !== globalstate.search.prefix) {
+                if (titleSearch !== appstate.search.prefix) {
                     searchDirEntriesFromPrefix(titleSearch);
                 } else {
                     $('#prefix').focus();
@@ -961,7 +967,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         window.timeoutKeyUpPrefix = window.setTimeout(function () {
             var prefix = $("#prefix").val();
-            if (prefix && prefix.length > 0 && prefix !== globalstate.search.prefix) {
+            if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
                 $('#searchArticles').click();
             }
         }, 500);
@@ -974,10 +980,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function searchDirEntriesFromPrefix(prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            // Store the new search term in the globalstate.search object and initialize
-            globalstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
+            // Cancel the old search (zimArchive search object will receive this change)
+            appstate.search.status = 'cancelled';
+            // Initiate a new search object and point appstate.search to it (the zimArchive search object will continue to point to the old object)
+            // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
+            // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
+            // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
+            appstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(globalstate.search, params.maxSearchResultsSize, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(appstate.search, params.maxSearchResultsSize, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -991,23 +1002,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Display the list of articles with the given array of DirEntry
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
-     * @param {Object} reportingSearchPrefix The prefix of the reporting search
+     * @param {Object} reportingSearch The reporting search object
      */
-    function populateListOfArticles(dirEntryArray, reportingSearchPrefix) {
-        // Do not allow cancelled or changed searches to report
-        if (globalstate.search.status === 'cancelled' || globalstate.search.prefix !== reportingSearchPrefix) return;
-        var stillSearching = globalstate.search.status === 'interim';
+    function populateListOfArticles(dirEntryArray, reportingSearch) {
+        // Do not allow cancelled searches to report
+        if (reportingSearch.status === 'cancelled') return;
+        var stillSearching = reportingSearch.status === 'interim';
         var articleListHeaderMessageDiv = $('#articleListHeaderMessage');
         var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
         var message;
         if (stillSearching) {
-            message = 'Searching [' + globalstate.search.type + ']... found: ' + nbDirEntry;
+            message = 'Searching [' + reportingSearch.type + ']... found: ' + nbDirEntry;
         } else if (nbDirEntry >= params.maxSearchResultsSize) {
             message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
         } else {
             message = 'Finished. ' + (nbDirEntry ? nbDirEntry : 'No') + ' articles found' + (
-                globalstate.search.type === 'basic' ? ': try fewer words for full search.' : '.'
+                reportingSearch.type === 'basic' ? ': try fewer words for full search.' : '.'
             );
         }
 
@@ -1027,7 +1038,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // and prevents this event from firing; note that touch also triggers mousedown
         $('#articleList a').on('mousedown', function (e) {
             // Cancel search immediately
-            globalstate.search.status = 'cancelled';
+            appstate.search.status = 'cancelled';
             handleTitleClick(e);
             return false;
         });
@@ -1092,7 +1103,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function readArticle(dirEntry) {
         // Reset search prefix to allow users to search the same string again if they want to
-        globalstate.search.prefix = '';
+        appstate.search.prefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
         expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
