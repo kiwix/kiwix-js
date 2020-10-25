@@ -1,5 +1,7 @@
 ﻿/**
- * filecache.js: Generic least-recently-used-cache used for reading file chunks.
+ * filecache.js: Generic cache for small, frequently read file slices.
+ * It discards cached blocks according to a least-recently-used algorithm.
+ * It is used primarily for fast Directory Entry lookup, speeding up binary search.
  *
  * Copyright 2020 Mossroy, peter-x, jaifroid and contributors
  * License GPL v3:
@@ -136,11 +138,12 @@ define(['q'], function (Q) {
 
     /**
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
-     * If a read of more than blocksize (bytes) is requested, do not use the cache
+     * If a read of more than BLOCK_SIZE * 2 (bytes) is requested, do not use the cache
      * @param {Object} file The requested ZIM archive to read from
      * @param {Integer} begin The byte from which to start reading
      * @param {Integer} end The byte at which to stop reading (end will not be read)
-     * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data from the split ZIM file set
+     * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data from the cache 
+     *     or from the ZIM archive
      */
     var read = function (file, begin, end) {
         // Read large chunks bypassing the block cache because we would have to
@@ -148,9 +151,11 @@ define(['q'], function (Q) {
         if (end - begin > BLOCK_SIZE * 2) return file._readSplitSlice(begin, end);
         var readRequests = [];
         var blocks = {};
+        // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
         for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
             var block = cache.get(file.name + i);
             if (block === undefined) {
+                // Data not in cache, so read from archive
                 misses++;
                 readRequests.push(function (offset) {
                     return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
@@ -168,9 +173,11 @@ define(['q'], function (Q) {
             hits = 0;
             misses = 0;
         }
+        // Wait for all the blocks to be read either from the cache or from the archive
         return Q.all(readRequests).then(function () {
             var result = new Uint8Array(end - begin);
             var pos = 0;
+            // Stitch together the data parts in the right order
             for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
                 var b = Math.max(i, begin) - i;
                 var e = Math.min(end, i + BLOCK_SIZE) - i;

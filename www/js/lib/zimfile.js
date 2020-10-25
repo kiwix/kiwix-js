@@ -70,7 +70,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     };
 
     /**
-     * Read a slice from the ZIM set starting at offset for size of bytes
+     * Read a slice from the FileCache or ZIM set, starting at offset for size of bytes
      * @param {Integer} offset The absolute offset from the start of the ZIM file or file set at which to start reading
      * @param {Integer} size The number of bytes to read
      * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the requested data
@@ -105,7 +105,6 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             return readRequests[0];
         } else {
             // Wait until all are resolved and concatenate.
-            console.log("CONCAT");
             return Q.all(readRequests).then(function (arrays) {
                 var concatenated = new Uint8Array(end - begin);
                 var offset = 0;
