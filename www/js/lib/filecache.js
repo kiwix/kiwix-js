@@ -43,9 +43,8 @@ define(['q'], function (Q) {
     function LRUCache(limit) {
         console.log("Creating cache of size " + limit);
         this._limit = limit;
-        this._size = 0;
         // Mapping from id to {value: , prev: , next: }
-        this._entries = {};
+        this._entries = new Map();
         // linked list of entries
         this._first = null;
         this._last = null;
@@ -54,11 +53,11 @@ define(['q'], function (Q) {
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
      * then the value is returned and the entry is moved to the top of the cache
-     * @param {String} id The block cache entry key
+     * @param {Array<filename, filenumber>} key The block cache entry key (composite of file.name and id)
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
-    LRUCache.prototype.get = function (id) {
-        var entry = this._entries[id];
+    LRUCache.prototype.get = function (key) {
+        var entry = this._entries.get(key);
         if (entry === undefined) {
             return entry;
         }
@@ -68,30 +67,26 @@ define(['q'], function (Q) {
 
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
-     * @param {String} id The key under which to store the value (consists of filename + file number)
+     * @param {Array<filename, filenumber>} key The key under which to store the value (consists of filename and filenumber)
      * @param {Uint16Array} value The value to store in the cache 
      */
-    LRUCache.prototype.store = function (id, value) {
-        var entry = this._entries[id];
+    LRUCache.prototype.store = function (key, value) {
+        var entry = this.get(key);
         if (entry === undefined) {
-            entry = this._entries[id] = { id: id, prev: null, next: null, value: value };
+            entry = { id: key, prev : null, next : null, value : value };
+            this._entries.set(key, entry);
             this.insertAtTop(entry);
-            if (this._size >= this._limit) {
+            if (this._entries.size >= this._limit) {
                 var e = this._last;
                 this.unlink(e);
-                delete this._entries[e.id];
-            } else {
-                this._size++;
+                this._entries.delete(e.id);
             }
-        } else {
-            entry.value = value;
-            this.moveToTop(entry);
         }
     };
 
     /**
      * Delete a cache entry
-     * @param {String} entry The entry to delete 
+     * @param {Object} entry The entry to delete 
      */
     LRUCache.prototype.unlink = function (entry) {
         if (entry.next === null) {
@@ -108,7 +103,7 @@ define(['q'], function (Q) {
 
     /**
      * Insert a cache entry at the top of the cache
-     * @param {String} entry The entry to insert 
+     * @param {Object} entry The entry to insert 
      */
     LRUCache.prototype.insertAtTop = function (entry) {
         if (this._first === null) {
@@ -122,7 +117,7 @@ define(['q'], function (Q) {
 
     /**
      * Move a cache entry to the top of the cache
-     * @param {String} entry The entry to move 
+     * @param {Object} entry The entry to move 
      */
     LRUCache.prototype.moveToTop = function (entry) {
         this.unlink(entry);
@@ -153,13 +148,13 @@ define(['q'], function (Q) {
         var blocks = {};
         // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
         for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
-            var block = cache.get(file.name + i);
+            var block = cache.get([file.name, i]);
             if (block === undefined) {
                 // Data not in cache, so read from archive
                 misses++;
                 readRequests.push(function (offset) {
                     return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
-                        cache.store(file.name + offset, result);
+                        cache.store([file.name, offset], result);
                         blocks[offset] = result;
                     });
                 }(i));
