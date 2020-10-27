@@ -290,6 +290,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                     zf.mainPage = readInt(header, 64, 4);
                     zf.layoutPage = readInt(header, 68, 4);
                     zf.mimeTypes = data;
+                    // Initialize or reset the FileCache
+                    FileCache.reset();
                     return zf;
                 });
             });

@@ -37,14 +37,11 @@ define(['q'], function (Q) {
     const BLOCK_SIZE = 4096;
 
     /**
-     * Creates a new cache with max size limit
-     * @param {Integer} limit The maximum number of blocks of BLOCK_SIZE to be cached
+     * Creates a new cache with max size limit of MAX_CACHE_SIZE blocks
      */
-    function LRUCache(limit) {
-        console.log("Creating cache of size " + limit);
-        this._limit = limit;
-        // Mapping from id to {value: , prev: , next: }
-        this._entries = new Map();
+    function LRUCache() {
+        console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
+        this._limit = MAX_CACHE_SIZE;
         // linked list of entries
         this._first = null;
         this._last = null;
@@ -53,7 +50,7 @@ define(['q'], function (Q) {
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
      * then the value is returned and the entry is moved to the top of the cache
-     * @param {Array<filename, filenumber>} key The block cache entry key (composite of file.name and id)
+     * @param {Integer} key The block cache entry key (byte offset)
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function (key) {
@@ -67,13 +64,18 @@ define(['q'], function (Q) {
 
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
-     * @param {Array<filename, filenumber>} key The key under which to store the value (consists of filename and filenumber)
+     * @param {Integer} key The key under which to store the value (byte offset from start of ZIM archive)
      * @param {Uint16Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
         var entry = this.get(key);
         if (entry === undefined) {
-            entry = { id: key, prev : null, next : null, value : value };
+            entry = {
+                id: key,
+                prev: null,
+                next: null,
+                value: value
+            };
             this._entries.set(key, entry);
             this.insertAtTop(entry);
             if (this._entries.size >= this._limit) {
@@ -125,11 +127,19 @@ define(['q'], function (Q) {
     };
 
     // Create a new cache
-    var cache = new LRUCache(MAX_CACHE_SIZE);
+    var cache = new LRUCache();
 
     // Counters for reporting only
     var hits = 0;
     var misses = 0;
+
+    /**
+     * Initializes or resets the cache - this should be called whenever a new ZIM is loaded
+     */
+    var reset = function () {
+        console.log('Initialize or reset FileCache');
+        cache._entries = new Map();
+    };
 
     /**
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
@@ -147,20 +157,20 @@ define(['q'], function (Q) {
         var readRequests = [];
         var blocks = {};
         // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
-        for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
-            var block = cache.get([file.name, i]);
+        for (var id = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; id < end; id += BLOCK_SIZE) {
+            var block = cache.get(id);
             if (block === undefined) {
                 // Data not in cache, so read from archive
                 misses++;
                 readRequests.push(function (offset) {
                     return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
-                        cache.store([file.name, offset], result);
+                        cache.store(offset, result);
                         blocks[offset] = result;
                     });
-                }(i));
+                }(id));
             } else {
                 hits++;
-                blocks[i] = block;
+                blocks[id] = block;
             }
         }
         if (misses + hits > 2000) {
@@ -184,6 +194,7 @@ define(['q'], function (Q) {
     };
 
     return {
-        read: read
+        read: read,
+        reset: reset
     };
 });
