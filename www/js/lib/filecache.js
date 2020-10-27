@@ -136,7 +136,7 @@ define(['q'], function (Q) {
     /**
      * Initializes or resets the cache - this should be called whenever a new ZIM is loaded
      */
-    var reset = function () {
+    var init = function () {
         console.log('Initialize or reset FileCache');
         cache._entries = new Map();
     };
@@ -195,6 +195,6 @@ define(['q'], function (Q) {
 
     return {
         read: read,
-        reset: reset
+        init: init
     };
 });
