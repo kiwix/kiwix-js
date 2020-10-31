@@ -50,7 +50,7 @@ define(['q'], function (Q) {
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
      * then the value is returned and the entry is moved to the top of the cache
-     * @param {Integer} key The block cache entry key (byte offset)
+     * @param {String} key The block cache entry key (file.id + ':' + byte offset)
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function (key) {
@@ -64,7 +64,7 @@ define(['q'], function (Q) {
 
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
-     * @param {Integer} key The key under which to store the value (byte offset from start of ZIM archive)
+     * @param {String} key The key under which to store the value (file.id + ':' + byte offset from start of ZIM archive)
      * @param {Uint16Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
@@ -158,13 +158,13 @@ define(['q'], function (Q) {
         var blocks = {};
         // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
         for (var id = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; id < end; id += BLOCK_SIZE) {
-            var block = cache.get(id);
+            var block = cache.get(file.id + ':' + id);
             if (block === undefined) {
                 // Data not in cache, so read from archive
                 misses++;
                 readRequests.push(function (offset) {
                     return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
-                        cache.store(offset, result);
+                        cache.store(file.id + ':' + offset, result);
                         blocks[offset] = result;
                     });
                 }(id));

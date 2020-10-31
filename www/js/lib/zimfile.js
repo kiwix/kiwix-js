@@ -22,6 +22,14 @@
 'use strict';
 define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, Q, zimDirEntry, FileCache) {
 
+    /**
+     * A variable to keep track of changes in the loaded ZIM archive
+     * The ID is temporary and is reset to zero at each session start
+     * It is incremented by 1 each time a new ZIM is loaded
+     * @type {Integer} 
+     */
+    var tempFileId = 0;
+
     var readInt = function (data, offset, size) {
         var r = 0;
         for (var i = 0; i < size; i++) {
@@ -278,9 +286,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 var urlPtrPos = readInt(header, 32, 8);
                 return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (data) {
                     var zf = new ZIMFile(fileArray);
-                    // Line below provides an abstracted filename in case the ZIM file is split into multiple parts;
-                    // it greatly simplifies coding of the block cache, as it can store and respond to offsets from the start of the file set
-                    zf.name = fileArray[0].name.replace(/(\.zim)\w\w$/i, '$1');
+                    // Line below provides a temporary, per-session numeric ZIM ID used in filecache.js
+                    zf.id = tempFileId++;
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
