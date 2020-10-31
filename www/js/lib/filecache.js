@@ -37,20 +37,35 @@ define(['q'], function (Q) {
     const BLOCK_SIZE = 4096;
 
     /**
+     * A Cache Entry
+     * @typedef CacheEntry
+     * @property {String} id The cache key (stored also in the entry)
+     * @property {CacheEntry} prev The previous linked cache entry
+     * @property {CacheEntry} next The next linked cache entry
+     * @property {Uint8Array} value The cached data
+     */
+
+    /**
+     * A Block Cache employing a Least Recently Used caching strategy
+     * @typedef BlockCache
+     * @property {Integer} _limit The maximum number of entries in the cache 
+     * @property {Map} _entries A map to store the cache keys and data
+     * @property {CacheEntry} _first The most recent entry in the cache
+     * @property {CacheEntry} _last The least recedntly used entry in the cache
+     */
+    
+    /**
      * Creates a new cache with max size limit of MAX_CACHE_SIZE blocks
      */
     function LRUCache() {
         console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
         this._limit = MAX_CACHE_SIZE;
-        // linked list of entries
-        this._first = null;
-        this._last = null;
     }
 
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
      * then the value is returned and the entry is moved to the top of the cache
-     * @param {String} key The block cache entry key (file.id + ':' + byte offset)
+     * @param {String} key The block cache entry key (byte offset + '' + file.id)
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function (key) {
@@ -64,8 +79,8 @@ define(['q'], function (Q) {
 
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
-     * @param {String} key The key under which to store the value (file.id + ':' + byte offset from start of ZIM archive)
-     * @param {Uint16Array} value The value to store in the cache 
+     * @param {String} key The key under which to store the value (byte offset + '' + file.id from start of ZIM archive)
+     * @param {Uint8Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
         var entry = this.get(key);
@@ -88,7 +103,7 @@ define(['q'], function (Q) {
 
     /**
      * Delete a cache entry
-     * @param {Object} entry The entry to delete 
+     * @param {CacheEntry} entry The entry to delete 
      */
     LRUCache.prototype.unlink = function (entry) {
         if (entry.next === null) {
@@ -105,7 +120,7 @@ define(['q'], function (Q) {
 
     /**
      * Insert a cache entry at the top of the cache
-     * @param {Object} entry The entry to insert 
+     * @param {CacheEntry} entry The entry to insert 
      */
     LRUCache.prototype.insertAtTop = function (entry) {
         if (this._first === null) {
@@ -119,14 +134,17 @@ define(['q'], function (Q) {
 
     /**
      * Move a cache entry to the top of the cache
-     * @param {Object} entry The entry to move 
+     * @param {CacheEntry} entry The entry to move 
      */
     LRUCache.prototype.moveToTop = function (entry) {
         this.unlink(entry);
         this.insertAtTop(entry);
     };
 
-    // Create a new cache
+    /**
+     * A new Block Cache
+     * @type {BlockCache}
+     */
     var cache = new LRUCache();
 
     // Counters for reporting only
@@ -139,6 +157,9 @@ define(['q'], function (Q) {
     var init = function () {
         console.log('Initialize or reset FileCache');
         cache._entries = new Map();
+        // Initialize linked list of entries
+        cache._first = null;
+        cache._last = null;
     };
 
     /**
@@ -158,13 +179,13 @@ define(['q'], function (Q) {
         var blocks = {};
         // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
         for (var id = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; id < end; id += BLOCK_SIZE) {
-            var block = cache.get(file.id + ':' + id);
+            var block = cache.get(id + '' + file.id);
             if (block === undefined) {
                 // Data not in cache, so read from archive
                 misses++;
                 readRequests.push(function (offset) {
                     return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
-                        cache.store(file.id + ':' + offset, result);
+                        cache.store(offset + '' + file.id, result);
                         blocks[offset] = result;
                     });
                 }(id));
