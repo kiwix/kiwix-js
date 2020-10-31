@@ -23,9 +23,8 @@
 define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, Q, zimDirEntry, FileCache) {
 
     /**
-     * A variable to keep track of changes in the loaded ZIM archive
-     * The ID is temporary and is reset to zero at each session start
-     * It is incremented by 1 each time a new ZIM is loaded
+     * A variable to keep track of the currently loaded ZIM archive, e.g., for labelling cache entries
+     * The ID is temporary and is reset to 0 at each session start; it is incremented by 1 each time a new ZIM is loaded
      * @type {Integer} 
      */
     var tempFileId = 0;
@@ -46,15 +45,15 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * 
      * @typedef ZIMFile
      * @property {Array<File>} _files Array of ZIM files
-     * @property {String} name Abstract name of ZIM file set
-     * @property {Integer} articleCount total number of articles
-     * @property {Integer} clusterCount total number of clusters
-     * @property {Integer} urlPtrPos position of the directory pointerlist ordered by URL
-     * @property {Integer} titlePtrPos position of the directory pointerlist ordered by title
-     * @property {Integer} clusterPtrPos position of the cluster pointer list
-     * @property {Integer} mimeListPos position of the MIME type list (also header size)
-     * @property {Integer} mainPage main page or 0xffffffff if no main page
-     * @property {Integer} layoutPage layout page or 0xffffffffff if no layout page
+     * @property {Integer} id Arbitrary numeric ZIM id used to track the currently loaded archive
+     * @property {Integer} articleCount Total number of articles
+     * @property {Integer} clusterCount Total number of clusters
+     * @property {Integer} urlPtrPos Position of the directory pointerlist ordered by URL
+     * @property {Integer} titlePtrPos Position of the directory pointerlist ordered by title
+     * @property {Integer} clusterPtrPos Position of the cluster pointer list
+     * @property {Integer} mimeListPos Position of the MIME type list (also header size)
+     * @property {Integer} mainPage Main page or 0xffffffff if no main page
+     * @property {Integer} layoutPage Layout page or 0xffffffffff if no layout page
      */
     
     /**
