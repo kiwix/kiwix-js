@@ -126,7 +126,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     };
 
     /**
-     * Read and parse a a Directory Entry at the given archive offset
+     * Read and parse a Directory Entry at the given archive offset
      * @param {Integer} offset The offset at which the DirEntry is located
      * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
