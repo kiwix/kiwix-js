@@ -50,7 +50,7 @@ define(['q'], function (Q) {
      * @typedef BlockCache
      * @property {Integer} _limit The maximum number of entries in the cache 
      * @property {Map} _entries A map to store the cache keys and data
-     * @property {CacheEntry} _first The most recent entry in the cache
+     * @property {CacheEntry} _first The most recently used entry in the cache
      * @property {CacheEntry} _last The least recedntly used entry in the cache
      */
     
@@ -60,12 +60,15 @@ define(['q'], function (Q) {
     function LRUCache() {
         console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
         this._limit = MAX_CACHE_SIZE;
+        // Initialize linked list of entries
+        this._first = null;
+        this._last = null;
     }
 
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
      * then the value is returned and the entry is moved to the top of the cache
-     * @param {String} key The block cache entry key (byte offset + ':' + file.id)
+     * @param {String} key The block cache entry key (byte file.id + ':' + offset)
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function (key) {
@@ -79,7 +82,7 @@ define(['q'], function (Q) {
 
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
-     * @param {String} key The key under which to store the value (byte offset + ':' + file.id from start of ZIM archive)
+     * @param {String} key The key under which to store the value (byte file.id + ':' + offset from start of ZIM archive)
      * @param {Uint8Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
@@ -156,10 +159,10 @@ define(['q'], function (Q) {
      */
     var init = function () {
         console.log('Initialize or reset FileCache');
+        // DEV: Technically, we do not need to void the FileCache object's Map, because each entry is marked with a 
+        // ZIM ID, but it should free up memory on new ZIM load, and should provide a slight performance advantage while
+        // the new Map is being populated
         cache._entries = new Map();
-        // Initialize linked list of entries
-        cache._first = null;
-        cache._last = null;
     };
 
     /**
@@ -179,13 +182,15 @@ define(['q'], function (Q) {
         var blocks = {};
         // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
         for (var id = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; id < end; id += BLOCK_SIZE) {
-            var block = cache.get(id + ':' + file.id);
+            var block = cache.get(file.id + ':' + id);
             if (block === undefined) {
                 // Data not in cache, so read from archive
                 misses++;
+                // DEV: This is a self-calling function, i.e. the function is called with an argument of <id> which then 
+                // becomes the <offset> parameter
                 readRequests.push(function (offset) {
                     return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
-                        cache.store(offset + ':' + file.id, result);
+                        cache.store(file.id + ':' + offset, result);
                         blocks[offset] = result;
                     });
                 }(id));
