@@ -59,16 +59,15 @@ define(['q'], function (Q) {
      */
     function LRUCache() {
         console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
+        // Initialize persistent Cache properties
         this._limit = MAX_CACHE_SIZE;
-        // Initialize linked list of entries
-        this._first = null;
-        this._last = null;
+        this._entries = new Map();
     }
 
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
      * then the value is returned and the entry is moved to the top of the cache
-     * @param {String} key The block cache entry key (byte file.id + ':' + offset)
+     * @param {String} key The block cache entry key (file.id + ':' + byte offset)
      * @returns {Uint8Array|undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function (key) {
@@ -82,7 +81,7 @@ define(['q'], function (Q) {
 
     /**
      * Stores a value in the cache by id and prunes the least recently used entry if the cache is larger than MAX_CACHE_SIZE
-     * @param {String} key The key under which to store the value (byte file.id + ':' + offset from start of ZIM archive)
+     * @param {String} key The key under which to store the value (file.id + ':' + byte offset from start of ZIM archive)
      * @param {Uint8Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
@@ -159,10 +158,13 @@ define(['q'], function (Q) {
      */
     var init = function () {
         console.log('Initialize or reset FileCache');
-        // DEV: Technically, we do not need to void the FileCache object's Map, because each entry is marked with a 
+        // Initialize linked list of entries
+        cache._first = null;
+        cache._last = null;
+        // DEV: Technically, we do not need to clear the FileCache object's Map, because each entry is marked with a 
         // ZIM ID, but it should free up memory on new ZIM load, and should provide a slight performance advantage while
-        // the new Map is being populated
-        cache._entries = new Map();
+        // the Map is being re-populated
+        cache._entries.clear();
     };
 
     /**
