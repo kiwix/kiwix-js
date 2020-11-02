@@ -26,19 +26,21 @@ define(['q'], function (Q) {
     /**
      * Set maximum number of cache blocks of BLOCK_SIZE bytes each
      * Maximum size of cache in bytes = MAX_CACHE_SIZE * BLOCK_SIZE
-     * @type {Integer}
+     * @constant
+     * @type {Number}
      */
     const MAX_CACHE_SIZE = 4000;
 
     /**
      * The maximum blocksize to read or store via the block cache (bytes)
-     * @type {Integer}
+     * @constant
+     * @type {Number}
      */
     const BLOCK_SIZE = 4096;
 
     /**
      * A Cache Entry
-     * @typedef CacheEntry
+     * @typedef {Object} CacheEntry
      * @property {String} id The cache key (stored also in the entry)
      * @property {CacheEntry} prev The previous linked cache entry
      * @property {CacheEntry} next The next linked cache entry
@@ -47,11 +49,11 @@ define(['q'], function (Q) {
 
     /**
      * A Block Cache employing a Least Recently Used caching strategy
-     * @typedef BlockCache
-     * @property {Integer} _limit The maximum number of entries in the cache 
+     * @typedef {Object} BlockCache
+     * @property {Number} _limit The maximum number of entries in the cache 
      * @property {Map} _entries A map to store the cache keys and data
      * @property {CacheEntry} _first The most recently used entry in the cache
-     * @property {CacheEntry} _last The least recedntly used entry in the cache
+     * @property {CacheEntry} _last The least recently used entry in the cache
      */
     
     /**
@@ -85,17 +87,21 @@ define(['q'], function (Q) {
      * @param {Uint8Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
-        var entry = this.get(key);
-        if (entry === undefined) {
-            entry = {
+        if (!this._entries.has(key)) {
+            /**
+             * Define a new CacheEntry object in memory
+             * @type {CacheEntry}
+             */
+            var entry = {
                 id: key,
                 prev: null,
                 next: null,
                 value: value
             };
+            // Store a reference to the entry object in the Map
             this._entries.set(key, entry);
             this.insertAtTop(entry);
-            if (this._entries.size >= this._limit) {
+            if (this._entries.size > this._limit) {
                 var e = this._last;
                 this.unlink(e);
                 this._entries.delete(e.id);
@@ -171,8 +177,8 @@ define(['q'], function (Q) {
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
      * If a read of more than BLOCK_SIZE * 2 (bytes) is requested, do not use the cache
      * @param {Object} file The requested ZIM archive to read from
-     * @param {Integer} begin The byte from which to start reading
-     * @param {Integer} end The byte at which to stop reading (end will not be read)
+     * @param {Number} begin The byte from which to start reading
+     * @param {Number} end The byte at which to stop reading (end will not be read)
      * @return {Promise<Uint8Array>} A Promise that resolves to the correctly concatenated data from the cache 
      *     or from the ZIM archive
      */

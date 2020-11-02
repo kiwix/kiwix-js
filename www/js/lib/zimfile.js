@@ -43,7 +43,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * 
      * See https://wiki.openzim.org/wiki/ZIM_file_format#Header
      * 
-     * @typedef ZIMFile
+     * @typedef {Object} ZIMFile
      * @property {Array<File>} _files Array of ZIM files
      * @property {Integer} id Arbitrary numeric ZIM id used to track the currently loaded archive
      * @property {Integer} articleCount Total number of articles
