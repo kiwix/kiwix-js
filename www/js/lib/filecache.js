@@ -22,6 +22,7 @@
  * along with Kiwix JS (file LICENSE).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
+
 define(['q'], function (Q) {
     /**
      * Set maximum number of cache blocks of BLOCK_SIZE bytes each
@@ -100,30 +101,30 @@ define(['q'], function (Q) {
             };
             // Store a reference to the entry object in the Map
             this._entries.set(key, entry);
+            // Initialize _first and _last if this was the first entry in the cache
+            if (this._entries.size === 1) {
+                this._first = this._last = entry;
+                return;
+            }
+            // Set the linked lists for the new entry at the top of the cache
             this.insertAtTop(entry);
             if (this._entries.size > this._limit) {
-                var e = this._last;
-                this.unlink(e);
-                this._entries.delete(e.id);
+                // Remove the last entry in the cache
+                this.unlink(this._last);
             }
         }
     };
 
     /**
-     * Delete a cache entry
+     * Delete a cache entry and set a new last cache entry 
      * @param {CacheEntry} entry The entry to delete 
      */
     LRUCache.prototype.unlink = function (entry) {
-        if (entry.next === null) {
-            this._last = entry.prev;
-        } else {
-            entry.next.prev = entry.prev;
-        }
-        if (entry.prev === null) {
-            this._first = null;
-        } else {
-            entry.prev.next = entry.next;
-        }
+        // Remove the last entry from the cache
+        this._entries.delete(entry.id);
+        // Set a new last
+        this._last = entry.prev;
+        this._last.next = null;
     };
 
     /**
@@ -131,13 +132,9 @@ define(['q'], function (Q) {
      * @param {CacheEntry} entry The entry to insert 
      */
     LRUCache.prototype.insertAtTop = function (entry) {
-        if (this._first === null) {
-            this._first = this._last = entry;
-        } else {
-            this._first.prev = entry;
-            entry.next = this._first;
-            this._first = entry;
-        }
+        this._first.prev = entry;
+        entry.next = this._first;
+        this._first = entry;
     };
 
     /**
@@ -145,7 +142,14 @@ define(['q'], function (Q) {
      * @param {CacheEntry} entry The entry to move 
      */
     LRUCache.prototype.moveToTop = function (entry) {
-        this.unlink(entry);
+        if (entry === this._first) return;
+        if (entry === this._last) {
+            entry.prev.next = null;
+            this._last = entry.prev;
+        } else {
+            entry.prev.next = entry.next;
+            entry.next.prev = entry.prev; 
+        }
         this.insertAtTop(entry);
     };
 
