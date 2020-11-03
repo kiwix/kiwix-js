@@ -40,46 +40,38 @@ define(['q'], function (Q) {
     const BLOCK_SIZE = 4096;
 
     /**
-     * A Cache Entry
-     * @typedef {Object} CacheEntry
-     * @property {String} id The cache key (stored also in the entry)
-     * @property {CacheEntry} prev The previous linked cache entry
-     * @property {CacheEntry} next The next linked cache entry
-     * @property {Uint8Array} value The cached data
-     */
-
-    /**
      * A Block Cache employing a Least Recently Used caching strategy
      * @typedef {Object} BlockCache
-     * @property {Number} _limit The maximum number of entries in the cache 
-     * @property {Map} _entries A map to store the cache keys and data
-     * @property {CacheEntry} _first The most recently used entry in the cache
-     * @property {CacheEntry} _last The least recently used entry in the cache
+     * @property {Number} capacity The maximum number of entries in the cache 
+     * @property {Map} cache A map to store the cache keys and data
      */
     
     /**
      * Creates a new cache with max size limit of MAX_CACHE_SIZE blocks
+     * LRUCache implemnentation with Map adapted from https://markmurray.co/blog/lru-cache/
      */
     function LRUCache() {
         console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
         // Initialize persistent Cache properties
-        this._limit = MAX_CACHE_SIZE;
-        this._entries = new Map();
+        this.capacity = MAX_CACHE_SIZE;
+        this.cache = new Map();
     }
 
     /**
      * Tries to retrieve an element by its id. If it is not present in the cache, returns undefined; if it is present,
-     * then the value is returned and the entry is moved to the top of the cache
+     * then the value is returned and the entry is moved to the bottom of the cache
      * @param {String} key The block cache entry key (file.id + ':' + byte offset)
-     * @returns {Uint8Array|undefined} The requested cache data or undefined 
+     * @returns {Uint8Array | undefined} The requested cache data or undefined 
      */
     LRUCache.prototype.get = function (key) {
-        var entry = this._entries.get(key);
-        if (entry === undefined) {
-            return entry;
-        }
-        this.moveToTop(entry);
-        return entry.value;
+        var entry = this.cache.get(key);
+        // If the key does not exist, return
+        if (!entry) return entry;
+        // Remove the key and re-insert it (this moves the key to the bottom of the Map: bottom = most recent)
+        this.cache.delete(key);
+        this.cache.set(key, entry);
+        // Return the cached data
+        return entry;
     };
 
     /**
@@ -88,69 +80,19 @@ define(['q'], function (Q) {
      * @param {Uint8Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
-        if (!this._entries.has(key)) {
-            /**
-             * Define a new CacheEntry object in memory
-             * @type {CacheEntry}
-             */
-            var entry = {
-                id: key,
-                prev: null,
-                next: null,
-                value: value
-            };
-            // Store a reference to the entry object in the Map
-            this._entries.set(key, entry);
-            // Initialize _first and _last if this was the first entry in the cache
-            if (this._entries.size === 1) {
-                this._first = this._last = entry;
-                return;
-            }
-            // Set the linked lists for the new entry at the top of the cache
-            this.insertAtTop(entry);
-            if (this._entries.size > this._limit) {
-                // Remove the last entry in the cache
-                this.unlink(this._last);
-            }
+        var entry = this.cache.get(key);
+        // If the key already exists, delete it so that it will be added
+        // to the bottom of the Map (bottom = most recent)
+        if (entry) this.cache.delete(key);
+        else entry = value;
+        // Store a reference to the entry in the Map
+        this.cache.set(key, entry);
+        // If we've exceeded the cache capacity, then delete the least recently accessed value, 
+        // which will be the item at the top of the Map, i.e the first position
+        if (this.cache.size > this.capacity) {
+            var firstKey = this.cache.keys().next().value;
+            this.cache.delete(firstKey);
         }
-    };
-
-    /**
-     * Delete a cache entry and set a new last cache entry 
-     * @param {CacheEntry} entry The entry to delete 
-     */
-    LRUCache.prototype.unlink = function (entry) {
-        // Remove the last entry from the cache
-        this._entries.delete(entry.id);
-        // Set a new last
-        this._last = entry.prev;
-        this._last.next = null;
-    };
-
-    /**
-     * Insert a cache entry at the top of the cache
-     * @param {CacheEntry} entry The entry to insert 
-     */
-    LRUCache.prototype.insertAtTop = function (entry) {
-        this._first.prev = entry;
-        entry.next = this._first;
-        this._first = entry;
-    };
-
-    /**
-     * Move a cache entry to the top of the cache
-     * @param {CacheEntry} entry The entry to move 
-     */
-    LRUCache.prototype.moveToTop = function (entry) {
-        if (entry === this._first) return;
-        if (entry === this._last) {
-            entry.prev.next = null;
-            this._last = entry.prev;
-        } else {
-            entry.prev.next = entry.next;
-            entry.next.prev = entry.prev; 
-        }
-        this.insertAtTop(entry);
     };
 
     /**
@@ -162,20 +104,6 @@ define(['q'], function (Q) {
     // Counters for reporting only
     var hits = 0;
     var misses = 0;
-
-    /**
-     * Initializes or resets the cache - this should be called whenever a new ZIM is loaded
-     */
-    var init = function () {
-        console.log('Initialize or reset FileCache');
-        // Initialize linked list of entries
-        cache._first = null;
-        cache._last = null;
-        // DEV: Technically, we do not need to clear the FileCache object's Map, because each entry is marked with a 
-        // ZIM ID, but it should free up memory on new ZIM load, and should provide a slight performance advantage while
-        // the Map is being re-populated
-        cache._entries.clear();
-    };
 
     /**
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
@@ -232,7 +160,6 @@ define(['q'], function (Q) {
     };
 
     return {
-        read: read,
-        init: init
+        read: read
     };
 });
