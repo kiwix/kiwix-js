@@ -80,12 +80,14 @@ define(['q'], function (Q) {
      * @param {Uint8Array} value The value to store in the cache 
      */
     LRUCache.prototype.store = function (key, value) {
+        // We get the existing entry's object for memory-management purposes; if it exists, it will contain identical data
+        // to <value>, but <entry> is strongly referenced by the Map. (It should be rare that two async Promises attempt to
+        // store the same data in the Cache, once the Cache is sufficiently populated.)
         var entry = this.cache.get(key);
-        // If the key already exists, delete it so that it will be added
+        // If the key already exists, delete it and re-insert it, so that it will be added
         // to the bottom of the Map (bottom = most recent)
         if (entry) this.cache.delete(key);
         else entry = value;
-        // Store a reference to the entry in the Map
         this.cache.set(key, entry);
         // If we've exceeded the cache capacity, then delete the least recently accessed value, 
         // which will be the item at the top of the Map, i.e the first position
@@ -94,7 +96,7 @@ define(['q'], function (Q) {
                 var firstKey = this.cache.keys().next().value;
                 this.cache.delete(firstKey);
             } else {
-                // IE11 doesn't support the keys iterator, so we have to do forEach loop through all 4000 entries
+                // IE11 doesn't support the keys iterator, so we have to do a forEach loop through all 4000 entries
                 // to get the oldest values. To prevent excessive iterations, we delete 25% at a time.
                 var q = Math.floor(0.25 * this.capacity);
                 var c = 0;
