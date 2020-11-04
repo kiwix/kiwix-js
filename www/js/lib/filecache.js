@@ -90,20 +90,22 @@ define(['q'], function (Q) {
         // If we've exceeded the cache capacity, then delete the least recently accessed value, 
         // which will be the item at the top of the Map, i.e the first position
         if (this.cache.size > this.capacity) {
-            var firstKey;
             if (this.cache.keys) {
-                firstKey = this.cache.keys().next().value;
+                var firstKey = this.cache.keys().next().value;
+                this.cache.delete(firstKey);
             } else {
                 // IE11 doesn't support the keys iterator, so we have to do forEach loop through all 4000 entries
-                // to get the oldest value (which is the first one)
-                var s = false;
+                // to get the oldest values. To prevent excessive iterations, we delete 10% at a time.
+                var that = this;
+                var q = Math.floor(0.1 * that.capacity);
+                var c = 0;
+                console.log('Deleteing ' + q + ' cache entries');
                 this.cache.forEach(function(v, k) {
-                    if (s) return;
-                    firstKey = k;
-                    s = true;
+                    if (c > 1000) return;
+                    that.cache.delete(k);
+                    c++;
                 });
             }
-            this.cache.delete(firstKey);
         }
     };
 
