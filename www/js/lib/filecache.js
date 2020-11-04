@@ -51,7 +51,8 @@ define(['q'], function (Q) {
      * LRUCache implemnentation with Map adapted from https://markmurray.co/blog/lru-cache/
      */
     function LRUCache() {
-        console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
+        /** CACHE TUNING **/
+        // console.log('Creating cache of size ' + MAX_CACHE_SIZE + ' * ' + BLOCK_SIZE + ' bytes');
         // Initialize persistent Cache properties
         this.capacity = MAX_CACHE_SIZE;
         this.cache = new Map();
@@ -100,7 +101,7 @@ define(['q'], function (Q) {
                 // to get the oldest values. To prevent excessive iterations, we delete 25% at a time.
                 var q = Math.floor(0.25 * this.capacity);
                 var c = 0;
-                console.log('Deleteing ' + q + ' cache entries');
+                // console.log('Deleteing ' + q + ' cache entries');
                 this.cache.forEach(function (v, k, map) {
                     if (c > q) return;
                     map.delete(k);
@@ -116,9 +117,10 @@ define(['q'], function (Q) {
      */
     var cache = new LRUCache();
 
-    // Counters for reporting only
-    var hits = 0;
-    var misses = 0;
+    /** CACHE TUNING **/ 
+    // DEV: Uncomment this block and blocks below marked 'CACHE TUNING' to measure Cache hit and miss rates for different Cache sizes
+    // var hits = 0;
+    // var misses = 0;
 
     /**
      * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
@@ -140,7 +142,8 @@ define(['q'], function (Q) {
             var block = cache.get(file.id + ':' + id);
             if (block === undefined) {
                 // Data not in cache, so read from archive
-                misses++;
+                /** CACHE TUNING **/
+                // misses++;
                 // DEV: This is a self-calling function, i.e. the function is called with an argument of <id> which then 
                 // becomes the <offset> parameter
                 readRequests.push(function (offset) {
@@ -150,15 +153,18 @@ define(['q'], function (Q) {
                     });
                 }(id));
             } else {
-                hits++;
+                /** CACHE TUNING **/
+                // hits++;
                 blocks[id] = block;
             }
         }
-        if (misses + hits > 2000) {
-            console.log("** Block cache hit rate: " + Math.round(hits / (hits + misses) * 1000) / 10 + "% [ hits:" + hits + " / misses:" + misses + " ]");
-            hits = 0;
-            misses = 0;
-        }
+        /** CACHE TUNING **/
+        // if (misses + hits > 2000) {
+        //     console.log('** Block cache hit rate: ' + Math.round(hits / (hits + misses) * 1000) / 10 + '% [ hits:' + hits + 
+        //         ' / misses:' + misses + ' ] Size: ' + cache.cache.size);
+        //     hits = 0;
+        //     misses = 0;
+        // }
         // Wait for all the blocks to be read either from the cache or from the archive
         return Q.all(readRequests).then(function () {
             var result = new Uint8Array(end - begin);
