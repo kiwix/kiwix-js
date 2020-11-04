@@ -101,7 +101,7 @@ define(['q'], function (Q) {
                 var c = 0;
                 console.log('Deleteing ' + q + ' cache entries');
                 this.cache.forEach(function(v, k) {
-                    if (c > 1000) return;
+                    if (c > q) return;
                     that.cache.delete(k);
                     c++;
                 });
