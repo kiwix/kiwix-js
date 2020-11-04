@@ -45,7 +45,7 @@ define(['q'], function (Q) {
      * @property {Number} capacity The maximum number of entries in the cache 
      * @property {Map} cache A map to store the cache keys and data
      */
-    
+
     /**
      * Creates a new cache with max size limit of MAX_CACHE_SIZE blocks
      * LRUCache implemnentation with Map adapted from https://markmurray.co/blog/lru-cache/
@@ -99,7 +99,7 @@ define(['q'], function (Q) {
                 var q = Math.floor(0.25 * this.capacity);
                 var c = 0;
                 console.log('Deleteing ' + q + ' cache entries');
-                this.cache.forEach(function(v, k, map) {
+                this.cache.forEach(function (v, k, map) {
                     if (c > q) return;
                     map.delete(k);
                     c++;
