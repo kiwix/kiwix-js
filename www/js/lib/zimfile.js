@@ -20,13 +20,25 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'], function(xz, zstd, util, utf8, Q, zimDirEntry) {
 
-    var readInt = function(data, offset, size)
-    {
+define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, Q, zimDirEntry, FileCache) {
+
+    /**
+     * A variable to keep track of the currently loaded ZIM archive, e.g., for labelling cache entries
+     * The ID is temporary and is reset to 0 at each session start; it is incremented by 1 each time a new ZIM is loaded
+     * @type {Integer} 
+     */
+    var tempFileId = 0;
+
+    /**
+     * A Map to keep track of temporary File IDs
+     * @type {Map}
+     */
+    var fileIDs = new Map();
+
+    var readInt = function (data, offset, size) {
         var r = 0;
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             var c = (data[offset + i] + 256) & 0xff;
             r += util.leftShift(c, 8 * i);
         }
@@ -38,99 +50,105 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
      * 
      * See https://wiki.openzim.org/wiki/ZIM_file_format#Header
      * 
-     * @typedef ZIMFile
-     * @property {Array.<File>} _files Array of ZIM files
-     * @property {Integer} articleCount total number of articles
-     * @property {Integer} clusterCount total number of clusters
-     * @property {Integer} urlPtrPos position of the directory pointerlist ordered by URL
-     * @property {Integer} titlePtrPos position of the directory pointerlist ordered by title
-     * @property {Integer} clusterPtrPos position of the cluster pointer list
-     * @property {Integer} mimeListPos position of the MIME type list (also header size)
-     * @property {Integer} mainPage main page or 0xffffffff if no main page
-     * @property {Integer} layoutPage layout page or 0xffffffffff if no layout page
-     * 
+     * @typedef {Object} ZIMFile
+     * @property {Array<File>} _files Array of ZIM files
+     * @property {String} name Abstract archive name for file set
+     * @property {Integer} id Arbitrary numeric ZIM id used to track the currently loaded archive
+     * @property {Integer} articleCount Total number of articles
+     * @property {Integer} clusterCount Total number of clusters
+     * @property {Integer} urlPtrPos Position of the directory pointerlist ordered by URL
+     * @property {Integer} titlePtrPos Position of the directory pointerlist ordered by title
+     * @property {Integer} clusterPtrPos Position of the cluster pointer list
+     * @property {Integer} mimeListPos Position of the MIME type list (also header size)
+     * @property {Integer} mainPage Main page or 0xffffffff if no main page
+     * @property {Integer} layoutPage Layout page or 0xffffffffff if no layout page
      */
     
     /**
-     * @param {Array.<File>} abstractFileArray
+     * Abstract an array of one or more (split) ZIM archives
+     * @param {Array<File>} abstractFileArray An array of ZIM file parts
      */
-    function ZIMFile(abstractFileArray)
-    {
+    function ZIMFile(abstractFileArray) {
         this._files = abstractFileArray;
     }
 
     /**
-     * 
-     * @param {Integer} offset
-     * @param {Integer} size
-     * @returns {Integer}
+     * Read and decode an integer value from the ZIM archive
+     * @param {Integer} offset The offset at which the integer is found
+     * @param {Integer} size The size of data to read
+     * @returns {Promise<Integer>} A Promise for the returned value 
      */
-    ZIMFile.prototype._readInteger = function(offset, size)
-    {
-        return this._readSlice(offset, size).then(function(data)
-        {
+    ZIMFile.prototype._readInteger = function (offset, size) {
+        return this._readSlice(offset, size).then(function (data) {
             return readInt(data, 0, size);
         });
     };
 
     /**
-     * 
-     * @param {Integer} offset
-     * @param {Integer} size
-     * @returns {Promise}
+     * Read a slice from the FileCache or ZIM set, starting at offset for size of bytes
+     * @param {Integer} offset The absolute offset from the start of the ZIM file or file set at which to start reading
+     * @param {Integer} size The number of bytes to read
+     * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the requested data
      */
-    ZIMFile.prototype._readSlice = function(offset, size)
-    {
+    ZIMFile.prototype._readSlice = function(offset, size) {
+        return FileCache.read(this, offset, offset + size);
+    };
+
+    /**
+     * Read a slice from a set of one or more ZIM files constituting a single archive, and concatenate the data parts
+     * @param {Integer} begin The absolute byte offset from which to start reading 
+     * @param {Integer} end The absolute byte offset where reading should stop (the end byte is not read)
+     * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the concatenated data 
+     */
+    ZIMFile.prototype._readSplitSlice = function (begin, end) {
+        var file = this;
         var readRequests = [];
         var currentOffset = 0;
-        for (var i = 0; i < this._files.length; currentOffset += this._files[i].size, ++i) {
-            var currentSize = this._files[i].size;
-            if (offset < currentOffset + currentSize && currentOffset < offset + size) {
-                var readStart = Math.max(0, offset - currentOffset);
-                var readSize = Math.min(currentSize, offset + size - currentOffset - readStart);
-                readRequests.push(util.readFileSlice(this._files[i], readStart, readSize));
+        for (var i = 0; i < file._files.length; currentOffset += file._files[i].size, ++i) {
+            var currentSize = file._files[i].size;
+            if (begin < currentOffset + currentSize && currentOffset < end) {
+                // DEV: Math.max is used below because we could be reading the last part of a blob split across two files,
+                // in which case (begin - currentOffset) could be negative!
+                var readStart = Math.max(0, begin - currentOffset);
+                var readEnd = Math.min(currentSize, end - currentOffset);
+                readRequests.push(util.readFileSlice(file._files[i], readStart, readEnd));
             }
         }
-        if (readRequests.length == 0) {
+        if (readRequests.length === 0) {
             return Q(new Uint8Array(0).buffer);
-        } else if (readRequests.length == 1) {
+        } else if (readRequests.length === 1) {
             return readRequests[0];
         } else {
             // Wait until all are resolved and concatenate.
-            console.log("CONCAT");
-            return Q.all(readRequests).then(function(arrays) {
-                var concatenated = new Uint8Array(size);
-                var sizeSum = 0;
-                for (var i = 0; i < arrays.length; ++i) {
-                    concatenated.set(new Uint8Array(arrays[i]), sizeSum);
-                    sizeSum += arrays[i].byteLength;
-                }
+            return Q.all(readRequests).then(function (arrays) {
+                var concatenated = new Uint8Array(end - begin);
+                var offset = 0;
+                arrays.forEach(function (item) {
+                    concatenated.set(new Uint8Array(item), offset);
+                    offset += item.byteLength;
+                });
                 return concatenated;
             });
         }
     };
 
     /**
-     * 
-     * @param {Integer} offset
-     * @returns {DirEntry} DirEntry
+     * Read and parse a Directory Entry at the given archive offset
+     * @param {Integer} offset The offset at which the DirEntry is located
+     * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
-    ZIMFile.prototype.dirEntry = function(offset)
-    {
+    ZIMFile.prototype.dirEntry = function (offset) {
         var that = this;
-        return this._readSlice(offset, 2048).then(function(data)
-        {
-            var dirEntry =
-            {
+        return this._readSlice(offset, 2048).then(function (data) {
+            var dirEntry = {
                 offset: offset,
                 mimetypeInteger: readInt(data, 0, 2),
                 namespace: String.fromCharCode(data[3])
             };
             dirEntry.redirect = (dirEntry.mimetypeInteger === 0xffff);
-            if (dirEntry.redirect)
+            if (dirEntry.redirect) {
                 dirEntry.redirectTarget = readInt(data, 8, 4);
-            else
-            {
+            } else {
                 dirEntry.cluster = readInt(data, 8, 4);
                 dirEntry.blob = readInt(data, 12, 4);
             }
@@ -146,54 +164,48 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
     };
 
     /**
-     * 
-     * @param {Integer} index
-     * @returns {DirEntry} DirEntry
+     * Find a Directory Entry based on its URL Pointer index
+     * @param {Integer} index The URL Pointer index to the DirEntry
+     * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
-    ZIMFile.prototype.dirEntryByUrlIndex = function(index)
-    {
+    ZIMFile.prototype.dirEntryByUrlIndex = function (index) {
         var that = this;
-        return this._readInteger(this.urlPtrPos + index * 8, 8).then(function(dirEntryPos)
-        {
+        return this._readInteger(this.urlPtrPos + index * 8, 8).then(function (dirEntryPos) {
             return that.dirEntry(dirEntryPos);
         });
     };
 
     /**
-     * 
-     * @param {Integer} index
-     * @returns {DirEntry} DirEntry
+     * Find a Directory Entry based on its Title Pointer index
+     * @param {Integer} index The Title Pointer index to the DirEntry
+     * @returns {Promise<DirEntry>} A Promise for the requested DirEntry
      */
-    ZIMFile.prototype.dirEntryByTitleIndex = function(index)
-    {
+    ZIMFile.prototype.dirEntryByTitleIndex = function (index) {
         var that = this;
-        return this._readInteger(this.titlePtrPos + index * 4, 4).then(function(urlIndex)
-        {
+        return this._readInteger(this.titlePtrPos + index * 4, 4).then(function (urlIndex) {
             return that.dirEntryByUrlIndex(urlIndex);
         });
     };
 
     /**
-     * 
-     * @param {Integer} cluster
-     * @param {Integer} blob
-     * @returns {String}
+     * Read and if necessary decompress a BLOB based on its cluster number and blob number
+     * @param {Integer} cluster The cluster number where the blob is to be found
+     * @param {Integer} blob The blob number within the cluster
+     * @returns {Promise<Uint8Array>} A Promise for the BLOB's data
      */
-    ZIMFile.prototype.blob = function(cluster, blob)
-    {
+    ZIMFile.prototype.blob = function (cluster, blob) {
         var that = this;
-        return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function(clusterOffsets)
-        {
+        return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function (clusterOffsets) {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
             var nextCluster = readInt(clusterOffsets, 8, 8);
             // DEV: The method below of calculating cluster size is not safe: see https://github.com/openzim/libzim/issues/84#issuecomment-612962250
             // var thisClusterLength = nextCluster - clusterOffset - 1;
-            return that._readSlice(clusterOffset, 1).then(function(compressionType) {
+            return that._readSlice(clusterOffset, 1).then(function (compressionType) {
                 var decompressor;
-                var plainBlobReader = function(offset, size) {
+                var plainBlobReader = function (offset, size) {
                     // Check that we are not reading beyond the end of the cluster
                     var offsetStart = clusterOffset + 1 + offset;
-                    if ( offsetStart < nextCluster) {
+                    if (offsetStart < nextCluster) {
                         // Gratuitous parentheses added for legibility
                         size = (offsetStart + size) <= nextCluster ? size : (nextCluster - offsetStart);
                         return that._readSlice(offsetStart, size);
@@ -211,7 +223,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
-                return decompressor.readSliceSingleThread(blob * 4, 8).then(function(data) {
+                return decompressor.readSliceSingleThread(blob * 4, 8).then(function (data) {
                     var blobOffset = readInt(data, 0, 4);
                     var nextBlobOffset = readInt(data, 4, 4);
                     return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset);
@@ -224,7 +236,6 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
      * Reads the whole MIME type list and returns it as a populated Map
      * The mimeTypeMap is extracted once after the user has picked the ZIM file
      * and is stored as ZIMFile.mimeTypes
-     * 
      * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list 
      *      is to be extracted
      * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
@@ -238,7 +249,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
         // so we limit the slice size to max 1024 bytes in order to prevent reading the entire archive into an array buffer
         // See https://github.com/openzim/libzim/issues/353
         size = size > 1024 ? 1024 : size;
-        return util.readFileSlice(file, mimeListPos, size).then(function (data) {
+        return util.readFileSlice(file, mimeListPos, mimeListPos + size).then(function (data) {
             if (data.subarray) {
                 var i = 0;
                 var pos = -1;
@@ -265,7 +276,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
 
     return {
         /**
-         * @param {Array.<File>} fileArray An array of picked archive files
+         * @param {Array<File>} fileArray An array of picked archive files
          * @returns {Promise<Object>} A Promise for the ZimFile Object
          */
         fromFileArray: function (fileArray) {
@@ -282,6 +293,14 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry'],
                 var urlPtrPos = readInt(header, 32, 8);
                 return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (data) {
                     var zf = new ZIMFile(fileArray);
+                    // Add an abstract archive name (ignoring split file extensions)
+                    zf.name = fileArray[0].name.replace(/(\.zim)\w\w$/i, '$1');
+                    // Provide a temporary, per-session numeric ZIM ID used in filecache.js
+                    zf.id = fileIDs.get(zf.name);
+                    if (zf.id === undefined) {
+                        zf.id = tempFileId++;
+                        fileIDs.set(zf.name, zf.id);
+                    }
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
