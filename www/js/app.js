@@ -208,7 +208,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     // Restore the search results if user goes back into prefix field
-    $('#prefix').on('focus', function(e) {
+    $('#prefix').on('focus', function() {
         if ($('#prefix').val() !== '') 
             $('#articleListWithHeader').show();
     });
@@ -220,7 +220,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListWithHeader').hide();
         }
     });
-    $("#btnRandomArticle").on("click", function(e) {
+    $("#btnRandomArticle").on("click", function() {
         $('#prefix').val("");
         goToRandomArticle();
         $("#welcomeText").hide();
@@ -228,29 +228,29 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('.navbar-collapse').collapse('hide');
     });
     
-    $('#btnRescanDeviceStorage').on("click", function(e) {
+    $('#btnRescanDeviceStorage').on("click", function() {
         searchForArchivesInStorage();
     });
     // Bottom bar :
-    $('#btnBack').on('click', function(e) {
+    $('#btnBack').on('click', function() {
         history.back();
         return false;
     });
-    $('#btnForward').on('click', function(e) {
+    $('#btnForward').on('click', function() {
         history.forward();
         return false;
     });
-    $('#btnHomeBottom').on('click', function(e) {
+    $('#btnHomeBottom').on('click', function() {
         $('#btnHome').click();
         return false;
     });
-    $('#btnTop').on('click', function(e) {
+    $('#btnTop').on('click', function() {
         $("#articleContent").contents().scrollTop(0);
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
     });
     // Top menu :
-    $('#btnHome').on('click', function(e) {
+    $('#btnHome').on('click', function() {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
@@ -284,7 +284,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnConfigure').on('click', function(e) {
+    $('#btnConfigure').on('click', function() {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","active");
@@ -310,7 +310,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnAbout').on('click', function(e) {
+    $('#btnAbout').on('click', function() {
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","");
         $('#liConfigureNav').attr("class","");
@@ -335,15 +335,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('input:radio[name=contentInjectionMode]').on('change', function(e) {
+    $('input:radio[name=contentInjectionMode]').on('change', function() {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
     });
-    $('input:checkbox[name=hideActiveContentWarning]').on('change', function (e) {
+    $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
-    $('input:checkbox[name=showUIAnimations]').on('change', function (e) {
+    $('input:checkbox[name=showUIAnimations]').on('change', function () {
         params.showUIAnimations = this.checked ? true : false;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
@@ -807,7 +807,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             }
             resetCssCache();
-            selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function (archive) {
+            selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
                 settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
                 // The archive is set : go back to home page to start searching
                 $("#btnHome").click();
@@ -833,7 +833,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('openLocalFiles').style.display = 'block';
         // Set the main drop zone
         configDropZone.addEventListener('dragover', handleGlobalDragover);
-        configDropZone.addEventListener('dragleave', function(e) {
+        configDropZone.addEventListener('dragleave', function() {
             configDropZone.style.border = '';
         });
         // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
@@ -895,7 +895,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         }
         resetCssCache();
-        selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function (archive) {
+        selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
             document.getElementById('downloadInstruction').style.display = 'none';
@@ -959,7 +959,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Handle key input in the prefix input zone
      * @param {Event} evt The event data to handle
      */
-    function onKeyUpPrefix(evt) {
+    function onKeyUpPrefix() {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
         // It is also necessary for the words suggestions to work inside Firefox OS
         if (window.timeoutKeyUpPrefix) {
@@ -1464,26 +1464,32 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         }
 
-        function loadJavaScriptJQuery() {
-            $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
-                var script = $(this);
-                var scriptUrl = script.attr("data-kiwixurl");
-                // TODO check that the type of the script is text/javascript or application/javascript
-                var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                    if (dirEntry === null) {
-                        console.log("Error: js file not found: " + title);
-                    } else {
-                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                            // TODO : JavaScript support not yet functional [kiwix-js #152]
-                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
-                        });
-                    }
-                }).catch(function (e) {
-                    console.error("could not find DirEntry for javascript : " + title, e);
-                });
-            });
-        }
+       /**
+        * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
+        * be attached to the DOM. Users who want JS support should switch to Service Worker mode if avaialable on
+        * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
+        * <kiwix-js/javaScript-support>. 
+        */
+        // function loadJavaScriptJQuery() {
+        //     $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
+        //         var script = $(this);
+        //         var scriptUrl = script.attr("data-kiwixurl");
+        //         // TODO check that the type of the script is text/javascript or application/javascript
+        //         var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+        //         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+        //             if (dirEntry === null) {
+        //                 console.log("Error: js file not found: " + title);
+        //             } else {
+        //                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+        //                     // TODO : JavaScript support not yet functional [kiwix-js #152]
+        //                     uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
+        //                 });
+        //             }
+        //         }).catch(function (e) {
+        //             console.error("could not find DirEntry for javascript : " + title, e);
+        //         });
+        //     });
+        // }
 
         function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
