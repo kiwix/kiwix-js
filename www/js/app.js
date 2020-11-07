@@ -1453,26 +1453,34 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             }
         }
-       /* function loadJavaScriptJQuery() {
-            $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
-                var script = $(this);
-                var scriptUrl = script.attr("data-kiwixurl");
-                // TODO check that the type of the script is text/javascript or application/javascript
-                var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
-                    if (dirEntry === null) {
-                        console.log("Error: js file not found: " + title);
-                    } else {
-                        selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                            // TODO : JavaScript support not yet functional [kiwix-js #152]
-                            uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
-                        });
-                    }
-                }).catch(function (e) {
-                    console.error("could not find DirEntry for javascript : " + title, e);
-                });
-            });
-        }*/
+
+       /**
+        * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
+        * be attached to the DOM. Users who want JS support should switch to Service Worker mode if avaialbale on
+        * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
+        * <kiwix-js/javaScript-support>. 
+        */
+        // function loadJavaScriptJQuery() {
+        //     $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
+        //         var script = $(this);
+        //         var scriptUrl = script.attr("data-kiwixurl");
+        //         // TODO check that the type of the script is text/javascript or application/javascript
+        //         var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+        //         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+        //             if (dirEntry === null) {
+        //                 console.log("Error: js file not found: " + title);
+        //             } else {
+        //                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+        //                     // TODO : JavaScript support not yet functional [kiwix-js #152]
+        //                     uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
+        //                 });
+        //             }
+        //         }).catch(function (e) {
+        //             console.error("could not find DirEntry for javascript : " + title, e);
+        //         });
+        //     });
+        // }
+
         function insertMediaBlobsJQuery() {
             var iframe = iframeArticleContent.contentDocument;
             Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
