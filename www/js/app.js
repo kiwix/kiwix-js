@@ -515,7 +515,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 navigator.serviceWorker.controller.postMessage({'action': 'disable'});
                 messageChannel = null;
             }
-            refreshAPIStatus();
+            refreshAPIStatus(); 
             // User has switched to jQuery mode, so no longer needs CACHE_NAME
             // We should empty it to prevent unnecessary space usage
             if ('caches' in window) caches.delete(CACHE_NAME);
