@@ -514,7 +514,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // So we have to disable it manually (even if it's still registered and active)
                 navigator.serviceWorker.controller.postMessage({'action': 'disable'});
                 messageChannel = null;
-              }
+            }
             refreshAPIStatus();
             // User has switched to jQuery mode, so no longer needs CACHE_NAME
             // We should empty it to prevent unnecessary space usage
