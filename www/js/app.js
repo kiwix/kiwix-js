@@ -1456,7 +1456,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
        /**
         * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
-        * be attached to the DOM. Users who want JS support should switch to Service Worker mode if avaialbale on
+        * be attached to the DOM. Users who want JS support should switch to Service Worker mode if avaialable on
         * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
         * <kiwix-js/javaScript-support>. 
         */
