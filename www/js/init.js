@@ -44,6 +44,9 @@ require.config({
         },
         'bootstrap': {
             deps: ['jquery', 'fontawesome', 'fontawesome-solid']
+        },
+        'webpHeroBundle': {
+            deps: ['webpHeroPolyfills'],
         }
     }
 });

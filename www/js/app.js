@@ -1377,11 +1377,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         
         function loadImagesJQuery() {
-            $('#articleContent').contents().find('body').find('img[data-kiwixurl]').each(function() {
-                var image = $(this);
-                var imageUrl = image.attr("data-kiwixurl");
+            var images = iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]');
+            Array.prototype.slice.call(images).forEach(function (image) {
+                var imageUrl = image.getAttribute('data-kiwixurl');
                 var title = decodeURIComponent(imageUrl);
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
@@ -1391,7 +1391,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 });
             });
         }
-        
+
         function loadNoScriptTags() {
             // For each noscript tag, we replace it with its content, so that the browser interprets it
             $('#articleContent').contents().find('noscript').replaceWith(function () {

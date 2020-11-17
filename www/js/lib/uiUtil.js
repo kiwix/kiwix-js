@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define([], function() {
+define(['webpHeroBundle'], function() {
 
     
     /**
@@ -29,18 +29,28 @@ define([], function() {
      * 
      * This is useful to inject images (and other dependencies) inside an article
      * 
-     * @param {Object} jQueryNode
-     * @param {String} nodeAttribute
-     * @param {Uint8Array} content
-     * @param {String} mimeType
+     * @param {Object} node The node to which the BLOB data should be added
+     * @param {String} nodeAttribute The attribute to set to the BLOB URI
+     * @param {Uint8Array} content The binary content to convert to a BLOB URI
+     * @param {String} mimeType The MIME type of the content
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
-        var blob = new Blob([content], {type: mimeType});
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
+        // Decode WebP data if the mimeType is webp and the browser does not support WebP 
+        if (webpMachine && /image\/webp/i.test(mimeType)) {
+            webpMachine.decode(content).then(function (url) {
+                // DEV: WebpMachine.decode() returns a Data URI
+                node.setAttribute(nodeAttribute, url);
+            });
+            return;
+        }
+        var blob = new Blob([content], {
+            type: mimeType
+        });
         var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
+        node.addEventListener('load', function () {
             URL.revokeObjectURL(url);
         });
-        jQueryNode.attr(nodeAttribute, url);
+        node.setAttribute(nodeAttribute, url);
     }
 
     /**
@@ -398,6 +408,20 @@ define([], function() {
             viewArticle.style.display = 'none';
         });
     }
+
+    // Initialize the WebpMachine only if needed
+    var webpMachine;
+    var testWebP = function (callback) {
+        var webP = new Image();
+        webP.onload = webP.onerror = function () {
+            callback(webP.height === 2);
+        };
+        webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+    };
+    testWebP(function (support) {
+        if (!support) webpMachine = new webpHero.WebpMachine();
+    });
+    
 
     /**
      * Functions and classes exposed by this module
