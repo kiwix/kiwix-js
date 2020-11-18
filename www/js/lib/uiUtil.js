@@ -27,7 +27,6 @@ define(['webpHeroBundle'], function() {
      * @type Array
      */
     var webpQueue = [];
-    webpQueue.busy = false;
     
     /**
      * Creates a Blob from the given content, then a URL from this Blob
