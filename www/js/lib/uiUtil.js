@@ -45,21 +45,21 @@ define(['webpHeroBundle'], function() {
         if (webpMachine && /image\/webp/i.test(mimeType)) {
             // Queue WebP images to be decoded (required by the WebP polyfill)
             webpQueue.push({ 'node': node, 'nodeAttribute': nodeAttribute, 'content': content });
-            var decodeNextImage = function (img) {
-                if (typeof img === 'undefined') return;
+            (function decodeImage() {
+                if (!webpQueue.length || webpQueue.busy) return;
                 webpQueue.busy = true;
+                var img = webpQueue.shift();
                 webpMachine.decode(img.content).then(function (url) {
                     // DEV: WebpMachine.decode() returns a Data URI
                     img.node.setAttribute(img.nodeAttribute, url);
                     webpQueue.busy = false;
-                    decodeNextImage(webpQueue.shift());
+                    decodeImage();
                 }).catch(function (err) {
                     console.error('There was an error decoding image in WebpMachine', err);
                     webpQueue.busy = false;
-                    decodeNextImage(webpQueue.shift());
+                    decodeImage();
                 });
-            };
-            if (!webpQueue.busy) decodeNextImage(webpQueue.shift());
+            })();
         } else {
             var blob = new Blob([content], {
                 type: mimeType
