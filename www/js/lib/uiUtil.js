@@ -22,6 +22,12 @@
 'use strict';
 define(['webpHeroBundle'], function() {
 
+    /**
+     * A queue for WebP images to be decoded by the single-threaded WebpMachine
+     * @type Array
+     */
+    var webpQueue = [];
+    webpQueue.busy = false;
     
     /**
      * Creates a Blob from the given content, then a URL from this Blob
@@ -37,20 +43,33 @@ define(['webpHeroBundle'], function() {
     function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
         // Decode WebP data if the mimeType is webp and the browser does not support WebP 
         if (webpMachine && /image\/webp/i.test(mimeType)) {
-            webpMachine.decode(content).then(function (url) {
-                // DEV: WebpMachine.decode() returns a Data URI
-                node.setAttribute(nodeAttribute, url);
+            // Queue WebP images to be decoded (required by the WebP polyfill)
+            webpQueue.push({ 'node': node, 'nodeAttribute': nodeAttribute, 'content': content });
+            var decodeNextImage = function (img) {
+                if (typeof img === 'undefined') return;
+                webpQueue.busy = true;
+                webpMachine.decode(img.content).then(function (url) {
+                    // DEV: WebpMachine.decode() returns a Data URI
+                    img.node.setAttribute(img.nodeAttribute, url);
+                    webpQueue.busy = false;
+                    decodeNextImage(webpQueue.shift());
+                }).catch(function (err) {
+                    console.error('There was an error decoding image in WebpMachine', err);
+                    webpQueue.busy = false;
+                    decodeNextImage(webpQueue.shift());
+                });
+            };
+            if (!webpQueue.busy) decodeNextImage(webpQueue.shift());
+        } else {
+            var blob = new Blob([content], {
+                type: mimeType
             });
-            return;
+            var url = URL.createObjectURL(blob);
+            node.addEventListener('load', function () {
+                URL.revokeObjectURL(url);
+            });
+            node.setAttribute(nodeAttribute, url);
         }
-        var blob = new Blob([content], {
-            type: mimeType
-        });
-        var url = URL.createObjectURL(blob);
-        node.addEventListener('load', function () {
-            URL.revokeObjectURL(url);
-        });
-        node.setAttribute(nodeAttribute, url);
     }
 
     /**
