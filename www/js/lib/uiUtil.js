@@ -1,7 +1,7 @@
 /**
  * uiUtil.js : Utility functions for the User Interface
  * 
- * Copyright 2013-2014 Mossroy and contributors
+ * Copyright 2013-2020 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -21,8 +21,8 @@
  */
 'use strict';
 
-// DEV: Please put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
-// (we need to do it this way in order to load WebP polyfills conditionally)
+// DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
+// (This method is needed in order to load WebP polyfills conditionally)
 var rqDef = [];
 
 // Add WebP polyfill only if webpHero was loaded in init.js
@@ -39,8 +39,8 @@ define(rqDef, function() {
     var webpQueue = [];
     
     /**
-     * Creates a Blob from the given content, then a URL from this Blob
-     * And put this URL in the attribute of the DOM node
+     * Creates a BLOB from the given content, then a blob: or data: URI from this BLOB
+     * The given attribute of the DOM node (nodeAttribute) is then set to this URI
      * 
      * This is useful to inject images (and other dependencies) inside an article
      * 
@@ -50,9 +50,9 @@ define(rqDef, function() {
      * @param {String} mimeType The MIME type of the content
      */
     function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
-        // Decode WebP data if the mimeType is webp and the browser does not support WebP 
+        // Decode WebP data if the browser does not support WebP and the mimeType is webp
         if (webpMachine && /image\/webp/i.test(mimeType)) {
-            // Queue WebP images to be decoded (required by the WebP polyfill)
+            // Queue WebP images to be decoded (the WebP polyfill is single-threaded and will reject a job if it is busy)
             webpQueue.push({ 'node': node, 'nodeAttribute': nodeAttribute, 'content': content });
             (function decodeImage() {
                 if (!webpQueue.length || webpQueue.busy) return;
@@ -437,7 +437,7 @@ define(rqDef, function() {
         });
     }
 
-    // If global variable webpMachine was defined, then we need to initialize the WebP Polyfill
+    // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
     if (webpMachine) webpMachine = new webpHero.WebpMachine();
 
     /**

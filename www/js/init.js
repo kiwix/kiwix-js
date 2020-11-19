@@ -2,7 +2,7 @@
  * init.js : Configuration for the library require.js
  * This file handles the dependencies between javascript libraries
  * 
- * Copyright 2013-2014 Mossroy and contributors
+ * Copyright 2013-2020 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -57,9 +57,11 @@ requirejs(['bootstrap'], function (bootstrap) {
     requirejs(['../app']);
 });
 
-// Load the WebP Polyfills only if needed
+// Test if WebP is natively supported, and if not, set webpMachine to true. The value of webpMachine
+// will determine whether the WebP Polyfills will be loaded (currently only used in uiUtil.js)
 var webpMachine = false;
-// Using self-invoking function to avoid defining global functions and variables
+
+// We use a self-invoking function here to avoid defining unnecessary global functions and variables
 (function (callback) {
     // Tests for native WebP support
     var webP = new Image();
