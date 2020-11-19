@@ -30,7 +30,7 @@
  */
 var params = {};
 
-require.config({
+var rqConfig = {
     baseUrl: 'js/lib',
     paths: {
         'jquery': 'jquery-3.2.1.slim',
@@ -41,8 +41,8 @@ require.config({
         'fontawesome-solid': 'fontawesome/solid'
     },
     shim: {
-        'jquery' : {
-            exports : '$'
+        'jquery': {
+            exports: '$'
         },
         'bootstrap': {
             deps: ['jquery', 'fontawesome', 'fontawesome-solid']
@@ -51,8 +51,33 @@ require.config({
             deps: ['webpHeroPolyfills']
         }
     }
-});
+};
 
-requirejs(['bootstrap'], function (bootstrap) {
-    requirejs(['../app']);
-});
+// Load the WebP Polyfills only if needed
+var webpMachine = false;
+// Using self-invoking function to avoid defining global functions and variables
+(function (callback) {
+    // Tests for native WebP support
+    var webP = new Image();
+    webP.onload = webP.onerror = function () {
+        callback(webP.height === 2);
+    };
+    webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+})(
+    function (support) {
+        if (support) {
+            // We don't need the WebP polyfills, so substitute a dummy polyfill
+            delete rqConfig.paths.webpHeroBundle;
+            delete rqConfig.paths.webpHeroPolyfills;
+            delete rqConfig.shim.webpHeroBundle;
+        } else {
+            webpMachine = true;
+        }
+
+        // Load the RequireJS configuration
+        require.config(rqConfig);
+        requirejs(['bootstrap'], function (bootstrap) {
+            requirejs(['../app']);
+        });
+
+    });

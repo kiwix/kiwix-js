@@ -20,7 +20,17 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['webpHeroBundle'], function() {
+
+// DEV: Please put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
+// (we need to do it this way in order to load WebP polyfills conditionally)
+var rqDef = [];
+
+// Add WebP polyfill only if webpHero was loaded in init.js
+if (webpMachine) {
+    rqDef.push('webpHeroBundle');
+}
+
+define(rqDef, function() {
 
     /**
      * A queue for WebP images to be decoded by the single-threaded WebpMachine
@@ -427,19 +437,8 @@ define(['webpHeroBundle'], function() {
         });
     }
 
-    // Initialize the WebpMachine only if needed
-    var webpMachine;
-    var testWebP = function (callback) {
-        var webP = new Image();
-        webP.onload = webP.onerror = function () {
-            callback(webP.height === 2);
-        };
-        webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
-    };
-    testWebP(function (support) {
-        if (!support) webpMachine = new webpHero.WebpMachine();
-    });
-    
+    // If global variable webpMachine was defined, then we need to initialize the WebP Polyfill
+    if (webpMachine) webpMachine = new webpHero.WebpMachine();
 
     /**
      * Functions and classes exposed by this module
