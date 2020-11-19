@@ -41,8 +41,8 @@ require.config({
         'fontawesome-solid': 'fontawesome/solid'
     },
     shim: {
-        'jquery' : {
-            exports : '$'
+        'jquery': {
+            exports: '$'
         },
         'bootstrap': {
             deps: ['jquery', 'fontawesome', 'fontawesome-solid']
@@ -51,6 +51,10 @@ require.config({
             deps: ['webpHeroPolyfills']
         }
     }
+});
+
+requirejs(['bootstrap'], function (bootstrap) {
+    requirejs(['../app']);
 });
 
 // Load the WebP Polyfills only if needed
@@ -63,17 +67,8 @@ var webpMachine = false;
         callback(webP.height === 2);
     };
     webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
-})(
-    
-function (support) {
+})(function (support) {
     if (!support) {
         webpMachine = true;
     }
-
-    requirejs(['bootstrap'], function (bootstrap) {
-        requirejs(['../app']);
-    });
-
 });
-
-
