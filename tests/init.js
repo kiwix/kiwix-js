@@ -24,6 +24,7 @@
 
 // Define global params needed for tests to run on existing app code
 var params = {};
+var webpMachine = true;
 
 require.config({
     baseUrl: 'www/js/lib',
