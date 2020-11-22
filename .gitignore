@@ -51,8 +51,8 @@ www-ghdeploy
 /scripts/travisci_builder_id_key
 /scripts/ssh_key
 /scripts/secret_files.tar.gz
+/reports/
 
 #Visual Studio
 /.vs/
 /.vscode/
-package-lock.json
