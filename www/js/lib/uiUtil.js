@@ -1,7 +1,7 @@
 /**
  * uiUtil.js : Utility functions for the User Interface
  * 
- * Copyright 2013-2014 Mossroy and contributors
+ * Copyright 2013-2020 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -20,27 +20,66 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define([], function() {
 
+// DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
+// We need to do it this way in order to load WebP polyfills conditionally. The WebP polyfills are only needed by a few old browsers, so loading them
+// only if needed saves approximately 1MB of memory.
+var rqDef = [];
+
+// Add WebP polyfill only if webpHero was loaded in init.js
+if (webpMachine) {
+    rqDef.push('webpHeroBundle');
+}
+
+define(rqDef, function() {
+
+    /**
+     * A queue for WebP images to be decoded by the single-threaded WebpMachine
+     * @type Array
+     */
+    var webpQueue = [];
     
     /**
-     * Creates a Blob from the given content, then a URL from this Blob
-     * And put this URL in the attribute of the DOM node
+     * Creates a BLOB from the given content, then a blob: or data: URI from this BLOB
+     * The given attribute of the DOM node (nodeAttribute) is then set to this URI
      * 
      * This is useful to inject images (and other dependencies) inside an article
      * 
-     * @param {Object} jQueryNode
-     * @param {String} nodeAttribute
-     * @param {Uint8Array} content
-     * @param {String} mimeType
+     * @param {Object} node The node to which the BLOB data should be added
+     * @param {String} nodeAttribute The attribute to set to the BLOB URI
+     * @param {Uint8Array} content The binary content to convert to a BLOB URI
+     * @param {String} mimeType The MIME type of the content
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
-        var blob = new Blob([content], {type: mimeType});
-        var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
-            URL.revokeObjectURL(url);
-        });
-        jQueryNode.attr(nodeAttribute, url);
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
+        // Decode WebP data if the browser does not support WebP and the mimeType is webp
+        if (webpMachine && /image\/webp/i.test(mimeType)) {
+            // Queue WebP images to be decoded (the WebP polyfill is single-threaded and will reject a job if it is busy)
+            webpQueue.push({ 'node': node, 'nodeAttribute': nodeAttribute, 'content': content });
+            (function decodeImage() {
+                if (!webpQueue.length || webpQueue.busy) return;
+                webpQueue.busy = true;
+                var img = webpQueue.shift();
+                webpMachine.decode(img.content).then(function (url) {
+                    // DEV: WebpMachine.decode() returns a Data URI
+                    img.node.setAttribute(img.nodeAttribute, url);
+                    webpQueue.busy = false;
+                    decodeImage();
+                }).catch(function (err) {
+                    console.error('There was an error decoding image in WebpMachine', err);
+                    webpQueue.busy = false;
+                    decodeImage();
+                });
+            })();
+        } else {
+            var blob = new Blob([content], {
+                type: mimeType
+            });
+            var url = URL.createObjectURL(blob);
+            node.addEventListener('load', function () {
+                URL.revokeObjectURL(url);
+            });
+            node.setAttribute(nodeAttribute, url);
+        }
     }
 
     /**
@@ -398,6 +437,9 @@ define([], function() {
             viewArticle.style.display = 'none';
         });
     }
+
+    // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
+    if (webpMachine) webpMachine = new webpHero.WebpMachine();
 
     /**
      * Functions and classes exposed by this module

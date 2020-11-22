@@ -24,11 +24,19 @@
 
 // Define global params needed for tests to run on existing app code
 var params = {};
+var webpMachine = true;
 
 require.config({
     baseUrl: 'www/js/lib',
     paths: {
-        'jquery': 'jquery-3.2.1.slim'
+        'jquery': 'jquery-3.2.1.slim',
+        'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27',
+        'webpHeroPolyfills': 'webpHeroPolyfills_0.0.0-dev.27'
+    },
+    shim: {
+        'webpHeroBundle': {
+            deps: ['webpHeroPolyfills']
+        }
     }
 });
 
