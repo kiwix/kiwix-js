@@ -1395,7 +1395,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, function() {
-                            console.log('Extracted image #' + images.length);
                             images.busy = false;
                             extractImage();
                         });
