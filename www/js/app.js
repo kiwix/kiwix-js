@@ -1379,11 +1379,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         function loadImagesJQuery() {
             // Make an array from the images that need to be processed
             var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
+            // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
+            images.owner = expectedArticleURLToBeDisplayed;
             // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
             // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
             // DOM, making for a better user experience (because images above the fold are extracted first)
             (function extractImage() {
-                if (!images.length || images.busy) return;
+                if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
                 images.busy = true;
                 // Extract the image at the top of the images array and remove it from the array
                 var image = images.shift();
@@ -1393,6 +1395,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, function() {
+                            console.log('Extracted image #' + images.length);
                             images.busy = false;
                             extractImage();
                         });
