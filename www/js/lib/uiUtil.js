@@ -32,13 +32,7 @@ if (webpMachine) {
 }
 
 define(rqDef, function() {
-
-    /**
-     * A queue for WebP images to be decoded by the single-threaded WebpMachine
-     * @type Array
-     */
-    var webpQueue = [];
-    
+  
     /**
      * Creates either a blob: or data: URI from the given content
      * The given attribute of the DOM node (nodeAttribute) is then set to this URI
