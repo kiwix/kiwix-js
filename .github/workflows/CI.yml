@@ -95,8 +95,7 @@ jobs:
           # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
           # So we separate the recent and old browsers in order to respect this limit.
           # REMINDER: Keep this list in sync with the Unit tests, in tests/karma.conf.saucelabs.js
-          # NB : latest edge should be added to this list when Microsoft releases the new Edge based on Chromium
-          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox,chrome
+          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox,chrome,edge
           ./node_modules/.bin/nightwatch -c nightwatch.js --env edge40,edge44
           ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11
           pkill node || echo "Node process not running (anymore)"
