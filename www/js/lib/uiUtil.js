@@ -32,49 +32,40 @@ if (webpMachine) {
 }
 
 define(rqDef, function() {
-
+  
     /**
-     * A queue for WebP images to be decoded by the single-threaded WebpMachine
-     * @type Array
-     */
-    var webpQueue = [];
-    
-    /**
-     * Creates a BLOB from the given content, then a blob: or data: URI from this BLOB
+     * Creates either a blob: or data: URI from the given content
      * The given attribute of the DOM node (nodeAttribute) is then set to this URI
      * 
-     * This is useful to inject images (and other dependencies) inside an article
+     * This is used to inject images (and other dependencies) into the article DOM
      * 
-     * @param {Object} node The node to which the BLOB data should be added
-     * @param {String} nodeAttribute The attribute to set to the BLOB URI
-     * @param {Uint8Array} content The binary content to convert to a BLOB URI
+     * @param {Object} node The node to which the URI should be added
+     * @param {String} nodeAttribute The attribute to set to the URI
+     * @param {Uint8Array} content The binary content to convert to a URI
      * @param {String} mimeType The MIME type of the content
+     * @param {Function} callback An optional function to call with the URI
      */
-    function feedNodeWithBlob(node, nodeAttribute, content, mimeType) {
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType, callback) {
         // Decode WebP data if the browser does not support WebP and the mimeType is webp
         if (webpMachine && /image\/webp/i.test(mimeType)) {
-            // Queue WebP images to be decoded (the WebP polyfill is single-threaded and will reject a job if it is busy)
-            webpQueue.push({ 'node': node, 'nodeAttribute': nodeAttribute, 'content': content });
-            (function decodeImage() {
-                if (!webpQueue.length || webpQueue.busy) return;
-                webpQueue.busy = true;
-                var img = webpQueue.shift();
-                webpMachine.decode(img.content).then(function (url) {
-                    // DEV: WebpMachine.decode() returns a Data URI
-                    img.node.setAttribute(img.nodeAttribute, url);
-                    webpQueue.busy = false;
-                    decodeImage();
-                }).catch(function (err) {
-                    console.error('There was an error decoding image in WebpMachine', err);
-                    webpQueue.busy = false;
-                    decodeImage();
-                });
-            })();
+            // DEV: Note that webpMachine is single threaded and will reject an image if it is busy
+            // However, the loadImagesJQuery() function in app.js is sequential (it waits for a callback
+            // before processing another image) so we do not need to queue WebP images here
+            webpMachine.decode(content).then(function (uri) {
+                // DEV: WebpMachine.decode() returns a data: URI
+                // We callback before the node is set so that we don't incur slow DOM rewrites before processing more images
+                if (callback) callback(uri);
+                node.setAttribute(nodeAttribute, uri);
+            }).catch(function (err) {
+                console.error('There was an error decoding image in WebpMachine', err);
+                if (callback) callback();
+            });
         } else {
             var blob = new Blob([content], {
                 type: mimeType
             });
             var url = URL.createObjectURL(blob);
+            if (callback) callback(url);
             node.addEventListener('load', function () {
                 URL.revokeObjectURL(url);
             });
