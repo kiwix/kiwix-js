@@ -8,7 +8,11 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 Released on *TODO*
 
-Detailed changelog: TODO
+* NEW: Low-level block cache significantly improves binary search speed, and can speed up resource loading in most browsers
+* NEW: Archives with WebP-encoded images are now decoded in legacy browsers via a polyfill
+* UPDATE: Images are now extracted sequentially in jQuery mode from the top of the DOM
+* BUGFIX: Running binary searches are now cancelled completely if user enters new search term or navigates away
+* BUGFIX: Active content warning was erroneously showing on some ZSTD WikiMedia landing pages in jQuery mode
 
 ## Kiwix-JS v3.0.0
 
