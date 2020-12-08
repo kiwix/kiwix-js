@@ -23,6 +23,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a command using the runners shell
+      # Runs a command using the runner's shell
       - name: Run a script
-        run: sh "./$GITHUB_WORKSPACE/scripts/create_all_packages.sh -t" 
+        run: sh ./scripts/create_all_packages.sh -t 
