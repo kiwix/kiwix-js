@@ -30,16 +30,18 @@ jobs:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
           GHWS: ${{ github.workspace }}
-          TAG_NAME: ${{ github.event.release.tag_name }}
+          # We use version 0.0.0 for testing this script, becuase github.even.release.tag_name
+          # only exists if the release event has fired
+          TAG_NAME: ${{ github.event.release.tag_name }} || "0.0.0"
         run: |
-          echo "$SSH_KEY" | base64 -d > ssh_key
-          chmod 600 ssh_key
+          echo "$SSH_KEY" | base64 -d > ./$GHWS/scripts/ssh_key
+          chmod 600 ./$GHWS/scripts/ssh_key
 
       # Set up the environment
       - name: Setup environment
         run: sudo apt-get --yes install ./$GHWS/ubuntu_touch/*.deb
 
-      # Runs a command using the runner's shell
-      - name: Run a script
-      # Switch -t sets the version number from the current tag; -d indicates dry run (for testing)
+      # Runs the build scripts
+      - name: Run the build scripts
+        # Switch -t indicates a tag release; -d indicates dry run (for testing)
         run: sh DISPLAY=:99.0 ./$GHWS/scripts/create_all_packages.sh -t -v $TAG_NAME -d
