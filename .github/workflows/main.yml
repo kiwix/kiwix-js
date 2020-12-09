@@ -30,15 +30,16 @@ jobs:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
           GHWS: ${{ github.workspace }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
           echo "$SSH_KEY" | base64 -d > ssh_key
           chmod 600 ssh_key
 
       # Set up the environment
       - name: Setup environment
-        run: sudo apt-get install ./$GHWS/ubuntu_touch/*.deb
+        run: sudo apt-get --yes install ./$GHWS/ubuntu_touch/*.deb
       
       # Runs a command using the runner's shell
       - name: Run a script
       # Switch -t sets the version number from the current tag; -d indicates dry run (for testing)
-        run: sh ./$GHWS/scripts/create_all_packages.sh -t -d
+        run: sh DISPLAY=:99.0 ./$GHWS/scripts/create_all_packages.sh -t -v $TAG_NAME -d
