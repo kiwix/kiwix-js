@@ -25,11 +25,12 @@ jobs:
       # Decrypt the ssh secret
       - name: Decrypt files
         env:
-          ssh_key: ${{ secrets.ssh_key }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
-          echo "$ssh_key" | base64 -d > ssh_key
+          echo "$SSH_KEY" | base64 -d > ssh_key
           chmod 600 ssh_key
 
       # Runs a command using the runner's shell
       - name: Run a script
-        run: sh ./scripts/create_all_packages.sh -t
+      # Switch -t sets the version number from the current tag; -d indicates dry run (for testing)
+        run: sh ./${{ github.workspace }}/scripts/create_all_packages.sh -t -d
