@@ -22,15 +22,23 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
       # Decrypt the ssh secret
       - name: Decrypt files
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
+          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
+          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          GHWS: ${{ github.workspace }}
         run: |
           echo "$SSH_KEY" | base64 -d > ssh_key
           chmod 600 ssh_key
 
+      # Set up the environment
+      - name: Setup environment
+        run: sudo apt-get install ./$GHWS/ubuntu_touch/*.deb
+      
       # Runs a command using the runner's shell
       - name: Run a script
       # Switch -t sets the version number from the current tag; -d indicates dry run (for testing)
-        run: sh ./${{ github.workspace }}/scripts/create_all_packages.sh -t -d
+        run: sh ./$GHWS/scripts/create_all_packages.sh -t -d
