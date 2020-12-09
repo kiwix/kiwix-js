@@ -22,6 +22,13 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - name: Decrypt files
+        env:
+          ssh_key: ${{ secrets.ssh_key }}
+        run: |
+          echo "$ssh_key" | base64 -d > ssh_key
+          chmod 600 ssh_key
 
       # Runs a command using the runner's shell
       - name: Run a script
