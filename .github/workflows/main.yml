@@ -1,4 +1,4 @@
-# This is a basic workflow to help you get started with Actions
+# This sets the environment for building Kiwix JS store packages and runs the build script
 
 name: Build all packages on release publish
 
