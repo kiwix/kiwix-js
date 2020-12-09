@@ -38,7 +38,7 @@ jobs:
       # Set up the environment
       - name: Setup environment
         run: sudo apt-get --yes install ./$GHWS/ubuntu_touch/*.deb
-      
+
       # Runs a command using the runner's shell
       - name: Run a script
       # Switch -t sets the version number from the current tag; -d indicates dry run (for testing)
