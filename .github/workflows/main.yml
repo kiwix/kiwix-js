@@ -2,7 +2,7 @@
 
 name: Build all packages on release publish
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on release publish
   release:
@@ -22,7 +22,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      
+      # Decrypt the ssh secret
       - name: Decrypt files
         env:
           ssh_key: ${{ secrets.ssh_key }}
@@ -32,4 +32,4 @@ jobs:
 
       # Runs a command using the runner's shell
       - name: Run a script
-        run: sh ./scripts/create_all_packages.sh -t 
+        run: sh ./scripts/create_all_packages.sh -t
