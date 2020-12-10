@@ -36,7 +36,9 @@ jobs:
         shell: bash
         run: |
           pwd
-          ls
+          w
+          ls -al
+          touch ./scripts/testfile
           echo "$SSH_KEY" > ~/ssh_key
           chmod 600 ~/ssh_key
           if [ "${TAG_NAME}zz" == "zz" ]; then
