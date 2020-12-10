@@ -32,7 +32,7 @@ jobs:
           GHWS: ${{ github.workspace }}
           # We use version 0.0.0 for testing this script, becuase github.event.release.tag_name
           # only exists if the release event has fired
-          TAG_NAME: ${{ github.event.release.tag_name }} || "0.0.0"
+          TAG_NAME: ${{ github.event.release.tag_name } || {'0.0.0'}}
         run: |
           echo "$SSH_KEY" | base64 -d > ./$GHWS/scripts/ssh_key
           chmod 600 ./$GHWS/scripts/ssh_key
