@@ -36,11 +36,12 @@ jobs:
         shell: bash
         run: |
           pwd
-          w
+          who
           ls -al
           touch ./scripts/testfile
-          echo "$SSH_KEY" > ~/ssh_key
-          chmod 600 ~/ssh_key
+          ls -al ./scripts/
+          echo "$SSH_KEY" > ./scripts/ssh_key
+          chmod 600 ./scripts/ssh_key
           if [ "${TAG_NAME}zz" == "zz" ]; then
             TAG_NAME="0.0.0"
           fi
