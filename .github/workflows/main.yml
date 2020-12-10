@@ -37,7 +37,7 @@ jobs:
         run: |
           pwd
           echo $GHWS
-          'echo "$SSH_KEY" > ./$GHWS/scripts/ssh_key'
+          'echo "$SSH_KEY" > ./scripts/ssh_key'
           chmod 600 $GHWS/scripts/ssh_key
           if [ "${TAG_NAME}zz" == "zz" ]; then
             TAG_NAME="0.0.0"
@@ -45,9 +45,9 @@ jobs:
 
       # Set up the environment
       - name: Setup environment
-        run: sudo apt-get --yes install $GHWS/ubuntu_touch/*.deb
+        run: sudo apt-get --yes install ./ubuntu_touch/*.deb
 
       # Runs the build scripts
       - name: Run the build scripts
         # Switch -t indicates a tag release; -d indicates dry run (for testing)
-        run: sh DISPLAY=:99.0 .$GHWS/scripts/create_all_packages.sh -t -v $TAG_NAME -d
+        run: sh DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v $TAG_NAME -d
