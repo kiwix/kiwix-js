@@ -1,0 +1,47 @@
+# This sets the environment for building Kiwix JS store packages and runs the build script
+
+name: Build all packages on release publish
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on release publish
+  release:
+    types: [ published ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Decrypt the ssh secret
+      - name: Decrypt files
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
+          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          GHWS: ${{ github.workspace }}
+          # We use version 0.0.0 for testing this script, becuase github.event.release.tag_name
+          # only exists if the release event has fired
+          TAG_NAME: ${{ github.event.release.tag_name } || {'0.0.0'}}
+        run: |
+          echo "$SSH_KEY" | base64 -d > ./$GHWS/scripts/ssh_key
+          chmod 600 ./$GHWS/scripts/ssh_key
+
+      # Set up the environment
+      - name: Setup environment
+        run: sudo apt-get --yes install ./$GHWS/ubuntu_touch/*.deb
+
+      # Runs the build scripts
+      - name: Run the build scripts
+        # Switch -t indicates a tag release; -d indicates dry run (for testing)
+        run: sh DISPLAY=:99.0 ./$GHWS/scripts/create_all_packages.sh -t -v $TAG_NAME -d
