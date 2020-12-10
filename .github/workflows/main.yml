@@ -33,10 +33,11 @@ jobs:
           # We use version 0.0.0 for testing this script, becuase github.event.release.tag_name
           # only exists if the release event has fired
           TAG_NAME: ${{ github.event.release.tag_name }}
+        shell: bash
         run: |
           pwd
           echo $GHWS
-          'echo "$SSH_KEY" > $GHWS/scripts/ssh_key'
+          'echo "$SSH_KEY" > ./$GHWS/scripts/ssh_key'
           chmod 600 $GHWS/scripts/ssh_key
           if [ "${TAG_NAME}zz" == "zz" ]; then
             TAG_NAME="0.0.0"
