@@ -35,13 +35,10 @@ jobs:
           TAG_NAME: ${{ github.event.release.tag_name }}
         shell: bash
         run: |
-          pwd
           who
-          ls -al
-          touch ./scripts/testfile
-          ls -al ./scripts/
           echo "$SSH_KEY" > ./scripts/ssh_key
           chmod 600 ./scripts/ssh_key
+          ls -al ./scripts/
           if [ "${TAG_NAME}zz" == "zz" ]; then
             TAG_NAME="0.0.0"
           fi
