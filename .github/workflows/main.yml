@@ -35,6 +35,8 @@ jobs:
           TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
           echo "$SSH_KEY" | base64 -d > ./$GHWS/scripts/ssh_key
+          echo pwd
+          echo $GHWS
           chmod 600 ./$GHWS/scripts/ssh_key
           if [ "${TAG_NAME}zz" == "zz" ]; then
             TAG_NAME="0.0.0"
