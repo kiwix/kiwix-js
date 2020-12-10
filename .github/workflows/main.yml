@@ -36,8 +36,8 @@ jobs:
         shell: bash
         run: |
           pwd
-          echo $GHWS
-          'echo "$SSH_KEY" > ./scripts/ssh_key'
+          ls
+          'echo "$SSH_KEY" > scripts/ssh_key'
           chmod 600 $GHWS/scripts/ssh_key
           if [ "${TAG_NAME}zz" == "zz" ]; then
             TAG_NAME="0.0.0"
