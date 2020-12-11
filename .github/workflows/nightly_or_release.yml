@@ -49,4 +49,9 @@ jobs:
       - name: Run the build scripts
         shell: bash
         # Switch -t indicates a tag release; add -d for dry run (for testing)
-        run: DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
+        run: |
+          if [ "x$TAG_NAME" = "x" ]; then
+            DISPLAY=:99.0 ./scripts/create_all_packages.sh
+          else
+            DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
+         fi
