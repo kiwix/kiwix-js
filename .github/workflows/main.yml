@@ -4,11 +4,14 @@ name: Build all packages on release publish
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow on release publish
   release:
-    types: [ published ]
-
-  # Allows you to run this workflow manually from the Actions tab
+  # Triggers the workflow on publishing a release
+    types: 
+      - published
+  schedule:
+  # Nightly run at 01:37 UTC (avoiding the usual midnight surge and rounded times)
+    - cron: '37 1 * * *' 
+  # Allows us to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
