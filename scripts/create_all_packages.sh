@@ -79,8 +79,8 @@ if [ "${DRYRUN}zz" == "zz" ]; then
     CURRENT_DATE=$(date +'%Y-%m-%d')
     # Upload the files on download.kiwix.org
     echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
-    ssh -i ./scripts/ssh_key ci@download.kiwix.org mkdir -p /data/download/nightly/$CURRENT_DATE
-    scp -r -p -i ./scripts/ssh_key build/* ci@download.kiwix.org:/data/download/nightly/$CURRENT_DATE
+    ssh -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@download.kiwix.org mkdir -p /data/download/nightly/$CURRENT_DATE
+    scp -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* ci@download.kiwix.org:/data/download/nightly/$CURRENT_DATE
 else
     echo "Skipping uploading the files, because it's a dryrun test"
 fi
