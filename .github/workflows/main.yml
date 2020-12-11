@@ -45,7 +45,9 @@ jobs:
 
       # Set up the environment
       - name: Setup environment
-        run: sudo apt-get --yes install ./ubuntu_touch/*.deb
+        run: |
+        sudo apt-get update
+        sudo apt-get --yes install ./ubuntu_touch/*.deb
 
       # Runs the build scripts
       - name: Run the build scripts
