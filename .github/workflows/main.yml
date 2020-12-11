@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
 
       # Decrypt the ssh secret
-      - name: Decrypt files
+      - name: Decrypt files and set constants
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
@@ -39,9 +39,10 @@ jobs:
           echo "$SSH_KEY" > ./scripts/ssh_key
           chmod 600 ./scripts/ssh_key
           ls -al ./scripts/
-          if [ -n "$a" ]; then
+          if [ -n "$TAG_NAME" ]; then
             TAG_NAME="0.0.0"
           fi
+          echo "TAG_NAME is set to $TAG_NAME"
 
       # Set up the environment
       - name: Setup environment
