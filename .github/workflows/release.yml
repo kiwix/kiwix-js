@@ -1,16 +1,16 @@
 # This sets the environment for building Kiwix JS store packages and runs the build script
 
-name: Build all packages on release publish
+name: Build all packages nightly or on publish new release
 
 # Controls when the action will run.
 on:
   release:
   # Triggers the workflow on publishing a release
-    types: 
+    types:
       - published
   schedule:
   # Nightly run at 01:37 UTC (avoiding the usual midnight surge and rounded times)
-    - cron: '37 1 * * *' 
+    - cron: '37 1 * * *'
   # Allows us to run this workflow manually from the Actions tab
   workflow_dispatch:
 
