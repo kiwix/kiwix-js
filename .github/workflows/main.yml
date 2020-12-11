@@ -29,28 +29,29 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
-          GHWS: ${{ github.workspace }}
-          # We use version 0.0.0 for testing this script, becuase github.event.release.tag_name
-          # only exists if the release event has fired
           TAG_NAME: ${{ github.event.release.tag_name }}
         shell: bash
         run: |
-          who
           echo "$SSH_KEY" > ./scripts/ssh_key
           chmod 600 ./scripts/ssh_key
           ls -al ./scripts/
-          if [ "x$TAG_NAME" = "x" ]; then
-            TAG_NAME="0.0.0"
-          fi
-          echo "TAG_NAME is set to $TAG_NAME"
 
       # Set up the environment
       - name: Setup environment
+        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get --yes install ./ubuntu_touch/*.deb
 
       # Runs the build scripts
       - name: Run the build scripts
+        shell: bash
         # Switch -t indicates a tag release; -d indicates dry run (for testing)
-        run: DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -d -v $TAG_NAME
+        # TESTING ONLY: setting TAG_NAME to 0.0.0 for testing becuase github.event.release.tag_name
+        # only exists if the release event has fired (remove this before merging to master)
+        run: |
+          if [ "x$TAG_NAME" = "x" ]; then
+            TAG_NAME="0.0.0"
+          fi
+          echo "TAG_NAME is set to $TAG_NAME"
+          DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -d -v "$TAG_NAME"
