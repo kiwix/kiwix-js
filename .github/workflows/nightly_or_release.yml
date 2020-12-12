@@ -26,13 +26,19 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      # Get the source tag
+      - name: Source tag
+        id: source_tag
+        shell: bash
+        run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+
       # Decrypt the ssh secret
       - name: Decrypt files and set constants
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
-          TAG_NAME: ${{ github.event.release.tag_name }}
+          TAG_NAME: ${{ steps.source_tag.outputs.SOURCE_TAG }}
         shell: bash
         run: |
           echo "$SSH_KEY" > ./scripts/ssh_key
