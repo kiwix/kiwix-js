@@ -17,7 +17,8 @@ zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www webextension ma
 cd ..
 if [ "${TAG}zz" == "zz" ]; then
     # Package the extension with Chrome or Chromium, if we're not packaging a public version
-    if hash chromium-browser 2>/dev/null then
+    if hash chromium-browser 2>/dev/null
+    then
         echo "Chromium is available"
         CHROME_BIN=chromium-browser
     else
