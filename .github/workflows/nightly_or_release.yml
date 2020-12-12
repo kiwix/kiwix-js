@@ -48,6 +48,8 @@ jobs:
           chmod 600 ./scripts/kiwix-html5.pem
           if [ "x$MOZILLA_API_SECRET" = "x" ]; then
             echo "WARNING: MOZILLA_API_SECRET is empty!"
+          else
+            echo "MOZILLA_API_SECRET is available"
           fi
 
       # Set up the environment
