@@ -44,6 +44,8 @@ jobs:
         run: |
           echo "$SSH_KEY" > ./scripts/ssh_key
           chmod 600 ./scripts/ssh_key
+          echo "$CHROME_EXTENSION_KEY" > ./scripts/kiwix-html5.pem
+          chmod 600 ./scripts/kiwix-html5.pem
 
       # Set up the environment
       - name: Setup environment
