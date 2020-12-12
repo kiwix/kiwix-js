@@ -54,7 +54,7 @@ jobs:
 
       # Runs the build scripts
       - name: Run the build scripts
-        env: 
+        env:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
         shell: bash
