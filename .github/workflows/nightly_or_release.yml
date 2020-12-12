@@ -71,7 +71,7 @@ jobs:
             echo "MOZILLA_API_SECRET is available and is of size ${#MOZILLA_API_SECRET}"
           fi
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
-          xvfb -ac :99 -screen 0 1280x1024x16 &
+          Xvfb -ac :99 -screen 0 1280x1024x16 &
           export DISPLAY=:99
           if [ "x$TAG_NAME" = "x" ]; then
             ./scripts/create_all_packages.sh
