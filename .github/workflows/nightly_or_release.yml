@@ -46,6 +46,9 @@ jobs:
           chmod 600 ./scripts/ssh_key
           echo "$CHROME_EXTENSION_KEY" > ./scripts/kiwix-html5.pem
           chmod 600 ./scripts/kiwix-html5.pem
+          if [ "x$MOZILLA_API_SECRET" = "x" ]; then
+            echo "WARNING: MOZILLA_API_SECRET is empty!"
+          fi
 
       # Set up the environment
       - name: Setup environment
