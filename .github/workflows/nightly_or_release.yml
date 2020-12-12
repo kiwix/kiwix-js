@@ -1,0 +1,57 @@
+# This sets the environment for building Kiwix JS store packages and runs the build script
+
+name: Build all packages nightly or on publish new release
+
+# Controls when the action will run.
+on:
+  release:
+  # Triggers the workflow on publishing a release
+    types:
+      - published
+  schedule:
+  # Nightly run at 01:37 UTC (avoiding the usual midnight surge and rounded times)
+    - cron: '37 1 * * *'
+  # Allows us to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Decrypt the ssh secret
+      - name: Decrypt files and set constants
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
+          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        shell: bash
+        run: |
+          echo "$SSH_KEY" > ./scripts/ssh_key
+          chmod 600 ./scripts/ssh_key
+
+      # Set up the environment
+      - name: Setup environment
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get --yes install ./scripts/ubuntu_touch_packages/*.deb
+
+      # Runs the build scripts
+      - name: Run the build scripts
+        shell: bash
+        # Switch -t indicates a tag release; add -d for dry run (for testing)
+        run: |
+          if [ "x$TAG_NAME" = "x" ]; then
+            DISPLAY=:99.0 ./scripts/create_all_packages.sh
+          else
+            DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
+          fi
