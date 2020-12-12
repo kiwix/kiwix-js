@@ -38,6 +38,7 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
           TAG_NAME: ${{ steps.source_tag.outputs.SOURCE_TAG }}
         shell: bash
         run: |
