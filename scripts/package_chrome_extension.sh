@@ -26,7 +26,7 @@ if [ "${TAG}zz" == "zz" ]; then
         CHROME_BIN=google-chrome-stable
     fi
     echo "Signing the extension for $CHROME_BIN, version $VERSION"
-    $CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
+    $CHROME_BIN --headless --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
     mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.crx
 else
     echo "This unsigned extension must be manually uploaded to Google to be signed and distributed from their store"
