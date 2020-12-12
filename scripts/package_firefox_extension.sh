@@ -24,16 +24,6 @@ if [ "${TAG}zz" == "zz" ]; then
     if [ "${DRYRUN}zz" == "zz" ]; then
         # Sign the extension with the Mozilla API through web-ext, if we're not packaging a public version
         echo "Signing the extension for Firefox with Mozilla API, version $VERSION"
-        if [ "x$MOZILLA_API_KEY" = "x" ]; then
-          echo "WARNING: MOZILLA_API_KEY is empty!"
-        else
-          echo "MOZILLA_API_KEY is available and is of size ${#MOZILLA_API_KEY}"
-        fi
-        if [ "x$MOZILLA_API_SECRET" = "x" ]; then
-          echo "WARNING: MOZILLA_API_SECRET is empty!"
-        else
-          echo "MOZILLA_API_SECRET is available and is of size ${#MOZILLA_API_SECRET}"
-        fi
         ../node_modules/web-ext/bin/web-ext sign --api-key=${MOZILLA_API_KEY} --api-secret=${MOZILLA_API_SECRET}
     else
         echo "Skipping signing the extension with the Mozilla API, because it's a dryrun test"
