@@ -32,12 +32,11 @@ jobs:
         shell: bash
         run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
 
-      # Decrypt the ssh secret
+      # Set up secret files from encrypted secrets
       - name: Set up secret files
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
-          TAG_NAME: ${{ steps.source_tag.outputs.SOURCE_TAG }}
         shell: bash
         run: |
           echo "$SSH_KEY" > ./scripts/ssh_key
@@ -57,6 +56,7 @@ jobs:
         env:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          TAG_NAME: ${{ steps.source_tag.outputs.SOURCE_TAG }}
         shell: bash
         # Switch -t indicates a tag release; add -d for dry run (for testing)
         run: |
