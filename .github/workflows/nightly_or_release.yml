@@ -60,10 +60,15 @@ jobs:
         shell: bash
         # Switch -t indicates a tag release; add -d for dry run (for testing)
         run: |
+          if [ "x$MOZILLA_API_KEY" = "x" ]; then
+            echo "WARNING: MOZILLA_API_KEY is empty!"
+          else
+            echo "MOZILLA_API_KEY is available and is of size ${#MOZILLA_API_KEY}"
+          fi
           if [ "x$MOZILLA_API_SECRET" = "x" ]; then
             echo "WARNING: MOZILLA_API_SECRET is empty!"
           else
-            echo "MOZILLA_API_SECRET is available"
+            echo "MOZILLA_API_SECRET is available and is of size ${#MOZILLA_API_SECRET}"
           fi
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
           xvfb -ac :99 -screen 0 1280x1024x16 &
