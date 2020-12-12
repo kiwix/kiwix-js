@@ -16,9 +16,16 @@ cd tmp
 zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 cd ..
 if [ "${TAG}zz" == "zz" ]; then
-    # Package the extension with Chromium, if we're not packaging a public version
-    echo "Signing the extension for Chrome with a local Chromium, version $VERSION"
-    chromium-browser --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
+    # Package the extension with Chrome or Chromium, if we're not packaging a public version
+    if hash chromium-browser 2>/dev/null then
+        echo "Chromium is available"
+        CHROME_BIN=chromium-browser
+    else
+        echo "Chrome is available"
+        CHROME_BIN=chrome
+    fi
+    echo "Signing the extension for $CHROME_BIN, version $VERSION"
+    $CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
     mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.crx
 else
     echo "This unsigned extension must be manually uploaded to Google to be signed and distributed from their store"
