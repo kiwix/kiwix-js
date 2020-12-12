@@ -22,8 +22,8 @@ if [ "${TAG}zz" == "zz" ]; then
         echo "Chromium is available"
         CHROME_BIN=chromium-browser
     else
-        echo "Chrome is available"
-        CHROME_BIN=chrome
+        echo "Chromium is not available : trying to use Chrome"
+        CHROME_BIN=google-chrome-stable
     fi
     echo "Signing the extension for $CHROME_BIN, version $VERSION"
     $CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
