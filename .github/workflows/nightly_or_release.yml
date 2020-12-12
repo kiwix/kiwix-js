@@ -26,12 +26,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Get the source tag
-      - name: Source tag
-        id: source_tag
-        shell: bash
-        run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
-
       # Set up secret files from encrypted secrets
       - name: Set up secret files
         env:
@@ -56,10 +50,15 @@ jobs:
         env:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
-          TAG_NAME: ${{ steps.source_tag.outputs.SOURCE_TAG }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
         shell: bash
         # Switch -t indicates a tag release; add -d for dry run (for testing)
         run: |
+          if [ "x$TAG_NAME" = "x" ]; then
+            echo "WARNING: TAG_NAME is empty"
+          else
+            echo "Creating a release with TAG_NAME: $TAG_NAME"
+          fi
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
           Xvfb -ac :99 -screen 0 1280x1024x16 &
           export DISPLAY=:99
