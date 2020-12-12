@@ -33,11 +33,9 @@ jobs:
         run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
 
       # Decrypt the ssh secret
-      - name: Decrypt files and set constants
+      - name: Set up secret files
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
-          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
-          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
           CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
           TAG_NAME: ${{ steps.source_tag.outputs.SOURCE_TAG }}
         shell: bash
@@ -46,11 +44,6 @@ jobs:
           chmod 600 ./scripts/ssh_key
           echo "$CHROME_EXTENSION_KEY" > ./scripts/kiwix-html5.pem
           chmod 600 ./scripts/kiwix-html5.pem
-          if [ "x$MOZILLA_API_SECRET" = "x" ]; then
-            echo "WARNING: MOZILLA_API_SECRET is empty!"
-          else
-            echo "MOZILLA_API_SECRET is available"
-          fi
 
       # Set up the environment
       - name: Setup environment
@@ -61,9 +54,17 @@ jobs:
 
       # Runs the build scripts
       - name: Run the build scripts
+        env: 
+          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
+          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
         shell: bash
         # Switch -t indicates a tag release; add -d for dry run (for testing)
         run: |
+          if [ "x$MOZILLA_API_SECRET" = "x" ]; then
+            echo "WARNING: MOZILLA_API_SECRET is empty!"
+          else
+            echo "MOZILLA_API_SECRET is available"
+          fi
           if [ "x$TAG_NAME" = "x" ]; then
             DISPLAY=:99.0 ./scripts/create_all_packages.sh
           else
