@@ -25,5 +25,5 @@ rm -f "$BASEDIR/tmp/www/fonts"/*.woff*
 # We need to remove these files because the --ignore option of click is not supported in the version of Trusty
 rm -rf "$BASEDIR/tmp/webextension"
 rm -f "$BASEDIR/tmp/manifest.webapp"
-click build "$BASEDIR/tmp"
+click build --no-validate "$BASEDIR/tmp"
 mv kiwix*.click $BASEDIR/build/kiwix-ubuntu-touch-$VERSION.click
