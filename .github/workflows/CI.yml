@@ -55,6 +55,11 @@ jobs:
         # Switch -t indicates a tag release (public release); add -d for dry run (for testing)
         # BEFORE the -v switch (because $TAG_NAME is empty for non-public builds)
         run: |
+          if [ "x$TAG_NAME" = "x" ]; then
+            echo "WARNING: TAG_NAME is empty"
+          else
+            echo "Creating a release with TAG_NAME: $TAG_NAME"
+          fi
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
           Xvfb -ac :99 -screen 0 1280x1024x16 &
           export DISPLAY=:99
