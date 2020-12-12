@@ -6,7 +6,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.1.0
 
-Released on *TODO*
+Released on *2020-12-12*
 
 * NEW: Low-level block cache significantly improves binary search speed, and can speed up resource loading in most browsers
 * NEW: Archives with WebP-encoded images are now decoded in legacy browsers via a polyfill
