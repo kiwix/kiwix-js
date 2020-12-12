@@ -40,9 +40,9 @@ if [ "${TAG}zz" == "zz" ]; then
     else
             echo "Extension not signed by Mozilla. It might be because this commit id has already been signed : let's look for it in a previous nightly build"
             FOUND=0
-            for FILE in $(ssh -i ../scripts/travisci_builder_id_key ci@download.kiwix.org "find /data/download/nightly -name \"kiwix-firefox-signed-extension-$VERSION.xpi\""); do
+            for FILE in $(ssh -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@download.kiwix.org "find /data/download/nightly -name \"kiwix-firefox-signed-extension-$VERSION.xpi\""); do
     		echo "Signed extension found on the server in $FILE : copying it locally"
-                    scp -i ../scripts/travisci_builder_id_key ci@download.kiwix.org:$FILE ../build/
+                    scp -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@download.kiwix.org:$FILE ../build/
                     FOUND=1
                     # We only need the first matching file
                     break
