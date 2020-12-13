@@ -1,6 +1,6 @@
 # This sets the environment for building Kiwix JS store packages and runs the build script
 
-name: Build all packages nightly or on publish new release
+name: CI
 
 # Controls when the action will run.
 on:
