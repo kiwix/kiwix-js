@@ -19,7 +19,7 @@ If your Internet access is expensive/rare/slow/unreliable/watched/censored, you 
 
 ## Usage
 
-It uses ZIM files that you can download from https://download.kiwix.org/
+It uses ZIM files that you can download from https://download.kiwix.org/zim/
 
 You have to download them separately, store them in your filesystem, and manually select them after starting the application.
 It is unfortunately not technically possible to "remember" the selected ZIM file and open it automatically (the browsers refuse that for security reasons).
