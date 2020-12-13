@@ -26,17 +26,17 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Decrypt the ssh secret
-      - name: Decrypt files and set constants
+      # Set up secret files from encrypted secrets
+      - name: Set up secret files
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
-          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
-          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
-          TAG_NAME: ${{ github.event.release.tag_name }}
+          CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
         shell: bash
         run: |
           echo "$SSH_KEY" > ./scripts/ssh_key
           chmod 600 ./scripts/ssh_key
+          echo "$CHROME_EXTENSION_KEY" > ./scripts/kiwix-html5.pem
+          chmod 600 ./scripts/kiwix-html5.pem
 
       # Set up the environment
       - name: Setup environment
@@ -47,11 +47,19 @@ jobs:
 
       # Runs the build scripts
       - name: Run the build scripts
+        env:
+          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
+          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
         shell: bash
-        # Switch -t indicates a tag release; add -d for dry run (for testing)
+        # Switch -t indicates a tag release (public release); add -d for dry run (for testing)
+        # BEFORE the -v switch (because $TAG_NAME is empty for non-public builds)
         run: |
+          # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
+          Xvfb -ac :99 -screen 0 1280x1024x16 &
+          export DISPLAY=:99
           if [ "x$TAG_NAME" = "x" ]; then
-            DISPLAY=:99.0 ./scripts/create_all_packages.sh
+            ./scripts/create_all_packages.sh
           else
-            DISPLAY=:99.0 ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
+            ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
           fi
