@@ -76,6 +76,8 @@ sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
 if [ "${DRYRUN}zz" == "zz" ]; then
+    # Change permissions on source files to match those expected by the server
+    chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
     # Upload the files on download.kiwix.org
     echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
