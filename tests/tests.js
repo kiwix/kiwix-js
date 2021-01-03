@@ -68,7 +68,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
 
     var splitBlobs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o'].map(function(c) {
         var filename = 'wikipedia_en_ray_charles_2015-06.zima' + c;
-        return makeBlobRequest('tests/' + filename, filename);
+        return makeBlobRequest(require.toUrl('../../../tests/' + filename), filename);
     });
     Promise.all(splitBlobs)
         .then(function(values) {
@@ -383,5 +383,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             };
             localZimArchive.getMainPageDirEntry(callbackMainPageArticleFound);
         });
+
+        QUnit.start();
     };
 });

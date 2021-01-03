@@ -1,0 +1,65 @@
+# Workflow for building Kiwix JS store packages for nightly and tagged releases.
+
+name: Release
+
+# Controls when the action will run.
+on:
+  release:
+  # Triggers the workflow on publishing a release
+    types:
+      - published
+  schedule:
+  # Nightly run at 01:37 UTC (avoiding the usual midnight surge and rounded times)
+    - cron: '37 1 * * *'
+  # Allows us to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Set up secret files from encrypted secrets
+      - name: Set up secret files
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
+        shell: bash
+        run: |
+          echo "$SSH_KEY" > ./scripts/ssh_key
+          chmod 600 ./scripts/ssh_key
+          echo "$CHROME_EXTENSION_KEY" > ./scripts/kiwix-html5.pem
+          chmod 600 ./scripts/kiwix-html5.pem
+
+      # Set up the environment
+      - name: Setup environment
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get --yes install ./scripts/ubuntu_touch_packages/*.deb
+
+      # Runs the build scripts
+      - name: Run the build scripts
+        env:
+          MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
+          MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        shell: bash
+        # Switch -t indicates a tag release (public release); add -d for dry run (for testing)
+        # BEFORE the -v switch (because $TAG_NAME is empty for non-public builds)
+        run: |
+          # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
+          Xvfb -ac :99 -screen 0 1280x1024x16 &
+          export DISPLAY=:99
+          if [ "x$TAG_NAME" = "x" ]; then
+            ./scripts/create_all_packages.sh
+          else
+            ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
+          fi
