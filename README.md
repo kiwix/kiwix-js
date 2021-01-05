@@ -61,6 +61,8 @@ The source code can be found at https://github.com/kiwix/kiwix-js
 
 Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
 
+Before running the tests, a one-time set up is needed to fetch development dependencies from the npm registry. Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI.
+
 ## Public releases and nightly builds
 
 The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in https://download.kiwix.org/release/browsers/ if necessary.
