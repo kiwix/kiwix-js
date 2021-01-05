@@ -4,7 +4,13 @@ module.exports = function (config) {
     // https://karma-runner.github.io/5.2/config/browsers.html
     browsers: [
       'FirefoxHeadless',
-      'ChromeHeadless'
+      // During local development, consider Chrome and Chromium to be similar enough
+      // and pick whichever the developer is most likely to have.
+      // In general, Linux distros provide and update Chromium only,
+      // whereas Windows and macOS users tend to have auto-updating Google Chrome.
+      //
+      // See package.json for commands to run tests in a single browser only.
+      process.platform === 'linux' ? 'ChromiumHeadless' : 'ChromeHeadless'
     ],
     frameworks: ['qunit'],
     client: {
