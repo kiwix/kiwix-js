@@ -1636,7 +1636,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                if (/[AC-]/.test(dirEntry.namespace)) {
+                if (/[ACW-]/.test(dirEntry.namespace)) {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
