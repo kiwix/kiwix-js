@@ -1224,7 +1224,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
     // remove any relative or absolute path from ZIM-style URLs.
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?!http)(?:\.\.\/|\/)*([^"']+)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
@@ -1255,7 +1255,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, url) {
+            // If it's a new ZIM URL without namespace, add the C namespace (=Content)
+            url = /^[-IJ]/.test(url) ? url : 'C/' + url;
+            return m1 + 'data-kiwixurl' + m2 + url;
+        });
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
@@ -1632,7 +1636,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                if (dirEntry.namespace === 'A') {
+                if (/[AC-]/.test(dirEntry.namespace)) {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
