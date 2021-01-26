@@ -1220,7 +1220,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var regexpZIMUrlWithNamespace = /^[./]*([-ABIJMUVWX]\/.+)$/;
     // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
-    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing megative lookahead
+    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead
     // that excludes URLs that begin 'http' (i.e. non-relative URLs). When the regex is used below, it will be further processed to
     // account for any relative path.
     var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?!http)([^"']+)/ig;
@@ -1258,14 +1258,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
         // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, fullUrl) {
-            var url = uiUtil.deriveZimUrlFromRelativeUrl(fullUrl, baseUrl);
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, relAssetUrl) {
+            var decAssetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
             // Uncomment logging below to test the calculation of relative URLs if you are having issues 
             /** console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
-            console.log('Full URL: ' + fullUrl);
+            console.log('Full URL: ' + relAssetUrl);
             console.log('Base URL: ' + baseUrl);
-            console.log('Calculated URL: ' + url); **/
-            return m1 + 'data-kiwixurl' + m2 + url;
+            console.log('Calculated asset URL: ' + decAssetZIMUrl); **/
+            return m1 + 'data-kiwixurl' + m2 + encodeURIComponent(decAssetZIMUrl);
         });
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
