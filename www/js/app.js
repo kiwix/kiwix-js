@@ -1223,7 +1223,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing megative lookahead
     // that excludes URLs that begin 'http' (i.e. non-relative URLs). When the regex is used below, it will be further processed to
     // account for any relative path.
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?!http)(?:\.\.\/|\/)*([^"']+)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?!http)([^"']+)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
@@ -1252,12 +1252,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
         }
 
+        // Calculate the current article's ZIM baseUrl to use when processing relative links
+        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
+
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
-        // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
-        // If we are in a new-style ZIM archive with a single namespace for user content, then that namespace is added to the URL
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, url) {
-            // If it's a new ZIM URL without namespace, add the C namespace (=Content)
-            url = /^[-IJ]/.test(url) ? url : 'C/' + url;
+        // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
+        // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, fullUrl) {
+            var url = uiUtil.deriveZimUrlFromRelativeUrl(fullUrl, baseUrl);
+            // Uncomment logging below to test the calculation of relative URLs if you are having issues 
+            /** console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
+            console.log('Full URL: ' + fullUrl);
+            console.log('Base URL: ' + baseUrl);
+            console.log('Calculated URL: ' + url); **/
             return m1 + 'data-kiwixurl' + m2 + url;
         });
 
@@ -1320,9 +1327,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = "article.html";
-
-        // Calculate the current article's ZIM baseUrl to use when processing relative links
-        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
