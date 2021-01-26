@@ -1614,7 +1614,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 alert("Error finding random article.");
             } else {
-                if (dirEntry.namespace === 'A') {
+                if (dirEntry.getMimetype() === 'text/html') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
                     $('#searchingArticles').show();
@@ -1636,7 +1636,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                if (/[ACW-]/.test(dirEntry.namespace)) {
+                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html') {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
