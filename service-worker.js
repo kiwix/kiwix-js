@@ -53,11 +53,11 @@ var regexpCachedContentTypes = /text\/css|text\/javascript|application\/javascri
 var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
 
 /** 
- * Pattern for a ZIM link: these can be distinguished because they contain a ZIM file name
- * used as a prefix in the URL
+ * Pattern for ZIM file namespace: see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
+ * In our case, there is also the ZIM file name used as a prefix in the URL
  * @type {RegExp}
  */
-var regexpZIMUrl = /^(.*?\.[zZ][iI][mM]\/)(?:([-ABCIJMUVWX])\/)?(.+)/;
+var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABIJMUVWX])\/(.+)/;
 
 self.addEventListener('install', function (event) {
     event.waitUntil(self.skipWaiting());
@@ -75,7 +75,7 @@ var fetchCaptureEnabled = false;
 
 self.addEventListener('fetch', function (event) {
     if (fetchCaptureEnabled &&
-        regexpZIMUrl.test(event.request.url) &&
+        regexpZIMUrlWithNamespace.test(event.request.url) &&
         event.request.method === "GET") {
 
         // The ServiceWorker will handle this request either from CACHE_NAME or from app.js
@@ -146,10 +146,9 @@ function fetchRequestFromZIM(fetchEvent) {
         var nameSpace;
         var title;
         var titleWithNameSpace;
-        var regexpResult = regexpZIMUrl.exec(fetchEvent.request.url);
+        var regexpResult = regexpZIMUrlWithNamespace.exec(fetchEvent.request.url);
         var prefix = regexpResult[1];
-        // If there is no namespace, we are in a new-style ZIM where all content is in 'C'
-        nameSpace = regexpResult[2] || 'C';
+        nameSpace = regexpResult[2];
         title = regexpResult[3];
 
         // We need to remove the potential parameters in the URL
