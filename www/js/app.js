@@ -1220,10 +1220,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var regexpZIMUrlWithNamespace = /^[./]*([-ABIJMUVWX]\/.+)$/;
     // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
-    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
-    // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
-    // remove any relative or absolute path from ZIM-style URLs.
-    // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
+    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing megative lookahead
+    // that excludes URLs that begin 'http' (i.e. non-relative URLs). When the regex is used below, it will be further processed to
+    // account for any relative path.
     var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?!http)(?:\.\.\/|\/)*([^"']+)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
@@ -1255,6 +1254,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
+        // If we are in a new-style ZIM archive with a single namespace for user content, then that namespace is added to the URL
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, url) {
             // If it's a new ZIM URL without namespace, add the C namespace (=Content)
             url = /^[-IJ]/.test(url) ? url : 'C/' + url;
