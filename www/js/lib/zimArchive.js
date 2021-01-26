@@ -223,9 +223,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (search.status === 'cancelled') return 0;
-                if (dirEntry.namespace < 'A') return 1;
-                if (dirEntry.namespace > 'C') return -1;
-                // We should now be in namespace A or C (or possibly B, but that is unlikely)
+                var ns = dirEntry.namespace;
+                if (ns < 'A') return 1;
+                if (ns === 'B' || ns > 'C') return -1;
+                // We should now be in namespace A (old format ZIM) or C (new format ZIM)
                 return prefix <= dirEntry.getTitleOrUrl() ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
