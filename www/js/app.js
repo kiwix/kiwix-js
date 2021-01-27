@@ -1217,7 +1217,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-    var regexpZIMUrlWithNamespace = /^[./]*([-ABIJMUVWX]\/.+)$/;
+    var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
     // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
     // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead
@@ -1259,13 +1259,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
         // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, relAssetUrl) {
-            var decAssetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
             // Uncomment logging below to test the calculation of relative URLs if you are having issues 
             /** console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
             console.log('Full URL: ' + relAssetUrl);
             console.log('Base URL: ' + baseUrl);
             console.log('Calculated asset URL: ' + decAssetZIMUrl); **/
-            return m1 + 'data-kiwixurl' + m2 + encodeURIComponent(decAssetZIMUrl);
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL, so we re-encode it 
+            return m1 + 'data-kiwixurl' + m2 + encodeURIComponent(assetZIMUrl);
         });
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
@@ -1521,13 +1522,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var source = mediaSource.getAttribute('src');
                 source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
-                source = source ? source : mediaSource.dataset.kiwixurl;
+                source = source ? source : decodeURIComponent(mediaSource.dataset.kiwixurl);
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
                     if (source) console.error('No usable media source was found for: ' + source);
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-                selectedArchive.getDirEntryByTitle(decodeURIComponent(source)).then(function(dirEntry) {
+                selectedArchive.getDirEntryByTitle(source).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
