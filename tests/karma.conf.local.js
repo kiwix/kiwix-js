@@ -10,7 +10,12 @@ module.exports = function (config) {
       // whereas Windows and macOS users tend to have auto-updating Google Chrome.
       //
       // See package.json for commands to run tests in a single browser only.
-      process.platform === 'linux' ? 'ChromiumHeadless' : 'ChromeHeadless'
+      //
+      // The CHROME_BIN check is to temporarily accomodate GitHub Actions
+      // which oddly uses Ubuntu but replaces the standard Chromium distribution
+      // with a custom install of Google Chrome. Being fixed in the next release:
+      // https://github.com/actions/virtual-environments/issues/2388
+      process.platform === 'linux' && !process.env.CHROME_BIN ? 'ChromiumHeadless' : 'ChromeHeadless'
     ],
     frameworks: ['qunit'],
     client: {
