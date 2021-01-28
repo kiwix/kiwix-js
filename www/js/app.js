@@ -1224,7 +1224,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // URLs that begin 'http' (i.e. non-relative URLs). It then captures the whole of the URL up until either the opening delimiter
     // (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used below, it will be further
     // processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?!http)((?:.(?!\3|\?|#))+.)/ig;
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?!http)(.+?)(?=\3|\?|#)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
