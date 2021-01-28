@@ -1266,7 +1266,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
                 console.log('Full URL: ' + relAssetUrl);
                 console.log('Base URL: ' + baseUrl);
-                console.log('Calculated asset URL: ' + decAssetZIMUrl);
+                console.log('Calculated asset URL: ' + assetZIMUrl);
             **/
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
