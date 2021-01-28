@@ -1268,8 +1268,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 console.log('Base URL: ' + baseUrl);
                 console.log('Calculated asset URL: ' + decAssetZIMUrl);
             **/
-            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and removes any URI component)
-            // so we re-encode it with encodeURI (this does not encode forward slashes) 
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
+            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent. 
             return m1 + 'data-kiwixurl' + m2 + encodeURI(assetZIMUrl);
         });
 
