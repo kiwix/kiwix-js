@@ -1261,12 +1261,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, relAssetUrl) {
             var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
             // Uncomment logging below to test the calculation of relative URLs if you are having issues 
-            /** console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
-            console.log('Full URL: ' + relAssetUrl);
-            console.log('Base URL: ' + baseUrl);
-            console.log('Calculated asset URL: ' + decAssetZIMUrl); **/
-            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL, so we re-encode it 
-            return m1 + 'data-kiwixurl' + m2 + encodeURIComponent(assetZIMUrl);
+            /**
+                console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
+                console.log('Full URL: ' + relAssetUrl);
+                console.log('Base URL: ' + baseUrl);
+                console.log('Calculated asset URL: ' + decAssetZIMUrl);
+            **/
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and removes any URI component)
+            // so we re-encode it with encodeURI (this does not encode forward slashes) 
+            return m1 + 'data-kiwixurl' + m2 + encodeURI(assetZIMUrl);
         });
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
