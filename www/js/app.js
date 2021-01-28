@@ -1218,12 +1218,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
-    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
-    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
-    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead
-    // that excludes URLs that begin 'http' (i.e. non-relative URLs). When the regex is used below, it will be further processed to
-    // account for any relative path.
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?!http)([^"']+)/ig;
+    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378].
+    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
+    // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead that excludes
+    // URLs that begin 'http' (i.e. non-relative URLs). It then captures the whole of the URL up until either the opening delimiter
+    // (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used below, it will be further
+    // processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?!http)((?:.(?!\3|\?|#))+.)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
@@ -1258,7 +1259,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
         // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, relAssetUrl) {
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, m3, relAssetUrl) {
             var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
             // Uncomment logging below to test the calculation of relative URLs if you are having issues 
             /**
