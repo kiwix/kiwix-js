@@ -57,7 +57,7 @@ var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
  * In our case, there is also the ZIM file name used as a prefix in the URL
  * @type {RegExp}
  */
-var regexpZIMUrlWithNamespace = /(?:^|\/)([^\/]+\/)([-ABCIJMUVWX])\/(.+)/;
+var regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
 
 self.addEventListener('install', function (event) {
     event.waitUntil(self.skipWaiting());
