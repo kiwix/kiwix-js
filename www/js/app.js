@@ -1624,7 +1624,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 alert("Error finding random article.");
             } else {
-                if (dirEntry.getMimetype() === 'text/html') {
+                if (dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
                     $('#searchingArticles').show();
