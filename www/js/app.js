@@ -376,6 +376,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
         document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
     });
+    document.getElementById('modesLink').addEventListener('click', function(e) {
+        document.getElementById('btnAbout').click();
+    });
 
     /**
      * Displays or refreshes the API status shown to the user
