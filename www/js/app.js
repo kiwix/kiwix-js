@@ -376,7 +376,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
         document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
     });
-    document.getElementById('modesLink').addEventListener('click', function(e) {
+    document.getElementById('modesLink').addEventListener('click', function() {
         document.getElementById('btnAbout').click();
     });
 
