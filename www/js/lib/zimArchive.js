@@ -217,11 +217,20 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @returns {String|null} The content namespace for the ZIM archive or null if the namespace cannot be determined 
      */
     ZIMArchive.prototype.getContentNamespace = function() {
+        var errorText;
         if (this.isReady()) {
             var ver = this._file.minorVersion;
-            return ver === 0 ? 'A' : ver === 1 ? 'C' : null;
+            // DEV: There are currently only two defined values for minorVersion in the OpenZIM specification
+            // If this changes, adapt the error checking and return values 
+            if (ver > 1) {
+                errorText = 'Unknown ZIM minor version!';
+            } else {
+                return ver === 0 ? 'A' : 'C';
+            }
+        } else {
+            errorText = 'We could not determine the content namespace because the ZIM file is not ready!';
         }
-        return null;
+        throw new Error(errorText);
     };
     
     /**
@@ -234,9 +243,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
         var that = this;
-        // DEV: if we cannot determine the namespace, we will assume the most common type, but this should not happen
-        // In the future, if the 'C' type becomes the dominant strain, change this fallback value
-        var cns = this.getContentNamespace() || 'A';
+        var cns = this.getContentNamespace();
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (search.status === 'cancelled') return 0;
@@ -255,7 +262,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
                     // Only return dirEntries with titles that actually begin with prefix
-                    if (/[AC]/.test(dirEntry.namespace) && title.indexOf(prefix) === 0) {
+                    if (dirEntry.namespace === cns && title.indexOf(prefix) === 0) {
                         dirEntries.push(dirEntry);
                         // Report interim result
                         callback([dirEntry], true);

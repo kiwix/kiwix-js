@@ -1624,6 +1624,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 alert("Error finding random article.");
             } else {
+                // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
+                // DEV: This will need to be changed if we search titlePtrList version 1
+                // in a future PR, as that list contains only articles
                 if (dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
@@ -1646,7 +1649,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html') {
+                // DEV: see comment above under goToRandomArticle()
+                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || 
+                dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
