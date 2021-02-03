@@ -1259,7 +1259,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
         // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(m0, m1, m2, m3, relAssetUrl) {
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(match, blockStart, equals, quote, relAssetUrl) {
             var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
             // Uncomment logging below to test the calculation of relative URLs if you are having issues 
             /**
@@ -1271,7 +1271,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
             // of encodeURIComponent. 
-            return m1 + 'data-kiwixurl' + m2 + encodeURI(assetZIMUrl);
+            return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
         });
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
