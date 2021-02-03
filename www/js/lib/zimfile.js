@@ -301,6 +301,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                         zf.id = tempFileId++;
                         fileIDs.set(zf.name, zf.id);
                     }
+                    zf.majorVersion = readInt(header, 4, 2);
+                    zf.minorVersion = readInt(header, 6, 2);
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
