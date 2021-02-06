@@ -99,19 +99,24 @@
                         <img src="img/icons/kiwix-60.png" alt="Kiwix icon"/>
                         Kiwix : offline Wikipedia viewer
                     </h2>
-                    <p>Official site : <a href="https://www.kiwix.org/" target="_blank">https://www.kiwix.org<img src="img/Icon_External_Link.png" /></a></p>
+                    <p>Official site : <a href="https://www.kiwix.org/" target="_blank">https://www.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></p>
                     <ul>
                         <li><a href="#aboutApp">About this App</a></li>
                         <li><a href="#usage">Usage</a></li>
                         <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#expert">Expert Settings and Technical Information</a></li>
-                        <li><a href="#feedback">Feedback and Support</a></li>
-                        <li><a href="#credits">Credits and Licence</a></li>
-                        <li><a href="#other">Other Platforms</a></li>
+                        <li><a href="#expert">Expert Settings and Technical Information</a>
+                            <ul>
+                                <li><a href="#modes">JQuery and ServiceWorker Modes</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#feedback">Feedback/Helping/Contributing</a></li>
+                        <li><a href="#credits">Credits</a></li>
+                        <li><a href="#licence">Licence Information</a></li>
+                        <li><a href="#other">Other Platforms/Versions</a></li>
                         <li>Download ZIM archives (content):
                             <ul>
-                                <li><a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download by language<img src="img/Icon_External_Link.png" /></a></li>
-                                <li><a href="https://download.kiwix.org/zim/" target="_blank">Index of all files<img src="img/Icon_External_Link.png" /></a></li>
+                                <li><a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download by language&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                                <li><a href="https://download.kiwix.org/zim/" target="_blank">Index of all files&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
                             </ul>
                         </li>
                     </ul>
@@ -138,24 +143,24 @@
 
                     <h4>Step 1: Download some content</h4>
                     <p>
-                        Go to <a href="https://download.kiwix.org/zim/" target="_blank">https://download.kiwix.org/zim<img src="img/Icon_External_Link.png" /></a>,
+                        Go to <a href="https://download.kiwix.org/zim/" target="_blank">https://download.kiwix.org/zim&nbsp;<img src="img/Icon_External_Link.png" /></a>,
                         with a regular computer and download an archive that interests you. If you find the list overwhelming, you can limit the selection by language
-                        on the <a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download-by-language site<img src="img/Icon_External_Link.png" /></a>.
+                        on the <a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download-by-language site&nbsp;<img src="img/Icon_External_Link.png" /></a>.
                         Note that archives with "mini" in their name only contain the lede (first) portion of each article; "nopic" means no pictures; "maxi" means
                         everything except video and audio. Larger versions without any of these qualifiers contain everything, though pictures are always compressed. 
                     </p>
                     <p>
                         <strong>Currently only Mediawiki-based content (for instance <a href="https://download.kiwix.org/zim/wikipedia/" 
-                        target="_blank">Wikipedia<img src="img/Icon_External_Link.png" /></a> and <a href="https://download.kiwix.org/zim/wikivoyage/" target="_blank">
-                        Wikivoyage<img src="img/Icon_External_Link.png" /></a>), and <a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank"> StackExchange<img
+                        target="_blank">Wikipedia&nbsp;<img src="img/Icon_External_Link.png" /></a> and <a href="https://download.kiwix.org/zim/wikivoyage/" target="_blank">
+                        Wikivoyage&nbsp;<img src="img/Icon_External_Link.png" /></a>), and <a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank"> StackExchange&nbsp;<img
                         src="img/Icon_External_Link.png" /></a>, have been thoroughly tested</strong>. Dynamic content (e.g. PhET) is only supported in ServiceWorker Mode
                         (see <a href="#modes">technical explanation</a> below).
                     </p>
                     <p>
                         For a quick test, you can start with the <a href="https://download.kiwix.org/zim/wikipedia_en_ray_charles_maxi.zim" target="_blank">
-                        Ray Charles ZIM file<img src="img/Icon_External_Link.png" /></a>, which contains some Wikipedia articles about the Jazz musician, or a
+                        Ray Charles ZIM file&nbsp;<img src="img/Icon_External_Link.png" /></a>, which contains some Wikipedia articles about the Jazz musician, or a
                         small archive containing the <a href="https://download.kiwix.org/zim/wikipedia_en_100_maxi.zim" target="_blank">top 100 English Wikipedia
-                        articles and images<img src="img/Icon_External_Link.png" /></a>.
+                        articles and images&nbsp;<img src="img/Icon_External_Link.png" /></a>.
                     </p>
                     <p>
                         After that, download any content in your favourite language(s). Check the size before you download archives as many file sizes are very
@@ -211,7 +216,7 @@
 
                     <h4>ZIM archive format</h4>
                     <p>
-                        Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format<img src="img/Icon_External_Link.png" /></a>,
+                        Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
                         but note that this app has only been tested extensively on Wikipedia, WikiMedia and Stackexchage archives. Video content is in principle supported
                         if your device, browser or OS understands the format. Some other ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
                         (<a href="#modes">see below</a>).
@@ -221,8 +226,8 @@
                     <p>
                         Full version of Wikipedia can be enormous: French, German and Spanish Wikipedia with images are each >25GB; full English Wikipedia with images
                         is >90GB. For these very large archives you can find convenient <a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">
-                        Torrent links<img src="img/Icon_External_Link.png" /></a> which may be more reliable than attempting to use your browser. You can use an
-                        open-source BitTorrent client such as <a href="https://www.qbittorrent.org/" target="_blank">QBittorrent<img src="img/Icon_External_Link.png" /></a>
+                        Torrent links&nbsp;<img src="img/Icon_External_Link.png" /></a> which may be more reliable than attempting to use your browser. You can use an
+                        open-source BitTorrent client such as <a href="https://www.qbittorrent.org/" target="_blank">QBittorrent&nbsp;<img src="img/Icon_External_Link.png" /></a>
                         with these links (install the software before clicking on the torrent link).
                     </p>
                     <p>
@@ -234,7 +239,7 @@
                     </p>
                     <p>
                         For some information on how to split archves, see <a href="https://web.archive.org/web/20180307122026/https://wiki.kiwix.org/wiki/FAQ">
-                        Archive of the Kiwix FAQ<img src="img/Icon_External_Link.png" /></a> (current FAQ is <a href="https://wiki.kiwix.org/wiki/FAQ">here<img src="img/Icon_External_Link.png" /></a>).
+                        Archive of the Kiwix FAQ&nbsp;<img src="img/Icon_External_Link.png" /></a> (current FAQ is <a href="https://wiki.kiwix.org/wiki/FAQ">here&nbsp;<img src="img/Icon_External_Link.png" /></a>).
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
                     
@@ -273,25 +278,31 @@
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
                     
                     <h3 id="feedback">Feedback / helping / contributing</h3>
-                    <p>This application is still work in progress. There may be bugs and issues, and new features are planned.
-                        Suggestions and patches/pull requests are welcome : the source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">github</a>.
+                    <p>We welcome constructive feedback and suggestions for improvement. We will consider feature requests, but it is even better if you
+                        can contribute to improving it! The source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">GitHub&nbsp;
+                        <img src="img/Icon_External_Link.png" /></a>, and we welcome Pull Requests (it's worth opening an issue and discussing your
+                        proposal first).
                     </p>
                     <p>
-                        The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bugtracker</a> is on github too. We use it as our roadmap.
+                        The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bug and issue tracker&nbsp;<img src="img/Icon_External_Link.png" /></a>
+                        is on GitHub too. We use it as our roadmap.
                         <br />Alternatively, you can send your feedback <a href="mailto:mossroy@mossroy.fr?subject=%5BKiwix%5D%20Feedback%20about%20Kiwix%20JS">by email</a>.
-                        <br />In all cases, please give as much detail as you can : which device you are using, which version of Kiwix, which archive, which articles etc.
-                        <br />
+                        <br />In all cases, if you are reporting a bug, please give as much detail as you can: which device you are using, which version of Kiwix, which archive,
+                        which articles etc.
                     </p>
                     <p>
-                        If you like the Kiwix project and use it, please consider giving donations :
+                        If you like the Kiwix project and use it, please consider giving donations:
                         <ul>
-                            <li>to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">donation page</a></li>
-                            <li>to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in  the <a href="https://www.kiwix.org">home page of kiwix.org</a></li>
+                            <li>to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">donation page&nbsp;
+                                <img src="img/Icon_External_Link.png" /></a></li>
+                            <li>to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in  the <a href="https://www.kiwix.org">home page of
+                                kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
                         </ul>
-                        You can also help by :
+                        You can also help by:
                         <ul>
-                            <li>Adding articles or improving the existing ones, by <a href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing online wikipedia articles</a></li>
-                            <li><a href="https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate" target="_blank">Participating</a> in the Kiwix project</li>
+                            <li>Adding articles or improving the existing ones, by <a href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing online wikipedia articles
+                                &nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                            <li><a href="https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate" target="_blank">Participating&nbsp;<img src="img/Icon_External_Link.png" /></a> in the Kiwix project</li>
                         </ul>
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
@@ -344,7 +355,7 @@
                     <h3 id="other">Other platforms/versions</h3>
                     <p>Other Kiwix clients exist on various platforms such as desktop and mobile apps for Linux, Windows, Android and iOS.</p>
                     <p>
-                        See the official download site: <a href="https://www.kiwix.org/download/" target="_blank">https://www.kiwix.org/download<img src="img/Icon_External_Link.png" /></a>
+                        See the official download site: <a href="https://www.kiwix.org/download/" target="_blank">https://www.kiwix.org/download&nbsp;<img src="img/Icon_External_Link.png" /></a>
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
                     
