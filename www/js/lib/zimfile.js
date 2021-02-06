@@ -301,6 +301,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                         zf.id = tempFileId++;
                         fileIDs.set(zf.name, zf.id);
                     }
+                    // For a description of these values, see https://wiki.openzim.org/wiki/ZIM_file_format
+                    zf.majorVersion = readInt(header, 4, 2); // Not currently used by this implementation
+                    zf.minorVersion = readInt(header, 6, 2); // Used to determine the User Content namespace
                     zf.articleCount = readInt(header, 24, 4);
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;

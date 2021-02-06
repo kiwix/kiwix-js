@@ -209,6 +209,30 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         }
         searchNextVariant();
     };
+
+    /**
+     * A method to return the namespace in the ZIM file that contains the primary user content. In old-format ZIM files (minor
+     * version 0) there are a number of content namespaces, but the primary one in which to search for titles is 'A'. In new-format
+     * ZIMs (minor version 1) there is a single content namespace 'C'. See https://openzim.org/wiki/ZIM_file_format. This method
+     * throws an error if it cannot determine the namespace or if the ZIM is not ready.
+     * @returns {String} The content namespace for the ZIM archive 
+     */
+    ZIMArchive.prototype.getContentNamespace = function () {
+        var errorText;
+        if (this.isReady()) {
+            var ver = this._file.minorVersion;
+            // DEV: There are currently only two defined values for minorVersion in the OpenZIM specification
+            // If this changes, adapt the error checking and return values 
+            if (ver > 1) {
+                errorText = 'Unknown ZIM minor version!';
+            } else {
+                return ver === 0 ? 'A' : 'C';
+            }
+        } else {
+            errorText = 'We could not determine the content namespace because the ZIM file is not ready!';
+        }
+        throw new Error(errorText);
+    };
     
     /**
      * Look for dirEntries with title starting with the given prefix (case-sensitive)
@@ -220,12 +244,14 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
         var that = this;
+        var cns = this.getContentNamespace();
         util.binarySearch(0, this._file.articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (search.status === 'cancelled') return 0;
-                if (dirEntry.namespace < 'A') return 1;
-                if (dirEntry.namespace > 'A') return -1;
-                // We should now be in namespace A
+                var ns = dirEntry.namespace;
+                if (ns < cns) return 1;
+                if (ns > cns) return -1;
+                // We should now be in namespace A (old format ZIM) or C (new format ZIM)
                 return prefix <= dirEntry.getTitleOrUrl() ? -1 : 1;
             });
         }, true).then(function(firstIndex) {
@@ -237,7 +263,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     var title = dirEntry.getTitleOrUrl();
                     // Only return dirEntries with titles that actually begin with prefix
-                    if (dirEntry.namespace === 'A' && title.indexOf(prefix) === 0) {
+                    if (dirEntry.namespace === cns && title.indexOf(prefix) === 0) {
                         dirEntries.push(dirEntry);
                         // Report interim result
                         callback([dirEntry], true);

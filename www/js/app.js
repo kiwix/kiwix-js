@@ -1217,14 +1217,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-    var regexpZIMUrlWithNamespace = /^[./]*([-ABIJMUVWX]\/.+)$/;
-    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
-    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
-    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
-    // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
-    // remove any relative or absolute path from ZIM-style URLs.
-    // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
+    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378].
+    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
+    // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead that excludes
+    // URLs that begin 'http' (i.e. non-relative URLs). It then captures the whole of the URL up until either the opening delimiter
+    // (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used below, it will be further
+    // processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?!http)(.+?)(?=\3|\?|#)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
@@ -1253,9 +1253,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
         }
 
+        // Calculate the current article's ZIM baseUrl to use when processing relative links
+        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
+
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
-        // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
+        // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
+        // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(match, blockStart, equals, quote, relAssetUrl) {
+            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
+            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent.
+            return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
+        });
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
@@ -1316,9 +1326,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = "article.html";
-
-        // Calculate the current article's ZIM baseUrl to use when processing relative links
-        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
@@ -1513,13 +1520,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var source = mediaSource.getAttribute('src');
                 source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
-                source = source ? source : mediaSource.dataset.kiwixurl;
+                source = source ? source : decodeURIComponent(mediaSource.dataset.kiwixurl);
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
                     if (source) console.error('No usable media source was found for: ' + source);
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-                selectedArchive.getDirEntryByTitle(decodeURIComponent(source)).then(function(dirEntry) {
+                selectedArchive.getDirEntryByTitle(source).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
@@ -1610,7 +1617,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 alert("Error finding random article.");
             } else {
-                if (dirEntry.namespace === 'A') {
+                // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
+                // DEV: This will need to be changed if we search titlePtrList version 1
+                // in a future PR, as that list contains only articles
+                if (dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
                     $('#searchingArticles').show();
@@ -1632,7 +1642,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                if (dirEntry.namespace === 'A') {
+                // DEV: see comment above under goToRandomArticle()
+                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
