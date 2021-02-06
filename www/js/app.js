@@ -1650,8 +1650,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#welcomeText").show();
             } else {
                 // DEV: see comment above under goToRandomArticle()
-                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || 
-                dirEntry.namespace === 'A') {
+                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {
