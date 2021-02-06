@@ -378,6 +378,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('modesLink').addEventListener('click', function() {
         document.getElementById('btnAbout').click();
+        this.scrollIntoView();
     });
 
     /**
