@@ -1261,16 +1261,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
         htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(match, blockStart, equals, quote, relAssetUrl) {
             var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
-            // Uncomment logging below to test the calculation of relative URLs if you are having issues 
-            /**
-                console.log('ZIM URL: ' + dirEntry.namespace + '/' + dirEntry.url);
-                console.log('Full URL: ' + relAssetUrl);
-                console.log('Base URL: ' + baseUrl);
-                console.log('Calculated asset URL: ' + assetZIMUrl);
-            **/
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-            // of encodeURIComponent. 
+            // of encodeURIComponent.
             return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
         });
 
