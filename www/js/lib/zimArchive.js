@@ -213,10 +213,11 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     /**
      * A method to return the namespace in the ZIM file that contains the primary user content. In old-format ZIM files (minor
      * version 0) there are a number of content namespaces, but the primary one in which to search for titles is 'A'. In new-format
-     * ZIMs (minor version 1) there is a single content namespace 'C'. See https://openzim.org/wiki/ZIM_file_format.
-     * @returns {String|null} The content namespace for the ZIM archive or null if the namespace cannot be determined 
+     * ZIMs (minor version 1) there is a single content namespace 'C'. See https://openzim.org/wiki/ZIM_file_format. This method
+     * throws an error if it cannot determine the namespace or if the ZIM is not ready.
+     * @returns {String} The content namespace for the ZIM archive 
      */
-    ZIMArchive.prototype.getContentNamespace = function() {
+    ZIMArchive.prototype.getContentNamespace = function () {
         var errorText;
         if (this.isReady()) {
             var ver = this._file.minorVersion;
