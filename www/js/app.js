@@ -376,6 +376,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
         document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
     });
+    document.getElementById('modesLink').addEventListener('click', function () {
+        document.getElementById('btnAbout').click();
+        // We have to use a timeout or the scroll is cancelled by the slide transtion animation
+        // @TODO This is a workaround. The regression should be fixed as it affects the Active content warning
+        // links as well.
+        setTimeout(function () {
+            document.getElementById('modes').scrollIntoView();
+        }, 600);
+    });
 
     /**
      * Displays or refreshes the API status shown to the user
