@@ -43,7 +43,7 @@ This is written in HTML/javascript so it should work on many recent browser engi
 - Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
 - Microsoft Edge (Chromium) >=80 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
 - Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application : see https://github.com/kiwix/kiwix-js-windows/)
-- Ubuntu Touch (as an application : https://open.uappexplorer.com/app/kiwix)
+- Ubuntu Touch (as an application : https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
