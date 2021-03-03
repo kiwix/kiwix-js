@@ -249,8 +249,19 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     };
 
     ZIMFile.prototype.setTitleListing = function() {
-        var titleListing = 
+        // If we are in a legacy ZIM archive, there is nothing further to look up
         if (this.minorVersion === 0) return;
+        var titleListingPaths = [];
+        // We only need to look up a v1 title listing if it is not already in the archive header
+        if (!this.titlePtrPos) titleListingPaths.push('X/listing/titleOrdered/v1');
+        // We always need to look up a v2 title listing
+        titleListingPaths.push('X/listing/titleOrdered/v2');
+        titleListingPaths.forEach(function(path) {
+            // Initiate a binary search for the titleListingPath
+            // Read the dirEntry for the cluster and blob numbers
+            // Look up the absolute offset
+            // Set appropriate archive header keys
+        });
     }    
 
     /**
