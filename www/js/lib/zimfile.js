@@ -191,9 +191,11 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * Read and if necessary decompress a BLOB based on its cluster number and blob number
      * @param {Integer} cluster The cluster number where the blob is to be found
      * @param {Integer} blob The blob number within the cluster
+     * @param {Boolean} metadata If true, and if the cluster is uncompressed, the function will return only the blob's metadata
+     *        (its archive offset and its size), otherwise return null
      * @returns {Promise<Uint8Array>} A Promise for the BLOB's data
      */
-    ZIMFile.prototype.blob = function (cluster, blob) {
+    ZIMFile.prototype.blob = function (cluster, blob, metadata) {
         var that = this;
         return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function (clusterOffsets) {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
@@ -202,17 +204,31 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             // var thisClusterLength = nextCluster - clusterOffset - 1;
             return that._readSlice(clusterOffset, 1).then(function (compressionType) {
                 var decompressor;
-                var plainBlobReader = function (offset, size) {
+                var plainBlobReader = function (offset, size, dataPass) {
                     // Check that we are not reading beyond the end of the cluster
                     var offsetStart = clusterOffset + 1 + offset;
                     if (offsetStart < nextCluster) {
                         // Gratuitous parentheses added for legibility
                         size = (offsetStart + size) <= nextCluster ? size : (nextCluster - offsetStart);
-                        return that._readSlice(offsetStart, size);
+                        // DEV: This blob reader is called twice: on the first pass it reads the cluster's blob list,
+                        // and on the second pass ("dataPass") it is ready to read the blob's data
+                        if (metadata && dataPass) {
+                            // If only metadata were requested and we are on the data pass, we should now have them
+                            return {
+                                'blobOffset': offsetStart,
+                                'blobSize': size
+                            };
+                        } else {
+                            return that._readSlice(offsetStart, size);
+                        }
                     } else {
                         return Q(new Uint8Array(0).buffer);
                     }
-                };
+                    };
+                // If only metadata were requested and the cluster is compressed, return null (this is probably a ZIM format error)
+                // DEV: This is because metadata are only requested for finding absolute offsets into uncompressed clusters,
+                // principally for finding the start and size of a title pointer listing
+                if (metadata && compressionType[0] > 1) return null;
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
                     decompressor = { readSliceSingleThread: plainBlobReader };
@@ -223,14 +239,19 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
-                return decompressor.readSliceSingleThread(blob * 4, 8).then(function (data) {
+                return decompressor.readSliceSingleThread(blob * 4, 8, false).then(function (data) {
                     var blobOffset = readInt(data, 0, 4);
                     var nextBlobOffset = readInt(data, 4, 4);
-                    return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset);
+                    return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset, true);
                 });
             });
         });
     };
+
+    ZIMFile.prototype.setTitleListing = function() {
+        var titleListing = 
+        if (this.minorVersion === 0) return;
+    }    
 
     /**
      * Reads the whole MIME type list and returns it as a populated Map
