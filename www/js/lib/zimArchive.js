@@ -54,9 +54,30 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var that = this;
         that._file = null;
         that._language = ""; //@TODO
-        var createZimfile = function(fileArray) {
-            zimfile.fromFileArray(fileArray).then(function(file) {
+        var createZimfile = function (fileArray) {
+            zimfile.fromFileArray(fileArray).then(function (file) {
                 that._file = file;
+                // File has been created, but we need to add any listings which extend the archive metadata
+                that._file.setListings([
+                    // Provide here any listings for which we need to extract metadata as key:value obects to be added to the file
+                    // 'ptrName' and 'countName' contain the key names to be set in the archive file object
+                    {
+                        path: 'X/listing/titleOrdered/v0',
+                        ptrName: 'titlePtrPos',
+                        countName: 'entryCount'
+                    },
+                    {
+                        // !!! CHANGE THIS PATH TO .../v1 BEFORE MERGING !!!
+                        // It is set to v0 for testing because we do not have any archive with a valid v1 index yet
+                        path: 'X/listing/titleOrdered/v0',
+                        ptrName: 'articlePtrPos',
+                        countName: 'articleCount'
+                    }
+                ]);
+                // DEV: Currently, extended listings are only used for title (=article) listings when the user searches
+                // for an article or uses the Random button, by which time the listings will have been extracted.
+                // If, in the future, listings are used in a more time-critical manner, consider forcing a wait before
+                // declaring the archive to be ready, by chaining the following callback in a .then() function of setListings.
                 callbackReady(that);
             });
         };
@@ -245,7 +266,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
         var that = this;
         var cns = this.getContentNamespace();
-        util.binarySearch(0, this._file.articleCount, function(i) {
+        // Search v1 article listing if available, otherwise fallback to v0
+        var articleCount = this._file.articleCount || this._file.entryCount;
+        util.binarySearch(0, articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (search.status === 'cancelled') return 0;
                 var ns = dirEntry.namespace;
@@ -328,7 +351,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getDirEntryByTitle = function(title) {
         var that = this;
-        return util.binarySearch(0, this._file.articleCount, function(i) {
+        return util.binarySearch(0, this._file.entryCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 var url = dirEntry.namespace + "/" + dirEntry.url;
                 if (title < url)
