@@ -280,7 +280,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         }, true).then(function(firstIndex) {
             var dirEntries = [];
             var addDirEntries = function(index) {
-                if (search.status === 'cancelled' || index >= firstIndex + resultSize || index >= that._file.articleCount) {
+                if (search.status === 'cancelled' || index >= firstIndex + resultSize || index >= articleCount) {
                     return dirEntries;
                 }
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
@@ -374,7 +374,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackDirEntry} callback
      */
     ZIMArchive.prototype.getRandomDirEntry = function(callback) {
-        var index = Math.floor(Math.random() * this._file.articleCount);
+        var articleCount = this._file.articleCount || this._file.entryCount;
+        var index = Math.floor(Math.random() * articleCount);
         this._file.dirEntryByUrlIndex(index).then(callback);
     };
     
