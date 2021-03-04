@@ -376,7 +376,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.getRandomDirEntry = function(callback) {
         var articleCount = this._file.articleCount || this._file.entryCount;
         var index = Math.floor(Math.random() * articleCount);
-        this._file.dirEntryByUrlIndex(index).then(callback);
+        this._file.dirEntryByTitleIndex(index).then(callback);
     };
     
     /**

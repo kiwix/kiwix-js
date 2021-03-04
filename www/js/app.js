@@ -1462,8 +1462,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Extract the image at the top of the images array and remove it from the array
                 var image = images.shift();
                 var imageUrl = image.getAttribute('data-kiwixurl');
-                var path = decodeURIComponent(imageUrl);
-                selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
+                var url = decodeURIComponent(imageUrl);
+                selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, function() {
@@ -1472,7 +1472,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         });
                     });
                 }).catch(function (e) {
-                    console.error("could not find DirEntry for image:" + path, e);
+                    console.error("could not find DirEntry for image:" + url, e);
                     images.busy = false;
                     extractImage();
                 });
