@@ -46,9 +46,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
      * 
-     * @param {StorageFirefoxOS|Array.<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
-     * @param {String} path
-     * @param {callbackZIMArchive} callbackReady
+     * @param {StorageFirefoxOS|Array<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
+     * @param {String} path The Storage path for an OS that requires this to be specified
+     * @param {callbackZIMArchive} callbackReady The function to call when the archive is ready to use
      */
     function ZIMArchive(storage, path, callbackReady) {
         var that = this;
@@ -57,9 +57,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var createZimfile = function (fileArray) {
             zimfile.fromFileArray(fileArray).then(function (file) {
                 that._file = file;
-                // File has been created, but we need to add any listings which extend the archive metadata
+                // File has been created, but we need to add any Listings which extend the archive metadata
                 that._file.setListings([
-                    // Provide here any listings for which we need to extract metadata as key:value obects to be added to the file
+                    // Provide here any Listings for which we need to extract metadata as key:value obects to be added to the file
                     // 'ptrName' and 'countName' contain the key names to be set in the archive file object
                     {
                         path: 'X/listing/titleOrdered/v0',

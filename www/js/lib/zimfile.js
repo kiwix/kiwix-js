@@ -253,6 +253,21 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
         });
     };
 
+    /**
+     * A Directory Listing object
+     * @typedef {Object} DirListing A list of pointers to directory entries (via the URL pointerlist)
+     * @property {String} path The path (url) to the directory entry for the Listing
+     * @property {String} ptrName The name of the pointer to the Listing's data that will be added to the ZIMFile obect
+     * @property {String} countName The name of the key that will contain the number of entries in the Listing, to be added to the ZIMFile object 
+     */
+
+    /**
+     * Read the metadata (archive offset pointer, and number of entiries) of one or more ZIM directory Listings.
+     * This supports reading a subset of user content that might be ordered differently from the main URL pointerlist.
+     * In particular, it supports v1 title pointerlists, which contain articles sorted by title, superseding the article
+     * namespace ('A') in legazy ZIM archives.  
+     * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)  
+     */
     ZIMFile.prototype.setListings = function(listings) {
         // If we are in a legacy ZIM archive, there is nothing further to look up
         if (this.minorVersion === 0) return;
