@@ -300,12 +300,12 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             }).then(function(metadata) {
                 if (metadata) {
                     that[listing.ptrName] = metadata.ptr;
-                    that[listing.countName] = metadata.size / 4;
+                    that[listing.countName] = metadata.size / 4; // Each entry uses 4 bytes
                 }
-                // Get the next listing
+                // Get the next Listing
                 return listingAccessor(listings.pop());
             }).catch(function(err) {
-                console.error(err);
+                console.error('There was an error accessing a Directory Listing', err);
             });
         };
         listingAccessor(listings.pop());
