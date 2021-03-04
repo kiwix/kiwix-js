@@ -345,18 +345,18 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
 
     /**
-     * Searches a DirEntry (article / page) by its title.
-     * @param {String} title
-     * @return {Promise} resolving to the DirEntry object or null if not found.
+     * Searches the URL pointer list of Directory Entries by pathname
+     * @param {String} path The pathname of the DirEntry that is required (namespace + filename)
+     * @return {Promise<DirEntry>} A Promise that resolves to a Directory Entry, or null if not found.
      */
-    ZIMArchive.prototype.getDirEntryByTitle = function(title) {
+    ZIMArchive.prototype.getDirEntryByPath = function(path) {
         var that = this;
         return util.binarySearch(0, this._file.entryCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 var url = dirEntry.namespace + "/" + dirEntry.url;
-                if (title < url)
+                if (path < url)
                     return -1;
-                else if (title > url)
+                else if (path > url)
                     return 1;
                 else
                     return 0;
@@ -386,7 +386,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getMetadata = function (key, callback) {
         var that = this;
-        this.getDirEntryByTitle("M/" + key).then(function (dirEntry) {
+        this.getDirEntryByPath("M/" + key).then(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 console.warn("Title M/" + key + " not found in the archive");
                 callback();

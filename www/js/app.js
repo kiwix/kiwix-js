@@ -1260,7 +1260,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         });
                     }
                 };
-                selectedArchive.getDirEntryByTitle(title).then(readFile).catch(function () {
+                selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
                     messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new Uint8Array() });
                 });
             } else {
@@ -1462,8 +1462,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Extract the image at the top of the images array and remove it from the array
                 var image = images.shift();
                 var imageUrl = image.getAttribute('data-kiwixurl');
-                var title = decodeURIComponent(imageUrl);
-                selectedArchive.getDirEntryByTitle(title).then(function (dirEntry) {
+                var path = decodeURIComponent(imageUrl);
+                selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
                         uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, function() {
@@ -1472,7 +1472,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         });
                     });
                 }).catch(function (e) {
-                    console.error("could not find DirEntry for image:" + title, e);
+                    console.error("could not find DirEntry for image:" + path, e);
                     images.busy = false;
                     extractImage();
                 });
@@ -1508,14 +1508,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 cssCount++;
                 var link = $(this);
                 var linkUrl = link.attr("data-kiwixurl");
-                var title = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
-                if (cssCache.has(title)) {
-                    var cssContent = cssCache.get(title);
+                var url = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
+                if (cssCache.has(url)) {
+                    var cssContent = cssCache.get(url);
                     uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
                     cssFulfilled++;
                 } else {
                     if (params.useCache) $('#cachingAssets').show();
-                    selectedArchive.getDirEntryByTitle(title)
+                    selectedArchive.getDirEntryByPath(url)
                     .then(function (dirEntry) {
                         return selectedArchive.readUtf8File(dirEntry,
                             function (fileDirEntry, content) {
@@ -1527,7 +1527,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             }
                         );
                     }).catch(function (e) {
-                        console.error("could not find DirEntry for CSS : " + title, e);
+                        console.error("could not find DirEntry for CSS : " + url, e);
                         cssCount--;
                         renderIfCSSFulfilled();
                     });
@@ -1563,7 +1563,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         //         var scriptUrl = script.attr("data-kiwixurl");
         //         // TODO check that the type of the script is text/javascript or application/javascript
         //         var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
-        //         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+        //         selectedArchive.getDirEntryByPath(title).then(function(dirEntry) {
         //             if (dirEntry === null) {
         //                 console.log("Error: js file not found: " + title);
         //             } else {
@@ -1591,7 +1591,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-                selectedArchive.getDirEntryByTitle(source).then(function(dirEntry) {
+                selectedArchive.getDirEntryByPath(source).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
@@ -1649,30 +1649,30 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
 
     /**
-     * Extracts the content of the given article title, or a downloadable file, from the ZIM
+     * Extracts the content of the given article pathname, or a downloadable file, from the ZIM
      * 
-     * @param {String} title The path and filename to the article or file to be extracted
+     * @param {String} path The pathname (namespace + filename) to the article or file to be extracted
      * @param {Boolean|String} download A Bolean value that will trigger download of title, or the filename that should
      *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
-    function goToArticle(title, download, contentType) {
+    function goToArticle(path, download, contentType) {
         $("#searchingArticles").show();
-        selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+        selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                alert("Article with title " + title + " not found in the archive");
+                alert("Article with url " + path + " not found in the archive");
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = contentType || fileDirEntry.getMimetype();
-                    uiUtil.displayFileDownloadAlert(title, download, mimetype, content);
+                    uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
                 });
             } else {
                 params.isLandingPage = false;
                 $('#activeContent').hide();
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { alert("Error reading article with title " + title + " : " + e); });
+        }).catch(function(e) { alert("Error reading article with url " + path + " : " + e); });
     }
     
     function goToRandomArticle() {
