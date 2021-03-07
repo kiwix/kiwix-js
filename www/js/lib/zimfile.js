@@ -270,12 +270,21 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      */
     ZIMFile.prototype.setListings = function(listings) {
         // If we are in a legacy ZIM archive, there is nothing further to look up
-        if (this.minorVersion === 0) return;
+        if (this.minorVersion === 0) {
+            console.log('ZIM DirListing version: legacy');
+            return;
+        }
         var that = this;
+        var highestListingVersion = 0;
         var listingAccessor = function (listing) {
-            if (!listing) return null; // No more listings, so exit
+            if (!listing) {
+                // No more listings, so exit
+                console.log('ZIM DirLisitng version: ' + highestListingVersion);
+                return null;
+            }
             // Check if we already have this listing's values, so we don't do redundant binary searches
             if (that[listing.ptrName] && that[listing.countName]) {
+                highestListingVersion = Math.max(~~listing.path.replace(/.+(\d)$/, '$1'), highestListingVersion);
                 // Get the next listing
                 return listingAccessor(listings.pop());
             }
@@ -301,6 +310,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 if (metadata) {
                     that[listing.ptrName] = metadata.ptr;
                     that[listing.countName] = metadata.size / 4; // Each entry uses 4 bytes
+                    highestListingVersion = Math.max(~~listing.path.replace(/.+(\d)$/, '$1'), highestListingVersion);
                 }
                 // Get the next Listing
                 return listingAccessor(listings.pop());
