@@ -1683,9 +1683,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 alert("Error finding random article.");
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
-                // DEV: This will need to be changed if we search titlePtrList version 1
-                // in a future PR, as that list contains only articles
-                if (dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+                // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
+                // all dirEntries in an article-only listing must be articles.  
+                if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
                     $('#searchingArticles').show();

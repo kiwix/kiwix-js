@@ -374,6 +374,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackDirEntry} callback
      */
     ZIMArchive.prototype.getRandomDirEntry = function(callback) {
+        // Prefer an article-only (v1) title pointer list, if available
         var articleCount = this._file.articleCount || this._file.entryCount;
         var index = Math.floor(Math.random() * articleCount);
         this._file.dirEntryByTitleIndex(index).then(callback);
