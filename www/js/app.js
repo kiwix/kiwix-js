@@ -1665,7 +1665,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     
-    //TODO : Issue 704
     
     document.addEventListener('keydown' , (event)=>{
         if(event.code === 'Home'){
