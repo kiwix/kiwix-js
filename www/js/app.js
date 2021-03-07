@@ -1669,7 +1669,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.addEventListener('keydown' , (event)=>{
         if(event.code === 'Home'){
             const prefix = document.getElementById("prefix");
-            prefix.click();
+            prefix.focus();
         }
     })
 
