@@ -673,6 +673,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             searchForArchivesInStorage();
         }
     }
+     
     function searchForArchivesInStorage() {
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
@@ -1664,13 +1665,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         });
     }
 
-    
-    
-    document.addEventListener('keydown' , (event)=>{
-        if(event.code === 'Home'){
-            const prefix = document.getElementById("prefix");
-            prefix.focus();
+    document.addEventListener('keydown',function(event){
+        if(event.key === 'Home'){
+          const prefix  = document.getElementById('prefix');
+          //* instead of .select() , .focus() is used because .focus() also scrolls up the page. 
+          prefix.focus();            
         }
-    })
+     })
+
 
 });
