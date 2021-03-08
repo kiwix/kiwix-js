@@ -672,8 +672,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         else {
             searchForArchivesInStorage();
         }
-    }
-     
+    }   
     function searchForArchivesInStorage() {
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
