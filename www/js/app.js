@@ -145,6 +145,32 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('searchArticles').click();
         return false;
     });
+     //Handle Home key press to focus #prefix
+     $(window,document).on('keydown', function(e) {
+         //if home key is pressed then
+         if(/^Home/.test(e.key)) {
+             //scroll to top of #search-article section since scroll bar is associated with it and not to window or document
+             $('#search-article').scrollTop(0);
+             $('#prefix').focus();
+         }
+     });
+     //Handle Home key event when focus is inside iframe #articleContent
+     var iframe= document.getElementById('articleContent');
+     //onload event is not fired in chrome for iframe if content is from local storage
+     //to compensate for onload event setTimeout can be used
+     setInterval(function (){
+         let iframewindow= iframe.contentWindow? iframe.contentWindow : iframe.contentDocument.defaultView;
+         $(iframewindow.document).on('keydown',function(e){
+             //if home key is pressed then
+             if(/^Home/.test(e.key)) {
+                 //scroll to top of #search-article section since scroll bar is associated with it and not to window or document
+                 $('#search-article').scrollTop(0);
+                 //in case scroll bar is associated with iframe #articleContent
+                 $(iframewindow.document).scrollTop(0);
+                 $('#prefix').focus();
+             }
+         });
+     },2000);
     // Handle keyboard events in the prefix (article search) field
     var keyPressHandled = false;
     $('#prefix').on('keydown', function(e) {
