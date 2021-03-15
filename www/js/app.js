@@ -117,7 +117,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }, 100);
         }
     }
-    $(document).ready(resizeIFrame);
+    $(document).ready(function(){
+        resizeIFrame();
+        //handle home key press in initial Home Page (empty iframe)
+        var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        $(iframeContentWindow).on('keydown',function (e){
+            focusPrefixOnHomeKey(e.key);
+        });
+    });
     $(window).resize(resizeIFrame);
     
     // Define behavior of HTML elements
@@ -145,32 +152,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('searchArticles').click();
         return false;
     });
-     //Handle Home key press to focus #prefix
-     $(window,document).on('keydown', function(e) {
-         //if home key is pressed then
-         if(/^Home/.test(e.key)) {
-             //scroll to top of #search-article section since scroll bar is associated with it and not to window or document
-             $('#search-article').scrollTop(0);
-             $('#prefix').focus();
-         }
+     //Handle Home key press inside window(outside iframe) to focus #prefix
+     $(window).on('keydown', function(e) {
+         focusPrefixOnHomeKey(e.key);
      });
-     //Handle Home key event when focus is inside iframe #articleContent
-     var iframe= document.getElementById('articleContent');
-     //onload event is not fired in chrome for iframe if content is from local storage
-     //to compensate for onload event setTimeout can be used
-     setInterval(function (){
-         let iframewindow= iframe.contentWindow? iframe.contentWindow : iframe.contentDocument.defaultView;
-         $(iframewindow.document).on('keydown',function(e){
-             //if home key is pressed then
-             if(/^Home/.test(e.key)) {
-                 //scroll to top of #search-article section since scroll bar is associated with it and not to window or document
-                 $('#search-article').scrollTop(0);
-                 //in case scroll bar is associated with iframe #articleContent
-                 $(iframewindow.document).scrollTop(0);
-                 $('#prefix').focus();
-             }
-         });
-     },2000);
     // Handle keyboard events in the prefix (article search) field
     var keyPressHandled = false;
     $('#prefix').on('keydown', function(e) {
@@ -412,6 +397,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }, 600);
     });
 
+    //focus #prefix if Home key is pressed
+    function focusPrefixOnHomeKey(key){
+        //check if home key is pressed
+        if(key === 'Home') {
+            //scroll to top of #search-article section if scroll bar is associated with it
+            $('#search-article').scrollTop(0);
+            //in case the scroll bar is associated with iframe #articleContent
+            var iframeArticleDocument = document.getElementById('articleContent').contentWindow.document;
+            $(iframeArticleDocument).scrollTop(0);
+            $('#prefix').focus();
+        }
+     }
     /**
      * Displays or refreshes the API status shown to the user
      */
@@ -1342,6 +1339,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
+                docBody.addEventListener('keydown',function(e){
+                    // if cursor is not inside a input element only then focus #prefix
+                    if(e.target.nodeName !== 'INPUT')
+                        focusPrefixOnHomeKey(e.key);
+                });
             }
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
