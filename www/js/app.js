@@ -117,11 +117,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }, 100);
         }
     }
-    $(document).ready(function(){
+    $(document).ready(function() {
         resizeIFrame();
         //handle home key press in initial Home Page (empty iframe)
         var iframeContentWindow = document.getElementById('articleContent').contentWindow;
-        $(iframeContentWindow).on('keydown',function (e){
+        iframeContentWindow.addEventListener('keydown',function(e) {
             focusPrefixOnHomeKey(e.key);
         });
     });
@@ -153,7 +153,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         return false;
     });
      //Handle Home key press inside window(outside iframe) to focus #prefix
-     $(window).on('keydown', function(e) {
+     window.addEventListener('keydown',function(e) {
          focusPrefixOnHomeKey(e.key);
      });
     // Handle keyboard events in the prefix (article search) field
@@ -398,9 +398,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
 
     //focus #prefix if Home key is pressed
-    function focusPrefixOnHomeKey(key){
+    function focusPrefixOnHomeKey(key) {
         //check if home key is pressed
-        if(key === 'Home') {
+        if (key === 'Home') {
             //scroll to top of #search-article section if scroll bar is associated with it
             $('#search-article').scrollTop(0);
             //in case the scroll bar is associated with iframe #articleContent
@@ -1166,6 +1166,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (docBody) {
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
+                    docBody.addEventListener('keydown',function(e) {
+                        // if cursor is not inside a input element only then focus #prefix
+                        if (e.target.nodeName !== 'INPUT')
+                            focusPrefixOnHomeKey(e.key);
+                    });
                 }
                 resizeIFrame();
                 // Reset UI when the article is unloaded
@@ -1339,9 +1344,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
-                docBody.addEventListener('keydown',function(e){
+                docBody.addEventListener('keydown',function(e) {
                     // if cursor is not inside a input element only then focus #prefix
-                    if(e.target.nodeName !== 'INPUT')
+                    if (e.target.nodeName !== 'INPUT')
                         focusPrefixOnHomeKey(e.key);
                 });
             }
