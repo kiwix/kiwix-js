@@ -81,6 +81,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
+    // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
+    params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
+    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
@@ -119,11 +122,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     $(document).ready(function() {
         resizeIFrame();
-        //handle home key press in initial Home Page (empty iframe)
-        var iframeContentWindow = document.getElementById('articleContent').contentWindow;
-        iframeContentWindow.addEventListener('keydown',function(e) {
-            focusPrefixOnHomeKey(e.key);
-        });
+        switchHomeKeyToFocusSearchBar();
     });
     $(window).resize(resizeIFrame);
     
@@ -152,10 +151,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('searchArticles').click();
         return false;
     });
-     //Handle Home key press inside window(outside iframe) to focus #prefix
-     window.addEventListener('keydown',function(e) {
-         focusPrefixOnHomeKey(e.key);
-     });
     // Handle keyboard events in the prefix (article search) field
     var keyPressHandled = false;
     $('#prefix').on('keydown', function(e) {
@@ -358,6 +353,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.showUIAnimations = this.checked ? true : false;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
+    $('input:checkbox[name=useHomeKeyToFocusSearchBar]').on('change', function () {
+        params.useHomeKeyToFocusSearchBar = this.checked ? true : false;
+        settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
+        switchHomeKeyToFocusSearchBar();
+    });
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
@@ -397,10 +397,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }, 600);
     });
 
-    //focus #prefix if Home key is pressed
-    function focusPrefixOnHomeKey(key) {
+    //focus search bar (#prefix) if Home key is pressed
+    function focusPrefixOnHomeKey(event) {
         //check if home key is pressed
-        if (key === 'Home') {
+        if (event.key === 'Home') {
             //scroll to top of #search-article section if scroll bar is associated with it
             $('#search-article').scrollTop(0);
             //in case the scroll bar is associated with iframe #articleContent
@@ -408,7 +408,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $(iframeArticleDocument).scrollTop(0);
             $('#prefix').focus();
         }
-     }
+    }
+    //switch on/off the feature to use Home Key to focus search bar
+    function switchHomeKeyToFocusSearchBar() {
+        var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        // when the feature is in active state
+        if (params.useHomeKeyToFocusSearchBar) {
+            //Handle Home key press inside window(outside iframe) to focus #prefix
+            window.addEventListener('keydown', focusPrefixOnHomeKey);
+            //handle home key press inside iframe window
+            iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+        }
+        // when the feature is not active
+        else {
+            //remove event listener for window(outside iframe)
+            window.removeEventListener('keydown', focusPrefixOnHomeKey);
+            //remove event listener for iframe window
+            iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+        }
+    }
     /**
      * Displays or refreshes the API status shown to the user
      */
@@ -1166,12 +1184,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (docBody) {
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
-                    docBody.addEventListener('keydown',function(e) {
-                        // if cursor is not inside a input element only then focus #prefix
-                        if (e.target.nodeName !== 'INPUT')
-                            focusPrefixOnHomeKey(e.key);
-                    });
                 }
+                // Configure home key press to focus #prefix only if the feature is in active state
+                if (docBody && params.useHomeKeyToFocusSearchBar)
+                    docBody.addEventListener('keydown', focusPrefixOnHomeKey);
+
                 resizeIFrame();
                 // Reset UI when the article is unloaded
                 if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
@@ -1344,12 +1361,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
-                docBody.addEventListener('keydown',function(e) {
-                    // if cursor is not inside a input element only then focus #prefix
-                    if (e.target.nodeName !== 'INPUT')
-                        focusPrefixOnHomeKey(e.key);
-                });
             }
+            // Configure home key press to focus #prefix only if the feature is in active state
+            if (docBody && params.useHomeKeyToFocusSearchBar)
+                docBody.addEventListener('keydown', focusPrefixOnHomeKey);
+
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
