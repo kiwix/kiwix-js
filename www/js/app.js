@@ -84,7 +84,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
-
+    switchHomeKeyToFocusSearchBar();
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
         'prefix': '', // A field to hold the original search string
@@ -120,10 +120,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }, 100);
         }
     }
-    $(document).ready(function() {
-        resizeIFrame();
-        switchHomeKeyToFocusSearchBar();
-    });
+    $(document).ready(resizeIFrame);
     $(window).resize(resizeIFrame);
     
     // Define behavior of HTML elements
@@ -401,12 +398,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function focusPrefixOnHomeKey(event) {
         //check if home key is pressed
         if (event.key === 'Home') {
-            //scroll to top of #search-article section if scroll bar is associated with it
-            $('#search-article').scrollTop(0);
-            //in case the scroll bar is associated with iframe #articleContent
-            var iframeArticleDocument = document.getElementById('articleContent').contentWindow.document;
-            $(iframeArticleDocument).scrollTop(0);
-            $('#prefix').focus();
+            // wait to prevent interference with scrolling (default action)
+            setTimeout(function() {
+                document.getElementById('prefix').focus();
+            },250);
         }
     }
     //switch on/off the feature to use Home Key to focus search bar
@@ -416,14 +411,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (params.useHomeKeyToFocusSearchBar) {
             //Handle Home key press inside window(outside iframe) to focus #prefix
             window.addEventListener('keydown', focusPrefixOnHomeKey);
-            //handle home key press inside iframe window
+            //only for initial empty iFrame loaded using `src` attribute
+            //in any other case listener gets removed on reloading of iFrame content
             iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
         }
         // when the feature is not active
         else {
             //remove event listener for window(outside iframe)
             window.removeEventListener('keydown', focusPrefixOnHomeKey);
-            //remove event listener for iframe window
+            //if feature is deactivated and no zim content is loaded yet
             iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
         }
     }

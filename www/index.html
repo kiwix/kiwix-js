@@ -417,6 +417,13 @@
                                         <strong>Animate transition between app pages</strong>
                                     </label>
                                 </div>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="useHomeKeyToFocusSearchBar"
+                                               id="useHomeKeyToFocusSearchBarCheck">
+                                        <strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)
+                                    </label>
+                                </div>
                                 <div class="form-group">
                                     <label>
                                         <b>Select app theme</b> (content inversion is experimental):
@@ -524,25 +531,6 @@
                                 <div id="serviceWorkerStatus"></div>
                                 <div id="messageChannelStatus"></div>
                                 <div id="settingsStoreStatus"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <br />
-                    <div class="container">
-                        <h3>Extra Features</h3>
-                        <div class="card" id="extraFeatureDiv">
-                            <div class="card-header">Use Home Key to focus search bar</div>
-                            <div class="card-body">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" name="useHomeKeyToFocusSearchBar"
-                                               id="useHomeKeyToFocusSearchBarCheck">
-                                        <strong>Activate</strong>
-                                    </label>
-                                </div>
-                                <p>
-                                    (Caution!! May produce side effect for few ZIM files in ServiceWorker mode.)
-                                </p>
                             </div>
                         </div>
                     </div>
