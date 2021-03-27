@@ -401,7 +401,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // wait to prevent interference with scrolling (default action)
             setTimeout(function() {
                 document.getElementById('prefix').focus();
-            },250);
+            },0);
         }
     }
     //switch on/off the feature to use Home Key to focus search bar
