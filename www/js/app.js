@@ -1181,19 +1181,24 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
-                // Configure home key press to focus #prefix only if the feature is in active state
-                if (docBody && params.useHomeKeyToFocusSearchBar)
-                    docBody.addEventListener('keydown', focusPrefixOnHomeKey);
-
                 resizeIFrame();
-                // Reset UI when the article is unloaded
-                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
-                    $("#articleList").empty();
-                    $('#articleListHeaderMessage').empty();
-                    $('#articleListWithHeader').hide();
-                    $("#prefix").val("");
-                    $("#searchingArticles").show();
-                };
+
+                if (iframeArticleContent.contentWindow) {
+                    // Configure home key press to focus #prefix only if the feature is in active state
+                    if (params.useHomeKeyToFocusSearchBar)
+                        iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+
+                    iframeArticleContent.contentWindow.onunload = function () {
+                        // remove eventListener to avoid memory leaks
+                        iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                        // Reset UI when the article is unloaded
+                        $("#articleList").empty();
+                        $('#articleListHeaderMessage').empty();
+                        $('#articleListWithHeader').hide();
+                        $("#prefix").val("");
+                        $("#searchingArticles").show();
+                    };
+                }
             };
 
             if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
@@ -1358,9 +1363,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
             }
-            // Configure home key press to focus #prefix only if the feature is in active state
-            if (docBody && params.useHomeKeyToFocusSearchBar)
-                docBody.addEventListener('keydown', focusPrefixOnHomeKey);
 
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
@@ -1376,6 +1378,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             //loadJavaScriptJQuery();
             loadCSSJQuery();
             insertMediaBlobsJQuery();
+
+            if (iframeArticleContent.contentWindow) {
+                // Configure home key press to focus #prefix only if the feature is in active state
+                if (params.useHomeKeyToFocusSearchBar)
+                    iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                // when unloaded remove eventListener to avoid memory leaks
+                iframeArticleContent.contentWindow.onunload = function () {
+                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                };
+            }
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
