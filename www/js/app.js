@@ -1187,11 +1187,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // Configure home key press to focus #prefix only if the feature is in active state
                     if (params.useHomeKeyToFocusSearchBar)
                         iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
-
+                    // Reset UI when the article is unloaded
                     iframeArticleContent.contentWindow.onunload = function () {
                         // remove eventListener to avoid memory leaks
                         iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-                        // Reset UI when the article is unloaded
                         $("#articleList").empty();
                         $('#articleListHeaderMessage').empty();
                         $('#articleListWithHeader').hide();
