@@ -81,7 +81,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
-
+    // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
+    params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
+    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
+    switchHomeKeyToFocusSearchBar();
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
         'prefix': '', // A field to hold the original search string
@@ -347,6 +350,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.showUIAnimations = this.checked ? true : false;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
+    $('input:checkbox[name=useHomeKeyToFocusSearchBar]').on('change', function () {
+        params.useHomeKeyToFocusSearchBar = this.checked ? true : false;
+        settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
+        switchHomeKeyToFocusSearchBar();
+    });
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
@@ -386,6 +394,35 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }, 600);
     });
 
+    //focus search bar (#prefix) if Home key is pressed
+    function focusPrefixOnHomeKey(event) {
+        //check if home key is pressed
+        if (event.key === 'Home') {
+            // wait to prevent interference with scrolling (default action)
+            setTimeout(function() {
+                document.getElementById('prefix').focus();
+            },0);
+        }
+    }
+    //switch on/off the feature to use Home Key to focus search bar
+    function switchHomeKeyToFocusSearchBar() {
+        var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        // when the feature is in active state
+        if (params.useHomeKeyToFocusSearchBar) {
+            //Handle Home key press inside window(outside iframe) to focus #prefix
+            window.addEventListener('keydown', focusPrefixOnHomeKey);
+            //only for initial empty iFrame loaded using `src` attribute
+            //in any other case listener gets removed on reloading of iFrame content
+            iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+        }
+        // when the feature is not active
+        else {
+            //remove event listener for window(outside iframe)
+            window.removeEventListener('keydown', focusPrefixOnHomeKey);
+            //if feature is deactivated and no zim content is loaded yet
+            iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+        }
+    }
     /**
      * Displays or refreshes the API status shown to the user
      */
@@ -1145,14 +1182,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
                 resizeIFrame();
-                // Reset UI when the article is unloaded
-                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
-                    $("#articleList").empty();
-                    $('#articleListHeaderMessage').empty();
-                    $('#articleListWithHeader').hide();
-                    $("#prefix").val("");
-                    $("#searchingArticles").show();
-                };
+
+                if (iframeArticleContent.contentWindow) {
+                    // Configure home key press to focus #prefix only if the feature is in active state
+                    if (params.useHomeKeyToFocusSearchBar)
+                        iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                    // Reset UI when the article is unloaded
+                    iframeArticleContent.contentWindow.onunload = function () {
+                        // remove eventListener to avoid memory leaks
+                        iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                        $("#articleList").empty();
+                        $('#articleListHeaderMessage').empty();
+                        $('#articleListWithHeader').hide();
+                        $("#prefix").val("");
+                        $("#searchingArticles").show();
+                    };
+                }
             };
 
             if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
@@ -1317,6 +1362,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
             }
+
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
@@ -1331,6 +1377,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             //loadJavaScriptJQuery();
             loadCSSJQuery();
             insertMediaBlobsJQuery();
+
+            if (iframeArticleContent.contentWindow) {
+                // Configure home key press to focus #prefix only if the feature is in active state
+                if (params.useHomeKeyToFocusSearchBar)
+                    iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                // when unloaded remove eventListener to avoid memory leaks
+                iframeArticleContent.contentWindow.onunload = function () {
+                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                };
+            }
         };
      
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
