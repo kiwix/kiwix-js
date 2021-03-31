@@ -62,14 +62,15 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     // Provide here any Listings for which we need to extract metadata as key:value obects to be added to the file
                     // 'ptrName' and 'countName' contain the key names to be set in the archive file object
                     {
+                        // This defines the standard v0 (legacy) title index that contains listings for every entry in the ZIM (not just articles)
+                        // It represents the same index that is referenced in the ZIM archive header
                         path: 'X/listing/titleOrdered/v0',
                         ptrName: 'titlePtrPos',
                         countName: 'entryCount'
                     },
                     {
-                        // !!! CHANGE THIS PATH TO .../v1 BEFORE MERGING !!!
-                        // It is set to v0 for testing because we do not have any archive with a valid v1 index yet
-                        path: 'X/listing/titleOrdered/v0',
+                        // This defines a new version 1 index that is present in no-namespace ZIMs, and contains a title-ordered list of articles
+                        path: 'X/listing/titleOrdered/v1',
                         ptrName: 'articlePtrPos',
                         countName: 'articleCount'
                     }
