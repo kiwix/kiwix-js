@@ -307,7 +307,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 // Request the metadata for the blob represented by the dirEntry
                 return that.blob(dirEntry.cluster, dirEntry.blob, true);
             }).then(function(metadata) {
-                if (metadata) {
+                // Note that we do not accept a listing if its size is 0, i.e. if it contains no data
+                // (although this should not occur, we have been asked to handle it - see kiwix-js #708)
+                if (metadata && metadata.size) {
                     that[listing.ptrName] = metadata.ptr;
                     that[listing.countName] = metadata.size / 4; // Each entry uses 4 bytes
                     highestListingVersion = Math.max(~~listing.path.replace(/.+(\d)$/, '$1'), highestListingVersion);
