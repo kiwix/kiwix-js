@@ -279,7 +279,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
         var listingAccessor = function (listing) {
             if (!listing) {
                 // No more listings, so exit
-                console.log('ZIM DirLisitng version: ' + highestListingVersion);
+                console.log('ZIM DirListing version: ' + highestListingVersion);
                 return null;
             }
             // Check if we already have this listing's values, so we don't do redundant binary searches
