@@ -271,7 +271,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     ZIMFile.prototype.setListings = function(listings) {
         // If we are in a legacy ZIM archive, there is nothing further to look up
         if (this.minorVersion === 0) {
-            console.log('ZIM DirListing version: legacy');
+            console.debug('ZIM DirListing version: 0 (legacy)', this);
             return;
         }
         var that = this;
@@ -279,7 +279,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
         var listingAccessor = function (listing) {
             if (!listing) {
                 // No more listings, so exit
-                console.log('ZIM DirListing version: ' + highestListingVersion);
+                console.debug('ZIM DirListing version: ' + highestListingVersion, that);
                 return null;
             }
             // Check if we already have this listing's values, so we don't do redundant binary searches
