@@ -107,6 +107,8 @@ module.exports = {
             .frame('articleContent')
             // Check the text in the article "Ray Charles"
             .useXpath()
+            // Let's pause for a second
+            .pause(1000)
             .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
             .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
             // Wait for a particular image to be visible and check its size

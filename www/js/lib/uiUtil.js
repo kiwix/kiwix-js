@@ -64,7 +64,9 @@ define(rqDef, function() {
             var blob = new Blob([content], {
                 type: mimeType
             });
-            var url = URL.createObjectURL(blob);
+            // Establish the current window (avoids having to pass it to this function)
+            var docWindow = node.ownerDocument.defaultView || node.ownerDocument.parentWindow || window;
+            var url = docWindow.URL.createObjectURL(blob);
             if (callback) callback(url);
             node.addEventListener('load', function () {
                 URL.revokeObjectURL(url);
@@ -81,26 +83,27 @@ define(rqDef, function() {
      * while copying some attributes of the original tag
      * Cf http://jonraasch.com/blog/javascript-style-node
      * 
-     * @param {Element} link from the DOM
-     * @param {String} cssContent
+     * @param {Element} link The DOM link element to replace with an inline style definition
+     * @param {String} cssContent The decoded content of the linked CSS file
      */
     function replaceCSSLinkWithInlineCSS (link, cssContent) {
-        var cssElement = document.createElement('style');
+        var doc = link.ownerDocument;
+        var cssElement = doc.createElement('style');
         cssElement.type = 'text/css';
         if (cssElement.styleSheet) {
             cssElement.styleSheet.cssText = cssContent;
         } else {
-            cssElement.appendChild(document.createTextNode(cssContent));
+            cssElement.appendChild(doc.createTextNode(cssContent));
         }
-        var mediaAttributeValue = link.attr('media');
+        var mediaAttributeValue = link.getAttribute('media');
         if (mediaAttributeValue) {
             cssElement.media = mediaAttributeValue;
         }
-        var disabledAttributeValue = link.attr('disabled');
+        var disabledAttributeValue = link.getAttribute('disabled');
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
@@ -402,8 +405,9 @@ define(rqDef, function() {
         }
         // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
         // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
-        if (document.getElementById('liConfigureNav').classList.contains('active') &&
-            doc.title !== "Placeholder for injecting an article into the iframe") {
+        var dummyArticle = doc.querySelector('meta[name="description"]');
+        dummyArticle = dummyArticle ? dummyArticle.content === "Placeholder for injecting an article into the iframe or window" : false;
+        if (document.getElementById('liConfigureNav').classList.contains('active') && !dummyArticle ) {
             showReturnLink();
         }
     }

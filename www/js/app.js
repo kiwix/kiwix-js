@@ -85,12 +85,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
+    // A setting that determines whether right-click/long-press of a ZIM link opens a new window/tab
+    params['rightClickOpensTab'] = settingsStore.getItem('rightClickOpensTab') === 'true';
+    document.getElementById('rightClickOpensTabCheck').checked = params.rightClickOpensTab;
+
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
         'prefix': '', // A field to hold the original search string
         'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
+    // The target for article loads (this should always be 'iframe' initially, and will only be changed as a result of user action)
+    appstate['target'] = 'iframe';
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -132,6 +138,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
+        // Ensure selected search item is displayed in the iframe, not a new window or tab
+        appstate.target = 'iframe';
         pushBrowserHistoryState(null, prefix);
         // Initiate the search
         searchDirEntriesFromPrefix(prefix);
@@ -224,6 +232,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     $("#btnRandomArticle").on("click", function() {
+        // In jQuery mode, only load random content in iframe (not tab or window)
+        appstate.target = 'iframe';
         $('#prefix').val("");
         goToRandomArticle();
         $("#welcomeText").hide();
@@ -254,6 +264,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     // Top menu :
     $('#btnHome').on('click', function() {
+        // In jQuery mode, only load landing page in iframe (not tab or window)
+        appstate.target = 'iframe';
         // Highlight the selected section in the navbar
         $('#liHomeNav').attr("class","active");
         $('#liConfigureNav').attr("class","");
@@ -354,6 +366,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.useHomeKeyToFocusSearchBar = this.checked ? true : false;
         settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
         switchHomeKeyToFocusSearchBar();
+    });
+    document.getElementById('rightClickOpensTabCheck').addEventListener('change', function (e) {
+        params.rightClickOpensTab = e.target.checked;
+        settingsStore.setItem('rightClickOpensTab', params.rightClickOpensTab, Infinity);
     });
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
@@ -745,11 +761,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
 
     // Display the article when the user goes back in the browser history
-    window.onpopstate = function(event) {
+    var historyPop = function(event) {
         if (event.state) {
             var title = event.state.title;
             var titleSearch = event.state.titleSearch;
-            
+            appstate.target = event.target.kiwixType;
+            // Select the correct window to which to write the popped history in case the user
+            // siwtches to a tab and navigates history without first clicking on a link
+            if (appstate.target === 'window') articleContainer = event.target;
             $('#prefix').val("");
             $("#welcomeText").hide();
             $("#searchingArticles").hide();
@@ -771,6 +790,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         }
     };
+
+    window.onpopstate = historyPop;
     
     /**
      * Populate the drop-down list of archives with the given list
@@ -855,6 +876,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             resetCssCache();
             selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
                 settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
+                // Ensure that the new ZIM output is initially sent to the iframe (e.g. if the last article was loaded in a window)
+                // (this only affects jQuery mode)
+                appstate.target = 'iframe';
                 // The archive is set : go back to home page to start searching
                 $("#btnHome").click();
             });
@@ -942,6 +966,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
+            // Ensure that the new ZIM output is initially sent to the iframe (e.g. if the last article was loaded in a window)
+            // (this only affects jQuery mode)
+            appstate.target = 'iframe';
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
             document.getElementById('downloadInstruction').style.display = 'none';
@@ -1214,7 +1241,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
                 $("#searchingArticles").show();
-                selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
+                selectedArchive.readUtf8File(dirEntry, displayArticleContentInContainer);
             }
         }
     }
@@ -1290,15 +1317,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
     // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
     var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
+    // Placeholders for the article container and the documentElement of the article
+    var articleContainer, articleDocument;
     
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
      * NB : in some error cases, the given title can be null, and the htmlArticle contains the error message
-     * @param {DirEntry} dirEntry
-     * @param {String} htmlArticle
+     * @param {DirEntry} dirEntry The Directory Entry of the article
+     * @param {String} htmlArticle The decoded HTML of the article
      */
-    function displayArticleContentInIframe(dirEntry, htmlArticle) {
+    function displayArticleContentInContainer(dirEntry, htmlArticle) {
         if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
             return;
         }		
@@ -1325,23 +1354,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
         htmlCSS = htmlCSS ? htmlCSS[1] : '';
         
-        // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
-        $('#articleContent').contents().remove();
-
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
         $('#downloadAlert').hide();
 
-        var iframeArticleContent = document.getElementById('articleContent');
-        
-        iframeArticleContent.onload = function() {
-            iframeArticleContent.onload = function(){};
+        var windowLoaded = function() {
+            articleDocument = articleContainer.document.documentElement;
+            
             $("#articleList").empty();
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             
-            var iframeContentDocument = iframeArticleContent.contentDocument;
-            if (!iframeContentDocument && window.location.protocol === 'file:') {
+            if (!articleDocument && window.location.protocol === 'file:') {
                 alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
                         + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
                         + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
@@ -1349,25 +1373,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 return;
             }
             
-            // Inject the new article's HTML into the iframe
-            var articleContent = iframeContentDocument.documentElement;
-            articleContent.innerHTML = htmlArticle;
-            
-            var docBody = articleContent.getElementsByTagName('body');
-            docBody = docBody ? docBody[0] : null;
-            if (docBody) {
-                // Add any missing classes stripped from the <html> tag
-                if (htmlCSS) docBody.classList.add(htmlCSS);
-                // Deflect drag-and-drop of ZIM file on the iframe to Config
-                docBody.addEventListener('dragover', handleIframeDragover);
-                docBody.addEventListener('drop', handleIframeDrop);
+            if (articleContainer.kiwixType === 'iframe') {
+                var docBody = articleDocument.querySelector('body');
+                if (docBody) {
+                    // Add any missing classes stripped from the <html> tag
+                    if (htmlCSS) docBody.classList.add(htmlCSS);
+                    // Deflect drag-and-drop of ZIM file on the iframe to Config
+                    docBody.addEventListener('dragover', handleIframeDragover);
+                    docBody.addEventListener('drop', handleIframeDrop);
+                }
+                // Set the requested appTheme
+                uiUtil.applyAppTheme(params.appTheme);
             }
-
-            // Set the requested appTheme
-            uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
+            loadCSSJQuery();
             parseAnchorsJQuery();
             loadImagesJQuery();
             // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
@@ -1375,23 +1396,58 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // and noscript tags should be ignored
             loadNoScriptTags();
             //loadJavaScriptJQuery();
-            loadCSSJQuery();
             insertMediaBlobsJQuery();
 
-            if (iframeArticleContent.contentWindow) {
+            if (articleContainer.kiwixType === 'iframe') {
                 // Configure home key press to focus #prefix only if the feature is in active state
                 if (params.useHomeKeyToFocusSearchBar)
-                    iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                    articleContainer.addEventListener('keydown', focusPrefixOnHomeKey);
                 // when unloaded remove eventListener to avoid memory leaks
-                iframeArticleContent.contentWindow.onunload = function () {
-                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                articleContainer.onunload = function () {
+                    articleContainer.removeEventListener('keydown', focusPrefixOnHomeKey);
                 };
             }
         };
-     
-        // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
-        iframeArticleContent.src = "article.html";
 
+        // For articles loaded in the iframe, we need to set the articleContainer (but if the user is opening a new tab/window,
+        // then the articleContainer has already been set in the click event of the ZIM link)
+        if (appstate.target === 'iframe') {
+            // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
+            $('#articleContent').contents().remove();
+            articleContainer = document.getElementById('articleContent').contentWindow;
+            // Ensure the target is permanently stored as a property of the container (since appstate.target can change)
+            articleContainer.kiwixType = appstate.target;
+            // Storing the window type at top level window helps us with history manipulation
+            window.kiwixType = appstate.target;
+        }
+        // Calculate the current article's encoded ZIM baseUrl to use when processing relative links
+        baseUrl = (dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
+            // URI-encode anything that is not a '/'
+            .replace(/[^/]+/g, function(m) {
+                return encodeURIComponent(m);
+            });
+        // Hide the document to avoid display flash before stylesheets are loaded; also improves performance during loading of
+        // assets in most browsers (the document will be unhidden again by renderIfCSSFulfilled).
+        // DEV: We cannot do `articleContainer.document.documentElement.hidden = true;` because documentElement gets overwritten
+        // during the document.write() process; and since the latter is synchronous, we get slow display rewrites before it is
+        // effective if we do it after document.close().
+        htmlArticle = htmlArticle.replace(/(<html\b[^>]*)>/i, '$1 hidden>');
+        // Write article html to the article container
+        articleContainer.document.open('text/html', 'replace');
+        articleContainer.document.write(htmlArticle);
+        articleContainer.document.close();
+        // Storing the window type at top level window helps us with history manipulation
+        window.kiwixType = appstate.target;
+        if (appstate.target === 'window') articleContainer.onpopstate = historyPop;
+        articleContainer.kiwixType = appstate.target;
+        // IE (and Edge Legacy) do not provide the onload event for newly opened windows/tabs. However, document.write()
+        // followed by document.close() is synchronous in these browsers, so an event loader is unnecessary.
+        if (articleContainer.onload) {
+            articleContainer.onload = windowLoaded;
+        } else {
+            windowLoaded();
+        }
+        
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
@@ -1400,8 +1456,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+/()[{])/g, '\\$1');
             // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
             var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
-            var iframe = iframeArticleContent.contentDocument;
-            Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
+            Array.prototype.slice.call(articleDocument.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
                     var testHref = anchor.href;
@@ -1422,35 +1477,97 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     anchor.target = '_blank';
                 } else {
                     // It's a link to an article or file in the ZIM
-                    var uriComponent = uiUtil.removeUrlParameters(href);
-                    var contentType;
-                    var downloadAttrValue;
-                    // Some file types need to be downloaded rather than displayed (e.g. *.epub)
-                    // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
-                    // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
-                    // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
-                    // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
-                    var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
-                    if (isDownloadableLink) {
-                        downloadAttrValue = anchor.getAttribute('download');
-                        // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
-                        downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
-                        contentType = anchor.getAttribute('type');
-                    }
-                    // Add an onclick event to extract this article or file from the ZIM
-                    // instead of following the link
-                    anchor.addEventListener('click', function (e) {
-                        var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
-                        goToArticle(zimUrl, downloadAttrValue, contentType);
-                        e.preventDefault();
-                    });
+                    addListenersToLink(anchor, href);
                 }
             });
+            // Add event listeners to the main document so user can open current document in new tab or window
+            addListenersToLink(articleDocument, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
         }
-        
+
+        /**
+         * Add event listeners to a hyperlinked element to extract the linked article or file from the ZIM instead
+         * of following links
+         * @param {Node} a The anchor or other linked element to which event listeners will be attached
+         * @param {String} href The href of the linked element 
+         */
+        function addListenersToLink(a, href) {
+            var uriComponent = uiUtil.removeUrlParameters(href);
+            var contentType;
+            var downloadAttrValue;
+            // Some file types need to be downloaded rather than displayed (e.g. *.epub)
+            // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
+            // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
+            // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
+            // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
+            var isDownloadableLink = a.hasAttribute('download') || regexpDownloadLinks.test(href);
+            if (isDownloadableLink) {
+                downloadAttrValue = a.getAttribute('download');
+                // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
+                downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
+                contentType = a.getAttribute('type');
+            }
+            // DEV: We need to use the '#' location trick here for cross-browser compatibility with opening a new tab/window
+            a.setAttribute('href', '#');
+            // Store the current values, as they may be changed if user switches to another tab before returning to this one
+            var kiwixTarget = appstate.target;
+            var thisWindow = articleContainer;
+            // Establish a variable for tracking long press
+            var touched = false;
+            a.addEventListener('touchstart', function () {
+                if (!params.rightClickOpensTab) return;
+                touched = true;
+                // The link will be clicked if the user long-presses for more than 600ms (if the option is enabled)
+                setTimeout(function () {
+                    if (!touched) return;
+                    a.click();
+                }, 600);
+            }, false);
+            a.addEventListener('touchend', function () {
+                touched = false;
+            }, false);
+            // This detects right-click in all browsers (only if the option is enabled)
+            a.addEventListener('contextmenu', function (e) {
+                if (!params.rightClickOpensTab) return;
+                e.preventDefault();
+                e.stopPropagation();
+                touched = true;
+                a.click();
+            });
+            // This detects the middle-click event
+            a.addEventListener('mousedown', function (e) {
+                if (e.which === 2 || e.button === 4) {
+                    e.preventDefault();
+                    touched = true;
+                    a.click();
+                }
+            });
+            // The main click routine (called by other events above as well)
+            a.addEventListener('click', function (e) {
+                // Restore original values for this window/tab
+                appstate.target = kiwixTarget;
+                articleContainer = thisWindow;
+                // This detects Ctrl-click, Command-click, the long-press event, and middle-click
+                if (e.ctrlKey || e.metaKey || touched || e.which === 2 || e.button === 4) {
+                    // We open the new window immediately so that it is a direct result of user action (click)
+                    // and we'll populate it later - this avoids popup blockers
+                    articleContainer = window.open('article.html', '_blank');
+                    appstate.target = 'window';
+                    articleContainer.kiwixType = appstate.target;
+                } else if (a.tagName === 'HTML') {
+                    // We have registered a click on the document, but a new tab wasn't requested, so ignore
+                    // and allow any propagated clicks on other elements to run 
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+                goToArticle(zimUrl, downloadAttrValue, contentType);
+            });
+        }
+
         function loadImagesJQuery() {
             // Make an array from the images that need to be processed
-            var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
+            var images = Array.prototype.slice.call(articleDocument.querySelectorAll('img[data-kiwixurl]'));
             // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
             images.owner = expectedArticleURLToBeDisplayed;
             // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
@@ -1481,7 +1598,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         function loadNoScriptTags() {
             // For each noscript tag, we replace it with its content, so that the browser interprets it
-            $('#articleContent').contents().find('noscript').replaceWith(function () {
+            var noscript = articleDocument.querySelector('noscript');
+            if (noscript) noscript.replaceWith(function () {
                 // When javascript is enabled, browsers interpret the content of noscript tags as text
                 // (see https://html.spec.whatwg.org/multipage/scripting.html#the-noscript-element)
                 // So we can read this content with .textContent
@@ -1490,13 +1608,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
 
         function loadCSSJQuery() {
+            // Hiding the document to prevent expensive CSS rendering until all CSS is loaded -- see renderIfCSSFulfilled() below
+            articleDocument.hidden = true;
             // Ensure all sections are open for clients that lack JavaScript support, or that have some restrictive CSP [kiwix-js #355].
             // This is needed only for some versions of ZIM files generated by mwoffliner (at least in early 2018), where the article sections are closed by default on small screens.
             // These sections can be opened by clicking on them, but this is done with some javascript.
             // The code below is a workaround we still need for compatibility with ZIM files generated by mwoffliner in 2018.
             // A better fix has been made for more recent ZIM files, with the use of noscript tags : see https://github.com/openzim/mwoffliner/issues/324
-            var iframe = document.getElementById('articleContent').contentDocument;
-            var collapsedBlocks = iframe.querySelectorAll('.collapsible-block:not(.open-block), .collapsible-heading:not(.open-block)');
+            var collapsedBlocks = articleDocument.querySelectorAll('.collapsible-block:not(.open-block), .collapsible-heading:not(.open-block)');
             // Using decrementing loop to optimize performance : see https://stackoverflow.com/questions/3520688 
             for (var i = collapsedBlocks.length; i--;) {
                 collapsedBlocks[i].classList.add('open-block');
@@ -1504,10 +1623,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             var cssCount = 0;
             var cssFulfilled = 0;
-            $('#articleContent').contents().find('link[data-kiwixurl]').each(function () {
+            Array.prototype.slice.call(articleDocument.querySelectorAll('link[data-kiwixurl]')).forEach(function (link) {
                 cssCount++;
-                var link = $(this);
-                var linkUrl = link.attr("data-kiwixurl");
+                var linkUrl = link.getAttribute("data-kiwixurl");
                 var url = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
                 if (cssCache.has(url)) {
                     var cssContent = cssCache.get(url);
@@ -1543,6 +1661,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     $('#cachingAssets').hide();
                     $('#searchingArticles').hide();
                     $('#articleContent').show();
+                    articleDocument.hidden = false;
                     // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                     resizeIFrame();
                 } else {
@@ -1579,9 +1698,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // }
 
         function insertMediaBlobsJQuery() {
-            var iframe = iframeArticleContent.contentDocument;
-            Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
-            .forEach(function(mediaSource) {
+            var media = articleDocument.querySelectorAll('video, audio, source, track');
+            Array.prototype.slice.call(media).forEach(function (mediaSource) {
                 var source = mediaSource.getAttribute('src');
                 source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
@@ -1595,7 +1713,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
-                        mediaSource.src = URL.createObjectURL(blob);
+                        mediaSource.src = articleContainer.URL.createObjectURL(blob);
                         // In Firefox and Chromium it is necessary to re-register the inserted media source
                         // but do not reload for text tracks (closed captions / subtitles)
                         if (/track/i.test(mediaSource.tagName)) return;
@@ -1622,16 +1740,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Changes the URL of the browser page, so that the user might go back to it
      * 
-     * @param {String} title
-     * @param {String} titleSearch
+     * @param {String} title The title of the article to store (if storing an article)
+     * @param {String} titleSearch The title of the search (if storing a search)
      */
     function pushBrowserHistoryState(title, titleSearch) {
+        var targetWin = appstate.target === 'iframe' ? window : articleContainer;
         var stateObj = {};
         var urlParameters;
         var stateLabel;
         if (title && !(""===title)) {
             // Prevents creating a double history for the same page
-            if (history.state && history.state.title === title) return;
+            if (targetWin.history.state && targetWin.history.state.title === title) return;
             stateObj.title = title;
             urlParameters = "?title=" + title;
             stateLabel = "Wikipedia Article : " + title;
@@ -1641,10 +1760,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             urlParameters = "?titleSearch=" + titleSearch;
             stateLabel = "Wikipedia search : " + titleSearch;
         }
-        else {
-            return;
+        else return;
+        // Edge Legacy and IE cannot push history state to another window/tab and produce an exception;
+        // independent navigation history is therefore disabled for these browsers
+        try {
+            targetWin.history.pushState(stateObj, stateLabel, urlParameters);
+        } catch (error) {
+            history.pushState(stateObj, stateLabel, urlParameters);
         }
-        window.history.pushState(stateObj, stateLabel, urlParameters);
     }
 
 

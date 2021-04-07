@@ -43,7 +43,13 @@ module.exports = {
         "enabled" : false
       },
       "globals": {
-        "waitForConditionTimeout": 600
+        "waitForConditionTimeout": 10000
+      },
+      // Configure when a request to the Selenium server should time out and optionally define the number of retries for a timed-out request
+      // See https://github.com/nightwatchjs/nightwatch/issues/1936
+      "request_timeout_options": {
+        "timeout": 100000,
+        "retry_attempts": 3
       }
     },
     "firefox45" : {
@@ -60,7 +66,8 @@ module.exports = {
         "browserName": "firefox",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": build
+        "build": build,
+        "extendedDebugging": true
       }
     },
     "chrome58" : {
