@@ -54,14 +54,17 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * @property {Array<File>} _files Array of ZIM files
      * @property {String} name Abstract archive name for file set
      * @property {Integer} id Arbitrary numeric ZIM id used to track the currently loaded archive
-     * @property {Integer} articleCount Total number of articles
+     * @property {Integer} entryCount Total number of entries in the URL pointerlist
+     * @property {Integer} articleCount Total number of articles in the v1 article-only pointerlist (async calculated entry)
      * @property {Integer} clusterCount Total number of clusters
      * @property {Integer} urlPtrPos Position of the directory pointerlist ordered by URL
-     * @property {Integer} titlePtrPos Position of the directory pointerlist ordered by title
+     * @property {Integer} titlePtrPos Position of the legacy v0 pointerlist ordered by title
+     * @property {Integer} articlePtrPos Position of the v1 article-only pointerlist ordered by title (async calculated entry)
      * @property {Integer} clusterPtrPos Position of the cluster pointer list
      * @property {Integer} mimeListPos Position of the MIME type list (also header size)
      * @property {Integer} mainPage Main page or 0xffffffff if no main page
      * @property {Integer} layoutPage Layout page or 0xffffffffff if no layout page
+     * @property {Map} mimeTypes The ZIM file's MIME type table rendered as a Map (calculated entry)
      */
     
     /**
@@ -182,7 +185,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      */
     ZIMFile.prototype.dirEntryByTitleIndex = function (index) {
         var that = this;
-        return this._readInteger(this.titlePtrPos + index * 4, 4).then(function (urlIndex) {
+        // Use v1 title pointerlist if available, or fall back to legacy v0 list
+        var ptrList = this.articlePtrPos || this.titlePtrPos;
+        return this._readInteger(ptrList + index * 4, 4).then(function (urlIndex) {
             return that.dirEntryByUrlIndex(urlIndex);
         });
     };
@@ -191,9 +196,11 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * Read and if necessary decompress a BLOB based on its cluster number and blob number
      * @param {Integer} cluster The cluster number where the blob is to be found
      * @param {Integer} blob The blob number within the cluster
+     * @param {Boolean} meta If true, and if the cluster is uncompressed, the function will return only the blob's metadata
+     *        (its archive offset and its size), otherwise return null
      * @returns {Promise<Uint8Array>} A Promise for the BLOB's data
      */
-    ZIMFile.prototype.blob = function (cluster, blob) {
+    ZIMFile.prototype.blob = function (cluster, blob, meta) {
         var that = this;
         return this._readSlice(this.clusterPtrPos + cluster * 8, 16).then(function (clusterOffsets) {
             var clusterOffset = readInt(clusterOffsets, 0, 8);
@@ -202,17 +209,31 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             // var thisClusterLength = nextCluster - clusterOffset - 1;
             return that._readSlice(clusterOffset, 1).then(function (compressionType) {
                 var decompressor;
-                var plainBlobReader = function (offset, size) {
+                var plainBlobReader = function (offset, size, dataPass) {
                     // Check that we are not reading beyond the end of the cluster
                     var offsetStart = clusterOffset + 1 + offset;
                     if (offsetStart < nextCluster) {
                         // Gratuitous parentheses added for legibility
                         size = (offsetStart + size) <= nextCluster ? size : (nextCluster - offsetStart);
-                        return that._readSlice(offsetStart, size);
+                        // DEV: This blob reader is called twice: on the first pass it reads the cluster's blob list,
+                        // and on the second pass ("dataPass") it is ready to read the blob's data
+                        if (meta && dataPass) {
+                            // If only metadata were requested and we are on the data pass, we should now have them
+                            return {
+                                ptr: offsetStart,
+                                size: size
+                            };
+                        } else {
+                            return that._readSlice(offsetStart, size);
+                        }
                     } else {
                         return Q(new Uint8Array(0).buffer);
                     }
                 };
+                // If only metadata were requested and the cluster is compressed, return null (this is probably a ZIM format error)
+                // DEV: This is because metadata are only requested for finding absolute offsets into uncompressed clusters,
+                // principally for finding the start and size of a title pointer listing
+                if (meta && compressionType[0] > 1) return null;
                 if (compressionType[0] === 0 || compressionType[0] === 1) {
                     // uncompressed
                     decompressor = { readSliceSingleThread: plainBlobReader };
@@ -223,14 +244,84 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 } else {
                     return new Uint8Array(); // unsupported compression type
                 }
-                return decompressor.readSliceSingleThread(blob * 4, 8).then(function (data) {
+                return decompressor.readSliceSingleThread(blob * 4, 8, false).then(function (data) {
                     var blobOffset = readInt(data, 0, 4);
                     var nextBlobOffset = readInt(data, 4, 4);
-                    return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset);
+                    return decompressor.readSliceSingleThread(blobOffset, nextBlobOffset - blobOffset, true);
                 });
             });
         });
     };
+
+    /**
+     * A Directory Listing object
+     * @typedef {Object} DirListing A list of pointers to directory entries (via the URL pointerlist)
+     * @property {String} path The path (url) to the directory entry for the Listing
+     * @property {String} ptrName The name of the pointer to the Listing's data that will be added to the ZIMFile obect
+     * @property {String} countName The name of the key that will contain the number of entries in the Listing, to be added to the ZIMFile object 
+     */
+
+    /**
+     * Read the metadata (archive offset pointer, and number of entiries) of one or more ZIM directory Listings.
+     * This supports reading a subset of user content that might be ordered differently from the main URL pointerlist.
+     * In particular, it supports v1 title pointerlists, which contain articles sorted by title, superseding the article
+     * namespace ('A') in legazy ZIM archives.  
+     * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)  
+     */
+    ZIMFile.prototype.setListings = function(listings) {
+        // If we are in a legacy ZIM archive, there is nothing further to look up
+        if (this.minorVersion === 0) {
+            console.debug('ZIM DirListing version: 0 (legacy)', this);
+            return;
+        }
+        var that = this;
+        var highestListingVersion = 0;
+        var listingAccessor = function (listing) {
+            if (!listing) {
+                // No more listings, so exit
+                console.debug('ZIM DirListing version: ' + highestListingVersion, that);
+                return null;
+            }
+            // Check if we already have this listing's values, so we don't do redundant binary searches
+            if (that[listing.ptrName] && that[listing.countName]) {
+                highestListingVersion = Math.max(~~listing.path.replace(/.+(\d)$/, '$1'), highestListingVersion);
+                // Get the next listing
+                return listingAccessor(listings.pop());
+            }
+            // Initiate a binary search for the listing URL
+            return util.binarySearch(0, that.entryCount, function(i) {
+                return that.dirEntryByUrlIndex(i).then(function(dirEntry) {
+                    var url = dirEntry.namespace + "/" + dirEntry.url;
+                    if (listing.path < url)
+                        return -1;
+                    else if (listing.path > url)
+                        return 1;
+                    else
+                        return 0;
+                });
+            }).then(function(index) {
+                if (index === null) return null;
+                return that.dirEntryByUrlIndex(index);
+            }).then(function(dirEntry) {
+                if (!dirEntry) return null;
+                // Request the metadata for the blob represented by the dirEntry
+                return that.blob(dirEntry.cluster, dirEntry.blob, true);
+            }).then(function(metadata) {
+                // Note that we do not accept a listing if its size is 0, i.e. if it contains no data
+                // (although this should not occur, we have been asked to handle it - see kiwix-js #708)
+                if (metadata && metadata.size) {
+                    that[listing.ptrName] = metadata.ptr;
+                    that[listing.countName] = metadata.size / 4; // Each entry uses 4 bytes
+                    highestListingVersion = Math.max(~~listing.path.replace(/.+(\d)$/, '$1'), highestListingVersion);
+                }
+                // Get the next Listing
+                return listingAccessor(listings.pop());
+            }).catch(function(err) {
+                console.error('There was an error accessing a Directory Listing', err);
+            });
+        };
+        listingAccessor(listings.pop());
+    };    
 
     /**
      * Reads the whole MIME type list and returns it as a populated Map
@@ -291,7 +382,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             return util.readFileSlice(fileArray[0], 0, 80).then(function (header) {
                 var mimeListPos = readInt(header, 56, 8);
                 var urlPtrPos = readInt(header, 32, 8);
-                return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (data) {
+                return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (mapData) {
                     var zf = new ZIMFile(fileArray);
                     // Add an abstract archive name (ignoring split file extensions)
                     zf.name = fileArray[0].name.replace(/(\.zim)\w\w$/i, '$1');
@@ -304,15 +395,17 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                     // For a description of these values, see https://wiki.openzim.org/wiki/ZIM_file_format
                     zf.majorVersion = readInt(header, 4, 2); // Not currently used by this implementation
                     zf.minorVersion = readInt(header, 6, 2); // Used to determine the User Content namespace
-                    zf.articleCount = readInt(header, 24, 4);
+                    zf.entryCount = readInt(header, 24, 4);
+                    zf.articleCount = null; // Calculated async by setListings() called from zimArchive.js 
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
                     zf.titlePtrPos = readInt(header, 40, 8);
+                    zf.articlePtrPos = null; // Calculated async by setListings() called from zimArchive.js 
                     zf.clusterPtrPos = readInt(header, 48, 8);
                     zf.mimeListPos = mimeListPos;
                     zf.mainPage = readInt(header, 64, 4);
                     zf.layoutPage = readInt(header, 68, 4);
-                    zf.mimeTypes = data;
+                    zf.mimeTypes = mapData;
                     return zf;
                 });
             });

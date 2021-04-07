@@ -204,7 +204,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitle("A/(The_Night_Time_Is)_The_Right_Time.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("A/(The_Night_Time_Is)_The_Right_Time.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
@@ -223,7 +223,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("article 'Raelettes' correctly redirects to 'The Raelettes'", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitle("A/Raelettes.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("A/Raelettes.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
@@ -242,7 +242,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("article 'Bein Green' correctly redirects to 'Bein' Green", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitle("A/Bein_Green.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("A/Bein_Green.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
@@ -261,7 +261,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("article 'America, the Beautiful' correctly redirects to 'America the Beautiful'", function(assert) {
             var done = assert.async();
             assert.expect(6);
-            localZimArchive.getDirEntryByTitle("A/America,_the_Beautiful.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("A/America,_the_Beautiful.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.ok(dirEntry.isRedirect(), "DirEntry is a redirect.");
@@ -280,7 +280,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("Image 'm/RayCharles_AManAndHisSoul.jpg' can be loaded", function(assert) {
             var done = assert.async();
             assert.expect(5);
-            localZimArchive.getDirEntryByTitle("I/m/RayCharles_AManAndHisSoul.jpg").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("I/m/RayCharles_AManAndHisSoul.jpg").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "I/m/RayCharles_AManAndHisSoul.jpg", "URL is correct.");
@@ -301,7 +301,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             var done = assert.async();
 
             assert.expect(5);
-            localZimArchive.getDirEntryByTitle("-/s/style.css").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("-/s/style.css").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/s/style.css", "URL is correct.");
@@ -321,7 +321,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("Javascript '-/j/local.js' can be loaded", function(assert) {
             var done = assert.async();
             assert.expect(5);
-            localZimArchive.getDirEntryByTitle("-/j/local.js").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("-/j/local.js").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "DirEntry found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "-/j/local.js", "URL is correct.");
@@ -342,7 +342,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         QUnit.test("Split article 'A/Ray_Charles.html' can be loaded", function(assert) {
             var done = assert.async();
             assert.expect(7);
-            localZimArchive.getDirEntryByTitle("A/Ray_Charles.html").then(function(dirEntry) {
+            localZimArchive.getDirEntryByPath("A/Ray_Charles.html").then(function(dirEntry) {
                 assert.ok(dirEntry !== null, "Title found");
                 if (dirEntry !== null) {
                     assert.equal(dirEntry.namespace +"/"+ dirEntry.url, "A/Ray_Charles.html", "URL is correct.");

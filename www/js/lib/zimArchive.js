@@ -46,17 +46,39 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
      * This constructor can also be used with a single File parameter.
      * 
-     * @param {StorageFirefoxOS|Array.<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
-     * @param {String} path
-     * @param {callbackZIMArchive} callbackReady
+     * @param {StorageFirefoxOS|Array<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
+     * @param {String} path The Storage path for an OS that requires this to be specified
+     * @param {callbackZIMArchive} callbackReady The function to call when the archive is ready to use
      */
     function ZIMArchive(storage, path, callbackReady) {
         var that = this;
         that._file = null;
         that._language = ""; //@TODO
-        var createZimfile = function(fileArray) {
-            zimfile.fromFileArray(fileArray).then(function(file) {
+        var createZimfile = function (fileArray) {
+            zimfile.fromFileArray(fileArray).then(function (file) {
                 that._file = file;
+                // File has been created, but we need to add any Listings which extend the archive metadata
+                that._file.setListings([
+                    // Provide here any Listings for which we need to extract metadata as key:value obects to be added to the file
+                    // 'ptrName' and 'countName' contain the key names to be set in the archive file object
+                    {
+                        // This defines the standard v0 (legacy) title index that contains listings for every entry in the ZIM (not just articles)
+                        // It represents the same index that is referenced in the ZIM archive header
+                        path: 'X/listing/titleOrdered/v0',
+                        ptrName: 'titlePtrPos',
+                        countName: 'entryCount'
+                    },
+                    {
+                        // This defines a new version 1 index that is present in no-namespace ZIMs, and contains a title-ordered list of articles
+                        path: 'X/listing/titleOrdered/v1',
+                        ptrName: 'articlePtrPos',
+                        countName: 'articleCount'
+                    }
+                ]);
+                // DEV: Currently, extended listings are only used for title (=article) listings when the user searches
+                // for an article or uses the Random button, by which time the listings will have been extracted.
+                // If, in the future, listings are used in a more time-critical manner, consider forcing a wait before
+                // declaring the archive to be ready, by chaining the following callback in a .then() function of setListings.
                 callbackReady(that);
             });
         };
@@ -245,7 +267,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, resultSize, search, callback) {
         var that = this;
         var cns = this.getContentNamespace();
-        util.binarySearch(0, this._file.articleCount, function(i) {
+        // Search v1 article listing if available, otherwise fallback to v0
+        var articleCount = this._file.articleCount || this._file.entryCount;
+        util.binarySearch(0, articleCount, function(i) {
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (search.status === 'cancelled') return 0;
                 var ns = dirEntry.namespace;
@@ -257,7 +281,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         }, true).then(function(firstIndex) {
             var dirEntries = [];
             var addDirEntries = function(index) {
-                if (search.status === 'cancelled' || index >= firstIndex + resultSize || index >= that._file.articleCount) {
+                if (search.status === 'cancelled' || index >= firstIndex + resultSize || index >= articleCount) {
                     return dirEntries;
                 }
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
@@ -322,18 +346,18 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     };
 
     /**
-     * Searches a DirEntry (article / page) by its title.
-     * @param {String} title
-     * @return {Promise} resolving to the DirEntry object or null if not found.
+     * Searches the URL pointer list of Directory Entries by pathname
+     * @param {String} path The pathname of the DirEntry that is required (namespace + filename)
+     * @return {Promise<DirEntry>} A Promise that resolves to a Directory Entry, or null if not found.
      */
-    ZIMArchive.prototype.getDirEntryByTitle = function(title) {
+    ZIMArchive.prototype.getDirEntryByPath = function(path) {
         var that = this;
-        return util.binarySearch(0, this._file.articleCount, function(i) {
+        return util.binarySearch(0, this._file.entryCount, function(i) {
             return that._file.dirEntryByUrlIndex(i).then(function(dirEntry) {
                 var url = dirEntry.namespace + "/" + dirEntry.url;
-                if (title < url)
+                if (path < url)
                     return -1;
-                else if (title > url)
+                else if (path > url)
                     return 1;
                 else
                     return 0;
@@ -351,8 +375,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @param {callbackDirEntry} callback
      */
     ZIMArchive.prototype.getRandomDirEntry = function(callback) {
-        var index = Math.floor(Math.random() * this._file.articleCount);
-        this._file.dirEntryByUrlIndex(index).then(callback);
+        // Prefer an article-only (v1) title pointer list, if available
+        var articleCount = this._file.articleCount || this._file.entryCount;
+        var index = Math.floor(Math.random() * articleCount);
+        this._file.dirEntryByTitleIndex(index).then(callback);
     };
     
     /**
@@ -362,7 +388,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      */
     ZIMArchive.prototype.getMetadata = function (key, callback) {
         var that = this;
-        this.getDirEntryByTitle("M/" + key).then(function (dirEntry) {
+        this.getDirEntryByPath("M/" + key).then(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 console.warn("Title M/" + key + " not found in the archive");
                 callback();
