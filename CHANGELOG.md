@@ -20,6 +20,8 @@ Released on *2020-12-12*
 * BUGFIX: Running binary searches are now cancelled completely if user enters new search term or navigates away
 * BUGFIX: Active content warning was erroneously showing on some ZSTD WikiMedia landing pages in jQuery mode
 
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/24?closed=1
+
 ## Kiwix-JS v3.0.0
 
 Released on *2020-10-04*
