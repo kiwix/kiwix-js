@@ -1361,7 +1361,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var windowLoaded = function() {
             if (loaded) return;
             loaded = true;
-            articleDocument = articleWindow.document.documentElement;
             
             $("#articleList").empty();
             $('#articleListHeaderMessage').empty();
@@ -1375,7 +1374,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
-            
+
             if (articleWindow.kiwixType === 'iframe') {
                 var docBody = articleDocument.querySelector('body');
                 if (docBody) {
@@ -1431,16 +1430,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // during the document.write() process; and since the latter is synchronous, we get slow display rewrites before it is
         // effective if we do it after document.close().
         htmlArticle = htmlArticle.replace(/(<html\b[^>]*)>/i, '$1 hidden>');
+
         // Write article html to the article container
-        articleWindow.document.open('text/html', 'replace');
-        articleWindow.document.write(htmlArticle);
-        articleWindow.document.close();
+        // articleWindow.document.open('text/html', 'replace');
+        // articleWindow.document.write(htmlArticle);
+        // articleWindow.document.close();
+        articleDocument = articleWindow.document.documentElement;
+        articleDocument.innerHTML = htmlArticle;
+
         // Storing the window type at top level window helps us with history manipulation
         window.kiwixType = appstate.target;
         if (appstate.target === 'window') articleWindow.onpopstate = historyPop;
         // Ensure the target is permanently stored as a property of the articleWindow (since appstate.target can change)
         articleWindow.kiwixType = appstate.target;
-        articleWindow.onload = windowLoaded;
+        // articleWindow.onload = windowLoaded;
         // IE (and Edge Legacy) do not provide the onload event for newly opened windows/tabs. However, document.write()
         // followed by document.close() is synchronous in these browsers, so an event loader is unnecessary.
         setTimeout(function() {
