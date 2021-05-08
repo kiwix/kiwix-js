@@ -349,13 +349,13 @@ define(rqDef, function() {
      * A rule may additionally be needed in app.css for full implementation of contentTheme
      * 
      * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert])
+     * @param {Window} container The iframe, tab or window to which the theme should be applied
      */
-    function applyAppTheme(theme) {
+    function applyAppTheme(theme, container) {
         var htmlEl = document.querySelector('html');
         var footer = document.querySelector('footer');
         var oldTheme = htmlEl.dataset.theme || '';
-        var iframe = document.getElementById('articleContent');
-        var doc = iframe.contentDocument;
+        var doc = container.contentDocument || container.document;
         var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
         var appTheme = theme.replace(/_.*$/, '');
         var contentTheme = theme.replace(/^[^_]*/, '');
@@ -378,10 +378,10 @@ define(rqDef, function() {
         // Show any specific help for selected contentTheme
         var help = document.getElementById(theme + '-help');
         if (help) help.style.display = 'block';
-        
+        var frame = container.classList ? container : container.document.documentElement;
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
         if (oldContentTheme && oldContentTheme !== contentTheme) {
-            iframe.classList.remove(oldContentTheme);
+            frame.classList.remove(oldContentTheme);
             if (kiwixJSSheet) {
                 kiwixJSSheet.disabled = true;
                 kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
@@ -389,7 +389,7 @@ define(rqDef, function() {
         }
         // Apply the requested ContentTheme (if not already attached)
         if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
-            iframe.classList.add(contentTheme);
+            frame.classList.add(contentTheme);
             // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
             // subdirectory, then relative links injected into the article will not work as expected)
             // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string

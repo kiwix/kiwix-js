@@ -26,6 +26,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
+html._invert,
 img,
 video {
     filter: invert(1) hue-rotate(180deg);

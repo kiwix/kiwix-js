@@ -80,7 +80,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
+    uiUtil.applyAppTheme(params.appTheme, document.getElementById('articleContent'));
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
@@ -386,7 +386,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } else {
                 woHelp.innerHTML = params.windowOpener === 'tab' ?
                     'Regardless of this option, you can always use Ctrl-click or middle-click instead. <i>May not work in mobile contexts.</i>' : 
-                    'You may need to turn off popup blocking. Ctrl-click still opens a tab. <i>May not work in mobile contexts.</i>';
+                    'You may need to turn off popup blocking. Ctrl-click still opens tab in some browsers. <i>May not work in mobile contexts.</i>';
             }
         } else {
             woState.innerHTML = 'tab / window';
@@ -402,7 +402,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
-        uiUtil.applyAppTheme(params.appTheme);
+        uiUtil.applyAppTheme(params.appTheme, articleContainer);
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
@@ -1209,6 +1209,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+        // Set window defaults
+        if (appstate.target === 'iframe') {
+            articleContainer = document.getElementById('articleContent');
+            articleWindow = articleContainer.contentWindow;
+        }
 
         if (contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
@@ -1225,7 +1230,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#cachingAssets").hide();
                 $("#searchingArticles").hide();
                 // Set the requested appTheme
-                uiUtil.applyAppTheme(params.appTheme);
+                uiUtil.applyAppTheme(params.appTheme, articleContainer);
                 // Display the iframe content
                 $("#articleContent").show();
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
@@ -1410,9 +1415,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
-                // Set the requested appTheme
-                uiUtil.applyAppTheme(params.appTheme);
             }
+            // Set the requested appTheme
+            uiUtil.applyAppTheme(params.appTheme, articleContainer);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
@@ -1442,7 +1447,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (appstate.target === 'iframe') {
             // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
             $('#articleContent').contents().remove();
-            articleWindow = articleContainer.contentWindow;
         }
         // Calculate the current article's encoded ZIM baseUrl to use when processing relative links
         baseUrl = (dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))

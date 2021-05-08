@@ -29,6 +29,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
+html._mwInvert,
 img:not([class|="mwe-math-fallback-image"]),
 video {
     filter: invert(1) hue-rotate(180deg);
