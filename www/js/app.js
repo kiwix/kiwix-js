@@ -86,9 +86,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
     // A setting that determines whether right-click/long-press of a ZIM link opens a new window/tab
-    params['rightClickOpensTab'] = settingsStore.getItem('rightClickOpensTab') === 'true';
-    document.getElementById('rightClickOpensTabCheck').checked = params.rightClickOpensTab;
-
+    params['windowOpener'] = settingsStore.getItem('windowOpener');
+    params.windowOpener = params.windowOpener === 'false' ? false : params.windowOpener;
+    
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
         'prefix': '', // A field to hold the original search string
@@ -367,10 +367,38 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
         switchHomeKeyToFocusSearchBar();
     });
-    document.getElementById('rightClickOpensTabCheck').addEventListener('change', function (e) {
-        params.rightClickOpensTab = e.target.checked;
-        settingsStore.setItem('rightClickOpensTab', params.rightClickOpensTab, Infinity);
+    document.getElementById('windowOpenerCheck').addEventListener('click', function () {
+        // Tri-state checkbox using readOnly and indeterminate attributes to track state
+        if (this.readOnly) { this.checked = true; this.readOnly = false; }
+        else if (this.checked) this.readOnly = this.indeterminate = true;
+        params.windowOpener = this.indeterminate ? 'tab' : this.checked ? 'window' : false;
+        settingsStore.setItem('windowOpener', params.windowOpener, Infinity);
+        setWindowOpenerUI();
     });
+    function setWindowOpenerUI(setCheckbox) {
+        var woState = document.getElementById('windowOpenerState');
+        var woHelp = document.getElementById('windowOpenerHelp');
+        if (params.windowOpener) {
+            woState.innerHTML = params.windowOpener;
+            woHelp.hidden = false;
+            if (contentInjectionMode === 'serviceworker') {
+                woHelp.innerHTML = 'This setting has no effect in ServiceWorker mode because opening new tabs or windows (if supported by the context) is handled natively. Turn this setting off to hide this message.';
+            } else {
+                woHelp.innerHTML = params.windowOpener === 'tab' ?
+                    'Regardless of this option, you can always use Ctrl-click or middle-click instead. <i>May not work in mobile contexts.</i>' : 
+                    'You may need to turn off popup blocking. Ctrl-click still opens a tab. <i>May not work in mobile contexts.</i>';
+            }
+        } else {
+            woState.innerHTML = 'tab / window';
+            woHelp.hidden = true;
+        }
+        if (setCheckbox) {
+            var checkbox = document.getElementById('windowOpenerCheck');
+            checkbox.checked = params.windowOpener === 'window';
+            checkbox.indeterminate = params.windowOpener === 'tab';
+            checkbox.readOnly = params.windowOpener === 'tab';
+        }
+    }
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
@@ -659,6 +687,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
         settingsStore.setItem('lastContentInjectionMode', value, Infinity);
         refreshCacheStatus();
+        setWindowOpenerUI(true);
     }
             
     // At launch, we try to set the last content injection mode (stored in Settings Store)
@@ -1357,11 +1386,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
         $('#downloadAlert').hide();
 
-        var loaded = false;
+        // Code below will run after we have written the new article to the articleContainer
         var windowLoaded = function() {
-            if (loaded) return;
-            loaded = true;
-            
             $("#articleList").empty();
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
@@ -1426,16 +1452,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
         // Hide the document to avoid display flash before stylesheets are loaded; also improves performance during loading of
         // assets in most browsers (the document will be unhidden again by renderIfCSSFulfilled).
-        // DEV: We cannot do `articleContainer.document.documentElement.hidden = true;` because documentElement gets overwritten
-        // during the document.write() process; and since the latter is synchronous, we get slow display rewrites before it is
-        // effective if we do it after document.close().
-        htmlArticle = htmlArticle.replace(/(<html\b[^>]*)>/i, '$1 hidden>');
-
-        // Write article html to the article container
-        // articleWindow.document.open('text/html', 'replace');
-        // articleWindow.document.write(htmlArticle);
-        // articleWindow.document.close();
         articleDocument = articleWindow.document.documentElement;
+        articleDocument.hidden = true;
+
+        // ** Write article html to the article container **
         articleDocument.innerHTML = htmlArticle;
 
         // Storing the window type at top level window helps us with history manipulation
@@ -1443,12 +1463,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (appstate.target === 'window') articleWindow.onpopstate = historyPop;
         // Ensure the target is permanently stored as a property of the articleWindow (since appstate.target can change)
         articleWindow.kiwixType = appstate.target;
-        // articleWindow.onload = windowLoaded;
-        // IE (and Edge Legacy) do not provide the onload event for newly opened windows/tabs. However, document.write()
-        // followed by document.close() is synchronous in these browsers, so an event loader is unnecessary.
-        setTimeout(function() {
-            if (!loaded) windowLoaded();
-        }, 0);
+        // Waiting for a single tick of the event loop clears memory and ensures the DOM of the new article is ready
+        setTimeout(windowLoaded, 0);
         
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
@@ -1517,20 +1533,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Establish a variable for tracking long press
             var touched = false;
             a.addEventListener('touchstart', function () {
-                if (!params.rightClickOpensTab) return;
+                if (!params.windowOpener) return;
                 touched = true;
                 // The link will be clicked if the user long-presses for more than 600ms (if the option is enabled)
                 setTimeout(function () {
                     if (!touched) return;
                     a.click();
                 }, 600);
-            }, false);
+            }, { passive: true });
             a.addEventListener('touchend', function () {
                 touched = false;
-            }, false);
+            }, { passive: true });
             // This detects right-click in all browsers (only if the option is enabled)
             a.addEventListener('contextmenu', function (e) {
-                if (!params.rightClickOpensTab) return;
+                if (!params.windowOpener) return;
                 e.preventDefault();
                 e.stopPropagation();
                 touched = true;
@@ -1553,8 +1569,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // This detects Ctrl-click, Command-click, the long-press event, and middle-click
                 if (e.ctrlKey || e.metaKey || touched || e.which === 2 || e.button === 4) {
                     // We open the new window immediately so that it is a direct result of user action (click)
-                    // and we'll populate it later - this avoids popup blockers
-                    articleWindow = window.open('article.html', '_blank');
+                    // and we'll populate it later - this avoids most popup blockers
+                    articleWindow = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
+                        params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
                     articleContainer = articleWindow;
                     appstate.target = 'window';
                     articleWindow.kiwixType = appstate.target;
@@ -1563,6 +1580,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // and allow any propagated clicks on other elements to run 
                     return;
                 }
+                touched = false;
                 e.preventDefault();
                 e.stopPropagation();
                 var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
