@@ -352,10 +352,10 @@ define(rqDef, function() {
      * @param {Window} container The iframe, tab or window to which the theme should be applied
      */
     function applyAppTheme(theme, container) {
-        var htmlEl = document.querySelector('html');
+        var doc = container.contentDocument || container.document;
+        var htmlEl = container.kiwixType === 'window' ? doc.querySelector('html') : document.querySelector('html');
         var footer = document.querySelector('footer');
         var oldTheme = htmlEl.dataset.theme || '';
-        var doc = container.contentDocument || container.document;
         var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
         var appTheme = theme.replace(/_.*$/, '');
         var contentTheme = theme.replace(/^[^_]*/, '');
