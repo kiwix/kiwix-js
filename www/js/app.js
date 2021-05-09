@@ -1407,8 +1407,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
-            
-            if (!articleContainer.contentDocument && window.location.protocol === 'file:') {
+            if (appstate.target === 'iframe' && !articleContainer.contentDocument && window.location.protocol === 'file:') {
                 alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
                         + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
                         + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
@@ -1418,19 +1417,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             
             // Ensure the window target is permanently stored as a property of the articleWindow (since appstate.target can change)
             articleWindow.kiwixType = appstate.target;
-            // Hide the document to avoid display flash before stylesheets are loaded; also improves performance during loading of
-            // assets in most browsers (the document will be unhidden again by renderIfCSSFulfilled).
+            // Scroll the old container to the top
+            articleWindow.scrollTo(0,0);
             articleDocument = articleWindow.document.documentElement;
+            // Hide the document before injecting to avoid display flash before stylesheets are loaded; also improves performance
+            // during loading of assets in most browsers (the document will be unhidden again by renderIfCSSFulfilled).
             articleDocument.hidden = true;
 
             // ** Write article html to the new article container **
             articleDocument.innerHTML = htmlArticle;
-
-            var docBody = articleDocument.querySelector('body');
-            if (docBody) {
-                // Add any missing classes stripped from the <html> tag
-                if (htmlCSS) docBody.classList.add(htmlCSS);
-                if (articleWindow.kiwixType === 'iframe') {
+            
+            if (articleWindow.kiwixType === 'iframe') {
+                var docBody = articleDocument.querySelector('body');
+                if (docBody) {
+                    // Add any missing classes stripped from the <html> tag
+                    if (htmlCSS) docBody.classList.add(htmlCSS);
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
@@ -1450,9 +1451,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             loadNoScriptTags();
             //loadJavaScriptJQuery();
             insertMediaBlobsJQuery();
-            // Scroll to top
-            articleWindow.scrollTo(0,0);
-
+            
             if (articleWindow.kiwixType === 'iframe') {
                 // Configure home key press to focus #prefix only if the feature is in active state
                 if (params.useHomeKeyToFocusSearchBar)
@@ -1464,10 +1463,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         };
 
-        if (appstate.target === 'iframe') {
-            // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
-            $('#articleContent').contents().remove();
-        }
         // Calculate the current article's encoded ZIM baseUrl to use when processing relative links
         baseUrl = (dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
             // URI-encode anything that is not a '/'
@@ -1476,8 +1471,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
         // Load the dummy article if not already loaded in new window
         if (appstate.target === 'iframe') {
-            // Store the frame article's target in the top-level window, because so that when we retrieve the window with
-            // history back, we'll know where to place the iframe contentWindow
+            // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
+            $('#articleContent').contents().remove();
+            // Store the frame article's target in the top-level window, so that when we retrieve the window with
+            // history manipulation, we'll know where to place the iframe contentWindow
             window.kiwixType = appstate.target;
             articleContainer.onload = windowLoaded;
             articleContainer.src = 'article.html';
@@ -1485,8 +1482,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Attempt to establish an independent history record for windows
             articleWindow.onpopstate = historyPop;
             // The articleWindow has already been set in the click event of the ZIM link and the dummy article was loaded there
-            // as part of the click event (to avoid popup blockers), so we wait for a single tick and then run windowLoaded
-            setTimeout(windowLoaded, 0);
+            // (to avoid popup blockers). Firefox loads windows asynchronously, so we need to wait for onclick load to be fully
+            // cleared, or else Firefox overwrites the window immediately after we load the html content into it.
+            setTimeout(windowLoaded, 250);
         }
         
         function parseAnchorsJQuery() {
