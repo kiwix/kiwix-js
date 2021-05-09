@@ -455,7 +455,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     //switch on/off the feature to use Home Key to focus search bar
     function switchHomeKeyToFocusSearchBar() {
-        var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        var iframe = document.getElementById('articleContent');
+        var iframeContentWindow = iframe.contentWindow;
+        if (iframeContentWindow && !iframe.contentDocument) {
+            // Iframe may be blocked due to CORS (e.g. with file:// access in modern browsers) - we'll inform the user about that later
+            return;
+        }
         // when the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) {
             //Handle Home key press inside window(outside iframe) to focus #prefix
@@ -1403,19 +1408,29 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             
-            if (!articleDocument && window.location.protocol === 'file:') {
+            if (!articleContainer.contentDocument && window.location.protocol === 'file:') {
                 alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
                         + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
                         + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
                         + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
+            
+            // Ensure the window target is permanently stored as a property of the articleWindow (since appstate.target can change)
+            articleWindow.kiwixType = appstate.target;
+            // Hide the document to avoid display flash before stylesheets are loaded; also improves performance during loading of
+            // assets in most browsers (the document will be unhidden again by renderIfCSSFulfilled).
+            articleDocument = articleWindow.document.documentElement;
+            articleDocument.hidden = true;
 
-            if (articleWindow.kiwixType === 'iframe') {
-                var docBody = articleDocument.querySelector('body');
-                if (docBody) {
-                    // Add any missing classes stripped from the <html> tag
-                    if (htmlCSS) docBody.classList.add(htmlCSS);
+            // ** Write article html to the new article container **
+            articleDocument.innerHTML = htmlArticle;
+
+            var docBody = articleDocument.querySelector('body');
+            if (docBody) {
+                // Add any missing classes stripped from the <html> tag
+                if (htmlCSS) docBody.classList.add(htmlCSS);
+                if (articleWindow.kiwixType === 'iframe') {
                     // Deflect drag-and-drop of ZIM file on the iframe to Config
                     docBody.addEventListener('dragover', handleIframeDragover);
                     docBody.addEventListener('drop', handleIframeDrop);
@@ -1425,7 +1440,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             uiUtil.applyAppTheme(params.appTheme, articleContainer);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
-
+            // Load assets
             loadCSSJQuery();
             parseAnchorsJQuery();
             loadImagesJQuery();
@@ -1449,8 +1464,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         };
 
-        // For articles loaded in the iframe, we need to set the articleWindow (but if the user is opening a new tab/window,
-        // then the articleWindow has already been set in the click event of the ZIM link)
         if (appstate.target === 'iframe') {
             // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
             $('#articleContent').contents().remove();
@@ -1461,21 +1474,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             .replace(/[^/]+/g, function(m) {
                 return encodeURIComponent(m);
             });
-        // Hide the document to avoid display flash before stylesheets are loaded; also improves performance during loading of
-        // assets in most browsers (the document will be unhidden again by renderIfCSSFulfilled).
-        articleDocument = articleWindow.document.documentElement;
-        articleDocument.hidden = true;
-
-        // ** Write article html to the article container **
-        articleDocument.innerHTML = htmlArticle;
-
-        // Storing the window type at top level window helps us with history manipulation
-        window.kiwixType = appstate.target;
-        if (appstate.target === 'window') articleWindow.onpopstate = historyPop;
-        // Ensure the target is permanently stored as a property of the articleWindow (since appstate.target can change)
-        articleWindow.kiwixType = appstate.target;
-        // Waiting for a single tick of the event loop clears memory and ensures the DOM of the new article is ready
-        setTimeout(windowLoaded, 0);
+        // Load the dummy article if not already loaded in new window
+        if (appstate.target === 'iframe') {
+            articleContainer.onload = windowLoaded;
+            articleContainer.src = 'article.html';
+        } else {
+            // Attempt to establish an independent history record for windows
+            articleWindow.onpopstate = historyPop;
+            // The articleWindow has already been set in the click event of the ZIM link and the dummy article was loaded there
+            // as part of the click event (to avoid popup blockers), so we wait for a single tick and then run windowLoaded
+            setTimeout(windowLoaded, 0);
+        }
         
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
@@ -1581,11 +1590,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if ((e.ctrlKey || e.metaKey || touched || e.which === 2 || e.button === 4) && params.windowOpener) {
                     // We open the new window immediately so that it is a direct result of user action (click)
                     // and we'll populate it later - this avoids most popup blockers
-                    articleWindow = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
+                    articleContainer = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
                         params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
-                    articleContainer = articleWindow;
                     appstate.target = 'window';
-                    articleWindow.kiwixType = appstate.target;
+                    articleContainer.kiwixType = appstate.target;
+                    articleWindow = articleContainer;
                 } else if (a.tagName === 'HTML') {
                     // We have registered a click on the document, but a new tab wasn't requested, so ignore
                     // and allow any propagated clicks on other elements to run 
