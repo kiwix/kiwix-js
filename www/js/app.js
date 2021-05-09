@@ -1408,23 +1408,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             if (appstate.target === 'iframe' && !articleContainer.contentDocument && window.location.protocol === 'file:') {
-                uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.</p>"
-                    + "<p>The easiest way to run it is to download and run it as a browser extension (from the vendor store). "
-                    + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
-                    + "or a remote one. For example, you can try you ZIM out right now with our online version: "
-                    + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
-                    + "<p>Another option is to force your browser to accept file access (a potential security breach): "
-                    + "on Chrome, you can start it with <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
-                    + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>"
-                    + "<p>If available, below is a basic unstyled preview of the article you were looking for.</p>");
-                var preview = htmlArticle.match(/<(body)[^>]*>((?:[^<]|<(?!\/\1))+)<\/\1>/);
-                preview = preview ? preview[2] : "<strong>No preview was available</strong>";
-                articleDocument = document.getElementById('pagePreview');
-                articleDocument.innerHTML = preview;
-                parseAnchorsJQuery();
-                loadImagesJQuery();
-                $('#searchingArticles').hide();
-                return;
+                uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which blocks access to the app's iframe. "
+                + "We have tried to open your article in a separate window. You may be able to use it with limited functionality.</p>"
+                + "<p>The easiest way to run this app fully is to download and run it as a browser extension (from the vendor store). "
+                + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
+                + "or a remote one. For example, you can try you ZIM out right now with our online version of the app: "
+                + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
+                + "<p>Another option is to force your browser to accept file access (a potential security breach): "
+                + "on Chrome, you can start it with the <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
+                + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>";
+                articleContainer = window.open('', dirEntry.title, 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1');
+                params.windowOpener = 'window';
+                appstate.target = 'window';
+                articleContainer.kiwixType = appstate.target;
+                articleWindow = articleContainer;
             }
             
             // Ensure the window target is permanently stored as a property of the articleWindow (since appstate.target can change)
@@ -1489,7 +1486,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // history manipulation, we'll know where to place the iframe contentWindow
             window.kiwixType = appstate.target;
             articleContainer.onload = windowLoaded;
-            articleContainer.src = '';
+            articleContainer.src = 'article.html';
         } else {
             // Attempt to establish an independent history record for windows
             articleWindow.onpopstate = historyPop;
@@ -1500,8 +1497,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         
         function parseAnchorsJQuery() {
-            var currentProtocol = location.protocol;
-            var currentHost = location.host;
+            var currentProtocol = articleWindow.location.protocol;
+            currentProtocol === 'about:' ? currentProtocol = ':' : currentProtocol;
+            var currentHost = articleWindow.location.host;
             // Percent-encode dirEntry.url and add regex escape character \ to the RegExp special characters - see https://www.regular-expressions.info/characters.html;
             // NB dirEntry.url can also contain path separator / in some ZIMs (Stackexchange). } and ] do not need to be escaped as they have no meaning on their own. 
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+/()[{])/g, '\\$1');
