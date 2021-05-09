@@ -1411,15 +1411,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.</p>"
                     + "<p>The easiest way to run it is to download and run it as a browser extension (from the vendor store). "
                     + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
-                    + "or a remote one. For example, you can try you ZIM out rihgt now with our online version: "
+                    + "or a remote one. For example, you can try you ZIM out right now with our online version: "
                     + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
                     + "<p>Another option is to force your browser to accept file access (a potential security breach): "
                     + "on Chrome, you can start it with <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
                     + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>"
-                    + "<p>If available, below is a preview of the landing page of your ZIM file without images.");
+                    + "<p>If available, below is a basic unstyled preview of the article you were looking for.</p>");
                 var preview = htmlArticle.match(/<(body)[^>]*>((?:[^<]|<(?!\/\1))+)<\/\1>/);
                 preview = preview ? preview[2] : "<strong>No preview was available</strong>";
-                if (preview) document.getElementById('pagePreview').innerHTML = preview;
+                articleDocument = document.getElementById('pagePreview');
+                articleDocument.innerHTML = preview;
+                parseAnchorsJQuery();
+                loadImagesJQuery();
                 $('#searchingArticles').hide();
                 return;
             }
@@ -1486,7 +1489,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // history manipulation, we'll know where to place the iframe contentWindow
             window.kiwixType = appstate.target;
             articleContainer.onload = windowLoaded;
-            articleContainer.src = 'article.html';
+            articleContainer.src = '';
         } else {
             // Attempt to establish an independent history record for windows
             articleWindow.onpopstate = historyPop;
@@ -1600,7 +1603,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if ((e.ctrlKey || e.metaKey || touched || e.which === 2 || e.button === 4) && params.windowOpener) {
                     // We open the new window immediately so that it is a direct result of user action (click)
                     // and we'll populate it later - this avoids most popup blockers
-                    articleContainer = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
+                    articleContainer = window.open('', params.windowOpener === 'tab' ? '_blank' : a.title,
                         params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
                     appstate.target = 'window';
                     articleContainer.kiwixType = appstate.target;
