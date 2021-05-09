@@ -1435,6 +1435,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             loadNoScriptTags();
             //loadJavaScriptJQuery();
             insertMediaBlobsJQuery();
+            // Scroll to top
+            articleWindow.scrollTo(0,0);
 
             if (articleWindow.kiwixType === 'iframe') {
                 // Configure home key press to focus #prefix only if the feature is in active state
