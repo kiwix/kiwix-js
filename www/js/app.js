@@ -1412,11 +1412,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 + "We have tried to open your article in a separate window. You may be able to use it with limited functionality.</p>"
                 + "<p>The easiest way to run this app fully is to download and run it as a browser extension (from the vendor store). "
                 + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
-                + "or a remote one. For example, you can try you ZIM out right now with our online version of the app: "
+                + "or a remote one. For example, you can try your ZIM out right now with our online version of the app: "
                 + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
                 + "<p>Another option is to force your browser to accept file access (a potential security breach): "
                 + "on Chrome, you can start it with the <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
-                + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>";
+                + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>");
                 articleContainer = window.open('', dirEntry.title, 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1');
                 params.windowOpener = 'window';
                 appstate.target = 'window';
