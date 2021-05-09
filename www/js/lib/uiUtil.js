@@ -142,6 +142,22 @@ define(rqDef, function() {
     }
 
     /**
+     * Displays a customizable basic non-blocking system alert
+     */
+    var systemAlertSetup = false;
+    function systemAlert(text) {
+        var alertBox = document.getElementById('systemAlert');
+        alertBox.style.display = 'block';
+        document.getElementById('alertContent').innerHTML = text;
+        if (!systemAlertSetup) {
+            systemAlertSetup = true;
+            alertBox.querySelector('button[data-hide]').addEventListener('click', function() {
+                alertBox.style.display = 'none';
+            });
+        }
+    } 
+    
+    /**
      * Displays a Bootstrap warning alert with information about how to access content in a ZIM with unsupported active UI
      */
     var activeContentWarningSetup = false;
@@ -444,6 +460,7 @@ define(rqDef, function() {
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,
+        systemAlert: systemAlert,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert,
         isElementInView: isElementInView,

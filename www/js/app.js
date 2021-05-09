@@ -1408,10 +1408,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             if (appstate.target === 'iframe' && !articleContainer.contentDocument && window.location.protocol === 'file:') {
-                alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
-                        + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
-                        + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
-                        + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+                uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.</p>"
+                    + "<p>The easiest way to run it is to download and run it as a browser extension (from the vendor store). "
+                    + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
+                    + "or a remote one. For example, you can try you ZIM out rihgt now with our online version: "
+                    + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
+                    + "<p>Another option is to force your browser to accept file access (a potential security breach): "
+                    + "on Chrome, you can start it with <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
+                    + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>"
+                    + "<p>If available, below is a preview of the landing page of your ZIM file without images.");
+                var preview = htmlArticle.match(/<(body)[^>]*>((?:[^<]|<(?!\/\1))+)<\/\1>/);
+                preview = preview ? preview[2] : "<strong>No preview was available</strong>";
+                if (preview) document.getElementById('pagePreview').innerHTML = preview;
+                $('#searchingArticles').hide();
                 return;
             }
             
