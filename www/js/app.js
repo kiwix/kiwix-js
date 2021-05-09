@@ -382,11 +382,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             woState.innerHTML = params.windowOpener;
             woHelp.hidden = false;
             if (contentInjectionMode === 'serviceworker') {
-                woHelp.innerHTML = 'This setting has no effect in ServiceWorker mode because opening new tabs or windows (if supported by the context) is handled natively. Turn this setting off to hide this message.';
+                woHelp.innerHTML = 'This setting has no effect in ServiceWorker mode because opening new tabs or windows (if supported by the context) ' +
+                    'is handled natively with right-clcik or ctrl-click. Turn this setting off to hide this message.';
             } else {
                 woHelp.innerHTML = params.windowOpener === 'tab' ?
-                    'Regardless of this option, you can always use Ctrl-click or middle-click instead. <i>May not work in mobile contexts.</i>' : 
-                    'You may need to turn off popup blocking. Ctrl-click still opens tab in some browsers. <i>May not work in mobile contexts.</i>';
+                    'Use right-click / long-press / ctrl-click / middle-click. <i>May not work in mobile contexts.</i>' : 
+                    'Use right-click / long-press. You may need to turn off popup blocking. <i>May not work in mobile contexts.</i>';
             }
         } else {
             woState.innerHTML = 'tab / window';
@@ -402,7 +403,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
-        uiUtil.applyAppTheme(params.appTheme, articleContainer);
+        uiUtil.applyAppTheme(params.appTheme, document.getElementById('articleContent'));
+        if (appstate.target === 'window') {
+            // We also need to remove old styles from the open window/tab
+            uiUtil.applyAppTheme(params.appTheme, articleContainer);
+        }
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
@@ -1571,7 +1576,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 articleWindow = thisWindow;
                 articleContainer = thisContainer;
                 // This detects Ctrl-click, Command-click, the long-press event, and middle-click
-                if (e.ctrlKey || e.metaKey || touched || e.which === 2 || e.button === 4) {
+                if ((e.ctrlKey || e.metaKey || touched || e.which === 2 || e.button === 4) && params.windowOpener) {
                     // We open the new window immediately so that it is a direct result of user action (click)
                     // and we'll populate it later - this avoids most popup blockers
                     articleWindow = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
