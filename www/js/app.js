@@ -1476,6 +1476,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
         // Load the dummy article if not already loaded in new window
         if (appstate.target === 'iframe') {
+            // Store the frame article's target in the top-level window, because so that when we retrieve the window with
+            // history back, we'll know where to place the iframe contentWindow
+            window.kiwixType = appstate.target;
             articleContainer.onload = windowLoaded;
             articleContainer.src = 'article.html';
         } else {
