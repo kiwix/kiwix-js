@@ -138,8 +138,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('.alert').hide();
         $("#searchingArticles").show();
-        // Ensure selected search item is displayed in the iframe, not a new window or tab
-        appstate.target = 'iframe';
         pushBrowserHistoryState(null, prefix);
         // Initiate the search
         searchDirEntriesFromPrefix(prefix);
@@ -1173,13 +1171,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Creates an instance of DirEntry from given dirEntryId (including resolving redirects),
      * and call the function to read the corresponding article
-     * @param {String} dirEntryId
+     * @param {String} dirEntryId A string representation of key properties of the dirEntry, commencing with its offset
      */
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
             // Remove focus from search field to hide keyboard and to allow navigation keys to be used
             document.getElementById('articleContent').contentWindow.focus();
+            // Ensure selected search item is displayed in the iframe, not a new window or tab
+            appstate.target = 'iframe';
             $("#searchingArticles").show();
             if (dirEntry.isRedirect()) {
                 selectedArchive.resolveRedirect(dirEntry, readArticle);
@@ -1408,20 +1408,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#articleListWithHeader').hide();
             $("#prefix").val("");
             if (appstate.target === 'iframe' && !articleContainer.contentDocument && window.location.protocol === 'file:') {
-                uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which blocks access to the app's iframe. "
-                + "We have tried to open your article in a separate window. You may be able to use it with limited functionality.</p>"
-                + "<p>The easiest way to run this app fully is to download and run it as a browser extension (from the vendor store). "
-                + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
-                + "or a remote one. For example, you can try your ZIM out right now with our online version of the app: "
-                + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
-                + "<p>Another option is to force your browser to accept file access (a potential security breach): "
-                + "on Chrome, you can start it with the <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
-                + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>");
+                if (!appstate.fileAccessWarning) {
+                    uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which blocks access to the app's iframe. "
+                    + "We have tried to open your article in a separate window. You may be able to use it with limited functionality.</p>"
+                    + "<p>The easiest way to run this app fully is to download and run it as a browser extension (from the vendor store). "
+                    + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
+                    + "or a remote one. For example, you can try your ZIM out right now with our online version of the app: "
+                    + "<a href='https://kiwix.github.io/kiwix-js/'>https://kiwix.github.io/kiwix-js/</a>.</p>"
+                    + "<p>Another option is to force your browser to accept file access (a potential security breach): "
+                    + "on Chrome, you can start it with the <code>--allow-file-access-from-files</code> command-line argument; on Firefox, "
+                    + "you can set <code>privacy.file_unique_origin</code> to <code>false</code> in about:config.</p>");
+                }
                 articleContainer = window.open('', dirEntry.title, 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1');
                 params.windowOpener = 'window';
                 appstate.target = 'window';
                 articleContainer.kiwixType = appstate.target;
                 articleWindow = articleContainer;
+                appstate.fileAccessWarning = true;
             }
             
             // Ensure the window target is permanently stored as a property of the articleWindow (since appstate.target can change)
@@ -1798,6 +1801,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} titleSearch The title of the search (if storing a search)
      */
     function pushBrowserHistoryState(title, titleSearch) {
+        // DEV: Note that appstate.target will always be 'iframe' for title searches, so we do not need to account for that
         var targetWin = appstate.target === 'iframe' ? window : articleWindow;
         var stateObj = {};
         var urlParameters;
