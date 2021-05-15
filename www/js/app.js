@@ -386,6 +386,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 woHelp.innerHTML = params.windowOpener === 'tab' ?
                     'Use right-click / long-press / ctrl-click / middle-click. <i>May not work in mobile contexts.</i>' : 
                     'Use right-click / long-press. You may need to turn off popup blocking. <i>May not work in mobile contexts.</i>';
+                document.getElementById('tapHint').innerHTML = params.windowOpener === 'tab' ? '-> tap again for window mode' : '';
             }
         } else {
             woState.innerHTML = 'tab / window';
