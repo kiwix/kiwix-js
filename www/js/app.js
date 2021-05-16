@@ -1402,7 +1402,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
         $('#downloadAlert').hide();
 
-        // Code below will run after we have written the new article to the articleContainer
+        // Code below will run after we have loaded the dummy article into the articleContainer
         var windowLoaded = function() {
             $("#articleList").empty();
             $('#articleListHeaderMessage').empty();
@@ -1411,7 +1411,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (appstate.target === 'iframe' && !articleContainer.contentDocument && window.location.protocol === 'file:') {
                 if (!appstate.fileAccessWarning) {
                     uiUtil.systemAlert("<p>You seem to be opening kiwix-js with the file:// protocol, which blocks access to the app's iframe. "
-                    + "We have tried to open your article in a separate window. You may be able to use it with limited functionality.</p>"
+                    + "We have tried to open your article in a separate window. You may be able to use it with limited functionality. " 
+                    + "If you don't see it, check for a <b>blocked popup</b>, allow it, and try again (press the 'Home' button).</p>"
                     + "<p>The easiest way to run this app fully is to download and run it as a browser extension (from the vendor store). "
                     + "Alternatively, you can open it through a web server: either use a local one (http://localhost/...) "
                     + "or a remote one. For example, you can try your ZIM out right now with our online version of the app: "
