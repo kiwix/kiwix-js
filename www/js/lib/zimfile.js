@@ -277,26 +277,34 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             console.debug('ZIM DirListing version: 0 (legacy)', this);
             // Initiate a binary search for the first or last article
             var getArticleIndexByOrdinal = function (ordinal) {
-                var foundDirEntry = {};
                 return util.binarySearch(0, that.entryCount, function(i) {
-                    return that.dirEntryByUrlIndex(i).then(function(dirEntry) {
-                        foundDirEntry = dirEntry;
+                    return that.dirEntryByTitleIndex(i).then(function(dirEntry) {
                         var ns = dirEntry.namespace;
-                        var url = ns + '/' + dirEntry.url;
+                        var url = ns + '/' + dirEntry.getTitleOrUrl();
                         var prefix = ordinal === 'first' ? 'A' : 'B';
-                        console.debug(ordinal + ':' + url);
+                        // DIAGNOSTIC TO BE REMOVED
+                        console.debug(ordinal + ': ' + url);
                         if (prefix < ns) return -1;
                         else if (prefix > ns) return 1;
-                        return prefix <= url ? -1 : 1;
+                        return prefix < url ? -1 : 1;
                     });
                 }, true).then(function(index) {
-                    console.debug('Found dirEntry: ' + foundDirEntry.namespace + '/' + foundDirEntry.url);
+                    // DIAGNOSTIC CODE TO BE REMOVED //
+                        console.log('The **' + ordinal + '** dirEntry in range is index ' + index);
+                    console.log('Checking dirEntry title for index and index-1 (async)...');
+                    [index, index-1].forEach(function (idx) {
+                        that.dirEntryByTitleIndex(idx).then(function (dEntry) {
+                                console.log('--> ' + dEntry.namespace + '/' + dEntry.getTitleOrUrl());
+                        });
+                        });
+                    // END OF DIAGNOSTIC CODE
                     return index;
                 });
             };
             return getArticleIndexByOrdinal('first').then(function(idxFirstArticle) {
                 return getArticleIndexByOrdinal('last').then(function(idxLastArticle) {
-                    // Technically idxFirstArticle points to the entry before the first article, acting as a zero-based pointer
+                    // Technically idxLastArticle points to the entry after the last article in the 'A' namespace,
+                    // We subtract the first from the last to get the number of entries in the 'A' namespace
                     that.articlePtrPos = that.titlePtrPos + idxFirstArticle * 4;
                     that.articleCount = idxLastArticle - idxFirstArticle;
                     console.debug('Calculated article count is: ' + that.articleCount);
