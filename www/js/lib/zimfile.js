@@ -269,7 +269,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)  
      * @returns {Promise} A promise that populates calculated entries in the ZIM file header
      */
-    ZIMFile.prototype.setListings = function(listings) {
+    ZIMFile.prototype.setListings = function (listings) {
         var that = this;
         // If we are in a legacy ZIM archive, we need to calculate the true article count (of entries in the A namespace)
         // This effectively emulates the v1 article pointerlist
@@ -283,7 +283,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                         var url = ns + '/' + dirEntry.getTitleOrUrl();
                         var prefix = ordinal === 'first' ? 'A' : 'B';
                         // DIAGNOSTIC TO BE REMOVED
-                        console.debug(ordinal + ': ' + url);
+                            console.debug(ordinal + ': ' + url);
                         if (prefix < ns) return -1;
                         else if (prefix > ns) return 1;
                         return prefix < url ? -1 : 1;
@@ -291,11 +291,11 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                 }, true).then(function(index) {
                     // DIAGNOSTIC CODE TO BE REMOVED //
                         console.log('The **' + ordinal + '** dirEntry in range is index ' + index);
-                    console.log('Checking dirEntry title for index and index-1 (async)...');
-                    [index, index-1].forEach(function (idx) {
-                        that.dirEntryByTitleIndex(idx).then(function (dEntry) {
+                        console.log('Checking dirEntry title for index and index-1 (async)...');
+                        [index, index-1].forEach(function (idx) {
+                            that.dirEntryByTitleIndex(idx).then(function (dEntry) {
                                 console.log('--> ' + dEntry.namespace + '/' + dEntry.getTitleOrUrl());
-                        });
+                            });
                         });
                     // END OF DIAGNOSTIC CODE
                     return index;
