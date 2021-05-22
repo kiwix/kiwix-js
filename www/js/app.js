@@ -1546,6 +1546,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
          */
         function addListenersToLink(a, href) {
             var uriComponent = uiUtil.removeUrlParameters(href);
+            var loadingContainer = false;
             var contentType;
             var downloadAttrValue;
             // Some file types need to be downloaded rather than displayed (e.g. *.epub)
@@ -1583,7 +1584,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
             // This detects right-click in all browsers (only if the option is enabled)
             a.addEventListener('contextmenu', function (e) {
-                if (!params.windowOpener) return;
+                if (!params.windowOpener || a.launched) return;
                 e.preventDefault();
                 e.stopPropagation();
                 a.launched = true;
@@ -1602,7 +1603,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // The main click routine (called by other events above as well)
             a.addEventListener('click', function (e) {
                 // Prevent opening multiple windows
-                if (a.touched && !a.launched) return;
+                if (a.touched && !a.launched || loadingContainer) return;
                 // Restore original values for this window/tab
                 appstate.target = kiwixTarget;
                 articleWindow = thisWindow;
@@ -1629,6 +1630,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // By delaying unblocking of the touch event, we prevent multiple touch events launching the same window
                     a.touched = false;
                     a.launched = false;
+                    loadingContainer = false;
                 }, 1400);
             });
         }
