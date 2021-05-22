@@ -1535,7 +1535,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             });
             // Add event listeners to the main document so user can open current document in new tab or window
-            addListenersToLink(articleDocument, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
+            if (articleWindow.document.body) addListenersToLink(articleWindow.document.body, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
         }
 
         /**
@@ -1591,7 +1591,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
             // This detects the middle-click event
             a.addEventListener('mousedown', function (e) {
+                if (!params.windowOpener || a.launched) return; // Prevent double activations
                 if (e.which === 2 || e.button === 4) {
+                    e.stopPropagation();
                     e.preventDefault();
                     a.launched = true;
                     a.click();
