@@ -803,9 +803,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     }
 
-
+    var navigationInProgress = false; // Prevent navigation if a previous navigation is still in progress
     // Display the article when the user goes back in the browser history
     var historyPop = function(event) {
+        if (navigationInProgress) {
+            // User tried to navigate before we finished loading the page. Try to reverse the pop on this window
+            // so that we don't lose back history (forward history from this point will be lost)
+            pushBrowserHistoryState(event.state.title, event.state.titleSearch);
+            return;
+        }
         if (event.state) {
             var title = event.state.title;
             var titleSearch = event.state.titleSearch;
@@ -820,13 +826,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             $('#configuration').hide();
             $('#articleListWithHeader').hide();
             $('#articleContent').contents().empty();
-            
-            if (title && !(""===title)) {
+            if (title) {
+                navigationInProgress = true;
                 goToArticle(title);
-            }
-            else if (titleSearch && titleSearch !== '') {
+            } else if (titleSearch) {
                 $('#prefix').val(titleSearch);
                 if (titleSearch !== appstate.search.prefix) {
+                    navigationInProgress = true;
                     searchDirEntriesFromPrefix(titleSearch);
                 } else {
                     $('#prefix').focus();
@@ -1738,6 +1744,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     $('#searchingArticles').hide();
                     $('#articleContent').show();
                     articleDocument.hidden = false;
+                    navigationInProgress = false;
                     // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                     resizeIFrame();
                 } else {
