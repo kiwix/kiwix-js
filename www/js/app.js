@@ -1547,7 +1547,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             });
             // Add event listeners to the main document so user can open current document in new tab or window
-            if (articleWindow.document.body) addListenersToLink(articleWindow.document.body, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
+            // if (articleWindow.document.body) addListenersToLink(articleWindow.document.body, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
         }
 
         /**
@@ -1596,32 +1596,49 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
             // This detects right-click in all browsers (only if the option is enabled)
             a.addEventListener('contextmenu', function (e) {
+                console.log('contextmenu');
                 if (!params.windowOpener || a.launched) return;
                 e.preventDefault();
                 e.stopPropagation();
                 a.launched = true;
                 a.click();
             });
-            // This detects the middle-click event
+            // This traps the middle-click event before tha auxclick event fires
             a.addEventListener('mousedown', function (e) {
-                if (!params.windowOpener || a.launched) return; // Prevent double activations
-                if (e.which === 2 || e.button === 4) {
-                    e.stopPropagation();
-                    e.preventDefault();
+                console.log('mosuedown');
+                if (!params.windowOpener) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (a.launched) return; // Prevent double activations
+                if (e.ctrlKey || e.metaKey || e.which === 2 || e.button === 4) {
                     a.launched = true;
                     a.click();
+                } else {
+                    console.log('suppressed mousedown');
                 }
+            });
+            // This detects the middle-click event that opens a new tab in recent Firefox and Chrome
+            // See https://developer.mozilla.org/en-US/docs/Web/API/Element/auxclick_event
+            a.addEventListener('auxclick', function (e) {
+                console.log('auxclick');
+                if (!params.windowOpener) return;
+                e.preventDefault();
+                e.stopPropagation();
             });
             // The main click routine (called by other events above as well)
             a.addEventListener('click', function (e) {
+                console.log('Click event', e);
                 // Prevent opening multiple windows
-                if (a.touched && !a.launched || loadingContainer) return;
+                if (a.touched && !a.launched || loadingContainer) {
+                    e.preventDefault();
+                    return;
+                }
                 // Restore original values for this window/tab
                 appstate.target = kiwixTarget;
                 articleWindow = thisWindow;
                 articleContainer = thisContainer;
                 // This detects Ctrl-click, Command-click, the long-press event, and middle-click
-                if ((e.ctrlKey || e.metaKey || a.launched || e.which === 2 || e.button === 4) && params.windowOpener) {
+                if (a.launched && params.windowOpener) {
                     // We open the new window immediately so that it is a direct result of user action (click)
                     // and we'll populate it later - this avoids most popup blockers
                     loadingContainer = true;
