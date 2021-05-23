@@ -1586,7 +1586,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 articleWindow = thisWindow;
                 articleContainer = thisContainer;
                 // This detects Ctrl-click, Command-click, the long-press event, and middle-click
-                if (a.launched && params.windowOpener) {
+                if (a.newcontainer && params.windowOpener) {
                     // We open the new window immediately so that it is a direct result of user action (click)
                     // and we'll populate it later - this avoids most popup blockers
                     loadingContainer = true;
@@ -1595,7 +1595,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     appstate.target = 'window';
                     articleContainer.kiwixType = appstate.target;
                     articleWindow = articleContainer;
-                } else if (a.tagName === 'HTML') {
+                } else if (a.tagName === 'BODY') {
                     // We have registered a click on the document, but a new tab wasn't requested, so ignore
                     // and allow any propagated clicks on other elements to run 
                     return;
@@ -1607,7 +1607,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 setTimeout(function () {
                     // By delaying unblocking of the touch event, we prevent multiple touch events launching the same window
                     a.touched = false;
-                    a.launched = false;
+                    a.newcontainer = false;
                     loadingContainer = false;
                 }, 1400);
             };
@@ -1615,25 +1615,30 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             a.addEventListener('touchstart', function (e) {
                 if (!params.windowOpener || a.touched) return;
                 e.stopPropagation();
+                // e.preventDefault();
                 a.touched = true;
-                // The link will be clicked if the user long-presses for more than 600ms (if the option is enabled)
+                loadingContainer = true;
+                var event = e;
+                // The link will be clicked if the user long-presses for more than 800ms (if the option is enabled)
                 setTimeout(function () {
-                    if (!a.touched || a.launched) return;
-                    a.launched = true;
-                    onDetectedClick(e);
-                }, 600);
-            });
+                    if (!a.touched || a.newcontainer) return;
+                    e.preventDefault();
+                    a.newcontainer = true;
+                    onDetectedClick(event);
+                }, 800);
+            }, { passive:false });
             a.addEventListener('touchend', function () {
                 a.touched = false;
-                a.launched = false;
+                a.newcontainer = false;
             });
             // This detects right-click in all browsers (only if the option is enabled)
             a.addEventListener('contextmenu', function (e) {
                 console.log('contextmenu');
-                if (!params.windowOpener || a.launched) return;
+                if (!params.windowOpener) return;
                 e.preventDefault();
                 e.stopPropagation();
-                a.launched = true;
+                if (a.touched || a.newcontainer) return; // Prevent double activation
+                a.newcontainer = true;
                 onDetectedClick(e);
             });
             // This traps the middle-click event before tha auxclick event fires
@@ -1642,9 +1647,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (!params.windowOpener) return;
                 e.preventDefault();
                 e.stopPropagation();
-                if (a.launched) return; // Prevent double activations
+                if (a.touched || a.newcontainer) return; // Prevent double activations
                 if (e.ctrlKey || e.metaKey || e.which === 2 || e.button === 4) {
-                    a.launched = true;
+                    a.newcontainer = true;
                     onDetectedClick(e);
                 } else {
                     console.log('suppressed mousedown');
@@ -1662,7 +1667,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             a.addEventListener('click', function (e) {
                 console.log('Click event', e);
                 // Prevent opening multiple windows
-                if (a.touched && !a.launched || loadingContainer) {
+                if (loadingContainer || a.touched || a.newcontainer) {
                     e.preventDefault();
                     e.stopPropagation();
                 } else {
