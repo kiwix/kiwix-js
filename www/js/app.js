@@ -1624,6 +1624,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if ((e.ctrlKey || e.metaKey || a.launched || e.which === 2 || e.button === 4) && params.windowOpener) {
                     // We open the new window immediately so that it is a direct result of user action (click)
                     // and we'll populate it later - this avoids most popup blockers
+                    loadingContainer = true;
                     articleContainer = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
                         params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
                     appstate.target = 'window';
