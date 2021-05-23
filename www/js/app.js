@@ -365,38 +365,43 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
         switchHomeKeyToFocusSearchBar();
     });
-    document.getElementById('windowOpenerCheck').addEventListener('click', function () {
-        // Tri-state checkbox using readOnly and indeterminate attributes to track state
-        if (this.readOnly) { this.checked = true; this.readOnly = false; }
-        else if (this.checked) this.readOnly = this.indeterminate = true;
-        params.windowOpener = this.indeterminate ? 'tab' : this.checked ? 'window' : false;
+    document.getElementById('tabOpenerCheck').addEventListener('click', function () {
+        params.windowOpener = this.checked ? 'tab' : false;
         settingsStore.setItem('windowOpener', params.windowOpener, Infinity);
         setWindowOpenerUI();
     });
-    function setWindowOpenerUI(setCheckbox) {
-        var woState = document.getElementById('windowOpenerState');
-        var woHelp = document.getElementById('windowOpenerHelp');
-        if (params.windowOpener) {
-            woState.innerHTML = params.windowOpener;
+    document.getElementById('winOpenerCheck').addEventListener('click', function () {
+        var tabCheck = document.getElementById('tabOpenerCheck');
+        params.windowOpener = this.checked ? 'window' : tabCheck.checked ? 'tab' : false;
+        settingsStore.setItem('windowOpener', params.windowOpener, Infinity);
+        setWindowOpenerUI();
+    });
+    function setWindowOpenerUI() {
+        var woHelp = document.getElementById('winOpenerHelp');
+        var newWin = document.getElementById('openInNewWindow');
+        var tabCheck = document.getElementById('tabOpenerCheck');
+        var winCheck = document.getElementById('winOpenerCheck');
+        if (params.windowOpener === 'window') {
+            newWin.hidden = false;
             woHelp.hidden = false;
-            if (contentInjectionMode === 'serviceworker') {
-                woHelp.innerHTML = 'This setting has no effect in ServiceWorker mode because opening new tabs or windows (if supported by the context) ' +
-                    'is handled natively with right-clcik or ctrl-click. Turn this setting off to hide this message.';
-            } else {
-                woHelp.innerHTML = params.windowOpener === 'tab' ?
-                    'Use right-click / long-press / ctrl-click / middle-click. <i>May not work in mobile contexts.</i>' : 
-                    'Use right-click / long-press. You may need to turn off popup blocking. <i>May not work in mobile contexts.</i>';
-                document.getElementById('tapHint').innerHTML = params.windowOpener === 'tab' ? '-> tap again for window mode' : '';
-            }
-        } else {
-            woState.innerHTML = 'tab / window';
+            tabCheck.checked = true;
+            winCheck.checked = true;
+            woHelp.innerHTML = 'If blocked, allow popups permanently for this app and try again. May not work in mobile contexts.';
+        } else if (params.windowOpener === 'tab') {
+            tabCheck.checked = true;
+            winCheck.checked = false;
+            newWin.hidden = false;
+            woHelp.hidden = false;
+            woHelp.innerHTML = 'In some cases a window may open regardless of this setting. May not work in mobile contexts.';
+        } else { // The options are turned off
+            tabCheck.checked = false;
+            winCheck.checked = false;
             woHelp.hidden = true;
+            newWin.hidden = true;
         }
-        if (setCheckbox) {
-            var checkbox = document.getElementById('windowOpenerCheck');
-            checkbox.checked = params.windowOpener === 'window';
-            checkbox.indeterminate = params.windowOpener === 'tab';
-            checkbox.readOnly = params.windowOpener === 'tab';
+        if (contentInjectionMode === 'serviceworker') {
+            woHelp.innerHTML = 'These settings have no effect in ServiceWorker mode because opening new tabs or windows ' +
+                'is handled natively with right-click or ctrl-click. Turn settings off to hide this message.';
         }
     }
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
@@ -656,6 +661,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             // We need to refresh cache status here on first activation because SW was inaccessible till now
                             // We also initialize the CACHE_NAME constant in SW here
                             refreshCacheStatus();
+                            setWindowOpenerUI();
                         }
                     });
                     if (serviceWorker.state === 'activated') {
@@ -696,7 +702,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
         settingsStore.setItem('lastContentInjectionMode', value, Infinity);
         refreshCacheStatus();
-        setWindowOpenerUI(true);
+        setWindowOpenerUI();
     }
             
     // At launch, we try to set the last content injection mode (stored in Settings Store)

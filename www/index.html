@@ -402,13 +402,19 @@
                         <div class="card card-info" id="displaySettingsDiv">
                             <div class="card-header">Display options:</div>
                             <div class="card-body">
-                                <div class="checkbox" title="Tap three times for tab | window | off">
+                                <div class="checkbox" id="openInNewTab" title="Open article in new tab">
                                     <label>
-                                        <input type="checkbox" name="windowOpener" id="windowOpenerCheck">
-                                        <strong>Open archive links in new [ <span id="windowOpenerState"></span> ]</strong> <i><span id="tapHint"></span></i>
-                                        <span id="windowOpenerHelp" class="form-text" hidden></span>
+                                        <input type="checkbox" name="tabOpener" id="tabOpenerCheck">
+                                        <strong>Open ZIM links in new tab</strong> with right-click, ctrl-click, middle-click or long-press
                                     </label>
                                 </div>
+                                <div class="checkbox" id="openInNewWindow" hidden title="Open article in new window">
+                                    <label>
+                                        <input type="checkbox" name="windowOpener" id="winOpenerCheck">
+                                        <strong>Open in new window instead</strong>
+                                    </label>
+                                </div>
+                                <div id="winOpenerHelp" style="padding-bottom:1em;"></div>
                                 <div class="checkbox">
                                     <label>
                                         <input type="checkbox" name="hideActiveContentWarning"
