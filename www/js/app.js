@@ -1547,7 +1547,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             });
             // Add event listeners to the main document so user can open current document in new tab or window
-            // if (articleWindow.document.body) addListenersToLink(articleWindow.document.body, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
+            if (articleWindow.document.body) addListenersToLink(articleWindow.document.body, encodeURIComponent(dirEntry.url.replace(/[^/]+\//g, '')));
         }
 
         /**
@@ -1579,60 +1579,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var kiwixTarget = appstate.target;
             var thisWindow = articleWindow;
             var thisContainer = articleContainer;
-            a.addEventListener('touchstart', function (e) {
-                if (!params.windowOpener || a.touched) return;
-                e.stopPropagation();
-                a.touched = true;
-                // The link will be clicked if the user long-presses for more than 600ms (if the option is enabled)
-                setTimeout(function () {
-                    if (!a.touched || a.launched) return;
-                    a.launched = true;
-                    a.click();
-                }, 600);
-            });
-            a.addEventListener('touchend', function () {
-                a.touched = false;
-                a.launched = false;
-            });
-            // This detects right-click in all browsers (only if the option is enabled)
-            a.addEventListener('contextmenu', function (e) {
-                console.log('contextmenu');
-                if (!params.windowOpener || a.launched) return;
-                e.preventDefault();
-                e.stopPropagation();
-                a.launched = true;
-                a.click();
-            });
-            // This traps the middle-click event before tha auxclick event fires
-            a.addEventListener('mousedown', function (e) {
-                console.log('mosuedown');
-                if (!params.windowOpener) return;
-                e.preventDefault();
-                e.stopPropagation();
-                if (a.launched) return; // Prevent double activations
-                if (e.ctrlKey || e.metaKey || e.which === 2 || e.button === 4) {
-                    a.launched = true;
-                    a.click();
-                } else {
-                    console.log('suppressed mousedown');
-                }
-            });
-            // This detects the middle-click event that opens a new tab in recent Firefox and Chrome
-            // See https://developer.mozilla.org/en-US/docs/Web/API/Element/auxclick_event
-            a.addEventListener('auxclick', function (e) {
-                console.log('auxclick');
-                if (!params.windowOpener) return;
-                e.preventDefault();
-                e.stopPropagation();
-            });
-            // The main click routine (called by other events above as well)
-            a.addEventListener('click', function (e) {
-                console.log('Click event', e);
-                // Prevent opening multiple windows
-                if (a.touched && !a.launched || loadingContainer) {
-                    e.preventDefault();
-                    return;
-                }
+            
+            var onDetectedClick = function (e) {
                 // Restore original values for this window/tab
                 appstate.target = kiwixTarget;
                 articleWindow = thisWindow;
@@ -1662,6 +1610,64 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     a.launched = false;
                     loadingContainer = false;
                 }, 1400);
+            };
+            
+            a.addEventListener('touchstart', function (e) {
+                if (!params.windowOpener || a.touched) return;
+                e.stopPropagation();
+                a.touched = true;
+                // The link will be clicked if the user long-presses for more than 600ms (if the option is enabled)
+                setTimeout(function () {
+                    if (!a.touched || a.launched) return;
+                    a.launched = true;
+                    onDetectedClick(e);
+                }, 600);
+            });
+            a.addEventListener('touchend', function () {
+                a.touched = false;
+                a.launched = false;
+            });
+            // This detects right-click in all browsers (only if the option is enabled)
+            a.addEventListener('contextmenu', function (e) {
+                console.log('contextmenu');
+                if (!params.windowOpener || a.launched) return;
+                e.preventDefault();
+                e.stopPropagation();
+                a.launched = true;
+                onDetectedClick(e);
+            });
+            // This traps the middle-click event before tha auxclick event fires
+            a.addEventListener('mousedown', function (e) {
+                console.log('mosuedown');
+                if (!params.windowOpener) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (a.launched) return; // Prevent double activations
+                if (e.ctrlKey || e.metaKey || e.which === 2 || e.button === 4) {
+                    a.launched = true;
+                    onDetectedClick(e);
+                } else {
+                    console.log('suppressed mousedown');
+                }
+            });
+            // This detects the middle-click event that opens a new tab in recent Firefox and Chrome
+            // See https://developer.mozilla.org/en-US/docs/Web/API/Element/auxclick_event
+            a.addEventListener('auxclick', function (e) {
+                console.log('auxclick');
+                if (!params.windowOpener) return;
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            // The main click routine (called by other events above as well)
+            a.addEventListener('click', function (e) {
+                console.log('Click event', e);
+                // Prevent opening multiple windows
+                if (a.touched && !a.launched || loadingContainer) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                } else {
+                    onDetectedClick(e);
+                }
             });
         }
 
