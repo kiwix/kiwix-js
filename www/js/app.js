@@ -1579,37 +1579,44 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var kiwixTarget = appstate.target;
             var thisWindow = articleWindow;
             var thisContainer = articleContainer;
-            
+            var reset = function () {
+                // By delaying unblocking of the touch event, we prevent multiple touch events launching the same window
+                a.touched = false;
+                a.newcontainer = false;
+                loadingContainer = false;
+            };
             var onDetectedClick = function (e) {
                 // Restore original values for this window/tab
                 appstate.target = kiwixTarget;
                 articleWindow = thisWindow;
                 articleContainer = thisContainer;
-                // This detects Ctrl-click, Command-click, the long-press event, and middle-click
-                if (a.newcontainer && params.windowOpener) {
-                    // We open the new window immediately so that it is a direct result of user action (click)
-                    // and we'll populate it later - this avoids most popup blockers
-                    loadingContainer = true;
-                    articleContainer = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
-                        params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
-                    appstate.target = 'window';
-                    articleContainer.kiwixType = appstate.target;
-                    articleWindow = articleContainer;
-                } else if (a.tagName === 'BODY') {
-                    // We have registered a click on the document, but a new tab wasn't requested, so ignore
-                    // and allow any propagated clicks on other elements to run 
-                    return;
+                if (params.windowOpener) {
+                    if (a.tagName === 'BODY') {
+                        // We have registered a click on the document
+                        if (!a.newcontainer) return; // A new tab wasn't requested, so ignore
+                        // If we're not clicking within the scope of an H1, H2, etc., ignore the click
+                        if (!uiUtil.getClosestMatchForTagname(e.target, /H\d/)) {
+                            setTimeout(reset, 1400);
+                            return;
+                        }
+                    }
+                    // This processes Ctrl-click, Command-click, the long-press event, and middle-click
+                    if (a.newcontainer) {
+                        // We open the new window immediately so that it is a direct result of user action (click)
+                        // and we'll populate it later - this avoids most popup blockers
+                        loadingContainer = true;
+                        articleContainer = window.open('article.html', params.windowOpener === 'tab' ? '_blank' : a.title,
+                            params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
+                        appstate.target = 'window';
+                        articleContainer.kiwixType = appstate.target;
+                        articleWindow = articleContainer;
+                    }
                 }
                 e.preventDefault();
                 e.stopPropagation();
                 var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                 goToArticle(zimUrl, downloadAttrValue, contentType);
-                setTimeout(function () {
-                    // By delaying unblocking of the touch event, we prevent multiple touch events launching the same window
-                    a.touched = false;
-                    a.newcontainer = false;
-                    loadingContainer = false;
-                }, 1400);
+                setTimeout(reset, 1400);
             };
             
             a.addEventListener('touchstart', function (e) {

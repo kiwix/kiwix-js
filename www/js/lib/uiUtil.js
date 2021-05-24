@@ -142,6 +142,21 @@ define(rqDef, function() {
     }
 
     /**
+     * Walk up the DOM tree to find the closest element where the tagname matches the supplied regular expression
+     * 
+     * @param {Element} el The starting DOM element
+     * @param {RegExp} rgx A regular expression to match the element's tagname
+     * @returns {Element|null} The matching element or null if no match was found
+     */
+    function getClosestMatchForTagname(el, rgx) {
+        do {
+            if (rgx.test(el.tagName)) return el;
+            el = el.parentElement || el.parentNode;
+        } while (el !== null && el.nodeType === 1);
+        return null;
+    }
+
+    /**
      * Displays a customizable basic non-blocking system alert
      */
     var systemAlertSetup = false;
@@ -459,6 +474,7 @@ define(rqDef, function() {
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
+        getClosestMatchForTagname: getClosestMatchForTagname,
         removeUrlParameters: removeUrlParameters,
         systemAlert: systemAlert,
         displayActiveContentWarning: displayActiveContentWarning,
