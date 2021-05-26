@@ -55,7 +55,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
      * @property {String} name Abstract archive name for file set
      * @property {Integer} id Arbitrary numeric ZIM id used to track the currently loaded archive
      * @property {Integer} entryCount Total number of entries in the URL pointerlist
-     * @property {Integer} articleCount Total number of articles in the v1 article-only pointerlist (async calculated entry)
+     * @property {Integer} articleCount Total number of article titles in the v1 article-only pointerlist (async calculated entry)
      * @property {Integer} clusterCount Total number of clusters
      * @property {Integer} urlPtrPos Position of the directory pointerlist ordered by URL
      * @property {Integer} titlePtrPos Position of the legacy v0 pointerlist ordered by title
@@ -264,22 +264,48 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
     /**
      * Read the metadata (archive offset pointer, and number of entiries) of one or more ZIM directory Listings.
      * This supports reading a subset of user content that might be ordered differently from the main URL pointerlist.
-     * In particular, it supports v1 title pointerlists, which contain articles sorted by title, superseding the article
+     * In particular, it supports the v1 article pointerlist, which contains articles sorted by title, superseding the article
      * namespace ('A') in legazy ZIM archives.  
      * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)  
+     * @returns {Promise} A promise that populates calculated entries in the ZIM file header
      */
-    ZIMFile.prototype.setListings = function(listings) {
-        // If we are in a legacy ZIM archive, there is nothing further to look up
+    ZIMFile.prototype.setListings = function (listings) {
+        var that = this;
+        // If we are in a legacy ZIM archive, we need to calculate the true article count (of entries in the A namespace)
+        // This effectively emulates the v1 article pointerlist
         if (this.minorVersion === 0) {
             console.debug('ZIM DirListing version: 0 (legacy)', this);
-            return;
+            // Initiate a binary search for the first or last article
+            var getArticleIndexByOrdinal = function (ordinal) {
+                return util.binarySearch(0, that.entryCount, function(i) {
+                    return that.dirEntryByTitleIndex(i).then(function(dirEntry) {
+                        var ns = dirEntry.namespace;
+                        var url = ns + '/' + dirEntry.getTitleOrUrl();
+                        var prefix = ordinal === 'first' ? 'A' : 'B';
+                        if (prefix < ns) return -1;
+                        else if (prefix > ns) return 1;
+                        return prefix < url ? -1 : 1;
+                    });
+                }, true).then(function(index) {
+                    return index;
+                });
+            };
+            return getArticleIndexByOrdinal('first').then(function(idxFirstArticle) {
+                return getArticleIndexByOrdinal('last').then(function(idxLastArticle) {
+                    // Technically idxLastArticle points to the entry after the last article in the 'A' namespace,
+                    // We subtract the first from the last to get the number of entries in the 'A' namespace
+                    that.articlePtrPos = that.titlePtrPos + idxFirstArticle * 4;
+                    that.articleCount = idxLastArticle - idxFirstArticle;
+                    console.debug('Calculated article count is: ' + that.articleCount);
+                });
+            });
         }
-        var that = this;
         var highestListingVersion = 0;
         var listingAccessor = function (listing) {
             if (!listing) {
                 // No more listings, so exit
                 console.debug('ZIM DirListing version: ' + highestListingVersion, that);
+                console.debug('Article count is: ' + that.articleCount);
                 return null;
             }
             // Check if we already have this listing's values, so we don't do redundant binary searches
@@ -400,7 +426,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
                     zf.titlePtrPos = readInt(header, 40, 8);
-                    zf.articlePtrPos = null; // Calculated async by setListings() called from zimArchive.js 
+                    zf.articlePtrPos = null; // Calculated async by setListings() 
                     zf.clusterPtrPos = readInt(header, 48, 8);
                     zf.mimeListPos = mimeListPos;
                     zf.mainPage = readInt(header, 64, 4);

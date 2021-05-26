@@ -273,6 +273,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             return that._file.dirEntryByTitleIndex(i).then(function(dirEntry) {
                 if (search.status === 'cancelled') return 0;
                 var ns = dirEntry.namespace;
+                // DEV: This search is redundant if we managed to populate articlePtrLst and articleCount, but it only takes two instructions and
+                // provides maximum compatibility with rare ZIMs where attempts to find first and last article (in zimArchive.js) may have failed
                 if (ns < cns) return 1;
                 if (ns > cns) return -1;
                 // We should now be in namespace A (old format ZIM) or C (new format ZIM)
