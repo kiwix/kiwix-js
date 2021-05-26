@@ -305,6 +305,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'q', 'zimDirEntry', 
             if (!listing) {
                 // No more listings, so exit
                 console.debug('ZIM DirListing version: ' + highestListingVersion, that);
+                console.debug('Article count is: ' + that.articleCount);
                 return null;
             }
             // Check if we already have this listing's values, so we don't do redundant binary searches
