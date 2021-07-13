@@ -262,7 +262,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * 
      * @param {String} prefix The case-sensitive value against which dirEntry titles (or url) will be compared
      * @param {Object} search The appstate.search object (for comparison, so that we can cancel long binary searches)
-     * @param {Function} callback The function to call with the array of dirEntries with titles that begin with prefix
+     * @param {callbackDirEntryList} callback The function to call with the array of dirEntries with titles that begin with prefix
      */
     ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function(prefix, search, callback) {
         var that = this;
