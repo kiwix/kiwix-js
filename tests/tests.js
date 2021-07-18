@@ -177,7 +177,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix({prefix: 'A'}, 5, callbackFunction, true);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'A', size: 5}, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'a'", function(assert) {
             var done = assert.async();
@@ -188,7 +188,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'A Fool for You', 'First result should be "A Fool for You"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix({prefix: 'a'}, 5, callbackFunction, true);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'a', size: 5}, callbackFunction, true);
         });
         QUnit.test("check findDirEntriesWithPrefix 'blues brothers'", function(assert) {
             var done = assert.async();
@@ -199,7 +199,7 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 assert.equal(firstDirEntry.getTitleOrUrl() , 'Blues Brothers (film)', 'First result should be "Blues Brothers (film)"');
                 done();
             };
-            localZimArchive.findDirEntriesWithPrefix({prefix: 'blues brothers'}, 5, callbackFunction, true);
+            localZimArchive.findDirEntriesWithPrefix({prefix: 'blues brothers', size: 5}, callbackFunction, true);
         });
         QUnit.test("article '(The Night Time Is) The Right Time' correctly redirects to 'Night Time Is the Right Time'", function(assert) {
             var done = assert.async();

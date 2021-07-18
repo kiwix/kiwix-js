@@ -1032,9 +1032,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
             // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
             // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
-            appstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
+            appstate.search = {'prefix': prefix, 'status': 'init', 'type': '', 'size': params.maxSearchResultsSize};
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(appstate.search, params.maxSearchResultsSize, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,

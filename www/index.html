@@ -103,6 +103,7 @@
                     <ul>
                         <li><a href="#aboutApp">About this App</a></li>
                         <li><a href="#usage">Usage</a></li>
+                        <li><a href="#searchSyntax">Title Search Usage</a></li>
                         <li><a href="#privacy">Privacy Policy</a></li>
                         <li><a href="#expert">Expert Settings and Technical Information</a>
                             <ul>
@@ -189,6 +190,25 @@
                     <h4>Step 4: Enjoy your offline content!</h4>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
 
+                    <h3 id="searchSyntax">Title search usage</h3>
+                    <p>
+                        Title search matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
+                        'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited: e.g. if you
+                        search for 'unesco world heritiage', it will try 'Unesco world heritage', 'UNESCO world heritage', 'unesco World heritage', 'Unesco WORLD heritage'
+                        (etc.), but it won't try 'uNesCO' and other non-obvious case combinations. If you want to search for 'uNesCO', then you must type it exactly like that.
+                    </p>
+                    <p>
+                        If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration. Please note that we are
+                        currently unable to support full text search of the contents of articles and titles, though we have plans to do so in the future if it becomes technically
+                        possible.
+                    </p>
+                    <p>
+                        <b>Alphabetical search:</b> If you type a letter of the alphabet in the title search box (upper case may be most useful), it will show an alphabetical
+                        list of articles starting with that letter (up to the maximum number of search results you selected in Configuration). This is useful for ZIM archives
+                        that have descriptive rather than semantic titles (e.g. TED Talks), expecially in <a href="#modes">JQuery mode</a>. 
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
                     <h3 id="privacy">Privacy policy</h3>
 
                     <h4>Short version:</h4>
@@ -489,7 +509,7 @@
                                     <div class="col-sm-8">
                                         <div class="range">
                                             <label>
-                                                <input type="range" class="form-control-range" min="5" max="50" id="titleSearchRange" value="25">
+                                                <input type="range" class="form-control-range" min="5" max="100" id="titleSearchRange" value="25">
                                                 <span>Value: <span id="titleSearchRangeVal"></span> (<i>default 25, higher values increase search time</i>)</span>
                                             </label>
                                         </div>
