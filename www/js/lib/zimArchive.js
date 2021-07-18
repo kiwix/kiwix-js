@@ -192,7 +192,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         // Get the full array of combinations to check number of combinations
         var fullCombos = util.removeDuplicateStringsInSmallArray(util.allCaseFirstLetters(prefix, 'full'));
         // Put cap on exponential number of combinations (five words = 3^5 = 243 combinations)
-        search.type = fullCombos.length < 200 ? 'full' : 'basic';
+        search.type = fullCombos.length < 300 ? 'full' : 'basic';
         // We have to remove duplicate string combinations because util.allCaseFirstLetters() can return some combinations
         // where uppercase and lowercase combinations are exactly the same, e.g. where prefix begins with punctuation
         // or currency signs, for languages without case, or where user-entered case duplicates calculated case
