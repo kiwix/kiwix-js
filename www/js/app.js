@@ -1323,7 +1323,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
-        htmlCSS = htmlCSS ? htmlCSS[1] : '';
+        // Normalize classList and convert to array
+        htmlCSS = htmlCSS ? htmlCSS[1].replace(/\s+/g, ' ').split(' ') : [];
         
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
@@ -1357,7 +1358,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             docBody = docBody ? docBody[0] : null;
             if (docBody) {
                 // Add any missing classes stripped from the <html> tag
-                if (htmlCSS) docBody.classList.add(htmlCSS);
+                if (htmlCSS) htmlCSS.forEach(function (cl) {
+                    docBody.classList.add(cl);
+                });
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
