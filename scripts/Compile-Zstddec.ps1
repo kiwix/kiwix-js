@@ -7,7 +7,7 @@
 #     * Ensure WSL 2 is enabled in Windows (WSL = Windows Subsystem for Linux) 
 #     * Install docker desktop on Windows: choose the WSL 2 docker backend (not the standard/legacy one)
 #     * Open docker and ensure the docker daemon is running correctly (icon should be green)
-#     * Ensure docker desktop is signed in to your docker account
+#     * Ensure docker desktop is signed in to your dockerhub account
 #     * Run this script by opening a PowerShell terminal, cd to the kiwix-js repo and run './scripts/Compile-Zstddec.ps1'
 
 $repo_dir = ($PSScriptRoot -replace '[\\/]scripts[\\/]*$', '')
