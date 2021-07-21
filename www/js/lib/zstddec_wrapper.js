@@ -36,9 +36,8 @@ if ('WebAssembly' in self) {
 }
 
 define(rqDef, function() {
-    // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec which uses "Module" as its exported object
-    // Note that we include zstddec above in requireJS definition, but we cannot change the name in the function list
-    // There is no longer any need to load it in index.html
+    // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec.js
+    // Note that we include zstddec-wasm or zstddec-asm above in requireJS definition, but we cannot change the name in the function list
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
 
     /**

@@ -1,7 +1,7 @@
 /**
  * xzdec_wrapper.js: Javascript wrapper around compiled xz decompressor.
  *
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2021 Mossroy and contributors
  * License GPL v3:
  *
  * This file is part of Kiwix.
@@ -22,7 +22,7 @@
 'use strict';
 
 // DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
-// We need to do it this way in order to load the wasm or asm versions of zstddec conditionally. Older browsers can only use the asm version
+// We need to do it this way in order to load the wasm or asm versions of xzdec conditionally. Older browsers can only use the asm version
 // because they cannot interpret WebAssembly.
 var rqDef = [];
 
@@ -46,7 +46,7 @@ define(rqDef, function() {
      */
 
     /**
-     * The ZSTD Decoder instance
+     * The XZ Decoder instance
      * @type EMSInstance
      */
      var xzdec;
