@@ -20,11 +20,41 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['xzdec'], function() {
-    // DEV: xzdec.js emits a global Module variable, which cannot be set in requireJS function line above, though it can be loaded in definition
-    var xzdec = Module;
-    xzdec._init();
-    
+
+// DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
+// We need to do it this way in order to load the wasm or asm versions of zstddec conditionally. Older browsers can only use the asm version
+// because they cannot interpret WebAssembly.
+var rqDef = [];
+
+// Select asm or wasm conditionally
+if ('WebAssembly' in self) {
+    console.debug('Using WASM xz decoder')
+    rqDef.push('xzdec-wasm');
+} else {
+    console.debug('Using ASM xz decoder')
+    rqDef.push('xzdec-asm');
+}
+
+define(rqDef, function() {
+    // DEV: xzdec.js has been compiled with `-s EXPORT_NAME="XZ" -s MODULARIZE=1` to avoid a clash with zstddec.js
+    // Note that we include xzdec-asm or xzdec-wasm above in requireJS definition, but we cannot change the name in the function list
+    // There is no longer any need to load it in index.html
+    // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
+
+    /**
+     * @typedef EMSInstance An object type representing an Emscripten instance
+     */
+
+    /**
+     * The ZSTD Decoder instance
+     * @type EMSInstance
+     */
+     var xzdec;
+     XZ().then(function (instance) {
+         // Instantiate the xzdec object
+         xzdec = instance;
+     });
+     
     /**
      * Number of milliseconds to wait for the decompressor to be available for another chunk
      * @type Integer
