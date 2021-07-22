@@ -58,9 +58,14 @@ define(rqDef, function() {
          }
      }).catch(function (err) {
          if (/CompileError.+?WASM/i.test(err.message)) {
-             console.log("Rebooting with ASM...");
+             console.log("WASM failed to load, falling back to ASM...");
              localStorage.setItem(params.keyPrefix + 'boot-with-asm', true);
-             window.location.reload();
+             XZ = null;
+             require(['xzdec-asm'], function() {
+                 XZ().then(function (newInstance) {
+                     xzdec = newInstance;
+                 });
+             });
          }
      });
      
