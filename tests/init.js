@@ -37,6 +37,12 @@ require.config({
     }
 });
 
-requirejs(['arrayFromPolyfill', 'promisePolyfill'], function () {
+var req = []; // Baseline Require array
+
+// Add polyfills to the Require array only if needed
+if (!('Promise' in self)) req.push('promisePolyfill');
+if (!('from' in Array)) req.push('arrayFromPolyfill');
+
+requirejs(req, function () {
     requirejs(['../../../tests/tests']);
 });
