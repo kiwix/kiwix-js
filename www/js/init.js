@@ -29,6 +29,8 @@
  * @type Object
  */
 var params = {};
+// This value is needed before settingsStore has been attached
+params['keyPrefix'] = 'kiwixjs-';
 
 require.config({
     baseUrl: 'js/lib',

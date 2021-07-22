@@ -27,12 +27,12 @@
 var rqDef = [];
 
 // Select asm or wasm conditionally
-if ('WebAssembly' in self) {
+if ('WebAssembly' in self && !localStorage.getItem(params.keyPrefix + 'boot-with-asm')) {
     console.debug('Using WASM xz decoder')
-    rqDef.push('xzdec-wasm');
+    rqDefXZ.push('xzdec-wasm');
 } else {
     console.debug('Using ASM xz decoder')
-    rqDef.push('xzdec-asm');
+    rqDefXZ.push('xzdec-asm');
 }
 
 define(rqDef, function() {
@@ -53,6 +53,15 @@ define(rqDef, function() {
      XZ().then(function (instance) {
          // Instantiate the xzdec object
          xzdec = instance;
+         if (~rqDefXZ.indexOf('xzdec-wasm')) {
+             localStorage.deleteItem(params.keyPrefix + 'boot-with-asm');
+         }
+     }).catch(function (err) {
+         if (/CompileError.+?WASM/i.test(err.message)) {
+             console.log("Rebooting with ASM...");
+             localStorage.setItem(params.keyPrefix + 'boot-with-asm', true);
+             window.location.reload();
+         }
      });
      
     /**

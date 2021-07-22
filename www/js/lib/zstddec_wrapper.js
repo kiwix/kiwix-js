@@ -29,10 +29,10 @@ var rqDef = [];
 // Select asm or wasm conditionally
 if ('WebAssembly' in self) {
     console.debug('Using WASM zstandard decoder')
-    rqDef.push('zstddec-wasm');
+    rqDefZD.push('zstddec-wasm');
 } else {
     console.debug('Using ASM zstandard decoder')
-    rqDef.push('zstddec-asm');
+    rqDefZD.push('zstddec-asm');
 }
 
 define(rqDef, function() {
