@@ -1,9 +1,7 @@
 ﻿/**
- * Simple Array.from polyfi8ll (with Set support) from https://stackoverflow.com/a/62682524/9727685
+ * Simple Array.from polyfill (with Set support) from https://stackoverflow.com/a/62682524/9727685
  */
 (function () {
-	// Detection
-	if ('from' in Array) return;
 
 	function arrayFrom(arr, callbackFn, thisArg) {
 		//if you need you can uncomment the following line

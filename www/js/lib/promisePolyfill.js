@@ -12,8 +12,6 @@
 (function () {
 	'use strict';
 
-	if ('Promise' in self) return;
-
 	var $undefined
 	, $null = null
 	, isBrowser = typeof self === 'object'
