@@ -28,10 +28,10 @@ var rqDefZD = [];
 
 // Select asm or wasm conditionally
 if ('WebAssembly' in self) {
-    console.debug('Using WASM zstandard decoder')
+    console.debug('Using WASM zstandard decoder');
     rqDefZD.push('zstddec-wasm');
 } else {
-    console.debug('Using ASM zstandard decoder')
+    console.debug('Using ASM zstandard decoder');
     rqDefZD.push('zstddec-asm');
 }
 
@@ -53,7 +53,8 @@ define(rqDefZD, function() {
      * @type EMSInstanceExt
      */
     var zd;
-    ZD().then(function (instance) {
+
+    var instantiateDecoder = function (instance) {
         // Instantiate the zd object
         zd = instance;
         // Create JS API by wrapping C++ functions
@@ -96,6 +97,21 @@ define(rqDefZD, function() {
         zd._outBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
         // Reserve w/asm memory for the outBuffer data steam
         zd._outBuffer.dst = mallocOrDie(zd._outBuffer.size);
+    };
+
+    ZD().then(instantiateDecoder)
+    .catch(function (err) {
+        console.debug(err);
+        if (/CompileError.+?WASM/i.test(err.message)) {
+            console.log("WASM failed to load, falling back to ASM...", err);
+            ZD = null;
+            require(['zstddec-asm'], function() {
+                XZ().then(instantiateDecoder)
+                .catch(function (err) {
+                    console.error('Could not instantiate any decoder!', err);
+                });
+            });
+        }
     });
 
     /**

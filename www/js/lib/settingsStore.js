@@ -42,7 +42,7 @@ define([], function () {
    * potential collision of key names with localStorage keys used by code inside ZIM archives
    * @type {String}
    */
-  const keyPrefix = params.keyPrefix;
+  const keyPrefix = 'kiwixjs-';
 
   // Tests for available Storage APIs (document.cookie or localStorage) and returns the best available of these
   function getBestAvailableStorageAPI() {

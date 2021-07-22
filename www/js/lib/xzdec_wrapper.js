@@ -27,11 +27,11 @@
 var rqDefXZ = [];
 
 // Select asm or wasm conditionally
-if ('WebAssembly' in self && !localStorage.getItem(params.keyPrefix + 'boot-with-asm')) {
-    console.debug('Using WASM xz decoder')
+if ('WebAssembly' in self) {
+    console.debug('Using WASM xz decoder');
     rqDefXZ.push('xzdec-wasm');
 } else {
-    console.debug('Using ASM xz decoder')
+    console.debug('Using ASM xz decoder');
     rqDefXZ.push('xzdec-asm');
 }
 
@@ -50,20 +50,21 @@ define(rqDefXZ, function() {
      * @type EMSInstance
      */
      var xzdec;
-     XZ().then(function (instance) {
-         // Instantiate the xzdec object
+
+     var instantiateDecoder = function (instance) {
          xzdec = instance;
-         if (~rqDefXZ.indexOf('xzdec-wasm')) {
-             localStorage.deleteItem(params.keyPrefix + 'boot-with-asm');
-         }
-     }).catch(function (err) {
+     };
+
+     XZ().then(instantiateDecoder)
+     .catch(function (err) {
+         console.debug(err);
          if (/CompileError.+?WASM/i.test(err.message)) {
-             console.log("WASM failed to load, falling back to ASM...");
-             localStorage.setItem(params.keyPrefix + 'boot-with-asm', true);
+             console.log("WASM failed to load, falling back to ASM...", err);
              XZ = null;
              require(['xzdec-asm'], function() {
-                 XZ().then(function (newInstance) {
-                     xzdec = newInstance;
+                 XZ().then(instantiateDecoder)
+                 .catch(function (err) {
+                     console.error('Could not instantiate any decoder!', err);
                  });
              });
          }
