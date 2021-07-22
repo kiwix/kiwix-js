@@ -106,7 +106,7 @@ define(rqDefZD, function() {
             console.log("WASM failed to load, falling back to ASM...", err);
             ZD = null;
             require(['zstddec-asm'], function() {
-                XZ().then(instantiateDecoder)
+                ZD().then(instantiateDecoder)
                 .catch(function (err) {
                     console.error('Could not instantiate any decoder!', err);
                 });
