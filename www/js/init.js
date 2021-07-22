@@ -36,7 +36,6 @@ require.config({
         'jquery': 'jquery-3.2.1.slim',
         'bootstrap': 'bootstrap.bundle',
         'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27',
-        'webpHeroPolyfills': 'webpHeroPolyfills_0.0.0-dev.27',
         'fontawesome': 'fontawesome/fontawesome',
         'fontawesome-solid': 'fontawesome/solid'
     },
@@ -47,13 +46,17 @@ require.config({
         'bootstrap': {
             deps: ['jquery', 'fontawesome', 'fontawesome-solid']
         },
-        'webpHeroBundle': {
-            deps: ['webpHeroPolyfills']
-        }
+        'webpHeroBundle': ''
     }
 });
 
-requirejs(['bootstrap'], function (bootstrap) {
+var req = ['bootstrap']; // Baseline Require array
+
+// Add polyfills to the Require array only if needed
+if (!('Promise' in self)) req.push('promisePolyfill');
+if (!('from' in Array)) req.push('arrayFromPolyfill');
+
+requirejs(req, function () {
     requirejs(['../app']);
 });
 
