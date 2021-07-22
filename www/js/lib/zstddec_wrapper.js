@@ -21,10 +21,10 @@
  */
 'use strict';
 
-// DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
+// DEV: Put your RequireJS definition in the rqDefZD array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load the wasm or asm versions of zstddec conditionally. Older browsers can only use the asm version
 // because they cannot interpret WebAssembly.
-var rqDef = [];
+var rqDefZD = [];
 
 // Select asm or wasm conditionally
 if ('WebAssembly' in self) {
@@ -35,7 +35,7 @@ if ('WebAssembly' in self) {
     rqDefZD.push('zstddec-asm');
 }
 
-define(rqDef, function() {
+define(rqDefZD, function() {
     // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec.js
     // Note that we include zstddec-wasm or zstddec-asm above in requireJS definition, but we cannot change the name in the function list
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js

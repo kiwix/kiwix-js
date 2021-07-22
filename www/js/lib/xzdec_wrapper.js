@@ -1,4 +1,4 @@
-/**
+﻿/**
  * xzdec_wrapper.js: Javascript wrapper around compiled xz decompressor.
  *
  * Copyright 2021 Mossroy and contributors
@@ -24,7 +24,7 @@
 // DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load the wasm or asm versions of xzdec conditionally. Older browsers can only use the asm version
 // because they cannot interpret WebAssembly.
-var rqDef = [];
+var rqDefXZ = [];
 
 // Select asm or wasm conditionally
 if ('WebAssembly' in self && !localStorage.getItem(params.keyPrefix + 'boot-with-asm')) {
@@ -35,7 +35,7 @@ if ('WebAssembly' in self && !localStorage.getItem(params.keyPrefix + 'boot-with
     rqDefXZ.push('xzdec-asm');
 }
 
-define(rqDef, function() {
+define(rqDefXZ, function() {
     // DEV: xzdec.js has been compiled with `-s EXPORT_NAME="XZ" -s MODULARIZE=1` to avoid a clash with zstddec.js
     // Note that we include xzdec-asm or xzdec-wasm above in requireJS definition, but we cannot change the name in the function list
     // There is no longer any need to load it in index.html
