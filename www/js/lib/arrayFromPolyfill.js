@@ -29,5 +29,5 @@
 		return arNew;
 	}
 	//You could also use it without the following line, but it is not recommended because native function is faster.
-	Array.from = arrayFrom; //We set it as polyfill
+	Array.from = Array.from || arrayFrom; //We set it as polyfill
 }());
