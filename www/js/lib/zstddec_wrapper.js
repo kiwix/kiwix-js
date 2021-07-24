@@ -101,17 +101,14 @@ define(rqDefZD, function() {
 
     ZD().then(instantiateDecoder)
     .catch(function (err) {
-        console.debug(err);
-        if (/CompileError.+?WASM/i.test(err.message)) {
-            console.log("WASM failed to load, falling back to ASM...", err);
-            ZD = null;
-            require(['zstddec-asm'], function() {
-                ZD().then(instantiateDecoder)
-                .catch(function (err) {
-                    console.error('Could not instantiate any decoder!', err);
-                });
+        console.warn("WASM failed to load, falling back to ASM...", err);
+        ZD = null;
+        require(['zstddec-asm'], function() {
+            ZD().then(instantiateDecoder)
+            .catch(function (err) {
+                console.error('Could not instantiate any ZSTD decoder!', err);
             });
-        }
+        });
     });
 
     /**

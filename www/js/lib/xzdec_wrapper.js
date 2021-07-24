@@ -57,17 +57,14 @@ define(rqDefXZ, function() {
 
      XZ().then(instantiateDecoder)
      .catch(function (err) {
-         console.debug(err);
-         if (/CompileError.+?WASM/i.test(err.message)) {
-             console.log("WASM failed to load, falling back to ASM...", err);
-             XZ = null;
-             require(['xzdec-asm'], function() {
-                 XZ().then(instantiateDecoder)
-                 .catch(function (err) {
-                     console.error('Could not instantiate any decoder!', err);
-                 });
-             });
-         }
+        console.warn("WASM failed to load, falling back to ASM...", err);
+        XZ = null;
+        require(['xzdec-asm'], function() {
+            XZ().then(instantiateDecoder)
+            .catch(function (err) {
+                console.error('Could not instantiate any XZ decoder!', err);
+            });
+        });
      });
      
     /**
