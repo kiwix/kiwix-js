@@ -25,6 +25,7 @@
  * Add Polyfill currently required by IE11 to run zstddec-asm and xzdec-asm
  * See https://github.com/emscripten-core/emscripten/issues/14700
  * If this is resolved upstream, remove this polyfill
+ * Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
  */
     if (!String.prototype.startsWith) {
     Object.defineProperty(String.prototype, 'startsWith', {
