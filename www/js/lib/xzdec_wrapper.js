@@ -1,5 +1,5 @@
 ﻿/**
- * zstddec_wrapper.js: Javascript wrapper around compiled zstd decompressor.
+ * xzdec_wrapper.js: Javascript wrapper around compiled xz decompressor.
  *
  * Copyright 2021 Mossroy and contributors
  * License GPL v3:
