@@ -24,7 +24,7 @@
 // DEV: Put your RequireJS definition in the rqDefXZ array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load the wasm or asm versions of xzdec conditionally. Older browsers can only use the asm version
 // because they cannot interpret WebAssembly.
-var rqDefXZ = [];
+var rqDefXZ = ['uiUtil'];
 
 // Select asm or wasm conditionally
 if ('WebAssembly' in self) {
@@ -37,7 +37,7 @@ if ('WebAssembly' in self) {
     rqDefXZ.push('xzdec-asm');
 }
 
-define(rqDefXZ, function() {
+define(rqDefXZ, function(uiUtil) {
     // DEV: xzdec.js has been compiled with `-s EXPORT_NAME="XZ" -s MODULARIZE=1` to avoid a clash with zstddec.js
     // Note that we include xzdec-asm or xzdec-wasm above in requireJS definition, but we cannot change the name in the function list
     // There is no longer any need to load it in index.html
