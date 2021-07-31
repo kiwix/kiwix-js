@@ -129,6 +129,10 @@ iframe._invert, iframe._mwInvert {
     color : orange;
 }
 
+.apiBroken {
+    color : red;
+}
+
 .loader {
     position: absolute;
     margin: 0 auto;

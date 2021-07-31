@@ -1,5 +1,5 @@
 ﻿/**
- * xzdec_wrapper.js: Javascript wrapper around compiled xz decompressor.
+ * zstddec_wrapper.js: Javascript wrapper around compiled zstd decompressor.
  *
  * Copyright 2021 Mossroy and contributors
  * License GPL v3:
@@ -28,10 +28,12 @@ var rqDefXZ = [];
 
 // Select asm or wasm conditionally
 if ('WebAssembly' in self) {
-    console.debug('Using WASM xz decoder');
+    console.debug('Instantiating WASM xz decoder');
+    params.decompressorAPI.assemblerMachineType = 'WASM';
     rqDefXZ.push('xzdec-wasm');
 } else {
-    console.debug('Using ASM xz decoder');
+    console.debug('Instantiating ASM xz decoder');
+    params.decompressorAPI.assemblerMachineType = 'ASM';
     rqDefXZ.push('xzdec-asm');
 }
 
@@ -49,23 +51,31 @@ define(rqDefXZ, function() {
      * The XZ Decoder instance
      * @type EMSInstance
      */
-     var xzdec;
+    var xzdec;
 
-     var instantiateDecoder = function (instance) {
-         xzdec = instance;
-     };
-
-     XZ().then(instantiateDecoder)
-     .catch(function (err) {
-        console.warn("WASM failed to load, falling back to ASM...", err);
-        XZ = null;
-        require(['xzdec-asm'], function() {
-            XZ().then(instantiateDecoder)
-            .catch(function (err) {
-                console.error('Could not instantiate any XZ decoder!', err);
+    XZ().then(function (instance) {
+        // TEST ERROR CODE: UNCOMMENT TO TEST AND REMOVE BEFORE MERGE
+        // throw params.decompressorAPI.assemblerMachineType + ' broken!';
+        xzdec = instance;
+    }).catch(function (err) {
+        if (params.decompressorAPI.assemblerMachineType === 'ASM') {
+            // There is no fallback, because we were attempting to load the ASM machine, so report error immediately
+            uiUtil.reportAssemblerErrorToAPIStatusPanel('XZ', err);
+        } else {
+            console.warn('WASM failed to load, falling back to ASM...', err);
+            params.decompressorAPI.assemblerMachineType = 'ASM';
+            XZ = null;
+            require(['xzdec-asm'], function () {
+                XZ().then(function (instance) {
+                    // TEST ERROR CODE: UNCOMMENT TO TEST AND REMOVE BEFORE MERGE
+                    // throw params.decompressorAPI.assemblerMachineType + ' broken!';
+                    xzdec = instance;
+                }).catch(function (err) {
+                    uiUtil.reportAssemblerErrorToAPIStatusPanel('XZ', err);
+                });
             });
-        });
-     });
+        }
+    });
      
     /**
      * Number of milliseconds to wait for the decompressor to be available for another chunk
@@ -96,9 +106,11 @@ define(rqDefXZ, function() {
      * @returns {Decompressor}
      */
     function Decompressor(reader, chunkSize) {
+        params.decompressorAPI.decompressorLastUsed = 'XZ';
         this._chunkSize = chunkSize || 1024 * 5;
         this._reader = reader;
     };
+
     /**
      * Read length bytes, offset into the decompressed stream. Consecutive calls may only
      * advance in the stream and may not overlap.

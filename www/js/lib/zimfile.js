@@ -36,6 +36,17 @@
     });
 }
 
+/**
+ * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
+ * This is populated in the Emscripten wrappers
+ * @type {Object}
+ */
+params.decompressorAPI = {
+    assemblerMachineType: null,
+    decompressorLastUsed: null,
+    errorStatus: null
+};
+
 define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, zimDirEntry, FileCache) {
 
     /**

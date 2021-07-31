@@ -428,7 +428,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function refreshAPIStatus() {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
-        apiStatusPanel.classList.remove('card-success', 'card-warning');
+        apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
         var apiPanelClass = 'card-success';
         if (isMessageChannelAvailable()) {
             $('#messageChannelStatus').html("MessageChannel API available");
@@ -464,6 +464,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
         settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
         apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
+        // Update Decompressor API section of panel
+        var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
+        apiName = params.decompressorAPI.assemblerMachineType;
+        if (apiName && params.decompressorAPI.decompressorLastUsed) {
+            apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
+        }
+        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName ? apiPanelClass : 'card-warning';
+        decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : 'apiAvailable' : 'apiUnavailable';
+        apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
+        decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
 
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
