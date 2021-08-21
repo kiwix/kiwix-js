@@ -54,8 +54,6 @@ define(rqDefXZ, function(uiUtil) {
     var xzdec;
 
     XZ().then(function (instance) {
-        // TEST ERROR CODE: UNCOMMENT TO TEST AND REMOVE BEFORE MERGE
-        // throw params.decompressorAPI.assemblerMachineType + ' broken!';
         xzdec = instance;
     }).catch(function (err) {
         if (params.decompressorAPI.assemblerMachineType === 'ASM') {
@@ -67,8 +65,6 @@ define(rqDefXZ, function(uiUtil) {
             XZ = null;
             require(['xzdec-asm'], function () {
                 XZ().then(function (instance) {
-                    // TEST ERROR CODE: UNCOMMENT TO TEST AND REMOVE BEFORE MERGE
-                    // throw params.decompressorAPI.assemblerMachineType + ' broken!';
                     xzdec = instance;
                 }).catch(function (err) {
                     uiUtil.reportAssemblerErrorToAPIStatusPanel('XZ', err);

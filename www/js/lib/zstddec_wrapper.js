@@ -102,8 +102,6 @@ define(rqDefZD, function(uiUtil) {
     };
 
     ZD().then(function (inst) {
-        // TEST ERROR CODE: UNCOMMENT TO TEST AND REMOVE BEFORE MERGE
-        // throw params.decompressorAPI.assemblerMachineType + ' broken!';
         instantiateDecoder(inst);
     }).catch(function (err) {
         if (params.decompressorAPI.assemblerMachineType === 'ASM') {
@@ -115,8 +113,6 @@ define(rqDefZD, function(uiUtil) {
             ZD = null;
             require(['zstddec-asm'], function () {
                 ZD().then(function (inst) {
-                    // TEST ERROR CODE: UNCOMMENT TO TEST AND REMOVE BEFORE MERGE
-                    // throw params.decompressorAPI.assemblerMachineType + ' broken!';
                     instantiateDecoder(inst);
                 }).catch(function (err) {
                     uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
