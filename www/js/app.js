@@ -470,7 +470,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (apiName && params.decompressorAPI.decompressorLastUsed) {
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
-        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName ? apiName === 'ASM' ? 'card-warning' : apiPanelClass : 'card-warning';
+        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
         decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
