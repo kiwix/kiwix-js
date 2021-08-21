@@ -430,9 +430,8 @@ define(rqDef, function() {
     }
 
     // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
-    // This can't be done in aoo.js because the error occurs after the API panel is first displayed
+    // This can't be done in app.js because the error occurs after the API panel is first displayed
     function reportAssemblerErrorToAPIStatusPanel(decoderType, error) {
-        // Report error to API panel because error is produced asynchronously after panel is first displayed
         console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
         params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
         var decompAPI = document.getElementById('decompressorAPIStatus');
