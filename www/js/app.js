@@ -467,11 +467,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Update Decompressor API section of panel
         var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
         apiName = params.decompressorAPI.assemblerMachineType;
+        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
+        decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
+        // Add the last used decompressor, if known, to the apiName
         if (apiName && params.decompressorAPI.decompressorLastUsed) {
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
-        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
-        decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
 
