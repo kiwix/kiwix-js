@@ -36,6 +36,8 @@
     "background": {
         "scripts": ["webextension/backgroundscript.js"]
     },
+
+    "content_security_policy": "script-src 'self' 'wasm-eval';",
     
     "author": "mossroy",
     "homepage_url": "https://www.kiwix.org",
