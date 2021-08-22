@@ -21,6 +21,35 @@
  */
 'use strict';
 
+/**
+ * Add Polyfill currently required by IE11 to run zstddec-asm and xzdec-asm
+ * See https://github.com/emscripten-core/emscripten/issues/14700
+ * If this is resolved upstream, remove this polyfill
+ * Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+ */
+    if (!String.prototype.startsWith) {
+    Object.defineProperty(String.prototype, 'startsWith', {
+        value: function(search, rawPos) {
+            var pos = rawPos > 0 ? rawPos|0 : 0;
+            return this.substring(pos, pos + search.length) === search;
+        }
+    });
+}
+
+/**
+ * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
+ * This is populated in the Emscripten wrappers
+ * @type {Object}
+ * @property {String} assemblerMachineType The assembler machine type supported and/or loaded by this app: 'ASM' or 'WASM'
+ * @property {String} decompressorLastUsed The decompressor that was last used to decode a compressed cluster (currently 'XZ' or 'ZSTD')
+ * @property {String} errorStatus A description of any detected error in loading a decompressor
+ */
+params.decompressorAPI = {
+    assemblerMachineType: null,
+    decompressorLastUsed: null,
+    errorStatus: null
+};
+
 define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, zimDirEntry, FileCache) {
 
     /**

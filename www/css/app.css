@@ -125,8 +125,12 @@ iframe._invert, iframe._mwInvert {
     color : green;
 }
 
-.apiUnavailable {
+.apiUnavailable, .apiSuboptimal {
     color : orange;
+}
+
+.apiBroken {
+    color : red;
 }
 
 .loader {

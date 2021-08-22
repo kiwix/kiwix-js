@@ -429,6 +429,17 @@ define(rqDef, function() {
         });
     }
 
+    // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
+    // This can't be done in app.js because the error occurs after the API panel is first displayed
+    function reportAssemblerErrorToAPIStatusPanel(decoderType, error) {
+        console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
+        params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
+        var decompAPI = document.getElementById('decompressorAPIStatus');
+        decompAPI.innerHTML = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
+        decompAPI.className = 'apiBroken';
+        document.getElementById('apiStatusDiv').className = 'card card-danger';
+    }
+
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
     if (webpMachine) webpMachine = new webpHero.WebpMachine();
 
@@ -446,6 +457,7 @@ define(rqDef, function() {
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
         applyAnimationToSection: applyAnimationToSection,
-        applyAppTheme: applyAppTheme
+        applyAppTheme: applyAppTheme,
+        reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel
     };
 });

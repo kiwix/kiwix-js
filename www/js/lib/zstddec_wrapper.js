@@ -20,10 +20,26 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zstddec'], function () {
-    // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec which uses "Module" as its exported object
-    // Note that we include zstddec above in requireJS definition, but we cannot change the name in the function list
-    // There is no longer any need to load it in index.html
+
+// DEV: Put your RequireJS definition in the rqDefZD array below, and any function exports in the function parenthesis of the define statement
+// We need to do it this way in order to load the wasm or asm versions of zstddec conditionally. Older browsers can only use the asm version
+// because they cannot interpret WebAssembly.
+var rqDefZD = ['uiUtil'];
+
+// Select asm or wasm conditionally
+if ('WebAssembly' in self) {
+    console.debug('Instantiating WASM zstandard decoder');
+    params.decompressorAPI.assemblerMachineType = 'WASM';
+    rqDefZD.push('zstddec-wasm');
+} else {
+    console.debug('Instantiating ASM zstandard decoder');
+    params.decompressorAPI.assemblerMachineType = 'ASM';
+    rqDefZD.push('zstddec-asm');
+}
+
+define(rqDefZD, function(uiUtil) {
+    // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec.js
+    // Note that we include zstddec-wasm or zstddec-asm above in requireJS definition, but we cannot change the name in the function list
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
 
     /**
@@ -39,7 +55,8 @@ define(['zstddec'], function () {
      * @type EMSInstanceExt
      */
     var zd;
-    ZD().then(function (instance) {
+
+    var instantiateDecoder = function (instance) {
         // Instantiate the zd object
         zd = instance;
         // Create JS API by wrapping C++ functions
@@ -82,6 +99,26 @@ define(['zstddec'], function () {
         zd._outBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
         // Reserve w/asm memory for the outBuffer data steam
         zd._outBuffer.dst = mallocOrDie(zd._outBuffer.size);
+    };
+
+    ZD().then(function (inst) {
+        instantiateDecoder(inst);
+    }).catch(function (err) {
+        if (params.decompressorAPI.assemblerMachineType === 'ASM') {
+            // There is no fallback, because we were attempting to load the ASM machine, so report error immediately
+            uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
+        } else {
+            console.warn('WASM failed to load, falling back to ASM...', err);
+            params.decompressorAPI.assemblerMachineType = 'ASM';
+            ZD = null;
+            require(['zstddec-asm'], function () {
+                ZD().then(function (inst) {
+                    instantiateDecoder(inst);
+                }).catch(function (err) {
+                    uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
+                });
+            });
+        }
     });
 
     /**
@@ -111,6 +148,7 @@ define(['zstddec'], function () {
      * @param {FileReader} reader The reader used to extract file slices (defined in zimfile.js)
      */
     function Decompressor(reader) {
+        params.decompressorAPI.decompressorLastUsed = 'ZSTD';
         this._reader = reader;
     }
 
