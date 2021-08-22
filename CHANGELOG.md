@@ -16,7 +16,7 @@ Released on *2021-08-22*
 * NEW: Use fast binary WASM decoders with fallback to ASM if necessary
 * UPDATE: Clearer and more extensive documentation for end users in About
 * UPDATE: Unit testing updated to latest QUnit, and use Karma instead of Nightwatch
-* UPDATE: Replace Travis by GitHub Actions for the continuous integration
+* UPDATE: Replace Travis by GitHub Actions for continuous integration
 * UPDATE: Added helper scripts and instructions for recompiling decompressors with Docker
 * BUGFIX: Issue with calculation for selection of random articles
 * BUGFIX: Incorrect syntax in usage of classList method that caused an exception in older browsers with rare ZIM types
