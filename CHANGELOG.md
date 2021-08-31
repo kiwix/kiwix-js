@@ -8,6 +8,8 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 Released on *TODO*
 
+Detailed changelog: TODO
+
 ## Kiwix-JS v3.2.0
 
 Released on *2021-08-22*
