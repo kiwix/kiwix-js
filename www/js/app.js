@@ -1603,6 +1603,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
+                // If the "controls" property is missing, we need to add it to ensure jQuery-only users can operate the video. See kiwix-js #760.
+                if (/audio|video/i.test(mediaElement.tagName) && !mediaElement.controls) mediaElement.controls = "true"; 
                 selectedArchive.getDirEntryByPath(source).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
