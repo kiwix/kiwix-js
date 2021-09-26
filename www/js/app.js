@@ -1281,13 +1281,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
     var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
-    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378].
+    // The case-insensitive regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces.
     // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
-    // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead that excludes
-    // URLs that begin 'http' (i.e. non-relative URLs). It then captures the whole of the URL up until either the opening delimiter
-    // (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used below, it will be further
-    // processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?!http)(.+?)(?=\3|\?|#)/ig;
+    // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
+    // absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until either
+    // the opening delimiter (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used
+    // below, it will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single
+    // quote marks (') in the URL.
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(?=\3|\?|#)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
