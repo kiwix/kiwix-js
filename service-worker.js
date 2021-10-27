@@ -35,17 +35,17 @@ const appVersion = '3.2.1';
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
  */
-var CACHE_NAME;
+let ASSETS_CACHE;
 
 /**
- * A global Boolean that governs whether CACHE_NAME will be used
+ * A global Boolean that governs whether ASSETS_CACHE will be used
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
  */
 var useCache = true;
 
 /**  
- * A regular expression that matches the Content-Types of assets that may be stored in CACHE_NAME
+ * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
  * @type {RegExp}
  */
@@ -57,7 +57,7 @@ var regexpCachedContentTypes = /text\/css|text\/javascript|application\/javascri
  * 'example-extension' is included to show how to add another schema if necessary
  * @type {RegExp}
  */
-var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
+var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
 
 /** 
  * Pattern for ZIM file namespace: see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
@@ -71,6 +71,7 @@ var regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
  * The cache name is made up of the prefix below and the appVersion: this is necessary so that when
  * the app is updated, a new cache is created. The new cache will start being used after the user
  * restarts the app, when we will also delete the old cache.
+ * @type {String}
  */
 const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
 
@@ -83,8 +84,8 @@ let precacheFiles = [
   "service-worker.js",
   "www/css/app.css",
   "www/css/bootstrap.css",
-  "kiwixJS_mwInvert.css",
-  "transition.css",
+  "www/css/kiwixJS_mwInvert.css",
+  "www/css/transition.css",
   "www/img/icons/kiwix-256.png",
   "www/img/icons/kiwix-32.png",
   "www/img/icons/kiwix-60.png",
@@ -97,17 +98,12 @@ let precacheFiles = [
   "www/js/init.js",
   "www/js/lib/abstractFilesystemAccess.js",
   "www/js/lib/arrayFromPolyfill.js",
-  "www/js/lib/bootstrap.js",
-  "www/js/lib/bootstrap.min.js",
-  "www/js/lib/cache.js",
+  "www/js/lib/bootstrap.bundle.js",
   "www/js/lib/filecache.js",
-  "www/js/lib/images.js",
   "www/js/lib/jquery-3.2.1.slim.js",
-  "www/js/lib/kiwixServe.js",
   "www/js/lib/promisePolyfill.js",
   "www/js/lib/require.js",
   "www/js/lib/settingsStore.js",
-  "www/js/lib/transformStyles.js",
   "www/js/lib/uiUtil.js",
   "www/js/lib/utf8.js",
   "www/js/lib/util.js",
@@ -117,28 +113,67 @@ let precacheFiles = [
   "www/js/lib/zimArchiveLoader.js",
   "www/js/lib/zimDirEntry.js",
   "www/js/lib/zimfile.js",
-  "www/js/katex/katex.min.js",
-  "www/js/katex/katex.min.css",
-  "www/js/katex/contrib/mathtex-script-type.min.js",
-  "www/js/katex/fonts/KaTeX_AMS-Regular.woff2",
-  "www/js/katex/fonts/KaTeX_Main-Bold.woff2",
-  "www/js/katex/fonts/KaTeX_Main-Regular.woff2",
-  "www/js/katex/fonts/KaTeX_Math-Italic.woff2",
-  "www/js/katex/fonts/KaTeX_Size2-Regular.woff2",
-  "www/js/katex/fonts/KaTeX_Size3-Regular.woff2",
-  "www/js/katex/fonts/KaTeX_Size4-Regular.woff2"
+  "www/js/lib/fontawesome/fontawesome.js",
+  "www/js/lib/fontawesome/solid.js"
 ];
 
+// Conditionally load the correct assembler binaries
+if ('WebAssembly' in self) {
+    precacheFiles.push(
+        "www/js/lib/xzdec-wasm.js",
+        "www/js/lib/xzdec-wasm.wasm",
+        "www/js/lib/zstddec-wasm.js",
+        "www/js/lib/zstddec-wasm.wasm"
+    );
+} else {
+    precacheFiles.push(
+        "www/js/lib/xzdec-asm.js",
+        "www/js/lib/zstddec-asm.js"
+    );
+}
 
-self.addEventListener('install', function (event) {
-    event.waitUntil(self.skipWaiting());
+// Process install event
+self.addEventListener("install", function (event) {
+    console.log("[SW] Install Event processing");
+    // DEV: We can't skip waiting because too many params are loaded at an early stage from the old file before the new one can activate...
+    // self.skipWaiting();
+    // We try to circumvent the browser's cache by adding a header to the Request
+    var requests = precacheFiles.map(function (url) {
+        // Ensuring all files are explicitly versioned via the querystring helps to prevent brower caching too
+        return new Request(url + '?v' + appVersion, { cache: 'no-cache' });
+    });
+    if (!regexpExcludedURLSchema.test(requests[0].url)) event.waitUntil(
+        caches.open(APP_CACHE).then(function (cache) {
+            return Promise.all(
+                requests.map(function (request) {
+                    return fetch(request).then(function (response) {
+                        // Fail on 404, 500 etc
+                        if (!response.ok) throw Error('Could not fetch ' + request.url);
+                        return cache.put(request.url.replace(/\?v[^?/]+$/, ''), response);
+                    }).catch(function (err) {
+                        console.error('There was an error pre-caching files', err);
+                    });
+                })
+            );
+        })
+    );
 });
 
+// Allow sw to control current page
 self.addEventListener('activate', function (event) {
-    // "Claiming" the ServiceWorker is necessary to make it work right away,
-    // without the need to reload the page.
-    // See https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim
-    event.waitUntil(self.clients.claim());
+    console.log('[SW] Claiming clients for current page');
+    // Check all the cache keys, and delete any old caches
+    event.waitUntil(
+        caches.keys().then(function (keyList) {
+            return Promise.all(keyList.map(function (key) {
+                console.log('[SW] Current cache key is ' + key);
+                if (key !== APP_CACHE && key !== ASSETS_CACHE) {
+                    console.log('[SW] App updated to version ' + appVersion + ': deleting old cache')
+                    return caches.delete(key);
+                }
+            }));
+        })
+    );
 });
 
 var outgoingMessagePort = null;
@@ -194,7 +229,7 @@ self.addEventListener('message', function (event) {
         if (event.data.action.useCache) {
             // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
             useCache = event.data.action.useCache === 'on';
-            if (useCache) CACHE_NAME = event.data.cacheName;
+            if (useCache) ASSETS_CACHE = event.data.cacheName;
             console.log('[SW] Caching was turned ' + event.data.action.useCache);
         }
         if (event.data.action.checkCache) {
@@ -286,12 +321,12 @@ function removeUrlParameters(url) {
 function fromCache(request) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.reject('disabled');
-    return caches.open(CACHE_NAME).then(function (cache) {
+    return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.match(request).then(function (matching) {
             if (!matching || matching.status === 404) {
                 return Promise.reject('no-match');
             }
-            console.log('[SW] Supplying ' + request.url + ' from ' + CACHE_NAME + '...');
+            console.log('[SW] Supplying ' + request.url + ' from ' + ASSETS_CACHE + '...');
             return matching;
         });
     });
@@ -306,8 +341,8 @@ function fromCache(request) {
 function updateCache(request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache) return Promise.resolve();
-    return caches.open(CACHE_NAME).then(function (cache) {
-        console.log('[SW] Adding ' + request.url + ' to ' + CACHE_NAME + '...');
+    return caches.open(ASSETS_CACHE).then(function (cache) {
+        console.log('[SW] Adding ' + request.url + ' to ' + ASSETS_CACHE + '...');
         return cache.put(request, response);
     });
 }
@@ -321,7 +356,7 @@ function updateCache(request, response) {
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
     if (!useCache) return Promise.resolve(['none', 'None', 0]);
-    return caches.open(CACHE_NAME).then(function (cache) {
+    return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', 'Cache API', keys.length];
         }).catch(function(err) {

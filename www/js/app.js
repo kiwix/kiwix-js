@@ -42,7 +42,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
      * @type {String}
      */
-    const CACHE_NAME = 'kiwixjs-assetCache';
+    const ASSETS_CACHE = 'kiwixjs-assetsCache';
     
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
@@ -373,7 +373,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             params.useCache = false;
             // Delete all caches
             resetCssCache();
-            if ('caches' in window) caches.delete(CACHE_NAME);
+            if ('caches' in window) caches.delete(ASSETS_CACHE);
             refreshCacheStatus();
         }
     });
@@ -497,12 +497,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     else resolve(cache);
                 };
                 // Ask Service Worker for its cache status and asset count
-                navigator.serviceWorker.controller.postMessage({
+                if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({
                     'action': {
                         'useCache': params.useCache ? 'on' : 'off',
                         'checkCache': window.location.href
                     },
-                    'cacheName': CACHE_NAME
+                    'cacheName': ASSETS_CACHE
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
@@ -547,7 +547,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
-        if (contentInjectionMode === 'serviceworker') {
+        if (contentInjectionMode === 'serviceworker' &&  navigator.serviceWorker.controller) {
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
@@ -570,18 +570,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function setContentInjectionMode(value) {
         if (value === 'jquery') {
-            if (isServiceWorkerReady()) {
-                // We need to disable the ServiceWorker
-                // Unregistering it does not seem to work as expected : the ServiceWorker
-                // is indeed unregistered but still active...
-                // So we have to disable it manually (even if it's still registered and active)
-                navigator.serviceWorker.controller.postMessage({'action': 'disable'});
-                messageChannel = null;
+            // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
+            // be intercepting requests
+            if ('serviceWorker' in navigator) {
+                serviceWorkerRegistration = null;
             }
             refreshAPIStatus();
-            // User has switched to jQuery mode, so no longer needs CACHE_NAME
+            // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
             // We should empty it to prevent unnecessary space usage
-            if ('caches' in window) caches.delete(CACHE_NAME);
+            if ('caches' in window) caches.delete(ASSETS_CACHE);
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
