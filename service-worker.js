@@ -24,6 +24,13 @@
 'use strict';
 
 /**
+ * App version number - ENSURE IT MATCHES VALUE IN init.js
+ * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
+ * download and install a new copy
+ */
+const appVersion = '3.2.1';
+
+/**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
@@ -58,6 +65,76 @@ var regexpExcludedURLSchema = /^(?:chrome-extension|example-extension):/i;
  * @type {RegExp}
  */
 var regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
+
+/**
+ * The name of the application cache to use for caching online code so that it can be used offline
+ * The cache name is made up of the prefix below and the appVersion: this is necessary so that when
+ * the app is updated, a new cache is created. The new cache will start being used after the user
+ * restarts the app, when we will also delete the old cache.
+ */
+const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
+
+/**
+ * The list of files that the app needs in order to run entirely from offline code
+ */
+let precacheFiles = [
+  ".",
+  "manifest.json",
+  "service-worker.js",
+  "www/css/app.css",
+  "www/css/bootstrap.min.css",
+  "www/fonts/glyphicons-halflings-regular.woff2",
+  "www/img/icons/kiwix-256.png",
+  "www/img/icons/kiwix-192.png",
+  "www/img/icons/kiwix-32.png",
+  "www/img/icons/kiwix-60.png",
+  "www/img/icons/kiwix-blue-32.png",
+  "www/img/icons/kiwix-midnightblue-90.png",
+  "www/img/icons/wikimed-blue-32.png",
+  "www/img/icons/wikimed-lightblue-32.png",
+  "www/img/icons/wikivoyage-90-white.png",
+  "www/img/icons/wikivoyage-black-32.png",
+  "www/img/icons/wikivoyage-white-32.png",
+  "www/img/icons/map_marker-30px.png",
+  "www/img/icons/map_marker-18px.png",
+  "www/img/spinner.gif",
+  "www/index.html",
+  "www/article.html",
+  "www/js/app.js",
+  "www/js/init.js",
+  "www/js/lib/arrayFromPolyfill.js",
+  "www/js/lib/bootstrap.js",
+  "www/js/lib/bootstrap.min.js",
+  "www/js/lib/cache.js",
+  "www/js/lib/filecache.js",
+  "www/js/lib/images.js",
+  "www/js/lib/jquery-3.2.1.slim.js",
+  "www/js/lib/kiwixServe.js",
+  "www/js/lib/promisePolyfill.js",
+  "www/js/lib/require.js",
+  "www/js/lib/settingsStore.js",
+  "www/js/lib/transformStyles.js",
+  "www/js/lib/uiUtil.js",
+  "www/js/lib/utf8.js",
+  "www/js/lib/util.js",
+  "www/js/lib/xzdec_wrapper.js",
+  "www/js/lib/zstddec_wrapper.js",
+  "www/js/lib/zimArchive.js",
+  "www/js/lib/zimArchiveLoader.js",
+  "www/js/lib/zimDirEntry.js",
+  "www/js/lib/zimfile.js",
+  "www/js/katex/katex.min.js",
+  "www/js/katex/katex.min.css",
+  "www/js/katex/contrib/mathtex-script-type.min.js",
+  "www/js/katex/fonts/KaTeX_AMS-Regular.woff2",
+  "www/js/katex/fonts/KaTeX_Main-Bold.woff2",
+  "www/js/katex/fonts/KaTeX_Main-Regular.woff2",
+  "www/js/katex/fonts/KaTeX_Math-Italic.woff2",
+  "www/js/katex/fonts/KaTeX_Size2-Regular.woff2",
+  "www/js/katex/fonts/KaTeX_Size3-Regular.woff2",
+  "www/js/katex/fonts/KaTeX_Size4-Regular.woff2"
+];
+
 
 self.addEventListener('install', function (event) {
     event.waitUntil(self.skipWaiting());

@@ -30,6 +30,12 @@
  */
 var params = {};
 
+/**
+ * The current version number of the app
+ * DEV: Ensure this is the same as the version number in service-worker.js
+ */
+ params['appVersion'] = '3.2.1';
+
 require.config({
     baseUrl: 'js/lib',
     paths: {
