@@ -487,7 +487,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function getCacheAttributes() {
         return new Promise(function (resolve, reject) {
-            if (contentInjectionMode === 'serviceworker') {
+            if (contentInjectionMode === 'serviceworker' && navigator.serviceWorker.controller) {
                 // Create a Message Channel
                 var channel = new MessageChannel();
                 // Handler for recieving message reply from service worker
