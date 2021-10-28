@@ -180,39 +180,46 @@ var outgoingMessagePort = null;
 var fetchCaptureEnabled = false;
 
 self.addEventListener('fetch', function (event) {
-    if (fetchCaptureEnabled &&
-        regexpZIMUrlWithNamespace.test(event.request.url) &&
-        event.request.method === "GET") {
-
-        // The ServiceWorker will handle this request either from CACHE_NAME or from app.js
-
-        event.respondWith(
-            // First see if the content is in the cache
-            fromCache(event.request).then(
-                function (response) {
-                    // The response was found in the cache so we respond with it 
+    // Only cache GET requests
+    if (event.request.method !== "GET") return;
+    // Remove any querystring before requesting from the cache
+    var rqUrl = event.request.url.replace(/\?[^?]+$/i, '');
+    // Select cache depending on request format
+    var cache = /\.zim\w{0,2}\//i.test(rqUrl) ? ASSETS_CACHE : APP_CACHE;
+    event.respondWith(
+        // First see if the content is in the cache
+        fromCache(cache, rqUrl).then(function (response) {
+            // The response was found in the cache so we respond with it 
+            return response;
+        }, function () {
+            // The response was not found in the cache so we look for it in the ZIM
+            // and add it to the cache if it is an asset type (css or js)
+            if (/\.zim\w{0,2}\//i.test(rqUrl) && regexpZIMUrlWithNamespace.test(rqUrl)) {
+                return fetchRequestFromZIM(event).then(function (response) {
+                    // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
+                    if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
+                        !regexpExcludedURLSchema.test(event.request.url)) {
+                        event.waitUntil(updateCache(ASSETS_CACHE, event.request, response.clone()));
+                    }
                     return response;
-                },
-                function () {
-                    // The response was not found in the cache so we look for it in the ZIM
-                    // and add it to the cache if it is an asset type (css or js)
-                    return fetchRequestFromZIM(event).then(function (response) {
-                        // Add css or js assets to CACHE_NAME (or update their cache entries) unless the URL schema is not supported
-                        if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                            !regexpExcludedURLSchema.test(event.request.url)) {
-                            event.waitUntil(updateCache(event.request, response.clone()));
-                        }
-                        return response;
-                    }).catch(function (msgPortData, title) {
-                        console.error('Invalid message received from app.js for ' + title, msgPortData);
-                        return msgPortData;
-                    });
-                }
-            )
-        );
-    }
-    // If event.respondWith() isn't called because this wasn't a request that we want to handle,
-    // then the default request/response behavior will automatically be used.
+                }).catch(function (msgPortData, title) {
+                    console.error('Invalid message received from app.js for ' + title, msgPortData);
+                    return msgPortData;
+                });
+            } else {
+                // It's not a ZIM URL
+                return fetch(event.request).then(function (response) {
+                  // If request was success, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                  if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
+                    event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
+                  }
+                  return response;
+                }).catch(function (error) {
+                  console.debug("[SW] Network request failed and no cache.", error);
+                });
+              }
+        })
+    );
 });
 
 self.addEventListener('message', function (event) {
@@ -314,42 +321,44 @@ function removeUrlParameters(url) {
 }
 
 /**
- * Looks up a Request in CACHE_NAME and returns a Promise for the matched Response
- * @param {Request} request The Request to fulfill from CACHE_NAME
+ * Looks up a Request in a cache and returns a Promise for the matched Response
+ * @param {String} cache The name of the cache to look in
+ * @param {Request} request The Request to fulfill from cache
  * @returns {Promise<Response>} A Promise for the cached Response, or rejects with strings 'disabled' or 'no-match'
  */
-function fromCache(request) {
+function fromCache(cache, request) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache) return Promise.reject('disabled');
-    return caches.open(ASSETS_CACHE).then(function (cache) {
-        return cache.match(request).then(function (matching) {
+    if (!useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
+    return caches.open(cache).then(function (cacheObj) {
+        return cacheObj.match(request).then(function (matching) {
             if (!matching || matching.status === 404) {
                 return Promise.reject('no-match');
             }
-            console.log('[SW] Supplying ' + request.url + ' from ' + ASSETS_CACHE + '...');
+            console.log('[SW] Supplying ' + request.url + ' from ' + cache + '...');
             return matching;
         });
     });
 }
 
 /**
- * Stores or updates in CACHE_NAME the given Request/Response pair
+ * Stores or updates in a cache the given Request/Response pair
+ * @param {String} cache The name of the cache to open
  * @param {Request} request The original Request object
  * @param {Response} response The Response received from the server/ZIM
  * @returns {Promise} A Promise for the update action
  */
-function updateCache(request, response) {
+function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache) return Promise.resolve();
-    return caches.open(ASSETS_CACHE).then(function (cache) {
-        console.log('[SW] Adding ' + request.url + ' to ' + ASSETS_CACHE + '...');
-        return cache.put(request, response);
+    if (!useCache && cache === ASSETS_CACHE) return Promise.resolve();
+    return caches.open(cache).then(function (cacheObj) {
+        console.log('[SW] Adding ' + request.url + ' to ' + cache + '...');
+        return cacheObj.put(request, response);
     });
 }
 
 /**
  * Tests the caching strategy available to this app and if it is Cache API, count the
- * number of assets in CACHE_NAME
+ * number of assets in ASSETS_CACHE
  * @param {String} url A URL to test against excludedURLSchema
  * @returns {Promise<Array>} A Promise for an array of format [cacheType, cacheDescription, assetCount]
  */

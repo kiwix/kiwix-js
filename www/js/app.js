@@ -609,7 +609,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             // and send the 'init' message to the ServiceWorker
                             initOrKeepAliveServiceWorker();
                             // We need to refresh cache status here on first activation because SW was inaccessible till now
-                            // We also initialize the CACHE_NAME constant in SW here
+                            // We also initialize the ASSETS_CACHE constant in SW here
                             refreshCacheStatus();
                         }
                     });
