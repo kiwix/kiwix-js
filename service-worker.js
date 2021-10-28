@@ -35,9 +35,19 @@ const appVersion = '3.2.1';
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
  */
-let ASSETS_CACHE;
+// DEV: We are hard-coding this pending debugging of why it is sometimes not set early enough
+let ASSETS_CACHE = 'kiwixjs-assetsCache';
 
 /**
+ * The name of the application cache to use for caching online code so that it can be used offline
+ * The cache name is made up of the prefix below and the appVersion: this is necessary so that when
+ * the app is updated, a new cache is created. The new cache will start being used after the user
+ * restarts the app, when we will also delete the old cache.
+ * @type {String}
+ */
+ const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
+
+ /**
  * A global Boolean that governs whether ASSETS_CACHE will be used
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
@@ -65,15 +75,6 @@ var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
  * @type {RegExp}
  */
 var regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
-
-/**
- * The name of the application cache to use for caching online code so that it can be used offline
- * The cache name is made up of the prefix below and the appVersion: this is necessary so that when
- * the app is updated, a new cache is created. The new cache will start being used after the user
- * restarts the app, when we will also delete the old cache.
- * @type {String}
- */
-const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
 
 /**
  * The list of files that the app needs in order to run entirely from offline code
@@ -323,18 +324,18 @@ function removeUrlParameters(url) {
 /**
  * Looks up a Request in a cache and returns a Promise for the matched Response
  * @param {String} cache The name of the cache to look in
- * @param {Request} request The Request to fulfill from cache
+ * @param {String} requestUrl The Request URL to fulfill from cache
  * @returns {Promise<Response>} A Promise for the cached Response, or rejects with strings 'disabled' or 'no-match'
  */
-function fromCache(cache, request) {
+function fromCache(cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
-        return cacheObj.match(request).then(function (matching) {
+        return cacheObj.match(requestUrl).then(function (matching) {
             if (!matching || matching.status === 404) {
                 return Promise.reject('no-match');
             }
-            console.log('[SW] Supplying ' + request.url + ' from ' + cache + '...');
+            console.log('[SW] Supplying ' + requestUrl + ' from ' + cache + '...');
             return matching;
         });
     });
