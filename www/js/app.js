@@ -539,6 +539,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
+    var serviceWorkerRegistration;
     
     /**
      * Send an 'init' message to the ServiceWorker with a new MessageChannel
@@ -547,12 +548,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
-        if (contentInjectionMode === 'serviceworker' &&  navigator.serviceWorker.controller) {
+        if (contentInjectionMode === 'serviceworker') {
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
             // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
-            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [tmpMessageChannel.port2]);
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    'action': 'init'
+                }, [tmpMessageChannel.port2]);
+            } else {
+                console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
+                window.location.reload();
+                return;
+            }
             messageChannel = tmpMessageChannel;
             // Schedule to do it again regularly to keep the 2-way communication alive.
             // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
@@ -569,6 +578,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
+        contentInjectionMode = value;
         if (value === 'jquery') {
             // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
             // be intercepting requests
@@ -593,49 +603,58 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             
             if (!isServiceWorkerReady()) {
                 $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
-                navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
-                    // The ServiceWorker is registered
-                    serviceWorkerRegistration = reg;
+                if (navigator.serviceWorker.controller) {
+                    console.log("Active service worker found, no need to register");
+                    serviceWorkerRegistration = true;
+                    // Remove any jQuery hooks from a previous jQuery session
+                    $('#articleContent').contents().remove();
+                    // Create the MessageChannel and send 'init'
+                    initOrKeepAliveServiceWorker();
                     refreshAPIStatus();
-                    
-                    // We need to wait for the ServiceWorker to be activated
-                    // before sending the first init message
-                    var serviceWorker = reg.installing || reg.waiting || reg.active;
-                    serviceWorker.addEventListener('statechange', function(statechangeevent) {
-                        if (statechangeevent.target.state === 'activated') {
-                            // Remove any jQuery hooks from a previous jQuery session
-                            $('#articleContent').contents().remove();
-                            // Create the MessageChannel
+                } else {
+                    navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
+                        // The ServiceWorker is registered
+                        serviceWorkerRegistration = reg;
+                        // We need to wait for the ServiceWorker to be activated
+                        // before sending the first init message
+                        var serviceWorker = reg.installing || reg.waiting || reg.active;
+                        serviceWorker.addEventListener('statechange', function(statechangeevent) {
+                            if (statechangeevent.target.state === 'activated') {
+                                // Remove any jQuery hooks from a previous jQuery session
+                                $('#articleContent').contents().remove();
+                                // Create the MessageChannel and send the 'init' message to the ServiceWorker
+                                initOrKeepAliveServiceWorker();
+                                // We need to refresh cache status here on first activation because SW was inaccessible till now
+                                // We also initialize the ASSETS_CACHE constant in SW here
+                                refreshCacheStatus();
+                                refreshAPIStatus();
+                            }
+                        });
+                        if (serviceWorker.state === 'activated') {
+                            // Even if the ServiceWorker is already activated,
+                            // We need to re-create the MessageChannel
                             // and send the 'init' message to the ServiceWorker
+                            // in case it has been stopped and lost its context
                             initOrKeepAliveServiceWorker();
-                            // We need to refresh cache status here on first activation because SW was inaccessible till now
-                            // We also initialize the ASSETS_CACHE constant in SW here
-                            refreshCacheStatus();
                         }
+                        refreshAPIStatus();
+                    }).catch(function (err) {
+                        console.error('error while registering serviceWorker', err);
+                        refreshAPIStatus();
+                        var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                        var protocol = window.location.protocol;
+                        if (protocol === 'moz-extension:') {
+                            message += "\n\nYou seem to be using kiwix-js through a Firefox extension : ServiceWorkers are disabled by Mozilla in extensions.";
+                            message += "\nPlease vote for https://bugzilla.mozilla.org/show_bug.cgi?id=1344561 so that some future Firefox versions support it";
+                        }
+                        else if (protocol === 'file:') {
+                            message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                        }
+                        alert(message);                        
+                        setContentInjectionMode("jquery");
+                        return;
                     });
-                    if (serviceWorker.state === 'activated') {
-                        // Even if the ServiceWorker is already activated,
-                        // We need to re-create the MessageChannel
-                        // and send the 'init' message to the ServiceWorker
-                        // in case it has been stopped and lost its context
-                        initOrKeepAliveServiceWorker();
-                    }
-                }, function (err) {
-                    console.error('error while registering serviceWorker', err);
-                    refreshAPIStatus();
-                    var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
-                    var protocol = window.location.protocol;
-                    if (protocol === 'moz-extension:') {
-                        message += "\n\nYou seem to be using kiwix-js through a Firefox extension : ServiceWorkers are disabled by Mozilla in extensions.";
-                        message += "\nPlease vote for https://bugzilla.mozilla.org/show_bug.cgi?id=1344561 so that some future Firefox versions support it";
-                    }
-                    else if (protocol === 'file:') {
-                        message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
-                    }
-                    alert(message);                        
-                    setContentInjectionMode("jquery");
-                    return;
-                });
+                }
             } else {
                 // We need to set this variable earlier else the ServiceWorker does not get reactivated
                 contentInjectionMode = value;
@@ -647,7 +666,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
-        contentInjectionMode = value;
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
         settingsStore.setItem('lastContentInjectionMode', value, Infinity);
         refreshCacheStatus();
@@ -661,9 +679,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     else {
         setContentInjectionMode('jquery');
     }
-    
-    var serviceWorkerRegistration = null;
-    
+
     // We need to establish the caching capabilities before first page launch
     refreshCacheStatus();
     

@@ -44,25 +44,6 @@
         <link rel="icon" type="image/png" href="img/icons/kiwix-60.png" sizes="60x60"/>
         <link rel="icon" type="image/png" href="img/icons/kiwix-120.png" sizes="120x120"/>
         <link rel="icon" type="image/png" href="img/icons/kiwix-256.png" sizes="256x256"/>
-        <script type="text/javascript">
-            if ('serviceWorker' in navigator) {
-                console.log('Trying to activate Service Worker...');
-                if (navigator.serviceWorker.controller) {
-                    console.log('Service Worker is already active');
-                } else {
-                    // Register the service worker
-                    navigator.serviceWorker.register("../service-worker.js", {
-                        scope: "../"
-                    }).then(function (reg) {
-                        console.log("Service Worker has been registered for scope: " + reg.scope);
-                    }).catch(function (err) {
-                        console.error('Service Worker could not be registered', err);
-                    });
-                }
-            } else {
-                console.log('Service Worker not (re-)registered in this context...');
-            }
-        </script>
     </head>
     <body role="application">
         <!-- Status indicators -->
