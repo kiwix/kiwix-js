@@ -84,6 +84,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
+    // A parameter to access the URL of any extension that this app was launched from
+    params['extensionURL'] = settingsStore.getItem('extensionURL');
     switchHomeKeyToFocusSearchBar();
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
@@ -94,7 +96,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     appstate['updateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
     // Set display of app version
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
-    
+
+    // Apply any override parameters in querystring (done as a self-calling function to avoid creating global variables)
+    (function overrideParams() {
+        var rgx = /[?&]([^=]+)=([^&]+)/g;
+        var matches = rgx.exec(window.location.search);
+        while (matches) {
+            if (matches[1] && matches[2]) {
+                var paramKey = decodeURIComponent(matches[1]);
+                var paramVal = decodeURIComponent(matches[2]);
+                if (paramKey !== 'title') {
+                    settingsStore.setItem(paramKey, paramVal);
+                    params[paramKey] = paramVal;
+                    console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
+                }
+            }
+            matches = rgx.exec(window.location.search);
+        }
+    })();
+
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
@@ -584,6 +604,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function setContentInjectionMode(value) {
         contentInjectionMode = value;
         if (value === 'jquery') {
+            if (params.extensionURL) {
+                // We are in an extension, and the user may wish to revert to local code
+                var message = 'This will switch to using locally packaged code only. Configuration settings may be lost.\n\n' +
+                'WARNING: App will re-load in JQuery mode!';
+                var launchLocal = function () {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery';
+                    document.getElementById('persistentMessage').innerHTML = 'To return to using the local code in this extension, please click the following link:\n\n' +
+                        '<a href="' + params.extensionURL + '/www/index.html' + uriParams + '">Return to local extension</a>';
+                    document.getElementById('updateAlert').style.display = 'block';
+                    window.location.href = params.extensionURL + '/www/index.html' + uriParams;
+                    'Beam me down, Scotty!';
+                };
+                var response = confirm(message);
+                if (response) {
+                    launchLocal();
+                    return;
+                }
+            }
             // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
             // be intercepting requests
             if ('serviceWorker' in navigator) {
@@ -734,6 +773,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // This is needed so that we get passthrough on subsequent launches
             settingsStore.setItem('allowInternetAccess', true, Infinity);
             var uriParams = '?contentInjectionMode=serviceworker';
+            uriParams += '&extensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
             // Add any further params like this (don't forget to encodeURIComponent the attribute if necessary)
             uriParams += '&allowInternetAccess=true';
             // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')

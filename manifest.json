@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Kiwix",
-    "version": "3.3-WIP",
+    "version": "3.2.1",
 
     "description": "Kiwix : offline Wikipedia reader",
     
@@ -32,6 +32,8 @@
             "id": "kiwix-html5-unlisted@kiwix.org"
         }
     },
+    
+    "web_accessible_resources": ["www/index.html"],
 
     "background": {
         "scripts": ["webextension/backgroundscript.js"]
