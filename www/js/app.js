@@ -728,13 +728,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             'The PWA will be able to run offline, but will auto-update ' +
             'periodically when online as per the Service Worker spec.\n\n' +
             'You can switch back any time by returning to JQuery mode.\n\n' +
-            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n\n' +
-            '*** If the app crashes, please relaunch it, and choose "Access Server" when prompted. ***';
+            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
         var launchPWA = function () {
             settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
+            // This is needed so that we get passthrough on subsequent launches
+            settingsStore.setItem('allowInternetAccess', true, Infinity);
             var uriParams = '?contentInjectionMode=serviceworker';
-            // Pattern below for adding any further parameters to pass to PWA version
-            // uriParams += params.fileVersion ? '&fileVersion=' + encodeURIComponent(params.fileVersion) : '';
+            // Add any further params like this (don't forget to encodeURIComponent the attribute if necessary)
+            uriParams += '&allowInternetAccess=true';
             // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
             // params.localUWPSettings.PWA_launch = 'fail';
             window.location.href = params.PWAServer + 'www/index.html' + uriParams;
@@ -745,6 +746,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 alert('The server is not currently accessible! ' +
                     '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
                     '\nPlease try again when you have a stable Internet connection.', 'Error!');
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
             });
         };
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
