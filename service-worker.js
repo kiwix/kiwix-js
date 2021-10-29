@@ -26,7 +26,8 @@
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
- * download and install a new copy
+ * download and install a new copy; we have to hard code this here because it is needed before any other file
+ * is cached in APP_CACHE
  */
 const appVersion = '3.2.1';
 
@@ -239,6 +240,9 @@ self.addEventListener('message', function (event) {
             useCache = event.data.action.useCache === 'on';
             if (useCache) ASSETS_CACHE = event.data.cacheName;
             console.log('[SW] Caching was turned ' + event.data.action.useCache);
+        }
+        if (event.data.action === 'getCacheNames') {
+            event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
         }
         if (event.data.action.checkCache) {
             // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test

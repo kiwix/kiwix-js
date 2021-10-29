@@ -56,7 +56,7 @@
         <section id="search-article" role="region">
             <header id="top">
                 <nav class="navbar navbar-expand-md bg-light" role="navigation">
-                    <a class="navbar-brand">Kiwix 3.3-WIP</a>
+                    <a id="appVersion" class="navbar-brand">Kiwix</a>
 
                     <!-- Toggler/collapsible Button -->
                     <button class="navbar-toggler" type="button" data-toggle="collapse"
@@ -404,6 +404,10 @@
                 <div id="configuration" style="display: none;">
                     <div class="container">
                         <h2>Configuration</h2>
+                        <div id="updateAlert" class="alert alert-warning alert-dismissible" style="display: none;">
+                            <button type="button" class="close" data-hide="alert">&times;</button>
+                            <span id="persistentMessage"></span>
+                        </div>
                         <p id="downloadInstruction">This application needs a ZIM archive to work. For download
                             instructions, please see the About section</p>
                         <div id="selectorsDisplay" style="display: none;">

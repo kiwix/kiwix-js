@@ -91,6 +91,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
+    appstate['updateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
+    // Set display of app version
+    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -309,6 +312,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('.alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
+        uiUtil.checkUpdateStatus(appstate);
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;

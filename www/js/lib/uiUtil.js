@@ -226,6 +226,45 @@ define(rqDef, function() {
     }
 
     /**
+     * Check for update of Service Worker (PWA) and display information to user
+     */
+     var updateAlert = document.getElementById('updateAlert');
+     function checkUpdateStatus(appstate) {
+        if ('serviceWorker' in navigator && !appstate.updateNeeded) {
+            // Create a Message Channel
+            var channel = new MessageChannel();
+            // Handler for recieving message reply from service worker
+            channel.port1.onmessage = function (event) {
+                var cacheNames = event.data;
+                if (cacheNames.error) return;
+                else {
+                    caches.keys().then(function (keyList) {
+                        if (keyList.length < 3) {
+                            updateAlert.style.display = 'none';
+                            appstate.updateNeeded = false;
+                            return;
+                        }
+                        keyList.forEach(function (key) {
+                            if (key === cacheNames.app || key === cacheNames.assets) return;
+                            // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
+                            appstate.updateNeeded = true;
+                            updateAlert.style.display = 'block';
+                            document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(/^[^\d]+/, '') +
+                                ' is ready to install. (Re-launch app to install.)';
+                        });
+                    });
+                }
+            };
+            if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({
+                action: 'getCacheNames'
+            }, [channel.port2]);
+        }
+    }
+    updateAlert.querySelector('button[data-hide]').addEventListener('click', function() {
+        updateAlert.style.display = 'none';
+    });
+
+    /**
      * Checks whether an element is partially or fully inside the current viewport
      * 
      * @param {Element} el The DOM element for which to check visibility
@@ -453,6 +492,7 @@ define(rqDef, function() {
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert,
+        checkUpdateStatus: checkUpdateStatus,
         isElementInView: isElementInView,
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
