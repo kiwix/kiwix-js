@@ -34,7 +34,7 @@ define([], function () {
    */
   var regexpCookieKeysToMigrate = new RegExp([
     'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
-    'lastContentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
+    'lastContentInjectionMode', 'contentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
   ].join('|'));
 
   /**

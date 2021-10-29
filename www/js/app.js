@@ -106,7 +106,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var paramKey = decodeURIComponent(matches[1]);
                 var paramVal = decodeURIComponent(matches[2]);
                 if (paramKey !== 'title') {
-                    settingsStore.setItem(paramKey, paramVal);
+                    settingsStore.setItem(paramKey, paramVal, Infinity);
                     params[paramKey] = paramVal;
                     console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
                 }
@@ -643,7 +643,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 setContentInjectionMode('jquery');
                 return;
             }
-            
+            var protocol = window.location.protocol;
             if (!isServiceWorkerReady()) {
                 $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
                 if (navigator.serviceWorker.controller) {
@@ -655,6 +655,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     initOrKeepAliveServiceWorker();
                     refreshAPIStatus();
                 } else {
+                    if (protocol === 'moz-extension:') {
+                        launchMozillaExtensionServiceWorker();
+                        return;
+                    } 
                     navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
                         // The ServiceWorker is registered
                         serviceWorkerRegistration = reg;
@@ -685,11 +689,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         console.error('error while registering serviceWorker', err);
                         refreshAPIStatus();
                         var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
-                        var protocol = window.location.protocol;
-                        if (protocol === 'moz-extension:') {
-                            launchMozillaExtensionServiceWorker();
-                        }
-                        else if (protocol === 'file:') {
+                        if (protocol === 'file:') {
                             message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                         }
                         alert(message);                        
@@ -709,14 +709,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
-        settingsStore.setItem('lastContentInjectionMode', value, Infinity);
+        settingsStore.setItem('contentInjectionMode', value, Infinity);
         refreshCacheStatus();
     }
             
     // At launch, we try to set the last content injection mode (stored in Settings Store)
-    var lastContentInjectionMode = settingsStore.getItem('lastContentInjectionMode');
-    if (lastContentInjectionMode) {
-        setContentInjectionMode(lastContentInjectionMode);
+    var contentInjectionMode = settingsStore.getItem('contentInjectionMode');
+    if (contentInjectionMode) {
+        setContentInjectionMode(contentInjectionMode);
     }
     else {
         setContentInjectionMode('jquery');
@@ -787,13 +787,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
                     '\nPlease try again when you have a stable Internet connection.', 'Error!');
                 settingsStore.setItem('allowInternetAccess', false, Infinity);
+                setContentInjectionMode('jquery');
             });
         };
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
-            checkPWAIsOnline();
+            launchPWA();
         } else {
             var response = confirm(message);
-            if (response) launchPWA();
+            if (response) checkPWAIsOnline();
+            else {
+                setContentInjectionMode('jquery');
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+            }    
         }
     }
     
