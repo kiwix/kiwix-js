@@ -648,8 +648,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
                         var protocol = window.location.protocol;
                         if (protocol === 'moz-extension:') {
-                            message += "\n\nYou seem to be using kiwix-js through a Firefox extension : ServiceWorkers are disabled by Mozilla in extensions.";
-                            message += "\nPlease vote for https://bugzilla.mozilla.org/show_bug.cgi?id=1344561 so that some future Firefox versions support it";
+                            launchMozillaExtensionServiceWorker();
                         }
                         else if (protocol === 'file:') {
                             message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
@@ -720,6 +719,40 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function isServiceWorkerReady() {
         // Return true if the serviceWorkerRegistration is not null and not undefined
         return (serviceWorkerRegistration);
+    }
+
+    function launchMozillaExtensionServiceWorker () {
+        var message = 'This Extension uses locally packaged code by default. ' +
+            'To enable the Service Worker we need to load this app as a Progressive Web App (PWA), ' +
+            'which requires one-time access to our secure server to cache the PWA code.\n\n' +
+            'The PWA will be able to run offline, but will auto-update ' +
+            'periodically when online as per the Service Worker spec.\n\n' +
+            'You can switch back any time by returning to JQuery mode.\n\n' +
+            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n\n' +
+            '*** If the app crashes, please relaunch it, and choose "Access Server" when prompted. ***';
+        var launchPWA = function () {
+            settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
+            var uriParams = '?contentInjectionMode=serviceworker';
+            // Pattern below for adding any further parameters to pass to PWA version
+            // uriParams += params.fileVersion ? '&fileVersion=' + encodeURIComponent(params.fileVersion) : '';
+            // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
+            // params.localUWPSettings.PWA_launch = 'fail';
+            window.location.href = params.PWAServer + 'www/index.html' + uriParams;
+            'Beam me up, Scotty!';
+        };
+        var checkPWAIsOnline = function () {
+            uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
+                alert('The server is not currently accessible! ' +
+                    '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
+                    '\nPlease try again when you have a stable Internet connection.', 'Error!');
+            });
+        };
+        if (settingsStore.getItem('allowInternetAccess') === 'true') {
+            checkPWAIsOnline();
+        } else {
+            var response = confirm(message);
+            if (response) launchPWA();
+        }
     }
     
     /**

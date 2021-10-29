@@ -30,11 +30,11 @@
  */
 var params = {};
 
-/**
- * The current version number of the app
- * DEV: Ensure this is the same as the version number in service-worker.js
- */
- params['appVersion'] = '3.2.1';
+// The current version number of the app
+params['appVersion'] = '3.2.1'; // DEV: Ensure this is the same as the version number in service-worker.js (unless you want confused users)!!!
+// The PWA server (currently only for use with the Mozilla extension)
+params['PWAServer'] = 'http://localhost:8080/'; // Include final slash!
+// params['PWAServer'] = 'https://github.com/kiwix/kiwix-js/.moz-extension/'; // Include final slash!
 
 require.config({
     baseUrl: 'js/lib',
