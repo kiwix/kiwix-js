@@ -6,7 +6,7 @@ name: Docker
 on:
   # Triggers the workflow when a release is publsihed or updated
   release:
-    types: [ published, push ]
+    types: [ published ]
 
   # Call this for testing from the REST API with '{"version":"{tag}"}'
   # 'https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches'
