@@ -2,7 +2,7 @@
 
 name: Docker
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow when a release is publsihed or updated
   release:
