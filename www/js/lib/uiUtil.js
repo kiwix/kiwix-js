@@ -278,6 +278,25 @@ define(rqDef, function() {
     }
 
     /**
+     * Show or hide the spinner together with a message
+     * @param {Boolean} show True to show the spinner, false to hide it 
+     * @param {String} message A message to display, or hide the message if null 
+     */
+    function spinnerDisplay(show, message) {
+        var searchingArticles = document.getElementById('searchingArticles');
+        var spinnerMessage = document.getElementById('cachingAssets');
+        if (show) searchingArticles.style.display = 'block';
+        else searchingArticles.style.display = 'none';
+        if (message) {
+            spinnerMessage.innerHTML = message;
+            spinnerMessage.style.display = 'block';
+        } else {
+            spinnerMessage.innerHTML = 'Caching assets...';
+            spinnerMessage.style.display = 'none';
+        }
+    }
+
+    /**
      * Checks whether an element is partially or fully inside the current viewport
      * 
      * @param {Element} el The DOM element for which to check visibility
@@ -507,6 +526,7 @@ define(rqDef, function() {
         displayFileDownloadAlert: displayFileDownloadAlert,
         checkUpdateStatus: checkUpdateStatus,
         checkServerIsAccessible: checkServerIsAccessible,
+        spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,

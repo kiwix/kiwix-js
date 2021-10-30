@@ -620,8 +620,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var response = confirm(message);
                 if (response) {
                     launchLocal();
-                    return;
+                } else {
+                    setContentInjectionMode('serviceworker');
                 }
+                return;
             }
             // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
             // be intercepting requests
@@ -769,6 +771,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             'You can switch back any time by returning to JQuery mode.\n\n' +
             'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
         var launchPWA = function () {
+            uiUtil.spinnerDisplay(false);
             settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
             // This is needed so that we get passthrough on subsequent launches
             settingsStore.setItem('allowInternetAccess', true, Infinity);
@@ -782,7 +785,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             'Beam me up, Scotty!';
         };
         var checkPWAIsOnline = function () {
+            uiUtil.spinnerDisplay(true, 'Checking server access...');
             uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
+                uiUtil.spinnerDisplay(false);
                 alert('The server is not currently accessible! ' +
                     '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
                     '\nPlease try again when you have a stable Internet connection.', 'Error!');
