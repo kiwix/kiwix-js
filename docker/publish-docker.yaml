@@ -1,0 +1,38 @@
+# Workflow to update docker image for moz-extension.kiwix.org (since docker autobuild has been disabled)
+
+name: Docker
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow when a release is publsihed or updated
+  release:
+    types: [ published ]
+
+  # Call this for testing from the REST API with '{"version":"{tag}"}'
+  # 'https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Specific version to build (overrides on-master and tag-pattern)
+        required: false
+        default: ''
+
+jobs:
+  build-and-push:
+    name: Deploy Docker Image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and push
+        uses: openzim/docker-publish-action@v6
+        with:
+          image-name: kiwix/kiwix-moz-extension
+          credentials: |
+            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+          tag-pattern: /^v([0-9.]+).*$/
+          latest-on-tag: true
+          dockerfile: docker/Dockerfile-moz-extension.pwa
+          restrict-to: kiwix/kiwix-js
+          registries: docker.io
+          manual-tag: ${{ github.event.inputs.version }}

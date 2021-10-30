@@ -2,10 +2,10 @@ FROM nginx:latest
 
 EXPOSE 80
 
-RUN mkdir /usr/share/nginx/html/latest/
-COPY ./manifest.json /usr/share/nginx/html/latest/
-COPY ./service-worker.js /usr/share/nginx/html/latest/
-COPY ./index.html /usr/share/nginx/html/latest/
-COPY ./CHANGELOG.md /usr/share/nginx/html/latest/
-COPY ./LICENSE-GPLv3.txt /usr/share/nginx/html/latest/
-COPY ./www /usr/share/nginx/html/latest/www/
+RUN mkdir /usr/share/nginx/html/current/
+COPY ./manifest.json /usr/share/nginx/html/current/
+COPY ./service-worker.js /usr/share/nginx/html/current/
+COPY ./index.html /usr/share/nginx/html/current/
+COPY ./CHANGELOG.md /usr/share/nginx/html/current/
+COPY ./LICENSE-GPLv3.txt /usr/share/nginx/html/current/
+COPY ./www /usr/share/nginx/html/current/www/
