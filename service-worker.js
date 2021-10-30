@@ -81,67 +81,58 @@ var regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
  * The list of files that the app needs in order to run entirely from offline code
  */
 let precacheFiles = [
-  ".",
-  "manifest.json",
-  "service-worker.js",
-  "www/css/app.css",
-  "www/css/bootstrap.css",
-  "www/css/kiwixJS_mwInvert.css",
-  "www/css/transition.css",
-  "www/img/icons/kiwix-256.png",
-  "www/img/icons/kiwix-32.png",
-  "www/img/icons/kiwix-60.png",
-  "www/img/spinner.gif",
-  "www/img/Icon_External_Link.png",
-  "www/index.html",
-  "www/article.html",
-  "www/main.html",
-  "www/js/app.js",
-  "www/js/init.js",
-  "www/js/lib/abstractFilesystemAccess.js",
-  "www/js/lib/arrayFromPolyfill.js",
-  "www/js/lib/bootstrap.bundle.js",
-  "www/js/lib/filecache.js",
-  "www/js/lib/jquery-3.2.1.slim.js",
-  "www/js/lib/promisePolyfill.js",
-  "www/js/lib/require.js",
-  "www/js/lib/settingsStore.js",
-  "www/js/lib/uiUtil.js",
-  "www/js/lib/utf8.js",
-  "www/js/lib/util.js",
-  "www/js/lib/xzdec_wrapper.js",
-  "www/js/lib/zstddec_wrapper.js",
-  "www/js/lib/zimArchive.js",
-  "www/js/lib/zimArchiveLoader.js",
-  "www/js/lib/zimDirEntry.js",
-  "www/js/lib/zimfile.js",
-  "www/js/lib/fontawesome/fontawesome.js",
-  "www/js/lib/fontawesome/solid.js"
+    ".", // This caches the redirect to www/index.html, in case a user launches the app from its root directory
+    "manifest.json",
+    "service-worker.js",
+    "www/css/app.css",
+    "www/css/bootstrap.css",
+    "www/css/kiwixJS_mwInvert.css",
+    "www/css/transition.css",
+    "www/img/icons/kiwix-256.png",
+    "www/img/icons/kiwix-32.png",
+    "www/img/icons/kiwix-60.png",
+    "www/img/spinner.gif",
+    "www/img/Icon_External_Link.png",
+    "www/index.html",
+    "www/article.html",
+    "www/main.html",
+    "www/js/app.js",
+    "www/js/init.js",
+    "www/js/lib/abstractFilesystemAccess.js",
+    "www/js/lib/arrayFromPolyfill.js",
+    "www/js/lib/bootstrap.bundle.js",
+    "www/js/lib/filecache.js",
+    "www/js/lib/jquery-3.2.1.slim.js",
+    "www/js/lib/promisePolyfill.js",
+    "www/js/lib/require.js",
+    "www/js/lib/settingsStore.js",
+    "www/js/lib/uiUtil.js",
+    "www/js/lib/utf8.js",
+    "www/js/lib/util.js",
+    "www/js/lib/xzdec_wrapper.js",
+    "www/js/lib/zstddec_wrapper.js",
+    "www/js/lib/zimArchive.js",
+    "www/js/lib/zimArchiveLoader.js",
+    "www/js/lib/zimDirEntry.js",
+    "www/js/lib/zimfile.js",
+    "www/js/lib/fontawesome/fontawesome.js",
+    "www/js/lib/fontawesome/solid.js",
+    "www/js/lib/xzdec-asm.js",
+    "www/js/lib/zstddec-asm.js",
+    "www/js/lib/xzdec-wasm.js",
+    "www/js/lib/xzdec-wasm.wasm",
+    "www/js/lib/zstddec-wasm.js",
+    "www/js/lib/zstddec-wasm.wasm"
 ];
-
-// Conditionally load the correct assembler binaries
-if ('WebAssembly' in self) {
-    precacheFiles.push(
-        "www/js/lib/xzdec-wasm.js",
-        "www/js/lib/xzdec-wasm.wasm",
-        "www/js/lib/zstddec-wasm.js",
-        "www/js/lib/zstddec-wasm.wasm"
-    );
-} else {
-    precacheFiles.push(
-        "www/js/lib/xzdec-asm.js",
-        "www/js/lib/zstddec-asm.js"
-    );
-}
 
 // Process install event
 self.addEventListener("install", function (event) {
-    console.log("[SW] Install Event processing");
+    console.debug("[SW] Install Event processing");
     // DEV: We can't skip waiting because too many params are loaded at an early stage from the old file before the new one can activate...
     // self.skipWaiting();
     // We try to circumvent the browser's cache by adding a header to the Request
     var requests = precacheFiles.map(function (url) {
-        // Ensuring all files are explicitly versioned via the querystring helps to prevent brower caching too
+        // Ensuring all files are explicitly versioned via the querystring helps to prevent browser caching too
         return new Request(url + '?v' + appVersion, { cache: 'no-cache' });
     });
     if (!regexpExcludedURLSchema.test(requests[0].url)) event.waitUntil(
@@ -163,14 +154,14 @@ self.addEventListener("install", function (event) {
 
 // Allow sw to control current page
 self.addEventListener('activate', function (event) {
-    console.log('[SW] Claiming clients for current page');
+    console.debug('[SW] Claiming clients for current page');
     // Check all the cache keys, and delete any old caches
     event.waitUntil(
         caches.keys().then(function (keyList) {
             return Promise.all(keyList.map(function (key) {
-                console.log('[SW] Current cache key is ' + key);
+                console.debug('[SW] Current cache key is ' + key);
                 if (key !== APP_CACHE && key !== ASSETS_CACHE) {
-                    console.log('[SW] App updated to version ' + appVersion + ': deleting old cache')
+                    console.debug('[SW] App updated to version ' + appVersion + ': deleting old cache')
                     return caches.delete(key);
                 }
             }));
@@ -211,7 +202,7 @@ self.addEventListener('fetch', function (event) {
             } else {
                 // It's not a ZIM URL
                 return fetch(event.request).then(function (response) {
-                  // If request was success, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                  // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
                   if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
                     event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
                   }
@@ -239,7 +230,7 @@ self.addEventListener('message', function (event) {
             // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
             useCache = event.data.action.useCache === 'on';
             if (useCache) ASSETS_CACHE = event.data.cacheName;
-            console.log('[SW] Caching was turned ' + event.data.action.useCache);
+            console.debug('[SW] Caching was turned ' + event.data.action.useCache);
         }
         if (event.data.action === 'getCacheNames') {
             event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
@@ -339,7 +330,7 @@ function fromCache(cache, requestUrl) {
             if (!matching || matching.status === 404) {
                 return Promise.reject('no-match');
             }
-            console.log('[SW] Supplying ' + requestUrl + ' from ' + cache + '...');
+            console.debug('[SW] Supplying ' + requestUrl + ' from ' + cache + '...');
             return matching;
         });
     });
@@ -356,7 +347,7 @@ function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!useCache && cache === ASSETS_CACHE) return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
-        console.log('[SW] Adding ' + request.url + ' to ' + cache + '...');
+        console.debug('[SW] Adding ' + request.url + ' to ' + cache + '...');
         return cacheObj.put(request, response);
     });
 }

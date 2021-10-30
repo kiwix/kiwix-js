@@ -96,8 +96,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     appstate['updateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
     // Set display of app version
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
-
-    // Apply any override parameters in querystring (done as a self-calling function to avoid creating global variables)
+    
+    /**
+     * Apply any override parameters that might be in the querystring.
+     * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
+     * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
+     * problematic settings, by crafting the querystring appropriately.
+     */
     (function overrideParams() {
         var rgx = /[?&]([^=]+)=([^&]+)/g;
         var matches = rgx.exec(window.location.search);
