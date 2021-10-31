@@ -56,3 +56,4 @@ www-ghdeploy
 #Visual Studio
 /.vs/
 /.vscode/
+scripts/github_token
