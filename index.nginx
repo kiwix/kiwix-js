@@ -1,8 +1,16 @@
 <!doctype html>
 <html>
+<!-- This file will be used by dockerfile-moz-extension to provide a redirect from the server's html directory to
+    the implementation. This is a convenience to any user who may visit the root of the server. However, note that
+    this is out of the scope of the Service Worker in the implementation's subdirectory, so this redirect will only
+    work if the client is online. The client will only be able to access the implementation OFFLINE if the browser
+    is pointed to <domain>/current/ or <domain>/current/www/index.html (or equivalent in a versioned directory).
+    The browser extension should always be pointed to the full path of the index.html to be loaded in SW mode.
+-->
 <head>
     <meta http-equiv="refresh" content="0; url=current/www/index.html">
-<title>Redirection to index.html</title>
-<body>
+    <title>Redirection to index.html</title>
+<body>p
 </body>
+
 </html>

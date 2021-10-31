@@ -630,7 +630,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (params.extensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
                 var message = 'This will switch to using locally packaged code only. Configuration settings may be lost.\n\n' +
-                'WARNING: App will re-load in JQuery mode!';
+                'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery';
