@@ -4,12 +4,13 @@ name: Docker
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow when a release is publsihed or updated
+  # Triggers the workflow when a release is published or updated
   release:
     types: [ published ]
 
   # Call this for testing from the REST API with '{"version":"{tag}"}'
   # 'https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches'
+  # Documentation: https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
   workflow_dispatch:
     inputs:
       version:
