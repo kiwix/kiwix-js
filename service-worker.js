@@ -36,7 +36,10 @@ const appVersion = '3.2.2';
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
  */
-let ASSETS_CACHE;
+// DEV: Despite initializing the Service Worker at the earliest possible opportunity, ASSETS_CACHE is occasionally still
+// undefined. Therefore we may have no alternative than to hard code it here.
+// @TODO: try to pass the name in reverse, from service-worker.js to app.js, instead of vice-versa.
+let ASSETS_CACHE = 'kiwixjs-assetsCache';
 
 /**
  * The name of the application cache to use for caching online code so that it can be used offline
