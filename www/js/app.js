@@ -634,9 +634,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery';
-                    document.getElementById('persistentMessage').innerHTML = 'To return to using the local code in this extension, please click the following link:\n\n' +
-                        '<a href="' + params.extensionURL + '/www/index.html' + uriParams + '">Return to local extension</a>';
-                    document.getElementById('updateAlert').style.display = 'block';
                     window.location.href = params.extensionURL + '/www/index.html' + uriParams;
                     'Beam me down, Scotty!';
                 };
