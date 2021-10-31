@@ -115,9 +115,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var paramKey = decodeURIComponent(matches[1]);
                 var paramVal = decodeURIComponent(matches[2]);
                 if (paramKey !== 'title') {
+                    console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
+                    // Make values Boolean if 'true'/'false'
+                    paramVal = paramVal === 'true' || (paramVal === 'false' ? false : paramVal);
                     settingsStore.setItem(paramKey, paramVal, Infinity);
                     params[paramKey] = paramVal;
-                    console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
                 }
             }
             matches = rgx.exec(window.location.search);
