@@ -46,7 +46,7 @@ if ($branch_name -eq "") {
   $branch_name = Read-Host "Give the branch name to use of the docker build, or Enter to accept [$suggested_branch]"
   if (-Not $branch_name) { $branch_name = $suggested_branch }
   if ($branch_name -imatch '^pr/\d+') {
-    "`nWARNING: You appear to have indicated a PR. Please check out the underlying branch to use this script, or else run it again and give the branch name at the prompt."
+    "`nWARNING: You appear to have indicated a PR. Please check out the underlying branch to use this script,`nor else run it again and give the branch name at the prompt.`n"
     return
   }
 
