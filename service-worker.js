@@ -178,6 +178,7 @@ self.addEventListener('fetch', function (event) {
     var rqUrl = event.request.url.replace(/\?[^?]+$/i, '');
     // Select cache depending on request format
     var cache = /\.zim\w{0,2}\//i.test(rqUrl) ? ASSETS_CACHE : APP_CACHE;
+    if (cache === ASSETS_CACHE && !fetchCaptureEnabled) return;
     event.respondWith(
         // First see if the content is in the cache
         fromCache(cache, rqUrl).then(function (response) {
@@ -209,7 +210,7 @@ self.addEventListener('fetch', function (event) {
                 }).catch(function (error) {
                   console.debug("[SW] Network request failed and no cache.", error);
                 });
-              }
+            }
         })
     );
 });
