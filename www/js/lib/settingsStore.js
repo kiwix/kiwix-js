@@ -38,11 +38,12 @@ define([], function () {
   ].join('|'));
 
   /**
-   * A constant to set the prefix that will be added to keys when stored in localStorage: this is used to prevent
+   * The prefix that will be added to keys when stored in localStorage: this is used to prevent
    * potential collision of key names with localStorage keys used by code inside ZIM archives
+   * It is set in init.js because it is needed early in app loading
    * @type {String}
    */
-  const keyPrefix = 'kiwixjs-';
+  var keyPrefix = params.keyPrefix;
 
   // Tests for available Storage APIs (document.cookie or localStorage) and returns the best available of these
   function getBestAvailableStorageAPI() {

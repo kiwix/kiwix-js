@@ -30,6 +30,18 @@
  */
 var params = {};
 
+// The key prefix used by the settingsStore.js (see comment there for explanation)
+params['keyPrefix'] = 'kiwixjs-'
+
+// The following lines check the querystring for a communication from the PWA indicating it has successfully launched.
+// If this querystring is received, then the app will set a success key in the extension's localStorage and then exit.
+// This is used to prevent a "boot loop" where the app will keep jumping to a failed install of the PWA.
+if (/PWA_launch=/.test(window.location.search)) {
+    var match = /PWA_launch=([^&]+)/.exec(window.location.search);
+    localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
+    throw new Error('Load of PWA has been registered as "' + match[1] + '" by the extension. This stop error is intentional.');
+}
+
 require.config({
     baseUrl: 'js/lib',
     paths: {

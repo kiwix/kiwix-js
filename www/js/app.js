@@ -122,6 +122,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             matches = rgx.exec(window.location.search);
         }
+        // If we are in an extension, send a 'success' message to the extension
+        if (params.extensionURL && ~window.location.href.indexOf(params.PWAServer)) {
+            var message = '?PWA_launch=success';
+            // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
+            // Note that the key is set to 'fail' (in the extension) before each PWA launch as a failsafe
+            document.getElementById('articleContent').src = params.extensionURL + '/www/index.html'+ message;
+        }
     })();
 
     /**
@@ -788,7 +795,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Add any further params like this (don't forget to encodeURIComponent the attribute if necessary)
             uriParams += '&allowInternetAccess=true';
             // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
-            // params.localUWPSettings.PWA_launch = 'fail';
+            // DEV: We write directly to localStorage instead of using settingsStore here because we need 100% certainty
+            // regarding the location of the key, so as to be able to retrieve it before settingsStore is initialized
+            localStorage.setItem(params.keyPrefix + 'PWA_launch', 'fail');
             window.location.href = params.PWAServer + 'www/index.html' + uriParams;
             'Beam me up, Scotty!';
         };
@@ -803,10 +812,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 setContentInjectionMode('jquery');
             });
         };
+        var response;
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
-            launchPWA();
+            if (localStorage.getItem('kiwixjs-PWA_launch') === 'success') {
+                launchPWA();
+            } else {
+                response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
+                if (response) {
+                    launchPWA();
+                } else {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    setContentInjectionMode('jquery');
+                }
+            }
         } else {
-            var response = confirm(message);
+            response = confirm(message);
             if (response) checkPWAIsOnline();
             else {
                 setContentInjectionMode('jquery');
