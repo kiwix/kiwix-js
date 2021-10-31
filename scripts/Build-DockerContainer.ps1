@@ -14,16 +14,16 @@ $github_token = Get-Content -Raw "$PSScriptRoot/github_token"
 $app_params = Get-Content -Raw "$PSScriptRoot\..\www\js\app.js"
 $serviceworker = Get-Content -Raw "$PSScriptRoot\..\service-worker.js"
 $suggested_build = ''
-$init_tag = ''
+$app_tag = ''
 if ($app_params -match 'params\[[''"]appVersion[''"]]\s*=\s*[''"]([^''"]+)') {
-  $init_tag = $matches[1]
-  $suggested_build = 'dev_' + $init_tag 
+  $app_tag = $matches[1]
+  $suggested_build = 'dev_' + $app_tag 
 }
 $sw_tag = ''
 if ($serviceworker -match 'appVersion\s*=\s*[''"]([^''"]+)') {
   $sw_tag = $matches[1]
-  if ($sw_tag -ne $init_tag) {
-    "`n*** WARNING: The tag in init.js [$init_tag] does not match the tag in service-worker.js [$sw_tag]! ***"
+  if ($sw_tag -ne $app_tag) {
+    "`n*** WARNING: The version in app.js [$app_tag] does not match the version in service-worker.js [$sw_tag]! ***"
     "Please correct before continuing.`n"
     exit
   }
