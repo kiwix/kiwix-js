@@ -24,7 +24,7 @@
 'use strict';
 
 /**
- * App version number - ENSURE IT MATCHES VALUE IN init.js
+ * App version number - ENSURE IT MATCHES VALUE IN app.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
@@ -36,8 +36,7 @@ const appVersion = '3.2.1';
  * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
  * @type {String}
  */
-// DEV: We are hard-coding this pending debugging of why it is sometimes not set early enough
-let ASSETS_CACHE = 'kiwixjs-assetsCache';
+let ASSETS_CACHE;
 
 /**
  * The name of the application cache to use for caching online code so that it can be used offline

@@ -64,38 +64,42 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     
-    // Set parameters and associated UI elements from the Settings Store
-    // DEV: The params global object is declared in init.js so that it is available to modules
-    params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
+    /**
+     * Set parameters from the Settings Store, together with any defaults
+     * Note that the params global object is declared in init.js so that it is available to modules
+     * WARNING: Only change these paramaeters if you know what you are doing
+     */
+    // The current version number of this app
+    params['appVersion'] = '3.2.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+    // The PWA server (currently only for use with the Mozilla extension)
+    params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
+    // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
+    // A parameter to determine the Settings Store API in use
+    params['storeType'] = settingsStore.getBestAvailableStorageAPI();
     params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
-    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
-    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // Maximum number of article titles to return (range is 5 - 50, default 25)
     params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
-    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
-    document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
-    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     // A parameter to access the URL of any extension that this app was launched from
     params['extensionURL'] = settingsStore.getItem('extensionURL');
-    switchHomeKeyToFocusSearchBar();
+    // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
+    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 'jquery'; // Defaults to jquery for now
+
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
         'prefix': '', // A field to hold the original search string
         'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
+
+    // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
     appstate['updateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
-    // Set display of app version
-    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     
     /**
      * Apply any override parameters that might be in the querystring.
@@ -119,6 +123,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             matches = rgx.exec(window.location.search);
         }
     })();
+
+    /**
+     * Set the State and UI settings associated with parameters defined above
+     */
+    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
+    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
+    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
+    document.getElementById('appThemeSelect').value = params.appTheme;
+    uiUtil.applyAppTheme(params.appTheme);
+    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
+    switchHomeKeyToFocusSearchBar();
+    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
+    setContentInjectionMode(params.contentInjectionMode);
+    // getCacheAttributes().then(function() {}); // This is needed to initialize the Service Worker with the ASSETS_CACHE name
 
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -516,7 +535,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function getCacheAttributes() {
         return new Promise(function (resolve, reject) {
-            if (contentInjectionMode === 'serviceworker' && navigator.serviceWorker.controller) {
+            if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker.controller) {
                 // Create a Message Channel
                 var channel = new MessageChannel();
                 // Handler for recieving message reply from service worker
@@ -566,7 +585,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         });
     }
 
-    var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
     var serviceWorkerRegistration;
     
@@ -577,7 +595,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
-        if (contentInjectionMode === 'serviceworker') {
+        if (params.contentInjectionMode === 'serviceworker') {
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
@@ -607,7 +625,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
-        contentInjectionMode = value;
+        params.contentInjectionMode = value;
         if (value === 'jquery') {
             if (params.extensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
@@ -662,10 +680,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     initOrKeepAliveServiceWorker();
                     refreshAPIStatus();
                 } else {
-                    if (protocol === 'moz-extension:') {
-                        launchMozillaExtensionServiceWorker();
-                        return;
-                    } 
                     navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
                         // The ServiceWorker is registered
                         serviceWorkerRegistration = reg;
@@ -691,22 +705,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             // in case it has been stopped and lost its context
                             initOrKeepAliveServiceWorker();
                         }
+                        refreshCacheStatus();
                         refreshAPIStatus();
                     }).catch(function (err) {
-                        console.error('error while registering serviceWorker', err);
-                        refreshAPIStatus();
-                        var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
-                        if (protocol === 'file:') {
-                            message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                        if (protocol === 'moz-extension:') {
+                            launchMozillaExtensionServiceWorker();
+                        } else {
+                            console.error('Error while registering serviceWorker', err);
+                            refreshAPIStatus();
+                            var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                            if (protocol === 'file:') {
+                                message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                            }
+                            alert(message);                        
+                            setContentInjectionMode("jquery");
                         }
-                        alert(message);                        
-                        setContentInjectionMode("jquery");
-                        return;
                     });
                 }
             } else {
-                // We need to set this variable earlier else the ServiceWorker does not get reactivated
-                contentInjectionMode = value;
+                // We need to reactivate Service Worker
                 initOrKeepAliveServiceWorker();
             }
             // User has switched to Service Worker mode, so no longer needs the memory cache
@@ -718,19 +735,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
         settingsStore.setItem('contentInjectionMode', value, Infinity);
         refreshCacheStatus();
+        refreshAPIStatus();
     }
-            
-    // At launch, we try to set the last content injection mode (stored in Settings Store)
-    var contentInjectionMode = settingsStore.getItem('contentInjectionMode');
-    if (contentInjectionMode) {
-        setContentInjectionMode(contentInjectionMode);
-    }
-    else {
-        setContentInjectionMode('jquery');
-    }
-
-    // We need to establish the caching capabilities before first page launch
-    refreshCacheStatus();
     
     /**
      * Tells if the ServiceWorker API is available
@@ -1270,7 +1276,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
-        if (contentInjectionMode === 'serviceworker') {
+        if (params.contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
 
