@@ -643,8 +643,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
-                    uriParams += '&appTheme=' + settingsStore.getItem('appTheme');
-                    uriParams += '&showUIAnimations=' + settingsStore.getItem('showUIAnimations'); 
+                    uriParams += '&appTheme=' + params.appTheme;
+                    uriParams += '&showUIAnimations=' + params.showUIAnimations; 
                     window.location.href = params.extensionURL + '/www/index.html' + uriParams;
                     'Beam me down, Scotty!';
                 };
@@ -797,8 +797,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var uriParams = '?contentInjectionMode=serviceworker';
             uriParams += '&extensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
             // Add any further params like this (don't forget to encodeURIComponent the attribute if it may have special characters)
-            uriParams += '&allowInternetAccess=true&appTheme=' + settingsStore.getItem('appTheme');
-            uriParams += '&showUIAnimations=' + settingsStore.getItem('showUIAnimations'); 
+            uriParams += '&allowInternetAccess=true&appTheme=' + params.appTheme;
+            uriParams += '&showUIAnimations=' + params.showUIAnimations; 
             // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
             // DEV: We write directly to localStorage instead of using settingsStore here because we need 100% certainty
             // regarding the location of the key, so as to be able to retrieve it before settingsStore is initialized

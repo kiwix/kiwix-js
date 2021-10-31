@@ -39,7 +39,7 @@ params['keyPrefix'] = 'kiwixjs-'
 if (/PWA_launch=/.test(window.location.search)) {
     var match = /PWA_launch=([^&]+)/.exec(window.location.search);
     localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
-    throw new Error('Load of PWA has been registered as "' + match[1] + '" by the extension. This stop error is intentional.');
+    throw new Error('Launch of PWA has been registered as "' + match[1] + '" by the extension. This stop error is intentional.');
 }
 
 require.config({
