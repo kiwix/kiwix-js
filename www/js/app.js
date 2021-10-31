@@ -638,7 +638,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (value === 'jquery') {
             if (params.extensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
-                var message = 'This will switch to using locally packaged code only. Configuration settings may be lost.\n\n' +
+                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
@@ -784,11 +784,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function launchMozillaExtensionServiceWorker () {
         // DEV: See explanation below for why we access localStorage directly here 
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
-        var message = 'This Extension uses locally packaged code by default. ' +
-            'To enable the Service Worker we need to load this app as a Progressive Web App (PWA), ' +
-            'which requires one-time access to our secure server to cache the PWA code.\n\n' +
-            'The PWA will be able to run offline, but will auto-update ' +
-            'periodically when online as per the Service Worker spec.\n\n' +
+        var message = 'To enable the Service Worker, we need one-time access to our secure server.\n\n' +
+            'The app will re-launch as a Progressive Web App (PWA). It will be able to run offline, but ' + 
+            'will auto-update periodically when online as per the Service Worker spec.\n\n' +
             'You can switch back any time by returning to JQuery mode.\n\n' +
             'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
         var launchPWA = function () {

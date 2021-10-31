@@ -302,10 +302,10 @@
                                 supported in this mode. It can feel initially a little slower while commonly used assets are being cached,
                                 but it soon equals JQuery mode in speed, at least in modern browsers. However, older browsers such as IE11 do
                                 not support this mode, and the app must be running in a secure context (<code>https:</code>, <code>localhost</code>,
-                                or certain browser extensions). Unfortunately, this mode is not currently supported in Mozilla (Firefox) browser
-                                extensions. It <i>is</i> supported in Chromium browser extensions (e.g. Chrome or new Edge). Note that this mode
-                                cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run by launching
-                                <code>index.html</code> from the file system).
+                                or certain browser extensions). While this mode is not natively supported in Mozilla (Firefox) browser
+                                extensions, we provide a functional workaround by re-launching the extension as a Progressive Web App (PWA).
+                                Note that this mode cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run
+                                by launching <code>index.html</code> from the file system).
                             </li>
                         </ul> 
                     </p>
