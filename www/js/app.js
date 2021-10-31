@@ -782,6 +782,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     function launchMozillaExtensionServiceWorker () {
+        // DEV: See explanation below for why we access localStorage directly here 
+        var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var message = 'This Extension uses locally packaged code by default. ' +
             'To enable the Service Worker we need to load this app as a Progressive Web App (PWA), ' +
             'which requires one-time access to our secure server to cache the PWA code.\n\n' +
@@ -794,14 +796,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
             // This is needed so that we get passthrough on subsequent launches
             settingsStore.setItem('allowInternetAccess', true, Infinity);
-            var uriParams = '?contentInjectionMode=serviceworker';
+            var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
             uriParams += '&extensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
-            // Add any further params like this (don't forget to encodeURIComponent the attribute if it may have special characters)
-            uriParams += '&allowInternetAccess=true&appTheme=' + params.appTheme;
-            uriParams += '&showUIAnimations=' + params.showUIAnimations; 
+            if (!PWASuccessfullyLaunched) {
+                // Add any further params that should only be passed one time
+                uriParams += '&appTheme=' + params.appTheme;
+                uriParams += '&showUIAnimations=' + params.showUIAnimations;
+            }
             // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
             // DEV: We write directly to localStorage instead of using settingsStore here because we need 100% certainty
-            // regarding the location of the key, so as to be able to retrieve it before settingsStore is initialized
+            // regarding the location of the key to be able to retrieve it in init.js before settingsStore is initialized
             localStorage.setItem(params.keyPrefix + 'PWA_launch', 'fail');
             window.location.href = params.PWAServer + 'www/index.html' + uriParams;
             'Beam me up, Scotty!';
@@ -819,7 +823,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         };
         var response;
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
-            if (localStorage.getItem('kiwixjs-PWA_launch') === 'success') {
+            if (PWASuccessfullyLaunched) {
                 launchPWA();
             } else {
                 response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
