@@ -666,8 +666,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             refreshAPIStatus();
             // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
-            // We should empty it to prevent unnecessary space usage
-            if ('caches' in window) caches.delete(ASSETS_CACHE);
+            // We should empty it and turn it off to prevent unnecessary space usage
+            if ('caches' in window && isMessageChannelAvailable()) {
+                var channel = new MessageChannel();
+                if (isServiceWorkerAvailable && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        'action': { 'useCache': 'off' }
+                    }, [channel.port2]);
+                }
+                caches.delete(ASSETS_CACHE);
+            }
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
