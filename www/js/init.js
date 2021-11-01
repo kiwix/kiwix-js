@@ -30,7 +30,7 @@
  */
 var params = {};
 
-// The key prefix used by the settingsStore.js (see comment there for explanation)
+// The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-'
 
 // The following lines check the querystring for a communication from the PWA indicating it has successfully launched.
