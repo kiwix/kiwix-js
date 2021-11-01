@@ -260,7 +260,7 @@ define(rqDef, function() {
             }, [channel.port2]);
         }
     }
-    updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
+    if (updateAlert) updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
         updateAlert.style.display = 'none';
     });
 
