@@ -33,7 +33,7 @@ jobs:
             DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
           tag-pattern: /^v([0-9.]+).*$/
           latest-on-tag: true
-          dockerfile: docker/Dockerfile-moz-extension.pwa
+          dockerfile: docker/dockerfile-moz-extension.pwa
           restrict-to: kiwix/kiwix-js
           registries: docker.io
           manual-tag: ${{ github.event.inputs.version }}
