@@ -4,29 +4,39 @@ param (
     [switch]$dryrun = $false
 )
 
-# DEV: To build the Docker container with a manual dispatch (for testing only), provide a machine_name (this could be 'dev')
-# Ensure that your personal github token is in your local copy of the '/scripts' directory, saved as 'github_token'
+# DEV: To build the Docker container programmatically (for testing), provide the -machine_name (this could be 'dev')
+# and the -branch_name switches on the commandline. If you do not provide them, you will be prompted with defaults.
+# IMPORTANT: Ensure that your personal github token is in your local copy of the '/scripts' directory, saved as 'github_token'
 
 # Provide parameters
 $release_uri = 'https://api.github.com/repos/kiwix/kiwix-js/actions/workflows/publish-docker.yaml/dispatches'
 $github_token = Get-Content -Raw "$PSScriptRoot/github_token"
 
-$app_params = Get-Content -Raw "$PSScriptRoot\..\www\js\app.js"
-$serviceworker = Get-Content -Raw "$PSScriptRoot\..\service-worker.js"
+$app_params = Select-String 'appVersion' "$PSScriptRoot\..\www\js\app.js" -List
+$serviceworker = Select-String 'appVersion' "$PSScriptRoot\..\service-worker.js" -List
 $suggested_build = ''
 $app_tag = ''
 if ($app_params -match 'params\[[''"]appVersion[''"]]\s*=\s*[''"]([^''"]+)') {
   $app_tag = $matches[1]
   $suggested_build = 'dev_' + $app_tag 
+} else {
+  "*** WARNING: App version is incorrectly set in app.js.`nPlease correct before continuing.`n"
+  exit
 }
 $sw_tag = ''
 if ($serviceworker -match 'appVersion\s*=\s*[''"]([^''"]+)') {
   $sw_tag = $matches[1]
   if ($sw_tag -ne $app_tag) {
-    "`n*** WARNING: The version in app.js [$app_tag] does not match the version in service-worker.js [$sw_tag]! ***"
+    "*** WARNING: The version in app.js [$app_tag] does not match the version in service-worker.js [$sw_tag]! ***"
     "Please correct before continuing.`n"
     exit
+  } else {
+    "Version in app.js: $app_tag"
+    "Version in service-worker.js: $sw_tag`n"
   }
+} else {
+  "*** WARNING: App version is incorrectly set in service-worker.js.`nPlease correct before continuing.`n"
+  exit
 }
 
 if ($machine_name -eq "") {
