@@ -38,10 +38,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     /**
      * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
-     * This name will be passed to service-worker.js in messaging to avoid duplication: see comment in service-worker.js
-     * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
+     * We need access to the cache name in app.js in order to complete utility actions when Service Worker is not initialized,
+     * so we have to duplicate it here 
      * @type {String}
      */
+    // DEV: Ensure this matches the name defined in service-worker.js (a check is provided in refreshCacheStatus() below)
     const ASSETS_CACHE = 'kiwixjs-assetsCache';
     
     /**
@@ -146,7 +147,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     switchHomeKeyToFocusSearchBar();
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     setContentInjectionMode(params.contentInjectionMode);
-    // getCacheAttributes().then(function() {}); // This is needed to initialize the Service Worker with the ASSETS_CACHE name
 
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
@@ -542,7 +542,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * If Service Worker is not available, the attributes of the memory cache are returned instead
      * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
-    function getCacheAttributes() {
+    function getAssetsCacheAttributes() {
         return new Promise(function (resolve, reject) {
             if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker.controller) {
                 // Create a Message Channel
@@ -558,13 +558,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     'action': {
                         'useCache': params.useCache ? 'on' : 'off',
                         'checkCache': window.location.href
-                    },
-                    'cacheName': ASSETS_CACHE
+                    }
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
                 resolve({
                     'type': params.useCache ? 'memory' : 'none',
+                    'name': 'cssCache',
                     'description': params.useCache ? 'Memory' : 'None',
                     'count': cssCache.size
                 });
@@ -579,7 +579,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Update radio buttons and checkbox
         document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
         // Get cache attributes, then update the UI with the obtained data
-        getCacheAttributes().then(function (cache) {
+        getAssetsCacheAttributes().then(function (cache) {
+            if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
+                console.error('DEV: The ASSETS_CACHE defined in app.js does not match the ASSETS_CACHE defined in service-worker.js!');
+            }
             document.getElementById('cacheUsed').innerHTML = cache.description;
             document.getElementById('assetsCount').innerHTML = cache.count;
             var cacheSettings = document.getElementById('performanceSettingsDiv');

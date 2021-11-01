@@ -33,13 +33,11 @@ const appVersion = '3.2.2';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
- * The value is defined in app.js and will be passed to Service Worker on initialization (to avoid duplication)
+ * The value is sometimes needed here before it can be passed from app.js, so we have to duplicate it
  * @type {String}
  */
-// DEV: Despite initializing the Service Worker at the earliest possible opportunity, ASSETS_CACHE is occasionally still
-// undefined. Therefore we may have no alternative than to hard code it here.
-// @TODO: try to pass the name in reverse, from service-worker.js to app.js, instead of vice-versa.
-let ASSETS_CACHE = 'kiwixjs-assetsCache';
+// DEV: Ensure this matches the name defined in app.js
+const ASSETS_CACHE = 'kiwixjs-assetsCache';
 
 /**
  * The name of the application cache to use for caching online code so that it can be used offline
@@ -232,7 +230,6 @@ self.addEventListener('message', function (event) {
         if (event.data.action.useCache) {
             // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
             useCache = event.data.action.useCache === 'on';
-            if (useCache) ASSETS_CACHE = event.data.cacheName;
             console.debug('[SW] Caching was turned ' + event.data.action.useCache);
         }
         if (event.data.action === 'getCacheNames') {
@@ -241,7 +238,7 @@ self.addEventListener('message', function (event) {
         if (event.data.action.checkCache) {
             // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
             testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
-                event.ports[0].postMessage({ 'type': cacheArr[0], 'description': cacheArr[1], 'count': cacheArr[2] });
+                event.ports[0].postMessage({ type: cacheArr[0], name: cacheArr[1], description: cacheArr[2], count: cacheArr[3] });
             });
         }
     }
@@ -363,10 +360,10 @@ function updateCache(cache, request, response) {
  */
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'Custom', '-']);
-    if (!useCache) return Promise.resolve(['none', 'None', 0]);
+    if (!useCache) return Promise.resolve(['none', 'none', 'None', 0]);
     return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
-            return ['cacheAPI', 'Cache API', keys.length];
+            return ['cacheAPI', ASSETS_CACHE, 'Cache API', keys.length];
         }).catch(function(err) {
             return err;
         });

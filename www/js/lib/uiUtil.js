@@ -228,8 +228,8 @@ define(rqDef, function() {
     /**
      * Check for update of Service Worker (PWA) and display information to user
      */
-     var updateAlert = document.getElementById('updateAlert');
-     function checkUpdateStatus(appstate) {
+    var updateAlert = document.getElementById('updateAlert');
+    function checkUpdateStatus(appstate) {
         if ('serviceWorker' in navigator && !appstate.updateNeeded) {
             // Create a Message Channel
             var channel = new MessageChannel();
@@ -260,7 +260,7 @@ define(rqDef, function() {
             }, [channel.port2]);
         }
     }
-    updateAlert.querySelector('button[data-hide]').addEventListener('click', function() {
+    updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
         updateAlert.style.display = 'none';
     });
 
