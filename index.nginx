@@ -7,10 +7,13 @@
     is pointed to <domain>/current/ or <domain>/current/www/index.html (or equivalent in a versioned directory).
     The browser extension should always be pointed to the full path of the index.html to be loaded in SW mode.
 -->
+
 <head>
     <meta http-equiv="refresh" content="0; url=current/www/index.html">
     <title>Redirection to index.html</title>
-<body>p
+</head>
+
+<body>
 </body>
 
 </html>
