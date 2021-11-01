@@ -3,7 +3,7 @@ FROM nginx:latest
 EXPOSE 80
 
 RUN mkdir /usr/share/nginx/html/current/
-COPY ./index.nginx /usr/share/nginx/html/index.html
+COPY ./index.nginx.html /usr/share/nginx/html/index.html
 COPY ./manifest.json /usr/share/nginx/html/current/
 COPY ./service-worker.js /usr/share/nginx/html/current/
 COPY ./index.html /usr/share/nginx/html/current/
