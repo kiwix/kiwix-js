@@ -129,8 +129,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (params.extensionURL && ~window.location.href.indexOf(params.PWAServer)) {
             var message = '?PWA_launch=success';
             // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
-            // Note that the key is set to 'fail' (in the extension) before each PWA launch as a failsafe
-            document.getElementById('articleContent').src = params.extensionURL + '/www/index.html'+ message;
+            // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
+            // so we need to send a 'success' message each time the PWA is launched
+            var frame = document.createElement('iframe');
+            frame.style.display = 'none';
+            document.body.appendChild(frame);
+            frame.src = params.extensionURL + '/www/index.html'+ message;
         }
     })();
 
