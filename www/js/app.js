@@ -135,6 +135,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             frame.style.display = 'none';
             document.body.appendChild(frame);
             frame.src = params.extensionURL + '/www/index.html'+ message;
+            // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
+            setTimeout(function () {
+                // The only browser which does not support .remove() is IE11, but it will never run this code
+                frame.remove();
+            }, 3000);
         }
     })();
 
@@ -611,6 +616,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
+        var delay = DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER;
         if (params.contentInjectionMode === 'serviceworker') {
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
@@ -620,19 +626,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 navigator.serviceWorker.controller.postMessage({
                     'action': 'init'
                 }, [tmpMessageChannel.port2]);
-            } else {
+            } else if (keepAliveServiceWorkerHandle) {
                 console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
                 window.location.reload();
-                return;
+            } else {
+                // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
+                delay = 0;
             }
             messageChannel = tmpMessageChannel;
             // Schedule to do it again regularly to keep the 2-way communication alive.
             // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
             clearTimeout(keepAliveServiceWorkerHandle);
-            keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER, false);
+            keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, delay, false);
         }
     }
-    
+
     /**
      * Sets the given injection mode.
      * This involves registering (or re-enabling) the Service Worker if necessary
@@ -799,6 +807,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function launchMozillaExtensionServiceWorker () {
         // DEV: See explanation below for why we access localStorage directly here 
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
+        var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
         var message = 'To enable the Service Worker, we need one-time access to our secure server ' + 
             'so that the app can re-launch as a Progressive Web App (PWA).\n\n' +
             'The PWA will be able to run offline, but will auto-update periodically when online ' + 
@@ -807,16 +816,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
-            settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
-            // This is needed so that we get passthrough on subsequent launches
-            settingsStore.setItem('allowInternetAccess', true, Infinity);
             var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
             uriParams += '&extensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
-            if (!PWASuccessfullyLaunched) {
-                // Add any further params that should only be passed one time
+            if (!PWASuccessfullyLaunched && !allowInternetAccess) {
+                // Add any further params that should only be passed when the user is intentionally switching to SW mode
                 uriParams += '&appTheme=' + params.appTheme;
                 uriParams += '&showUIAnimations=' + params.showUIAnimations;
             }
+            settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
+            // This is needed so that we get passthrough on subsequent launches
+            settingsStore.setItem('allowInternetAccess', true, Infinity);
             // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
             // DEV: We write directly to localStorage instead of using settingsStore here because we need 100% certainty
             // regarding the location of the key to be able to retrieve it in init.js before settingsStore is initialized
