@@ -136,7 +136,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             document.body.appendChild(frame);
             frame.src = params.extensionURL + '/www/index.html'+ message;
             // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
-            setTimeout(function () {
+            setTimeout(function (frame) {
                 // The only browser which does not support .remove() is IE11, but it will never run this code
                 frame.remove();
             }, 3000);
@@ -818,7 +818,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             uiUtil.spinnerDisplay(false);
             var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
             uriParams += '&extensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
-            if (!PWASuccessfullyLaunched && !allowInternetAccess) {
+            if (!PWASuccessfullyLaunched || !allowInternetAccess) {
                 // Add any further params that should only be passed when the user is intentionally switching to SW mode
                 uriParams += '&appTheme=' + params.appTheme;
                 uriParams += '&showUIAnimations=' + params.showUIAnimations;
