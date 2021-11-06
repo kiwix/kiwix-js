@@ -132,13 +132,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
             // so we need to send a 'success' message each time the PWA is launched
             var frame = document.createElement('iframe');
+            frame.id = 'kiwixComm';
             frame.style.display = 'none';
             document.body.appendChild(frame);
             frame.src = params.extensionURL + '/www/index.html'+ message;
             // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
-            setTimeout(function (frame) {
+            setTimeout(function () {
+                var kiwixComm = document.getElementById('kiwixComm');
                 // The only browser which does not support .remove() is IE11, but it will never run this code
-                frame.remove();
+                if (kiwixCom) kiwixComm.remove();
             }, 3000);
         }
     })();
