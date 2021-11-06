@@ -140,7 +140,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             setTimeout(function () {
                 var kiwixComm = document.getElementById('kiwixComm');
                 // The only browser which does not support .remove() is IE11, but it will never run this code
-                if (kiwixCom) kiwixComm.remove();
+                if (kiwixComm) kiwixComm.remove();
             }, 3000);
         }
     })();
