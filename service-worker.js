@@ -178,7 +178,7 @@ self.addEventListener('fetch', function (event) {
     // Remove any querystring before requesting from the cache
     var rqUrl = event.request.url.replace(/\?[^?]+$/i, '');
     // Select cache depending on request format
-    var cache = /\.zim\w{0,2}\//i.test(rqUrl) ? ASSETS_CACHE : APP_CACHE;
+    var cache = /\.zim\//i.test(rqUrl) ? ASSETS_CACHE : APP_CACHE;
     if (cache === ASSETS_CACHE && !fetchCaptureEnabled) return;
     event.respondWith(
         // First see if the content is in the cache
@@ -188,7 +188,7 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            if (/\.zim\w{0,2}\//i.test(rqUrl) && regexpZIMUrlWithNamespace.test(rqUrl)) {
+            if (/\.zim\//i.test(rqUrl) && regexpZIMUrlWithNamespace.test(rqUrl)) {
                 return fetchRequestFromZIM(event).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
