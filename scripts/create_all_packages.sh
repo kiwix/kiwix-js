@@ -58,7 +58,6 @@ else
    sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
 fi
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/index.html
 
 mkdir -p build
 rm -rf build/*
