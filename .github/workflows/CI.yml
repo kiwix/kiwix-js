@@ -24,6 +24,10 @@ jobs:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v2
 
+      - name: Test integrity of duplicate values
+        shell: bash
+        run: ./scripts/test_duplicate_values.sh
+
       # Install Node.js LTS
       - uses: actions/setup-node@v2
         with:
@@ -34,10 +38,6 @@ jobs:
 
       - name: Unit tests (Linux)
         run: npm test
-
-      - name: Test integrity of duplicate values
-        shell: bash
-        run: ./scripts/test_duplicate_values.sh
 
   # This job only runs when SauceLabs credentials are available (e.g. direct pushes and same-repo PRs)
   # and is used to run tests on additional operating systems and browsers.
