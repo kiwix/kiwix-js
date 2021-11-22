@@ -37,7 +37,7 @@ jobs:
 
       - name: Test integrity of duplicate values
         shell: bash
-        run: ./scipts/test_duplicate_values.sh
+        run: ./scripts/test_duplicate_values.sh
 
   # This job only runs when SauceLabs credentials are available (e.g. direct pushes and same-repo PRs)
   # and is used to run tests on additional operating systems and browsers.
