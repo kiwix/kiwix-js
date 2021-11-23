@@ -110,3 +110,12 @@ jobs:
           ./node_modules/.bin/nightwatch -c nightwatch.js --env edge40,edge44
           ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11
           pkill node || echo "Node process not running (anymore)"
+
+  # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
+  test-offline-files:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test the list of offline files in Service Worker
+        shell: pwsh
+        run: ./scripts/Check-OfflineFilesList.ps1
