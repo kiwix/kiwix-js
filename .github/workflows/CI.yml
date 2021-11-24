@@ -113,6 +113,9 @@ jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
   test-offline-files:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
+    # DEV: Note hard-coded name, and adjust if Repo is ever renamed
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'kiwix/kiwix-js'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
