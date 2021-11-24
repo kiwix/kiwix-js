@@ -36,7 +36,7 @@ Write-Output ""
 # NB The operator -ccontains is case-sensitive
 $ListOfFSFiles | % {
   if (-Not ($ListOfSWFiles -ccontains $_ -or $ListOfExemptions -contains $_)) {
-    Write-Warning "The file '$_' is not in the list of offline files`n"
+    Write-Warning "The file '$_' is not in the list of offline files"
     $MissingFiles = $true
   }
 }
