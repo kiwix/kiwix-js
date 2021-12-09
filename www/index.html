@@ -435,7 +435,7 @@
                             <div class="card-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label>
+                                    <label title="Checking this option hides active content warning permanently." >
                                         <input type="checkbox" name="hideActiveContentWarning"
                                             id="hideActiveContentWarningCheck">
                                         <strong>Permanently hide active content warning</strong> (for
@@ -443,21 +443,21 @@
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label>
+                                    <label title="Checking this option activates the animation transition between the app pages." >
                                         <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
                                             checked>
                                         <strong>Animate transition between app pages</strong>
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label>
+                                    <label title="This enables user to use home key to focus search bar.">
                                         <input type="checkbox" name="useHomeKeyToFocusSearchBar"
                                                id="useHomeKeyToFocusSearchBarCheck">
                                         <strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label>
+                                    <label title="This is used to select various themes like light, Dark (app only), Dark + invert (generic) and Dark + invert (Wikimedia).">
                                         <b>Select app theme</b> (content inversion is experimental):
                                     </label>
                                     <select class="form-control" id="appThemeSelect">
@@ -482,14 +482,14 @@
                                     <div class="col-sm-6">
                                         <div class="radio">
                                             <p>Kiwix JS can speed up the display of articles by caching assets:</p>
-                                            <label>
+                                            <label title="Cache is a high-speed data storage layer which stores a subset of data. This option enables caching assets which speeds up the display of articles.">
                                                 <input type="radio" name="cachedAssetsMode" value="true"
                                                     id="cachedAssetsModeRadioTrue" checked>
                                                 <strong>Cache assets</strong> (recommended)
                                             </label>
                                         </div>
                                         <div class="radio">
-                                            <label>
+                                            <label title="For low-memory devices caching assets is not possible and is not recommended. This option disables caching assets.">
                                                 <input type="radio" name="cachedAssetsMode" value="false"
                                                     id="cachedAssetsModeRadioFalse">
                                                 <strong>Do not cache assets</strong> (empties caches: for low-memory
@@ -538,14 +538,14 @@
                             <div class="card-body">
                                 <p>See <a href="#modes" id="modesLink">About (Expert Settings)</a> for an explanation of the difference between these modes:</p>
                                 <div class="radio">
-                                    <label>
+                                    <label title="This mode is fine for everyday use with Wikipedia / WikiMedia archives, and is stable and safe.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jQueryModeRadio" checked>
                                         <strong>JQuery</strong> (stable and safe)
                                     </label>
                                 </div>
                                 <div class="radio">
-                                    <label>
+                                    <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
                                         <strong>ServiceWorker</strong> (not available on all platforms, but supports
