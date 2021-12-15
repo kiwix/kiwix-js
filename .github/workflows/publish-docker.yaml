@@ -1,6 +1,6 @@
 # Workflow to update docker image for moz-extension.kiwix.org (since docker autobuild has been disabled)
 
-name: Docker
+name: Publish Docker container for Mozilla extension
 
 # Controls when the action will run.
 on:
