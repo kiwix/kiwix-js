@@ -88,7 +88,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     // A parameter to access the URL of any extension that this app was launched from
-    params['extensionURL'] = settingsStore.getItem('extensionURL');
+    params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 'jquery'; // Defaults to jquery for now
 
@@ -109,8 +109,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * problematic settings, by crafting the querystring appropriately.
      */
     (function overrideParams() {
-        var rgx = /[?&]([^=]+)=([^&]+)/g;
-        var matches = rgx.exec(window.location.search);
+        var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
+        var matches = regexpUrlParams.exec(window.location.search);
         while (matches) {
             if (matches[1] && matches[2]) {
                 var paramKey = decodeURIComponent(matches[1]);
@@ -123,10 +123,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     params[paramKey] = paramVal;
                 }
             }
-            matches = rgx.exec(window.location.search);
+            matches = regexpUrlParams.exec(window.location.search);
         }
         // If we are in an extension, send a 'success' message to the extension
-        if (params.extensionURL && ~window.location.href.indexOf(params.PWAServer)) {
+        if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
             var message = '?PWA_launch=success';
             // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
             // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
@@ -135,7 +135,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             frame.id = 'kiwixComm';
             frame.style.display = 'none';
             document.body.appendChild(frame);
-            frame.src = params.extensionURL + '/www/index.html'+ message;
+            frame.src = params.referrerExtensionURL + '/www/index.html'+ message;
             // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
             setTimeout(function () {
                 var kiwixComm = document.getElementById('kiwixComm');
@@ -653,7 +653,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function setContentInjectionMode(value) {
         params.contentInjectionMode = value;
         if (value === 'jquery') {
-            if (params.extensionURL) {
+            if (params.referrerExtensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
                 var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
@@ -662,7 +662,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
                     uriParams += '&appTheme=' + params.appTheme;
                     uriParams += '&showUIAnimations=' + params.showUIAnimations; 
-                    window.location.href = params.extensionURL + '/www/index.html' + uriParams;
+                    window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                     'Beam me down, Scotty!';
                 };
                 var response = confirm(message);
@@ -819,7 +819,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
             var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
-            uriParams += '&extensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
+            uriParams += '&referrerExtensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
             if (!PWASuccessfullyLaunched || !allowInternetAccess) {
                 // Add any further params that should only be passed when the user is intentionally switching to SW mode
                 uriParams += '&appTheme=' + params.appTheme;
