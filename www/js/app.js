@@ -683,7 +683,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // We should empty it and turn it off to prevent unnecessary space usage
             if ('caches' in window && isMessageChannelAvailable()) {
                 var channel = new MessageChannel();
-                if (isServiceWorkerAvailable && navigator.serviceWorker.controller) {
+                if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({
                         'action': { 'useCache': 'off' }
                     }, [channel.port2]);
