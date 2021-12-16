@@ -1,12 +1,20 @@
+# This is a utility script which helps developers choose sensible values for updating the online Docker-based implementation
+# of this app while testing and developing code in a specific branch. It checks app.js and service-worker.js for consistency,
+# and checks that that the underlying branch of a PR has been checked out (rather than the PR itself). It then calls the
+# GitHub REST API for dispatching the workflow using the provided values.
+#
+# IMPORTANT: Ensure that your personal github token is in your local copy of the '/scripts' directory, saved as 'github_token'
+#
+# You may run this script with commandline switches -machine_name (this could be 'dev'), the -branch_name, and -dryrun (this
+# will show the changes that would be made if run without the -dryrun switch). Alternatively, if you do not provide these
+# values, you will be prompted with sensible defaults.
+
 param (
     [string]$machine_name = "",
     [string]$branch_name = "",
     [switch]$dryrun = $false
 )
 
-# DEV: To build the Docker container programmatically (for testing), provide the -machine_name (this could be 'dev')
-# and the -branch_name switches on the commandline. If you do not provide them, you will be prompted with defaults.
-# IMPORTANT: Ensure that your personal github token is in your local copy of the '/scripts' directory, saved as 'github_token'
 
 # Provide parameters
 $release_uri = 'https://api.github.com/repos/kiwix/kiwix-js/actions/workflows/publish-docker.yaml/dispatches'
