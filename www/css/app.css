@@ -64,6 +64,10 @@
     padding-left: 1px !important;
 }
 
+.form-control {
+    margin-top: 2px !important;
+}
+
 #articleList {
     margin-bottom: 12px !important;
 }
