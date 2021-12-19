@@ -29,6 +29,22 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - name: Modify version in source files
+        env:
+          INPUT_VERSION = ${{ github.event.inputs.version }}
+          TAG_VERSION = ${{ github.event.release.tag_name }}
+        run: |
+          # Use the override value by preference
+          VERSION=${INPUT_VERSION}
+          # If no override input was entered, use the release tag
+          if [ ! $VERSION ]; then
+            VERSION=${TAG_VERSION}
+          fi
+          if [ $VERSION ]; then
+            # Set the required version in files to be copied to docker container
+            sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
+            sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
+          fi
       - name: Build and push
         uses: openzim/docker-publish-action@v6
         with:
@@ -36,7 +52,7 @@ jobs:
           credentials: |
             DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
-          tag-pattern: /^v([0-9.]+).*$/
+          tag-pattern: /^[0-9]([0-9.]+).*$/
           latest-on-tag: true
           dockerfile: docker/dockerfile-moz-extension.pwa
           restrict-to: kiwix/kiwix-js
