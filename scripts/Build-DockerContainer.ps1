@@ -9,16 +9,15 @@
 # will show the changes that would be made if run without the -dryrun switch). Alternatively, if you do not provide these
 # values, you will be prompted with sensible defaults.
 
+[CmdletBinding()] # Prevents execution with unrecognized switches
 param (
     [string]$machine_name = "",
     [string]$branch_name = "",
     [switch]$dryrun = $false
 )
 
-
 # Provide parameters
 $release_uri = 'https://api.github.com/repos/kiwix/kiwix-js/actions/workflows/publish-docker.yaml/dispatches'
-$github_token = Get-Content -Raw "$PSScriptRoot/github_token"
 
 $app_params = Select-String 'appVersion' "$PSScriptRoot\..\www\js\app.js" -List
 $serviceworker = Select-String 'appVersion' "$PSScriptRoot\..\service-worker.js" -List
@@ -47,6 +46,13 @@ if ($serviceworker -match 'appVersion\s*=\s*[''"]([^''"]+)') {
   exit
 }
 
+if (Test-Path $PSScriptRoot/github_token -PathType Leaf) {
+  $github_token = Get-Content -Raw "$PSScriptRoot/github_token"
+} else {
+  Write-Warning "Missing file github_token! Please add it to $PSScriptRoot to run this script.`n"
+  $github_token = $false
+}
+
 if ($machine_name -eq "") {
   if (-Not $dryrun) {
     $dryrun_check = Read-Host "Is this a dry run? [Y/N]"
@@ -72,6 +78,11 @@ if ($branch_name -eq "") {
 
 "`nTag name set to: $machine_name"
 "Branch name set to: $branch_name"
+
+if (-Not $dryrun -and -Not $github_token) {
+  "`nSupply token to continue.`n"
+  exit
+}
 
 # Set up dispatch_params object - for API see https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
 $dispatch_params = @{
