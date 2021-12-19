@@ -151,7 +151,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
-    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
+    document.getElementById('titleSearchRangeVal').innerHTML = encodeURIComponent(params.maxSearchResultsSize);
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
@@ -555,7 +555,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function getAssetsCacheAttributes() {
         return new Promise(function (resolve, reject) {
-            if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker.controller) {
+            if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker && navigator.serviceWorker.controller) {
                 // Create a Message Channel
                 var channel = new MessageChannel();
                 // Handler for recieving message reply from service worker
@@ -565,7 +565,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     else resolve(cache);
                 };
                 // Ask Service Worker for its cache status and asset count
-                if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({
+                navigator.serviceWorker.controller.postMessage({
                     'action': {
                         'useCache': params.useCache ? 'on' : 'off',
                         'checkCache': window.location.href

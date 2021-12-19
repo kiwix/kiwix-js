@@ -233,7 +233,7 @@ define(rqDef, function() {
         if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
             // Create a Message Channel
             var channel = new MessageChannel();
-            // Handler for recieving message reply from service worker
+            // Handler for receiving message reply from service worker
             channel.port1.onmessage = function (event) {
                 var cacheNames = event.data;
                 if (cacheNames.error) return;
