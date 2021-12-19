@@ -131,10 +131,9 @@ self.addEventListener("install", function (event) {
     console.debug("[SW] Install Event processing");
     // DEV: We can't skip waiting because too many params are loaded at an early stage from the old file before the new one can activate...
     // self.skipWaiting();
-    // We try to circumvent the browser's cache by adding a header to the Request
-    var requests = precacheFiles.map(function (url) {
-        // Ensuring all files are explicitly versioned via the querystring helps to prevent browser caching too
-        return new Request(url + '?v' + appVersion, { cache: 'no-cache' });
+    // We try to circumvent the browser's cache by adding a header to the Request, and it ensures all files are explicitly versioned
+    var requests = precacheFiles.map(function (urlPath) {
+        return new Request(urlPath + '?v' + appVersion, { cache: 'no-cache' });
     });
     if (!regexpExcludedURLSchema.test(requests[0].url)) event.waitUntil(
         caches.open(APP_CACHE).then(function (cache) {
@@ -189,7 +188,7 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            if (/\.zim\//i.test(rqUrl) && regexpZIMUrlWithNamespace.test(rqUrl)) {
+            if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(rqUrl)) {
                 return fetchRequestFromZIM(event).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
@@ -202,7 +201,7 @@ self.addEventListener('fetch', function (event) {
                     return msgPortData;
                 });
             } else {
-                // It's not a ZIM URL
+                // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
                 return fetch(event.request).then(function (response) {
                   // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
                   if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
