@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Specific version to build (overrides on-master and tag-pattern)
+        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users!
         required: false
         default: ''
 
@@ -36,12 +36,12 @@ jobs:
         run: |
           # Use the override value by preference
           VERSION=${INPUT_VERSION}
-          # If no override input was entered, use the release tag
-          if [ ! $VERSION ]; then
+          # If no valid override input was entered, then use the release tag
+          if [[ ! $VERSION =~ ^[0-9.]+ ]]; then
             VERSION=${TAG_VERSION}
           fi
-          if [ $VERSION ]; then
-            # Set the required version in files to be copied to docker container
+          # If Version matches a release pattern, then set the appVersion in the files to be copied to docker container 
+          if [[ $VERSION =~ ^[0-9.]+ ]]; then
             sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
             sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
           fi

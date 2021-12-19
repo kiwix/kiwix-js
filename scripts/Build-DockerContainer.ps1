@@ -25,7 +25,7 @@ $suggested_build = ''
 $app_tag = ''
 if ($app_params -match 'params\[[''"]appVersion[''"]]\s*=\s*[''"]([^''"]+)') {
   $app_tag = $matches[1]
-  $suggested_build = 'dev_' + $app_tag 
+  $suggested_build = $app_tag 
 } else {
   "*** WARNING: App version is incorrectly set in app.js.`nPlease correct before continuing.`n"
   exit
@@ -38,7 +38,7 @@ if ($serviceworker -match 'appVersion\s*=\s*[''"]([^''"]+)') {
     "Please correct before continuing.`n"
     exit
   } else {
-    "Version in app.js: $app_tag"
+    "`nVersion in app.js: $app_tag"
     "Version in service-worker.js: $sw_tag`n"
   }
 } else {
@@ -61,7 +61,7 @@ if ($machine_name -eq "") {
       "[DRYRUN]: Initiating dry run..."
     }
   }
-  $machine_name = Read-Host "`nGive the tag name to use for the docker build, or Enter to accept suggested build name [$suggested_build]"
+  $machine_name = Read-Host "`nGive the name to use for the docker build, or Enter to accept suggested name [$suggested_build]"
   if (-Not $machine_name) { $machine_name = $suggested_build }
 }
 
@@ -76,7 +76,7 @@ if ($branch_name -eq "") {
 
 }
 
-"`nTag name set to: $machine_name"
+"`nMachine name set to: $machine_name"
 "Branch name set to: $branch_name"
 
 if (-Not $dryrun -and -Not $github_token) {
