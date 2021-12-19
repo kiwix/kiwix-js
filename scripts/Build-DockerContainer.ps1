@@ -9,7 +9,8 @@
 # will show the changes that would be made if run without the -dryrun switch). Alternatively, if you do not provide these
 # values, you will be prompted with sensible defaults.
 
-[CmdletBinding()] # Prevents execution with unrecognized switches
+# Prevents execution with unrecognized switches
+[CmdletBinding()]
 param (
     [string]$machine_name = "",
     [string]$branch_name = "",
@@ -25,7 +26,7 @@ $suggested_build = ''
 $app_tag = ''
 if ($app_params -match 'params\[[''"]appVersion[''"]]\s*=\s*[''"]([^''"]+)') {
   $app_tag = $matches[1]
-  $suggested_build = $app_tag 
+  $suggested_build = 'dev-' + $app_tag
 } else {
   "*** WARNING: App version is incorrectly set in app.js.`nPlease correct before continuing.`n"
   exit
@@ -62,12 +63,20 @@ if ($machine_name -eq "") {
     }
   }
   $machine_name = Read-Host "`nGive the name to use for the docker build, or Enter to accept suggested name [$suggested_build]"
-  if (-Not $machine_name) { $machine_name = $suggested_build }
+  ""
+  if (-Not $machine_name) { 
+    $machine_name = $suggested_build
+    $warning_message = "Please note that ""$app_tag"" will be used as the appVersion. If you want to change that, press Ctrl-C and re-run this script entering a build number matching 9.9.9."
+  } elseif ($machine_name -match '^[\d.]+') {
+    $warning_message = "*** Please be aware that you have entered a release tag matching the format 9.9.9* [$machine_name], and so it will be used as the appVersion of the container " +
+      "and will be visible to users. If this is NOT want you want, press Ctrl-C to abort this script, and re-run with the suggested build number." 
+  }
+  if ($warning_message) { Write-Warning $warning_message }
 }
 
 if ($branch_name -eq "") {
   $suggested_branch = &{ git branch --show-current }
-  $branch_name = Read-Host "Give the branch name to use of the docker build, or Enter to accept [$suggested_branch]"
+  $branch_name = Read-Host "`nGive the branch name to use of the docker build, or Enter to accept [$suggested_branch]"
   if (-Not $branch_name) { $branch_name = $suggested_branch }
   if ($branch_name -imatch '^pr/\d+') {
     "`nWARNING: You appear to have indicated a PR. Please check out the underlying branch to use this script,`nor else run it again and give the branch name at the prompt.`n"
