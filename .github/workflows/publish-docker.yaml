@@ -1,4 +1,6 @@
 # Workflow to update docker image for moz-extension.kiwix.org (since docker autobuild has been disabled)
+# This workflow uses openzim/docker-publish-action@v6
+# Documentation: https://github.com/openzim/docker-publish-action#readme
 
 name: Publish Docker container for Mozilla extension
 
@@ -8,9 +10,12 @@ on:
   release:
     types: [ published ]
 
-  # Call this for testing from the REST API with '{"version":"{tag}"}'
-  # 'https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches'
-  # Documentation: https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
+  # DEV: You can call this dispatch for testing from the REST API and set input values with
+  # "inputs": {
+  #    "version": "{tag}"
+  # }
+  # API: 'https://api.github.com/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches'
+  # Documentation of API: https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
   workflow_dispatch:
     inputs:
       version:
