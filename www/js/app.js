@@ -100,7 +100,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     };
 
     // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
-    appstate['updateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
+    appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
     
     /**
      * Apply any override parameters that might be in the querystring.

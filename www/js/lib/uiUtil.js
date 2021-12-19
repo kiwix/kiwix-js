@@ -230,7 +230,7 @@ define(rqDef, function() {
      */
     var updateAlert = document.getElementById('updateAlert');
     function checkUpdateStatus(appstate) {
-        if ('serviceWorker' in navigator && !appstate.updateNeeded) {
+        if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
             // Create a Message Channel
             var channel = new MessageChannel();
             // Handler for recieving message reply from service worker
@@ -241,13 +241,13 @@ define(rqDef, function() {
                     caches.keys().then(function (keyList) {
                         if (keyList.length < 3) {
                             updateAlert.style.display = 'none';
-                            appstate.updateNeeded = false;
+                            appstate.pwaUpdateNeeded = false;
                             return;
                         }
                         keyList.forEach(function (key) {
                             if (key === cacheNames.app || key === cacheNames.assets) return;
                             // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
-                            appstate.updateNeeded = true;
+                            appstate.pwaUpdateNeeded = true;
                             updateAlert.style.display = 'block';
                             document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(/^[^\d]+/, '') +
                                 ' is ready to install. (Re-launch app to install.)';
