@@ -393,6 +393,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             document.getElementById('modes').scrollIntoView();
         }, 600);
     });
+
+    //Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
+    //Returning false prevents their dragging(which can cause some unexpected behavior)
+    document.getElementById('kiwixLogo').ondragstart=function () {return false;}
     document.getElementById('navigationButtons').ondragstart=function () {return false;}
 
     //focus search bar (#prefix) if Home key is pressed
