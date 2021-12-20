@@ -393,7 +393,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             document.getElementById('modes').scrollIntoView();
         }, 600);
     });
-    document.getElementById('navigationButtons').ondragstart=function (e) {return false;}
+    document.getElementById('navigationButtons').ondragstart=function () {return false;}
 
     //focus search bar (#prefix) if Home key is pressed
     function focusPrefixOnHomeKey(event) {
