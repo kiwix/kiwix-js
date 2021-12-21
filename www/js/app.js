@@ -395,7 +395,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
 
     //Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
-    //Returning false prevents their dragging(which can cause some unexpected behavior)
+    //Returning false prevents their dragging (which can cause some unexpected behavior)
+    //Doing that in javascript is the only way to make it cross-browser compatible
     document.getElementById('kiwixLogo').ondragstart=function () {return false;}
     document.getElementById('navigationButtons').ondragstart=function () {return false;}
 
