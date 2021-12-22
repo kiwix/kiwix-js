@@ -79,13 +79,13 @@
                         <div class="row">
                             <span class="col-10">
                                 <span class="input-group">
-                                    <input type="search" id="prefix" placeholder="Search..." class="form-control" />
-                                    <button type="button" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
+                                    <input type="search" title="Search field is the textfield which accepts user input to be searched for in a database." id="prefix" placeholder="Search..." class="form-control" />
+                                    <button type="button" title="Search button's role is to search the query typed in the Seach box." class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
                                 </span>
                             </span>
                             <span class="col-2">
                                 <span class="btn-group">
-                                    <button type="button" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
+                                    <button type="button" title="Random button possibly loads a random page on a click." class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
                                 </span>
                             </span>
                         </div>
@@ -435,7 +435,7 @@
                             <div class="card-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label title="Checking this option hides active content warning permanently." >
+                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
                                         <input type="checkbox" name="hideActiveContentWarning"
                                             id="hideActiveContentWarningCheck">
                                         <strong>Permanently hide active content warning</strong> (for
@@ -443,21 +443,21 @@
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label title="Checking this option activates the animation transition between the app pages." >
+                                    <label title="The animation is on by default and can be disabled by unchecking this option." >
                                         <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
                                             checked>
                                         <strong>Animate transition between app pages</strong>
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label title="This enables user to use home key to focus search bar.">
+                                    <label title="This enables quick access to search, no matter where you are in an article.">
                                         <input type="checkbox" name="useHomeKeyToFocusSearchBar"
                                                id="useHomeKeyToFocusSearchBarCheck">
                                         <strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label title="This is used to select various themes like light, Dark (app only), Dark + invert (generic) and Dark + invert (Wikimedia).">
+                                    <label title="This allows selection of themes either for the app only, or for the app and the loaded content.">
                                         <b>Select app theme</b> (content inversion is experimental):
                                     </label>
                                     <select class="form-control" id="appThemeSelect">
@@ -482,14 +482,14 @@
                                     <div class="col-sm-6">
                                         <div class="radio">
                                             <p>Kiwix JS can speed up the display of articles by caching assets:</p>
-                                            <label title="Cache is a high-speed data storage layer which stores a subset of data. This option enables caching assets which speeds up the display of articles.">
+                                            <label title="The cache provides high-speed access to ZIM assets such as stylesheets and scripts, which will improve article load times.">
                                                 <input type="radio" name="cachedAssetsMode" value="true"
                                                     id="cachedAssetsModeRadioTrue" checked>
                                                 <strong>Cache assets</strong> (recommended)
                                             </label>
                                         </div>
                                         <div class="radio">
-                                            <label title="For low-memory devices caching assets is not possible and is not recommended. This option disables caching assets.">
+                                            <label title="For low-memory devices, caching assets may cause app instability. This option allows you to disable the cache.">
                                                 <input type="radio" name="cachedAssetsMode" value="false"
                                                     id="cachedAssetsModeRadioFalse">
                                                 <strong>Do not cache assets</strong> (empties caches: for low-memory
