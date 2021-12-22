@@ -64,6 +64,10 @@
     padding-left: 1px !important;
 }
 
+.form-control {
+    margin-top: 2px !important;
+}
+
 #articleList {
     margin-bottom: 12px !important;
 }
@@ -253,7 +257,6 @@ button {
 
     /* Reduce height of the search field */
     .form-control {
-        height: 28px !important;
         padding-bottom: 5px !important;
     }
     #formArticleSearch {
