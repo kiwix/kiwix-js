@@ -46,9 +46,9 @@ const ASSETS_CACHE = 'kiwixjs-assetsCache';
  * restarts the app, when we will also delete the old cache.
  * @type {String}
  */
- const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
+const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
 
- /**
+/**
  * A global Boolean that governs whether ASSETS_CACHE will be used
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
@@ -75,7 +75,7 @@ var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
  * In our case, there is also the ZIM file name used as a prefix in the URL
  * @type {RegExp}
  */
-var regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
+const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
 
 /**
  * The list of files that the app needs in order to run entirely from offline code
@@ -161,7 +161,7 @@ self.addEventListener('activate', function (event) {
             return Promise.all(keyList.map(function (key) {
                 console.debug('[SW] Current cache key is ' + key);
                 if (key !== APP_CACHE && key !== ASSETS_CACHE) {
-                    console.debug('[SW] App updated to version ' + appVersion + ': deleting old cache')
+                    console.debug('[SW] App updated to version ' + appVersion + ': deleting old cache');
                     return caches.delete(key);
                 }
             }));
@@ -169,8 +169,8 @@ self.addEventListener('activate', function (event) {
     );
 });
 
-var outgoingMessagePort = null;
-var fetchCaptureEnabled = false;
+let outgoingMessagePort = null;
+let fetchCaptureEnabled = false;
 
 self.addEventListener('fetch', function (event) {
     // Only cache GET requests
