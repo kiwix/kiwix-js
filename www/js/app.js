@@ -98,6 +98,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Unique identifier of the article expected to be displayed
     var expectedArticleURLToBeDisplayed = "";
+ 
+    var darkPreference = window.matchMedia("(prefers-color-scheme : dark");
+    darkPreference.addEventListener("change", e=> {
+            if (params.appTheme == "auto") {
+            let newColorScheme = e.matches ? "dark_invert" : "light";
+            uiUtil.applyAppTheme(newColorScheme);
+            }  
+            else  uiUtil.applyAppTheme(params.appTheme);     
+        });
     
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
