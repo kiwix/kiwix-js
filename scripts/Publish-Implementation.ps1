@@ -1,13 +1,13 @@
-# This is a utility script which helps developers choose sensible values for updating the online Docker-based implementation
-# of this app while testing and developing code in a specific branch. It checks app.js and service-worker.js for consistency,
-# and checks that that the underlying branch of a PR has been checked out (rather than the PR itself). It then calls the
-# GitHub REST API for dispatching the workflow using the provided values.
+# This is a utility script which helps developers choose sensible values for publishing the implementation of this app
+# to GitHub Pages, or to eh docker container. It is useful for testing and developing code in a specific branch. It checks
+# app.js and service-worker.js for consistency, and checks that that the underlying branch of a PR has been checked out
+# (rather than the PR itself). It then calls the GitHub REST API for dispatching the workflow using the provided values.
 #
 # IMPORTANT: Ensure that your personal github token is in your local copy of the '/scripts' directory, saved as 'github_token'
 #
-# You may run this script with commandline switches -machine_name (this could be 'dev'), the -branch_name, and -dryrun (this
-# will show the changes that would be made if run without the -dryrun switch). Alternatively, if you do not provide these
-# values, you will be prompted with sensible defaults.
+# You may run this script with commandline switches -machine_name (this could be 'dev'), -target (either 'ghpages' or 'docker'),
+# the -branch_name, and -dryrun (this will show the changes that would be made if run without the -dryrun switch).
+# Alternatively, if you do not provide these values, you will be prompted with sensible defaults.
 
 # Prevents execution with unrecognized switches
 [CmdletBinding()]
@@ -67,9 +67,6 @@ if ($machine_name -eq "") {
   if ($target -eq "") {
     $target = Read-Host "Which implementation (ghpages or docker) do you wish to update? Enter to accept suggested [ghpages]"
   }
-  if (-Not $target) {
-    $target = "ghpages"
-  }
   $machine_name = Read-Host "Give the name to use for the docker build, or Enter to accept suggested name [$suggested_build]"
   ""
   if (-Not $machine_name) { 
@@ -82,6 +79,10 @@ if ($machine_name -eq "") {
   if ($warning_message) { Write-Warning $warning_message }
 }
 
+if (-Not $target) {
+  $target = "ghpages"
+}
+
 if ($branch_name -eq "") {
   $suggested_branch = &{ git branch --show-current }
   $branch_name = Read-Host "`nGive the branch name to use of the docker build, or Enter to accept [$suggested_branch]"
@@ -90,10 +91,10 @@ if ($branch_name -eq "") {
     "`nWARNING: You appear to have indicated a PR. Please check out the underlying branch to use this script,`nor else run it again and give the branch name at the prompt.`n"
     return
   }
-
 }
 
 "`nMachine name set to: $machine_name"
+"Target set to: $target"
 "Branch name set to: $branch_name"
 
 if (-Not $dryrun -and -Not $github_token) {
