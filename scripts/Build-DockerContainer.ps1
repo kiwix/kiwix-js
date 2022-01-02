@@ -13,6 +13,7 @@
 [CmdletBinding()]
 param (
     [string]$machine_name = "",
+    [string]$target = "",
     [string]$branch_name = "",
     [switch]$dryrun = $false
 )
@@ -62,7 +63,14 @@ if ($machine_name -eq "") {
       "[DRYRUN]: Initiating dry run..."
     }
   }
-  $machine_name = Read-Host "`nGive the name to use for the docker build, or Enter to accept suggested name [$suggested_build]"
+  ""
+  if ($target -eq "") {
+    $target = Read-Host "Which implementation (ghpages or docker) do you wish to update? Enter to accept suggested [ghpages]"
+  }
+  if (-Not $target) {
+    $target = "ghpages"
+  }
+  $machine_name = Read-Host "Give the name to use for the docker build, or Enter to accept suggested name [$suggested_build]"
   ""
   if (-Not $machine_name) { 
     $machine_name = $suggested_build
@@ -103,7 +111,10 @@ $dispatch_params = @{
     }
     Body = @{
       'ref' = $branch_name
-      'inputs' = @{ 'version' = $machine_name }
+      'inputs' = @{ 
+        'version' = $machine_name
+        'target' = $target
+      }
     } | ConvertTo-Json
     ContentType = "application/json"
 }

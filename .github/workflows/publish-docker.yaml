@@ -19,9 +19,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users!
+        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users.
         required: false
         default: ''
+      target:
+        description: 'Set the target to update: "ghpages" or "docker" (will update GitHub Pages by default)'
+        required: false
+        default: ghpages
 
 jobs:
   build-and-push:
@@ -45,7 +49,8 @@ jobs:
             sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
             sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
           fi
-      - name: Build and push
+      - name: Build and push to docker
+        if: github.event.inputs.target == 'docker'
         uses: openzim/docker-publish-action@v6
         with:
           image-name: kiwix/kiwix-moz-extension
@@ -58,3 +63,10 @@ jobs:
           restrict-to: kiwix/kiwix-js
           registries: docker.io
           manual-tag: ${{ github.event.inputs.version }}
+      - name: Update GitHub Pages
+        if: github.event.inputs.target == 'ghpages'
+        run: |
+          git add .
+          git commit -m "Set GitHub Pages release version"
+          # Set gh-pages branch on origin to the currently checked-out branch
+          git push origin HEAD:gh-pages --force
