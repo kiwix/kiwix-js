@@ -39,12 +39,17 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           TAG_VERSION: ${{ github.event.release.tag_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           # Use the override value by preference
           VERSION=${INPUT_VERSION}
           # If no valid override input was entered, then use the release tag
           if [[ ! $VERSION =~ ^[0-9.]+ ]]; then
             VERSION=${TAG_VERSION}
+            # Strip -WIP if we are releasing
+            if [[ $EVENT_NAME == 'release' ]]; then
+              VERSION=${VERSION/-WIP/}
+            fi
           fi
           # If Version matches a release pattern, then set the appVersion in the files to be published
           if [[ $VERSION =~ ^[0-9.]+ ]]; then
