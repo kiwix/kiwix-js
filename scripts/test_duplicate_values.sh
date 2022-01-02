@@ -8,8 +8,8 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Check values in files
 cd $REPO_DIR
-SW_VERSION="$(grep 'appVersion\s=' service-worker.js | sed -E 's/[^[:digit:]]+([[:digit:].]+).*/\1/')"
-APP_VERSION="$(grep 'params\[.appVersion' www/js/app.js | sed -E 's/[^[:digit:]]+([[:digit:].]+).*/\1/')"
+SW_VERSION="$(grep 'appVersion\s=' service-worker.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
+APP_VERSION="$(grep 'params\[.appVersion' www/js/app.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
 echo "service-worker.js : $SW_VERSION"
 echo "app.js            : $APP_VERSION"
 if [ $SW_VERSION == $APP_VERSION ] ; then
