@@ -126,7 +126,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             matches = regexpUrlParams.exec(window.location.search);
         }
-        // If we are in an extension, send a 'success' message to the extension
+        // If we are in the PWA version launched from an extension, send a 'success' message to the extension
         if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
             var message = '?PWA_launch=success';
             // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
@@ -850,11 +850,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var response;
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
             if (PWASuccessfullyLaunched) {
-                launchPWA();
+                checkPWAIsOnline();
             } else {
                 response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
                 if (response) {
-                    launchPWA();
+                    checkPWAIsOnline();
                 } else {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     setContentInjectionMode('jquery');
