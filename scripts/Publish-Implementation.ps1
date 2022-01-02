@@ -67,11 +67,11 @@ if ($machine_name -eq "") {
   if ($target -eq "") {
     $target = Read-Host "Which implementation (ghpages or docker) do you wish to update? Enter to accept suggested [ghpages]"
   }
-  $machine_name = Read-Host "Give the name to use for the docker build, or Enter to accept suggested name [$suggested_build]"
+  $machine_name = Read-Host "Give the name to use for the implementation, or Enter to accept suggested name [$suggested_build]"
   ""
   if (-Not $machine_name) { 
     $machine_name = $suggested_build
-    $warning_message = "Please note that ""$app_tag"" will be used as the appVersion. If you want to change that, press Ctrl-C and re-run this script entering a build number matching 9.9.9."
+    $warning_message = "Please note that ""$app_tag"" will be used as the appVersion. If you want to change that, press Ctrl-C`nand re-run this script entering a build number matching 9.9.9."
   } elseif ($machine_name -match '^[\d.]+') {
     $warning_message = "*** Please be aware that you have entered a release tag matching the format 9.9.9* [$machine_name], and so it will be used as the appVersion of the container " +
       "and will be visible to users. If this is NOT want you want, press Ctrl-C to abort this script, and re-run with the suggested build number." 
@@ -85,10 +85,11 @@ if (-Not $target) {
 
 if ($branch_name -eq "") {
   $suggested_branch = &{ git branch --show-current }
-  $branch_name = Read-Host "`nGive the branch name to use of the docker build, or Enter to accept [$suggested_branch]"
+  $branch_name = Read-Host "`nGive the branch name to use of the implementation, or Enter to accept [$suggested_branch]"
   if (-Not $branch_name) { $branch_name = $suggested_branch }
   if ($branch_name -imatch '^pr/\d+') {
-    "`nWARNING: You appear to have indicated a PR. Please check out the underlying branch to use this script,`nor else run it again and give the branch name at the prompt.`n"
+    ""
+    Write-Warning "You appear to have indicated a PR. Please check out the underlying branch to use this script,`nor else run it again and give the branch name at the prompt.`n"
     return
   }
 }
