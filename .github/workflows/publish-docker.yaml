@@ -1,12 +1,14 @@
-# Workflow to update docker image for moz-extension.kiwix.org (since docker autobuild has been disabled)
+# Workflow to publish the Mozilla extension
+# Conditionally publishes the current branch to GitHub Pages, and/or
+# updates docker image for moz-extension.kiwix.org
 # This workflow uses openzim/docker-publish-action@v6
 # Documentation: https://github.com/openzim/docker-publish-action#readme
 
-name: Publish Docker container for Mozilla extension
+name: Publish Mozilla extension
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow when a release is published or updated
+  # Triggers the workflow when a release is published
   release:
     types: [ published ]
 
@@ -29,7 +31,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Deploy Docker Image
+    name: Deploy Mozilla extension
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -44,13 +46,13 @@ jobs:
           if [[ ! $VERSION =~ ^[0-9.]+ ]]; then
             VERSION=${TAG_VERSION}
           fi
-          # If Version matches a release pattern, then set the appVersion in the files to be copied to docker container
+          # If Version matches a release pattern, then set the appVersion in the files to be published
           if [[ $VERSION =~ ^[0-9.]+ ]]; then
             sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
             sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
           fi
       - name: Build and push to docker
-        if: github.event.inputs.target == 'docker'
+        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
         uses: openzim/docker-publish-action@v6
         with:
           image-name: kiwix/kiwix-moz-extension
@@ -63,8 +65,8 @@ jobs:
           restrict-to: kiwix/kiwix-js
           registries: docker.io
           manual-tag: ${{ github.event.inputs.version }}
-      - name: Update GitHub Pages
-        if: github.event.inputs.target == 'ghpages'
+      - name: Publish to GitHub Pages
+        if: github.event.inputs.target == 'ghpages' || github.event_name == 'release'
         run: |
           git add .
           git commit -m "Set GitHub Pages release version"
