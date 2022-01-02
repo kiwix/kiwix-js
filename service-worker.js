@@ -154,6 +154,10 @@ self.addEventListener("install", function (event) {
 
 // Allow sw to control current page
 self.addEventListener('activate', function (event) {
+    // "Claiming" the ServiceWorker is necessary to make it work right away,
+    // without the need to reload the page.
+    // See https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim
+    event.waitUntil(self.clients.claim());
     console.debug('[SW] Claiming clients for current page');
     // Check all the cache keys, and delete any old caches
     event.waitUntil(
