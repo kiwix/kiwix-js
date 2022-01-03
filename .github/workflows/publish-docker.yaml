@@ -73,6 +73,9 @@ jobs:
       - name: Publish to GitHub Pages
         if: github.event.inputs.target == 'ghpages' || github.event_name == 'release'
         run: |
+          # Set up username and email
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
           git add .
           git commit -m "Set GitHub Pages release version"
           # Set gh-pages branch on origin to the currently checked-out branch
