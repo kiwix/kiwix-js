@@ -76,7 +76,9 @@ jobs:
           # Set up username and email
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-          git add .
-          git commit -m "Set GitHub Pages release version"
+          if [ -z "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Set GitHub Pages release version"
+          fi
           # Set gh-pages branch on origin to the currently checked-out branch
           git push origin HEAD:gh-pages --force
