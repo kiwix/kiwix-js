@@ -1,12 +1,14 @@
-# Workflow to update docker image for moz-extension.kiwix.org (since docker autobuild has been disabled)
+# Workflow to publish the Mozilla extension
+# Conditionally publishes the current branch to GitHub Pages, and/or
+# updates docker image for moz-extension.kiwix.org
 # This workflow uses openzim/docker-publish-action@v6
 # Documentation: https://github.com/openzim/docker-publish-action#readme
 
-name: Publish Docker container for Mozilla extension
+name: Publish Mozilla extension
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow when a release is published or updated
+  # Triggers the workflow when a release is published
   release:
     types: [ published ]
 
@@ -19,13 +21,17 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users!
+        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users.
         required: false
         default: ''
+      target:
+        description: 'Set the target to update: "ghpages" or "docker" (will update GitHub Pages by default)'
+        required: false
+        default: ghpages
 
 jobs:
   build-and-push:
-    name: Deploy Docker Image
+    name: Deploy Mozilla extension
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -33,19 +39,25 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
           TAG_VERSION: ${{ github.event.release.tag_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           # Use the override value by preference
           VERSION=${INPUT_VERSION}
           # If no valid override input was entered, then use the release tag
           if [[ ! $VERSION =~ ^[0-9.]+ ]]; then
             VERSION=${TAG_VERSION}
+            # Strip -WIP if we are releasing
+            if [[ $EVENT_NAME == 'release' ]]; then
+              VERSION=${VERSION/-WIP/}
+            fi
           fi
-          # If Version matches a release pattern, then set the appVersion in the files to be copied to docker container
+          # If Version matches a release pattern, then set the appVersion in the files to be published
           if [[ $VERSION =~ ^[0-9.]+ ]]; then
             sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
             sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
           fi
-      - name: Build and push
+      - name: Build and push to docker
+        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
         uses: openzim/docker-publish-action@v6
         with:
           image-name: kiwix/kiwix-moz-extension
@@ -58,3 +70,15 @@ jobs:
           restrict-to: kiwix/kiwix-js
           registries: docker.io
           manual-tag: ${{ github.event.inputs.version }}
+      - name: Publish to GitHub Pages
+        if: github.event.inputs.target == 'ghpages' || github.event_name == 'release'
+        run: |
+          # Set up username and email
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          if [ ! -z "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Set GitHub Pages release version"
+          fi
+          # Set gh-pages branch on origin to the currently checked-out branch
+          git push origin HEAD:gh-pages --force
