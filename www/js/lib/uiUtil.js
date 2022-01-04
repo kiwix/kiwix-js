@@ -244,7 +244,7 @@ define(rqDef, function() {
                         keyList.forEach(function (key) {
                             if (key === cacheNames.app || key === cacheNames.assets) return;
                             // Ignore any keys that do not begin with the appCache prefix (they could be from other apps using the same domain)
-                            if (!~~key.indexOf(cachePrefix)) return;
+                            if (key.indexOf(cachePrefix)) return;
                             // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
                             appstate.pwaUpdateNeeded = true;
                             updateAlert.style.display = 'block';
