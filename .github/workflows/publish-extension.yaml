@@ -24,9 +24,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users.
-        required: false
-        default: ''
+        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users. Non-matching values will cause appVersion to be used.
+        required: true
+        default: 'dev'
       target:
         description: 'Set the target to update: "ghpages" or "docker" (will update GitHub Pages by default)'
         required: false
