@@ -46,14 +46,9 @@ jobs:
         run: |
           # Use the override value by preference
           VERSION=${INPUT_VERSION}
-          # If no valid override input was entered, then use the release tag
+          # If no valid override input was entered, then try to use the release tag
           if [[ ! $VERSION =~ ^[0-9.]+ ]]; then
             VERSION=${TAG_VERSION}
-            # If we still don't have a valid version and we are pusshing to master, get it from app.js and strip -WIP
-            if [[ ! $VERSION =~ ^[0-9.]+ && $EVENT_NAME == 'push' ]]; then
-              VERSION=$(grep 'params\[.appVersion' ./www/js/app.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")
-              VERSION=${VERSION/-WIP/}
-            fi
           fi
           # If Version matches a release pattern, then set the appVersion in the files to be published
           if [[ $VERSION =~ ^[0-9.]+ ]]; then
