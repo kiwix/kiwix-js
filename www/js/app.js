@@ -198,7 +198,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Do not initiate the same search if it is already in progress
         if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
         $("#welcomeText").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, prefix);
         // Initiate the search
@@ -374,7 +374,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
         $("#searchingArticles").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
         uiUtil.checkUpdateStatus(appstate);
@@ -402,7 +402,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
