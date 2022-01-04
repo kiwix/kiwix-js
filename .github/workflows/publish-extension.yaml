@@ -8,6 +8,9 @@ name: Publish Mozilla extension
 
 # Controls when the action will run.
 on:
+  # Triggers the workflow on push to master
+  push:
+    branches: [ master ]
   # Triggers the workflow when a release is published
   release:
     types: [ published ]
@@ -43,19 +46,16 @@ jobs:
         run: |
           # Use the override value by preference
           VERSION=${INPUT_VERSION}
-          # If no valid override input was entered, then use the release tag
+          # If no valid override input was entered, then try to use the release tag
           if [[ ! $VERSION =~ ^[0-9.]+ ]]; then
             VERSION=${TAG_VERSION}
-            # Strip -WIP if we are releasing
-            if [[ $EVENT_NAME == 'release' ]]; then
-              VERSION=${VERSION/-WIP/}
-            fi
           fi
           # If Version matches a release pattern, then set the appVersion in the files to be published
           if [[ $VERSION =~ ^[0-9.]+ ]]; then
             sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
             sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
           fi
+      # Publish to docker only if explicitly requested or we are releasing
       - name: Build and push to docker
         if: github.event.inputs.target == 'docker' || github.event_name == 'release'
         uses: openzim/docker-publish-action@v6
@@ -70,8 +70,9 @@ jobs:
           restrict-to: kiwix/kiwix-js
           registries: docker.io
           manual-tag: ${{ github.event.inputs.version }}
+      # Publish to GitHub Pages if explicitly requested, or if releasing, or if pushing to master
       - name: Publish to GitHub Pages
-        if: github.event.inputs.target == 'ghpages' || github.event_name == 'release'
+        if: github.event.inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
         run: |
           # Set up username and email
           git config user.name "GitHub Actions Bot"
