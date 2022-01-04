@@ -239,17 +239,16 @@ define(rqDef, function() {
                 if (cacheNames.error) return;
                 else {
                     caches.keys().then(function (keyList) {
-                        if (keyList.length < 3) {
-                            updateAlert.style.display = 'none';
-                            appstate.pwaUpdateNeeded = false;
-                            return;
-                        }
+                        updateAlert.style.display = 'none';
+                        var cachePrefix = cacheNames.app.replace(/^([^\d]+).+/, '$1');
                         keyList.forEach(function (key) {
                             if (key === cacheNames.app || key === cacheNames.assets) return;
+                            // Ignore any keys that do not begin with the appCache prefix (they could be from other apps using the same domain)
+                            if (!~~key.indexOf(cachePrefix)) return;
                             // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
                             appstate.pwaUpdateNeeded = true;
                             updateAlert.style.display = 'block';
-                            document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(/^[^\d]+/, '') +
+                            document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(cachePrefix, '') +
                                 ' is ready to install. (Re-launch app to install.)';
                         });
                     });
