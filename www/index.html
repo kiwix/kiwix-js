@@ -79,13 +79,13 @@
                         <div class="row">
                             <span class="col-10">
                                 <span class="input-group">
-                                    <input type="search" id="prefix" placeholder="Search..." class="form-control" />
-                                    <button type="button" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
+                                    <input type="search" title="Search for article titles" id="prefix" placeholder="Search..." class="form-control" />
+                                    <button type="button" title="Search" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
                                 </span>
                             </span>
                             <span class="col-2">
                                 <span class="btn-group">
-                                    <button type="button" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
+                                    <button type="button" title="Select a random article to display" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
                                 </span>
                             </span>
                         </div>
@@ -435,7 +435,7 @@
                             <div class="card-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label>
+                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
                                         <input type="checkbox" name="hideActiveContentWarning"
                                             id="hideActiveContentWarningCheck">
                                         <strong>Permanently hide active content warning</strong> (for
@@ -443,21 +443,21 @@
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label>
+                                    <label title="The animation is on by default and can be disabled by unchecking this option." >
                                         <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
                                             checked>
                                         <strong>Animate transition between app pages</strong>
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label>
+                                    <label title="Enables quick access to search, no matter where you are in an article.">
                                         <input type="checkbox" name="useHomeKeyToFocusSearchBar"
                                                id="useHomeKeyToFocusSearchBarCheck">
                                         <strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label>
+                                    <label title="Allows selection of themes either for the app only, or for the app and the loaded content.">
                                         <b>Select app theme</b> (content inversion is experimental):
                                     </label>
                                     <select class="form-control" id="appThemeSelect">
@@ -482,14 +482,14 @@
                                     <div class="col-sm-6">
                                         <div class="radio">
                                             <p>Kiwix JS can speed up the display of articles by caching assets:</p>
-                                            <label>
+                                            <label title="The cache provides high-speed access to ZIM assets such as stylesheets and scripts, which will improve article load times.">
                                                 <input type="radio" name="cachedAssetsMode" value="true"
                                                     id="cachedAssetsModeRadioTrue" checked>
                                                 <strong>Cache assets</strong> (recommended)
                                             </label>
                                         </div>
                                         <div class="radio">
-                                            <label>
+                                            <label title="For low-memory devices, caching assets may cause app instability. This option allows you to disable the cache.">
                                                 <input type="radio" name="cachedAssetsMode" value="false"
                                                     id="cachedAssetsModeRadioFalse">
                                                 <strong>Do not cache assets</strong> (empties caches: for low-memory
@@ -538,14 +538,14 @@
                             <div class="card-body">
                                 <p>See <a href="#modes" id="modesLink">About (Expert Settings)</a> for an explanation of the difference between these modes:</p>
                                 <div class="radio">
-                                    <label>
+                                    <label title="This mode is fine for everyday use with Wikipedia / WikiMedia archives, and is stable and safe.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jQueryModeRadio" checked>
                                         <strong>JQuery</strong> (stable and safe)
                                     </label>
                                 </div>
                                 <div class="radio">
-                                    <label>
+                                    <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
                                         <strong>ServiceWorker</strong> (not available on all platforms, but supports
