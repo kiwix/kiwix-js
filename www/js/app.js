@@ -63,9 +63,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @type ZIMArchive
      */
     var selectedArchive = null;
-    
-//     if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
-//     if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     
     // Set parameters and associated UI elements from the Settings Store
@@ -88,16 +85,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     if (params.appTheme =="auto_invert") {
         darkPreference.addEventListener('change', function () { 
             uiUtil.applyAppTheme(params.appTheme)
-         } )
+         })
      }
      else if (params.appTheme =="auto_mwInvert") {
         darkPreference.addEventListener('change', function () { 
             uiUtil.applyAppTheme(params.appTheme);
-         } )  
-        }
-     else{
-        darkPreference.removeEventListener('change') 
-     } 
+         })  
+     }
+     else darkPreference.removeEventListener('change')  
 
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
@@ -376,7 +371,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
-         uiUtil.applyAppTheme(params.appTheme);
+        uiUtil.applyAppTheme(params.appTheme);
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
@@ -1401,7 +1396,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
 
             // Set the requested appTheme 
-             uiUtil.applyAppTheme(params.appTheme);
+            uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
