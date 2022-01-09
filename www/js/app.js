@@ -64,8 +64,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     
-    if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
-    if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
+//     if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
+//     if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     
     // Set parameters and associated UI elements from the Settings Store
@@ -84,6 +84,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
+    uiUtil.applyAppTheme(params.appTheme);
     if (params.appTheme =="auto_invert") {
         darkPreference.addEventListener('change', function () { 
             uiUtil.applyAppTheme(params.appTheme)
@@ -97,7 +98,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      else{
         darkPreference.removeEventListener('change') 
      } 
-     document.getElementById('appThemeSelect').value = params.appTheme;
 
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
