@@ -2,16 +2,18 @@
 
 Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/.
 
-This is a ZIM archive reader for browser extensions or add-ons, developed in HTML5/Javascript. You can get the extension from the Mozilla (Firefox), Chrome and Edge
-extension stores (search for "Kiwix JS"). There is a test implementation at https://kiwix.github.io/kiwix-js/, but this is used for development, and the code
-there may be buggy or unstable.
+This is a ZIM archive reader for browser extensions or add-ons, developed in HTML5/Javascript. You can get the extension from the Mozilla,
+Chrome and Edge extension stores (search for "Kiwix"). There is a version implemented as an offline-first Progressive Web App (PWA) at
+https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
 
-Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required.
-For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images).
+Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required to
+read the archive's content. For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images)
+entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have access to this amazing repository of knowledge and culture.
 
-The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
+The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based content
+(Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
 
-If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have access to this amazing repository of knowledge and culture.
+There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy or unstable.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
@@ -23,24 +25,31 @@ If your Internet access is expensive, intermittent, slow, unreliable, observed o
 
 ## Usage
 
-Install "Kiwix JS" form your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/.
+Install "Kiwix JS" form your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/. Alternatively, bookmark or
+install the PWA version from https://moz-extension.kiwix.org/current/. To install in Chromium browsers, go to Settings -> Apps -> Install this site as
+an app. 
 
-Additionally, the app requires ZIM archives that you can download from https://download.kiwix.org/zim/ or https://wiki.kiwix.org/wiki/Content_in_all_languages.
-You have to download these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
+Additionally, the app requires ZIM archives that you can download from https://download.kiwix.org/zim/ or
+https://wiki.kiwix.org/wiki/Content_in_all_languages. You have to download these separately, store them in your filesystem, and manually select them
+after starting the application (or you can drag-and-drop one into the app).
 
-It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for security reasons). There are
-[versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have this capability. 
+It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for security
+reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have this
+capability. 
 
 ## Some technical details
 
 Technically, after reading an article from a ZIM file, there is a need to "inject" the dependencies (images, css, etc). For compatibility reasons, there are several ways to do it:
 
-- the "jQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to put the Base64 content in it. It is compatible with any browser. It works well on Mediawiki-based content but can miss some dependencies on some contents
-- the "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page would send and reply with content read from the ZIM file. It is a generic and much cleaner way than jQuery mode, but it does not work on all browsers. And ServiceWorkers are currently disabled by Mozilla in Firefox extensions.
+- the "jQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to put the Base64 content in it. It is compatible with
+any browser. It works well on Mediawiki-based content but can miss some dependencies in some contents
+- the "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page would send and reply with content read from the ZIM file. It is a
+generic and much cleaner way than jQuery mode, but it does not work on all browsers. And Service Workers are currently disabled by Mozilla in Firefox
+extensions. We use a workaround (an offline-first PWA version) as a substitute within the extension.
 
 ## Compatibility
 
-This is written in HTML/javascript so it should work on many recent browser engines.
+Since the app is written in HTML/JavaScript, it should work in many recent browser engines.
 
 ### Officially supported platforms
 
@@ -48,7 +57,7 @@ This is written in HTML/javascript so it should work on many recent browser engi
 - Google Chrome (or Chromium) >=58 (as an extension : https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
 - Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
 - Microsoft Edge (Chromium) >=80 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application : see https://github.com/kiwix/kiwix-js-windows/)
+- Universal Windows Platform (UWP) >=10.0.10240, Electron and NWJS (as an HTML/JS application : see https://github.com/kiwix/kiwix-js-windows/)
 - Ubuntu Touch (as an application : https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
