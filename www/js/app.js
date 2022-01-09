@@ -64,6 +64,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     
+    if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
+    if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
+    var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
+    
     // Set parameters and associated UI elements from the Settings Store
     // DEV: The params global object is declared in init.js so that it is available to modules
     params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
@@ -79,8 +83,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
-    document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
+     document.getElementById('appThemeSelect').value = params.appTheme;
+     if (params.appTheme =="auto_invert") {
+        handleAutoGenTheme();
+     }
+     else if (params.appTheme =="auto_mwInvert") {
+         handleAutoWikiTheme();
+      }
+     else uiUtil.applyAppTheme(params.appTheme);
+     document.getElementById('appThemeSelect').value = params.appTheme;
+
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
@@ -98,6 +110,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Unique identifier of the article expected to be displayed
     var expectedArticleURLToBeDisplayed = "";
+
+    //handles if auto Theme is selected
+    function handleAutoGenTheme() { 
+        if (window.matchMedia && darkPreference.matches) uiUtil.applyAppTheme('dark_invert');
+        else uiUtil.applyAppTheme('light');
+        // darkPreference.addEventListener('change', function (e) {
+        //     var theme = e.matches ? 'dark_invert' : 'light'
+        //     uiUtil.applyAppTheme(theme);
+        //   })
+     }
+     function handleAutoWikiTheme() { 
+        if (window.matchMedia && darkPreference.matches) uiUtil.applyAppTheme('dark_mwInvert');
+        else uiUtil.applyAppTheme('light');
+     }
     
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
@@ -358,7 +384,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
-        uiUtil.applyAppTheme(params.appTheme);
+        if (params.appTheme === 'auto_invert') {
+            handleAutoGenTheme();
+        }
+        else if (params.appTheme === 'auto_mwInvert') {
+            handleAutoWikiTheme();
+        }
+        else uiUtil.applyAppTheme(params.appTheme);
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
@@ -1185,7 +1217,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#cachingAssets").hide();
                 $("#searchingArticles").hide();
                 // Set the requested appTheme
-                uiUtil.applyAppTheme(params.appTheme);
+                if (params.appTheme ===" auto_invert") {
+                    handleAutoGenTheme();
+                 }
+                 else if (params.appTheme === 'auto_mwInvert') {
+                    handleAutoWikiTheme();
+                }
+                 else uiUtil.applyAppTheme(params.appTheme);
                 // Display the iframe content
                 $("#articleContent").show();
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
@@ -1383,7 +1421,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
 
             // Set the requested appTheme
-            uiUtil.applyAppTheme(params.appTheme);
+            if (params.appTheme ===" auto_invert") {
+                handleAutoGenTheme();
+             }
+             else if (params.appTheme === 'auto_mwInvert') {
+                handleAutoWikiTheme();
+            }
+             else uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
             pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
