@@ -13,8 +13,6 @@ entirely offline. If your Internet access is expensive, intermittent, slow, unre
 The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based content
 (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
 
-There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy or unstable.
-
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
 [![CodeFactor](https://www.codefactor.io/repository/github/kiwix/kiwix-js/badge)](https://www.codefactor.io/repository/github/kiwix/kiwix-js)
@@ -26,8 +24,8 @@ There is a test implementation of the latest code at https://kiwix.github.io/kiw
 ## Usage
 
 Install "Kiwix JS" form your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/. Alternatively, bookmark or
-install the PWA version from https://moz-extension.kiwix.org/current/. To install in Chromium browsers, go to Settings -> Apps -> Install this site as
-an app. 
+install the PWA version from https://moz-extension.kiwix.org/current/. To install the PWA in Chromium browsers, go to Settings -> Apps ->
+Install this site as an app. 
 
 Additionally, the app requires ZIM archives that you can download from https://download.kiwix.org/zim/ or
 https://wiki.kiwix.org/wiki/Content_in_all_languages. You have to download these separately, store them in your filesystem, and manually select them
@@ -67,10 +65,10 @@ These platforms are deprecated. We still partially test against them, and we'll 
 - Microsoft Edge Legacy >=40 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
 
-## License
+## Licence
 
-This application is released under the GPL v3 license. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
-The source code can be found at https://github.com/kiwix/kiwix-js
+This application is released under the GPL v3 licence. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
+The source code can be found at https://github.com/kiwix/kiwix-js.
 
 ## Unit tests
 
@@ -82,12 +80,17 @@ Before running the tests, a one-time set up is needed to fetch development depen
 
 The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in https://download.kiwix.org/release/browsers/ if necessary.
 
-Some nightly builds are generated, and should only be used for testing purpose: https://download.kiwix.org/nightly/
+Some nightly builds are generated, and should only be used for testing purpose: https://download.kiwix.org/nightly/.
+
+There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy, experimental
+or unstable.
 
 ## Previous versions
 
-The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (now discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0)
+The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (now discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0).
+
 These first versions were targeting Firefox OS (now discontinued too: we're not lucky ;-) ).
+
 Some Phonegap/Cordova port was started but never finished (see in git history in versions<=2.0.0).
 
-See [CHANGELOG.md](CHANGELOG.md) for the detail of previous versions.
+See [CHANGELOG.md](CHANGELOG.md) for details of previous versions.
