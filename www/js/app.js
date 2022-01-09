@@ -85,12 +85,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     document.getElementById('appThemeSelect').value = params.appTheme;
     if (params.appTheme =="auto_invert") {
-        darkPreference.addEventListener('change', function (e) { 
+        darkPreference.addEventListener('change', function () { 
             uiUtil.applyAppTheme(params.appTheme)
          } )
      }
      else if (params.appTheme =="auto_mwInvert") {
-        darkPreference.addEventListener('change', function (e) { 
+        darkPreference.addEventListener('change', function () { 
             uiUtil.applyAppTheme(params.appTheme);
          } )  
         }
