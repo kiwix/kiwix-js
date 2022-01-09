@@ -1,14 +1,17 @@
 # Kiwix JS
 
-Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/
+Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/.
 
-This is a browser extension developed in HTML5/Javascript.
+This is a ZIM archive reader for browser extensions or add-ons, developed in HTML5/Javascript. You can get the extension from the Mozilla (Firefox), Chrome and Edge
+extension stores (search for "Kiwix JS"). There is a test implementation at https://kiwix.github.io/kiwix-js/, but this is used for development, and the code
+there may be buggy or unstable.
 
-You can search among the article titles, and read any of them without any Internet access.
-All the content of Wikipedia is inside your device (including the images).
-It might also work with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM , but has been only tested on the Mediawiki-based (Wikipedia, Wikivoyage, etc) and StackExchange ZIM files.
+Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required.
+For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images).
 
-If your Internet access is expensive/rare/slow/unreliable/watched/censored, you still can browse this amazing repository of knowledge and culture.
+The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
+
+If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have access to this amazing repository of knowledge and culture.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
@@ -20,14 +23,17 @@ If your Internet access is expensive/rare/slow/unreliable/watched/censored, you 
 
 ## Usage
 
-It uses ZIM files that you can download from https://download.kiwix.org/zim/
+Install "Kiwix JS" form your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/.
 
-You have to download them separately, store them in your filesystem, and manually select them after starting the application.
-It is unfortunately not technically possible to "remember" the selected ZIM file and open it automatically (the browsers refuse that for security reasons).
+Additionally, the app requires ZIM archives that you can download from https://download.kiwix.org/zim/ or https://wiki.kiwix.org/wiki/Content_in_all_languages.
+You have to download these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
+
+It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for security reasons). There are
+[versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have this capability. 
 
 ## Some technical details
 
-Technically, after reading an article from a ZIM file, there is a need to "inject" the dependencies (images, css, etc). For compatibility reasons, there are several ways to do it :
+Technically, after reading an article from a ZIM file, there is a need to "inject" the dependencies (images, css, etc). For compatibility reasons, there are several ways to do it:
 
 - the "jQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to put the Base64 content in it. It is compatible with any browser. It works well on Mediawiki-based content but can miss some dependencies on some contents
 - the "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page would send and reply with content read from the ZIM file. It is a generic and much cleaner way than jQuery mode, but it does not work on all browsers. And ServiceWorkers are currently disabled by Mozilla in Firefox extensions.
