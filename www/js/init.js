@@ -30,50 +30,64 @@
  */
 var params = {};
 
-require.config({
-    baseUrl: 'js/lib',
-    paths: {
-        'jquery': 'jquery-3.2.1.slim',
-        'bootstrap': 'bootstrap.bundle',
-        'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27',
-        'fontawesome': 'fontawesome/fontawesome',
-        'fontawesome-solid': 'fontawesome/solid'
-    },
-    shim: {
-        'jquery': {
-            exports: '$'
+// The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
+params['keyPrefix'] = 'kiwixjs-'
+
+// The following lines check the querystring for a communication from the PWA indicating it has successfully launched.
+// If this querystring is received, then the app will set a success key in the extension's localStorage and then halt further processing.
+// This is used to prevent a "boot loop" where the app will keep jumping to a failed install of the PWA.
+if (/PWA_launch=/.test(window.location.search)) {
+    var match = /PWA_launch=([^&]+)/.exec(window.location.search);
+    localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
+    console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
+} else {
+
+    require.config({
+        baseUrl: 'js/lib',
+        paths: {
+            'jquery': 'jquery-3.2.1.slim',
+            'bootstrap': 'bootstrap.bundle',
+            'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27',
+            'fontawesome': 'fontawesome/fontawesome',
+            'fontawesome-solid': 'fontawesome/solid'
         },
-        'bootstrap': {
-            deps: ['jquery', 'fontawesome', 'fontawesome-solid']
-        },
-        'webpHeroBundle': ''
-    }
-});
+        shim: {
+            'jquery': {
+                exports: '$'
+            },
+            'bootstrap': {
+                deps: ['jquery', 'fontawesome', 'fontawesome-solid']
+            },
+            'webpHeroBundle': ''
+        }
+    });
 
-var req = ['bootstrap']; // Baseline Require array
+    var req = ['bootstrap']; // Baseline Require array
 
-// Add polyfills to the Require array only if needed
-if (!('Promise' in self)) req.push('promisePolyfill');
-if (!('from' in Array)) req.push('arrayFromPolyfill');
+    // Add polyfills to the Require array only if needed
+    if (!('Promise' in self)) req.push('promisePolyfill');
+    if (!('from' in Array)) req.push('arrayFromPolyfill');
 
-requirejs(req, function () {
-    requirejs(['../app']);
-});
+    requirejs(req, function () {
+        requirejs(['../app']);
+    });
 
-// Test if WebP is natively supported, and if not, set webpMachine to true. The value of webpMachine
-// will determine whether the WebP Polyfills will be loaded (currently only used in uiUtil.js)
-var webpMachine = false;
+    // Test if WebP is natively supported, and if not, set webpMachine to true. The value of webpMachine
+    // will determine whether the WebP Polyfills will be loaded (currently only used in uiUtil.js)
+    var webpMachine = false;
 
-// We use a self-invoking function here to avoid defining unnecessary global functions and variables
-(function (callback) {
-    // Tests for native WebP support
-    var webP = new Image();
-    webP.onload = webP.onerror = function () {
-        callback(webP.height === 2);
-    };
-    webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
-})(function (support) {
-    if (!support) {
-        webpMachine = true;
-    }
-});
+    // We use a self-invoking function here to avoid defining unnecessary global functions and variables
+    (function (callback) {
+        // Tests for native WebP support
+        var webP = new Image();
+        webP.onload = webP.onerror = function () {
+            callback(webP.height === 2);
+        };
+        webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+    })(function (support) {
+        if (!support) {
+            webpMachine = true;
+        }
+    });
+
+}

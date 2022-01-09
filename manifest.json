@@ -32,6 +32,8 @@
             "id": "kiwix-html5-unlisted@kiwix.org"
         }
     },
+    
+    "web_accessible_resources": ["www/index.html"],
 
     "background": {
         "scripts": ["webextension/backgroundscript.js"]

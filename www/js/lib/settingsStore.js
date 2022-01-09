@@ -34,15 +34,24 @@ define([], function () {
    */
   var regexpCookieKeysToMigrate = new RegExp([
     'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
-    'lastContentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
+    'contentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
   ].join('|'));
 
   /**
-   * A constant to set the prefix that will be added to keys when stored in localStorage: this is used to prevent
+   * A list of deprecated keys that should be removed. Add any further keys to the list of strings separated by a comma.
+   * @type {Array}
+   */
+  var deprecatedKeys = [
+    'lastContentInjectionMode'
+  ];
+
+  /**
+   * The prefix that will be added to keys when stored in localStorage: this is used to prevent
    * potential collision of key names with localStorage keys used by code inside ZIM archives
+   * It is set in init.js because it is needed early in app loading
    * @type {String}
    */
-  const keyPrefix = 'kiwixjs-';
+  var keyPrefix = params.keyPrefix;
 
   // Tests for available Storage APIs (document.cookie or localStorage) and returns the best available of these
   function getBestAvailableStorageAPI() {
@@ -72,6 +81,11 @@ define([], function () {
     // If both cookies and localStorage are supported, and document.cookie contains keys to migrate,
     // migrate settings to use localStorage
     if (kiwixCookieTest && localStorageTest && regexpCookieKeysToMigrate.test(document.cookie)) _migrateStorageSettings();
+    // Remove any deprecated keys
+    deprecatedKeys.forEach(function (key) {
+      if (localStorageTest) localStorage.removeItem(keyPrefix + key);
+      settingsStore.removeItem(key); // Because this runs before we have returned a store type, this will remove from cookie too
+    });
     // Note that if this function returns 'none', the cookie implementations below will run anyway. This is because storing a cookie
     // does not cause an exception even if cookies are blocked in some contexts, whereas accessing localStorage may cause an exception
     return type;

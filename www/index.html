@@ -55,7 +55,7 @@
         <section id="search-article" role="region">
             <header id="top">
                 <nav class="navbar navbar-expand-md bg-light" role="navigation">
-                    <a class="navbar-brand">Kiwix 3.3-WIP</a>
+                    <a id="appVersion" class="navbar-brand">Kiwix</a>
 
                     <!-- Toggler/collapsible Button -->
                     <button class="navbar-toggler" type="button" data-toggle="collapse"
@@ -302,10 +302,10 @@
                                 supported in this mode. It can feel initially a little slower while commonly used assets are being cached,
                                 but it soon equals JQuery mode in speed, at least in modern browsers. However, older browsers such as IE11 do
                                 not support this mode, and the app must be running in a secure context (<code>https:</code>, <code>localhost</code>,
-                                or certain browser extensions). Unfortunately, this mode is not currently supported in Mozilla (Firefox) browser
-                                extensions. It <i>is</i> supported in Chromium browser extensions (e.g. Chrome or new Edge). Note that this mode
-                                cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run by launching
-                                <code>index.html</code> from the file system).
+                                or certain browser extensions). While this mode is not natively supported in Mozilla (Firefox) browser
+                                extensions, we provide a functional workaround by re-launching the extension as a Progressive Web App (PWA).
+                                Note that this mode cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run
+                                by launching <code>index.html</code> from the file system).
                             </li>
                         </ul> 
                     </p>
@@ -403,6 +403,11 @@
                 <div id="configuration" style="display: none;">
                     <div class="container">
                         <h2>Configuration</h2>
+                        <!-- Bootstrap alert box -->
+                        <div id="updateAlert" class="alert alert-warning alert-dismissible" style="display: none;">
+                            <button type="button" class="close" data-hide="alert">&times;</button>
+                            <span id="persistentMessage"></span>
+                        </div>
                         <p id="downloadInstruction">This application needs a ZIM archive to work. For download
                             instructions, please see the About section</p>
                         <div id="selectorsDisplay" style="display: none;">
@@ -582,7 +587,7 @@
                 </div>
                 <!-- Bootstrap alert box -->
                 <div id="alertBoxHeader">
-                    <div id="activeContent" style="display:none;" class="alert alert-warning alert-dismissible fade show">
+                    <div id="activeContent" style="display:none;" class="kiwix-alert alert alert-warning alert-dismissible fade show">
                         <button type="button" class="close" data-hide="alert">&times;</button>
                         <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />
                         Content may be available by searching above (type a space or a letter of the alphabet), or else 
@@ -595,7 +600,7 @@
             <footer>
                 <!-- Bootstrap alert box -->
                 <div id="alertBoxFooter">
-                    <div id="downloadAlert" style="display:none;" class="alert alert-info alert-dismissible fade show">
+                    <div id="downloadAlert" style="display:none;" class="kiwix-alert alert alert-info alert-dismissible fade show">
                         <button type="button" class="close" data-hide="alert">&times;</button>
                         <span id="alertMessage"></span>
                     </div>

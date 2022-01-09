@@ -38,11 +38,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     /**
      * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
-     * This name will be passed to service-worker.js in messaging to avoid duplication: see comment in service-worker.js
-     * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
+     * We need access to the cache name in app.js in order to complete utility actions when Service Worker is not initialized,
+     * so we have to duplicate it here 
      * @type {String}
      */
-    const CACHE_NAME = 'kiwixjs-assetCache';
+    // DEV: Ensure this matches the name defined in service-worker.js (a check is provided in refreshCacheStatus() below)
+    const ASSETS_CACHE = 'kiwixjs-assetsCache';
     
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
@@ -64,34 +65,101 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     
-    // Set parameters and associated UI elements from the Settings Store
-    // DEV: The params global object is declared in init.js so that it is available to modules
-    params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
+    /**
+     * Set parameters from the Settings Store, together with any defaults
+     * Note that the params global object is declared in init.js so that it is available to modules
+     * WARNING: Only change these paramaeters if you know what you are doing
+     */
+    // The current version number of this app
+    params['appVersion'] = '3.3-WIP'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+    // The PWA server (currently only for use with the Mozilla extension)
+    params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
+    // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
+    // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
+    // A parameter to determine the Settings Store API in use
+    params['storeType'] = settingsStore.getBestAvailableStorageAPI();
     params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
-    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
-    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // Maximum number of article titles to return (range is 5 - 50, default 25)
     params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
-    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
-    document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
-    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
-    switchHomeKeyToFocusSearchBar();
+    // A parameter to access the URL of any extension that this app was launched from
+    params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
+    // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
+    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 'jquery'; // Defaults to jquery for now
+
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
         'prefix': '', // A field to hold the original search string
         'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
+
+    // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
+    appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
     
+    /**
+     * Apply any override parameters that might be in the querystring.
+     * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
+     * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
+     * problematic settings, by crafting the querystring appropriately.
+     */
+    (function overrideParams() {
+        var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
+        var matches = regexpUrlParams.exec(window.location.search);
+        while (matches) {
+            if (matches[1] && matches[2]) {
+                var paramKey = decodeURIComponent(matches[1]);
+                var paramVal = decodeURIComponent(matches[2]);
+                if (paramKey !== 'title') {
+                    console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
+                    // Make values Boolean if 'true'/'false'
+                    paramVal = paramVal === 'true' || (paramVal === 'false' ? false : paramVal);
+                    settingsStore.setItem(paramKey, paramVal, Infinity);
+                    params[paramKey] = paramVal;
+                }
+            }
+            matches = regexpUrlParams.exec(window.location.search);
+        }
+        // If we are in the PWA version launched from an extension, send a 'success' message to the extension
+        if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
+            var message = '?PWA_launch=success';
+            // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
+            // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
+            // so we need to send a 'success' message each time the PWA is launched
+            var frame = document.createElement('iframe');
+            frame.id = 'kiwixComm';
+            frame.style.display = 'none';
+            document.body.appendChild(frame);
+            frame.src = params.referrerExtensionURL + '/www/index.html'+ message;
+            // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
+            setTimeout(function () {
+                var kiwixComm = document.getElementById('kiwixComm');
+                // The only browser which does not support .remove() is IE11, but it will never run this code
+                if (kiwixComm) kiwixComm.remove();
+            }, 3000);
+        }
+    })();
+
+    /**
+     * Set the State and UI settings associated with parameters defined above
+     */
+    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
+    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
+    document.getElementById('titleSearchRangeVal').innerHTML = encodeURIComponent(params.maxSearchResultsSize);
+    document.getElementById('appThemeSelect').value = params.appTheme;
+    uiUtil.applyAppTheme(params.appTheme);
+    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
+    switchHomeKeyToFocusSearchBar();
+    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
+    setContentInjectionMode(params.contentInjectionMode);
+
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
@@ -130,7 +198,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Do not initiate the same search if it is already in progress
         if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
         $("#welcomeText").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, prefix);
         // Initiate the search
@@ -306,9 +374,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
         $("#searchingArticles").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
+        uiUtil.checkUpdateStatus(appstate);
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
@@ -333,7 +402,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
@@ -373,7 +442,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             params.useCache = false;
             // Delete all caches
             resetCssCache();
-            if ('caches' in window) caches.delete(CACHE_NAME);
+            if ('caches' in window) caches.delete(ASSETS_CACHE);
             refreshCacheStatus();
         }
     });
@@ -491,9 +560,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * If Service Worker is not available, the attributes of the memory cache are returned instead
      * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
-    function getCacheAttributes() {
+    function getAssetsCacheAttributes() {
         return new Promise(function (resolve, reject) {
-            if (contentInjectionMode === 'serviceworker') {
+            if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker && navigator.serviceWorker.controller) {
                 // Create a Message Channel
                 var channel = new MessageChannel();
                 // Handler for recieving message reply from service worker
@@ -507,13 +576,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     'action': {
                         'useCache': params.useCache ? 'on' : 'off',
                         'checkCache': window.location.href
-                    },
-                    'cacheName': CACHE_NAME
+                    }
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
                 resolve({
                     'type': params.useCache ? 'memory' : 'none',
+                    'name': 'cssCache',
                     'description': params.useCache ? 'Memory' : 'None',
                     'count': cssCache.size
                 });
@@ -528,7 +597,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Update radio buttons and checkbox
         document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
         // Get cache attributes, then update the UI with the obtained data
-        getCacheAttributes().then(function (cache) {
+        getAssetsCacheAttributes().then(function (cache) {
+            if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
+                console.error('DEV: The ASSETS_CACHE defined in app.js does not match the ASSETS_CACHE defined in service-worker.js!');
+            }
             document.getElementById('cacheUsed').innerHTML = cache.description;
             document.getElementById('assetsCount').innerHTML = cache.count;
             var cacheSettings = document.getElementById('performanceSettingsDiv');
@@ -543,8 +615,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         });
     }
 
-    var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
+    var serviceWorkerRegistration;
     
     /**
      * Send an 'init' message to the ServiceWorker with a new MessageChannel
@@ -553,20 +625,31 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
-        if (contentInjectionMode === 'serviceworker') {
+        var delay = DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER;
+        if (params.contentInjectionMode === 'serviceworker') {
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
             // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
-            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [tmpMessageChannel.port2]);
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    'action': 'init'
+                }, [tmpMessageChannel.port2]);
+            } else if (keepAliveServiceWorkerHandle) {
+                console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
+                window.location.reload();
+            } else {
+                // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
+                delay = 0;
+            }
             messageChannel = tmpMessageChannel;
             // Schedule to do it again regularly to keep the 2-way communication alive.
             // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
             clearTimeout(keepAliveServiceWorkerHandle);
-            keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER, false);
+            keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, delay, false);
         }
     }
-    
+
     /**
      * Sets the given injection mode.
      * This involves registering (or re-enabling) the Service Worker if necessary
@@ -575,19 +658,45 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
+        params.contentInjectionMode = value;
         if (value === 'jquery') {
-            if (isServiceWorkerReady()) {
-                // We need to disable the ServiceWorker
-                // Unregistering it does not seem to work as expected : the ServiceWorker
-                // is indeed unregistered but still active...
-                // So we have to disable it manually (even if it's still registered and active)
-                navigator.serviceWorker.controller.postMessage({'action': 'disable'});
-                messageChannel = null;
+            if (params.referrerExtensionURL) {
+                // We are in an extension, and the user may wish to revert to local code
+                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
+                'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
+                var launchLocal = function () {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
+                    uriParams += '&appTheme=' + params.appTheme;
+                    uriParams += '&showUIAnimations=' + params.showUIAnimations; 
+                    window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                    'Beam me down, Scotty!';
+                };
+                var response = confirm(message);
+                if (response) {
+                    launchLocal();
+                } else {
+                    setContentInjectionMode('serviceworker');
+                }
+                return;
+            }
+            // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
+            // be intercepting requests
+            if ('serviceWorker' in navigator) {
+                serviceWorkerRegistration = null;
             }
             refreshAPIStatus();
-            // User has switched to jQuery mode, so no longer needs CACHE_NAME
-            // We should empty it to prevent unnecessary space usage
-            if ('caches' in window) caches.delete(CACHE_NAME);
+            // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
+            // We should empty it and turn it off to prevent unnecessary space usage
+            if ('caches' in window && isMessageChannelAvailable()) {
+                var channel = new MessageChannel();
+                if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        'action': { 'useCache': 'off' }
+                    }, [channel.port2]);
+                }
+                caches.delete(ASSETS_CACHE);
+            }
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
@@ -599,55 +708,62 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 setContentInjectionMode('jquery');
                 return;
             }
-            
+            var protocol = window.location.protocol;
             if (!isServiceWorkerReady()) {
                 $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
-                navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
-                    // The ServiceWorker is registered
-                    serviceWorkerRegistration = reg;
+                if (navigator.serviceWorker.controller) {
+                    console.log("Active service worker found, no need to register");
+                    serviceWorkerRegistration = true;
+                    // Remove any jQuery hooks from a previous jQuery session
+                    $('#articleContent').contents().remove();
+                    // Create the MessageChannel and send 'init'
+                    initOrKeepAliveServiceWorker();
                     refreshAPIStatus();
-                    
-                    // We need to wait for the ServiceWorker to be activated
-                    // before sending the first init message
-                    var serviceWorker = reg.installing || reg.waiting || reg.active;
-                    serviceWorker.addEventListener('statechange', function(statechangeevent) {
-                        if (statechangeevent.target.state === 'activated') {
-                            // Remove any jQuery hooks from a previous jQuery session
-                            $('#articleContent').contents().remove();
-                            // Create the MessageChannel
+                } else {
+                    navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
+                        // The ServiceWorker is registered
+                        serviceWorkerRegistration = reg;
+                        // We need to wait for the ServiceWorker to be activated
+                        // before sending the first init message
+                        var serviceWorker = reg.installing || reg.waiting || reg.active;
+                        serviceWorker.addEventListener('statechange', function(statechangeevent) {
+                            if (statechangeevent.target.state === 'activated') {
+                                // Remove any jQuery hooks from a previous jQuery session
+                                $('#articleContent').contents().remove();
+                                // Create the MessageChannel and send the 'init' message to the ServiceWorker
+                                initOrKeepAliveServiceWorker();
+                                // We need to refresh cache status here on first activation because SW was inaccessible till now
+                                // We also initialize the ASSETS_CACHE constant in SW here
+                                refreshCacheStatus();
+                                refreshAPIStatus();
+                            }
+                        });
+                        if (serviceWorker.state === 'activated') {
+                            // Even if the ServiceWorker is already activated,
+                            // We need to re-create the MessageChannel
                             // and send the 'init' message to the ServiceWorker
+                            // in case it has been stopped and lost its context
                             initOrKeepAliveServiceWorker();
-                            // We need to refresh cache status here on first activation because SW was inaccessible till now
-                            // We also initialize the CACHE_NAME constant in SW here
-                            refreshCacheStatus();
+                        }
+                        refreshCacheStatus();
+                        refreshAPIStatus();
+                    }).catch(function (err) {
+                        if (protocol === 'moz-extension:') {
+                            launchMozillaExtensionServiceWorker();
+                        } else {
+                            console.error('Error while registering serviceWorker', err);
+                            refreshAPIStatus();
+                            var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                            if (protocol === 'file:') {
+                                message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                            }
+                            alert(message);                        
+                            setContentInjectionMode("jquery");
                         }
                     });
-                    if (serviceWorker.state === 'activated') {
-                        // Even if the ServiceWorker is already activated,
-                        // We need to re-create the MessageChannel
-                        // and send the 'init' message to the ServiceWorker
-                        // in case it has been stopped and lost its context
-                        initOrKeepAliveServiceWorker();
-                    }
-                }, function (err) {
-                    console.error('error while registering serviceWorker', err);
-                    refreshAPIStatus();
-                    var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
-                    var protocol = window.location.protocol;
-                    if (protocol === 'moz-extension:') {
-                        message += "\n\nYou seem to be using kiwix-js through a Firefox extension : ServiceWorkers are disabled by Mozilla in extensions.";
-                        message += "\nPlease vote for https://bugzilla.mozilla.org/show_bug.cgi?id=1344561 so that some future Firefox versions support it";
-                    }
-                    else if (protocol === 'file:') {
-                        message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
-                    }
-                    alert(message);                        
-                    setContentInjectionMode("jquery");
-                    return;
-                });
+                }
             } else {
-                // We need to set this variable earlier else the ServiceWorker does not get reactivated
-                contentInjectionMode = value;
+                // We need to reactivate Service Worker
                 initOrKeepAliveServiceWorker();
             }
             // User has switched to Service Worker mode, so no longer needs the memory cache
@@ -656,25 +772,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
-        contentInjectionMode = value;
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
-        settingsStore.setItem('lastContentInjectionMode', value, Infinity);
+        settingsStore.setItem('contentInjectionMode', value, Infinity);
         refreshCacheStatus();
+        refreshAPIStatus();
     }
-            
-    // At launch, we try to set the last content injection mode (stored in Settings Store)
-    var lastContentInjectionMode = settingsStore.getItem('lastContentInjectionMode');
-    if (lastContentInjectionMode) {
-        setContentInjectionMode(lastContentInjectionMode);
-    }
-    else {
-        setContentInjectionMode('jquery');
-    }
-    
-    var serviceWorkerRegistration = null;
-    
-    // We need to establish the caching capabilities before first page launch
-    refreshCacheStatus();
     
     /**
      * Tells if the ServiceWorker API is available
@@ -709,6 +811,69 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function isServiceWorkerReady() {
         // Return true if the serviceWorkerRegistration is not null and not undefined
         return (serviceWorkerRegistration);
+    }
+
+    function launchMozillaExtensionServiceWorker () {
+        // DEV: See explanation below for why we access localStorage directly here 
+        var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
+        var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
+        var message = 'To enable the Service Worker, we need one-time access to our secure server ' + 
+            'so that the app can re-launch as a Progressive Web App (PWA).\n\n' +
+            'The PWA will be able to run offline, but will auto-update periodically when online ' + 
+            'as per the Service Worker spec.\n\n' +
+            'You can switch back any time by returning to JQuery mode.\n\n' +
+            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
+        var launchPWA = function () {
+            uiUtil.spinnerDisplay(false);
+            var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
+            uriParams += '&referrerExtensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
+            if (!PWASuccessfullyLaunched || !allowInternetAccess) {
+                // Add any further params that should only be passed when the user is intentionally switching to SW mode
+                uriParams += '&appTheme=' + params.appTheme;
+                uriParams += '&showUIAnimations=' + params.showUIAnimations;
+            }
+            settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
+            // This is needed so that we get passthrough on subsequent launches
+            settingsStore.setItem('allowInternetAccess', true, Infinity);
+            // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
+            // DEV: We write directly to localStorage instead of using settingsStore here because we need 100% certainty
+            // regarding the location of the key to be able to retrieve it in init.js before settingsStore is initialized
+            localStorage.setItem(params.keyPrefix + 'PWA_launch', 'fail');
+            window.location.href = params.PWAServer + 'www/index.html' + uriParams;
+            'Beam me up, Scotty!';
+        };
+        var checkPWAIsOnline = function () {
+            uiUtil.spinnerDisplay(true, 'Checking server access...');
+            uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
+                uiUtil.spinnerDisplay(false);
+                alert('The server is not currently accessible! ' +
+                    '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
+                    '\nPlease try again when you have a stable Internet connection.', 'Error!');
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+                setContentInjectionMode('jquery');
+            });
+        };
+        var response;
+        if (settingsStore.getItem('allowInternetAccess') === 'true') {
+            if (PWASuccessfullyLaunched) {
+                checkPWAIsOnline();
+            } else {
+                response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
+                if (response) {
+                    checkPWAIsOnline();
+                } else {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    setContentInjectionMode('jquery');
+                }
+            }
+        } else {
+            response = confirm(message);
+            if (response) checkPWAIsOnline();
+            else {
+                setContentInjectionMode('jquery');
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+            }    
+        }
     }
     
     /**
@@ -1169,7 +1334,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
 
-        if (contentInjectionMode === 'serviceworker') {
+        if (params.contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
 
@@ -1220,7 +1385,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } 
 
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
+            iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {

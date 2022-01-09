@@ -226,6 +226,76 @@ define(rqDef, function() {
     }
 
     /**
+     * Check for update of Service Worker (PWA) and display information to user
+     */
+    var updateAlert = document.getElementById('updateAlert');
+    function checkUpdateStatus(appstate) {
+        if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
+            // Create a Message Channel
+            var channel = new MessageChannel();
+            // Handler for receiving message reply from service worker
+            channel.port1.onmessage = function (event) {
+                var cacheNames = event.data;
+                if (cacheNames.error) return;
+                else {
+                    caches.keys().then(function (keyList) {
+                        updateAlert.style.display = 'none';
+                        var cachePrefix = cacheNames.app.replace(/^([^\d]+).+/, '$1');
+                        keyList.forEach(function (key) {
+                            if (key === cacheNames.app || key === cacheNames.assets) return;
+                            // Ignore any keys that do not begin with the appCache prefix (they could be from other apps using the same domain)
+                            if (key.indexOf(cachePrefix)) return;
+                            // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
+                            appstate.pwaUpdateNeeded = true;
+                            updateAlert.style.display = 'block';
+                            document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(cachePrefix, '') +
+                                ' is ready to install. (Re-launch app to install.)';
+                        });
+                    });
+                }
+            };
+            if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({
+                action: 'getCacheNames'
+            }, [channel.port2]);
+        }
+    }
+    if (updateAlert) updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
+        updateAlert.style.display = 'none';
+    });
+
+    /**
+     * Checks if a server is accessible by attempting to load a test image from the server
+     * @param {String} imageSrc The full URI of the image
+     * @param {any} onSuccess A function to call if the image can be loaded
+     * @param {any} onError A function to call if the image cannot be loaded
+     */
+     function checkServerIsAccessible(imageSrc, onSuccess, onError) {
+        var image = new Image();
+        image.onload = onSuccess;
+        image.onerror = onError;
+        image.src = imageSrc;
+    }
+
+    /**
+     * Show or hide the spinner together with a message
+     * @param {Boolean} show True to show the spinner, false to hide it 
+     * @param {String} message A message to display, or hide the message if null 
+     */
+    function spinnerDisplay(show, message) {
+        var searchingArticles = document.getElementById('searchingArticles');
+        var spinnerMessage = document.getElementById('cachingAssets');
+        if (show) searchingArticles.style.display = 'block';
+        else searchingArticles.style.display = 'none';
+        if (message) {
+            spinnerMessage.innerHTML = message;
+            spinnerMessage.style.display = 'block';
+        } else {
+            spinnerMessage.innerHTML = 'Caching assets...';
+            spinnerMessage.style.display = 'none';
+        }
+    }
+
+    /**
      * Checks whether an element is partially or fully inside the current viewport
      * 
      * @param {Element} el The DOM element for which to check visibility
@@ -402,7 +472,7 @@ define(rqDef, function() {
         }
         // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
         // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
-        if (document.getElementById('liConfigureNav').classList.contains('active') &&
+        if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
             doc.title !== "Placeholder for injecting an article into the iframe") {
             showReturnLink();
         }
@@ -453,6 +523,9 @@ define(rqDef, function() {
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert,
+        checkUpdateStatus: checkUpdateStatus,
+        checkServerIsAccessible: checkServerIsAccessible,
+        spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,

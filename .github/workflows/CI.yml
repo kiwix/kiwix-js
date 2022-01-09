@@ -24,6 +24,16 @@ jobs:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v2
 
+      - name: Test integrity of app parameters
+        shell: bash
+        run: |
+          # Check that values of assetsCache and appVersion are correctly duplicated
+          chmod +x ./scripts/test_duplicate_values.sh
+          ./scripts/test_duplicate_values.sh
+          # Check that PWAServer is correctly set in app.js
+          chmod +x ./scripts/test_pwa_server.sh
+          ./scripts/test_pwa_server.sh
+
       # Install Node.js LTS
       - uses: actions/setup-node@v2
         with:
