@@ -155,7 +155,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
     document.getElementById('titleSearchRangeVal').innerHTML = encodeURIComponent(params.maxSearchResultsSize);
     document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
@@ -172,14 +171,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
     if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
+    uiUtil.applyAppTheme(params.appTheme);
     // Set theme 
     if (params.appTheme ==="auto_invert") {
-        darkPreference.addEventListener('change', themeExchange())
+        darkPreference.addEventListener('change', themeExchange)
     }
     else if (params.appTheme ==="auto_mwInvert") {
-        darkPreference.addEventListener('change', themeExchange())  
+        darkPreference.addEventListener('change', themeExchange)  
     }
-    else darkPreference.removeEventListener('change', themeExchange())  
+    else darkPreference.removeEventListener('change', themeExchange)  
 
     function themeExchange () { 
         uiUtil.applyAppTheme(params.appTheme);
