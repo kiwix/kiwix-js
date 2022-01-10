@@ -64,7 +64,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
-    
+    if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
+    if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     // Set parameters and associated UI elements from the Settings Store
     // DEV: The params global object is declared in init.js so that it is available to modules
     params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
