@@ -348,8 +348,6 @@ define(rqDef, function() {
      * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert])
      */
     function applyAppTheme(theme) {
-        if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
-        if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
         if (theme === "auto_invert") theme = window.matchMedia('(prefers-color-scheme:dark)').matches ? "dark_invert" : "light" 
         if (theme === "auto_mwInvert") theme = window.matchMedia('(prefers-color-scheme:dark)').matches ? "dark_mwInvert" : "light" 
         var htmlEl = document.querySelector('html');
