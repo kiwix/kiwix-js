@@ -173,6 +173,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     uiUtil.applyAppTheme(params.appTheme);
     // Set theme 
+    uiUtil.applyAppTheme(params.appTheme);
     if (params.appTheme ==="auto_invert") {
         darkPreference.addEventListener('change', themeExchange)
     }
