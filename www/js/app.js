@@ -155,7 +155,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
     document.getElementById('titleSearchRangeVal').innerHTML = encodeURIComponent(params.maxSearchResultsSize);
     document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
@@ -173,6 +172,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
     if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     // Set theme 
+    uiUtil.applyAppTheme(params.appTheme);
     if (params.appTheme ==="auto_invert") {
         darkPreference.addEventListener('change', themeExchange())
     }
