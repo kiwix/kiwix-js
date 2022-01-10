@@ -174,17 +174,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     // Set theme 
     if (params.appTheme ==="auto_invert") {
-        darkPreference.addEventListener('change', function () { 
-            uiUtil.applyAppTheme(params.appTheme)
-        })
-     }
-     else if (params.appTheme ==="auto_mwInvert") {
-        darkPreference.addEventListener('change', function () { 
-            uiUtil.applyAppTheme(params.appTheme);
-         })  
-     }
-     else darkPreference.removeEventListener('change')  
-    
+        darkPreference.addEventListener('change', themeExchange())
+    }
+    else if (params.appTheme ==="auto_mwInvert") {
+        darkPreference.addEventListener('change', themeExchange())  
+    }
+    else darkPreference.removeEventListener('change', themeExchange())  
+
+    function themeExchange () { 
+        uiUtil.applyAppTheme(params.appTheme);
+    }
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
