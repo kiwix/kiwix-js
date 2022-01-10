@@ -109,6 +109,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
      * problematic settings, by crafting the querystring appropriately.
      */
+ 
     (function overrideParams() {
         var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
         var matches = regexpUrlParams.exec(window.location.search);
@@ -166,6 +167,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Unique identifier of the article expected to be displayed
     var expectedArticleURLToBeDisplayed = "";
+ 
+    // define variable for dark preference for matchMedia
+    var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
+    if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
+    if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
+    // Set theme 
+    if (params.appTheme ==="auto_invert") {
+        darkPreference.addEventListener('change', function () { 
+            uiUtil.applyAppTheme(params.appTheme)
+        })
+     }
+     else if (params.appTheme ==="auto_mwInvert") {
+        darkPreference.addEventListener('change', function () { 
+            uiUtil.applyAppTheme(params.appTheme);
+         })  
+     }
+     else darkPreference.removeEventListener('change')  
     
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
