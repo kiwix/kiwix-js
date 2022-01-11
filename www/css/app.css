@@ -222,6 +222,11 @@ button {
     margin: 2px;
 }
 
+.btn-danger {
+    background-color: lightyellow;
+    color: darkred;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
