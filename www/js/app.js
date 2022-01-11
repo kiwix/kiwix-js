@@ -856,7 +856,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var response;
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
             if (PWASuccessfullyLaunched) {
-                checkPWAIsOnline();
+                launchPWA();
             } else {
                 response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
                 if (response) {
