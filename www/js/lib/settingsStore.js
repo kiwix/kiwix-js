@@ -91,6 +91,60 @@ define([], function () {
     return type;
   }
 
+  // Performs a full app reset, deleting all caches and settings
+  function reset() {
+    if (confirm('WARNING: This sill reset the app to a freshly installed state, deleting all app caches and settings!')) {
+
+      // Clear any cookies
+      var cookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
+      var currentCookies = document.cookie;
+      var cookieCrumb = cookieKeys.exec(currentCookies);
+      var cook = false;
+      while (cookieCrumb !== null) {
+        // If the cookie key starts with the keyPrefix
+        if (~params.keyPrefix.indexOf(decodeURIComponent(cookieCrumb[0]))) {
+          cook = true;
+          key = cookieCrumb[1];
+          // This expiry date will cause the browser to delete the cookie on next page refresh
+          document.cookie = key + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
+        }
+        cookieCrumb = cookieKeys.exec(currentCookies);
+      }
+      if (cook) console.debug('All cookies were expiered...');
+
+      // Clear any localStorage
+      if (params.storeType === 'local_storage') {
+        localStorage.clear();
+        console.debug('All Local Storage settings were deleted...');
+      }
+
+      // Clear any Cache API caches
+      if (params.cacheNames) {
+        var cnt = 0;
+        for (var cacheName in params.cacheNames) {
+          cnt++;
+          caches.delete(cacheName).then(function () {
+            cnt--;
+            if (!cnt) {
+              // All caches deleted
+              console.debug('All Cache API caches were deleted...');
+              // All operations complete
+              _reloadApp();
+            }
+          });
+        };
+      } else {
+        // All operations complete
+        _reloadApp();
+      }
+    }
+  }
+
+  function _reloadApp() {
+    console.debug('Performing app reload...');
+    window.location.reload();
+  }
+
   var settingsStore = {
     getItem: function (sKey) {
       if (!sKey) {
@@ -179,6 +233,7 @@ define([], function () {
     setItem: settingsStore.setItem,
     removeItem: settingsStore.removeItem,
     hasItem: settingsStore.hasItem,
+    reset: reset,
     getBestAvailableStorageAPI: getBestAvailableStorageAPI
   };
 });

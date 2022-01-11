@@ -238,6 +238,8 @@ define(rqDef, function() {
                 var cacheNames = event.data;
                 if (cacheNames.error) return;
                 else {
+                    // Store the cacheNames for use elsewhere
+                    params.cacheNames = cacheNames;
                     caches.keys().then(function (keyList) {
                         updateAlert.style.display = 'none';
                         var cachePrefix = cacheNames.app.replace(/^([^\d]+).+/, '$1');

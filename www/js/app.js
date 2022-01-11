@@ -411,6 +411,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
     });
+    document.getElementById('btnReset').addEventListener('click', function () {
+        settingsStore.reset();
+    });
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
