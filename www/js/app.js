@@ -464,12 +464,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             refreshCacheStatus();
         }
     });
+    var titleSearchRangeVal = document.getElementById('titleSearchRangeVal');
     document.getElementById('titleSearchRange').addEventListener('change', function(e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
         params.maxSearchResultsSize = e.target.value;
+        titleSearchRangeVal.innerHTML = e.target.value;
     });
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
-        document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
+        titleSearchRangeVal.innerHTML = e.target.value;
     });
     document.getElementById('modesLink').addEventListener('click', function () {
         document.getElementById('btnAbout').click();
