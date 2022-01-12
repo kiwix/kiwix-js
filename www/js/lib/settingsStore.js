@@ -170,7 +170,7 @@ define([], function () {
     }
   }
 
-  // Deregisters and Service Workers and reboots the app
+  // Deregisters all Service Workers and reboots the app
   function _reloadApp() {
     var reboot = function () {
       console.debug('Performing app reload...');
