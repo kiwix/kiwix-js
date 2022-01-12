@@ -711,7 +711,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var channel = new MessageChannel();
                 if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({
-                        'action': { 'assetsCache': 'off' }
+                        'action': { 'assetsCache': 'disable' }
                     }, [channel.port2]);
                 }
                 caches.delete(ASSETS_CACHE);

@@ -95,14 +95,13 @@ define([], function () {
   /**
    * Performs a full app reset, deleting all caches and settings
    * Or, if a paramter is supplied, deletes or disables the object
-   * 
    * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
    */
   function reset(object) {
     // If no specific object was specified, we are doing a general reset, so ask user for confirmation
     if (!object && !confirm('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!')) return;
     
-    // Clear any cookie entries
+    // 1. Clear any cookie entries
     if (!object || object === 'cookie') {
       var cookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
       var currentCookies = document.cookie;
@@ -121,7 +120,7 @@ define([], function () {
       if (cook) console.debug('All cookies were expiered...');
     }
 
-    // Clear any localStorage settings
+    // 2. Clear any localStorage settings
     if (!object || object === 'localStorage') {
       if (params.storeType === 'local_storage') {
         localStorage.clear();
@@ -129,14 +128,14 @@ define([], function () {
       }
     }
 
-    // Clear any Cache API caches
+    // 3. Clear any Cache API caches
     if (!object || object === 'cacheAPI') {
-      _getCacheNames(function () {
-        if (params.cacheNames) {
+      getCacheNames(function (cacheNames) {
+        if (cacheNames && !cacheNames.error) {
           var cnt = 0;
-          for (var cacheName in params.cacheNames) {
+          for (var cacheName in cacheNames) {
             cnt++;
-            caches.delete(params.cacheNames[cacheName]).then(function () {
+            caches.delete(cacheNames[cacheName]).then(function () {
               cnt--;
               if (!cnt) {
                 // All caches deleted
@@ -154,23 +153,23 @@ define([], function () {
     }
   }
 
-  function _getCacheNames(callback) {
-    // Get cache names from Service Worker, as we cannot rely on having them in params.cacheNames
+  // Gets cache names from Service Worker, as we cannot rely on having them in params.cacheNames
+  function getCacheNames(callback) {
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
       var channel = new MessageChannel();
       channel.port1.onmessage = function (event) {
-        var cacheNames = event.data;
-        if (!cacheNames.error) params.cacheNames = cacheNames;
-        callback();
+        var names = event.data;
+        callback(names);
       };
       navigator.serviceWorker.controller.postMessage({
         action: 'getCacheNames'
       }, [channel.port2]);
     } else {
-      callback();
+      callback(null);
     }
   }
 
+  // Deregisters and Service Workers and reboots the app
   function _reloadApp() {
     var reboot = function () {
       console.debug('Performing app reload...');
@@ -294,6 +293,7 @@ define([], function () {
     setItem: settingsStore.setItem,
     removeItem: settingsStore.removeItem,
     hasItem: settingsStore.hasItem,
+    getCacheNames: getCacheNames,
     reset: reset,
     getBestAvailableStorageAPI: getBestAvailableStorageAPI
   };
