@@ -108,12 +108,10 @@ define([], function () {
       var foundCrumb = false;
       var cookieCrumb = regexpCookieKeys.exec(currentCookie);
       while (cookieCrumb !== null) {
-        // If the cookie crumb starts with the keyPrefix
-        if (~decodeURIComponent(cookieCrumb[0]).indexOf(params.keyPrefix)) {
-          foundCrumb = true;
-          // This expiry date will cause the browser to delete the cookie crumb on next page refresh
-          document.cookie = cookieCrumb[1] + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
-        }
+        // DEV: Note that we don't use the keyPrefix in legacy cookie support
+        foundCrumb = true;
+        // This expiry date will cause the browser to delete the cookie crumb on next page refresh
+        document.cookie = cookieCrumb[1] + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
         cookieCrumb = regexpCookieKeys.exec(currentCookie);
       }
       if (foundCrumb) console.debug('All cookie keys were expired...');
