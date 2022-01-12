@@ -186,7 +186,7 @@ define([], function () {
           return;
         }
         cnt++;
-        for (let registration of registrations) {
+        registrations.forEach(function (registration) {
           registration.unregister().then(function () {
             cnt--;
             if (!cnt) {
@@ -194,7 +194,7 @@ define([], function () {
               reboot();
             }
           });
-        }
+        });
       }).catch(function (err) {
         console.error(err);
         reboot();
