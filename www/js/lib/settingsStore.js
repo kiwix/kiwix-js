@@ -104,8 +104,8 @@ define([], function () {
     // 1. Clear any cookie entries
     if (!object || object === 'cookie') {
       var cookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
-      var currentCookies = document.cookie;
-      var cookieCrumb = cookieKeys.exec(currentCookies);
+      var currentCookie = document.cookie;
+      var cookieCrumb = cookieKeys.exec(currentCookie);
       var cook = false;
       while (cookieCrumb !== null) {
         // If the cookie key starts with the keyPrefix
@@ -115,9 +115,9 @@ define([], function () {
           // This expiry date will cause the browser to delete the cookie on next page refresh
           document.cookie = key + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
         }
-        cookieCrumb = cookieKeys.exec(currentCookies);
+        cookieCrumb = cookieKeys.exec(currentCookie);
       }
-      if (cook) console.debug('All cookies were expiered...');
+      if (cook) console.debug('All cookie keys were expiered...');
     }
 
     // 2. Clear any localStorage settings
@@ -140,13 +140,14 @@ define([], function () {
               if (!cnt) {
                 // All caches deleted
                 console.debug('All Cache API caches were deleted...');
+                // Reload if user performed full reset or if appCache is needed
                 if (!object || params.appCache) _reloadApp();
               }
             });
           }
         } else {
           console.debug('No Cache API caches were in use (or we do not have access to the names).');
-          // All operations complete
+          // All operations complete, reload if user performed full reset or if appCache is needed
           if (!object || params.appCache) _reloadApp();
         }
       });
