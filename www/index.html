@@ -563,12 +563,12 @@
                             <div class="row">
                                 <div class="col-sm-5">
                                     <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
-                                        <button type="button" class="btn btn-danger" id="btnReset">Reset</button> Full app reset!
+                                        <button type="button" class="btn btn-danger" id="btnReset">Reset</button> Full app reset
                                     </label>
                                 </div>
                                 <div class="col-sm-7">
                                     <label
-                                        title="WARNING: Leaving this checked will prevent offline usage of the PWA. This setting is intended principally for developers to test new code with the PWA. Setting will clear existing caches, but assetsCache will be enabled unless also disabled above.">
+                                        title="WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.">
                                         <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
                                         <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
                                     </label>
