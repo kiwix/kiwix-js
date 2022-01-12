@@ -94,7 +94,7 @@ define([], function () {
 
   /**
    * Performs a full app reset, deleting all caches and settings
-   * Or, if a paramter is supplied, deletes or disables the object
+   * Or, if a parameter is supplied, deletes or disables the object
    * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
    */
   function reset(object) {
@@ -103,21 +103,20 @@ define([], function () {
     
     // 1. Clear any cookie entries
     if (!object || object === 'cookie') {
-      var cookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
+      var regexpCookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
       var currentCookie = document.cookie;
-      var cookieCrumb = cookieKeys.exec(currentCookie);
-      var cook = false;
+      var foundCrumb = false;
+      var cookieCrumb = regexpCookieKeys.exec(currentCookie);
       while (cookieCrumb !== null) {
-        // If the cookie key starts with the keyPrefix
-        if (~params.keyPrefix.indexOf(decodeURIComponent(cookieCrumb[0]))) {
-          cook = true;
-          key = cookieCrumb[1];
-          // This expiry date will cause the browser to delete the cookie on next page refresh
-          document.cookie = key + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
+        // If the cookie crumb starts with the keyPrefix
+        if (~decodeURIComponent(cookieCrumb[0]).indexOf(params.keyPrefix)) {
+          foundCrumb = true;
+          // This expiry date will cause the browser to delete the cookie crumb on next page refresh
+          document.cookie = cookieCrumb[1] + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
         }
-        cookieCrumb = cookieKeys.exec(currentCookie);
+        cookieCrumb = regexpCookieKeys.exec(currentCookie);
       }
-      if (cook) console.debug('All cookie keys were expiered...');
+      if (foundCrumb) console.debug('All cookie keys were expired...');
     }
 
     // 2. Clear any localStorage settings

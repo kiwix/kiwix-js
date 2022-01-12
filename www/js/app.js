@@ -82,9 +82,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
     // Maximum number of article titles to return (range is 5 - 50, default 25)
     params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-    // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
+    // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['assetsCache'] = settingsStore.getItem('assetsCache') !== 'false';
-    // A global parameter that disables use of the appCache (it defaults to true unless explicitly turned off in UI)
+    // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
     params['appCache'] = settingsStore.getItem('appCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert

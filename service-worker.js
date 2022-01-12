@@ -250,13 +250,13 @@ let fetchCaptureEnabled = false;
             // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
             oldValue = useAssetsCache;
             useAssetsCache = event.data.action.assetsCache === 'enable';
-            if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + event.data.action.assetsCache);
+            if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + useAssetsCache);
         }
         if (event.data.action.appCache) {
             // Enables or disables use of appCache
             oldValue = useAppCache;
             useAppCache = event.data.action.appCache === 'enable';
-            if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + event.data.action.appCache);
+            if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
         }
         if (event.data.action === 'getCacheNames') {
             event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
