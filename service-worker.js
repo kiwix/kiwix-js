@@ -53,14 +53,14 @@ const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
  */
-var useCache = true;
+var useAssetsCache = true;
 
 /**
  * A global Boolean that governs whether the APP_CACHE will be used
  * This is an expert setting in Configuration
  * @type {Boolean}
  */
- var appCache = true;
+ var useAppCache = true;
 
 
 /**  
@@ -241,12 +241,12 @@ self.addEventListener('message', function (event) {
         }
         if (event.data.action.useCache) {
             // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
-            useCache = event.data.action.useCache === 'on';
+            useAssetsCache = event.data.action.useCache === 'on';
             console.debug('[SW] Caching was turned ' + event.data.action.useCache);
         }
         if (event.data.action.appCache) {
             // Enables or disables use of appCache
-            appCache = event.data.action.appCache === 'enable';
+            useAppCache = event.data.action.appCache === 'enable';
             console.debug('[SW] Use of appCache was switched to: ' + event.data.action.appCache);
         }
         if (event.data.action === 'getCacheNames') {
@@ -341,7 +341,7 @@ function removeUrlParameters(url) {
  */
 function fromCache(cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
-    if (!appCache && cache === APP_CACHE || ! useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
+    if (!useAppCache && cache === APP_CACHE || !useAssetsCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
             if (!matching || matching.status === 404) {
@@ -362,7 +362,7 @@ function fromCache(cache, requestUrl) {
  */
 function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!appCache && cache === APP_CACHE || ! useCache && cache === ASSETS_CACHE) return Promise.resolve();
+    if (!useAppCache && cache === APP_CACHE || !useAssetsCache && cache === ASSETS_CACHE) return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
         console.debug('[SW] Adding ' + request.url + ' to ' + cache + '...');
         return cacheObj.put(request, response);
@@ -377,7 +377,7 @@ function updateCache(cache, request, response) {
  */
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'custom', 'Custom', '-']);
-    if (!useCache) return Promise.resolve(['none', 'none', 'None', 0]);
+    if (!useAssetsCache) return Promise.resolve(['none', 'none', 'None', 0]);
     return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', ASSETS_CACHE, 'Cache API', keys.length];
