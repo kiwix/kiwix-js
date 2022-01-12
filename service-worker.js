@@ -3,7 +3,7 @@
  * in order to capture the HTTP requests made by an article, and respond with the
  * corresponding content, coming from the archive
  * 
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2022 Mossroy, Jaifroid and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -184,7 +184,10 @@ self.addEventListener('activate', function (event) {
 let outgoingMessagePort = null;
 let fetchCaptureEnabled = false;
 
-self.addEventListener('fetch', function (event) {
+/**
+ * Intercept selected Fetch requests from the browser window
+ */
+ self.addEventListener('fetch', function (event) {
     // Only cache GET requests
     if (event.request.method !== "GET") return;
     // Remove any querystring before requesting from the cache
@@ -215,20 +218,23 @@ self.addEventListener('fetch', function (event) {
             } else {
                 // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
                 return fetch(event.request).then(function (response) {
-                  // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                  if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
-                    event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
-                  }
-                  return response;
+                    // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                    if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
+                        event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
+                    }
+                    return response;
                 }).catch(function (error) {
-                  console.debug("[SW] Network request failed and no cache.", error);
+                    console.debug("[SW] Network request failed and no cache.", error);
                 });
             }
         })
     );
 });
 
-self.addEventListener('message', function (event) {
+/**
+ * Handle custom commands sent from app.js
+ */
+ self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
