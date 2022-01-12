@@ -144,7 +144,7 @@ define([], function () {
                 if (!object || params.appCache) _reloadApp();
               }
             });
-          };
+          }
         } else {
           console.debug('No Cache API caches were in use (or we do not have access to the names).');
           // All operations complete
