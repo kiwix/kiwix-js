@@ -561,19 +561,16 @@
                         </div>
                         <div class="card card-danger card-footer">
                             <div class="row">
-                                <div class="col-sm-4">
-                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings. The app will reload.">
-                                        <button class="btn btn-danger" id="btnReset">
-                                            Reset
-                                        </button>
-                                        Performs a complete app reset
+                                <div class="col-sm-5">
+                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
+                                        <button type="button" class="btn btn-danger" id="btnReset">Reset</button> Full app reset!
                                     </label>
                                 </div>
-                                <div class="col-sm-8">
+                                <div class="col-sm-7">
                                     <label
-                                        title="This allows developers to test new code. WARNING: Leaving this checked will prevent offline functionality!">
+                                        title="WARNING: Leaving this checked will prevent offline usage of the PWA. This setting is intended principally for developers to test new code with the PWA. Setting will clear existing caches, but assetsCache will be enabled unless also disabled above.">
                                         <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
-                                        <b>Prevent use of appCache</b> (<i>for developers</i>)
+                                        <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
                                     </label>
                                 </div>
                             </div>

@@ -55,6 +55,14 @@ const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
  */
 var useCache = true;
 
+/**
+ * A global Boolean that governs whether the APP_CACHE will be used
+ * This is an expert setting in Configuration
+ * @type {Boolean}
+ */
+ var appCache = true;
+
+
 /**  
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
@@ -236,6 +244,11 @@ self.addEventListener('message', function (event) {
             useCache = event.data.action.useCache === 'on';
             console.debug('[SW] Caching was turned ' + event.data.action.useCache);
         }
+        if (event.data.action.appCache) {
+            // Enables or disables use of appCache
+            appCache = event.data.action.appCache === 'enable';
+            console.debug('[SW] Use of appCache was switched to: ' + event.data.action.appCache);
+        }
         if (event.data.action === 'getCacheNames') {
             event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
         }
@@ -328,7 +341,7 @@ function removeUrlParameters(url) {
  */
 function fromCache(cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
+    if (!appCache && cache === APP_CACHE || ! useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
             if (!matching || matching.status === 404) {
@@ -349,7 +362,7 @@ function fromCache(cache, requestUrl) {
  */
 function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache && cache === ASSETS_CACHE) return Promise.resolve();
+    if (!appCache && cache === APP_CACHE || ! useCache && cache === ASSETS_CACHE) return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
         console.debug('[SW] Adding ' + request.url + ' to ' + cache + '...');
         return cacheObj.put(request, response);

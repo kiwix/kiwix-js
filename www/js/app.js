@@ -84,6 +84,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
+    // A global parameter that disables use of the appCache (it defaults to false unless explicitly turned on in UI)
+    params['disableAppCache'] = settingsStore.getItem('disableAppCache') === 'true';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
@@ -157,6 +159,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
+    document.getElementById('bypassAppCacheCheck').checked = params.disableAppCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -414,6 +417,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('btnReset').addEventListener('click', function () {
         settingsStore.reset();
     });
+    document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
+        if (params.contentInjectionMode !== 'serviceworker') {
+            alert('This setting can only be used in Service Worker mode!');
+            this.checked = false;
+        } else {
+            params.disableAppCache = this.checked;
+            settingsStore.setItem('disableAppCache', params.disableAppCache, Infinity);
+            settingsStore.reset('cacheAPI');
+        }
+        // This will also send any new values to Service Worker
+        refreshCacheStatus();
+    });
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
@@ -578,6 +593,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 navigator.serviceWorker.controller.postMessage({
                     'action': {
                         'useCache': params.useCache ? 'on' : 'off',
+                        'appCache': params.disableAppCache ? 'disable' : 'enable',
                         'checkCache': window.location.href
                     }
                 }, [channel.port2]);
@@ -594,7 +610,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     /** 
-     * Refreshes the UI (Configuration) with the cache attributes obtained from getCacheAttributes()
+     * Refreshes the UI (Configuration) with the cache attributes obtained from getAssetsCacheAttributes()
      */
     function refreshCacheStatus() {
         // Update radio buttons and checkbox

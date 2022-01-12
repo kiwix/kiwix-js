@@ -91,11 +91,18 @@ define([], function () {
     return type;
   }
 
-  // Performs a full app reset, deleting all caches and settings
-  function reset() {
-    if (confirm('WARNING: This sill reset the app to a freshly installed state, deleting all app caches and settings!')) {
-
-      // Clear any cookies
+  /**
+   * Performs a full app reset, deleting all caches and settings
+   * Or, if a paramter is supplied, deletes or disables the object
+   * 
+   * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
+   */
+  function reset(object) {
+    // If no specific object was specified, we are doing a general reset, so ask user for confirmation
+    if (!object && !confirm('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!')) return;
+    
+    // Clear any cookie entries
+    if (!object || object === 'cookie') {
       var cookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
       var currentCookies = document.cookie;
       var cookieCrumb = cookieKeys.exec(currentCookies);
@@ -111,38 +118,91 @@ define([], function () {
         cookieCrumb = cookieKeys.exec(currentCookies);
       }
       if (cook) console.debug('All cookies were expiered...');
+    }
 
-      // Clear any localStorage
+    // Clear any localStorage settings
+    if (!object || object === 'localStorage') {
       if (params.storeType === 'local_storage') {
         localStorage.clear();
         console.debug('All Local Storage settings were deleted...');
       }
+    }
 
-      // Clear any Cache API caches
-      if (params.cacheNames) {
-        var cnt = 0;
-        for (var cacheName in params.cacheNames) {
-          cnt++;
-          caches.delete(cacheName).then(function () {
-            cnt--;
-            if (!cnt) {
-              // All caches deleted
-              console.debug('All Cache API caches were deleted...');
-              // All operations complete
-              _reloadApp();
-            }
-          });
-        };
-      } else {
-        // All operations complete
-        _reloadApp();
-      }
+    // Clear any Cache API caches
+    if (!object || object === 'cacheAPI') {
+      _getCacheNames(function () {
+        if (params.cacheNames) {
+          var cnt = 0;
+          for (var cacheName in params.cacheNames) {
+            cnt++;
+            caches.delete(params.cacheNames[cacheName]).then(function () {
+              cnt--;
+              if (!cnt) {
+                // All caches deleted
+                console.debug('All Cache API caches were deleted...');
+                if (!object || !params.disableAppCache) _reloadApp();
+              }
+            });
+          };
+        } else {
+          console.debug('No Cache API caches were in use (or we do not have access to the names).');
+          // All operations complete
+          if (!object || !params.disableAppCache) _reloadApp();
+        }
+      });
+    }
+  }
+
+  function _getCacheNames(callback) {
+    // Get cache names from Service Worker, as we cannot rely on having them in params.cacheNames
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      var channel = new MessageChannel();
+      channel.port1.onmessage = function (event) {
+        var cacheNames = event.data;
+        if (!cacheNames.error) params.cacheNames = cacheNames;
+        callback();
+      };
+      navigator.serviceWorker.controller.postMessage({
+        action: 'getCacheNames'
+      }, [channel.port2]);
+    } else {
+      callback();
     }
   }
 
   function _reloadApp() {
-    console.debug('Performing app reload...');
-    window.location.reload();
+    var reboot = function () {
+      console.debug('Performing app reload...');
+      setTimeout(function () {
+        window.location.reload();
+      }, 300);
+    };
+    if (navigator && navigator.serviceWorker) {
+      console.debug('Deregistering Service Workers...');
+      var cnt = 0;
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        if (!registrations.length) {
+          reboot();
+          return;
+        }
+        cnt++;
+        for (let registration of registrations) {
+          registration.unregister().then(function () {
+            cnt--;
+            if (!cnt) {
+              console.debug('All Service Workers unregistered...');
+              reboot();
+            }
+          });
+        }
+      }).catch(function (err) {
+        console.error(err);
+        reboot();
+      });
+    } else {
+      console.debug('Performing app reload...');
+      reboot();
+    }
   }
 
   var settingsStore = {
