@@ -239,10 +239,10 @@ self.addEventListener('message', function (event) {
             outgoingMessagePort = null;
             fetchCaptureEnabled = false;
         }
-        if (event.data.action.useCache) {
-            // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
-            useAssetsCache = event.data.action.useCache === 'on';
-            console.debug('[SW] Caching was turned ' + event.data.action.useCache);
+        if (event.data.action.assetsCache) {
+            // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
+            useAssetsCache = event.data.action.assetsCache === 'enable';
+            console.debug('[SW] Use of assetsCache was switched to: ' + event.data.action.assetsCache);
         }
         if (event.data.action.appCache) {
             // Enables or disables use of appCache

@@ -42,7 +42,8 @@ define([], function () {
    * @type {Array}
    */
   var deprecatedKeys = [
-    'lastContentInjectionMode'
+    'lastContentInjectionMode',
+    'useCache'
   ];
 
   /**
@@ -140,14 +141,14 @@ define([], function () {
               if (!cnt) {
                 // All caches deleted
                 console.debug('All Cache API caches were deleted...');
-                if (!object || !params.disableAppCache) _reloadApp();
+                if (!object || params.appCache) _reloadApp();
               }
             });
           };
         } else {
           console.debug('No Cache API caches were in use (or we do not have access to the names).');
           // All operations complete
-          if (!object || !params.disableAppCache) _reloadApp();
+          if (!object || params.appCache) _reloadApp();
         }
       });
     }

@@ -83,9 +83,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Maximum number of article titles to return (range is 5 - 50, default 25)
     params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
-    params['useCache'] = settingsStore.getItem('useCache') !== 'false';
-    // A global parameter that disables use of the appCache (it defaults to false unless explicitly turned on in UI)
-    params['disableAppCache'] = settingsStore.getItem('disableAppCache') === 'true';
+    params['assetsCache'] = settingsStore.getItem('assetsCache') !== 'false';
+    // A global parameter that disables use of the appCache (it defaults to true unless explicitly turned off in UI)
+    params['appCache'] = settingsStore.getItem('appCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
@@ -159,7 +159,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
-    document.getElementById('bypassAppCacheCheck').checked = params.disableAppCache;
+    document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -422,8 +422,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             alert('This setting can only be used in Service Worker mode!');
             this.checked = false;
         } else {
-            params.disableAppCache = this.checked;
-            settingsStore.setItem('disableAppCache', params.disableAppCache, Infinity);
+            params.appCache = !this.checked;
+            settingsStore.setItem('appCache', params.appCache, Infinity);
             settingsStore.reset('cacheAPI');
         }
         // This will also send any new values to Service Worker
@@ -449,15 +449,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
-            settingsStore.setItem('useCache', true, Infinity);
-            params.useCache = true;
+            settingsStore.setItem('assetsCache', true, Infinity);
+            params.assetsCache = true;
             refreshCacheStatus();
         }
     });
     document.getElementById('cachedAssetsModeRadioFalse').addEventListener('change', function (e) {
         if (e.target.checked) {
-            settingsStore.setItem('useCache', false, Infinity);
-            params.useCache = false;
+            settingsStore.setItem('assetsCache', false, Infinity);
+            params.assetsCache = false;
             // Delete all caches
             resetCssCache();
             if ('caches' in window) caches.delete(ASSETS_CACHE);
@@ -592,17 +592,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Ask Service Worker for its cache status and asset count
                 navigator.serviceWorker.controller.postMessage({
                     'action': {
-                        'useCache': params.useCache ? 'on' : 'off',
-                        'appCache': params.disableAppCache ? 'disable' : 'enable',
+                        'assetsCache': params.assetsCache ? 'enable' : 'disable',
+                        'appCache': params.appCache ? 'enable' : 'disable',
                         'checkCache': window.location.href
                     }
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
                 resolve({
-                    'type': params.useCache ? 'memory' : 'none',
+                    'type': params.assetsCache ? 'memory' : 'none',
                     'name': 'cssCache',
-                    'description': params.useCache ? 'Memory' : 'None',
+                    'description': params.assetsCache ? 'Memory' : 'None',
                     'count': cssCache.size
                 });
             }
@@ -614,7 +614,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function refreshCacheStatus() {
         // Update radio buttons and checkbox
-        document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
+        document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
         // Get cache attributes, then update the UI with the obtained data
         getAssetsCacheAttributes().then(function (cache) {
             if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
@@ -628,7 +628,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // IE11 cannot remove more than one class from a list at a time
                 card.classList.remove('card-success');
                 card.classList.remove('card-warning');
-                if (params.useCache) card.classList.add('card-success');
+                if (params.assetsCache) card.classList.add('card-success');
                 else card.classList.add('card-warning');
             });
         });
@@ -711,7 +711,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var channel = new MessageChannel();
                 if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({
-                        'action': { 'useCache': 'off' }
+                        'action': { 'assetsCache': 'off' }
                     }, [channel.port2]);
                 }
                 caches.delete(ASSETS_CACHE);
@@ -1717,13 +1717,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
                     cssFulfilled++;
                 } else {
-                    if (params.useCache) $('#cachingAssets').show();
+                    if (params.assetsCache) $('#cachingAssets').show();
                     selectedArchive.getDirEntryByPath(url)
                     .then(function (dirEntry) {
                         return selectedArchive.readUtf8File(dirEntry,
                             function (fileDirEntry, content) {
                                 var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
-                                if (params.useCache) cssCache.set(fullUrl, content);
+                                if (params.assetsCache) cssCache.set(fullUrl, content);
                                 uiUtil.replaceCSSLinkWithInlineCSS(link, content);
                                 cssFulfilled++;
                                 renderIfCSSFulfilled(fileDirEntry.url);
@@ -1816,7 +1816,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} title The title of the file to display in the caching message block 
      */
     function updateCacheStatus(title) {
-        if (params.useCache && /\.css$|\.js$/i.test(title)) {
+        if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
             title = title.replace(/[^/]+\//g, '').substring(0,18);
