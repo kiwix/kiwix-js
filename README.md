@@ -9,7 +9,7 @@ Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/, primarily
 Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required to
 read the archive's content. For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images and
 audiovisual content) entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have
-access to this amazing repository of knowledge and culture.
+access to this amazing repository of knowledge, information and culture.
 
 The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based
 content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
