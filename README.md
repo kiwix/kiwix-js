@@ -3,16 +3,16 @@
 Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/.
 
 This is a ZIM archive reader for browser extensions or add-ons, developed in HTML5/Javascript. You can get the extension from the Mozilla,
-Chrome and Edge extension stores (search for "Kiwix"). There is a version implemented as an offline-first Progressive Web App (PWA) at
-https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
+Chrome and Edge extension stores (search for "Kiwix", or click on a badge below). There is a version implemented as an offline-first
+Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
 
 Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required to
 read the archive's content. For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images and
 audiovisual content) entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have
 access to this amazing repository of knowledge and culture.
 
-The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based content
-(Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
+The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based
+content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
@@ -32,23 +32,27 @@ Additionally, the app requires ZIM archives that you can download from https://d
 https://wiki.kiwix.org/wiki/Content_in_all_languages. You have to download these separately, store them in your filesystem, and manually select them
 after starting the application (or you can drag-and-drop one into the app).
 
-It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for security
-reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have this
-capability. 
+It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
+security reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have
+this capability.
 
 ## Some technical details
 
-Technically, after reading an article from a ZIM file, there is a need to "inject" the dependencies (images, css, etc). For compatibility reasons, there are several ways to do it:
+Technically, after reading an article from a ZIM file, it is necessary to "inject" the dependencies (images, css, etc). For compatibility reasons,
+there are two main ways of doing this:
 
-- "JQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to point to content we extract from the ZIM. It is
-compatible with any browser. It works well on Mediawiki-based content but can miss some dependencies in some content
+- "JQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to point to content we extract from the ZIM. This mode is
+compatible with any browser. It works well on Mediawiki-based content but can miss some dependencies in some content;
 - "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page may send and reply with content read from the ZIM file. It is a
 generic and much cleaner way of serving content to the browser than jQuery mode, but it does not work on all browsers. And Service Workers are
 currently disabled by Mozilla in Firefox extensions. We use a workaround (an offline-first PWA version) as a substitute within the extension.
 
+You can switch between these content injection modes in Configuration.
+
 ## Compatibility
 
-Since the app is written in HTML/JavaScript, it should work in most recent browser engines and many older ones too.
+Since the app is written in HTML/JavaScript, it should work in most recent browser engines and many older ones too, depending on the Content
+Injection mode supported by the specific browser engine.
 
 ### Officially supported platforms
 
@@ -70,6 +74,34 @@ These platforms/browsers are deprecated. We still partially test against them, a
 
 This application is released under the GPL v3 licence. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
 The source code can be found at https://github.com/kiwix/kiwix-js.
+
+## Contributing
+
+If you have some development experience with HTML and JavaScript, we welcome Pull Requests on existing issues. Please look at this repository's Issue
+tracker, in particular those marked "good first issue". Please follow these guidelines when contributing:
+
+- Ask to be assigned to an issue you wish to work on first (we have lots of back issues, some of which are no longer relevant or wanted);
+- We ask you only to pick issues for which you are confident that you have a solution;
+- Follow the coding style of the area you are editing, including indentation, and be consistent with quotation marks and spacing;
+- Use no higher than [ECMAScript 5](https://caniuse.com/es5) - notably, do not use arrow functions or `async` functions. However, Promises *are*
+  supported via a polyfill;
+- Do not prettify code you are not working on;
+- You must test your code yourself before asking for review, like this:
+  - clone the repository;
+  - set up a local Web server (we recommend Node/NPM's [http-server](https://www.npmjs.com/package/http-server));
+  - serve the root directory of the repository (e.g. `http-server .`);
+  - in a browser, navigate to the URL of the main `index.html` (e.g. http://localhost:8080/www/index.html);
+  - manually test your fix in at least Firefox and Chromium (Edge or Chrome), ideally also in IE11 or in "IE Mode" in Edge;
+  - be sure to test your fix in both "JQuery" mode and "Service Worker" mode (see Configuration);
+  - run the Unit tests (see below) in at least the above browsers.
+
+If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review.
+
+Please note that the app caches its own code so that it can run as an offline-first Progressive Web App. This can complicate development, because you
+may not see your changes, even after you refresh the browser. In Configuration, under "Expert settings", you will find a button that allows you to do
+a full app reset, which will erase the PWA. When Service Worker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn
+this on if you are frequently changing code and refreshing. Remember to turn it off for final testing. You can manually delete the App Cache in
+the browser's DevTools (see Application or Storage tabs).
 
 ## Unit tests
 
