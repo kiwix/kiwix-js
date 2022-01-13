@@ -570,9 +570,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
-
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
+
+        // Set visibility of UI elements according to mode
+        document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+
     }
 
     /**
