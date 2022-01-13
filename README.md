@@ -7,8 +7,9 @@ Chrome and Edge extension stores (search for "Kiwix"). There is a version implem
 https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
 
 Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required to
-read the archive's content. For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images)
-entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have access to this amazing repository of knowledge and culture.
+read the archive's content. For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images and
+audiovisual content) entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have
+access to this amazing repository of knowledge and culture.
 
 The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based content
 (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
@@ -23,7 +24,7 @@ The reader also works with other content in the OpenZIM format: https://wiki.ope
 
 ## Usage
 
-Install "Kiwix JS" form your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/. Alternatively, bookmark or
+Install "Kiwix JS" from your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/. Alternatively, bookmark or
 install the PWA version from https://moz-extension.kiwix.org/current/. To install the PWA in Chromium browsers, go to Settings -> Apps ->
 Install this site as an app. 
 
@@ -39,15 +40,15 @@ capability.
 
 Technically, after reading an article from a ZIM file, there is a need to "inject" the dependencies (images, css, etc). For compatibility reasons, there are several ways to do it:
 
-- the "jQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to put the Base64 content in it. It is compatible with
-any browser. It works well on Mediawiki-based content but can miss some dependencies in some contents
-- the "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page would send and reply with content read from the ZIM file. It is a
-generic and much cleaner way than jQuery mode, but it does not work on all browsers. And Service Workers are currently disabled by Mozilla in Firefox
-extensions. We use a workaround (an offline-first PWA version) as a substitute within the extension.
+- "JQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to point to content we extract from the ZIM. It is
+compatible with any browser. It works well on Mediawiki-based content but can miss some dependencies in some content
+- "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page may send and reply with content read from the ZIM file. It is a
+generic and much cleaner way of serving content to the browser than jQuery mode, but it does not work on all browsers. And Service Workers are
+currently disabled by Mozilla in Firefox extensions. We use a workaround (an offline-first PWA version) as a substitute within the extension.
 
 ## Compatibility
 
-Since the app is written in HTML/JavaScript, it should work in many recent browser engines.
+Since the app is written in HTML/JavaScript, it should work in most recent browser engines and many older ones too.
 
 ### Officially supported platforms
 
@@ -60,7 +61,7 @@ Since the app is written in HTML/JavaScript, it should work in many recent brows
 
 ### Deprecated platforms
 
-These platforms are deprecated. We still partially test against them, and we'll try to keep compatibility as long as it's not too complicated :
+These platforms/browsers are deprecated. We still partially test against them, and we'll try to keep compatibility as long as it's not too complicated:
 
 - Microsoft Edge Legacy >=40 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
@@ -72,9 +73,11 @@ The source code can be found at https://github.com/kiwix/kiwix-js.
 
 ## Unit tests
 
-Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
+Basic UI tests can be run by opening `tests/index.html` in Firefox, Edge, or Chromium/Chrome through a (local) web server.
 
-Before running the tests, a one-time set up is needed to fetch development dependencies from the npm registry. Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI.
+You can also run the tests with npm. Before running the tests, a one-time setup is needed to fetch development dependencies from the npm registry.
+Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI. Then run `npm test` to run the tests against Chrome and Firefox headless
+(these browsers need to be installed in default locations).
 
 ## Public releases and nightly builds
 
@@ -82,15 +85,13 @@ The browser extensions are distributed through the stores of each vendor (see li
 
 Some nightly builds are generated, and should only be used for testing purpose: https://download.kiwix.org/nightly/.
 
-There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy, experimental
-or unstable.
+There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy,
+experimental or unstable.
 
 ## Previous versions
 
-The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (now discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0).
+The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0).
 
 These first versions were targeting Firefox OS (now discontinued too: we're not lucky ;-) ).
-
-Some Phonegap/Cordova port was started but never finished (see in git history in versions<=2.0.0).
 
 See [CHANGELOG.md](CHANGELOG.md) for details of previous versions.
