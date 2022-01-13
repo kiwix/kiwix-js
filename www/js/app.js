@@ -575,7 +575,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         // Set visibility of UI elements according to mode
         document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
-
     }
 
     /**
@@ -684,6 +683,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function setContentInjectionMode(value) {
         params.contentInjectionMode = value;
         if (value === 'jquery') {
+            if (!params.appCache) {
+                alert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!');
+                setContentInjectionMode('serviceworker');
+                return;
+            }
             if (params.referrerExtensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
                 var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
