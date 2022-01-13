@@ -57,6 +57,14 @@ These platforms are deprecated. We still partially test against them, and we'll 
 This application is released under the GPL v3 license. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
 The source code can be found at https://github.com/kiwix/kiwix-js
 
+## Contributing
+
+The Kiwix JS project is being developed as open source. It is being actively maintainted on Github and we encourage individuals to contribute to the documentation and code.
+
+Join the Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/enQtOTUyMTg4NzMxMTM4LTU0MzYyZDliYjdmMDYzYWMzNDA0MDc4MWE5OGM0ODFhYjAxNWIxMjVjZTU4MTkyODJlZWFkMmQ2YTZkYTUzZDY) working group to get involved!
+
+For code contributions, read our [CONTRIBUTING](CONTRIBUTING.md) guide.
+
 ## Unit tests
 
 Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
