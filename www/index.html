@@ -251,8 +251,8 @@
                     <h4 id="format">ZIM archive format</h4>
                     <p>
                         Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
-                        but note that this app has only been tested extensively on Wikipedia, WikiMedia and Stackexchage archives. Video content is in principle supported
-                        if your device, browser or OS understands the format. Some other ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
+                        but note that this app has only been tested extensively on Wikipedia, WikiMedia, Gutenberg, Stackexchage and TED Talks archives. Video content is
+                        supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
                         (<a href="#modes">see below</a>).
                     </p>
 
@@ -441,14 +441,6 @@
                             <div class="card-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
-                                        <input type="checkbox" name="hideActiveContentWarning"
-                                            id="hideActiveContentWarningCheck">
-                                        <strong>Permanently hide active content warning</strong> (for
-                                        experienced users)
-                                    </label>
-                                </div>
-                                <div class="checkbox">
                                     <label title="The animation is on by default and can be disabled by unchecking this option." >
                                         <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
                                             checked>
@@ -554,7 +546,7 @@
                                     <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
-                                        <strong>ServiceWorker</strong> (supports archives with dynamic content, requires secure context)
+                                        <strong>ServiceWorker</strong> (supports archives with dynamic content)
                                     </label>
                                 </div>
                             </div>
@@ -566,10 +558,12 @@
                         <div class="card card-danger" id="expertSettingsDiv">
                             <div class="card-header">Troubleshooting and development</div>
                             <div class="card-body">
-                                <p>Reset the app to default settings and erase all caches:</p>
-                                <div class="button">
-                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
-                                        <button type="button" class="btn btn-danger" id="btnReset">Reset</button> Full app reset
+                                <div class="checkbox">
+                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
+                                        <input type="checkbox" name="hideActiveContentWarning"
+                                            id="hideActiveContentWarningCheck">
+                                        <strong>Permanently hide active content warning</strong> (for
+                                        experienced users)
                                     </label>
                                 </div>
                                 <div class="checkbox" id="bypassAppCacheDiv">
@@ -577,6 +571,12 @@
                                         title="WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.">
                                         <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
                                         <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
+                                    </label>
+                                </div>
+                                <p class="pt-2">Reset the app to default settings and erase all caches:</p>
+                                <div class="button">
+                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
+                                        <button type="button" class="btn btn-danger" id="btnReset">Reset App</button>
                                     </label>
                                 </div>
                             </div>
@@ -614,7 +614,7 @@
                         <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />
                         Content may be available by searching above (type a space or a letter of the alphabet), or else 
                         <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to Service Worker mode</a>
-                        if your platform supports it. &nbsp;[<a id="stop" href="#displaySettingsDiv" class="alert-link">Permanently hide</a>]
+                        if your platform supports it. &nbsp;[<a id="stop" href="#expertSettingsDiv" class="alert-link">Permanently hide</a>]
                     </div>
                 </div>
                 <iframe id="articleContent" class="articleIFrame" src="article.html"></iframe>
