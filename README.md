@@ -7,7 +7,7 @@ Chrome and Edge extension stores (search for "Kiwix", or click on a badge below)
 Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
 
 Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required to
-read the archive's content. For exmaple, you can have the entire content of Wikipedia in your own language inside your device (including images and
+read the archive's content. For example, you can have the entire content of Wikipedia in your own language inside your device (including images and
 audiovisual content) entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have
 access to this amazing repository of knowledge, information and culture.
 
@@ -24,28 +24,27 @@ content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Guten
 
 ## Usage
 
-Install "Kiwix JS" from your browser's add-on store, or you can get it from http://download.kiwix.org/release/browsers/. Alternatively, bookmark or
-install the PWA version from https://moz-extension.kiwix.org/current/. To install the PWA in Chromium browsers, go to Settings -> Apps ->
-Install this site as an app. 
+Install "Kiwix JS" from your browser's add-on store. This is the best way to get the extension, because it will be kept up to date automatically. If
+you would rather not use a store, you can get a file-based version of the extension from http://download.kiwix.org/release/browsers/, but you will
+have to update this manually. Alternatively, you can bookmark or install the PWA version from https://moz-extension.kiwix.org/current/ (it will
+auto-update). To install the PWA in Chromium browsers, go to Settings -> Apps -> Install this site as an app.
 
 Additionally, the app requires ZIM archives that you can download from https://download.kiwix.org/zim/ or
 https://wiki.kiwix.org/wiki/Content_in_all_languages. You have to download these separately, store them in your filesystem, and manually select them
 after starting the application (or you can drag-and-drop one into the app).
-
-It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
-security reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have
-this capability.
 
 ## Some technical details
 
 Technically, after reading an article from a ZIM file, it is necessary to "inject" the dependencies (images, css, etc). For compatibility reasons,
 there are two main ways of doing this:
 
-- "JQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to point to content we extract from the ZIM. This mode is
-compatible with any browser. It works well on Mediawiki-based content but can miss some dependencies in some content;
+- "JQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to point to content we extract from the ZIM. This mode
+is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so some ZIMs with dynamic content do not work well (if at all).
+However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode;
 - "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page may send and reply with content read from the ZIM file. It is a
-generic and much cleaner way of serving content to the browser than jQuery mode, but it does not work on all browsers. And Service Workers are
-currently disabled by Mozilla in Firefox extensions. We use a workaround (an offline-first PWA version) as a substitute within the extension.
+generic and much cleaner way of serving content to the browser than jQuery mode. It works in any recent browser, but not in older ones. Service
+Workers are currently disabled by Mozilla in Firefox extensions, but we use a workaround (an offline-first PWA version) as a substitute within
+the extension.
 
 You can switch between these content injection modes in Configuration.
 
@@ -69,6 +68,14 @@ These platforms/browsers are deprecated. We still partially test against them, a
 
 - Microsoft Edge Legacy >=40 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
+
+### Limitations
+
+It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
+security reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have
+this capability.
+
+Although the app has fast title search, it cannot yet do full text search of the entire archive. This may be possible in the future.
 
 ## Licence
 
@@ -108,7 +115,7 @@ Network tab.
 
 Basic UI tests can be run by opening `tests/index.html` in Firefox, Edge, or Chromium/Chrome through a (local) web server.
 
-You can also run the tests with npm. Before running the tests, a one-time setup is needed to fetch development dependencies from the npm registry.
+You can also run the UI tests with npm. Before running the tests, a one-time setup is needed to fetch development dependencies from the npm registry.
 Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI. Then run `npm test` to run the tests against Chrome and Firefox headless
 (these browsers need to be installed in default locations).
 
