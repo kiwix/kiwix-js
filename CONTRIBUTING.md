@@ -5,7 +5,7 @@ tracker, in particular those marked "good first issue". If you have found a bug,
 
 Please follow these guidelines when contributing:
 
-- Ask to be assigned to an issue you wish to work on first (we have lots of back issues, some of which are no longer relevant or wanted);
+- Ask to be assigned to an issue you wish to work on first (we have lots of past issues, some of which are no longer relevant or wanted);
 - We ask you only to pick issues for which you are confident that you have a solution;
 - If you are a newcomer to the repo, create a personal fork and clone it locally. Check out a new branch with a name relevant to the issue you are working on;
 - Follow the coding style of the area you are editing, including indentation, and be consistent with quotation marks and spacing;
