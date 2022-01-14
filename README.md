@@ -73,7 +73,8 @@ These platforms/browsers are deprecated. We still partially test against them, a
 
 It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
 security reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have
-this capability.
+this capability. You can drag-and-drop a ZIM file into the app, which is a quick way to open an archive and switch between several archives in a
+folder.
 
 Although the app has fast title search, it cannot yet do full text search of the entire archive. This may be possible in the future.
 
