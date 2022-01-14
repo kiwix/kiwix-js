@@ -20,10 +20,10 @@ Please follow these guidelines when contributing:
   - be sure to test your fix in both "JQuery" mode and "Service Worker" mode (see Configuration);
   - run the Unit tests (see below) in at least the above browsers.
 
-If all the tests are working fine, you can test the actual extension version in the end, like this:
+If all the tests are working fine, you can finally test the extension versions, like this:
 
   - Remove the '-WIP' from the version key from the manifest.json file present in the root of this repo;
-  - In Chromium, you can install the extension by loading the root folder with Extensions -> Load Unpacked(with Developer Mode turned ON) -> selecting the root folder of the repository;
+  - In Chromium, you can install the extension by loading the root folder with Extensions -> Load Unpacked (with Developer Mode turned ON) -> select the root folder of the repository;
   - In Firefox, you can load an extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, and then pick any file in the repository.
 
 If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review.
