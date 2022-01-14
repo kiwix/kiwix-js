@@ -101,7 +101,8 @@ Please note that the app caches its own code so that it can run as an offline-fi
 may not see your changes, even after you refresh the browser. In Configuration, under "Expert settings", you will find a button that allows you to do
 a full app reset, which will erase the PWA. When Service Worker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn
 this on if you are frequently changing code and refreshing. Remember to turn it off for final testing. You can manually delete the App Cache in
-the browser's DevTools (see Application or Storage tabs).
+the browser's DevTools (see Application or Storage tabs). We also recommend you disable the browser's built-in cache, using the checkbox in the DevTools
+Network tab.
 
 ## Unit tests
 
@@ -122,8 +123,8 @@ experimental or unstable.
 
 ## Previous versions
 
-The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (discontinued). There was a "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0).
+The first versions of this application were originally part of the Evopedia project: http://www.evopedia.info (discontinued). There was an "articles nearby" feature, that was able to find articles around your location. It has been deleted from the source code with everything related to Evopedia (but still in git history in versions<=2.0.0).
 
-These first versions were targeting Firefox OS (now discontinued too: we're not lucky ;-) ).
+These first versions were targeting Firefox OS (discontinued too: we're not lucky ;-) ).
 
 See [CHANGELOG.md](CHANGELOG.md) for details of previous versions.
