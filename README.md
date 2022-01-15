@@ -85,11 +85,9 @@ The source code can be found at https://github.com/kiwix/kiwix-js.
 
 ## Unit tests
 
-Basic UI tests can be run by opening `tests/index.html` in Firefox, Edge, or Chromium/Chrome through a (local) web server.
+Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
 
-You can also run the UI tests with npm. Before running the tests, a one-time setup is needed to fetch development dependencies from the npm registry.
-Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI. Then run `npm test` to run the tests against Chrome and Firefox headless
-(these browsers need to be installed in default locations).
+Before running the tests, a one-time set up is needed to fetch development dependencies from the npm registry. Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI.
 
 ## Public releases and nightly builds
 
