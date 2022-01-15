@@ -83,11 +83,13 @@ Although the app has fast title search, it cannot yet do full text search of the
 This application is released under the GPL v3 licence. See http://www.gnu.org/licenses/ or the included LICENSE-GPLv3.txt file
 The source code can be found at https://github.com/kiwix/kiwix-js.
 
-## Unit tests
+## Contributing
 
-Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
+Kiwix JS is an open-source project. We encourage individuals with experience of HTML and JavaScript development to contribute to the documentation and code in this repository.
 
-Before running the tests, a one-time set up is needed to fetch development dependencies from the npm registry. Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI.
+For code contributions, read our [CONTRIBUTING](CONTRIBUTING.md) guide.
+
+To get to know the Kiwix project better, please familiarize yourself with the content on https://www.kiwix.org. There is also a Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/enQtOTUyMTg4NzMxMTM4LTU0MzYyZDliYjdmMDYzYWMzNDA0MDc4MWE5OGM0ODFhYjAxNWIxMjVjZTU4MTkyODJlZWFkMmQ2YTZkYTUzZDY) group which you can join.
 
 ## Public releases and nightly builds
 
