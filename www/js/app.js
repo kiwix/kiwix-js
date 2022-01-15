@@ -154,7 +154,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
-    document.getElementById('titleSearchRangeVal').innerHTML = encodeURIComponent(params.maxSearchResultsSize);
+    document.getElementById('titleSearchRangeVal').textContent = encodeURIComponent(params.maxSearchResultsSize);
     document.getElementById('appThemeSelect').value = params.appTheme;
     uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
@@ -468,10 +468,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').addEventListener('change', function(e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
         params.maxSearchResultsSize = e.target.value;
-        titleSearchRangeVal.innerHTML = e.target.value;
+        titleSearchRangeVal.textContent = e.target.value;
     });
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
-        titleSearchRangeVal.innerHTML = e.target.value;
+        titleSearchRangeVal.textContent = e.target.value;
     });
     document.getElementById('modesLink').addEventListener('click', function () {
         document.getElementById('btnAbout').click();
