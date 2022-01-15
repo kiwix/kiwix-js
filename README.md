@@ -65,12 +65,6 @@ For code contributions, read our [CONTRIBUTING](CONTRIBUTING.md) guide.
 
 To get to know the Kiwix project better, please familiarize yourself with the content on https://www.kiwix.org. There is also a Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/enQtOTUyMTg4NzMxMTM4LTU0MzYyZDliYjdmMDYzYWMzNDA0MDc4MWE5OGM0ODFhYjAxNWIxMjVjZTU4MTkyODJlZWFkMmQ2YTZkYTUzZDY) group which you can join.
 
-## Unit tests
-
-Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
-
-Before running the tests, a one-time set up is needed to fetch development dependencies from the npm registry. Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI.
-
 ## Public releases and nightly builds
 
 The browser extensions are distributed through the stores of each vendor (see links above). But the packages are also saved in https://download.kiwix.org/release/browsers/ if necessary.

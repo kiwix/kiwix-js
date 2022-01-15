@@ -33,3 +33,9 @@ may not see your changes, even after you refresh the browser. In Configuration, 
 a full app reset, which will erase the PWA. When Service Worker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn
 this on if you are frequently changing code and refreshing. Remember to turn it off for final testing. You can manually delete the App Cache in
 the browser's DevTools (see Application or Storage tabs). We also recommend you disable the browser's built-in cache, using the checkbox in the DevTools Network tab.
+
+## Unit tests
+
+Unit tests can be run by opening `tests/index.html` file in Firefox, Edge, or Chromium/Chrome.
+
+Before running the tests, a one-time set up is needed to fetch development dependencies from the npm registry. Run `npm ci --ignore-scripts` to fetch the same versions as we use in CI.
