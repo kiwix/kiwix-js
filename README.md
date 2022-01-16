@@ -87,9 +87,13 @@ The source code can be found at https://github.com/kiwix/kiwix-js.
 
 Kiwix JS is an open-source project. We encourage individuals with experience of HTML and JavaScript development to contribute to the documentation and code in this repository.
 
+To report a bug, read our [REPORT_BUG](REPORT_BUG.md) guide.
+
 For code contributions, read our [CONTRIBUTING](CONTRIBUTING.md) guide.
 
 To get to know the Kiwix project better, please familiarize yourself with the content on https://www.kiwix.org. There is also a Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/enQtOTUyMTg4NzMxMTM4LTU0MzYyZDliYjdmMDYzYWMzNDA0MDc4MWE5OGM0ODFhYjAxNWIxMjVjZTU4MTkyODJlZWFkMmQ2YTZkYTUzZDY) group which you can join.
+
+We also have a [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) : everybody is expected to follow it.
 
 ## Public releases and nightly builds
 
