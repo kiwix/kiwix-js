@@ -172,7 +172,7 @@ define([], function () {
     var reboot = function () {
       console.debug('Performing app reload...');
       setTimeout(function () {
-        window.location.search = uriParams;
+        window.location.href = location.origin + location.pathname + uriParams 
       }, 300);
     };
     // Compile a sensible querystring, so that parameters are not set on reload
