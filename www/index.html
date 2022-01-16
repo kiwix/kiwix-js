@@ -106,7 +106,7 @@
                         <li><a href="#searchSyntax">Title Search Usage</a></li>
                         <li><a href="#imageDownload">Image Download</a></li>
                         <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#expert">Expert Settings and Technical Information</a>
+                        <li><a href="#technical">Technical Information</a>
                             <ul>
                                 <li><a href="#format">ZIM Archive Format</a></li>
                                 <li><a href="#FAT">Downloading and Storing Large Archives</a></li>
@@ -246,13 +246,13 @@
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
                     
-                    <h3 id="expert">Expert settings and technical information</h3>
+                    <h3 id="technical">Technical information</h3>
 
                     <h4 id="format">ZIM archive format</h4>
                     <p>
                         Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
-                        but note that this app has only been tested extensively on Wikipedia, WikiMedia and Stackexchage archives. Video content is in principle supported
-                        if your device, browser or OS understands the format. Some other ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
+                        but note that this app has only been tested extensively on Wikipedia, WikiMedia, Gutenberg, Stackexchage and TED Talks archives. Video content is
+                        supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
                         (<a href="#modes">see below</a>).
                     </p>
 
@@ -266,7 +266,7 @@
                     </p>
                     <p>
                         If you need to store a large ZIM archive on an older filesystem formatted as FAT16 or FAT32, you need to be aware of the file size limits of those systems
-                        (FAT16 < 2GiB; FAT32 < 4GiB). Most modern microSD cards, thumb drives or hard drives are formatted as exFAT or another modern FS such as NTFS, which do not
+                        (FAT16 &lt; 2GiB; FAT32 &lt; 4GiB). Most modern microSD cards, thumb drives or hard drives are formatted as exFAT or another modern FS such as NTFS, which do not
                         have this issue. If your ZIM archive is larger than the FS limit, it is possible to split the archive into several 2GiB-1 or 4GiB-1 files (or smaller).
                         You will need to give a file extension to each chunk in the right order following this pattern: <code>*.zimaa</code>, <code>*.zimab</code>, <code>*.zimac</code>,
                         <code>...</code>, etc.). When you pick this archive in the app, be sure to pick <b>all</b> the chunks, or drag-and-drop them all into the app.
@@ -280,7 +280,7 @@
                     <h4 id="modes">JQuery and ServiceWorker Modes</h4>
                     <p>
                         Depending on your browser or framework, this app may be capable of running in two different modes, which we call
-                        "JQuery Mode" and "ServiceWorker Mode" for short. There is a toggle under Expert Settings in Configuration.
+                        "JQuery Mode" and "ServiceWorker Mode" for short. There is a toggle under Compatibility Settings in Configuration.
                         Here is a technical explanation of what these modes do:
                         <ul>
                             <li>
@@ -292,7 +292,8 @@
                                 but it is compensated for because we do not extract or run JavaScript assets (which would be technically
                                 extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On the downside,
                                 ZIMs that have a proprietary dynamic UI (such as Gutenberg or TED talks) are only partially supported in this
-                                mode: the UI does not work, but articles can be searched for and loaded from the search bar.
+                                mode: the UI does not work, but articles can be searched for and loaded from the search bar. This mode is
+                                compatible with older browsers and frameworks.
                             </li>
                             <li>
                                 <b>ServiceWorker Mode</b>: This mode, as its name implies, requires that the browser or framework be capable of
@@ -300,8 +301,8 @@
                                 and supplying the requested content from the ZIM. This mode requires no DOM traversal, and the content is
                                 read and supplied as-is from the archive. Dynamic content (e.g. JavaScript) and proprietary UIs are fully
                                 supported in this mode. It can feel initially a little slower while commonly used assets are being cached,
-                                but it soon equals JQuery mode in speed, at least in modern browsers. However, older browsers such as IE11 do
-                                not support this mode, and the app must be running in a secure context (<code>https:</code>, <code>localhost</code>,
+                                but it soon equals JQuery mode in speed, at least in modern browsers. However, older browsers such as IE11 are
+                                incompatible with this mode, and the app must be running in a secure context (<code>https:</code>, <code>localhost</code>,
                                 or certain browser extensions). While this mode is not natively supported in Mozilla (Firefox) browser
                                 extensions, we provide a functional workaround by re-launching the extension as a Progressive Web App (PWA).
                                 Note that this mode cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run
@@ -440,14 +441,6 @@
                             <div class="card-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
-                                        <input type="checkbox" name="hideActiveContentWarning"
-                                            id="hideActiveContentWarningCheck">
-                                        <strong>Permanently hide active content warning</strong> (for
-                                        experienced users)
-                                    </label>
-                                </div>
-                                <div class="checkbox">
                                     <label title="The animation is on by default and can be disabled by unchecking this option." >
                                         <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
                                             checked>
@@ -537,24 +530,53 @@
                     </div>
                     <br />
                     <div class="container">
-                        <h3>Expert settings</h3>
-                        <div class="card card-danger" id="contentInjectionModeDiv">
+                        <h3>Compatibility settings</h3>
+                        <div class="card card-warning" id="contentInjectionModeDiv">
                             <div class="card-header">Content injection mode</div>
                             <div class="card-body">
-                                <p>See <a href="#modes" id="modesLink">About (Expert Settings)</a> for an explanation of the difference between these modes:</p>
+                                <p>See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
                                 <div class="radio">
                                     <label title="This mode is fine for everyday use with Wikipedia / WikiMedia archives, and is stable and safe.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jQueryModeRadio" checked>
-                                        <strong>JQuery</strong> (stable and safe)
+                                        <strong>JQuery</strong> (compatible with older browsers and frameworks)
                                     </label>
                                 </div>
                                 <div class="radio">
                                     <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
-                                        <strong>ServiceWorker</strong> (not available on all platforms, but supports
-                                        more ZIM files)
+                                        <strong>ServiceWorker</strong> (supports archives with dynamic content)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="container">
+                        <h3>Expert settings</h3>
+                        <div class="card card-danger" id="expertSettingsDiv">
+                            <div class="card-header">Troubleshooting and development</div>
+                            <div class="card-body">
+                                <div class="checkbox">
+                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
+                                        <input type="checkbox" name="hideActiveContentWarning"
+                                            id="hideActiveContentWarningCheck">
+                                        <strong>Permanently hide active content warning</strong> (for
+                                        experienced users)
+                                    </label>
+                                </div>
+                                <div class="checkbox" id="bypassAppCacheDiv">
+                                    <label
+                                        title="WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.">
+                                        <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
+                                        <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
+                                    </label>
+                                </div>
+                                <p class="pt-2">Reset the app to default settings and erase all caches:</p>
+                                <div class="button">
+                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
+                                        <button type="button" class="btn btn-danger" id="btnReset">Reset App</button>
                                     </label>
                                 </div>
                             </div>
@@ -592,7 +614,7 @@
                         <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />
                         Content may be available by searching above (type a space or a letter of the alphabet), or else 
                         <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to Service Worker mode</a>
-                        if your platform supports it. &nbsp;[<a id="stop" href="#displaySettingsDiv" class="alert-link">Permanently hide</a>]
+                        if your platform supports it. &nbsp;[<a id="stop" href="#expertSettingsDiv" class="alert-link">Permanently hide</a>]
                     </div>
                 </div>
                 <iframe id="articleContent" class="articleIFrame" src="article.html"></iframe>

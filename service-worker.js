@@ -3,7 +3,7 @@
  * in order to capture the HTTP requests made by an article, and respond with the
  * corresponding content, coming from the archive
  * 
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2022 Mossroy, Jaifroid and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -53,7 +53,15 @@ const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
  */
-var useCache = true;
+var useAssetsCache = true;
+
+/**
+ * A global Boolean that governs whether the APP_CACHE will be used
+ * This is an expert setting in Configuration
+ * @type {Boolean}
+ */
+ var useAppCache = true;
+
 
 /**  
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
@@ -176,7 +184,10 @@ self.addEventListener('activate', function (event) {
 let outgoingMessagePort = null;
 let fetchCaptureEnabled = false;
 
-self.addEventListener('fetch', function (event) {
+/**
+ * Intercept selected Fetch requests from the browser window
+ */
+ self.addEventListener('fetch', function (event) {
     // Only cache GET requests
     if (event.request.method !== "GET") return;
     // Remove any querystring before requesting from the cache
@@ -207,20 +218,23 @@ self.addEventListener('fetch', function (event) {
             } else {
                 // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
                 return fetch(event.request).then(function (response) {
-                  // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                  if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
-                    event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
-                  }
-                  return response;
+                    // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                    if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
+                        event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
+                    }
+                    return response;
                 }).catch(function (error) {
-                  console.debug("[SW] Network request failed and no cache.", error);
+                    console.debug("[SW] Network request failed and no cache.", error);
                 });
             }
         })
     );
 });
 
-self.addEventListener('message', function (event) {
+/**
+ * Handle custom commands sent from app.js
+ */
+ self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
@@ -231,10 +245,18 @@ self.addEventListener('message', function (event) {
             outgoingMessagePort = null;
             fetchCaptureEnabled = false;
         }
-        if (event.data.action.useCache) {
-            // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
-            useCache = event.data.action.useCache === 'on';
-            console.debug('[SW] Caching was turned ' + event.data.action.useCache);
+        var oldValue;
+        if (event.data.action.assetsCache) {
+            // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
+            oldValue = useAssetsCache;
+            useAssetsCache = event.data.action.assetsCache === 'enable';
+            if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + useAssetsCache);
+        }
+        if (event.data.action.appCache) {
+            // Enables or disables use of appCache
+            oldValue = useAppCache;
+            useAppCache = event.data.action.appCache === 'enable';
+            if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
         }
         if (event.data.action === 'getCacheNames') {
             event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
@@ -328,7 +350,7 @@ function removeUrlParameters(url) {
  */
 function fromCache(cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
+    if (!useAppCache && cache === APP_CACHE || !useAssetsCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
             if (!matching || matching.status === 404) {
@@ -349,7 +371,7 @@ function fromCache(cache, requestUrl) {
  */
 function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache && cache === ASSETS_CACHE) return Promise.resolve();
+    if (!useAppCache && cache === APP_CACHE || !useAssetsCache && cache === ASSETS_CACHE) return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
         console.debug('[SW] Adding ' + request.url + ' to ' + cache + '...');
         return cacheObj.put(request, response);
@@ -364,7 +386,7 @@ function updateCache(cache, request, response) {
  */
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'custom', 'Custom', '-']);
-    if (!useCache) return Promise.resolve(['none', 'none', 'None', 0]);
+    if (!useAssetsCache) return Promise.resolve(['none', 'none', 'None', 0]);
     return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', ASSETS_CACHE, 'Cache API', keys.length];

@@ -24,14 +24,14 @@
 // DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load WebP polyfills conditionally. The WebP polyfills are only needed by a few old browsers, so loading them
 // only if needed saves approximately 1MB of memory.
-var rqDef = [];
+var rqDef = ['settingsStore'];
 
 // Add WebP polyfill only if webpHero was loaded in init.js
 if (webpMachine) {
     rqDef.push('webpHeroBundle');
 }
 
-define(rqDef, function() {
+define(rqDef, function(settingsStore) {
   
     /**
      * Creates either a blob: or data: URI from the given content
@@ -231,13 +231,10 @@ define(rqDef, function() {
     var updateAlert = document.getElementById('updateAlert');
     function checkUpdateStatus(appstate) {
         if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
-            // Create a Message Channel
-            var channel = new MessageChannel();
-            // Handler for receiving message reply from service worker
-            channel.port1.onmessage = function (event) {
-                var cacheNames = event.data;
-                if (cacheNames.error) return;
-                else {
+            settingsStore.getCacheNames(function (cacheNames) {
+                if (cacheNames && !cacheNames.error) {
+                    // Store the cacheNames globally for use elsewhere
+                    params.cacheNames = cacheNames;
                     caches.keys().then(function (keyList) {
                         updateAlert.style.display = 'none';
                         var cachePrefix = cacheNames.app.replace(/^([^\d]+).+/, '$1');
@@ -253,10 +250,7 @@ define(rqDef, function() {
                         });
                     });
                 }
-            };
-            if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({
-                action: 'getCacheNames'
-            }, [channel.port2]);
+            });
         }
     }
     if (updateAlert) updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
