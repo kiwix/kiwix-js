@@ -1,7 +1,7 @@
 /**
  * uiUtil.js : Utility functions for the User Interface
  * 
- * Copyright 2013-2014 Mossroy and contributors
+ * Copyright 2013-2020 Mossroy and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -20,27 +20,57 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define([], function() {
 
-    
+// DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
+// We need to do it this way in order to load WebP polyfills conditionally. The WebP polyfills are only needed by a few old browsers, so loading them
+// only if needed saves approximately 1MB of memory.
+var rqDef = ['settingsStore'];
+
+// Add WebP polyfill only if webpHero was loaded in init.js
+if (webpMachine) {
+    rqDef.push('webpHeroBundle');
+}
+
+define(rqDef, function(settingsStore) {
+  
     /**
-     * Creates a Blob from the given content, then a URL from this Blob
-     * And put this URL in the attribute of the DOM node
+     * Creates either a blob: or data: URI from the given content
+     * The given attribute of the DOM node (nodeAttribute) is then set to this URI
      * 
-     * This is useful to inject images (and other dependencies) inside an article
+     * This is used to inject images (and other dependencies) into the article DOM
      * 
-     * @param {Object} jQueryNode
-     * @param {String} nodeAttribute
-     * @param {Uint8Array} content
-     * @param {String} mimeType
+     * @param {Object} node The node to which the URI should be added
+     * @param {String} nodeAttribute The attribute to set to the URI
+     * @param {Uint8Array} content The binary content to convert to a URI
+     * @param {String} mimeType The MIME type of the content
+     * @param {Function} callback An optional function to call with the URI
      */
-    function feedNodeWithBlob(jQueryNode, nodeAttribute, content, mimeType) {
-        var blob = new Blob([content], {type: mimeType});
-        var url = URL.createObjectURL(blob);
-        jQueryNode.on('load', function () {
-            URL.revokeObjectURL(url);
-        });
-        jQueryNode.attr(nodeAttribute, url);
+    function feedNodeWithBlob(node, nodeAttribute, content, mimeType, callback) {
+        // Decode WebP data if the browser does not support WebP and the mimeType is webp
+        if (webpMachine && /image\/webp/i.test(mimeType)) {
+            // DEV: Note that webpMachine is single threaded and will reject an image if it is busy
+            // However, the loadImagesJQuery() function in app.js is sequential (it waits for a callback
+            // before processing another image) so we do not need to queue WebP images here
+            webpMachine.decode(content).then(function (uri) {
+                // DEV: WebpMachine.decode() returns a data: URI
+                // We callback before the node is set so that we don't incur slow DOM rewrites before processing more images
+                if (callback) callback(uri);
+                node.setAttribute(nodeAttribute, uri);
+            }).catch(function (err) {
+                console.error('There was an error decoding image in WebpMachine', err);
+                if (callback) callback();
+            });
+        } else {
+            var blob = new Blob([content], {
+                type: mimeType
+            });
+            var url = URL.createObjectURL(blob);
+            if (callback) callback(url);
+            node.addEventListener('load', function () {
+                URL.revokeObjectURL(url);
+            });
+            node.setAttribute(nodeAttribute, url);
+        }
     }
 
     /**
@@ -174,9 +204,9 @@ define([], function() {
      * Derives the URL.pathname from a relative or semi-relative URL using the given base ZIM URL
      * 
      * @param {String} url The (URI-encoded) URL to convert (e.g. "Einstein", "../Einstein",
-     *      "../../I/im%C3%A1gen.png", "-/s/style.css", "/A/Einstein.html")
-     * @param {String} base The base ZIM URL of the currently loaded article (e.g. "A/" or "A/subdir1/subdir2/")
-     * @returns {String} The derived ZIM URL in decoded form (e.g. "A/Einstein", "I/imágen.png")
+     *      "../../I/im%C3%A1gen.png", "-/s/style.css", "/A/Einstein.html", "../static/bootstrap/css/bootstrap.min.css")
+     * @param {String} base The base ZIM URL of the currently loaded article (e.g. "A/", "A/subdir1/subdir2/", "C/Singapore/")
+     * @returns {String} The derived ZIM URL in decoded form (e.g. "A/Einstein", "I/imágen.png", "C/")
      */
     function deriveZimUrlFromRelativeUrl(url, base) {
         // We use a dummy domain because URL API requires a valid URI
@@ -279,6 +309,70 @@ define([], function() {
             }
         }
         $("#searchingArticles").hide();
+    }
+
+    /**
+     * Check for update of Service Worker (PWA) and display information to user
+     */
+    var updateAlert = document.getElementById('updateAlert');
+    function checkUpdateStatus(appstate) {
+        if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
+            settingsStore.getCacheNames(function (cacheNames) {
+                if (cacheNames && !cacheNames.error) {
+                    // Store the cacheNames globally for use elsewhere
+                    params.cacheNames = cacheNames;
+                    caches.keys().then(function (keyList) {
+                        updateAlert.style.display = 'none';
+                        var cachePrefix = cacheNames.app.replace(/^([^\d]+).+/, '$1');
+                        keyList.forEach(function (key) {
+                            if (key === cacheNames.app || key === cacheNames.assets) return;
+                            // Ignore any keys that do not begin with the appCache prefix (they could be from other apps using the same domain)
+                            if (key.indexOf(cachePrefix)) return;
+                            // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
+                            appstate.pwaUpdateNeeded = true;
+                            updateAlert.style.display = 'block';
+                            document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(cachePrefix, '') +
+                                ' is ready to install. (Re-launch app to install.)';
+                        });
+                    });
+                }
+            });
+        }
+    }
+    if (updateAlert) updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
+        updateAlert.style.display = 'none';
+    });
+
+    /**
+     * Checks if a server is accessible by attempting to load a test image from the server
+     * @param {String} imageSrc The full URI of the image
+     * @param {any} onSuccess A function to call if the image can be loaded
+     * @param {any} onError A function to call if the image cannot be loaded
+     */
+     function checkServerIsAccessible(imageSrc, onSuccess, onError) {
+        var image = new Image();
+        image.onload = onSuccess;
+        image.onerror = onError;
+        image.src = imageSrc;
+    }
+
+    /**
+     * Show or hide the spinner together with a message
+     * @param {Boolean} show True to show the spinner, false to hide it 
+     * @param {String} message A message to display, or hide the message if null 
+     */
+    function spinnerDisplay(show, message) {
+        var searchingArticles = document.getElementById('searchingArticles');
+        var spinnerMessage = document.getElementById('cachingAssets');
+        if (show) searchingArticles.style.display = 'block';
+        else searchingArticles.style.display = 'none';
+        if (message) {
+            spinnerMessage.innerHTML = message;
+            spinnerMessage.style.display = 'block';
+        } else {
+            spinnerMessage.innerHTML = 'Caching assets...';
+            spinnerMessage.style.display = 'none';
+        }
     }
 
     /**
@@ -458,7 +552,7 @@ define([], function() {
         }
         // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
         // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
-        if (document.getElementById('liConfigureNav').classList.contains('active') &&
+        if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
             doc.title !== "Placeholder for injecting an article into the iframe") {
             showReturnLink();
         }
@@ -485,6 +579,20 @@ define([], function() {
         });
     }
 
+    // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
+    // This can't be done in app.js because the error occurs after the API panel is first displayed
+    function reportAssemblerErrorToAPIStatusPanel(decoderType, error) {
+        console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
+        params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
+        var decompAPI = document.getElementById('decompressorAPIStatus');
+        decompAPI.innerHTML = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
+        decompAPI.className = 'apiBroken';
+        document.getElementById('apiStatusDiv').className = 'card card-danger';
+    }
+
+    // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
+    if (webpMachine) webpMachine = new webpHero.WebpMachine();
+
     /**
      * Functions and classes exposed by this module
      */
@@ -499,10 +607,14 @@ define([], function() {
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
         displayFileDownloadAlert: displayFileDownloadAlert,
+        checkUpdateStatus: checkUpdateStatus,
+        checkServerIsAccessible: checkServerIsAccessible,
+        spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
         htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
         applyAnimationToSection: applyAnimationToSection,
-        applyAppTheme: applyAppTheme
+        applyAppTheme: applyAppTheme,
+        reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel
     };
 });

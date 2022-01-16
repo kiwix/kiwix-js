@@ -20,10 +20,26 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['q', 'zstddec'], function (Q) {
-    // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec which uses "Module" as its exported object
-    // Note that we include zstddec above in requireJS definition, but we cannot change the name in the function list
-    // There is no longer any need to load it in index.html
+
+// DEV: Put your RequireJS definition in the rqDefZD array below, and any function exports in the function parenthesis of the define statement
+// We need to do it this way in order to load the wasm or asm versions of zstddec conditionally. Older browsers can only use the asm version
+// because they cannot interpret WebAssembly.
+var rqDefZD = ['uiUtil'];
+
+// Select asm or wasm conditionally
+if ('WebAssembly' in self) {
+    console.debug('Instantiating WASM zstandard decoder');
+    params.decompressorAPI.assemblerMachineType = 'WASM';
+    rqDefZD.push('zstddec-wasm');
+} else {
+    console.debug('Instantiating ASM zstandard decoder');
+    params.decompressorAPI.assemblerMachineType = 'ASM';
+    rqDefZD.push('zstddec-asm');
+}
+
+define(rqDefZD, function(uiUtil) {
+    // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec.js
+    // Note that we include zstddec-wasm or zstddec-asm above in requireJS definition, but we cannot change the name in the function list
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
 
     /**
@@ -39,7 +55,8 @@ define(['q', 'zstddec'], function (Q) {
      * @type EMSInstanceExt
      */
     var zd;
-    ZD().then(function (instance) {
+
+    var instantiateDecoder = function (instance) {
         // Instantiate the zd object
         zd = instance;
         // Create JS API by wrapping C++ functions
@@ -82,6 +99,26 @@ define(['q', 'zstddec'], function (Q) {
         zd._outBuffer.ptr = mallocOrDie(3 << 2); // 3 x 32bit bytes
         // Reserve w/asm memory for the outBuffer data steam
         zd._outBuffer.dst = mallocOrDie(zd._outBuffer.size);
+    };
+
+    ZD().then(function (inst) {
+        instantiateDecoder(inst);
+    }).catch(function (err) {
+        if (params.decompressorAPI.assemblerMachineType === 'ASM') {
+            // There is no fallback, because we were attempting to load the ASM machine, so report error immediately
+            uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
+        } else {
+            console.warn('WASM failed to load, falling back to ASM...', err);
+            params.decompressorAPI.assemblerMachineType = 'ASM';
+            ZD = null;
+            require(['zstddec-asm'], function () {
+                ZD().then(function (inst) {
+                    instantiateDecoder(inst);
+                }).catch(function (err) {
+                    uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
+                });
+            });
+        }
     });
 
     /**
@@ -111,6 +148,7 @@ define(['q', 'zstddec'], function (Q) {
      * @param {FileReader} reader The reader used to extract file slices (defined in zimfile.js)
      */
     function Decompressor(reader) {
+        params.decompressorAPI.decompressorLastUsed = 'ZSTD';
         this._reader = reader;
     }
 
@@ -130,7 +168,7 @@ define(['q', 'zstddec'], function (Q) {
         this._outDataBufPos = 0;
         var ret = zd._ZSTD_initDStream(zd._decHandle);
         if (zd._ZSTD_isError(ret)) {
-            return Q.reject('Failed to initialize ZSTD decompression');
+            return Promise.reject('Failed to initialize ZSTD decompression');
         }
 
         return this._readLoop(offset, length).then(function (data) {
@@ -153,14 +191,15 @@ define(['q', 'zstddec'], function (Q) {
      * @returns {Promise} A Promise for the readSlice() function
      */
     Decompressor.prototype.readSliceSingleThread = function (offset, length) {
-        if (!busy) {
+        // Tests whether the decompressor is ready (initiated) and not busy
+        if (zd && !busy) {
             return this.readSlice(offset, length);
         } else {
             // The decompressor is already in progress.
             // To avoid using too much memory, we wait until it has finished
             // before using it for another decompression
             var that = this;
-            return Q.Promise(function (resolve, reject) {
+            return new Promise(function (resolve, reject) {
                 setTimeout(function () {
                     that.readSliceSingleThread(offset, length).then(resolve, reject);
                 }, DELAY_WAITING_IDLE_DECOMPRESSOR);
@@ -181,7 +220,7 @@ define(['q', 'zstddec'], function (Q) {
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
             if (zd._ZSTD_isError(ret)) {
                 var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
-                return Q.reject(errorMessage);
+                return Promise.reject(errorMessage);
             }
             // Get updated outbuffer values
             var obxPtr32Bit = zd._outBuffer.ptr >> 2;

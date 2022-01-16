@@ -39,3 +39,5 @@
 *.svg	binary
 *.woff	binary
 *.woff2	binary
+*.deb   binary
+*.wasm  binary

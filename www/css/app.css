@@ -64,6 +64,10 @@
     padding-left: 1px !important;
 }
 
+.form-control {
+    margin-top: 2px !important;
+}
+
 #articleList {
     margin-bottom: 12px !important;
 }
@@ -101,6 +105,10 @@
     background: #171717;
 }
 
+.dark .card-warning .card-header {
+    background-color: #FFFF00;
+}
+
 /* End of app theme: dark */
 
 /* Content themes: _invert, _mwInvert */
@@ -125,8 +133,12 @@ iframe._invert, iframe._mwInvert {
     color : green;
 }
 
-.apiUnavailable {
+.apiUnavailable, .apiSuboptimal {
     color : orange;
+}
+
+.apiBroken {
+    color : red;
 }
 
 .loader {
@@ -214,6 +226,11 @@ button {
     margin: 2px;
 }
 
+.btn-danger {
+    background-color: lightyellow;
+    color: darkred;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -249,7 +266,6 @@ button {
 
     /* Reduce height of the search field */
     .form-control {
-        height: 28px !important;
         padding-bottom: 5px !important;
     }
     #formArticleSearch {

@@ -24,12 +24,25 @@
 
 // Define global params needed for tests to run on existing app code
 var params = {};
+var webpMachine = true;
 
 require.config({
-    baseUrl: 'www/js/lib',
+    baseUrl: (window.__karma__ ? 'base/' : '') + 'www/js/lib/',
     paths: {
-        'jquery': 'jquery-3.2.1.slim'
+        'jquery': 'jquery-3.2.1.slim',
+        'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27'
+    },
+    shim: {
+        'webpHeroBundle': ''
     }
 });
 
-requirejs(['../../../tests/tests']);
+var req = []; // Baseline Require array
+
+// Add polyfills to the Require array only if needed
+if (!('Promise' in self)) req.push('promisePolyfill');
+if (!('from' in Array)) req.push('arrayFromPolyfill');
+
+requirejs(req, function () {
+    requirejs(['../../../tests/tests']);
+});

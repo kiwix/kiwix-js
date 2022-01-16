@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Kiwix",
-    "version": "3.1-WIP",
+    "version": "3.3-WIP",
 
     "description": "Kiwix : offline Wikipedia reader",
     
@@ -32,10 +32,14 @@
             "id": "kiwix-html5-unlisted@kiwix.org"
         }
     },
+    
+    "web_accessible_resources": ["www/index.html"],
 
     "background": {
         "scripts": ["webextension/backgroundscript.js"]
     },
+
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
     
     "author": "mossroy",
     "homepage_url": "https://www.kiwix.org",

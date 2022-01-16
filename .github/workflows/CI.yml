@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+  # Allow running manually
+  - workflow_dispatch
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  # This job runs always, including for remote pull requests, and
+  # has external dependencies or special permission needs, besides a
+  # local install of Node.js, Firefox, and Chromium or Chrome.
+  #
+  # You can run these same tests locally in your own developer
+  # environment via `npm ci && npm test`.
+  tests-basic:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    # Packages 'firefox' and 'google-chrome' are pre-installed:
+    # https://github.com/actions/virtual-environments/blob/ubuntu20/20201210.0/images/linux/Ubuntu2004-README.md
+    runs-on: ubuntu-20.04
+    steps:
+      # Clone the repo and checkout the commit for which the workflow was triggered
+      - uses: actions/checkout@v2
+
+      - name: Test integrity of app parameters
+        shell: bash
+        run: |
+          # Check that values of assetsCache and appVersion are correctly duplicated
+          chmod +x ./scripts/test_duplicate_values.sh
+          ./scripts/test_duplicate_values.sh
+          # Check that PWAServer is correctly set in app.js
+          chmod +x ./scripts/test_pwa_server.sh
+          ./scripts/test_pwa_server.sh
+
+      # Install Node.js LTS
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 10.x
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests (Linux)
+        run: npm test
+
+  # This job only runs when SauceLabs credentials are available (e.g. direct pushes and same-repo PRs)
+  # and is used to run tests on additional operating systems and browsers.
+  tests-secure:
+    # Ideally this would be `if: secrets.SAUCE_USERNAME` or `if: fork`, which Travis CI
+    # supported, but GitHub Actions does not. When a commit or PR is from a source (non-fork)
+    # repo, the secrets are loaded only after the conditions are checked, not before.
+    # https://github.community/t/if-expression-with-context-variable/16558
+    #
+    # WARNING: GitHub evaluates workflow secrets and their protections always from the
+    # perspective of the source repo. This means you cannot test secure jobs from a
+    # forked repostiory. Unlike Travis, any secrets you configure in the fork are ignored.
+    # To test a secure job, you will have to create a fresh repo under a different name,
+    # add your secrets, and push to this additional remote from your local clone.
+    #
+    # One workaround is to check the secret from an early bash step and return early, but
+    # that would display this job as having succeeded instead of skipped, which is confusing.
+    #
+    # Another way is to approximate the secret permission as best we can and hope
+    # we don't accidentally run it when we shouldn't. Note that this condition only
+    # decides whether the job runs, not the secrets loads, so it doesn't need to be
+    # match perfectly. At worst it might in some edge case skip or run when it shouldn't
+    # and simply fail due to absence of secrets.
+    # To trigger a job for same-repo PRs as well, use
+    # `if: … || github.event.pull_request.head.repo.full_name == github.repository`
+    # https://github.community/t/have-github-action-only-run-on-master-repo-and-not-on-forks/140840
+    # https://github.community/t/distinguish-between-forked-pr-and-own-pr/16678/2
+    if: github.event_name == 'push'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 10.x
+      - name: Install dependencies
+        run: npm ci
+
+      - name: QUnit tests (Cross-browser)
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+        run: npm run test-unit-saucelabs
+
+
+      # Start a SauceLabs tunnel for Nightwatch (Karma does this automatically)
+      - name: Start tunnel for End-to-end tests
+        uses: saucelabs/sauce-connect-action@v1.1.2
+        with:
+          username: ${{ secrets.SAUCE_USERNAME }}
+          accessKey: ${{ secrets.SAUCE_ACCESS_KEY }}
+
+      - name: End-to-end tests (Cross-browser)
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+        run: |
+          ./node_modules/.bin/http-server . &
+          sleep 2
+          curl "http://localhost:8080" | head
+          # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
+          # So we separate the recent and old browsers in order to respect this limit.
+          # REMINDER: Keep this list in sync with the Unit tests, in tests/karma.conf.saucelabs.js
+          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox,chrome,edge
+          ./node_modules/.bin/nightwatch -c nightwatch.js --env edge40,edge44
+          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox45,chrome58,ie11
+          pkill node || echo "Node process not running (anymore)"
+
+  # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
+  test-offline-files:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test the list of offline files in Service Worker
+        shell: pwsh
+        run: ./scripts/Check-OfflineFilesList.ps1

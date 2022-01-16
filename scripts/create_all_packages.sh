@@ -12,8 +12,8 @@ while getopts tdv: option; do
     esac
 done
 
-MAJOR_NUMERIC_VERSION="3.1"
-VERSION_TO_REPLACE="3\.1-WIP"
+MAJOR_NUMERIC_VERSION="3.3"
+VERSION_TO_REPLACE="3\.3-WIP"
 
 # Set the secret environment variables if available
 # The file set_secret_environment_variables.sh should not be commited for security reasons
@@ -58,7 +58,8 @@ else
    sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
 fi
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/index.html
+sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
+sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
 
 mkdir -p build
 rm -rf build/*
@@ -76,11 +77,13 @@ sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
 if [ "${DRYRUN}zz" == "zz" ]; then
+    # Change permissions on source files to match those expected by the server
+    chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
     # Upload the files on download.kiwix.org
     echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
-    ssh -i scripts/travisci_builder_id_key ci@download.kiwix.org mkdir -p /data/download/nightly/$CURRENT_DATE
-    scp -r -p -i scripts/travisci_builder_id_key build/* ci@download.kiwix.org:/data/download/nightly/$CURRENT_DATE
+    ssh -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@download.kiwix.org mkdir -p /data/download/nightly/$CURRENT_DATE
+    scp -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* ci@download.kiwix.org:/data/download/nightly/$CURRENT_DATE
 else
     echo "Skipping uploading the files, because it's a dryrun test"
 fi

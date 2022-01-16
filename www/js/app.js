@@ -26,8 +26,8 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesystemAccess','q'],
- function($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess, Q) {
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesystemAccess'],
+ function($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess) {
      
     /**
      * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
@@ -38,11 +38,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     /**
      * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
-     * This name will be passed to service-worker.js in messaging to avoid duplication: see comment in service-worker.js
-     * We need access to this constant in app.js in order to complete utility actions when Service Worker is not initialized 
+     * We need access to the cache name in app.js in order to complete utility actions when Service Worker is not initialized,
+     * so we have to duplicate it here 
      * @type {String}
      */
-    const CACHE_NAME = 'kiwixjs-assetCache';
+    // DEV: Ensure this matches the name defined in service-worker.js (a check is provided in refreshCacheStatus() below)
+    const ASSETS_CACHE = 'kiwixjs-assetsCache';
     
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
@@ -64,23 +65,35 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     var selectedArchive = null;
     
-    // Set parameters and associated UI elements from the Settings Store
-    // DEV: The params global object is declared in init.js so that it is available to modules
-    params['storeType'] = settingsStore.getBestAvailableStorageAPI(); // A parameter to determine the Settings Store API in use
+    /**
+     * Set parameters from the Settings Store, together with any defaults
+     * Note that the params global object is declared in init.js so that it is available to modules
+     * WARNING: Only change these paramaeters if you know what you are doing
+     */
+    // The current version number of this app
+    params['appVersion'] = '3.3-WIP'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+    // The PWA server (currently only for use with the Mozilla extension)
+    params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
+    // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
+    // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
+    // A parameter to determine the Settings Store API in use
+    params['storeType'] = settingsStore.getBestAvailableStorageAPI();
     params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
-    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
-    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     // Maximum number of article titles to return (range is 5 - 50, default 25)
     params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
-    document.getElementById('titleSearchRangeVal').innerHTML = params.maxSearchResultsSize;
-    // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
-    params['useCache'] = settingsStore.getItem('useCache') !== 'false';
+    // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
+    params['assetsCache'] = settingsStore.getItem('assetsCache') !== 'false';
+    // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
+    params['appCache'] = settingsStore.getItem('appCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
-    document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
+    // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
+    params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
+    // A parameter to access the URL of any extension that this app was launched from
+    params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
+    // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
+    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 'jquery'; // Defaults to jquery for now
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
@@ -88,7 +101,68 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
         'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
+
+    // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
+    appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
     
+    /**
+     * Apply any override parameters that might be in the querystring.
+     * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
+     * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
+     * problematic settings, by crafting the querystring appropriately.
+     */
+    (function overrideParams() {
+        var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
+        var matches = regexpUrlParams.exec(window.location.search);
+        while (matches) {
+            if (matches[1] && matches[2]) {
+                var paramKey = decodeURIComponent(matches[1]);
+                var paramVal = decodeURIComponent(matches[2]);
+                if (paramKey !== 'title') {
+                    console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
+                    // Make values Boolean if 'true'/'false'
+                    paramVal = paramVal === 'true' || (paramVal === 'false' ? false : paramVal);
+                    settingsStore.setItem(paramKey, paramVal, Infinity);
+                    params[paramKey] = paramVal;
+                }
+            }
+            matches = regexpUrlParams.exec(window.location.search);
+        }
+        // If we are in the PWA version launched from an extension, send a 'success' message to the extension
+        if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
+            var message = '?PWA_launch=success';
+            // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
+            // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
+            // so we need to send a 'success' message each time the PWA is launched
+            var frame = document.createElement('iframe');
+            frame.id = 'kiwixComm';
+            frame.style.display = 'none';
+            document.body.appendChild(frame);
+            frame.src = params.referrerExtensionURL + '/www/index.html'+ message;
+            // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
+            setTimeout(function () {
+                var kiwixComm = document.getElementById('kiwixComm');
+                // The only browser which does not support .remove() is IE11, but it will never run this code
+                if (kiwixComm) kiwixComm.remove();
+            }, 3000);
+        }
+    })();
+
+    /**
+     * Set the State and UI settings associated with parameters defined above
+     */
+    document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
+    document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
+    document.getElementById('titleSearchRangeVal').textContent = params.maxSearchResultsSize;
+    document.getElementById('appThemeSelect').value = params.appTheme;
+    uiUtil.applyAppTheme(params.appTheme);
+    document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
+    switchHomeKeyToFocusSearchBar();
+    document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
+    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
+    setContentInjectionMode(params.contentInjectionMode);
+
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
     var globalDropZone = document.getElementById('search-article');
     var configDropZone = document.getElementById('configuration');
@@ -127,7 +201,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Do not initiate the same search if it is already in progress
         if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
         $("#welcomeText").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         $("#searchingArticles").show();
         pushBrowserHistoryState(null, prefix);
         // Initiate the search
@@ -303,9 +377,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#formArticleSearch').hide();
         $("#welcomeText").hide();
         $("#searchingArticles").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
+        uiUtil.checkUpdateStatus(appstate);
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
@@ -330,7 +405,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $("#welcomeText").hide();
         $('#articleListWithHeader').hide();
         $("#searchingArticles").hide();
-        $('.alert').hide();
+        $('.kiwix-alert').hide();
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
         return false;
@@ -338,6 +413,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     $('input:radio[name=contentInjectionMode]').on('change', function() {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
+    });
+    document.getElementById('btnReset').addEventListener('click', function () {
+        settingsStore.reset();
+    });
+    document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
+        if (params.contentInjectionMode !== 'serviceworker') {
+            alert('This setting can only be used in Service Worker mode!');
+            this.checked = false;
+        } else {
+            params.appCache = !this.checked;
+            settingsStore.setItem('appCache', params.appCache, Infinity);
+            settingsStore.reset('cacheAPI');
+        }
+        // This will also send any new values to Service Worker
+        refreshCacheStatus();
     });
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
@@ -347,6 +437,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.showUIAnimations = this.checked ? true : false;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
+    $('input:checkbox[name=useHomeKeyToFocusSearchBar]').on('change', function () {
+        params.useHomeKeyToFocusSearchBar = this.checked ? true : false;
+        settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
+        switchHomeKeyToFocusSearchBar();
+    });
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
@@ -354,35 +449,81 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
-            settingsStore.setItem('useCache', true, Infinity);
-            params.useCache = true;
+            settingsStore.setItem('assetsCache', true, Infinity);
+            params.assetsCache = true;
             refreshCacheStatus();
         }
     });
     document.getElementById('cachedAssetsModeRadioFalse').addEventListener('change', function (e) {
         if (e.target.checked) {
-            settingsStore.setItem('useCache', false, Infinity);
-            params.useCache = false;
+            settingsStore.setItem('assetsCache', false, Infinity);
+            params.assetsCache = false;
             // Delete all caches
             resetAssetsCache();
-            if ('caches' in window) caches.delete(CACHE_NAME);
+            if ('caches' in window) caches.delete(ASSETS_CACHE);
             refreshCacheStatus();
         }
     });
+    var titleSearchRangeVal = document.getElementById('titleSearchRangeVal');
     document.getElementById('titleSearchRange').addEventListener('change', function(e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
         params.maxSearchResultsSize = e.target.value;
+        titleSearchRangeVal.textContent = e.target.value;
     });
     document.getElementById('titleSearchRange').addEventListener('input', function(e) {
-        document.getElementById('titleSearchRangeVal').innerHTML = e.target.value;
+        titleSearchRangeVal.textContent = e.target.value;
+    });
+    document.getElementById('modesLink').addEventListener('click', function () {
+        document.getElementById('btnAbout').click();
+        // We have to use a timeout or the scroll is cancelled by the slide transtion animation
+        // @TODO This is a workaround. The regression should be fixed as it affects the Active content warning
+        // links as well.
+        setTimeout(function () {
+            document.getElementById('modes').scrollIntoView();
+        }, 600);
     });
 
+    //Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
+    //Returning false prevents their dragging (which can cause some unexpected behavior)
+    //Doing that in javascript is the only way to make it cross-browser compatible
+    document.getElementById('kiwixLogo').ondragstart=function () {return false;}
+    document.getElementById('navigationButtons').ondragstart=function () {return false;}
+
+    //focus search bar (#prefix) if Home key is pressed
+    function focusPrefixOnHomeKey(event) {
+        //check if home key is pressed
+        if (event.key === 'Home') {
+            // wait to prevent interference with scrolling (default action)
+            setTimeout(function() {
+                document.getElementById('prefix').focus();
+            },0);
+        }
+    }
+    //switch on/off the feature to use Home Key to focus search bar
+    function switchHomeKeyToFocusSearchBar() {
+        var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        // when the feature is in active state
+        if (params.useHomeKeyToFocusSearchBar) {
+            //Handle Home key press inside window(outside iframe) to focus #prefix
+            window.addEventListener('keydown', focusPrefixOnHomeKey);
+            //only for initial empty iFrame loaded using `src` attribute
+            //in any other case listener gets removed on reloading of iFrame content
+            iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+        }
+        // when the feature is not active
+        else {
+            //remove event listener for window(outside iframe)
+            window.removeEventListener('keydown', focusPrefixOnHomeKey);
+            //if feature is deactivated and no zim content is loaded yet
+            iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+        }
+    }
     /**
      * Displays or refreshes the API status shown to the user
      */
     function refreshAPIStatus() {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
-        apiStatusPanel.classList.remove('card-success', 'card-warning');
+        apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
         var apiPanelClass = 'card-success';
         if (isMessageChannelAvailable()) {
             $('#messageChannelStatus').html("MessageChannel API available");
@@ -418,9 +559,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
         settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
         apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
-
+        // Update Decompressor API section of panel
+        var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
+        apiName = params.decompressorAPI.assemblerMachineType;
+        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
+        decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
+        // Add the last used decompressor, if known, to the apiName
+        if (apiName && params.decompressorAPI.decompressorLastUsed) {
+            apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
+        }
+        apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
+        decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
+
+        // Set visibility of UI elements according to mode
+        document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
     }
 
     /**
@@ -428,9 +582,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * If Service Worker is not available, the attributes of the memory cache are returned instead
      * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
-    function getCacheAttributes() {
-        return Q.Promise(function (resolve, reject) {
-            if (contentInjectionMode === 'serviceworker') {
+    function getAssetsCacheAttributes() {
+        return new Promise(function (resolve, reject) {
+            if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker && navigator.serviceWorker.controller) {
                 // Create a Message Channel
                 var channel = new MessageChannel();
                 // Handler for recieving message reply from service worker
@@ -442,30 +596,34 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Ask Service Worker for its cache status and asset count
                 navigator.serviceWorker.controller.postMessage({
                     'action': {
-                        'useCache': params.useCache ? 'on' : 'off',
+                        'assetsCache': params.assetsCache ? 'enable' : 'disable',
+                        'appCache': params.appCache ? 'enable' : 'disable',
                         'checkCache': window.location.href
-                    },
-                    'cacheName': CACHE_NAME
+                    }
                 }, [channel.port2]);
             } else {
-                // No Service Worker has been established, so we resolve the Promise with cssCache details only
+                // No Service Worker has been established, so we resolve the Promise with assetsCache details only
                 resolve({
-                    'type': params.useCache ? 'memory' : 'none',
-                    'description': params.useCache ? 'Memory' : 'None',
-                    'count': cssCache.size
+                    'type': params.assetsCache ? 'memory' : 'none',
+                    'name': 'assetsCache',
+                    'description': params.assetsCache ? 'Memory' : 'None',
+                    'count': assetsCache.size
                 });
             }
         });
     }
 
     /** 
-     * Refreshes the UI (Configuration) with the cache attributes obtained from getCacheAttributes()
+     * Refreshes the UI (Configuration) with the cache attributes obtained from getAssetsCacheAttributes()
      */
     function refreshCacheStatus() {
         // Update radio buttons and checkbox
-        document.getElementById('cachedAssetsModeRadio' + (params.useCache ? 'True' : 'False')).checked = true;
+        document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
         // Get cache attributes, then update the UI with the obtained data
-        getCacheAttributes().then(function (cache) {
+        getAssetsCacheAttributes().then(function (cache) {
+            if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
+                console.error('DEV: The ASSETS_CACHE defined in app.js does not match the ASSETS_CACHE defined in service-worker.js!');
+            }
             document.getElementById('cacheUsed').innerHTML = cache.description;
             document.getElementById('assetsCount').innerHTML = cache.count;
             var cacheSettings = document.getElementById('performanceSettingsDiv');
@@ -474,14 +632,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // IE11 cannot remove more than one class from a list at a time
                 card.classList.remove('card-success');
                 card.classList.remove('card-warning');
-                if (params.useCache) card.classList.add('card-success');
+                if (params.assetsCache) card.classList.add('card-success');
                 else card.classList.add('card-warning');
             });
         });
     }
 
-    var contentInjectionMode;
     var keepAliveServiceWorkerHandle;
+    var serviceWorkerRegistration;
     
     /**
      * Send an 'init' message to the ServiceWorker with a new MessageChannel
@@ -490,20 +648,31 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
-        if (contentInjectionMode === 'serviceworker') {
+        var delay = DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER;
+        if (params.contentInjectionMode === 'serviceworker') {
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
             // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
-            navigator.serviceWorker.controller.postMessage({'action': 'init'}, [tmpMessageChannel.port2]);
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                    'action': 'init'
+                }, [tmpMessageChannel.port2]);
+            } else if (keepAliveServiceWorkerHandle) {
+                console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
+                window.location.reload();
+            } else {
+                // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
+                delay = 0;
+            }
             messageChannel = tmpMessageChannel;
             // Schedule to do it again regularly to keep the 2-way communication alive.
             // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
             clearTimeout(keepAliveServiceWorkerHandle);
-            keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER, false);
+            keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, delay, false);
         }
     }
-    
+
     /**
      * Sets the given injection mode.
      * This involves registering (or re-enabling) the Service Worker if necessary
@@ -512,19 +681,50 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
+        params.contentInjectionMode = value;
         if (value === 'jquery') {
-            if (isServiceWorkerReady()) {
-                // We need to disable the ServiceWorker
-                // Unregistering it does not seem to work as expected : the ServiceWorker
-                // is indeed unregistered but still active...
-                // So we have to disable it manually (even if it's still registered and active)
-                navigator.serviceWorker.controller.postMessage({'action': 'disable'});
-                messageChannel = null;
+            if (!params.appCache) {
+                alert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!');
+                setContentInjectionMode('serviceworker');
+                return;
+            }
+            if (params.referrerExtensionURL) {
+                // We are in an extension, and the user may wish to revert to local code
+                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
+                'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
+                var launchLocal = function () {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
+                    uriParams += '&appTheme=' + params.appTheme;
+                    uriParams += '&showUIAnimations=' + params.showUIAnimations; 
+                    window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                    'Beam me down, Scotty!';
+                };
+                var response = confirm(message);
+                if (response) {
+                    launchLocal();
+                } else {
+                    setContentInjectionMode('serviceworker');
+                }
+                return;
+            }
+            // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
+            // be intercepting requests
+            if ('serviceWorker' in navigator) {
+                serviceWorkerRegistration = null;
             }
             refreshAPIStatus();
-            // User has switched to jQuery mode, so no longer needs CACHE_NAME
-            // We should empty it to prevent unnecessary space usage
-            if ('caches' in window) caches.delete(CACHE_NAME);
+            // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
+            // We should empty it and turn it off to prevent unnecessary space usage
+            if ('caches' in window && isMessageChannelAvailable()) {
+                var channel = new MessageChannel();
+                if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        'action': { 'assetsCache': 'disable' }
+                    }, [channel.port2]);
+                }
+                caches.delete(ASSETS_CACHE);
+            }
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
                 alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
@@ -536,55 +736,62 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 setContentInjectionMode('jquery');
                 return;
             }
-            
+            var protocol = window.location.protocol;
             if (!isServiceWorkerReady()) {
                 $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
-                navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
-                    // The ServiceWorker is registered
-                    serviceWorkerRegistration = reg;
+                if (navigator.serviceWorker.controller) {
+                    console.log("Active service worker found, no need to register");
+                    serviceWorkerRegistration = true;
+                    // Remove any jQuery hooks from a previous jQuery session
+                    $('#articleContent').contents().remove();
+                    // Create the MessageChannel and send 'init'
+                    initOrKeepAliveServiceWorker();
                     refreshAPIStatus();
-                    
-                    // We need to wait for the ServiceWorker to be activated
-                    // before sending the first init message
-                    var serviceWorker = reg.installing || reg.waiting || reg.active;
-                    serviceWorker.addEventListener('statechange', function(statechangeevent) {
-                        if (statechangeevent.target.state === 'activated') {
-                            // Remove any jQuery hooks from a previous jQuery session
-                            $('#articleContent').contents().remove();
-                            // Create the MessageChannel
+                } else {
+                    navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
+                        // The ServiceWorker is registered
+                        serviceWorkerRegistration = reg;
+                        // We need to wait for the ServiceWorker to be activated
+                        // before sending the first init message
+                        var serviceWorker = reg.installing || reg.waiting || reg.active;
+                        serviceWorker.addEventListener('statechange', function(statechangeevent) {
+                            if (statechangeevent.target.state === 'activated') {
+                                // Remove any jQuery hooks from a previous jQuery session
+                                $('#articleContent').contents().remove();
+                                // Create the MessageChannel and send the 'init' message to the ServiceWorker
+                                initOrKeepAliveServiceWorker();
+                                // We need to refresh cache status here on first activation because SW was inaccessible till now
+                                // We also initialize the ASSETS_CACHE constant in SW here
+                                refreshCacheStatus();
+                                refreshAPIStatus();
+                            }
+                        });
+                        if (serviceWorker.state === 'activated') {
+                            // Even if the ServiceWorker is already activated,
+                            // We need to re-create the MessageChannel
                             // and send the 'init' message to the ServiceWorker
+                            // in case it has been stopped and lost its context
                             initOrKeepAliveServiceWorker();
-                            // We need to refresh cache status here on first activation because SW was inaccessible till now
-                            // We also initialize the CACHE_NAME constant in SW here
-                            refreshCacheStatus();
+                        }
+                        refreshCacheStatus();
+                        refreshAPIStatus();
+                    }).catch(function (err) {
+                        if (protocol === 'moz-extension:') {
+                            launchMozillaExtensionServiceWorker();
+                        } else {
+                            console.error('Error while registering serviceWorker', err);
+                            refreshAPIStatus();
+                            var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                            if (protocol === 'file:') {
+                                message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                            }
+                            alert(message);                        
+                            setContentInjectionMode("jquery");
                         }
                     });
-                    if (serviceWorker.state === 'activated') {
-                        // Even if the ServiceWorker is already activated,
-                        // We need to re-create the MessageChannel
-                        // and send the 'init' message to the ServiceWorker
-                        // in case it has been stopped and lost its context
-                        initOrKeepAliveServiceWorker();
-                    }
-                }, function (err) {
-                    console.error('error while registering serviceWorker', err);
-                    refreshAPIStatus();
-                    var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
-                    var protocol = window.location.protocol;
-                    if (protocol === 'moz-extension:') {
-                        message += "\n\nYou seem to be using kiwix-js through a Firefox extension : ServiceWorkers are disabled by Mozilla in extensions.";
-                        message += "\nPlease vote for https://bugzilla.mozilla.org/show_bug.cgi?id=1344561 so that some future Firefox versions support it";
-                    }
-                    else if (protocol === 'file:') {
-                        message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
-                    }
-                    alert(message);                        
-                    setContentInjectionMode("jquery");
-                    return;
-                });
+                }
             } else {
-                // We need to set this variable earlier else the ServiceWorker does not get reactivated
-                contentInjectionMode = value;
+                // We need to reactivate Service Worker
                 initOrKeepAliveServiceWorker();
             }
             // User has switched to Service Worker mode, so no longer needs the memory cache
@@ -593,25 +800,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
         $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
-        contentInjectionMode = value;
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
-        settingsStore.setItem('lastContentInjectionMode', value, Infinity);
+        settingsStore.setItem('contentInjectionMode', value, Infinity);
         refreshCacheStatus();
+        refreshAPIStatus();
     }
-            
-    // At launch, we try to set the last content injection mode (stored in Settings Store)
-    var lastContentInjectionMode = settingsStore.getItem('lastContentInjectionMode');
-    if (lastContentInjectionMode) {
-        setContentInjectionMode(lastContentInjectionMode);
-    }
-    else {
-        setContentInjectionMode('jquery');
-    }
-    
-    var serviceWorkerRegistration = null;
-    
-    // We need to establish the caching capabilities before first page launch
-    refreshCacheStatus();
     
     /**
      * Tells if the ServiceWorker API is available
@@ -646,6 +839,69 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function isServiceWorkerReady() {
         // Return true if the serviceWorkerRegistration is not null and not undefined
         return (serviceWorkerRegistration);
+    }
+
+    function launchMozillaExtensionServiceWorker () {
+        // DEV: See explanation below for why we access localStorage directly here 
+        var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
+        var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
+        var message = 'To enable the Service Worker, we need one-time access to our secure server ' + 
+            'so that the app can re-launch as a Progressive Web App (PWA).\n\n' +
+            'The PWA will be able to run offline, but will auto-update periodically when online ' + 
+            'as per the Service Worker spec.\n\n' +
+            'You can switch back any time by returning to JQuery mode.\n\n' +
+            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
+        var launchPWA = function () {
+            uiUtil.spinnerDisplay(false);
+            var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
+            uriParams += '&referrerExtensionURL=' + encodeURIComponent(window.location.href.replace(/\/www\/index.html.*$/i, ''));
+            if (!PWASuccessfullyLaunched || !allowInternetAccess) {
+                // Add any further params that should only be passed when the user is intentionally switching to SW mode
+                uriParams += '&appTheme=' + params.appTheme;
+                uriParams += '&showUIAnimations=' + params.showUIAnimations;
+            }
+            settingsStore.setItem('contentInjectionMode', 'serviceworker', Infinity);
+            // This is needed so that we get passthrough on subsequent launches
+            settingsStore.setItem('allowInternetAccess', true, Infinity);
+            // Signal failure of PWA until it has successfully launched (in init.js it will be changed to 'success')
+            // DEV: We write directly to localStorage instead of using settingsStore here because we need 100% certainty
+            // regarding the location of the key to be able to retrieve it in init.js before settingsStore is initialized
+            localStorage.setItem(params.keyPrefix + 'PWA_launch', 'fail');
+            window.location.href = params.PWAServer + 'www/index.html' + uriParams;
+            'Beam me up, Scotty!';
+        };
+        var checkPWAIsOnline = function () {
+            uiUtil.spinnerDisplay(true, 'Checking server access...');
+            uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
+                uiUtil.spinnerDisplay(false);
+                alert('The server is not currently accessible! ' +
+                    '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
+                    '\nPlease try again when you have a stable Internet connection.', 'Error!');
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+                setContentInjectionMode('jquery');
+            });
+        };
+        var response;
+        if (settingsStore.getItem('allowInternetAccess') === 'true') {
+            if (PWASuccessfullyLaunched) {
+                launchPWA();
+            } else {
+                response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
+                if (response) {
+                    checkPWAIsOnline();
+                } else {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    setContentInjectionMode('jquery');
+                }
+            }
+        } else {
+            response = confirm(message);
+            if (response) checkPWAIsOnline();
+            else {
+                setContentInjectionMode('jquery');
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+            }    
+        }
     }
     
     /**
@@ -917,26 +1173,24 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @returns {Promise<Blob>} A promise for the requested file (blob)
      */
     function readRemoteArchive(url) {
-        // DEV: This deferred can't be standardized to a Promise/A+ pattern (using Q) because
-        // IE11 is unable to scope the callbacks inside the Promise correctly. See [kiwix.js #589]
-        var deferred = Q.defer();
-        var request = new XMLHttpRequest();
-        request.open("GET", url);
-        request.responseType = "blob";
-        request.onreadystatechange = function () {
-            if (request.readyState === XMLHttpRequest.DONE) {
-                if (request.status >= 200 && request.status < 300 || request.status === 0) {
-                    // Hack to make this look similar to a file
-                    request.response.name = url;
-                    deferred.resolve(request.response);
-                } else {
-                    deferred.reject("HTTP status " + request.status + " when reading " + url);
+        return new Promise(function (resolve, reject) {
+            var request = new XMLHttpRequest();
+            request.open("GET", url);
+            request.responseType = "blob";
+            request.onreadystatechange = function () {
+                if (request.readyState === XMLHttpRequest.DONE) {
+                    if (request.status >= 200 && request.status < 300 || request.status === 0) {
+                        // Hack to make this look similar to a file
+                        request.response.name = url;
+                        resolve(request.response);
+                    } else {
+                        reject("HTTP status " + request.status + " when reading " + url);
+                    }
                 }
-            }
-        };
-        request.onabort = request.onerror = deferred.reject;
-        request.send();
-        return deferred.promise;
+            };
+            request.onabort = request.onerror = reject;
+            request.send();
+        });
     }
     
     /**
@@ -948,7 +1202,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         Array.prototype.slice.call(arguments).forEach(function (arg) {
             readRequests.push(readRemoteArchive(arg));
         });
-        return Q.all(readRequests).then(function (arrayOfArchives) {
+        return Promise.all(readRequests).then(function (arrayOfArchives) {
             setLocalArchiveFromFileList(arrayOfArchives);
         }).catch(function (e) {
             console.error('Unable to load remote archive(s)', e);
@@ -986,9 +1240,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
             // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
             // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
-            appstate.search = {'prefix': prefix, 'status': 'init', 'type': ''};
+            appstate.search = {'prefix': prefix, 'status': 'init', 'type': '', 'size': params.maxSearchResultsSize};
             $('#activeContent').hide();
-            selectedArchive.findDirEntriesWithPrefix(appstate.search, params.maxSearchResultsSize, populateListOfArticles);
+            selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
         } else {
             $('#searchingArticles').hide();
             // We have to remove the focus from the search field,
@@ -1109,17 +1363,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
-
         // We will need the encoded URL on article load so that we can set the iframe's src correctly,
         // but we must not encode the '/' character or else relative links may fail [kiwix-js #498]
         encodedUrl = dirEntry.url.replace(/[^/]+/g, function (matchedSubstring) {
             return encodeURIComponent(matchedSubstring);
         });
-
-        if (contentInjectionMode === 'serviceworker') {
+            
+        if (params.contentInjectionMode === 'serviceworker') {
             // In ServiceWorker mode, we simply set the iframe src.
             // (reading the backend is handled by the ServiceWorker itself)
-
+            
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
@@ -1139,14 +1392,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     docBody.addEventListener('drop', handleIframeDrop);
                 }
                 resizeIFrame();
-                // Reset UI when the article is unloaded
-                if (iframeArticleContent.contentWindow) iframeArticleContent.contentWindow.onunload = function () {
-                    $("#articleList").empty();
-                    $('#articleListHeaderMessage').empty();
-                    $('#articleListWithHeader').hide();
-                    $("#prefix").val("");
-                    $("#searchingArticles").show();
-                };
+
+                if (iframeArticleContent.contentWindow) {
+                    // Configure home key press to focus #prefix only if the feature is in active state
+                    if (params.useHomeKeyToFocusSearchBar)
+                        iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                    // Reset UI when the article is unloaded
+                    iframeArticleContent.contentWindow.onunload = function () {
+                        // remove eventListener to avoid memory leaks
+                        iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                        $("#articleList").empty();
+                        $('#articleListHeaderMessage').empty();
+                        $('#articleListWithHeader').hide();
+                        $("#prefix").val("");
+                        $("#searchingArticles").show();
+                    };
+                }
             };
 
             if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
@@ -1154,7 +1415,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } 
 
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
+            iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
@@ -1209,7 +1470,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         });
                     }
                 };
-                selectedArchive.getDirEntryByTitle(title).then(readFile).catch(function () {
+                selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
                     messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new Uint8Array() });
                 });
             } else {
@@ -1220,14 +1481,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
-    var regexpZIMUrlWithNamespace = /^[./]*([-ABIJMUVWX]\/.+)$/;
-    // Regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces [kiwix-js #378]
-    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["']
-    // or href=["'] (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing lookahead that
-    // matches ZIM URLs with namespaces [-IJ] ('-' = metadata or 'I'/'J' = image). When the regex is used below, it will also
-    // remove any relative or absolute path from ZIM-style URLs.
-    // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
-    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
+    var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
+    // The case-insensitive regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces.
+    // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
+    // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
+    // absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until either
+    // the opening delimiter (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used
+    // below, it will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single
+    // quote marks (') in the URL.
+    var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(?=\3|\?|#)/ig;
     // Regex below tests the html of an article for active content [kiwix-js #466]
     // It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js;
     // 2) the script block has inline content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment
@@ -1244,8 +1506,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
      * NB : in some error cases, the given title can be null, and the htmlArticle contains the error message
-     * @param {DirEntry} dirEntry
-     * @param {String} htmlArticle
+     * @param {DirEntry} dirEntry The Directory Entry of the article to be displayed
+     * @param {String} htmlArticle The HTML of the article to be displayed
      */
     function displayArticleContentInIframe(dirEntry, htmlArticle) {
         if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
@@ -1277,6 +1539,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
         }
 
+        // Calculate the current article's ZIM baseUrl to use when processing relative links
+        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
+
         // Remove and save inline javascript contents only (does not remove scripts with src)
         // This is required because most app CSPs forbid inline scripts or require hashes
         // DEV: {5,} in regex means script must have at least 5 characters between the script tags to be matched
@@ -1293,10 +1558,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         inlineEventsSheet = inlineEventsSheet[1];
 
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
-        // This replacement also processes the URL to remove the path so that the URL is ready for subsequent jQuery functions
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, '$1data-kiwixurl$2');
+        // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
+        // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(match, blockStart, equals, quote, relAssetUrl) {
+            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
+            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent.
+            return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
+        });
+
+        // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
+        var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
+        // Normalize classList and convert to array
+        htmlCSS = htmlCSS ? htmlCSS[1].replace(/\s+/g, ' ').split(' ') : [];
+        
         // Match any relative JavaScript links that do not conform to the ZIM specification
-        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
         htmlArticle = htmlArticle.replace(/(<(?:script)\b[^>]*?\s)(?:src)(\s*=\s*["'])([^"']+\.js)/ig, function(m0, m1, m2, m3) {
             var ZIMLink = uiUtil.deriveZimUrlFromRelativeUrl(m3, baseUrl);
             return m1 + 'data-kiwixurl' + m2 + ZIMLink;
@@ -1318,7 +1595,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         qFns(writeArticleToIframe, 'assetsCount', 'assetsExtracted');
         
         iframeArticleContent.onload = function() {
-            iframeArticleContent.onload = function(){};
+            // Set a global error handler for articleWindow
+            iframeArticleContent.contentWindow.onerror = function (msg, url, line, col, error) {
+                console.error('Error caught in ZIM contents [' + url + ':' + line + ']:\n' + msg, error);
+                return true;
+            };
+
             $("#articleList").empty();
             $('#articleListHeaderMessage').empty();
             $('#articleListWithHeader').hide();
@@ -1332,16 +1614,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
+
+                       
+            // Inject the new article's HTML into the iframe
+            var articleContent = iframeContentDocument.documentElement;
+            // articleContent.innerHTML = htmlArticle;
             
             // Inject stripped classes and attach drag-and-drop events
-            var articleContent = iframeContentDocument.documentElement;
             var docBody = articleContent.getElementsByTagName('body');
             docBody = docBody ? docBody[0] : null;
             if (docBody) {
+                // Add any missing classes stripped from the <html> tag
+                if (htmlCSS) htmlCSS.forEach(function (cl) {
+                    docBody.classList.add(cl);
+                });
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
             }
+
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
@@ -1352,26 +1643,32 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             injectInlineScriptsJQuery();
             loadImagesJQuery();
             insertMediaBlobsJQuery();
+
+            if (iframeArticleContent.contentWindow) {
+                // Configure home key press to focus #prefix only if the feature is in active state
+                if (params.useHomeKeyToFocusSearchBar)
+                    iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                // when unloaded remove eventListener to avoid memory leaks
+                iframeArticleContent.contentWindow.onunload = function () {
+                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                };
+            }
         };
 
         function writeArticleToIframe() {
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
+            // iframeArticleContent.src = "../" + selectedArchive._file._files[0].name + "/" + dirEntry.namespace + "/" + encodedUrl;
             var articleContent = iframeArticleContent.contentDocument;
             articleContent.open('text/html', 'replace');
             articleContent.write("<!DOCTYPE html>"); // Ensures browsers parse iframe in Standards mode
             articleContent.write(htmlArticle);
             articleContent.close();
-        }
+
+            // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
+            // iframeArticleContent.src = "article.html";
+     }
 
         function preloadAssetsFromCache() {
-            // WORKAROUND: Inject CSS required to open heading sections in Desktop view
-            // htmlArticle = htmlArticle.replace(/(<\/head>)/i, 
-            //     '<style>@media all and (min-width: 720px) {\n' +
-            //     '   .client-js .collapsible-block {\n' +
-            //     '       display: block !important;\n' +
-            //     '   }\n' +
-            //     '}</style>\n$1');
             var assetsArray = htmlArticle.match(/<(?:script|link)[^>]*?data-kiwixurl[^>]+>/gi);
             if (!assetsArray) return;
             for (var i = assetsArray.length; i--;) {
@@ -1398,7 +1695,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 else {
                     pageState.assetsCount++;
                     $('#cachingCSS').show();
-                    selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+                    selectedArchive.getDirEntryByPath(title).then(function(dirEntry) {
                         if (dirEntry === null) {
                             console.log("Error: asset file not found: " + title);
                             pageState.assetsCount--;
@@ -1469,9 +1766,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
         }
         
-        // Calculate the current article's ZIM baseUrl to use when processing relative links
-        var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
-
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
@@ -1529,25 +1823,37 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         
         function loadImagesJQuery() {
-            $('#articleContent').contents().find('body').find('img[data-kiwixurl]').each(function() {
-                var image = $(this);
-                var imageUrl = image.attr("data-kiwixurl");
-                var title = decodeURIComponent(imageUrl);
-                // Increment pageState image counter to keep track of number of images sent to decompressor
-                pageState.imagesCount++;
-                selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+            // Make an array from the images that need to be processed
+            var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
+            // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
+            images.owner = expectedArticleURLToBeDisplayed;
+            // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
+            // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
+            // DOM, making for a better user experience (because images above the fold are extracted first)
+            (function extractImage() {
+                if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
+                images.busy = true;
+                // Extract the image at the top of the images array and remove it from the array
+                var image = images.shift();
+                var imageUrl = image.getAttribute('data-kiwixurl');
+                var url = decodeURIComponent(imageUrl);
+                selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype);
+                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, function() {
+                            images.busy = false;
+                            extractImage();
+                        });
                         pageState.imagesExtracted++;
                     });
                 }).catch(function (e) {
-                    pageState.imagesCount--;
-                    console.error("could not find DirEntry for image:" + title, e);
+                    console.error("could not find DirEntry for image:" + url, e);
+                    images.busy = false;
+                    extractImage();
                 });
-            });
+            })();
         }
-        
+
         function loadNoScriptTags() {
             // For each noscript tag, we replace it with its content, so that the browser interprets it
             $('#articleContent').contents().find('noscript').replaceWith(function () {
@@ -1579,13 +1885,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var source = mediaSource.getAttribute('src');
                 source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
-                source = source ? source : mediaSource.dataset.kiwixurl;
+                source = source ? source : decodeURIComponent(mediaSource.dataset.kiwixurl);
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {
                     if (source) console.error('No usable media source was found for: ' + source);
                     return;
                 }
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-                selectedArchive.getDirEntryByTitle(decodeURIComponent(source)).then(function(dirEntry) {
+                // If the "controls" property is missing, we need to add it to ensure jQuery-only users can operate the video. See kiwix-js #760.
+                if (/audio|video/i.test(mediaElement.tagName) && !mediaElement.hasAttribute('controls')) mediaElement.setAttribute('controls', ''); 
+                selectedArchive.getDirEntryByPath(source).then(function(dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
@@ -1605,7 +1913,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} title The title of the file to display in the caching message block 
      */
     function updateCacheStatus(title) {
-        if (params.useCache && /\.css$|\.js$/i.test(title)) {
+        if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
             title = title.replace(/[^/]+\//g, '').substring(0,18);
@@ -1643,30 +1951,30 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
 
     /**
-     * Extracts the content of the given article title, or a downloadable file, from the ZIM
+     * Extracts the content of the given article pathname, or a downloadable file, from the ZIM
      * 
-     * @param {String} title The path and filename to the article or file to be extracted
+     * @param {String} path The pathname (namespace + filename) to the article or file to be extracted
      * @param {Boolean|String} download A Bolean value that will trigger download of title, or the filename that should
      *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
-    function goToArticle(title, download, contentType) {
+    function goToArticle(path, download, contentType) {
         $("#searchingArticles").show();
-        selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
+        selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                alert("Article with title " + title + " not found in the archive");
+                alert("Article with url " + path + " not found in the archive");
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = contentType || fileDirEntry.getMimetype();
-                    uiUtil.displayFileDownloadAlert(title, download, mimetype, content);
+                    uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
                 });
             } else {
                 params.isLandingPage = false;
                 $('#activeContent').hide();
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { alert("Error reading article with title " + title + " : " + e); });
+        }).catch(function(e) { alert("Error reading article with url " + path + " : " + e); });
     }
     
     function goToRandomArticle() {
@@ -1676,7 +1984,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 alert("Error finding random article.");
             } else {
-                if (dirEntry.namespace === 'A') {
+                // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
+                // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
+                // all dirEntries in an article-only listing must be articles.  
+                if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     $('#activeContent').hide();
                     $('#searchingArticles').show();
@@ -1698,7 +2009,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                if (dirEntry.namespace === 'A') {
+                // DEV: see comment above under goToRandomArticle()
+                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = true;
                     readArticle(dirEntry);
                 } else {

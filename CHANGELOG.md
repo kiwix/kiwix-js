@@ -4,11 +4,42 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
-## Kiwix-JS v3.1.0
+## Kiwix-JS v3.3.0
 
 Released on *TODO*
 
 Detailed changelog: TODO
+
+## Kiwix-JS v3.2.0
+
+Released on *2021-08-22*
+
+* NEW: Support latest format of ZIM archives (with no namespace)
+* NEW: Optimization of title search by eliminating redundancies
+* NEW: Support new format of title listings (v1) in no-namespace ZIM archives
+* NEW: 'Home' key can now be used to focus the search field
+* NEW: Use native Promises (or modern polyfill where required) instead of Q, improving performance in modern browsers and IE11
+* NEW: Use fast binary WASM decoders with fallback to ASM if necessary
+* UPDATE: Clearer and more extensive documentation for end users in About
+* UPDATE: Unit testing updated to latest QUnit, and use Karma instead of Nightwatch
+* UPDATE: Replace Travis by GitHub Actions for continuous integration
+* UPDATE: Added helper scripts and instructions for recompiling decompressors with Docker
+* BUGFIX: Issue with calculation for selection of random articles
+* BUGFIX: Incorrect syntax in usage of classList method that caused an exception in older browsers with rare ZIM types
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/25?closed=1
+
+## Kiwix-JS v3.1.0
+
+Released on *2020-12-12*
+
+* NEW: Low-level block cache significantly improves binary search speed, and can speed up resource loading in most browsers
+* NEW: Archives with WebP-encoded images are now decoded in legacy browsers via a polyfill
+* UPDATE: Images are now extracted sequentially in jQuery mode from the top of the DOM
+* BUGFIX: Running binary searches are now cancelled completely if user enters new search term or navigates away
+* BUGFIX: Active content warning was erroneously showing on some ZSTD WikiMedia landing pages in jQuery mode
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/24?closed=1
 
 ## Kiwix-JS v3.0.0
 

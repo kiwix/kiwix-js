@@ -21,7 +21,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-const TRAVIS_JOB_NUMBER = process.env.TRAVIS_JOB_NUMBER;
+const build = `${process.env.GITHUB_REPOSITORY} run #${process.env.GITHUB_RUN_ID}`;
 
 module.exports = {
   "src_folders" : ["browser-tests"],
@@ -52,8 +52,7 @@ module.exports = {
         "version": "45.0",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "firefox" : {
@@ -61,8 +60,7 @@ module.exports = {
         "browserName": "firefox",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "chrome58" : {
@@ -71,8 +69,7 @@ module.exports = {
         "version": "58.0",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "chrome" : {
@@ -80,8 +77,7 @@ module.exports = {
         "browserName": "chrome",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "edge" : {
@@ -89,8 +85,7 @@ module.exports = {
         "browserName": "MicrosoftEdge",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "edge40" : {
@@ -99,8 +94,7 @@ module.exports = {
         "version": "15.15063",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "edge44" : {
@@ -109,8 +103,7 @@ module.exports = {
         "version": "18.17763",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     },
     "ie11" : {
@@ -118,8 +111,7 @@ module.exports = {
         "browserName": "internet explorer",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
-        "build": "build-" + TRAVIS_JOB_NUMBER,
-        "tunnel-identifier": TRAVIS_JOB_NUMBER
+        "build": build
       }
     }
   }
