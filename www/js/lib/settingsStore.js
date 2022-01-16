@@ -172,9 +172,15 @@ define([], function () {
     var reboot = function () {
       console.debug('Performing app reload...');
       setTimeout(function () {
-        window.location.reload();
+        window.location.search = uriParams;
       }, 300);
     };
+    // Compile a sensible querystring, so that parameters are not set on reload
+    var uriParams = '';
+    if (~window.location.href.indexOf(params.PWAServer) && params.referrerExtensionURL) {
+      uriParams = '?allowInternetAccess=truee&contentInjectionMode=serviceworker';
+      uriParams += '&referrerExtensionURL=' + encodeURIComponent(params.referrerExtensionURL);
+    }
     if (navigator && navigator.serviceWorker) {
       console.debug('Deregistering Service Workers...');
       var cnt = 0;
