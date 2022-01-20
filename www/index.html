@@ -45,6 +45,27 @@
         <link rel="icon" type="image/png" href="img/icons/kiwix-256.png" sizes="256x256"/>
     </head>
     <body role="application">
+        <!--Bootstrap modal for alert and confirmation pop up-->
+        <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel">Modal title goes here</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalText">Modal text goes here.</p>
+                    </div>
+                    <div class="modal-footer" id="modalFooter">
+                        <button type="button" class="btn btn-primary" id="confirmModal" style="visibility: hidden;">Confirm</button>
+                        <button type="button" class="btn btn-secondary" id="closeModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Status indicators -->
         <div id="searchingArticles" style="display: none;" class="status">
             <div class="loader"></div>
@@ -54,6 +75,8 @@
         </div>
         <section id="search-article" role="region">
             <header id="top">
+                
+
                 <nav class="navbar navbar-expand-md bg-light" role="navigation">
                     <a id="appVersion" class="navbar-brand">Kiwix</a>
 
