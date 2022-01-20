@@ -42,24 +42,23 @@ define(rqDef, function(settingsStore) {
      * @param {*} callback 
      */
     function systemAlert(label, message, isConfirm){
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             document.getElementById("modalLabel").innerHTML = label;
             document.getElementById("modalText").innerHTML = message;
-            if(isConfirm){
+            if (isConfirm){
                 document.getElementById("confirmModal").style.visibility = "visible";
                 document.getElementById("confirmModal").onclick = function(){
-                    $("#alertModal").modal('hide');
+                    $("#alertModal").modal("hide");
                     resolve(true);
                 };
-            }
-            else{
+            } else {
                 document.getElementById("confirmModal").style.visibility = "hidden";
             }
 
-            $("#alertModal").modal('show');
+            $("#alertModal").modal("show");
 
             document.getElementById("closeModal").onclick = function() {
-                $("#alertModal").modal('hide');
+                $("#alertModal").modal("hide");
                 resolve(false);
             };
         });
