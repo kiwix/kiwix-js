@@ -52,6 +52,9 @@ define(rqDef, function(settingsStore) {
                     resolve(true);
                 };
             }
+            else{
+                document.getElementById("confirmModal").style.visibility = "hidden";
+            }
 
             $("#alertModal").modal('show');
 
