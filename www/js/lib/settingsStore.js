@@ -1,5 +1,5 @@
 'use strict';
-define(['jquery', 'uiUtil'], function ($, uiUtil) {
+define([], function () {
   /**
    * settingsStore.js
    * 
