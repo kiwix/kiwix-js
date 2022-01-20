@@ -1260,8 +1260,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             $("#searchArticles").focus();
-            alert("Archive not set : please select an archive");
-            $("#btnConfigure").click();
+            uiUtil.systemAlert("Alert", "Archive not set : please select an archive", false)
+                .then(function () {
+                    $("#btnConfigure").click();
+                });
+            // alert("Archive not set : please select an archive");
+            // $("#btnConfigure").click();
         }
     }
 

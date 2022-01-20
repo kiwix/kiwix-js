@@ -1,5 +1,5 @@
 'use strict';
-define([], function () {
+define(['jquery', 'uiUtil'], function ($, uiUtil) {
   /**
    * settingsStore.js
    * 
@@ -98,9 +98,10 @@ define([], function () {
    * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
    */
   function reset(object) {
+    console.log(uiUtil) //outputs undefined
     // If no specific object was specified, we are doing a general reset, so ask user for confirmation
     if (!object && !confirm('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!')) return;
-    
+
     // 1. Clear any cookie entries
     if (!object || object === 'cookie') {
       var regexpCookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;

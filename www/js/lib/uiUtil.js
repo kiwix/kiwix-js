@@ -32,6 +32,35 @@ if (webpMachine) {
 }
 
 define(rqDef, function(settingsStore) {
+
+    /**
+     * Displays a Bootstrap alert or confirm dialog box depending on the options provided
+     * @param {*} node 
+     * @param {*} nodeAttribute 
+     * @param {*} content 
+     * @param {*} mimeType 
+     * @param {*} callback 
+     */
+    function systemAlert(label, message, isConfirm){
+        return new Promise(function(resolve, reject) {
+            document.getElementById("modalLabel").innerHTML = label;
+            document.getElementById("modalText").innerHTML = message;
+            if(isConfirm){
+                document.getElementById("confirmModal").style.visibility = "visible";
+                document.getElementById("confirmModal").onclick = function(){
+                    $("#alertModal").modal('hide');
+                    resolve(true);
+                };
+            }
+
+            $("#alertModal").modal('show');
+
+            document.getElementById("closeModal").onclick = function() {
+                $("#alertModal").modal('hide');
+                resolve(false);
+            };
+        });
+    }
   
     /**
      * Creates either a blob: or data: URI from the given content
@@ -491,6 +520,7 @@ define(rqDef, function(settingsStore) {
      * Functions and classes exposed by this module
      */
     return {
+        systemAlert: systemAlert,
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
