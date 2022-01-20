@@ -101,8 +101,8 @@ define([], function () {
     var uiUtil = require('uiUtil');
     // If no specific object was specified, we are doing a general reset, so ask user for confirmation
     uiUtil.systemAlert('Confirmation', 'WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', true)
-      .then(function (result) {
-        if(!object && !result) return;
+      .then(function (confirmation) {
+        if(!object && !confirmation) return;
 
         // 1. Clear any cookie entries
         if (!object || object === 'cookie') {
