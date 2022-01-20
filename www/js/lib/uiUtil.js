@@ -35,11 +35,10 @@ define(rqDef, function(settingsStore) {
 
     /**
      * Displays a Bootstrap alert or confirm dialog box depending on the options provided
-     * @param {*} node 
-     * @param {*} nodeAttribute 
-     * @param {*} content 
-     * @param {*} mimeType 
-     * @param {*} callback 
+     * @param {String} label The modal's label or title which appears in the header 
+     * @param {String} message The alert message to display in the body of the modal 
+     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be an alert 
+     * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
      */
     function systemAlert(label, message, isConfirm){
         return new Promise(function (resolve, reject) {
