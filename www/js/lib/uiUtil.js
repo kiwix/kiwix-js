@@ -35,6 +35,7 @@ define(rqDef, function(settingsStore) {
 
     /**
      * Displays a Bootstrap alert or confirm dialog box depending on the options provided
+     * 
      * @param {String} label The modal's label or title which appears in the header 
      * @param {String} message The alert message to display in the body of the modal 
      * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be an alert 
@@ -42,24 +43,23 @@ define(rqDef, function(settingsStore) {
      */
     function systemAlert(label, message, isConfirm){
         return new Promise(function (resolve, reject) {
+            if(!label || !message){
+                reject('Missing parameters');
+            }
             document.getElementById("modalLabel").innerHTML = label;
             document.getElementById("modalText").innerHTML = message;
-            if (isConfirm){
-                document.getElementById("confirmModal").style.visibility = "visible";
-                document.getElementById("confirmModal").onclick = function(){
-                    $("#alertModal").modal("hide");
-                    resolve(true);
-                };
-            } else {
-                document.getElementById("confirmModal").style.visibility = "hidden";
-            }
-
+            // Displays an additional Confirm button if isConfirm is true
+            document.getElementById("confirmModal").style.visibility = isConfirm ? "visible" : "hidden";
             $("#alertModal").modal("show");
-
-            document.getElementById("closeModal").onclick = function() {
-                $("#alertModal").modal("hide");
-                resolve(false);
-            };
+            // When the modal is hidden, resolve promise with true if hidden using Confirm button, false otherwise
+            $('#alertModal').on('hide.bs.modal', function() {
+                const closeSource = document.activeElement;
+                if (closeSource.id === "confirmModal"){
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
         });
     }
   
