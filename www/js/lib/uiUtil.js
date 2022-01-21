@@ -53,7 +53,7 @@ define(rqDef, function(settingsStore) {
             // Displays an additional Confirm button if isConfirm is true
             document.getElementById("approveModal").style.visibility = isConfirm ? "visible" : "hidden";
             $("#alertModal").modal("show");
-            // When the modal is hidden, resolve promise with true if hidden using Confirm button, false otherwise
+            // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
             $('#alertModal').on("hide.bs.modal", function () {
                 const closeSource = document.activeElement;
                 if (closeSource.id === "approveModal") {
