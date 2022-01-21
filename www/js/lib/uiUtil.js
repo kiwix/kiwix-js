@@ -41,20 +41,22 @@ define(rqDef, function(settingsStore) {
      * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be an alert 
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
      */
-    function systemAlert(label, message, isConfirm){
+    function systemAlert(label, message, isConfirm, declineButtonText = "Cancel", approveButtonText = "Confirm") {
         return new Promise(function (resolve, reject) {
             if(!label || !message){
                 reject('Missing parameters');
             }
+            document.getElementById("declineModal").innerHTML = declineButtonText;
+            document.getElementById("approveModal").innerHTML = approveButtonText;
             document.getElementById("modalLabel").innerHTML = label;
             document.getElementById("modalText").innerHTML = message;
             // Displays an additional Confirm button if isConfirm is true
-            document.getElementById("confirmModal").style.visibility = isConfirm ? "visible" : "hidden";
+            document.getElementById("approveModal").style.visibility = isConfirm ? "visible" : "hidden";
             $("#alertModal").modal("show");
             // When the modal is hidden, resolve promise with true if hidden using Confirm button, false otherwise
             $('#alertModal').on('hide.bs.modal', function() {
                 const closeSource = document.activeElement;
-                if (closeSource.id === "confirmModal"){
+                if (closeSource.id === "approveModal"){
                     resolve(true);
                 } else {
                     resolve(false);
