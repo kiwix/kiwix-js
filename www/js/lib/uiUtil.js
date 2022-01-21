@@ -45,9 +45,7 @@ define(rqDef, function(settingsStore) {
      */
     function systemAlert(label, message, isConfirm, declineButtonText = "Cancel", approveButtonText = "Confirm") {
         return new Promise(function (resolve, reject) {
-            if(!label || !message){
-                reject("Missing parameters");
-            }
+            if (!label || !message) reject("Missing parameters");
             document.getElementById("declineModal").innerHTML = declineButtonText;
             document.getElementById("approveModal").innerHTML = approveButtonText;
             document.getElementById("modalLabel").innerHTML = label;
@@ -56,9 +54,9 @@ define(rqDef, function(settingsStore) {
             document.getElementById("approveModal").style.visibility = isConfirm ? "visible" : "hidden";
             $("#alertModal").modal("show");
             // When the modal is hidden, resolve promise with true if hidden using Confirm button, false otherwise
-            $('#alertModal').on("hide.bs.modal", function() {
+            $('#alertModal').on("hide.bs.modal", function () {
                 const closeSource = document.activeElement;
-                if (closeSource.id === "approveModal"){
+                if (closeSource.id === "approveModal") {
                     resolve(true);
                 } else {
                     resolve(false);
