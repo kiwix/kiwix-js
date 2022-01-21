@@ -1252,8 +1252,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 .then(function () {
                     $("#btnConfigure").click();
                 });
-            // alert("Archive not set : please select an archive");
-            // $("#btnConfigure").click();
         }
     }
 
