@@ -248,7 +248,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (/Enter/.test(e.key)) {
                 if (activeElement.classList.contains('hover')) {
                     var dirEntryId = activeElement.getAttribute('dirEntryId');
-                    findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
+                    findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
                     return;
                 }
             }
@@ -1285,7 +1285,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
-            var dirEntryStringId = uiUtil.htmlEscapeChars(dirEntry.toStringId());
+            // NB We use encodeURIComponent here because we know that any question marks in the title are not querystrings, and should be encoded 
+            var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
             articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
         }
@@ -1308,7 +1309,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @returns {Boolean}
      */
     function handleTitleClick(event) {       
-        var dirEntryId = event.target.getAttribute("dirEntryId");
+        var dirEntryId = decodeURIComponent(event.target.getAttribute("dirEntryId"));
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         return false;
     }

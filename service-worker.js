@@ -286,8 +286,9 @@ function fetchRequestFromZIM(fetchEvent) {
         nameSpace = regexpResult[2];
         title = regexpResult[3];
 
-        // We need to remove the potential parameters in the URL
-        title = removeUrlParameters(decodeURIComponent(title));
+        // We need to remove the potential parameters in the URL. Note that titles may contain question marks or hashes, so we test the
+        // encoded URI before decoding it. Be sure that you haven't encoded any querystring along with the URL, e.g. for clicked links.
+        title = decodeURIComponent(removeUrlParameters(title));
 
         titleWithNameSpace = nameSpace + '/' + title;
 
@@ -339,7 +340,7 @@ function fetchRequestFromZIM(fetchEvent) {
  * @returns {String} The same URL without its parameters and anchors
  */
 function removeUrlParameters(url) {
-    return url.replace(/([^?#]+)[?#].*$/, '$1');
+    return url.replace(/[?#].*$/, '');
 }
 
 /**
