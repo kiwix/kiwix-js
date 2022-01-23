@@ -1505,7 +1505,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
     // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
     var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
-    
+
+    // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
+    var anchorParameter;
+
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -1595,7 +1598,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             //loadJavaScriptJQuery();
             loadCSSJQuery();
             insertMediaBlobsJQuery();
-
+            // Jump to any anchor parameter
+            if (anchorParameter) {
+                var target = iframeContentDocument.getElementById(anchorParameter);
+                if (target) target.scrollIntoView();
+                anchorParameter = '';
+            } 
             if (iframeArticleContent.contentWindow) {
                 // Configure home key press to focus #prefix only if the feature is in active state
                 if (params.useHomeKeyToFocusSearchBar)
@@ -1658,6 +1666,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     anchor.addEventListener('click', function (e) {
+                        anchorParameter = href.match(/#([^#]+)$/);
+                        anchorParameter = anchorParameter ? anchorParameter[1] : '';
                         var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                         goToArticle(zimUrl, downloadAttrValue, contentType);
                         e.preventDefault();
