@@ -1625,7 +1625,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // NB dirEntry.url can also contain path separator / in some ZIMs (Stackexchange). } and ] do not need to be escaped as they have no meaning on their own. 
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+/()[{])/g, '\\$1');
             // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
-            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
+            // Note that we exclude any # with a semicolon between it and the end of the string, to avoid accidentally matching e.g. &#39;
+            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#;]*$)');
             var iframe = iframeArticleContent.contentDocument;
             Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
@@ -1637,11 +1638,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
                 var href = anchor.getAttribute('href');
                 if (href === null || href === undefined) return;
+                var anchorTarget = href.match(regexpLocalAnchorHref);
                 if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page: do nothing.
-                } else if (regexpLocalAnchorHref.test(href)) {
+                } else if (anchorTarget) {
                     // It's a local anchor link : remove escapedUrl if any (see above)
-                    anchor.setAttribute('href', href.replace(/^[^#]*/, ''));
+                    anchor.setAttribute('href', '#' + anchorTarget[1]);
                 } else if (anchor.protocol !== currentProtocol ||
                     anchor.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
@@ -1666,7 +1668,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     anchor.addEventListener('click', function (e) {
-                        anchorParameter = href.match(/#([^#]+)$/);
+                        anchorParameter = href.match(/#([^#;]+)$/);
                         anchorParameter = anchorParameter ? anchorParameter[1] : '';
                         var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                         goToArticle(zimUrl, downloadAttrValue, contentType);
