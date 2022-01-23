@@ -342,8 +342,10 @@ function fetchRequestFromZIM(fetchEvent) {
 function removeUrlParameters(url) {
     // Remove any querystring
     var strippedUrl = url.replace(/\?[^?]*$/, '');
-    // Remove any anchor parameters
-    strippedUrl = strippedUrl.replace(/#[^#]*$/, '');
+    // Remove any anchor parameters - note that IN PRACTICE anchor parameters cannot contain a semicolon because JavaScript maintains
+    // compatibility with HTML4, so we can avoid accidentally stripping e.g. &#39; by excluding an anchor if any semicolon is found
+    // between it and the end of the string. See https://stackoverflow.com/a/79022/9727685.
+    strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
     return strippedUrl;
 }
 
