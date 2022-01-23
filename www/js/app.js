@@ -1637,7 +1637,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     return;
                 }
                 var href = anchor.getAttribute('href');
-                if (href === null || href === undefined) return;
+                if (href === null || href === undefined || /^javascript:/i.test(anchor.protocol)) return;
                 var anchorTarget = href.match(regexpLocalAnchorHref);
                 if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page: do nothing.
