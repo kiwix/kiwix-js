@@ -103,15 +103,19 @@ define(rqDef, function(settingsStore) {
         link.parentNode.replaceChild(cssElement, link);
     }
         
-    var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
-    
     /**
      * Removes parameters and anchors from a URL
-     * @param {type} url
-     * @returns {String} same URL without its parameters and anchors
+     * @param {type} url The URL to be processed
+     * @returns {String} The same URL without its parameters and anchors
      */
     function removeUrlParameters(url) {
-        return url.replace(regexpRemoveUrlParameters, "$1");
+        // Remove any querystring
+        var strippedUrl = url.replace(/\?[^?]*$/, '');
+        // Remove any anchor parameters - note that IN PRACTICE anchor parameters cannot contain a semicolon because JavaScript maintains
+        // compatibility with HTML4, so we can avoid accidentally stripping e.g. &#39; by excluding an anchor if any semicolon is found
+        // between it and the end of the string. See https://stackoverflow.com/a/79022/9727685.
+        strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
+        return strippedUrl;
     }
 
     /**
