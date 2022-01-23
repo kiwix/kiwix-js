@@ -1285,7 +1285,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
-            // NB We use encodeURIComponent here because we know that any question marks in the title are not querystrings, and should be encoded 
+            // NB We use encodeURIComponent rather than encodeURI here because we know that any question marks in the title are not querystrings,
+            // and should be encoded [kiwix-js #806]. DEV: be very careful if you edit the dirEntryId attribute below, because the contents must be
+            // inside double quotes (in the final HTML string), given that dirEntryStringId may contain bare apostrophes
+            // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( ) 
             var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
             articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
@@ -1305,11 +1308,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     /**
      * Handles the click on the title of an article in search results
-     * @param {Event} event
-     * @returns {Boolean}
+     * @param {Event} event The click event to handle
+     * @returns {Boolean} Always returns false for JQuery event handling
      */
     function handleTitleClick(event) {       
-        var dirEntryId = decodeURIComponent(event.target.getAttribute("dirEntryId"));
+        var dirEntryId = decodeURIComponent(event.target.getAttribute('dirEntryId'));
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         return false;
     }
@@ -1318,7 +1321,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Creates an instance of DirEntry from given dirEntryId (including resolving redirects),
      * and call the function to read the corresponding article
-     * @param {String} dirEntryId
+     * @param {String} dirEntryId The stringified Directory Entry to parse and launch
      */
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
