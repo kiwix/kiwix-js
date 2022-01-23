@@ -340,7 +340,11 @@ function fetchRequestFromZIM(fetchEvent) {
  * @returns {String} The same URL without its parameters and anchors
  */
 function removeUrlParameters(url) {
-    return url.replace(/[?#].*$/, '');
+    // Remove any querystring
+    var strippedUrl = url.replace(/\?[^?]*$/, '');
+    // Remove any anchor parameters
+    strippedUrl = strippedUrl.replace(/#[^#]*$/, '');
+    return strippedUrl;
 }
 
 /**
