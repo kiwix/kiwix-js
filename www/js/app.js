@@ -1738,7 +1738,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             Array.prototype.slice.call(iframe.querySelectorAll('link[data-kiwixurl]')).forEach(function (link) {
                 cssCount++;
                 var linkUrl = link.getAttribute('data-kiwixurl');
-                var url = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
+                var url = decodeURIComponent(uiUtil.removeUrlParameters(linkUrl));
                 if (cssCache.has(url)) {
                     var nodeContent = cssCache.get(url);
                     if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
@@ -1793,7 +1793,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         //         var script = $(this);
         //         var scriptUrl = script.attr("data-kiwixurl");
         //         // TODO check that the type of the script is text/javascript or application/javascript
-        //         var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+        //         var title = uiUtil.removeUrlParameters(scriptUrl);
         //         selectedArchive.getDirEntryByPath(title).then(function(dirEntry) {
         //             if (dirEntry === null) {
         //                 console.log("Error: js file not found: " + title);

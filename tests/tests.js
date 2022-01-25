@@ -118,14 +118,17 @@ define(['jquery', 'zimArchive', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             assert.equal(util.allCaseFirstLetters(testString6, "full").indexOf("ΚΑΛΆ ΝΕΡΆ ΜΑΓΝΗΣΊΑ ŽIŽEK") >= 0, true, "All Unicode letters should be uppercase");
         });
         QUnit.test("check removal of parameters in URL", function(assert) {
-            var testUrl1 = "A/question.html";
-            var testUrl2 = "A/question.html?param1=toto&param2=titi";
-            var testUrl3 = "A/question.html?param1=toto&param2=titi#anchor";
-            var testUrl4 = "A/question.html#anchor";
-            assert.equal(uiUtil.removeUrlParameters(testUrl1), testUrl1);
-            assert.equal(uiUtil.removeUrlParameters(testUrl2), testUrl1);
-            assert.equal(uiUtil.removeUrlParameters(testUrl3), testUrl1);
-            assert.equal(uiUtil.removeUrlParameters(testUrl4), testUrl1);
+            var baseUrl = "A/Che cosa è l'amore?.html";
+            var testUrls = [
+                "A/Che%20cosa%20%C3%A8%20l'amore%3F.html?param1=toto&param2=titi",
+                "A/Che%20cosa%20%C3%A8%20l'amore%3F.html?param1=toto&param2=titi#anchor",
+                "A/Che%20cosa%20%C3%A8%20l'amore%3F.html#anchor"
+            ];
+            testUrls.forEach(function (testUrl) {
+                assert.equal(decodeURIComponent(
+                    uiUtil.removeUrlParameters(testUrl)
+                ), baseUrl);
+            });
         });
 
         QUnit.module("ZIM initialisation");

@@ -278,19 +278,15 @@ let fetchCaptureEnabled = false;
  */
 function fetchRequestFromZIM(fetchEvent) {
     return new Promise(function (resolve, reject) {
-        var nameSpace;
-        var title;
-        var titleWithNameSpace;
-        var regexpResult = regexpZIMUrlWithNamespace.exec(fetchEvent.request.url);
-        var prefix = regexpResult[1];
-        nameSpace = regexpResult[2];
-        title = regexpResult[3];
-
         // We need to remove the potential parameters in the URL. Note that titles may contain question marks or hashes, so we test the
         // encoded URI before decoding it. Be sure that you haven't encoded any querystring along with the URL, e.g. for clicked links.
-        title = decodeURIComponent(removeUrlParameters(title));
+        var strippedUrl = decodeURIComponent(new URL(fetchEvent.request.url).pathname);
+        var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(strippedUrl);
+        var prefix = partsOfZIMUrl[1];
+        var nameSpace = partsOfZIMUrl[2];
+        var title = partsOfZIMUrl[3];
 
-        titleWithNameSpace = nameSpace + '/' + title;
+        var titleWithNameSpace = nameSpace + '/' + title;
 
         // Let's instantiate a new messageChannel, to allow app.js to give us the content
         var messageChannel = new MessageChannel();
@@ -335,18 +331,15 @@ function fetchRequestFromZIM(fetchEvent) {
 }
 
 /**
- * Removes parameters and anchors from a URL
- * @param {type} url The URL to be processed
- * @returns {String} The same URL without its parameters and anchors
+ * Parses a fully qualified URL. Note that relative URLs cannot be used with this method, because we do not have access
+ * to the base URL, and using a dummy URL will strip any relative path information, returning an incorrect result.
+ * @param {String} encodedUrl The URI-encoded fully qualified URL string to be processed (must include protocol and domain).
+ *     Note that the path and parameters must be URI-encoded, but parameter separators at the end of the URL (? & = ; #)
+ *     must not be encoded.
+ * @returns {URL} A URL object with properties such as 'pathname', 'search', and 'anchor'. Pathname is URI-encoded.
  */
-function removeUrlParameters(url) {
-    // Remove any querystring
-    var strippedUrl = url.replace(/\?[^?]*$/, '');
-    // Remove any anchor parameters - note that IN PRACTICE anchor parameters cannot contain a semicolon because JavaScript maintains
-    // compatibility with HTML4, so we can avoid accidentally stripping e.g. &#39; by excluding an anchor if any semicolon is found
-    // between it and the end of the string. See https://stackoverflow.com/a/79022/9727685.
-    strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
-    return strippedUrl;
+function parseUrlParameters(encodedUrl) {
+    return new URL(encodedUrl);
 }
 
 /**
