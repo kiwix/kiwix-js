@@ -190,11 +190,16 @@ let fetchCaptureEnabled = false;
  self.addEventListener('fetch', function (event) {
     // Only cache GET requests
     if (event.request.method !== "GET") return;
-    // Remove any querystring before requesting from the cache
-    var rqUrl = event.request.url.replace(/\?[^?]+$/i, '');
+    var rqUrl = event.request.url;
+    // Test the URL with querystring removed (hashes are not relevant in this context)
+    var searchParam = decodeURIComponent(new URL(rqUrl).search);
+    var strippedUrl = event.request.url.replace(searchParam, '');
     // Select cache depending on request format
-    var cache = /\.zim\//i.test(rqUrl) ? ASSETS_CACHE : APP_CACHE;
+    var cache = /\.zim\//i.test(strippedUrl) ? ASSETS_CACHE : APP_CACHE;
     if (cache === ASSETS_CACHE && !fetchCaptureEnabled) return;
+    // For APP_CACHE assets, we should ignore any querystring (whereas it should be conserved for ZIM assets,
+    // especially .js assets, where it may be significant)
+    if (cache === APP_CACHE) rqUrl = strippedUrl;
     event.respondWith(
         // First see if the content is in the cache
         fromCache(cache, rqUrl).then(function (response) {
@@ -203,12 +208,12 @@ let fetchCaptureEnabled = false;
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(rqUrl)) {
+            if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
                 return fetchRequestFromZIM(event).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                        !regexpExcludedURLSchema.test(event.request.url)) {
-                        event.waitUntil(updateCache(ASSETS_CACHE, event.request, response.clone()));
+                        !regexpExcludedURLSchema.test(strippedUrl)) {
+                        event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
                     }
                     return response;
                 }).catch(function (msgPortData, title) {
@@ -219,8 +224,8 @@ let fetchCaptureEnabled = false;
                 // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
                 return fetch(event.request).then(function (response) {
                     // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                    if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
-                        event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
+                    if (!regexpExcludedURLSchema.test(strippedUrl) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                        event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
                     }
                     return response;
                 }).catch(function (error) {
