@@ -331,18 +331,6 @@ function fetchRequestFromZIM(fetchEvent) {
 }
 
 /**
- * Parses a fully qualified URL. Note that relative URLs cannot be used with this method, because we do not have access
- * to the base URL, and using a dummy URL will strip any relative path information, returning an incorrect result.
- * @param {String} encodedUrl The URI-encoded fully qualified URL string to be processed (must include protocol and domain).
- *     Note that the path and parameters must be URI-encoded, but parameter separators at the end of the URL (? & = ; #)
- *     must not be encoded.
- * @returns {URL} A URL object with properties such as 'pathname', 'search', and 'anchor'. Pathname is URI-encoded.
- */
-function parseUrlParameters(encodedUrl) {
-    return new URL(encodedUrl);
-}
-
-/**
  * Looks up a Request in a cache and returns a Promise for the matched Response
  * @param {String} cache The name of the cache to look in
  * @param {String} requestUrl The Request URL to fulfill from cache
