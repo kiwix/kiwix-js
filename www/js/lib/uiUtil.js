@@ -309,35 +309,6 @@ define(rqDef, function(settingsStore) {
     }
 
     /**
-     * DEV: This function is no longer used in the project and could be removed unless it is of historical interest.
-     * It has been superseded by encodeURIComponent which encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( )
-     * The only character from below that is not encoded is apostrophe ('), but this does not need to be encoded to
-     * show correctly in our UI, given that it is an allowed character in bare URIs and the dirEntryId is enclosed
-     * in double quote marks ("..."). This has been successfully tested on titles with apostrophes.
-     * 
-     * Encodes the html escape characters in the string before using it as html class name,id etc.
-     * 
-     * @param {String} string The string in which html characters are to be escaped
-     * @returns {String} The escaped HTML string
-     */
-    function htmlEscapeChars(string) {
-        var escapechars = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
-        };
-        string = String(string).replace(/[&<>"'`=/]/g, function (s) {
-            return escapechars[s];
-        });
-        return string;
-    }
-
-    /**
      * Removes the animation effect between various sections
      */
     function removeAnimationClasses() {
@@ -529,7 +500,6 @@ define(rqDef, function(settingsStore) {
         checkServerIsAccessible: checkServerIsAccessible,
         spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
-        htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
         applyAnimationToSection: applyAnimationToSection,
         applyAppTheme: applyAppTheme,
