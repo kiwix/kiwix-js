@@ -127,7 +127,7 @@ define(rqDef, function(settingsStore) {
     function deriveZimUrlFromRelativeUrl(url, base) {
         // We use a dummy domain because URL API requires a valid URI
         var dummy = 'http://d/';
-        var deriveZimUrl = function(url, base) {
+        var deriveZimUrl = function (url, base) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');

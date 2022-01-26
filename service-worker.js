@@ -187,12 +187,13 @@ let fetchCaptureEnabled = false;
 /**
  * Intercept selected Fetch requests from the browser window
  */
- self.addEventListener('fetch', function (event) {
+self.addEventListener('fetch', function (event) {
     // Only cache GET requests
     if (event.request.method !== "GET") return;
     var rqUrl = event.request.url;
+    var urlObject = new URL(rqUrl);
     // Test the URL with querystring removed (hashes are not relevant in this context)
-    var searchParam = decodeURIComponent(new URL(rqUrl).search);
+    var searchParam = decodeURIComponent(urlObject.search);
     var strippedUrl = event.request.url.replace(searchParam, '');
     // Select cache depending on request format
     var cache = /\.zim\//i.test(strippedUrl) ? ASSETS_CACHE : APP_CACHE;
@@ -209,7 +210,7 @@ let fetchCaptureEnabled = false;
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
             if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                return fetchRequestFromZIM(event).then(function (response) {
+                return fetchUrlFromZIM(urlObject).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
                         !regexpExcludedURLSchema.test(strippedUrl)) {
@@ -276,16 +277,16 @@ let fetchCaptureEnabled = false;
 });
 
 /**
- * Handles fetch events that need to be extracted from the ZIM
+ * Handles URLs that need to be extracted from the ZIM
  * 
- * @param {Event} fetchEvent The fetch event to be processed
+ * @param {URL} urlObject The URL object to be processed
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchRequestFromZIM(fetchEvent) {
+function fetchUrlFromZIM(urlObject) {
     return new Promise(function (resolve, reject) {
         // We need to remove the potential parameters in the URL. Note that titles may contain question marks or hashes, so we test the
         // encoded URI before decoding it. Be sure that you haven't encoded any querystring along with the URL, e.g. for clicked links.
-        var strippedUrl = decodeURIComponent(new URL(fetchEvent.request.url).pathname);
+        var strippedUrl = decodeURIComponent(urlObject.pathname);
         var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(strippedUrl);
         var prefix = partsOfZIMUrl[1];
         var nameSpace = partsOfZIMUrl[2];
