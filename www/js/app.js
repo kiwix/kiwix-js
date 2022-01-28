@@ -710,9 +710,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
                 return;
             }
-            // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
-            // be intercepting requests
-            if ('serviceWorker' in navigator) {
+            // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
+            // but it will no longer be intercepting requests for ZIM assets (only requests for the app's own code)
+            if (isServiceWorkerAvailable()) {
                 serviceWorkerRegistration = null;
             }
             refreshAPIStatus();
@@ -1316,7 +1316,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         return false;
     }
-    
 
     /**
      * Creates an instance of DirEntry from given dirEntryId (including resolving redirects),

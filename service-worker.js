@@ -192,14 +192,13 @@ self.addEventListener('fetch', function (event) {
     if (event.request.method !== "GET") return;
     var rqUrl = event.request.url;
     var urlObject = new URL(rqUrl);
-    // Test the URL with querystring removed (hashes are not relevant in this context)
-    var searchParam = decodeURIComponent(urlObject.search);
-    var strippedUrl = event.request.url.replace(searchParam, '');
+    // Test the URL with parameters removed
+    var strippedUrl = urlObject.pathname;
     // Select cache depending on request format
     var cache = /\.zim\//i.test(strippedUrl) ? ASSETS_CACHE : APP_CACHE;
     if (cache === ASSETS_CACHE && !fetchCaptureEnabled) return;
     // For APP_CACHE assets, we should ignore any querystring (whereas it should be conserved for ZIM assets,
-    // especially .js assets, where it may be significant)
+    // especially .js assets, where it may be significant). Anchor targets are irreleveant in this context.
     if (cache === APP_CACHE) rqUrl = strippedUrl;
     event.respondWith(
         // First see if the content is in the cache
@@ -277,17 +276,17 @@ self.addEventListener('fetch', function (event) {
 });
 
 /**
- * Handles URLs that need to be extracted from the ZIM
+ * Handles URLs that need to be extracted from the ZIM archive
  * 
- * @param {URL} urlObject The URL object to be processed
+ * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
 function fetchUrlFromZIM(urlObject) {
     return new Promise(function (resolve, reject) {
-        // We need to remove the potential parameters in the URL. Note that titles may contain question marks or hashes, so we test the
-        // encoded URI before decoding it. Be sure that you haven't encoded any querystring along with the URL, e.g. for clicked links.
-        var strippedUrl = decodeURIComponent(urlObject.pathname);
-        var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(strippedUrl);
+        // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
+        // Be sure that you haven't encoded any querystring along with the URL.
+        var barePathname = decodeURIComponent(urlObject.pathname);
+        var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
         var prefix = partsOfZIMUrl[1];
         var nameSpace = partsOfZIMUrl[2];
         var title = partsOfZIMUrl[3];
@@ -344,7 +343,7 @@ function fetchUrlFromZIM(urlObject) {
  */
 function fromCache(cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
-    if (!useAppCache && cache === APP_CACHE || !useAssetsCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
+    if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
             if (!matching || matching.status === 404) {
@@ -359,15 +358,16 @@ function fromCache(cache, requestUrl) {
 /**
  * Stores or updates in a cache the given Request/Response pair
  * @param {String} cache The name of the cache to open
- * @param {Request} request The original Request object
+ * @param {Request|String} request The original Request object or the URL string requested
  * @param {Response} response The Response received from the server/ZIM
  * @returns {Promise} A Promise for the update action
  */
 function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!useAppCache && cache === APP_CACHE || !useAssetsCache && cache === ASSETS_CACHE) return Promise.resolve();
+    if (!response.ok || !(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE))
+        return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
-        console.debug('[SW] Adding ' + request.url + ' to ' + cache + '...');
+        console.debug('[SW] Adding ' + (request.url || request) + ' to ' + cache + '...');
         return cacheObj.put(request, response);
     });
 }
