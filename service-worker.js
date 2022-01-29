@@ -346,9 +346,7 @@ function fromCache(cache, requestUrl) {
     if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
-            if (!matching || matching.status === 404) {
-                return Promise.reject('no-match');
-            }
+            if (!matching) return Promise.reject('no-match');
             console.debug('[SW] Supplying ' + requestUrl + ' from ' + cache + '...');
             return matching;
         });
@@ -364,7 +362,7 @@ function fromCache(cache, requestUrl) {
  */
 function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!response.ok || !(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE))
+    if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE))
         return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
         console.debug('[SW] Adding ' + (request.url || request) + ' to ' + cache + '...');
