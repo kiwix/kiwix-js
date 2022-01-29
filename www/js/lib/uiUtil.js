@@ -100,7 +100,7 @@ define(rqDef, function(settingsStore) {
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
