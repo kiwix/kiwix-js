@@ -216,8 +216,8 @@ self.addEventListener('fetch', function (event) {
                         event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
                     }
                     return response;
-                }).catch(function (msgPortData, title) {
-                    console.error('Invalid message received from app.js for ' + title, msgPortData);
+                }).catch(function (msgPortData) {
+                    console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
                     return msgPortData;
                 });
             } else {
