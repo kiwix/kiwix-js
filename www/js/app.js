@@ -93,7 +93,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
-    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 'jquery'; // Defaults to jquery for now
+    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 
+        // Defaults to jquery in extensions, and serviceworker if accessing as a PWA
+        (/http/i.test(window.location.protocol) && isServiceWorkerAvailable()) ? 'serviceworker' : 'jquery';
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
