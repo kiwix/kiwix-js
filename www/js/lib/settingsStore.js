@@ -98,61 +98,64 @@ define([], function () {
    * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
    */
   function reset(object) {
+    //Requiring uiUtil to handle circular dependency b/w settingsStore and uiUtil
     var uiUtil = require('uiUtil');
     // If no specific object was specified, we are doing a general reset, so ask user for confirmation
-    uiUtil.systemAlert('Confirmation', 'WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', true)
-      .then(function (confirmation) {
-        if(!object && !confirmation) return;
+    if (!object) {
+      uiUtil.systemAlert('Confirmation', 'WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', true)
+        .then(function (confirmation) {
+          if (!confirmation) return;
+        });
+    }
 
-        // 1. Clear any cookie entries
-        if (!object || object === 'cookie') {
-          var regexpCookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
-          var currentCookie = document.cookie;
-          var foundCrumb = false;
-          var cookieCrumb = regexpCookieKeys.exec(currentCookie);
-          while (cookieCrumb !== null) {
-            // DEV: Note that we don't use the keyPrefix in legacy cookie support
-            foundCrumb = true;
-            // This expiry date will cause the browser to delete the cookie crumb on next page refresh
-            document.cookie = cookieCrumb[1] + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
-            cookieCrumb = regexpCookieKeys.exec(currentCookie);
-          }
-          if (foundCrumb) console.debug('All cookie keys were expired...');
-        }
+    // 1. Clear any cookie entries
+    if (!object || object === 'cookie') {
+      var regexpCookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
+      var currentCookie = document.cookie;
+      var foundCrumb = false;
+      var cookieCrumb = regexpCookieKeys.exec(currentCookie);
+      while (cookieCrumb !== null) {
+        // DEV: Note that we don't use the keyPrefix in legacy cookie support
+        foundCrumb = true;
+        // This expiry date will cause the browser to delete the cookie crumb on next page refresh
+        document.cookie = cookieCrumb[1] + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
+        cookieCrumb = regexpCookieKeys.exec(currentCookie);
+      }
+      if (foundCrumb) console.debug('All cookie keys were expired...');
+    }
 
-        // 2. Clear any localStorage settings
-        if (!object || object === 'localStorage') {
-          if (params.storeType === 'local_storage') {
-            localStorage.clear();
-            console.debug('All Local Storage settings were deleted...');
-          }
-        }
+    // 2. Clear any localStorage settings
+    if (!object || object === 'localStorage') {
+      if (params.storeType === 'local_storage') {
+        localStorage.clear();
+        console.debug('All Local Storage settings were deleted...');
+      }
+    }
 
-        // 3. Clear any Cache API caches
-        if (!object || object === 'cacheAPI') {
-          getCacheNames(function (cacheNames) {
-            if (cacheNames && !cacheNames.error) {
-              var cnt = 0;
-              for (var cacheName in cacheNames) {
-                cnt++;
-                caches.delete(cacheNames[cacheName]).then(function () {
-                  cnt--;
-                  if (!cnt) {
-                    // All caches deleted
-                    console.debug('All Cache API caches were deleted...');
-                    // Reload if user performed full reset or if appCache is needed
-                    if (!object || params.appCache) _reloadApp();
-                  }
-                });
+    // 3. Clear any Cache API caches
+    if (!object || object === 'cacheAPI') {
+      getCacheNames(function (cacheNames) {
+        if (cacheNames && !cacheNames.error) {
+          var cnt = 0;
+          for (var cacheName in cacheNames) {
+            cnt++;
+            caches.delete(cacheNames[cacheName]).then(function () {
+              cnt--;
+              if (!cnt) {
+                // All caches deleted
+                console.debug('All Cache API caches were deleted...');
+                // Reload if user performed full reset or if appCache is needed
+                if (!object || params.appCache) _reloadApp();
               }
-            } else {
-              console.debug('No Cache API caches were in use (or we do not have access to the names).');
-              // All operations complete, reload if user performed full reset or if appCache is needed
-              if (!object || params.appCache) _reloadApp();
-            }
-          });
+            });
+          }
+        } else {
+          console.debug('No Cache API caches were in use (or we do not have access to the names).');
+          // All operations complete, reload if user performed full reset or if appCache is needed
+          if (!object || params.appCache) _reloadApp();
         }
       });
+    }  
   }
 
   // Gets cache names from Service Worker, as we cannot rely on having them in params.cacheNames
