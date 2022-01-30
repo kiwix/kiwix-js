@@ -212,7 +212,7 @@ self.addEventListener('fetch', function (event) {
                 return fetchUrlFromZIM(urlObject).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                        !regexpExcludedURLSchema.test(strippedUrl)) {
+                        !regexpExcludedURLSchema.test(event.request.url)) {
                         event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
                     }
                     return response;
@@ -224,7 +224,7 @@ self.addEventListener('fetch', function (event) {
                 // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
                 return fetch(event.request).then(function (response) {
                     // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                    if (!regexpExcludedURLSchema.test(strippedUrl) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                    if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
                         event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
                     }
                     return response;
