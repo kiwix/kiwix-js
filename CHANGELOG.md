@@ -9,7 +9,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 Released on *TODO*
 
 * FEATURE: Provided a workaround to enable Service Worker mode in Firefox extensions (via a PWA)
-* NEW: App now defaults to Service Worker mode if accessed as a PWA
+* NEW: App now defaults to Service Worker mode if accessed directly as a PWA (does not apply to browser extensions)
 * NEW: Provided methods for resetting the app and bypassing the appCache from the UI
 * NEW: Support for non-http URLs in img and link tags (e.g. data: javascript:)
 * NEW: Added helpful tooltips to icons and settings in the app
