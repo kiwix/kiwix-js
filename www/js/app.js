@@ -1724,7 +1724,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (cssCache.has(url)) {
                     var nodeContent = cssCache.get(url);
                     if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
-                    else uiUtil.feedNodeWithBlob(link, 'href', nodeContent, 'image');
+                    else uiUtil.feedNodeWithBlob(link, 'href', nodeContent, link.type || 'image');
                     cssFulfilled++;
                 } else {
                     if (params.assetsCache) $('#cachingAssets').show();
