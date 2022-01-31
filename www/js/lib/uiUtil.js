@@ -81,8 +81,8 @@ define(rqDef, function(settingsStore) {
      * while copying some attributes of the original tag
      * Cf http://jonraasch.com/blog/javascript-style-node
      * 
-     * @param {Element} link from the DOM
-     * @param {String} cssContent
+     * @param {Element} link The original link node from the DOM
+     * @param {String} cssContent The content to insert as an inline stylesheet
      */
     function replaceCSSLinkWithInlineCSS (link, cssContent) {
         var cssElement = document.createElement('style');
