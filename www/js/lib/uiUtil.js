@@ -81,8 +81,8 @@ define(rqDef, function(settingsStore) {
      * while copying some attributes of the original tag
      * Cf http://jonraasch.com/blog/javascript-style-node
      * 
-     * @param {Element} link from the DOM
-     * @param {String} cssContent
+     * @param {Element} link The original link node from the DOM
+     * @param {String} cssContent The content to insert as an inline stylesheet
      */
     function replaceCSSLinkWithInlineCSS (link, cssContent) {
         var cssElement = document.createElement('style');
@@ -92,15 +92,15 @@ define(rqDef, function(settingsStore) {
         } else {
             cssElement.appendChild(document.createTextNode(cssContent));
         }
-        var mediaAttributeValue = link.attr('media');
+        var mediaAttributeValue = link.getAttribute('media');
         if (mediaAttributeValue) {
             cssElement.media = mediaAttributeValue;
         }
-        var disabledAttributeValue = link.attr('disabled');
+        var disabledAttributeValue = link.getAttribute('disabled');
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
     var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);

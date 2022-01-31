@@ -1716,28 +1716,29 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             var cssCount = 0;
             var cssFulfilled = 0;
-            $('#articleContent').contents().find('link[data-kiwixurl]').each(function () {
+            var iframe = iframeArticleContent.contentDocument;
+            Array.prototype.slice.call(iframe.querySelectorAll('link[data-kiwixurl]')).forEach(function (link) {
                 cssCount++;
-                var link = $(this);
-                var linkUrl = link.attr("data-kiwixurl");
+                var linkUrl = link.getAttribute('data-kiwixurl');
                 var url = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
                 if (cssCache.has(url)) {
-                    var cssContent = cssCache.get(url);
-                    uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
+                    var nodeContent = cssCache.get(url);
+                    if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
+                    else uiUtil.feedNodeWithBlob(link, 'href', nodeContent, link.type || 'image');
                     cssFulfilled++;
                 } else {
                     if (params.assetsCache) $('#cachingAssets').show();
-                    selectedArchive.getDirEntryByPath(url)
-                    .then(function (dirEntry) {
-                        return selectedArchive.readUtf8File(dirEntry,
-                            function (fileDirEntry, content) {
-                                var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
-                                if (params.assetsCache) cssCache.set(fullUrl, content);
-                                uiUtil.replaceCSSLinkWithInlineCSS(link, content);
-                                cssFulfilled++;
-                                renderIfCSSFulfilled(fileDirEntry.url);
-                            }
-                        );
+                    selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
+                        var mimetype = dirEntry.getMimetype();
+                        var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
+                        return readFile(dirEntry, function (fileDirEntry, content) {
+                            var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
+                            if (params.assetsCache) cssCache.set(fullUrl, content);
+                            if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
+                            else uiUtil.feedNodeWithBlob(link, 'href', content, mimetype);
+                            cssFulfilled++;
+                            renderIfCSSFulfilled(fileDirEntry.url);
+                        });
                     }).catch(function (e) {
                         console.error("could not find DirEntry for CSS : " + url, e);
                         cssCount--;
