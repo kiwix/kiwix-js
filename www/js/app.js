@@ -785,8 +785,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             if (protocol === 'file:') {
                                 message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                             }
-                            alert(message);                        
-                            setContentInjectionMode("jquery");
+                            uiUtil.systemAlert("Alert", message, false)
+                                .then(function () {
+                                    setContentInjectionMode('jquery');
+                                });                  
                         }
                     });
                 }
@@ -994,7 +996,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         for (var i = 0; i < archiveDirectories.length; i++) {
             var archiveDirectory = archiveDirectories[i];
             if (archiveDirectory === "/") {
-                alert("It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory");
+                uiUtil.systemAlert("Alert", "It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory", false);
             }
             else {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
@@ -1046,7 +1048,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     }
                 }
                 if (selectedStorage === null) {
-                    alert("Unable to find which device storage corresponds to directory " + archiveDirectory);
+                    uiUtil.systemAlert("Alert", "Unable to find which device storage corresponds to directory " + archiveDirectory, false);
                 }
             }
             else {
