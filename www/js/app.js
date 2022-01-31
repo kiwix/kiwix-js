@@ -1744,7 +1744,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 } else {
                     if (params.assetsCache) $('#cachingAssets').show();
                     selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
-                        if (!dirEntry) throw 'DirEntry null or undefined';
+                        if (!dirEntry) {
+                            cssCache.set(url, ''); // Prevent repeated lookups of this unfindable asset
+                            throw 'DirEntry ' + typeof dirEntry;
+                        }
                         var mimetype = dirEntry.getMimetype();
                         var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
                         return readFile(dirEntry, function (fileDirEntry, content) {
@@ -1756,7 +1759,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             renderIfCSSFulfilled(fileDirEntry.url);
                         });
                     }).catch(function (e) {
-                        console.error("could not find DirEntry for CSS : " + url, e);
+                        console.error("Could not find DirEntry for link element: " + url, e);
                         cssCount--;
                         renderIfCSSFulfilled();
                     });
