@@ -103,15 +103,17 @@ define(rqDef, function(settingsStore) {
         link.parentNode.replaceChild(cssElement, link);
     }
         
-    var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
-    
     /**
      * Removes parameters and anchors from a URL
-     * @param {type} url
-     * @returns {String} same URL without its parameters and anchors
+     * @param {type} url The URL to be processed
+     * @returns {String} The same URL without its parameters and anchors
      */
     function removeUrlParameters(url) {
-        return url.replace(regexpRemoveUrlParameters, "$1");
+        // Remove any querystring
+        var strippedUrl = url.replace(/\?[^?]*$/, '');
+        // Remove any anchor parameters - note that we are deliberately excluding entity references, e.g. '&#39;'.
+        strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
+        return strippedUrl;
     }
 
     /**
@@ -125,7 +127,7 @@ define(rqDef, function(settingsStore) {
     function deriveZimUrlFromRelativeUrl(url, base) {
         // We use a dummy domain because URL API requires a valid URI
         var dummy = 'http://d/';
-        var deriveZimUrl = function(url, base) {
+        var deriveZimUrl = function (url, base) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');
@@ -304,29 +306,6 @@ define(rqDef, function(settingsStore) {
             return rect.top > 0 && rect.bottom < window.innerHeight && rect.left > 0 && rect.right < window.innerWidth;
         else 
             return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
-    }
-
-    /**
-     * Encodes the html escape characters in the string before using it as html class name,id etc.
-     * 
-     * @param {String} string The string in which html characters are to be escaped
-     * 
-     */
-    function htmlEscapeChars(string) {
-        var escapechars = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
-        };
-        string = String(string).replace(/[&<>"'`=/]/g, function (s) {
-            return escapechars[s];
-        });
-        return string;
     }
 
     /**
@@ -521,7 +500,6 @@ define(rqDef, function(settingsStore) {
         checkServerIsAccessible: checkServerIsAccessible,
         spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
-        htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
         applyAnimationToSection: applyAnimationToSection,
         applyAppTheme: applyAppTheme,
