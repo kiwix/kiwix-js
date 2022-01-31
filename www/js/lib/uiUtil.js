@@ -39,8 +39,8 @@ define(rqDef, function(settingsStore) {
      * @param {String} label The modal's label or title which appears in the header 
      * @param {String} message The alert message to display in the body of the modal 
      * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be an alert 
-     * @param {String} declineButtonText The text to display on the decline button(optional, Default = "Cancel") 
-     * @param {String} approveButtonText  The text to display on the approve button(optional, Default = "Confirm")
+     * @param {String} declineButtonText The text to display on the decline button (optional, Default = "Cancel") 
+     * @param {String} approveButtonText  The text to display on the approve button (optional, Default = "Confirm")
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
      */
     function systemAlert(label, message, isConfirm, declineButtonText = "Cancel", approveButtonText = "Confirm") {
@@ -54,7 +54,7 @@ define(rqDef, function(settingsStore) {
             document.getElementById("approveModal").style.visibility = isConfirm ? "visible" : "hidden";
             $("#alertModal").modal("show");
             // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
-            $('#alertModal').on("hide.bs.modal", function () {
+            $("#alertModal").on("hide.bs.modal", function () {
                 const closeSource = document.activeElement;
                 if (closeSource.id === "approveModal") {
                     resolve(true);
