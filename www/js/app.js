@@ -170,9 +170,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // if 'prefers-color-scheme' is not supported in the browser
     if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
-        var optionsToBeRemoved = document.querySelectorAll('.autoNotAvailable');
+        var optionsToBeRemoved = document.querySelectorAll('.auto');
         for (var i = 0; i < optionsToBeRemoved.length; i++) {
-            optionsToBeRemoved[i].remove();
+            optionsToBeRemoved[i].parentElement.removeChild(optionsToBeRemoved[i]);
         }
     }
     //Apply previously stored appTheme
