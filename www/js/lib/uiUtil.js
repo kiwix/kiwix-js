@@ -415,11 +415,12 @@ define(rqDef, function() {
      * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
      * A rule may additionally be needed in app.css for full implementation of contentTheme
      * 
-     * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert])
+     * @param {String} theme The theme to apply (auto[_invert|_mwInvert]|light|dark[_invert|_mwInvert])
      */
     function applyAppTheme(theme) {
-        if (theme === "auto_invert") theme = window.matchMedia('(prefers-color-scheme:dark)').matches ? "dark_invert" : "light" 
-        if (theme === "auto_mwInvert") theme = window.matchMedia('(prefers-color-scheme:dark)').matches ? "dark_mwInvert" : "light" 
+        var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
+        if (theme === "auto_invert") theme = darkPreference.matches ? "dark_invert" : "light" 
+        if (theme === "auto_mwInvert") theme = darkPreference.matches ? "dark_mwInvert" : "light" 
         var htmlEl = document.querySelector('html');
         var footer = document.querySelector('footer');
         var oldTheme = htmlEl.dataset.theme || '';
