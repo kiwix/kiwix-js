@@ -20,8 +20,8 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimArchive', 'jquery'],
-       function(zimArchive, jQuery) {
+define(['zimArchive', 'jquery', 'uiUtil'],
+       function(zimArchive, jQuery, uiUtil) {
 
     /**
      * Create a ZIMArchive from DeviceStorage location
@@ -69,12 +69,11 @@ define(['zimArchive', 'jquery'],
         jQuery.when.apply(null, promises).then(function() {
             callbackFunction(directories);
         }, function(error) {
-            alert("Error scanning your SD card : " + error
-                    + ". If you're using the Firefox OS Simulator, please put the archives in "
-                    + "a 'fake-sdcard' directory inside your Firefox profile "
-                    + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"
-                    + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)");
-            callbackFunction(null);
+            uiUtil.systemAlert("Alert", "Error scanning your SD card : " + error
+            + ". If you're using the Firefox OS Simulator, please put the archives in "
+            + "a 'fake-sdcard' directory inside your Firefox profile "
+            + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"
+            + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)", false).then(function() { callbackFunction(null); });
         });
     };
 
