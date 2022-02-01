@@ -174,7 +174,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // Whenever the system theme changes, call applyAppTheme function
     darkPreference.onchange = function() {
-        uiUtil.applyAppTheme(params.appTheme);    
+        uiUtil.applyAppTheme(params.appTheme);
     }
 
     /**
