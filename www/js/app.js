@@ -170,8 +170,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // if 'prefers-color-scheme' is not supported in the browser
     if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
-        document.getElementById('appThemeSelect').options[0].style.display = "none";
-        document.getElementById('appThemeSelect').options[1].style.display = "none";
+        var optionsToBeRemoved = document.querySelectorAll('.autoNotAvailable');
+        for (var i = 0; i < optionsToBeRemoved.length; i++) {
+            optionsToBeRemoved[i].remove();
+        }
     }
     //Apply previously stored appTheme
     uiUtil.applyAppTheme(params.appTheme);
