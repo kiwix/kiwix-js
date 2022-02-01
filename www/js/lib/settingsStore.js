@@ -148,7 +148,7 @@ define([], function () {
           if (!object || params.appCache) _reloadApp();
         }
       });
-    }  
+    }
   }
 
   // Gets cache names from Service Worker, as we cannot rely on having them in params.cacheNames
