@@ -172,7 +172,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
         var optionsToBeRemoved = document.querySelectorAll('.auto');
         for (var i = 0; i < optionsToBeRemoved.length; i++) {
-            optionsToBeRemoved[i].parentElement.removeChild(optionsToBeRemoved[i]);
+            optionsToBeRemoved[i].parentNode.removeChild(optionsToBeRemoved[i]);
         }
     }
     //Apply previously stored appTheme
