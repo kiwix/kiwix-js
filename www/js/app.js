@@ -109,7 +109,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
      * problematic settings, by crafting the querystring appropriately.
      */
- 
     (function overrideParams() {
         var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
         var matches = regexpUrlParams.exec(window.location.search);
@@ -169,17 +168,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
  
     // define variable for dark preference for matchMedia
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
-    if(!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
-    if(!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
+    if (!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
+    if (!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     uiUtil.applyAppTheme(params.appTheme);
-    // Set theme 
-    if (params.appTheme ==="auto_invert") darkPreference.addEventListener('change', themeExchange)
-    else if (params.appTheme ==="auto_mwInvert") darkPreference.addEventListener('change', themeExchange)  
-    else darkPreference.removeEventListener('change', themeExchange)  
+    // Whenever the system theme changes, call applyAppTheme function
+    darkPreference.addEventListener('change', applyTheme);
 
-    function themeExchange() {
-     uiUtil.applyAppTheme(params.appTheme);
+    function applyTheme() {
+        uiUtil.applyAppTheme(params.appTheme);    
     }
+
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
