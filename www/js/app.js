@@ -171,10 +171,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     if (!window.matchMedia) document.getElementById('appThemeSelect').options[0].style.display = "none";
     if (!window.matchMedia) document.getElementById('appThemeSelect').options[1].style.display = "none";
     uiUtil.applyAppTheme(params.appTheme);
-    // Whenever the system theme changes, call applyAppTheme function
-    darkPreference.addEventListener('change', applyTheme);
 
-    function applyTheme() {
+    // Whenever the system theme changes, call applyAppTheme function
+    darkPreference.onchange = function() {
         uiUtil.applyAppTheme(params.appTheme);    
     }
 
