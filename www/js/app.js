@@ -1028,12 +1028,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             setLocalArchiveFromArchiveList();
         }
         else {
-            alert("Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)");
-            $("#btnAbout").click();
-            var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
-            if (isAndroid) {
-                alert("You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.");
-            }
+            uiUtil.systemAlert("Alert", "Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", false)
+            .then(function() {
+                $("#btnAbout").click();
+                var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
+                if (isAndroid) {
+                    uiUtil.systemAlert("Alert", "You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.", false);
+                }
+            });
         }
     }
 
@@ -1060,18 +1062,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (selectedStorage === null) {
                     uiUtil.systemAlert("Alert", "Unable to find which device storage corresponds to directory " + archiveDirectory, false);
                 }
-            }
-            else {
+            } else {
                 // This happens when the archiveDirectory is not prefixed by the name of the storage
                 // (in the Simulator, or with FxOs 1.0, or probably on devices that only have one device storage)
                 // In this case, we use the first storage of the list (there should be only one)
                 if (storages.length === 1) {
                     selectedStorage = storages[0];
-                }
-                else {
-                    alert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
-                        + archiveDirectory + ", but there were " + storages.length
-                        + " storages found with getDeviceStorages instead of 1");
+                } else {
+                    uiUtil.systemAlert("Alert", "Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                    + archiveDirectory + ", but there were " + storages.length
+                    + " storages found with getDeviceStorages instead of 1", false);
                 }
             }
             resetCssCache();
@@ -1346,7 +1346,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 readArticle(dirEntry);
             }
         } else {
-            alert("Data files not set");
+            uiUtil.systemAlert("Alert", "Data files not set", false);
         }
     }
 
@@ -1906,7 +1906,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                alert("Article with url " + path + " not found in the archive");
+                uiUtil.systemAlert("Alert", "Article with url " + path + " not found in the archive", false);
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = contentType || fileDirEntry.getMimetype();
@@ -1917,7 +1917,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $('#activeContent').hide();
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { alert("Error reading article with url " + path + " : " + e); });
+        }).catch(function(e) { uiUtil.systemAlert("Alert", "Error reading article with url " + path + " : " + e, false); });
     }
     
     function goToRandomArticle() {
@@ -1925,7 +1925,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         selectedArchive.getRandomDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                alert("Error finding random article.");
+                uiUtil.systemAlert("Alert", "Error finding random article", false);
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
