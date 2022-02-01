@@ -797,10 +797,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             if (protocol === 'file:') {
                                 message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                             }
-                            uiUtil.systemAlert("Alert", message, false)
-                                .then(function () {
-                                    setContentInjectionMode('jquery');
-                                });                  
+                            uiUtil.systemAlert("Alert", message, false).then(function () {
+                                setContentInjectionMode('jquery');
+                            });                  
                         }
                     });
                 }
@@ -1009,8 +1008,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var archiveDirectory = archiveDirectories[i];
             if (archiveDirectory === "/") {
                 uiUtil.systemAlert("Alert", "It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory", false);
-            }
-            else {
+            } else {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
         }
@@ -1262,10 +1260,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             $("#searchArticles").focus();
-            uiUtil.systemAlert("Alert", "Archive not set : please select an archive", false)
-                .then(function () {
-                    $("#btnConfigure").click();
-                });
+            uiUtil.systemAlert("Alert", "Archive not set : please select an archive", false).then(function () {
+                $("#btnConfigure").click();
+            });
         }
     }
 
