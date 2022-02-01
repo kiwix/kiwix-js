@@ -43,7 +43,9 @@ define(rqDef, function(settingsStore) {
      * @param {String} approveButtonText  The text to display on the approve button (optional, Default = "Confirm")
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
      */
-    function systemAlert(label, message, isConfirm, declineButtonText = "Cancel", approveButtonText = "Confirm") {
+    function systemAlert(label, message, isConfirm, declineButtonText, approveButtonText) {
+        declineButtonText = declineButtonText || "Cancel";
+        approveButtonText = approveButtonText || "Confirm";
         return new Promise(function (resolve, reject) {
             if (!label || !message) reject("Missing parameters");
             document.getElementById("declineModal").innerHTML = declineButtonText;
