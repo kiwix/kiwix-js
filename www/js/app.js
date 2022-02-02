@@ -1024,7 +1024,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             setLocalArchiveFromArchiveList();
         } else {
             uiUtil.systemAlert("Alert", "Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", false)
-            .then(function() {
+            .then(function () {
                 $("#btnAbout").click();
                 var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
                 if (isAndroid) {
