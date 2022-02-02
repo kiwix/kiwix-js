@@ -882,7 +882,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 setContentInjectionMode('jquery');
             });
         };
-        var response;
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
             if (PWASuccessfullyLaunched) {
                 launchPWA();
