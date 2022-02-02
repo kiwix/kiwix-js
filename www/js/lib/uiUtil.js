@@ -36,18 +36,19 @@ define(rqDef, function(settingsStore) {
     /**
      * Displays a Bootstrap alert or confirm dialog box depending on the options provided
      * 
-     * @param {String} label The modal's label or title which appears in the header 
      * @param {String} message The alert message to display in the body of the modal 
+     * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
      * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be an alert 
      * @param {String} declineButtonText The text to display on the decline button (optional, Default = "Cancel") 
      * @param {String} approveButtonText  The text to display on the approve button (optional, Default = "Confirm")
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
      */
-    function systemAlert(label, message, isConfirm, declineButtonText, approveButtonText) {
+    function systemAlert(message, label, isConfirm, declineButtonText, approveButtonText) {
         declineButtonText = declineButtonText || "Cancel";
         approveButtonText = approveButtonText || "Confirm";
+        label = label || (isConfirm ? "Confirmation" : "Message");
         return new Promise(function (resolve, reject) {
-            if (!label || !message) reject("Missing parameters");
+            if (!message) reject("Missing body message");
             document.getElementById("declineModal").innerHTML = declineButtonText;
             document.getElementById("approveModal").innerHTML = approveButtonText;
             document.getElementById("modalLabel").innerHTML = label;

@@ -69,11 +69,11 @@ define(['zimArchive', 'jquery', 'uiUtil'],
         jQuery.when.apply(null, promises).then(function() {
             callbackFunction(directories);
         }, function(error) {
-            uiUtil.systemAlert("Error reading Device Storage", "Error scanning your device storage : " + error
+            uiUtil.systemAlert("Error scanning your device storage : " + error
             + ". If you're using the Firefox OS Simulator, please put the archives in "
             + "a 'fake-sdcard' directory inside your Firefox profile "
             + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"
-            + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)", false).then(function() { callbackFunction(null); });
+            + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)", "Error reading Device Storage").then(function() { callbackFunction(null); });
         });
     };
 
