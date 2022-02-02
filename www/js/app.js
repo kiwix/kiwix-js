@@ -917,8 +917,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== "") {
             var directories = listOfArchivesFromSettingsStore.split('|');
             populateDropDownListOfArchives(directories);
-        }
-        else {
+        } else {
             searchForArchivesInStorage();
         }
     }
@@ -942,19 +941,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // After that, we can start looking for archives
         storages[0].get("fake-file-to-read").then(searchForArchivesInPreferencesOrStorage,
                                                   searchForArchivesInPreferencesOrStorage);
-    }
-    else {
+    } else {
         // If DeviceStorage is not available, we display the file select components
         displayFileSelect();
         if (document.getElementById('archiveFiles').files && document.getElementById('archiveFiles').files.length>0) {
             // Archive files are already selected, 
             setLocalArchiveFromFileSelect();
-        }
-        else {
+        } else {
             $("#btnConfigure").click();
         }
     }
-
 
     // Display the article when the user goes back in the browser history
     window.onpopstate = function(event) {
@@ -972,8 +968,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             
             if (title && !(""===title)) {
                 goToArticle(title);
-            }
-            else if (titleSearch && titleSearch !== '') {
+            } else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
                 if (titleSearch !== appstate.search.prefix) {
                     searchDirEntriesFromPrefix(titleSearch);
@@ -1015,8 +1010,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             // Set the localArchive as the last selected (or the first one if it has never been selected)
             setLocalArchiveFromArchiveList();
-        }
-        else {
+        } else {
             uiUtil.systemAlert("Alert", "Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", false)
             .then(function() {
                 $("#btnAbout").click();
@@ -1851,13 +1845,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             stateObj.title = title;
             urlParameters = "?title=" + title;
             stateLabel = "Wikipedia Article : " + title;
-        }
-        else if (titleSearch && !(""===titleSearch)) {
+        } else if (titleSearch && !(""===titleSearch)) {
             stateObj.titleSearch = titleSearch;
             urlParameters = "?titleSearch=" + titleSearch;
             stateLabel = "Wikipedia search : " + titleSearch;
-        }
-        else {
+        } else {
             return;
         }
         window.history.pushState(stateObj, stateLabel, urlParameters);
