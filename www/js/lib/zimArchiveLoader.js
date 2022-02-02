@@ -69,7 +69,7 @@ define(['zimArchive', 'jquery', 'uiUtil'],
         jQuery.when.apply(null, promises).then(function() {
             callbackFunction(directories);
         }, function(error) {
-            uiUtil.systemAlert("Alert", "Error scanning your SD card : " + error
+            uiUtil.systemAlert("Error reading Device Storage", "Error scanning your device storage : " + error
             + ". If you're using the Firefox OS Simulator, please put the archives in "
             + "a 'fake-sdcard' directory inside your Firefox profile "
             + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"

@@ -797,7 +797,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             if (protocol === 'file:') {
                                 message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                             }
-                            uiUtil.systemAlert("Alert", message, false).then(function () {
+                            uiUtil.systemAlert("Incompatible protocol", message, false).then(function () {
                                 setContentInjectionMode('jquery');
                             });                  
                         }
@@ -898,7 +898,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (PWASuccessfullyLaunched) {
                 launchPWA();
             } else {
-                uiUtil.systemAlert('Confirmation', 'The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?', true).then(function (response) {
+                uiUtil.systemAlert('Confirmation to try again PWA', 'The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?', true).then(function (response) {
                     if (response) {
                         checkPWAIsOnline();
                     } else {
@@ -908,7 +908,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 })
             }
         } else {
-            uiUtil.systemAlert('Confirmation', message, true).then(function (response) {
+            uiUtil.systemAlert('Allow Internet access', message, true).then(function (response) {
                 if (response) checkPWAIsOnline();
                 else {
                     setContentInjectionMode('jquery');
@@ -1003,7 +1003,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         for (var i = 0; i < archiveDirectories.length; i++) {
             var archiveDirectory = archiveDirectories[i];
             if (archiveDirectory === "/") {
-                uiUtil.systemAlert("Alert", "It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory", false);
+                uiUtil.systemAlert("Error: invalid archive files location", "It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory", false);
             } else {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
@@ -1023,12 +1023,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Set the localArchive as the last selected (or the first one if it has never been selected)
             setLocalArchiveFromArchiveList();
         } else {
-            uiUtil.systemAlert("Alert", "Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", false)
+            uiUtil.systemAlert("Welcome", "Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", false)
             .then(function () {
                 $("#btnAbout").click();
                 var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
                 if (isAndroid) {
-                    uiUtil.systemAlert("Alert", "You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.", false);
+                    uiUtil.systemAlert("Warning", "You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", false);
                 }
             });
         }
@@ -1055,7 +1055,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     }
                 }
                 if (selectedStorage === null) {
-                    uiUtil.systemAlert("Alert", "Unable to find which device storage corresponds to directory " + archiveDirectory, false);
+                    uiUtil.systemAlert("Error: no matching storage", "Unable to find which device storage corresponds to directory " + archiveDirectory, false);
                 }
             } else {
                 // This happens when the archiveDirectory is not prefixed by the name of the storage
@@ -1064,7 +1064,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (storages.length === 1) {
                     selectedStorage = storages[0];
                 } else {
-                    uiUtil.systemAlert("Alert", "Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                    uiUtil.systemAlert("Error: unprefixed directory", "Something weird happened with the DeviceStorage API : found a directory without prefix : "
                     + archiveDirectory + ", but there were " + storages.length
                     + " storages found with getDeviceStorages instead of 1", false);
                 }
@@ -1255,7 +1255,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             $("#searchArticles").focus();
-            uiUtil.systemAlert("Alert", "Archive not set : please select an archive", false).then(function () {
+            uiUtil.systemAlert("No archive selected", "Archive not set : please select an archive", false).then(function () {
                 $("#btnConfigure").click();
             });
         }
@@ -1341,7 +1341,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 readArticle(dirEntry);
             }
         } else {
-            uiUtil.systemAlert("Alert", "Data files not set", false);
+            uiUtil.systemAlert("Archive not ready", "Data files not set", false);
         }
     }
 
@@ -1899,7 +1899,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                uiUtil.systemAlert("Alert", "Article with url " + path + " not found in the archive", false);
+                uiUtil.systemAlert("Error: article not found", "Article with url " + path + " not found in the archive", false);
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = contentType || fileDirEntry.getMimetype();
@@ -1910,7 +1910,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $('#activeContent').hide();
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { uiUtil.systemAlert("Alert", "Error reading article with url " + path + " : " + e, false); });
+        }).catch(function(e) { uiUtil.systemAlert("Error while reading article", "Error reading article with url " + path + " : " + e, false); });
     }
     
     function goToRandomArticle() {
@@ -1918,7 +1918,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         selectedArchive.getRandomDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                uiUtil.systemAlert("Alert", "Error finding random article", false);
+                uiUtil.systemAlert("Error finding article", "Error finding random article", false);
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
