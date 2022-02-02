@@ -887,21 +887,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (PWASuccessfullyLaunched) {
                 launchPWA();
             } else {
-                response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
-                if (response) {
-                    checkPWAIsOnline();
-                } else {
-                    settingsStore.setItem('allowInternetAccess', false, Infinity);
-                    setContentInjectionMode('jquery');
-                }
+                uiUtil.systemAlert('Confirmation', 'The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?', true).then(function (response) {
+                    if (response) {
+                        checkPWAIsOnline();
+                    } else {
+                        settingsStore.setItem('allowInternetAccess', false, Infinity);
+                        setContentInjectionMode('jquery');
+                    }
+                })
             }
         } else {
-            response = confirm(message);
-            if (response) checkPWAIsOnline();
-            else {
-                setContentInjectionMode('jquery');
-                settingsStore.setItem('allowInternetAccess', false, Infinity);
-            }    
+            uiUtil.systemAlert('Confirmation', message, true).then(function (response) {
+                if (response) checkPWAIsOnline();
+                else {
+                    setContentInjectionMode('jquery');
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                }
+            });
         }
     }
     
