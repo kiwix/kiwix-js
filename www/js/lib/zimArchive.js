@@ -94,13 +94,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8', 'uiUtil'],
                 that._searchArchiveParts(storage, path.slice(0, -2)).then(function(fileArray) {
                     createZimfile(fileArray);
                 }, function(error) {
-                    uiUtil.systemAlert("Error reading archive files", "Error reading files in split archive " + path + ": " + error, false);
+                    uiUtil.systemAlert("Error reading files in split archive " + path + ": " + error, "Error reading archive files");
                 });
             } else {
                 storage.get(path).then(function(file) {
                     createZimfile([file]);
                 }, function(error) {
-                    uiUtil.systemAlert("Error reading archive file", "Error reading ZIM file " + path + " : " + error, false);
+                    uiUtil.systemAlert("Error reading ZIM file " + path + " : " + error, "Error reading archive file");
                 });
             }
         }
