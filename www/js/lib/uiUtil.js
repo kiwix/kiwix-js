@@ -44,15 +44,15 @@ define(rqDef, function(settingsStore) {
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
      */
     function systemAlert(message, label, isConfirm, declineButtonText, approveButtonText) {
-        declineButtonText = declineButtonText || "Cancel";
-        approveButtonText = approveButtonText || "Confirm";
+        declineButtonText = declineButtonText || document.getElementById("declineModal").innerText;
+        approveButtonText = approveButtonText || document.getElementById("approveModal").innerText;
         label = label || (isConfirm ? "Confirmation" : "Message");
         return new Promise(function (resolve, reject) {
             if (!message) reject("Missing body message");
-            document.getElementById("declineModal").innerHTML = declineButtonText;
-            document.getElementById("approveModal").innerHTML = approveButtonText;
-            document.getElementById("modalLabel").innerHTML = label;
-            document.getElementById("modalText").innerHTML = message;
+            document.getElementById("declineModal").textContent = declineButtonText;
+            document.getElementById("approveModal").textContent = approveButtonText;
+            document.getElementById("modalLabel").textContent = label;
+            document.getElementById("modalText").textContent = message;
             // Displays an additional Confirm button if isConfirm is true
             document.getElementById("approveModal").style.visibility = isConfirm ? "visible" : "hidden";
             $("#alertModal").modal("show");
