@@ -45,9 +45,9 @@ define(rqDef, function(settingsStore) {
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
      */
     function systemAlert(message, label, isConfirm, declineConfirmButton, approveConfirmButton, closeMessageButton) {
-        declineConfirmButton = declineConfirmButton || document.getElementById("declineConfirm").innerText;
-        approveConfirmButton = approveConfirmButton || document.getElementById("approveConfirm").innerText;
-        closeMessageButton = closeMessageButton || document.getElementById("closeMessage").innerText;
+        declineConfirmButton = declineConfirmButton || document.getElementById("declineConfirm").textContent;
+        approveConfirmButton = approveConfirmButton || document.getElementById("approveConfirm").textContent;
+        closeMessageButton = closeMessageButton || document.getElementById("closeMessage").textContent;
         label = label || (isConfirm ? "Confirmation" : "Message");
         return new Promise(function (resolve, reject) {
             if (!message) reject("Missing body message");
