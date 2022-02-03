@@ -1052,9 +1052,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (storages.length === 1) {
                     selectedStorage = storages[0];
                 } else {
-                    uiUtil.systemAlert("Error: unprefixed directory", "Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                    uiUtil.systemAlert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
                     + archiveDirectory + ", but there were " + storages.length
-                    + " storages found with getDeviceStorages instead of 1", false);
+                    + " storages found with getDeviceStorages instead of 1", "Error: unprefixed directory");
                 }
             }
             resetCssCache();
