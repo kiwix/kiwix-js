@@ -85,7 +85,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A global parameter that turns caching on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
     params['useCache'] = settingsStore.getItem('useCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-    params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: auto_invert|auto_mwInvert|light|dark|dark_invert|dark_mwInvert
+    params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     // A parameter to access the URL of any extension that this app was launched from
@@ -175,7 +175,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             optionsToBeRemoved[i].parentNode.removeChild(optionsToBeRemoved[i]);
         }
     }
-    //Apply previously stored appTheme
+    // Apply previously stored appTheme
     uiUtil.applyAppTheme(params.appTheme);
 
     // Whenever the system theme changes, call applyAppTheme function
