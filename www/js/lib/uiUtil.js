@@ -38,28 +38,35 @@ define(rqDef, function(settingsStore) {
      * 
      * @param {String} message The alert message to display in the body of the modal 
      * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
-     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be an alert 
-     * @param {String} declineButtonText The text to display on the decline button (optional, Default = "Cancel") 
-     * @param {String} approveButtonText  The text to display on the approve button (optional, Default = "Confirm")
-     * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel, backdrop or the cross(x) button
+     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message 
+     * @param {String} declineConfirmButton The text to display on the decline confirmation button (optional, Default = "Cancel") 
+     * @param {String} approveConfirmButton  The text to display on the approve confirmation button (optional, Default = "Confirm")
+     * @param {String} closeMessageButton  The text to display on the close alert message button (optional, Default = "Okay")
+     * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
      */
-    function systemAlert(message, label, isConfirm, declineButtonText, approveButtonText) {
-        declineButtonText = declineButtonText || document.getElementById("declineModal").innerText;
-        approveButtonText = approveButtonText || document.getElementById("approveModal").innerText;
+    function systemAlert(message, label, isConfirm, declineConfirmButton, approveConfirmButton, closeMessageButton) {
+        declineConfirmButton = declineConfirmButton || document.getElementById("declineConfirm").innerText;
+        approveConfirmButton = approveConfirmButton || document.getElementById("approveConfirm").innerText;
+        closeMessageButton = closeMessageButton || document.getElementById("closeMessage").innerText;
         label = label || (isConfirm ? "Confirmation" : "Message");
         return new Promise(function (resolve, reject) {
             if (!message) reject("Missing body message");
-            document.getElementById("declineModal").textContent = declineButtonText;
-            document.getElementById("approveModal").textContent = approveButtonText;
+            // Set the text to the modal and it's buttons
+            document.getElementById("approveConfirm").textContent = approveConfirmButton;
+            document.getElementById("declineConfirm").textContent = declineConfirmButton;
+            document.getElementById("closeMessage").textContent = closeMessageButton;
             document.getElementById("modalLabel").textContent = label;
             document.getElementById("modalText").textContent = message;
-            // Displays an additional Confirm button if isConfirm is true
-            document.getElementById("approveModal").style.visibility = isConfirm ? "visible" : "hidden";
+            // Display buttons acc to the type of alert
+            document.getElementById("approveConfirm").style.display = isConfirm ? "block" : "none";
+            document.getElementById("declineConfirm").style.display = isConfirm ? "block" : "none";
+            document.getElementById("closeMessage").style.display = isConfirm ? "none" : "block";
+            // Display the modal
             $("#alertModal").modal("show");
             // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
             $("#alertModal").on("hide.bs.modal", function () {
                 const closeSource = document.activeElement;
-                if (closeSource.id === "approveModal") {
+                if (closeSource.id === "approveConfirm") {
                     resolve(true);
                 } else {
                     resolve(false);
