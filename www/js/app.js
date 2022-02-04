@@ -897,8 +897,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         } else {
             uiUtil.systemAlert(message, 'Allow Internet access', true).then(function (response) {
-                if (response) checkPWAIsOnline();
-                else {
+                if (response) {
+                    checkPWAIsOnline();
+                } else {
                     setContentInjectionMode('jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                 }
