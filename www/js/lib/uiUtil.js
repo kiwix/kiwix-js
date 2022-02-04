@@ -420,7 +420,7 @@ define(rqDef, function() {
     function applyAppTheme(theme) {
         var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
         var selectedThemeContent = theme.replace(/^[^_]*/, '');
-        if (/^auto/.test(theme)) theme = darkPreference.matches ? ("dark"+selectedThemeContent) : ("light"+selectedThemeContent);
+        if (/^auto/.test(theme)) theme = darkPreference.matches ? 'dark' + selectedThemeContent : 'light' + selectedThemeContent;
         var htmlEl = document.querySelector('html');
         var footer = document.querySelector('footer');
         var oldTheme = htmlEl.dataset.theme || '';
@@ -431,6 +431,13 @@ define(rqDef, function() {
         var contentTheme = theme.replace(/^[^_]*/, '');
         var oldAppTheme = oldTheme.replace(/_.*$/, '');
         var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
+        // Hide any previously displayed help
+        var oldHelp = document.getElementById(oldContentTheme + '-help');
+        if (oldHelp) oldHelp.style.display = 'none';
+        // Show any specific help for selected contentTheme
+        var help = document.getElementById(contentTheme + '-help');
+        if (help) help.style.display = 'block';
+        if(theme === 'light' + selectedThemeContent) contentTheme = null;
         // Remove oldAppTheme and oldContentTheme
         if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
         // A missing contentTheme implies _light
@@ -442,13 +449,6 @@ define(rqDef, function() {
         footer.classList.add(contentTheme || '_light');
         // Embed a reference to applied theme, so we can remove it generically in the future
         htmlEl.dataset.theme = theme;
-        // Hide any previously displayed help
-        var oldHelp = document.getElementById(oldContentTheme + '-help');
-        if (oldHelp) oldHelp.style.display = 'none';
-        // Show any specific help for selected contentTheme
-        var help = document.getElementById(contentTheme + '-help');
-        if (help) help.style.display = 'block';
-        
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
         if (oldContentTheme && oldContentTheme !== contentTheme) {
             iframe.classList.remove(oldContentTheme);
