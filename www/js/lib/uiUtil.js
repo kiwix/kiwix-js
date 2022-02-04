@@ -39,22 +39,22 @@ define(rqDef, function(settingsStore) {
      * @param {String} message The alert message to display in the body of the modal 
      * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
      * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message 
-     * @param {String} declineConfirmButton The text to display on the decline confirmation button (optional, Default = "Cancel") 
-     * @param {String} approveConfirmButton  The text to display on the approve confirmation button (optional, Default = "Confirm")
-     * @param {String} closeMessageButton  The text to display on the close alert message button (optional, Default = "Okay")
+     * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel") 
+     * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
+     * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
      */
-    function systemAlert(message, label, isConfirm, declineConfirmButton, approveConfirmButton, closeMessageButton) {
-        declineConfirmButton = declineConfirmButton || document.getElementById("declineConfirm").textContent;
-        approveConfirmButton = approveConfirmButton || document.getElementById("approveConfirm").textContent;
-        closeMessageButton = closeMessageButton || document.getElementById("closeMessage").textContent;
+    function systemAlert(message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
+        declineConfirmLabel = declineConfirmLabel || document.getElementById("declineConfirm").textContent;
+        approveConfirmLabel = approveConfirmLabel || document.getElementById("approveConfirm").textContent;
+        closeMessageLabel = closeMessageLabel || document.getElementById("closeMessage").textContent;
         label = label || (isConfirm ? "Confirmation" : "Message");
         return new Promise(function (resolve, reject) {
             if (!message) reject("Missing body message");
             // Set the text to the modal and it's buttons
-            document.getElementById("approveConfirm").textContent = approveConfirmButton;
-            document.getElementById("declineConfirm").textContent = declineConfirmButton;
-            document.getElementById("closeMessage").textContent = closeMessageButton;
+            document.getElementById("approveConfirm").textContent = approveConfirmLabel;
+            document.getElementById("declineConfirm").textContent = declineConfirmLabel;
+            document.getElementById("closeMessage").textContent = closeMessageLabel;
             document.getElementById("modalLabel").textContent = label;
             document.getElementById("modalText").textContent = message;
             // Display buttons acc to the type of alert
