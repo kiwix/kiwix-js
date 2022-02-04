@@ -109,6 +109,14 @@
     background-color: #FFFF00;
 }
 
+.dark .modal-content{
+    background: #333 !important;
+}
+
+.dark .modal-title, .dark .modal-body{
+    color: #FFFFFF !important;
+}
+
 /* End of app theme: dark */
 
 /* Content themes: _invert, _mwInvert */
