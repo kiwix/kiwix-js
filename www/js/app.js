@@ -421,7 +421,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
         if (params.contentInjectionMode !== 'serviceworker') {
-            alert('This setting can only be used in Service Worker mode!');
+            uiUtil.systemAlert('This setting can only be used in Service Worker mode!');
             this.checked = false;
         } else {
             params.appCache = !this.checked;
@@ -696,8 +696,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.contentInjectionMode = value;
         if (value === 'jquery') {
             if (!params.appCache) {
-                alert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!');
-                setContentInjectionMode('serviceworker');
+                uiUtil.systemAlert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!', 'Deselect "Bypass AppCache"').then(function () {
+                    setContentInjectionMode('serviceworker');
+                })
                 return;
             }
             if (params.referrerExtensionURL) {
@@ -712,12 +713,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                     'Beam me down, Scotty!';
                 };
-                var response = confirm(message);
-                if (response) {
-                    launchLocal();
-                } else {
-                    setContentInjectionMode('serviceworker');
-                }
+                uiUtil.systemAlert(message, 'Warning!', true).then(function (response) {
+                    if (response) {
+                        launchLocal();
+                    } else {
+                        setContentInjectionMode('serviceworker');
+                    }
+                });
                 return;
             }
             // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
@@ -739,13 +741,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
-                alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
-                setContentInjectionMode('jquery');
+                uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
+                    setContentInjectionMode('jquery');
+                });
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                alert("The MessageChannel API is not available on your device. Falling back to JQuery mode");
-                setContentInjectionMode('jquery');
+                uiUtil.systemAlert('The MessageChannel API is not available on your device. Falling back to JQuery mode', 'MessageChannel API not available').then(function () {
+                    setContentInjectionMode('jquery');
+                });
                 return;
             }
             var protocol = window.location.protocol;
@@ -887,11 +891,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             uiUtil.spinnerDisplay(true, 'Checking server access...');
             uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
                 uiUtil.spinnerDisplay(false);
-                alert('The server is not currently accessible! ' +
+                uiUtil.systemAlert('The server is not currently accessible! ' +
                     '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
-                    '\nPlease try again when you have a stable Internet connection.', 'Error!');
-                settingsStore.setItem('allowInternetAccess', false, Infinity);
-                setContentInjectionMode('jquery');
+                    '\nPlease try again when you have a stable Internet connection.', 'Error!').then(function () {
+                        settingsStore.setItem('allowInternetAccess', false, Infinity);
+                        setContentInjectionMode('jquery');
+                    });
             });
         };
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
@@ -1154,7 +1159,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         for (var i = files.length; i--;) {
             // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
             if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
-                alert("One or more files does not appear to be a ZIM file!");
+                uiUtil.systemAlert('One or more files does not appear to be a ZIM file!', 'Invalid File Format');
                 return;
             }
         }
@@ -1567,10 +1572,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
-                alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
-                        + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
-                        + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
-                        + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+                uiUtil.systemAlert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
+                                    + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
+                                    + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
+                                    + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
             
