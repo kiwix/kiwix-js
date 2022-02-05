@@ -11,10 +11,12 @@ Released on *TODO*
 * FEATURE: Provided a workaround to enable Service Worker mode in Firefox extensions (via a PWA)
 * NEW: App now defaults to Service Worker mode if accessed directly as a PWA (does not apply to browser extensions)
 * NEW: Provided methods for resetting the app and bypassing the appCache from the UI
-* NEW: Support for non-http URLs in img and link tags (e.g. data: javascript:)
+* NEW: Support for non-http URLs in img and link tags (e.g. data: javascript:) in JQuery mode
 * NEW: Added helpful tooltips to icons and settings in the app
 * NEW: Provided Code of Conduct and procedure for reporting bugs, for contributors (repository)
 * NEW: Provided contributing guidelines and information for future developers (repository)
+* NEW: Modal UI alerts and confirmation dialogue boxes are now displayed using Bootstrap
+* NEW: Bootstrap alerts and confirmations are appropriately themed if the app is set to dark mode
 * FIX: Added missing 'controls' property to media containers in jQuery mode
 * FIX: Scrolling to anchor targets in JQuery mode
 * FIX: Caching of ZIM assets now includes any required query string in SW mode
