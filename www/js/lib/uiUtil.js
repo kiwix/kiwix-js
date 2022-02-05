@@ -58,9 +58,9 @@ define(rqDef, function(settingsStore) {
             document.getElementById("modalLabel").textContent = label;
             document.getElementById("modalText").textContent = message;
             // Display buttons acc to the type of alert
-            document.getElementById("approveConfirm").style.display = isConfirm ? "block" : "none";
-            document.getElementById("declineConfirm").style.display = isConfirm ? "block" : "none";
-            document.getElementById("closeMessage").style.display = isConfirm ? "none" : "block";
+            document.getElementById("approveConfirm").style.display = isConfirm ? "inline" : "none";
+            document.getElementById("declineConfirm").style.display = isConfirm ? "inline" : "none";
+            document.getElementById("closeMessage").style.display = isConfirm ? "none" : "inline";
             // Display the modal
             $("#alertModal").modal("show");
             // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
