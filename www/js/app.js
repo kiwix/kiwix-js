@@ -789,7 +789,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             if (protocol === 'file:') {
                                 message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                             }
-                            uiUtil.systemAlert(message, "Incompatible protocol").then(function () {
+                            uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
                                 setContentInjectionMode('jquery');
                             });                  
                         }
