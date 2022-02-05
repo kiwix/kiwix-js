@@ -98,7 +98,7 @@ define([], function () {
    * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
    */
   function reset(object) {
-    const performReset = function () {
+    var performReset = function () {
       // 1. Clear any cookie entries
       if (!object || object === 'cookie') {
         var regexpCookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
