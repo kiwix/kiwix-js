@@ -32,9 +32,7 @@ define([], function () {
    * will not need to be migrated
    * @type {RegExp}
    */
-  
-  // https://www.bitnative.com/2015/02/03/circular-dependencies-in-requirejs/
-  var uiUtil = require('uiUtil'); //using this style to work around circular reference
+
   var regexpCookieKeysToMigrate = new RegExp([
     'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
     'contentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
@@ -101,6 +99,9 @@ define([], function () {
    * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
    */
   function reset(object) {
+    // https://www.bitnative.com/2015/02/03/circular-dependencies-in-requirejs/
+    var uiUtil = require('uiUtil'); //using this style to work around circular reference
+    
     var performReset = function () {
       // 1. Clear any cookie entries
       if (!object || object === 'cookie') {
