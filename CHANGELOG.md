@@ -18,6 +18,7 @@ Released on *2022-02-06*
 * FIX: Added missing 'controls' property to media containers in jQuery mode
 * FIX: Scrolling to anchor targets in JQuery mode
 * FIX: Caching of ZIM assets now includes any required query string in SW mode
+* FIX: Any favicon declared by the ZIM is now extracted and attached in JQuery mode
 * BUGFIX: Corrected the theme selection box height
 * BUGFIX: Aligned the search bar with the search button
 * BUGFIX: Disabled dragging of some UI elements
