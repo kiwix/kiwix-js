@@ -18,6 +18,7 @@ $ListOfExemptions = (
   'www/img/icons/kiwix-64.png',
   'www/img/icons/kiwix-90.png',
   'www/img/icons/kiwix_scalable.svg',
+  'www/img/icons/kiwix-splash-scalable.svg',
   'www/img/Kiwix_icon_transparent_600x600.png',
   'www/js/lib/webpHeroBundle_0.0.0-dev.27.js'
 )

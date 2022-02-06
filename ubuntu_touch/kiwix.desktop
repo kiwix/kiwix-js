@@ -6,5 +6,5 @@ Terminal=false
 Type=Application
 X-Ubuntu-Touch=true
 Icon=./www/img/icons/kiwix_scalable.svg
-X-Ubuntu-Splash-Color=#fff
-Name[en_US]=kiwix.desktop
+X-Ubuntu-Splash-Image=./www/img/icons/kiwix-splash-scalable.svg
+X-Ubuntu-Splash-Color=#888888
