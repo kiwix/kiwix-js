@@ -504,6 +504,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     //switch on/off the feature to use Home Key to focus search bar
     function switchHomeKeyToFocusSearchBar() {
         var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        // Test whether iframe is accessible (because if not, we do not want to throw an error at this point, before we can tell the user what is wrong)
+        var isIframeAccessible = true;
+        try {
+            iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+        }
+        catch (err) {
+            console.error('The iframe is probably not accessible', err);
+            isIframeAccessible = false;
+        }
+        if (!isIframeAccessible) return;
         // when the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) {
             //Handle Home key press inside window(outside iframe) to focus #prefix
