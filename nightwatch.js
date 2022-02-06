@@ -39,6 +39,11 @@ module.exports = {
       "silent": true,
       "username": "${SAUCE_USERNAME}",
       "access_key": "${SAUCE_ACCESS_KEY}",
+      request_timeout_options: {
+        // configure when should a request to the Selenium server reach a timeout and optionally define the number of retries for a timed out request
+        timeout: 100000,
+        retry_attempts: 3
+      },
       "screenshots" : {
         "enabled" : false
       },
