@@ -419,36 +419,37 @@ define(rqDef, function() {
      */
     function applyAppTheme(theme) {
         var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
-        var selectedThemeContent = theme.replace(/^[^_]*/, '');
-        if (/^auto/.test(theme)) theme = darkPreference.matches ? 'dark' + selectedThemeContent : 'light' + selectedThemeContent;
+        // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
+        var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
+        // Get contentTheme from chosen theme
+        var contentTheme = theme.replace(/^[^_]*/, '');
         var htmlEl = document.querySelector('html');
         var footer = document.querySelector('footer');
         var oldTheme = htmlEl.dataset.theme || '';
         var iframe = document.getElementById('articleContent');
         var doc = iframe.contentDocument;
         var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
-        var appTheme = theme.replace(/_.*$/, '');
-        var contentTheme = theme.replace(/^[^_]*/, '');
         var oldAppTheme = oldTheme.replace(/_.*$/, '');
         var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
-        // Hide any previously displayed help
-        var oldHelp = document.getElementById(oldContentTheme + '-help');
-        if (oldHelp) oldHelp.style.display = 'none';
-        // Show any specific help for selected contentTheme
-        var help = document.getElementById(contentTheme + '-help');
-        if (help) help.style.display = 'block';
-        if(theme === 'light' + selectedThemeContent) contentTheme = null;
         // Remove oldAppTheme and oldContentTheme
         if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
         // A missing contentTheme implies _light
         footer.classList.remove(oldContentTheme || '_light');
         // Apply new appTheme (NB it will not be added twice if it's already there)
         if (appTheme) htmlEl.classList.add(appTheme);
+        // Embed a reference to applied theme, so we can remove it generically in the future
+        htmlEl.dataset.theme = appTheme + contentTheme;
         // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
         // is not dark (but we want it applied when the content is dark or inverted)
         footer.classList.add(contentTheme || '_light');
-        // Embed a reference to applied theme, so we can remove it generically in the future
-        htmlEl.dataset.theme = theme;
+        // Hide any previously displayed help
+        var oldHelp = document.getElementById(oldContentTheme + '-help');
+        if (oldHelp) oldHelp.style.display = 'none';
+        // Show any specific help for selected contentTheme
+        var help = document.getElementById(contentTheme + '-help');
+        if (help) help.style.display = 'block';
+        // Remove the contentTheme for auto themes whenever system is in light mode
+        if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
         if (oldContentTheme && oldContentTheme !== contentTheme) {
             iframe.classList.remove(oldContentTheme);
