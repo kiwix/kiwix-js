@@ -437,11 +437,11 @@ define(rqDef, function() {
         footer.classList.remove(oldContentTheme || '_light');
         // Apply new appTheme (NB it will not be added twice if it's already there)
         if (appTheme) htmlEl.classList.add(appTheme);
-        // Embed a reference to applied theme, so we can remove it generically in the future
-        htmlEl.dataset.theme = appTheme + contentTheme;
         // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
         // is not dark (but we want it applied when the content is dark or inverted)
         footer.classList.add(contentTheme || '_light');
+        // Embed a reference to applied theme, so we can remove it generically in the future
+        htmlEl.dataset.theme = appTheme + contentTheme;
         // Hide any previously displayed help
         var oldHelp = document.getElementById(oldContentTheme + '-help');
         if (oldHelp) oldHelp.style.display = 'none';
