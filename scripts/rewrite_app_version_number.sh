@@ -28,6 +28,6 @@ fi
 # If Version matches a release pattern, then set the appVersion in the files to be published
 if [[ $VERSION =~ ^[0-9.]+ ]]; then
   echo "Rewriting appVersion in service-worker.js and app.js to $VERSION ..."
-  sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ../service-worker.js
-  sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ../www/js/app.js
+  sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
+  sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
 fi
