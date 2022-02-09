@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^[0-9.]+, it will set the appVersion and will be visible to users. Non-matching values will cause appVersion to be used.
+        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^v?[0-9.]+, it will set the appVersion (v will be removed) and will be visible to users. Non-matching values will cause appVersion to be used.
         required: true
         default: 'dev'
       target:
@@ -55,7 +55,7 @@ jobs:
           credentials: |
             DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
-          tag-pattern: /^v*([0-9.]+)$/
+          tag-pattern: /^v?([0-9.]+)$/
           latest-on-tag: true
           dockerfile: docker/dockerfile-moz-extension.pwa
           restrict-to: kiwix/kiwix-js

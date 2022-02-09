@@ -17,12 +17,12 @@ if [[ $VERSION =~ ^v?[0-9.]+ ]]; then
 else
   # If no valid override input was entered, then try to use the release tag
   VERSION=${TAG_VERSION}
-  if [[ $VERSION =~ ^v*[0-9.]+ ]]; then
+  if [[ $VERSION =~ ^v?[0-9.]+ ]]; then
     VERSION=$(sed 's/^v//' <<<"$VERSION")
     echo "Using the release tag and setting version to $VERSION"
   else
     echo "No valid override or tag was provided. File version numbers were unchanged."
-    echo "To rewrite version numbers in app, ensure the tag matches ^[0-9.]+"
+    echo "To rewrite version numbers in app, ensure the tag matches ^v?[0-9.]+"
   fi
 fi
 # If Version matches a release pattern, then set the appVersion in the files to be published
