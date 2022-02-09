@@ -11,7 +11,7 @@
  
 # Use the override value by preference
 VERSION=${INPUT_VERSION}
-if [[ $VERSION =~ ^v*[0-9.]+ ]]; then
+if [[ $VERSION =~ ^v?[0-9.]+ ]]; then
   VERSION=$(sed 's/^v//' <<<"$VERSION") # Remove any leading v
   echo "Using the valid override input and setting version to $VERSION"
 else
