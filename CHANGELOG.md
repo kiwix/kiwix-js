@@ -12,7 +12,7 @@ Released on *yyy-mm-dd*
 * FIX: Improve packaging for the Ubuntu Touch app
 * FIX: Provide platform-compliant ID for Ubuntu Touch app
 * FIX: Correct the handling of version numbers in GitHub publishing workflow
-* BUGFIX: Corrected race condition preventing initialization of decompressors in some contexts (e.g. file:// protocol)
+* BUGFIX: Correct race condition preventing initialization of decompressors in some contexts (e.g. file:// protocol)
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/26?closed=1
 
