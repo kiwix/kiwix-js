@@ -4,6 +4,18 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Kiwix-JS v3.3.1
+
+Released on *yyy-mm-dd*
+
+* NOTICE: This is a bugfix release to fix critical errors with the Ubuntu Touch app. For main changelog, see v3.3.0 below.
+* FIX: Improve packaging for the Ubuntu Touch app
+* FIX: Provide platform-compliant ID for Ubuntu Touch app
+* FIX: Correct the handling of version numbers in GitHub publishing workflow
+* BUGFIX: Corrected race condition preventing initialization of decompressors in some contexts (e.g. file:// protocol)
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/26?closed=1
+
 ## Kiwix-JS v3.3.0
 
 Released on *2022-02-06*
