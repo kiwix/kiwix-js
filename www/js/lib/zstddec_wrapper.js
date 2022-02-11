@@ -26,14 +26,17 @@
 // because they cannot interpret WebAssembly.
 var rqDefZD = ['uiUtil'];
 
+// Variable specific to this decompressor (will be used to populate global variable)
+var ZSTDMachineType = null;
+
 // Select asm or wasm conditionally
 if ('WebAssembly' in self) {
     console.debug('Instantiating WASM zstandard decoder');
-    params.decompressorAPI.assemblerMachineType = 'WASM';
+    ZSTDMachineType = 'WASM';
     rqDefZD.push('zstddec-wasm');
 } else {
     console.debug('Instantiating ASM zstandard decoder');
-    params.decompressorAPI.assemblerMachineType = 'ASM';
+    ZSTDMachineType = 'ASM';
     rqDefZD.push('zstddec-asm');
 }
 
@@ -102,20 +105,23 @@ define(rqDefZD, function(uiUtil) {
     };
 
     ZD().then(function (inst) {
+        params.decompressorAPI.assemblerMachineType = ZSTDMachineType;
         instantiateDecoder(inst);
     }).catch(function (err) {
-        if (params.decompressorAPI.assemblerMachineType === 'ASM') {
+        if (ZSTDMachineType === 'ASM') {
             // There is no fallback, because we were attempting to load the ASM machine, so report error immediately
-            uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
+            uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err, ZSTDMachineType);
         } else {
             console.warn('WASM failed to load, falling back to ASM...', err);
-            params.decompressorAPI.assemblerMachineType = 'ASM';
+            // Fall back to ASM
+            ZSTDMachineType = 'ASM';
             ZD = null;
             require(['zstddec-asm'], function () {
                 ZD().then(function (inst) {
+                    params.decompressorAPI.assemblerMachineType = ZSTDMachineType;
                     instantiateDecoder(inst);
                 }).catch(function (err) {
-                    uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err);
+                    uiUtil.reportAssemblerErrorToAPIStatusPanel('ZSTD', err, ZSTDMachineType);
                 });
             });
         }

@@ -93,7 +93,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
-    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 'jquery'; // Defaults to jquery for now
+    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') || 
+        // Defaults to jquery in extensions, and serviceworker if accessing as a PWA
+        ((/^https?:$/i.test(window.location.protocol) && isServiceWorkerAvailable()) ? 'serviceworker' : 'jquery');
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
@@ -246,7 +248,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (/Enter/.test(e.key)) {
                 if (activeElement.classList.contains('hover')) {
                     var dirEntryId = activeElement.getAttribute('dirEntryId');
-                    findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
+                    findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
                     return;
                 }
             }
@@ -502,6 +504,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     //switch on/off the feature to use Home Key to focus search bar
     function switchHomeKeyToFocusSearchBar() {
         var iframeContentWindow = document.getElementById('articleContent').contentWindow;
+        // Test whether iframe is accessible (because if not, we do not want to throw an error at this point, before we can tell the user what is wrong)
+        var isIframeAccessible = true;
+        try {
+            iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+        }
+        catch (err) {
+            console.error('The iframe is probably not accessible', err);
+            isIframeAccessible = false;
+        }
+        if (!isIframeAccessible) return;
         // when the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) {
             //Handle Home key press inside window(outside iframe) to focus #prefix
@@ -710,9 +722,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 });
                 return;
             }
-            // Because the "outer" Service Worker still runs in a PWA app, we don't actually disable the SW in this context, but it will no longer
-            // be intercepting requests
-            if ('serviceWorker' in navigator) {
+            // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
+            // but it will no longer be intercepting requests for ZIM assets (only requests for the app's own code)
+            if (isServiceWorkerAvailable()) {
                 serviceWorkerRegistration = null;
             }
             refreshAPIStatus();
@@ -1285,7 +1297,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
         for (var i = 0; i < listLength; i++) {
             var dirEntry = dirEntryArray[i];
-            var dirEntryStringId = uiUtil.htmlEscapeChars(dirEntry.toStringId());
+            // NB We use encodeURIComponent rather than encodeURI here because we know that any question marks in the title are not querystrings,
+            // and should be encoded [kiwix-js #806]. DEV: be very careful if you edit the dirEntryId attribute below, because the contents must be
+            // inside double quotes (in the final HTML string), given that dirEntryStringId may contain bare apostrophes
+            // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( ) 
+            var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
             articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
         }
@@ -1304,20 +1320,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     /**
      * Handles the click on the title of an article in search results
-     * @param {Event} event
-     * @returns {Boolean}
+     * @param {Event} event The click event to handle
+     * @returns {Boolean} Always returns false for JQuery event handling
      */
     function handleTitleClick(event) {       
-        var dirEntryId = event.target.getAttribute("dirEntryId");
+        var dirEntryId = decodeURIComponent(event.target.getAttribute('dirEntryId'));
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         return false;
     }
-    
 
     /**
      * Creates an instance of DirEntry from given dirEntryId (including resolving redirects),
      * and call the function to read the corresponding article
-     * @param {String} dirEntryId
+     * @param {String} dirEntryId The stringified Directory Entry to parse and launch
      */
     function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
         if (selectedArchive.isReady()) {
@@ -1501,7 +1516,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
     // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
     var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
-    
+
+    // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
+    var anchorParameter;
+
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -1591,7 +1609,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             //loadJavaScriptJQuery();
             loadCSSJQuery();
             insertMediaBlobsJQuery();
-
+            // Jump to any anchor parameter
+            if (anchorParameter) {
+                var target = iframeContentDocument.getElementById(anchorParameter);
+                if (target) target.scrollIntoView();
+                anchorParameter = '';
+            } 
             if (iframeArticleContent.contentWindow) {
                 // Configure home key press to focus #prefix only if the feature is in active state
                 if (params.useHomeKeyToFocusSearchBar)
@@ -1613,7 +1636,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // NB dirEntry.url can also contain path separator / in some ZIMs (Stackexchange). } and ] do not need to be escaped as they have no meaning on their own. 
             var escapedUrl = encodeURIComponent(dirEntry.url).replace(/([\\$^.|?*+/()[{])/g, '\\$1');
             // Pattern to match a local anchor in an href even if prefixed by escaped url; will also match # on its own
-            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#]*$)');
+            // Note that we exclude any # with a semicolon between it and the end of the string, to avoid accidentally matching e.g. &#39;
+            var regexpLocalAnchorHref = new RegExp('^(?:#|' + escapedUrl + '#)([^#;]*$)');
             var iframe = iframeArticleContent.contentDocument;
             Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
@@ -1624,12 +1648,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     return;
                 }
                 var href = anchor.getAttribute('href');
-                if (href === null || href === undefined) return;
+                if (href === null || href === undefined || /^javascript:/i.test(anchor.protocol)) return;
+                var anchorTarget = href.match(regexpLocalAnchorHref);
                 if (href.length === 0) {
                     // It's a link with an empty href, pointing to the current page: do nothing.
-                } else if (regexpLocalAnchorHref.test(href)) {
+                } else if (anchorTarget) {
                     // It's a local anchor link : remove escapedUrl if any (see above)
-                    anchor.setAttribute('href', href.replace(/^[^#]*/, ''));
+                    anchor.setAttribute('href', '#' + anchorTarget[1]);
                 } else if (anchor.protocol !== currentProtocol ||
                     anchor.host !== currentHost) {
                     // It's an external URL : we should open it in a new tab
@@ -1654,6 +1679,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     anchor.addEventListener('click', function (e) {
+                        anchorParameter = href.match(/#([^#;]+)$/);
+                        anchorParameter = anchorParameter ? anchorParameter[1] : '';
                         var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                         goToArticle(zimUrl, downloadAttrValue, contentType);
                         e.preventDefault();
@@ -1709,39 +1736,42 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // These sections can be opened by clicking on them, but this is done with some javascript.
             // The code below is a workaround we still need for compatibility with ZIM files generated by mwoffliner in 2018.
             // A better fix has been made for more recent ZIM files, with the use of noscript tags : see https://github.com/openzim/mwoffliner/issues/324
-            var iframe = document.getElementById('articleContent').contentDocument;
+            var iframe = iframeArticleContent.contentDocument;
             var collapsedBlocks = iframe.querySelectorAll('.collapsible-block:not(.open-block), .collapsible-heading:not(.open-block)');
             // Using decrementing loop to optimize performance : see https://stackoverflow.com/questions/3520688 
             for (var i = collapsedBlocks.length; i--;) {
                 collapsedBlocks[i].classList.add('open-block');
             }
-
             var cssCount = 0;
             var cssFulfilled = 0;
-            $('#articleContent').contents().find('link[data-kiwixurl]').each(function () {
+            Array.prototype.slice.call(iframe.querySelectorAll('link[data-kiwixurl]')).forEach(function (link) {
                 cssCount++;
-                var link = $(this);
-                var linkUrl = link.attr("data-kiwixurl");
-                var url = uiUtil.removeUrlParameters(decodeURIComponent(linkUrl));
+                var linkUrl = link.getAttribute('data-kiwixurl');
+                var url = decodeURIComponent(uiUtil.removeUrlParameters(linkUrl));
                 if (cssCache.has(url)) {
-                    var cssContent = cssCache.get(url);
-                    uiUtil.replaceCSSLinkWithInlineCSS(link, cssContent);
+                    var nodeContent = cssCache.get(url);
+                    if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
+                    else uiUtil.feedNodeWithBlob(link, 'href', nodeContent, link.type || 'image');
                     cssFulfilled++;
                 } else {
                     if (params.assetsCache) $('#cachingAssets').show();
-                    selectedArchive.getDirEntryByPath(url)
-                    .then(function (dirEntry) {
-                        return selectedArchive.readUtf8File(dirEntry,
-                            function (fileDirEntry, content) {
-                                var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
-                                if (params.assetsCache) cssCache.set(fullUrl, content);
-                                uiUtil.replaceCSSLinkWithInlineCSS(link, content);
-                                cssFulfilled++;
-                                renderIfCSSFulfilled(fileDirEntry.url);
-                            }
-                        );
+                    selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
+                        if (!dirEntry) {
+                            cssCache.set(url, ''); // Prevent repeated lookups of this unfindable asset
+                            throw 'DirEntry ' + typeof dirEntry;
+                        }
+                        var mimetype = dirEntry.getMimetype();
+                        var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
+                        return readFile(dirEntry, function (fileDirEntry, content) {
+                            var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
+                            if (params.assetsCache) cssCache.set(fullUrl, content);
+                            if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
+                            else uiUtil.feedNodeWithBlob(link, 'href', content, mimetype);
+                            cssFulfilled++;
+                            renderIfCSSFulfilled(fileDirEntry.url);
+                        });
                     }).catch(function (e) {
-                        console.error("could not find DirEntry for CSS : " + url, e);
+                        console.error("Could not find DirEntry for link element: " + url, e);
                         cssCount--;
                         renderIfCSSFulfilled();
                     });
@@ -1776,7 +1806,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         //         var script = $(this);
         //         var scriptUrl = script.attr("data-kiwixurl");
         //         // TODO check that the type of the script is text/javascript or application/javascript
-        //         var title = uiUtil.removeUrlParameters(decodeURIComponent(scriptUrl));
+        //         var title = uiUtil.removeUrlParameters(scriptUrl);
         //         selectedArchive.getDirEntryByPath(title).then(function(dirEntry) {
         //             if (dirEntry === null) {
         //                 console.log("Error: js file not found: " + title);

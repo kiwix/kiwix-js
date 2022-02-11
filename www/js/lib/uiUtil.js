@@ -123,8 +123,8 @@ define(rqDef, function(settingsStore) {
      * while copying some attributes of the original tag
      * Cf http://jonraasch.com/blog/javascript-style-node
      * 
-     * @param {Element} link from the DOM
-     * @param {String} cssContent
+     * @param {Element} link The original link node from the DOM
+     * @param {String} cssContent The content to insert as an inline stylesheet
      */
     function replaceCSSLinkWithInlineCSS (link, cssContent) {
         var cssElement = document.createElement('style');
@@ -134,26 +134,28 @@ define(rqDef, function(settingsStore) {
         } else {
             cssElement.appendChild(document.createTextNode(cssContent));
         }
-        var mediaAttributeValue = link.attr('media');
+        var mediaAttributeValue = link.getAttribute('media');
         if (mediaAttributeValue) {
             cssElement.media = mediaAttributeValue;
         }
-        var disabledAttributeValue = link.attr('disabled');
+        var disabledAttributeValue = link.getAttribute('disabled');
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
-    var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
-    
     /**
      * Removes parameters and anchors from a URL
-     * @param {type} url
-     * @returns {String} same URL without its parameters and anchors
+     * @param {type} url The URL to be processed
+     * @returns {String} The same URL without its parameters and anchors
      */
     function removeUrlParameters(url) {
-        return url.replace(regexpRemoveUrlParameters, "$1");
+        // Remove any querystring
+        var strippedUrl = url.replace(/\?[^?]*$/, '');
+        // Remove any anchor parameters - note that we are deliberately excluding entity references, e.g. '&#39;'.
+        strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
+        return strippedUrl;
     }
 
     /**
@@ -167,7 +169,7 @@ define(rqDef, function(settingsStore) {
     function deriveZimUrlFromRelativeUrl(url, base) {
         // We use a dummy domain because URL API requires a valid URI
         var dummy = 'http://d/';
-        var deriveZimUrl = function(url, base) {
+        var deriveZimUrl = function (url, base) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');
@@ -349,29 +351,6 @@ define(rqDef, function(settingsStore) {
     }
 
     /**
-     * Encodes the html escape characters in the string before using it as html class name,id etc.
-     * 
-     * @param {String} string The string in which html characters are to be escaped
-     * 
-     */
-    function htmlEscapeChars(string) {
-        var escapechars = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
-        };
-        string = String(string).replace(/[&<>"'`=/]/g, function (s) {
-            return escapechars[s];
-        });
-        return string;
-    }
-
-    /**
      * Removes the animation effect between various sections
      */
     function removeAnimationClasses() {
@@ -537,8 +516,9 @@ define(rqDef, function(settingsStore) {
 
     // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
     // This can't be done in app.js because the error occurs after the API panel is first displayed
-    function reportAssemblerErrorToAPIStatusPanel(decoderType, error) {
+    function reportAssemblerErrorToAPIStatusPanel(decoderType, error, assemblerMachineType) {
         console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
+        params.decompressorAPI.assemblerMachineType = assemblerMachineType;
         params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
         var decompAPI = document.getElementById('decompressorAPIStatus');
         decompAPI.innerHTML = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
@@ -564,7 +544,6 @@ define(rqDef, function(settingsStore) {
         checkServerIsAccessible: checkServerIsAccessible,
         spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
-        htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
         applyAnimationToSection: applyAnimationToSection,
         applyAppTheme: applyAppTheme,

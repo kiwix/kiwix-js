@@ -6,9 +6,25 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.3.0
 
-Released on *TODO*
+Released on *2022-02-06*
 
-Detailed changelog: TODO
+* FEATURE: Provided a workaround to enable Service Worker mode in Firefox extensions (via a PWA)
+* NEW: App now defaults to Service Worker mode if accessed directly as a PWA (does not apply to browser extensions)
+* NEW: Provided methods for resetting the app and bypassing the appCache from the UI
+* NEW: Support for non-http URLs in img and link tags (e.g. data: javascript:) in JQuery mode
+* NEW: Added helpful tooltips to icons and settings in the app
+* NEW: Provided Code of Conduct and procedure for reporting bugs, for contributors (repository)
+* NEW: Provided contributing guidelines and information for future developers (repository)
+* FIX: Added missing 'controls' property to media containers in jQuery mode
+* FIX: Scrolling to anchor targets in JQuery mode
+* FIX: Caching of ZIM assets now includes any required query string in SW mode
+* FIX: Any favicon declared by the ZIM is now extracted and attached in JQuery mode
+* BUGFIX: Corrected the theme selection box height
+* BUGFIX: Aligned the search bar with the search button
+* BUGFIX: Disabled dragging of some UI elements
+* BUGFIX: Incorrect processing of titles with question marks or hashes prevented display of some articles
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/26?closed=1
 
 ## Kiwix-JS v3.2.0
 
