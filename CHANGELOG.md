@@ -6,11 +6,11 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.3.1
 
-Released on *yyy-mm-dd*
+Released on *2022-02-12*
 
 * NOTICE: This is a bugfix release to fix critical errors with the Ubuntu Touch app. For main changelog, see v3.3.0 below.
 * FIX: Improve packaging for the Ubuntu Touch app
-* FIX: Provide platform-compliant ID for Ubuntu Touch app
+* FIX: Provide a platform-compliant hook name for the Ubuntu Touch app (note that settings may be lost when upgrading to this version)
 * BUGFIX: Correct the handling of version numbers in GitHub publishing workflow
 * BUGFIX: Correct race condition preventing initialization of decompressors in some contexts (e.g. file:// protocol)
 
