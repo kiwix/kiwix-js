@@ -421,6 +421,12 @@ define(rqDef, function() {
         var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
         // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
         var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
+        if (/^auto/.test(theme)) {
+            document.getElementById('kiwix-auto-description').style.display = 'block';
+            setTimeout(function() {
+                document.getElementById('kiwix-auto-description').style.display = 'none';
+            }, 4500)
+        }
         // Get contentTheme from chosen theme
         var contentTheme = theme.replace(/^[^_]*/, '');
         var htmlEl = document.querySelector('html');
@@ -443,10 +449,10 @@ define(rqDef, function() {
         // Embed a reference to applied theme, so we can remove it generically in the future
         htmlEl.dataset.theme = appTheme + contentTheme;
         // Hide any previously displayed help
-        var oldHelp = document.getElementById(oldContentTheme + '-help');
+        var oldHelp = document.getElementById(oldContentTheme.replace(/_/, '') + '-help');
         if (oldHelp) oldHelp.style.display = 'none';
         // Show any specific help for selected contentTheme
-        var help = document.getElementById(contentTheme + '-help');
+        var help = document.getElementById(contentTheme.replace(/_/, '') + '-help');
         if (help) help.style.display = 'block';
         // Remove the contentTheme for auto themes whenever system is in light mode
         if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;

@@ -168,9 +168,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
  
     // define and store dark preference for matchMedia
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
-    // if 'prefers-color-scheme' is not supported in the browser
+    // if 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
     if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
-        var optionsToBeRemoved = document.querySelectorAll('.auto');
+        var optionsToBeRemoved = document.getElementById("appThemeSelect").querySelectorAll('.auto');
         for (var i = 0; i < optionsToBeRemoved.length; i++) {
             optionsToBeRemoved[i].parentNode.removeChild(optionsToBeRemoved[i]);
         }
