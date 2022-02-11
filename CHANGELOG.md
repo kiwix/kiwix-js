@@ -14,7 +14,7 @@ Released on *yyy-mm-dd*
 * BUGFIX: Correct the handling of version numbers in GitHub publishing workflow
 * BUGFIX: Correct race condition preventing initialization of decompressors in some contexts (e.g. file:// protocol)
 
-Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/26?closed=1
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/28?closed=1
 
 ## Kiwix-JS v3.3.0
 
