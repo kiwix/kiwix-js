@@ -52,11 +52,11 @@ define(rqDef, function(settingsStore) {
         return new Promise(function (resolve, reject) {
             if (!message) reject("Missing body message");
             // Set the text to the modal and it's buttons
-            document.getElementById("approveConfirm").textContent = approveConfirmLabel;
-            document.getElementById("declineConfirm").textContent = declineConfirmLabel;
-            document.getElementById("closeMessage").textContent = closeMessageLabel;
-            document.getElementById("modalLabel").textContent = label;
-            document.getElementById("modalText").textContent = message;
+            document.getElementById("approveConfirm").innerHTML = approveConfirmLabel;
+            document.getElementById("declineConfirm").innerHTML = declineConfirmLabel;
+            document.getElementById("closeMessage").innerHTML = closeMessageLabel;
+            document.getElementById("modalLabel").innerHTML = label;
+            document.getElementById("modalText").innerHTML = message;
             // Display buttons acc to the type of alert
             document.getElementById("approveConfirm").style.display = isConfirm ? "inline" : "none";
             document.getElementById("declineConfirm").style.display = isConfirm ? "inline" : "none";
