@@ -86,34 +86,73 @@ define(rqDef, function(settingsStore) {
      * @param {String} nodeAttribute The attribute to set to the URI
      * @param {Uint8Array} content The binary content to convert to a URI
      * @param {String} mimeType The MIME type of the content
-     * @param {Function} callback An optional function to call with the URI
+     * @param {Function} callback An optional function to call to start processing the next item
      */
     function feedNodeWithBlob(node, nodeAttribute, content, mimeType, callback) {
         // Decode WebP data if the browser does not support WebP and the mimeType is webp
         if (webpMachine && /image\/webp/i.test(mimeType)) {
+            // If we're dealing with a dataURI, first convert to Uint8Array
+            if (/^data:/i.test(content)) {
+                // Using webpHero's utility: it uses deprecated atob() but should be OK for WebP image data
+                // DEV: If you ever need an alternative to atob(), please see Mozilla-recommended methods: https://developer.mozilla.org/en-US/docs/Glossary/Base64
+                content = webpHero.convertDataURIToBinary(content);
+            }
             // DEV: Note that webpMachine is single threaded and will reject an image if it is busy
             // However, the loadImagesJQuery() function in app.js is sequential (it waits for a callback
             // before processing another image) so we do not need to queue WebP images here
-            webpMachine.decode(content).then(function (uri) {
-                // DEV: WebpMachine.decode() returns a data: URI
-                // We callback before the node is set so that we don't incur slow DOM rewrites before processing more images
-                if (callback) callback(uri);
-                node.setAttribute(nodeAttribute, uri);
+            var canvas = document.createElement('canvas');
+            webpMachine.decodeToCanvas(canvas, content).then(function () {
+                if (callback) callback(); // Calling back as soon as possible speeds up extraction
+                if (params.useCanvasElementsForWebpTranscoding) {
+                    // Replace images by canvas. This is necessary for some browsers with obsolete anti-fingerprinting protection, like IceCat 60.7
+                    webpMachine.constructor.replaceImageWithCanvas(node, canvas);
+                } else {
+                    // For standard browsers that have access to the canvas, we simply convert the canvas to a data URI
+                    node.setAttribute(nodeAttribute, canvas.toDataURL());
+                }
             }).catch(function (err) {
                 console.error('There was an error decoding image in WebpMachine', err);
                 if (callback) callback();
             });
         } else {
-            var blob = new Blob([content], {
-                type: mimeType
-            });
-            var url = URL.createObjectURL(blob);
-            if (callback) callback(url);
-            node.addEventListener('load', function () {
-                URL.revokeObjectURL(url);
-            });
-            node.setAttribute(nodeAttribute, url);
+            if (callback) callback(); // Calling back as soon as possible speeds up extraction
+            // In browsers that support WebP natively, or for non-WebP images, we can simply convert the Uint8Array to a data URI
+            // DEV: we use FileReader method because btoa fails on utf8 strings (in SVGs, for example)
+            // See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
+            // This native browser method is very fast: see https://stackoverflow.com/a/66046176/9727685
+            var myReader = new FileReader();
+            myReader.onloadend = function () {
+                var url = myReader.result;
+                node.setAttribute(nodeAttribute, url);
+            };
+            myReader.readAsDataURL(new Blob([content], { type: mimeType }));
         }
+    }
+
+    /**
+     * Determines whether the Canvas Elements Workaround for decoding WebP images is needed, and sets UI accordingly.
+     * This also sets a global app parameter (useCanvasElementsForWebpTranscoding) that determines whether the workaround will be used in jQuery mode.
+     * Note that the workaround will never be used in Service Worker mode, but we still need to determine it in case the user switches modes.
+     * @returns {Boolean} A value to indicate the browser's capability (whether it requires the workaround or not) 
+     */
+    function determineCanvasElementsWorkaround() {
+        var userPreference = settingsStore.getItem('useCanvasElementsForWebpTranscoding') !== 'false';
+        // Determine whether the browser is able to read canvas data correctly
+        var browserRequiresWorkaround = webpMachine && webpHero && !webpHero.detectCanvasReadingSupport();
+        console.debug('Determination for canvas elements workaround with WebP transcoding is: ' + browserRequiresWorkaround);
+        // Hide the UI for this feature (we'll display it below if needed)
+        var imgHandlingModeDiv = document.getElementById('imgHandlingModeDiv');
+        var useCanvasElementsCheck = document.getElementById('useCanvasElementsCheck');
+        imgHandlingModeDiv.style.display = 'none';
+        useCanvasElementsCheck.checked = false;
+        if (browserRequiresWorkaround && params.contentInjectionMode === 'jquery') {
+            // The feature is required, so display the UI
+            imgHandlingModeDiv.style.display = 'block';
+            useCanvasElementsCheck.checked = userPreference;
+        }
+        params.useCanvasElementsForWebpTranscoding = browserRequiresWorkaround ? userPreference : false;
+         // Return the determined browser capability (which may be different from the user's preference) in case caller wants this
+        return browserRequiresWorkaround;
     }
 
     /**
@@ -538,7 +577,7 @@ define(rqDef, function(settingsStore) {
     }
 
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
-    if (webpMachine) webpMachine = new webpHero.WebpMachine();
+    if (webpMachine) webpMachine = new webpHero.WebpMachine({useCanvasElements: true});
 
     /**
      * Functions and classes exposed by this module
@@ -546,6 +585,7 @@ define(rqDef, function(settingsStore) {
     return {
         systemAlert: systemAlert,
         feedNodeWithBlob: feedNodeWithBlob,
+        determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,

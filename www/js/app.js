@@ -96,6 +96,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
         // Defaults to jquery in extensions, and serviceworker if accessing as a PWA
         ((/^https?:$/i.test(window.location.protocol) && isServiceWorkerAvailable()) ? 'serviceworker' : 'jquery');
+    // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
+    // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
+    params['useCanvasElementsForWebpTranscoding']; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
@@ -431,6 +434,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     $('input:radio[name=contentInjectionMode]').on('change', function() {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
+    });
+    document.getElementById('useCanvasElementsCheck').addEventListener('change', function () {
+        if (this.checked) {
+            // User can only *disable* this auto-determined setting, not force it on, so we do not store a value of true
+            settingsStore.removeItem('useCanvasElementsForWebpTranscoding');
+            uiUtil.determineCanvasElementsWorkaround();
+            this.checked = params.useCanvasElementsForWebpTranscoding;
+        } else {
+            params.useCanvasElementsForWebpTranscoding = false;
+            settingsStore.setItem('useCanvasElementsForWebpTranscoding', false, Infinity);
+        }
     });
     document.getElementById('btnReset').addEventListener('click', function () {
         settingsStore.reset();
@@ -836,6 +850,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         settingsStore.setItem('contentInjectionMode', value, Infinity);
         refreshCacheStatus();
         refreshAPIStatus();
+        // Set the visibility of WebP workaround after change of content injection mode
+        uiUtil.determineCanvasElementsWorkaround();
     }
 
     /**
@@ -1562,6 +1578,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // of encodeURIComponent.
             return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
         });
+        // We also need to process data:image/webp if the browser needs the WebPMachine
+        if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
 
         // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
         var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
@@ -1716,6 +1734,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Extract the image at the top of the images array and remove it from the array
                 var image = images.shift();
                 var imageUrl = image.getAttribute('data-kiwixurl');
+                // Decode any WebP images that are encoded as dataURIs
+                if (/^data:image\/webp/i.test(imageUrl)) {
+                    uiUtil.feedNodeWithBlob(image, 'src', imageUrl, 'image/webp');
+                    images.busy = false;
+                    extractImage();
+                    return;
+                }
                 var url = decodeURIComponent(imageUrl);
                 selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
