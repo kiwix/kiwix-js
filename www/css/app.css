@@ -114,19 +114,6 @@ iframe._invert, iframe._mwInvert {
 }
 
 /* End of content themes */
-#kiwix-auto-description {
-    animation: fadeInAutoDesAnimation ease 5s;
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
-}
-@keyframes fadeInAutoDesAnimation {
-    70% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
 .appThemeInfo {
     display: none;
     margin: 5px;

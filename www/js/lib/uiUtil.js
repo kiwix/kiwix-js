@@ -421,12 +421,6 @@ define(rqDef, function() {
         var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
         // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
         var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
-        if (/^auto/.test(theme)) {
-            document.getElementById('kiwix-auto-description').style.display = 'block';
-            setTimeout(function() {
-                document.getElementById('kiwix-auto-description').style.display = 'none';
-            }, 4500)
-        }
         // Get contentTheme from chosen theme
         var contentTheme = theme.replace(/^[^_]*/, '');
         var htmlEl = document.querySelector('html');
@@ -456,6 +450,12 @@ define(rqDef, function() {
         if (help) help.style.display = 'block';
         // Remove the contentTheme for auto themes whenever system is in light mode
         if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
+        // Hide any previously displayed discription for auto themes
+        var oldDescription = document.getElementById('kiwix-auto-description');
+        oldDescription.style.display = 'none';
+        // Show description for auto themes 
+        var description = document.getElementById('kiwix-' + theme.replace(/_.*$/, '') + '-description');
+        if (description) description.style.display = 'block';
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
         if (oldContentTheme && oldContentTheme !== contentTheme) {
             iframe.classList.remove(oldContentTheme);
