@@ -703,7 +703,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             if (params.referrerExtensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
-                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
+                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
@@ -799,7 +799,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             refreshAPIStatus();
                             var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
                             if (protocol === 'file:') {
-                                message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                                message += "<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                             }
                             uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
                                 setContentInjectionMode('jquery');
@@ -863,11 +863,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
         var message = 'To enable the Service Worker, we need one-time access to our secure server ' + 
-            'so that the app can re-launch as a Progressive Web App (PWA).\n\n' +
+            'so that the app can re-launch as a Progressive Web App (PWA).<br/><br/>' +
             'The PWA will be able to run offline, but will auto-update periodically when online ' + 
-            'as per the Service Worker spec.\n\n' +
-            'You can switch back any time by returning to JQuery mode.\n\n' +
-            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
+            'as per the Service Worker spec.<br/><br/>' +
+            'You can switch back any time by returning to JQuery mode.<br/><br/>' +
+            'WARNING: This will attempt to access the following server: <br/>' + params.PWAServer + '<br/>';
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
             var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
@@ -892,8 +892,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
                 uiUtil.spinnerDisplay(false);
                 uiUtil.systemAlert('The server is not currently accessible! ' +
-                    '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
-                    '\nPlease try again when you have a stable Internet connection.', 'Error!').then(function () {
+                    '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
+                    '<br/>Please try again when you have a stable Internet connection.', 'Error!').then(function () {
                         settingsStore.setItem('allowInternetAccess', false, Infinity);
                         setContentInjectionMode('jquery');
                     });
@@ -903,7 +903,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (PWASuccessfullyLaunched) {
                 launchPWA();
             } else {
-                uiUtil.systemAlert('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?', 'Confirmation to try again PWA', true).then(function (response) {
+                uiUtil.systemAlert('The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?', 'Confirmation to try again PWA', true).then(function (response) {
                     if (response) {
                         checkPWAIsOnline();
                     } else {
@@ -1573,9 +1573,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
                 uiUtil.systemAlert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
-                                    + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
-                                    + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
-                                    + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+                                    + "<br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)."
+                                    + "<br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
+                                    + "<br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
             

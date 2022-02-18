@@ -36,7 +36,7 @@ define(rqDef, function(settingsStore) {
     /**
      * Displays a Bootstrap alert or confirm dialog box depending on the options provided
      * 
-     * @param {String} message The alert message to display in the body of the modal 
+     * @param {String} message The alert message(can be formatted using HTML) to display in the body of the modal. 
      * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
      * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message 
      * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel") 
@@ -56,6 +56,7 @@ define(rqDef, function(settingsStore) {
             document.getElementById("declineConfirm").textContent = declineConfirmLabel;
             document.getElementById("closeMessage").textContent = closeMessageLabel;
             document.getElementById("modalLabel").textContent = label;
+            // Using innerHTML to set the message to allow HTML formatting
             document.getElementById("modalText").innerHTML = message;
             // Display buttons acc to the type of alert
             document.getElementById("approveConfirm").style.display = isConfirm ? "inline" : "none";
