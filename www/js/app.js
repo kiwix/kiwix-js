@@ -1464,7 +1464,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     } else if (dirEntry.isRedirect()) {
                         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
                             var redirectURL = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
-                            // Ask the ServiceWork to send an HTTP redirect to the browser.
+                            // Ask the ServiceWorker to send an HTTP redirect to the browser.
                             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
                             // Else, if the redirect URL is in a different directory than the original URL,
                             // the relative links in the HTML content would fail. See #312
