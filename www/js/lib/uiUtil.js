@@ -51,7 +51,7 @@ define(rqDef, function(settingsStore) {
         label = label || (isConfirm ? "Confirmation" : "Message");
         return new Promise(function (resolve, reject) {
             if (!message) reject("Missing body message");
-            // Set the text to the modal and it's buttons
+            // Set the text to the modal and its buttons
             document.getElementById("approveConfirm").textContent = approveConfirmLabel;
             document.getElementById("declineConfirm").textContent = declineConfirmLabel;
             document.getElementById("closeMessage").textContent = closeMessageLabel;
