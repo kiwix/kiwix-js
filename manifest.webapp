@@ -1,5 +1,5 @@
 {
-  "version": "3.3-WIP",
+  "version": "3.4-WIP",
   "name": "Kiwix",
   "description": "Offline Wikipedia Viewer, and more",
   "launch_path": "/www/index.html",
