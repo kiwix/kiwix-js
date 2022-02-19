@@ -20,8 +20,8 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
-    function(zimfile, zimDirEntry, util, utf8) {
+define(['zimfile', 'zimDirEntry', 'util', 'utf8', 'uiUtil'],
+    function(zimfile, zimDirEntry, util, utf8, uiUtil) {
     
     /**
      * ZIM Archive
@@ -88,21 +88,19 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             var fileArray = [].slice.call(fileList);
             // The constructor has been called with an array of File/Blob parameter
             createZimfile(fileArray);
-        }
-        else {
+        } else {
             if (/.*zim..$/.test(path)) {
                 // split archive
                 that._searchArchiveParts(storage, path.slice(0, -2)).then(function(fileArray) {
                     createZimfile(fileArray);
                 }, function(error) {
-                    alert("Error reading files in split archive " + path + ": " + error);
+                    uiUtil.systemAlert("Error reading files in split archive " + path + ": " + error, "Error reading archive files");
                 });
-            }
-            else {
+            } else {
                 storage.get(path).then(function(file) {
                     createZimfile([file]);
                 }, function(error) {
-                    alert("Error reading ZIM file " + path + " : " + error);
+                    uiUtil.systemAlert("Error reading ZIM file " + path + " : " + error, "Error reading archive file");
                 });
             }
         }
