@@ -32,6 +32,49 @@ if (webpMachine) {
 }
 
 define(rqDef, function(settingsStore) {
+
+    /**
+     * Displays a Bootstrap alert or confirm dialog box depending on the options provided
+     * 
+     * @param {String} message The alert message(can be formatted using HTML) to display in the body of the modal. 
+     * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
+     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message 
+     * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel") 
+     * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
+     * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
+     * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
+     */
+    function systemAlert(message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
+        declineConfirmLabel = declineConfirmLabel || "Cancel";
+        approveConfirmLabel = approveConfirmLabel || "Confirm";
+        closeMessageLabel = closeMessageLabel || "Okay";
+        label = label || (isConfirm ? "Confirmation" : "Message");
+        return new Promise(function (resolve, reject) {
+            if (!message) reject("Missing body message");
+            // Set the text to the modal and its buttons
+            document.getElementById("approveConfirm").textContent = approveConfirmLabel;
+            document.getElementById("declineConfirm").textContent = declineConfirmLabel;
+            document.getElementById("closeMessage").textContent = closeMessageLabel;
+            document.getElementById("modalLabel").textContent = label;
+            // Using innerHTML to set the message to allow HTML formatting
+            document.getElementById("modalText").innerHTML = message;
+            // Display buttons acc to the type of alert
+            document.getElementById("approveConfirm").style.display = isConfirm ? "inline" : "none";
+            document.getElementById("declineConfirm").style.display = isConfirm ? "inline" : "none";
+            document.getElementById("closeMessage").style.display = isConfirm ? "none" : "inline";
+            // Display the modal
+            $("#alertModal").modal("show");
+            // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
+            $("#alertModal").on("hide.bs.modal", function () {
+                const closeSource = document.activeElement;
+                if (closeSource.id === "approveConfirm") {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
   
     /**
      * Creates either a blob: or data: URI from the given content
@@ -491,6 +534,7 @@ define(rqDef, function(settingsStore) {
      * Functions and classes exposed by this module
      */
     return {
+        systemAlert: systemAlert,
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,

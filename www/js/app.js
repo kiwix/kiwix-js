@@ -421,7 +421,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
         if (params.contentInjectionMode !== 'serviceworker') {
-            alert('This setting can only be used in Service Worker mode!');
+            uiUtil.systemAlert('This setting can only be used in Service Worker mode!');
             this.checked = false;
         } else {
             params.appCache = !this.checked;
@@ -695,13 +695,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.contentInjectionMode = value;
         if (value === 'jquery') {
             if (!params.appCache) {
-                alert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!');
-                setContentInjectionMode('serviceworker');
+                uiUtil.systemAlert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!', 'Deselect "Bypass AppCache"').then(function () {
+                    setContentInjectionMode('serviceworker');
+                })
                 return;
             }
             if (params.referrerExtensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
-                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.\n\n' +
+                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
@@ -711,12 +712,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                     'Beam me down, Scotty!';
                 };
-                var response = confirm(message);
-                if (response) {
-                    launchLocal();
-                } else {
-                    setContentInjectionMode('serviceworker');
-                }
+                uiUtil.systemAlert(message, 'Warning!', true).then(function (response) {
+                    if (response) {
+                        launchLocal();
+                    } else {
+                        setContentInjectionMode('serviceworker');
+                    }
+                });
                 return;
             }
             // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
@@ -738,13 +740,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         } else if (value === 'serviceworker') {
             if (!isServiceWorkerAvailable()) {
-                alert("The ServiceWorker API is not available on your device. Falling back to JQuery mode");
-                setContentInjectionMode('jquery');
+                uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
+                    setContentInjectionMode('jquery');
+                });
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                alert("The MessageChannel API is not available on your device. Falling back to JQuery mode");
-                setContentInjectionMode('jquery');
+                uiUtil.systemAlert('The MessageChannel API is not available on your device. Falling back to JQuery mode', 'MessageChannel API not available').then(function () {
+                    setContentInjectionMode('jquery');
+                });
                 return;
             }
             var protocol = window.location.protocol;
@@ -794,10 +798,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             refreshAPIStatus();
                             var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
                             if (protocol === 'file:') {
-                                message += "\n\nYou seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                                message += "<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
                             }
-                            alert(message);
-                            setContentInjectionMode("jquery");
+                            uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
+                                setContentInjectionMode('jquery');
+                            });                  
                         }
                     });
                 }
@@ -856,12 +861,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // DEV: See explanation below for why we access localStorage directly here
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
-        var message = 'To enable the Service Worker, we need one-time access to our secure server ' +
-            'so that the app can re-launch as a Progressive Web App (PWA).\n\n' +
-            'The PWA will be able to run offline, but will auto-update periodically when online ' +
-            'as per the Service Worker spec.\n\n' +
-            'You can switch back any time by returning to JQuery mode.\n\n' +
-            'WARNING: This will attempt to access the following server: \n' + params.PWAServer + '\n';
+        var message = 'To enable the Service Worker, we need one-time access to our secure server ' + 
+            'so that the app can re-launch as a Progressive Web App (PWA).<br/><br/>' +
+            'The PWA will be able to run offline, but will auto-update periodically when online ' + 
+            'as per the Service Worker spec.<br/><br/>' +
+            'You can switch back any time by returning to JQuery mode.<br/><br/>' +
+            'WARNING: This will attempt to access the following server: <br/>' + params.PWAServer + '<br/>';
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
             var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
@@ -885,33 +890,36 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             uiUtil.spinnerDisplay(true, 'Checking server access...');
             uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
                 uiUtil.spinnerDisplay(false);
-                alert('The server is not currently accessible! ' +
-                    '\n\n(Kiwix needs one-time access to the server to cache the PWA).' +
-                    '\nPlease try again when you have a stable Internet connection.', 'Error!');
-                settingsStore.setItem('allowInternetAccess', false, Infinity);
-                setContentInjectionMode('jquery');
+                uiUtil.systemAlert('The server is not currently accessible! ' +
+                    '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
+                    '<br/>Please try again when you have a stable Internet connection.', 'Error!').then(function () {
+                        settingsStore.setItem('allowInternetAccess', false, Infinity);
+                        setContentInjectionMode('jquery');
+                    });
             });
         };
-        var response;
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
             if (PWASuccessfullyLaunched) {
                 launchPWA();
             } else {
-                response = confirm('The last attempt to launch the PWA appears to have failed.\n\nDo you wish to try again?');
+                uiUtil.systemAlert('The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?', 'Confirmation to try again PWA', true).then(function (response) {
+                    if (response) {
+                        checkPWAIsOnline();
+                    } else {
+                        settingsStore.setItem('allowInternetAccess', false, Infinity);
+                        setContentInjectionMode('jquery');
+                    }
+                })
+            }
+        } else {
+            uiUtil.systemAlert(message, 'Allow Internet access', true).then(function (response) {
                 if (response) {
                     checkPWAIsOnline();
                 } else {
-                    settingsStore.setItem('allowInternetAccess', false, Infinity);
                     setContentInjectionMode('jquery');
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
                 }
-            }
-        } else {
-            response = confirm(message);
-            if (response) checkPWAIsOnline();
-            else {
-                setContentInjectionMode('jquery');
-                settingsStore.setItem('allowInternetAccess', false, Infinity);
-            }
+            });
         }
     }
 
@@ -926,8 +934,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== "") {
             var directories = listOfArchivesFromSettingsStore.split('|');
             populateDropDownListOfArchives(directories);
-        }
-        else {
+        } else {
             searchForArchivesInStorage();
         }
     }
@@ -951,19 +958,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // After that, we can start looking for archives
         storages[0].get("fake-file-to-read").then(searchForArchivesInPreferencesOrStorage,
                                                   searchForArchivesInPreferencesOrStorage);
-    }
-    else {
+    } else {
         // If DeviceStorage is not available, we display the file select components
         displayFileSelect();
         if (document.getElementById('archiveFiles').files && document.getElementById('archiveFiles').files.length>0) {
             // Archive files are already selected,
             setLocalArchiveFromFileSelect();
-        }
-        else {
+        } else {
             $("#btnConfigure").click();
         }
     }
-
 
     // Display the article when the user goes back in the browser history
     window.onpopstate = function(event) {
@@ -981,8 +985,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             if (title && !(""===title)) {
                 goToArticle(title);
-            }
-            else if (titleSearch && titleSearch !== '') {
+            } else if (titleSearch && titleSearch !== '') {
                 $('#prefix').val(titleSearch);
                 if (titleSearch !== appstate.search.prefix) {
                     searchDirEntriesFromPrefix(titleSearch);
@@ -1005,9 +1008,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         for (var i = 0; i < archiveDirectories.length; i++) {
             var archiveDirectory = archiveDirectories[i];
             if (archiveDirectory === "/") {
-                alert("It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory");
-            }
-            else {
+                uiUtil.systemAlert("It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory", "Error: invalid archive files location");
+            } else {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
         }
@@ -1025,14 +1027,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             // Set the localArchive as the last selected (or the first one if it has never been selected)
             setLocalArchiveFromArchiveList();
-        }
-        else {
-            alert("Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)");
-            $("#btnAbout").click();
-            var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
-            if (isAndroid) {
-                alert("You seem to be using an Android device. Be aware that there is a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices. See about section). Please put the archive in the internal storage if the application can't find it.");
-            }
+        } else {
+            uiUtil.systemAlert("Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", "Welcome")
+            .then(function () {
+                $("#btnAbout").click();
+                var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
+                if (isAndroid) {
+                    uiUtil.systemAlert("You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", "Warning");
+                }
+            });
         }
     }
 
@@ -1057,20 +1060,18 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     }
                 }
                 if (selectedStorage === null) {
-                    alert("Unable to find which device storage corresponds to directory " + archiveDirectory);
+                    uiUtil.systemAlert("Unable to find which device storage corresponds to directory " + archiveDirectory, "Error: no matching storage");
                 }
-            }
-            else {
+            } else {
                 // This happens when the archiveDirectory is not prefixed by the name of the storage
                 // (in the Simulator, or with FxOs 1.0, or probably on devices that only have one device storage)
                 // In this case, we use the first storage of the list (there should be only one)
                 if (storages.length === 1) {
                     selectedStorage = storages[0];
-                }
-                else {
-                    alert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
-                        + archiveDirectory + ", but there were " + storages.length
-                        + " storages found with getDeviceStorages instead of 1");
+                } else {
+                    uiUtil.systemAlert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
+                    + archiveDirectory + ", but there were " + storages.length
+                    + " storages found with getDeviceStorages instead of 1", "Error: unprefixed directory");
                 }
             }
             resetCssCache();
@@ -1157,7 +1158,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         for (var i = files.length; i--;) {
             // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
             if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
-                alert("One or more files does not appear to be a ZIM file!");
+                uiUtil.systemAlert('One or more files does not appear to be a ZIM file!', 'Invalid File Format');
                 return;
             }
         }
@@ -1259,8 +1260,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             $("#searchArticles").focus();
-            alert("Archive not set : please select an archive");
-            $("#btnConfigure").click();
+            uiUtil.systemAlert("Archive not set : please select an archive", "No archive selected").then(function () {
+                $("#btnConfigure").click();
+            });
         }
     }
 
@@ -1344,7 +1346,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 readArticle(dirEntry);
             }
         } else {
-            alert("Data files not set");
+            uiUtil.systemAlert("Data files not set", "Archive not ready");
         }
     }
 
@@ -1567,10 +1569,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
-                alert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
-                        + "\nThe easiest way to run it is to download and run it as a browser extension (from the vendor store)."
-                        + "\nElse you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
-                        + "\nAnother option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+                uiUtil.systemAlert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
+                                    + "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)."
+                                    + "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
+                                    + "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
 
@@ -1876,13 +1878,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             stateObj.title = title;
             urlParameters = "?title=" + title;
             stateLabel = "Wikipedia Article : " + title;
-        }
-        else if (titleSearch && !(""===titleSearch)) {
+        } else if (titleSearch && !(""===titleSearch)) {
             stateObj.titleSearch = titleSearch;
             urlParameters = "?titleSearch=" + titleSearch;
             stateLabel = "Wikipedia search : " + titleSearch;
-        }
-        else {
+        } else {
             return;
         }
         window.history.pushState(stateObj, stateLabel, urlParameters);
@@ -1902,7 +1902,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                alert("Article with url " + path + " not found in the archive");
+                uiUtil.systemAlert("Article with url " + path + " not found in the archive", "Error: article not found");
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = contentType || fileDirEntry.getMimetype();
@@ -1913,7 +1913,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $('#activeContent').hide();
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { alert("Error reading article with url " + path + " : " + e); });
+        }).catch(function(e) { uiUtil.systemAlert("Error reading article with url " + path + " : " + e, "Error while reading article"); });
     }
 
     function goToRandomArticle() {
@@ -1921,7 +1921,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         selectedArchive.getRandomDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
-                alert("Error finding random article.");
+                uiUtil.systemAlert("Error finding random article", "Error finding article");
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
