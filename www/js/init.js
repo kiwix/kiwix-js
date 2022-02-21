@@ -47,7 +47,7 @@ if (/PWA_launch=/.test(window.location.search)) {
         paths: {
             'jquery': 'jquery-3.2.1.slim',
             'bootstrap': 'bootstrap.bundle',
-            'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27',
+            'webpHeroBundle': 'webpHeroBundle_0.0.2',
             'fontawesome': 'fontawesome/fontawesome',
             'fontawesome-solid': 'fontawesome/solid'
         },

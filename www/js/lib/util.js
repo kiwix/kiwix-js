@@ -167,35 +167,6 @@ define([], function() {
     }
 
     /**
-     * Convert a Uint8Array to base64
-     * TODO : might be replaced by btoa() built-in function? https://developer.mozilla.org/en-US/docs/Web/API/window.btoa
-     * @param {Array} byteArray
-     * @returns {String}
-     */
-    function uint8ArrayToBase64(byteArray) {
-        var b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-        var bits, h1, h2, h3, h4, i = 0;
-        var enc = "";
-
-        for (var i = 0; i < byteArray.length; ) {
-            bits = byteArray[i++] << 16;
-            bits |= byteArray[i++] << 8;
-            bits |= byteArray[i++];
-
-            h1 = bits >> 18 & 0x3f;
-            h2 = bits >> 12 & 0x3f;
-            h3 = bits >> 6 & 0x3f;
-            h4 = bits & 0x3f;
-
-            enc += b64[h1] + b64[h2] + b64[h3] + b64[h4];
-        }
-
-        var r = byteArray.length % 3;
-
-        return (r > 0 ? enc.slice(0, r - 3) : enc) + '==='.slice(r || 3);
-    }
-
-    /**
      * Reads a Uint8Array from the given file starting at byte offset begin until end
      * @param {File} file The file object to be read
      * @param {Integer} begin The offset in <File> at which to begin reading
@@ -250,54 +221,6 @@ define([], function() {
     }
 
     /**
-     * Converts a Base64 Content to a Blob
-     * From https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
-     *
-     * @param {String} b64Data Base64-encoded data
-     * @param {String} contentType
-     * @param {Integer} sliceSize
-     * @returns {Blob}
-     */
-    function b64toBlob(b64Data, contentType, sliceSize) {
-        contentType = contentType || '';
-        sliceSize = sliceSize || 512;
-
-        var byteCharacters = atob(b64Data);
-        var byteArrays = [];
-
-        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            var slice = byteCharacters.slice(offset, offset + sliceSize);
-
-            var byteNumbers = new Array(slice.length);
-            for (var i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-            }
-
-            var byteArray = new Uint8Array(byteNumbers);
-
-            byteArrays.push(byteArray);
-        }
-
-        var blob = new Blob(byteArrays, {type: contentType});
-        return blob;
-    }
-
-    /**
-     * Converts a UInt Array to a UTF-8 encoded string
-     * source : http://michael-rushanan.blogspot.de/2014/03/javascript-uint8array-hacks-and-cheat.html
-     *
-     * @param {UIntArray} uintArray
-     * @returns {String}
-     */
-    function uintToString(uintArray) {
-        var s = '';
-        for (var i = 0; i < uintArray.length; i++) {
-            s += String.fromCharCode(uintArray[i]);
-        }
-        return s;
-    }
-
-    /**
      * Does a "left shift" on an integer.
      * It is equivalent to int << bits (which works only on 32-bit integers),
      * but compatible with 64-bit integers.
@@ -318,14 +241,11 @@ define([], function() {
         removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
         endsWith: endsWith,
         readIntegerFrom4Bytes: readIntegerFrom4Bytes,
-        readIntegerFrom2Bytes : readIntegerFrom2Bytes,
-        readFloatFrom4Bytes : readFloatFrom4Bytes,
-        uint8ArrayToHex : uint8ArrayToHex,
-        uint8ArrayToBase64 : uint8ArrayToBase64,
-        readFileSlice : readFileSlice,
+        readIntegerFrom2Bytes: readIntegerFrom2Bytes,
+        readFloatFrom4Bytes: readFloatFrom4Bytes,
+        uint8ArrayToHex: uint8ArrayToHex,
+        readFileSlice: readFileSlice,
         binarySearch: binarySearch,
-        b64toBlob: b64toBlob,
-        uintToString: uintToString,
         leftShift: leftShift
     };
 });

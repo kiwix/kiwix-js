@@ -30,7 +30,7 @@ require.config({
     baseUrl: (window.__karma__ ? 'base/' : '') + 'www/js/lib/',
     paths: {
         'jquery': 'jquery-3.2.1.slim',
-        'webpHeroBundle': 'webpHeroBundle_0.0.0-dev.27'
+        'webpHeroBundle': 'webpHeroBundle_0.0.2'
     },
     shim: {
         'webpHeroBundle': ''
