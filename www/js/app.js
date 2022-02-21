@@ -1917,27 +1917,34 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     function goToRandomArticle() {
-        $("#searchingArticles").show();
-        selectedArchive.getRandomDirEntry(function(dirEntry) {
-            if (dirEntry === null || dirEntry === undefined) {
-                $("#searchingArticles").hide();
-                uiUtil.systemAlert("Error finding random article", "Error finding article");
-            } else {
-                // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
-                // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
-                // all dirEntries in an article-only listing must be articles.
-                if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
-                    params.isLandingPage = false;
-                    $('#activeContent').hide();
-                    $('#searchingArticles').show();
-                    readArticle(dirEntry);
+        if (selectedArchive !== null && selectedArchive.isReady()) {
+            $('#searchingArticles').show();
+            selectedArchive.getRandomDirEntry(function (dirEntry) {
+                if (dirEntry === null || dirEntry === undefined) {
+                    $('#searchingArticles').hide();
+                    uiUtil.systemAlert('Error finding random article', 'Error finding article');
                 } else {
-                    // If the random title search did not end up on an article,
-                    // we try again, until we find one
-                    goToRandomArticle();
+                    // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
+                    // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
+                    // all dirEntries in an article-only listing must be articles.
+                    if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+                        params.isLandingPage = false;
+                        $('#activeContent').hide();
+                        $('#searchingArticles').show();
+                        readArticle(dirEntry);
+                    } else {
+                        // If the random title search did not end up on an article,
+                        // we try again, until we find one
+                        goToRandomArticle();
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            // Showing the relevant error message and redirecting to config page for adding the ZIM file
+            uiUtil.systemAlert('Archive not set : please select an archive', 'No archive selected').then(function () {
+                $('#btnConfigure').click();
+            });
+        }
     }
 
     function goToMainArticle() {
