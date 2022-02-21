@@ -431,8 +431,6 @@ define(rqDef, function() {
         var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
         var oldAppTheme = oldTheme.replace(/_.*$/, '');
         var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
-        // Store the Auto description to hide it on the DOM according to the theme
-        var oldDescription = document.getElementById('kiwix-auto-description');
         // Remove oldAppTheme and oldContentTheme
         if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
         // A missing contentTheme implies _light
@@ -453,7 +451,8 @@ define(rqDef, function() {
         // Remove the contentTheme for auto themes whenever system is in light mode
         if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
         // Hide any previously displayed description for auto themes
-        oldDescription.style.display = 'none';
+        var oldDescription = document.getElementById('kiwix-auto-description');
+        if(oldDescription) oldDescription.style.display = 'none';
         // Show description for auto themes 
         var description = document.getElementById('kiwix-' + theme.replace(/_.*$/, '') + '-description');
         if (description) description.style.display = 'block';
