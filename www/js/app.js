@@ -1736,7 +1736,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var imageUrl = image.getAttribute('data-kiwixurl');
                 // Decode any WebP images that are encoded as dataURIs
                 if (/^data:image\/webp/i.test(imageUrl)) {
-                    uiUtil.feedNodeWithBlob(image, 'src', imageUrl, 'image/webp');
+                    uiUtil.feedNodeWithDataURI(image, 'src', imageUrl, 'image/webp');
                     images.busy = false;
                     extractImage();
                     return;
@@ -1745,7 +1745,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
-                        uiUtil.feedNodeWithBlob(image, 'src', content, mimetype, function() {
+                        uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function() {
                             images.busy = false;
                             extractImage();
                         });
@@ -1789,7 +1789,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (cssCache.has(url)) {
                     var nodeContent = cssCache.get(url);
                     if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
-                    else uiUtil.feedNodeWithBlob(link, 'href', nodeContent, link.type || 'image');
+                    else uiUtil.feedNodeWithDataURI(link, 'href', nodeContent, link.type || 'image');
                     cssFulfilled++;
                 } else {
                     if (params.assetsCache) $('#cachingAssets').show();
@@ -1804,7 +1804,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
                             if (params.assetsCache) cssCache.set(fullUrl, content);
                             if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
-                            else uiUtil.feedNodeWithBlob(link, 'href', content, mimetype);
+                            else uiUtil.feedNodeWithDataURI(link, 'href', content, mimetype);
                             cssFulfilled++;
                             renderIfCSSFulfilled(fileDirEntry.url);
                         });
@@ -1851,7 +1851,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         //             } else {
         //                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
         //                     // TODO : JavaScript support not yet functional [kiwix-js #152]
-        //                     uiUtil.feedNodeWithBlob(script, 'src', content, 'text/javascript');
+        //                     uiUtil.feedNodeWithDataURI(script, 'src', content, 'text/javascript');
         //                 });
         //             }
         //         }).catch(function (e) {

@@ -77,7 +77,7 @@ define(rqDef, function(settingsStore) {
     }
   
     /**
-     * Creates either a blob: or data: URI from the given content
+     * Creates a data: URI from the given content
      * The given attribute of the DOM node (nodeAttribute) is then set to this URI
      * 
      * This is used to inject images (and other dependencies) into the article DOM
@@ -88,7 +88,7 @@ define(rqDef, function(settingsStore) {
      * @param {String} mimeType The MIME type of the content
      * @param {Function} callback An optional function to call to start processing the next item
      */
-    function feedNodeWithBlob(node, nodeAttribute, content, mimeType, callback) {
+    function feedNodeWithDataURI(node, nodeAttribute, content, mimeType, callback) {
         // Decode WebP data if the browser does not support WebP and the mimeType is webp
         if (webpMachine && /image\/webp/i.test(mimeType)) {
             // If we're dealing with a dataURI, first convert to Uint8Array
@@ -584,7 +584,7 @@ define(rqDef, function(settingsStore) {
      */
     return {
         systemAlert: systemAlert,
-        feedNodeWithBlob: feedNodeWithBlob,
+        feedNodeWithDataURI: feedNodeWithDataURI,
         determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
