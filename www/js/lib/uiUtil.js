@@ -24,14 +24,57 @@
 // DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load WebP polyfills conditionally. The WebP polyfills are only needed by a few old browsers, so loading them
 // only if needed saves approximately 1MB of memory.
-var rqDef = [];
+var rqDef = ['settingsStore'];
 
 // Add WebP polyfill only if webpHero was loaded in init.js
 if (webpMachine) {
     rqDef.push('webpHeroBundle');
 }
 
-define(rqDef, function() {
+define(rqDef, function(settingsStore) {
+
+    /**
+     * Displays a Bootstrap alert or confirm dialog box depending on the options provided
+     * 
+     * @param {String} message The alert message(can be formatted using HTML) to display in the body of the modal. 
+     * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
+     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message 
+     * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel") 
+     * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
+     * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
+     * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
+     */
+    function systemAlert(message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
+        declineConfirmLabel = declineConfirmLabel || "Cancel";
+        approveConfirmLabel = approveConfirmLabel || "Confirm";
+        closeMessageLabel = closeMessageLabel || "Okay";
+        label = label || (isConfirm ? "Confirmation" : "Message");
+        return new Promise(function (resolve, reject) {
+            if (!message) reject("Missing body message");
+            // Set the text to the modal and its buttons
+            document.getElementById("approveConfirm").textContent = approveConfirmLabel;
+            document.getElementById("declineConfirm").textContent = declineConfirmLabel;
+            document.getElementById("closeMessage").textContent = closeMessageLabel;
+            document.getElementById("modalLabel").textContent = label;
+            // Using innerHTML to set the message to allow HTML formatting
+            document.getElementById("modalText").innerHTML = message;
+            // Display buttons acc to the type of alert
+            document.getElementById("approveConfirm").style.display = isConfirm ? "inline" : "none";
+            document.getElementById("declineConfirm").style.display = isConfirm ? "inline" : "none";
+            document.getElementById("closeMessage").style.display = isConfirm ? "none" : "inline";
+            // Display the modal
+            $("#alertModal").modal("show");
+            // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
+            $("#alertModal").on("hide.bs.modal", function () {
+                const closeSource = document.activeElement;
+                if (closeSource.id === "approveConfirm") {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    }
   
     /**
      * Creates either a blob: or data: URI from the given content
@@ -81,8 +124,8 @@ define(rqDef, function() {
      * while copying some attributes of the original tag
      * Cf http://jonraasch.com/blog/javascript-style-node
      * 
-     * @param {Element} link from the DOM
-     * @param {String} cssContent
+     * @param {Element} link The original link node from the DOM
+     * @param {String} cssContent The content to insert as an inline stylesheet
      */
     function replaceCSSLinkWithInlineCSS (link, cssContent) {
         var cssElement = document.createElement('style');
@@ -92,26 +135,28 @@ define(rqDef, function() {
         } else {
             cssElement.appendChild(document.createTextNode(cssContent));
         }
-        var mediaAttributeValue = link.attr('media');
+        var mediaAttributeValue = link.getAttribute('media');
         if (mediaAttributeValue) {
             cssElement.media = mediaAttributeValue;
         }
-        var disabledAttributeValue = link.attr('disabled');
+        var disabledAttributeValue = link.getAttribute('disabled');
         if (disabledAttributeValue) {
             cssElement.disabled = disabledAttributeValue;
         }
-        link.replaceWith(cssElement);
+        link.parentNode.replaceChild(cssElement, link);
     }
         
-    var regexpRemoveUrlParameters = new RegExp(/([^?#]+)[?#].*$/);
-    
     /**
      * Removes parameters and anchors from a URL
-     * @param {type} url
-     * @returns {String} same URL without its parameters and anchors
+     * @param {type} url The URL to be processed
+     * @returns {String} The same URL without its parameters and anchors
      */
     function removeUrlParameters(url) {
-        return url.replace(regexpRemoveUrlParameters, "$1");
+        // Remove any querystring
+        var strippedUrl = url.replace(/\?[^?]*$/, '');
+        // Remove any anchor parameters - note that we are deliberately excluding entity references, e.g. '&#39;'.
+        strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
+        return strippedUrl;
     }
 
     /**
@@ -125,7 +170,7 @@ define(rqDef, function() {
     function deriveZimUrlFromRelativeUrl(url, base) {
         // We use a dummy domain because URL API requires a valid URI
         var dummy = 'http://d/';
-        var deriveZimUrl = function(url, base) {
+        var deriveZimUrl = function (url, base) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');
@@ -231,13 +276,10 @@ define(rqDef, function() {
     var updateAlert = document.getElementById('updateAlert');
     function checkUpdateStatus(appstate) {
         if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
-            // Create a Message Channel
-            var channel = new MessageChannel();
-            // Handler for receiving message reply from service worker
-            channel.port1.onmessage = function (event) {
-                var cacheNames = event.data;
-                if (cacheNames.error) return;
-                else {
+            settingsStore.getCacheNames(function (cacheNames) {
+                if (cacheNames && !cacheNames.error) {
+                    // Store the cacheNames globally for use elsewhere
+                    params.cacheNames = cacheNames;
                     caches.keys().then(function (keyList) {
                         updateAlert.style.display = 'none';
                         var cachePrefix = cacheNames.app.replace(/^([^\d]+).+/, '$1');
@@ -253,10 +295,7 @@ define(rqDef, function() {
                         });
                     });
                 }
-            };
-            if (navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({
-                action: 'getCacheNames'
-            }, [channel.port2]);
+            });
         }
     }
     if (updateAlert) updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
@@ -310,29 +349,6 @@ define(rqDef, function() {
             return rect.top > 0 && rect.bottom < window.innerHeight && rect.left > 0 && rect.right < window.innerWidth;
         else 
             return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
-    }
-
-    /**
-     * Encodes the html escape characters in the string before using it as html class name,id etc.
-     * 
-     * @param {String} string The string in which html characters are to be escaped
-     * 
-     */
-    function htmlEscapeChars(string) {
-        var escapechars = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#39;',
-            '/': '&#x2F;',
-            '`': '&#x60;',
-            '=': '&#x3D;'
-        };
-        string = String(string).replace(/[&<>"'`=/]/g, function (s) {
-            return escapechars[s];
-        });
-        return string;
     }
 
     /**
@@ -511,8 +527,9 @@ define(rqDef, function() {
 
     // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
     // This can't be done in app.js because the error occurs after the API panel is first displayed
-    function reportAssemblerErrorToAPIStatusPanel(decoderType, error) {
+    function reportAssemblerErrorToAPIStatusPanel(decoderType, error, assemblerMachineType) {
         console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
+        params.decompressorAPI.assemblerMachineType = assemblerMachineType;
         params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
         var decompAPI = document.getElementById('decompressorAPIStatus');
         decompAPI.innerHTML = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
@@ -527,6 +544,7 @@ define(rqDef, function() {
      * Functions and classes exposed by this module
      */
     return {
+        systemAlert: systemAlert,
         feedNodeWithBlob: feedNodeWithBlob,
         replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
@@ -537,7 +555,6 @@ define(rqDef, function() {
         checkServerIsAccessible: checkServerIsAccessible,
         spinnerDisplay: spinnerDisplay,
         isElementInView: isElementInView,
-        htmlEscapeChars: htmlEscapeChars,
         removeAnimationClasses: removeAnimationClasses,
         applyAnimationToSection: applyAnimationToSection,
         applyAppTheme: applyAppTheme,

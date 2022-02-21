@@ -3,7 +3,7 @@
  * in order to capture the HTTP requests made by an article, and respond with the
  * corresponding content, coming from the archive
  * 
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2022 Mossroy, Jaifroid and contributors
  * License GPL v3:
  * 
  * This file is part of Kiwix.
@@ -29,7 +29,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.3-WIP';
+const appVersion = '3.4-WIP';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -53,7 +53,15 @@ const APP_CACHE = 'kiwixjs-appCache-' + appVersion;
  * Caching is on by default but can be turned off by the user in Configuration
  * @type {Boolean}
  */
-var useCache = true;
+var useAssetsCache = true;
+
+/**
+ * A global Boolean that governs whether the APP_CACHE will be used
+ * This is an expert setting in Configuration
+ * @type {Boolean}
+ */
+ var useAppCache = true;
+
 
 /**  
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
@@ -176,14 +184,22 @@ self.addEventListener('activate', function (event) {
 let outgoingMessagePort = null;
 let fetchCaptureEnabled = false;
 
+/**
+ * Intercept selected Fetch requests from the browser window
+ */
 self.addEventListener('fetch', function (event) {
     // Only cache GET requests
     if (event.request.method !== "GET") return;
-    // Remove any querystring before requesting from the cache
-    var rqUrl = event.request.url.replace(/\?[^?]+$/i, '');
+    var rqUrl = event.request.url;
+    var urlObject = new URL(rqUrl);
+    // Test the URL with parameters removed
+    var strippedUrl = urlObject.pathname;
     // Select cache depending on request format
-    var cache = /\.zim\//i.test(rqUrl) ? ASSETS_CACHE : APP_CACHE;
+    var cache = /\.zim\//i.test(strippedUrl) ? ASSETS_CACHE : APP_CACHE;
     if (cache === ASSETS_CACHE && !fetchCaptureEnabled) return;
+    // For APP_CACHE assets, we should ignore any querystring (whereas it should be conserved for ZIM assets,
+    // especially .js assets, where it may be significant). Anchor targets are irreleveant in this context.
+    if (cache === APP_CACHE) rqUrl = strippedUrl;
     event.respondWith(
         // First see if the content is in the cache
         fromCache(cache, rqUrl).then(function (response) {
@@ -192,35 +208,38 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(rqUrl)) {
-                return fetchRequestFromZIM(event).then(function (response) {
+            if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
+                return fetchUrlFromZIM(urlObject).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
                         !regexpExcludedURLSchema.test(event.request.url)) {
-                        event.waitUntil(updateCache(ASSETS_CACHE, event.request, response.clone()));
+                        event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
                     }
                     return response;
-                }).catch(function (msgPortData, title) {
-                    console.error('Invalid message received from app.js for ' + title, msgPortData);
+                }).catch(function (msgPortData) {
+                    console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
                     return msgPortData;
                 });
             } else {
                 // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
                 return fetch(event.request).then(function (response) {
-                  // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                  if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(rqUrl)) {
-                    event.waitUntil(updateCache(APP_CACHE, event.request, response.clone()));
-                  }
-                  return response;
+                    // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                    if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                        event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
+                    }
+                    return response;
                 }).catch(function (error) {
-                  console.debug("[SW] Network request failed and no cache.", error);
+                    console.debug("[SW] Network request failed and no cache.", error);
                 });
             }
         })
     );
 });
 
-self.addEventListener('message', function (event) {
+/**
+ * Handle custom commands sent from app.js
+ */
+ self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
@@ -231,10 +250,18 @@ self.addEventListener('message', function (event) {
             outgoingMessagePort = null;
             fetchCaptureEnabled = false;
         }
-        if (event.data.action.useCache) {
-            // Turns caching on or off (a string value of 'on' turns it on, any other string turns it off)
-            useCache = event.data.action.useCache === 'on';
-            console.debug('[SW] Caching was turned ' + event.data.action.useCache);
+        var oldValue;
+        if (event.data.action.assetsCache) {
+            // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
+            oldValue = useAssetsCache;
+            useAssetsCache = event.data.action.assetsCache === 'enable';
+            if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + useAssetsCache);
+        }
+        if (event.data.action.appCache) {
+            // Enables or disables use of appCache
+            oldValue = useAppCache;
+            useAppCache = event.data.action.appCache === 'enable';
+            if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
         }
         if (event.data.action === 'getCacheNames') {
             event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
@@ -249,25 +276,22 @@ self.addEventListener('message', function (event) {
 });
 
 /**
- * Handles fetch events that need to be extracted from the ZIM
+ * Handles URLs that need to be extracted from the ZIM archive
  * 
- * @param {Event} fetchEvent The fetch event to be processed
+ * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchRequestFromZIM(fetchEvent) {
+function fetchUrlFromZIM(urlObject) {
     return new Promise(function (resolve, reject) {
-        var nameSpace;
-        var title;
-        var titleWithNameSpace;
-        var regexpResult = regexpZIMUrlWithNamespace.exec(fetchEvent.request.url);
-        var prefix = regexpResult[1];
-        nameSpace = regexpResult[2];
-        title = regexpResult[3];
+        // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
+        // Be sure that you haven't encoded any querystring along with the URL.
+        var barePathname = decodeURIComponent(urlObject.pathname);
+        var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
+        var prefix = partsOfZIMUrl[1];
+        var nameSpace = partsOfZIMUrl[2];
+        var title = partsOfZIMUrl[3];
 
-        // We need to remove the potential parameters in the URL
-        title = removeUrlParameters(decodeURIComponent(title));
-
-        titleWithNameSpace = nameSpace + '/' + title;
+        var titleWithNameSpace = nameSpace + '/' + title;
 
         // Let's instantiate a new messageChannel, to allow app.js to give us the content
         var messageChannel = new MessageChannel();
@@ -312,15 +336,6 @@ function fetchRequestFromZIM(fetchEvent) {
 }
 
 /**
- * Removes parameters and anchors from a URL
- * @param {type} url The URL to be processed
- * @returns {String} The same URL without its parameters and anchors
- */
-function removeUrlParameters(url) {
-    return url.replace(/([^?#]+)[?#].*$/, '$1');
-}
-
-/**
  * Looks up a Request in a cache and returns a Promise for the matched Response
  * @param {String} cache The name of the cache to look in
  * @param {String} requestUrl The Request URL to fulfill from cache
@@ -328,12 +343,10 @@ function removeUrlParameters(url) {
  */
 function fromCache(cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache && cache === ASSETS_CACHE) return Promise.reject('disabled');
+    if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) return Promise.reject('disabled');
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
-            if (!matching || matching.status === 404) {
-                return Promise.reject('no-match');
-            }
+            if (!matching || matching.status === 404) return Promise.reject('no-match');
             console.debug('[SW] Supplying ' + requestUrl + ' from ' + cache + '...');
             return matching;
         });
@@ -343,15 +356,16 @@ function fromCache(cache, requestUrl) {
 /**
  * Stores or updates in a cache the given Request/Response pair
  * @param {String} cache The name of the cache to open
- * @param {Request} request The original Request object
+ * @param {Request|String} request The original Request object or the URL string requested
  * @param {Response} response The Response received from the server/ZIM
  * @returns {Promise} A Promise for the update action
  */
 function updateCache(cache, request, response) {
     // Prevents use of Cache API if user has disabled it
-    if (!useCache && cache === ASSETS_CACHE) return Promise.resolve();
+    if (!response.ok || !(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE))
+        return Promise.resolve();
     return caches.open(cache).then(function (cacheObj) {
-        console.debug('[SW] Adding ' + request.url + ' to ' + cache + '...');
+        console.debug('[SW] Adding ' + (request.url || request) + ' to ' + cache + '...');
         return cacheObj.put(request, response);
     });
 }
@@ -364,7 +378,7 @@ function updateCache(cache, request, response) {
  */
 function testCacheAndCountAssets(url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'custom', 'Custom', '-']);
-    if (!useCache) return Promise.resolve(['none', 'none', 'None', 0]);
+    if (!useAssetsCache) return Promise.resolve(['none', 'none', 'None', 0]);
     return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', ASSETS_CACHE, 'Cache API', keys.length];

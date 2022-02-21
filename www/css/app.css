@@ -105,6 +105,18 @@
     background: #171717;
 }
 
+.dark .card-warning .card-header {
+    background-color: #FFFF00;
+}
+
+.dark .modal-content{
+    background: #333 !important;
+}
+
+.dark .modal-title, .dark .modal-body{
+    color: #FFFFFF !important;
+}
+
 /* End of app theme: dark */
 
 /* Content themes: _invert, _mwInvert */
@@ -220,6 +232,11 @@ iframe._invert, iframe._mwInvert {
 /* Add missing margin to buttons */
 button {
     margin: 2px;
+}
+
+.btn-danger {
+    background-color: lightyellow;
+    color: darkred;
 }
 
 @keyframes spin {
