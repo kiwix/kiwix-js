@@ -87,7 +87,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
     params['appCache'] = settingsStore.getItem('appCache') !== 'false';
     // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-    params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert
+    params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     // A parameter to access the URL of any extension that this app was launched from
@@ -158,7 +158,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
     document.getElementById('titleSearchRangeVal').textContent = params.maxSearchResultsSize;
     document.getElementById('appThemeSelect').value = params.appTheme;
-    uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
@@ -171,6 +170,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // Unique identifier of the article expected to be displayed
     var expectedArticleURLToBeDisplayed = "";
+ 
+    // define and store dark preference for matchMedia
+    var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
+    // if 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
+    if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
+        var optionsToBeRemoved = document.getElementById("appThemeSelect").querySelectorAll('.auto');
+        for (var i = 0; i < optionsToBeRemoved.length; i++) {
+            optionsToBeRemoved[i].parentNode.removeChild(optionsToBeRemoved[i]);
+        }
+    }
+    // Apply previously stored appTheme
+    uiUtil.applyAppTheme(params.appTheme);
+
+    // Whenever the system theme changes, call applyAppTheme function
+    darkPreference.onchange = function() {
+        uiUtil.applyAppTheme(params.appTheme);
+    }
 
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
