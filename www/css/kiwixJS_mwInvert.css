@@ -30,7 +30,8 @@
  */
 
 img:not([class|="mwe-math-fallback-image"]),
-video {
+video,
+canvas {
     filter: invert(1) hue-rotate(180deg);
 }
 
