@@ -452,7 +452,7 @@ define(rqDef, function() {
         if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
         // Hide any previously displayed description for auto themes
         var oldDescription = document.getElementById('kiwix-auto-description');
-        if(oldDescription) oldDescription.style.display = 'none';
+        if (oldDescription) oldDescription.style.display = 'none';
         // Show description for auto themes 
         var description = document.getElementById('kiwix-' + theme.replace(/_.*$/, '') + '-description');
         if (description) description.style.display = 'block';
