@@ -27,21 +27,23 @@ define(['zimArchive', 'jquery', 'uiUtil'],
      * Create a ZIMArchive from DeviceStorage location
      * @param {DeviceStorage} storage
      * @param {String} path
-     * @param {callbackZIMArchive} callback
+     * @param {callbackZIMArchive} callbackReady
+     * @param {callbackZIMArchive} callbackError
      * @returns {ZIMArchive}
      */
-    function loadArchiveFromDeviceStorage(storage, path, callback) {
-        return new zimArchive.ZIMArchive(storage, path, callback);
+    function loadArchiveFromDeviceStorage(storage, path, callbackReady, callbackError) {
+        return new zimArchive.ZIMArchive(storage, path, callbackReady, callbackError);
     };
     /**
      * Create a ZIMArchive from Files
      * @param {Array.<File>} files
-     * @param {callbackZIMArchive} callback
+     * @param {callbackZIMArchive} callbackReady
+     * @param {callbackZIMArchive} callbackError
      * @returns {ZIMArchive}
      */
-    function loadArchiveFromFiles(files, callback) {
+    function loadArchiveFromFiles(files, callbackReady, callbackError) {
         if (files.length >= 1) {
-            return new zimArchive.ZIMArchive(files, null, callback);
+            return new zimArchive.ZIMArchive(files, null, callbackReady, callbackError);
         }
     };
     
