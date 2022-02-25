@@ -974,7 +974,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
-        zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives);
+        zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives, function () {
+            // callbackError function is called in case of an error
+            uiUtil.systemAlert(message, label).then(populateDropDownListOfArchives(null));
+        });
     }
 
     if ($.isFunction(navigator.getDeviceStorages)) {
