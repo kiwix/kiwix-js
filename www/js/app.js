@@ -447,7 +447,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     document.getElementById('btnReset').addEventListener('click', function () {
-        settingsStore.reset();
+        uiUtil.systemAlert('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', 'Warning!', true).then(function (response) {
+            if (response) {
+                settingsStore.reset();
+            }
+        })
     });
     document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
         if (params.contentInjectionMode !== 'serviceworker') {
