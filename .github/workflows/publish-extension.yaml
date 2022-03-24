@@ -61,6 +61,14 @@ jobs:
           restrict-to: kiwix/kiwix-js
           registries: docker.io
           manual-tag: ${{ github.event.inputs.version }}
+      # Restart live webapp only if we pushed an image to registry
+      - name: Restart live webapp
+        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: rollout restart deployments mozext-deployment -n pwa
       # Publish to GitHub Pages if explicitly requested, or if releasing, or if pushing to master
       - name: Publish to GitHub Pages
         if: github.event.inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
