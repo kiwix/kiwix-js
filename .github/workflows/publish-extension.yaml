@@ -49,17 +49,17 @@ jobs:
       # Publish to docker only if explicitly requested or we are releasing
       - name: Build and push to docker
         if: github.event.inputs.target == 'docker' || github.event_name == 'release'
-        uses: openzim/docker-publish-action@v6
+        uses: openzim/docker-publish-action@v8
         with:
           image-name: kiwix/kiwix-moz-extension
           credentials: |
-            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
           tag-pattern: /^v?([0-9.]+)$/
           latest-on-tag: true
           dockerfile: docker/dockerfile-moz-extension.pwa
           restrict-to: kiwix/kiwix-js
-          registries: docker.io
+          registries: ghcr.io
           manual-tag: ${{ github.event.inputs.version }}
       # Restart live webapp only if we pushed an image to registry
       - name: Restart live webapp
