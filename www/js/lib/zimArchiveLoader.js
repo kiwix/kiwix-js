@@ -20,28 +20,30 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimArchive', 'jquery', 'uiUtil'],
-       function(zimArchive, jQuery, uiUtil) {
+define(['zimArchive', 'jquery'],
+       function(zimArchive, jQuery) {
 
     /**
      * Create a ZIMArchive from DeviceStorage location
      * @param {DeviceStorage} storage
      * @param {String} path
-     * @param {callbackZIMArchive} callback
+     * @param {callbackZIMArchive} callbackReady
+     * @param {callbackZIMArchive} callbackError
      * @returns {ZIMArchive}
      */
-    function loadArchiveFromDeviceStorage(storage, path, callback) {
-        return new zimArchive.ZIMArchive(storage, path, callback);
+    function loadArchiveFromDeviceStorage(storage, path, callbackReady, callbackError) {
+        return new zimArchive.ZIMArchive(storage, path, callbackReady, callbackError);
     };
     /**
      * Create a ZIMArchive from Files
      * @param {Array.<File>} files
-     * @param {callbackZIMArchive} callback
+     * @param {callbackZIMArchive} callbackReady
+     * @param {callbackZIMArchive} callbackError
      * @returns {ZIMArchive}
      */
-    function loadArchiveFromFiles(files, callback) {
+    function loadArchiveFromFiles(files, callbackReady, callbackError) {
         if (files.length >= 1) {
-            return new zimArchive.ZIMArchive(files, null, callback);
+            return new zimArchive.ZIMArchive(files, null, callbackReady, callbackError);
         }
     };
     
@@ -56,8 +58,9 @@ define(['zimArchive', 'jquery', 'uiUtil'],
      *
      * @param {Array.<DeviceStorage>} storages List of DeviceStorage instances
      * @param {callbackPathList} callbackFunction Function to call with the list of directories where archives are found
+     * @param {callbackPathList} callbackError Function to call in case of an error
      */
-    function scanForArchives(storages, callbackFunction) {
+    function scanForArchives(storages, callbackFunction, callbackError) {
         var directories = [];
         var promises = jQuery.map(storages, function(storage) {
             return storage.scanForArchives()
@@ -68,12 +71,12 @@ define(['zimArchive', 'jquery', 'uiUtil'],
         });
         jQuery.when.apply(null, promises).then(function() {
             callbackFunction(directories);
-        }, function(error) {
-            uiUtil.systemAlert("Error scanning your device storage : " + error
+        }).catch(function (error) {
+            callbackError("Error scanning your device storage : " + error
             + ". If you're using the Firefox OS Simulator, please put the archives in "
             + "a 'fake-sdcard' directory inside your Firefox profile "
             + "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/"
-            + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)", "Error reading Device Storage").then(function() { callbackFunction(null); });
+            + "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)", "Error reading Device Storage");
         });
     };
 

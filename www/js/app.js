@@ -447,7 +447,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     document.getElementById('btnReset').addEventListener('click', function () {
-        settingsStore.reset();
+        uiUtil.systemAlert('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', 'Warning!', true).then(function (response) {
+            if (response) {
+                settingsStore.reset();
+            }
+        })
     });
     document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
         if (params.contentInjectionMode !== 'serviceworker') {
@@ -974,7 +978,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
         $('#scanningForArchives').show();
-        zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives);
+        zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives, function () {
+            // callbackError function is called in case of an error
+            uiUtil.systemAlert(message, label).then(populateDropDownListOfArchives(null));
+        });
     }
 
     if ($.isFunction(navigator.getDeviceStorages)) {
@@ -1111,6 +1118,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
                 // The archive is set : go back to home page to start searching
                 $("#btnHome").click();
+            }, function (message, label) {
+                // callbackError which is called in case of an error
+                uiUtil.systemAlert(message, label);
             });
 
         }
@@ -1199,6 +1209,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // The archive is set : go back to home page to start searching
             $("#btnHome").click();
             document.getElementById('downloadInstruction').style.display = 'none';
+        }, function (message, label) {
+            // callbackError which is called in case of an error
+            uiUtil.systemAlert(message, label);
         });
     }
 
@@ -1673,12 +1686,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             Array.prototype.slice.call(iframe.querySelectorAll('a, area')).forEach(function (anchor) {
                 // Attempts to access any properties of 'this' with malformed URLs causes app crash in Edge/UWP [kiwix-js #430]
                 try {
-                    var testHref = anchor.href;
+                    var href = anchor.href;
                 } catch (err) {
                     console.error('Malformed href caused error:' + err.message);
                     return;
                 }
-                var href = anchor.getAttribute('href');
+                href = anchor.getAttribute('href');
                 if (href === null || href === undefined || /^javascript:/i.test(anchor.protocol)) return;
                 var anchorTarget = href.match(regexpLocalAnchorHref);
                 if (href.length === 0) {

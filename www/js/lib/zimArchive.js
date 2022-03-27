@@ -20,8 +20,8 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimfile', 'zimDirEntry', 'util', 'utf8', 'uiUtil'],
-    function(zimfile, zimDirEntry, util, utf8, uiUtil) {
+define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
+    function(zimfile, zimDirEntry, util, utf8) {
     
     /**
      * ZIM Archive
@@ -49,8 +49,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8', 'uiUtil'],
      * @param {StorageFirefoxOS|Array<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
      * @param {String} path The Storage path for an OS that requires this to be specified
      * @param {callbackZIMArchive} callbackReady The function to call when the archive is ready to use
+     * @param {callbackZIMArchive} callbackError The function to call when an error occurs
      */
-    function ZIMArchive(storage, path, callbackReady) {
+    function ZIMArchive(storage, path, callbackReady, callbackError) {
         var that = this;
         that._file = null;
         that._language = ""; //@TODO
@@ -91,16 +92,16 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8', 'uiUtil'],
         } else {
             if (/.*zim..$/.test(path)) {
                 // split archive
-                that._searchArchiveParts(storage, path.slice(0, -2)).then(function(fileArray) {
+                that._searchArchiveParts(storage, path.slice(0, -2)).then(function (fileArray) {
                     createZimfile(fileArray);
-                }, function(error) {
-                    uiUtil.systemAlert("Error reading files in split archive " + path + ": " + error, "Error reading archive files");
+                }).catch(function (error) {
+                    callbackError("Error reading files in split archive " + path + ": " + error, "Error reading archive files");
                 });
             } else {
-                storage.get(path).then(function(file) {
+                storage.get(path).then(function (file) {
                     createZimfile([file]);
-                }, function(error) {
-                    uiUtil.systemAlert("Error reading ZIM file " + path + " : " + error, "Error reading archive file");
+                }).catch(function (error) {
+                    callbackError("Error reading ZIM file " + path + " : " + error, "Error reading archive file");
                 });
             }
         }
