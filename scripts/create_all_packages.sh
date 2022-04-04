@@ -80,10 +80,10 @@ if [ "${DRYRUN}zz" == "zz" ]; then
     # Change permissions on source files to match those expected by the server
     chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
-    # Upload the files on download.kiwix.org
+    # Upload the files on master.download.kiwix.org
     echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
-    ssh -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@download.kiwix.org mkdir -p /data/download/nightly/$CURRENT_DATE
-    scp -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* ci@download.kiwix.org:/data/download/nightly/$CURRENT_DATE
+    echo "mkdir /data/download/nightly/$CURRENT_DATE" | sftp -P 30022 -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@master.download.kiwix.org
+    scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* ci@master.download.kiwix.org:/data/download/nightly/$CURRENT_DATE
 else
     echo "Skipping uploading the files, because it's a dryrun test"
 fi
