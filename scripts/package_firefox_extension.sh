@@ -40,12 +40,18 @@ if [ "${TAG}zz" == "zz" ]; then
     else
             echo "Extension not signed by Mozilla. It might be because this commit id has already been signed : let's look for it in a previous nightly build"
             FOUND=0
-            for FILE in $(ssh -o StrictHostKeyChecking=no -i ../scripts/ssh_key ci@download.kiwix.org "find /data/download/nightly -name \"kiwix-firefox-signed-extension-$VERSION.xpi\""); do
-    		echo "Signed extension found on the server in $FILE : copying it locally"
-                    scp -o StrictHostKeyChecking=no -i ../scripts/ssh_key ci@download.kiwix.org:$FILE ../build/
+            FNAME="kiwix-firefox-signed-extension-${VERSION}.xpi"
+            REMOTE="ci@master.download.kiwix.org:/data/download/nightly/"
+            for DATE in $(echo "ls -1" | sftp -P 30022 -i ../scripts/ssh_key -o 'StrictHostKeyChecking=no' $REMOTE |grep -E "^\d{4}-\d{2}-\d{2}$"); do
+                echo "Checking ${DATE}..."
+                REMOTEPATH="ci@master.download.kiwix.org:/data/download/nightly/${DATE}"
+                FILE=$(echo "ls ${FNAME}" | sftp -P 30022 -i ../scripts/ssh_key -o 'StrictHostKeyChecking=no' $REMOTEPATH 2> /dev/null |grep $FNAME |grep -vE "^sftp")
+                if [ ! -z "$FILE" ]; then
+                    scp -P 30022 -o StrictHostKeyChecking=no -i ../scripts/ssh_key $REMOTEPATH/$FILE ./
                     FOUND=1
                     # We only need the first matching file
                     break
+                fi
             done
             if [ $FOUND -ne 1 ]; then
     		echo "Signed extension not found in a previous build"
