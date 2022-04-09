@@ -14,7 +14,8 @@ Released on *TODO*
 * FIX: Partially remove dependency of backend on the User Interface
 * FIX: Provide an alert if user selects random button when no ZIM is loaded
 * FIX: Nightly build are now uploaded to a new server (with sftp instead of ssh)
-* FIX: Manually trigger restart of Web app server after a successful build (removing dependency on Docker automation)
+* FIX: Deploy PWA image on a k8s cluster
+* FIX: PWA images are now uploaded to ghcr.io instead of Docker Hub. When a new image is uploaded, we also restart the pod to make it use the latest image
 * UPDATE: Routine updates to dependencies: Karma, node-fetch, follow-redirects, minimist
 
 ## Kiwix-JS v3.3.1
