@@ -4,6 +4,20 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Kiwix-JS v3.4.0
+
+Released on *TODO*
+
+* NEW: Use bootstrap modal windows instead of alert/confirm for user messages
+* NEW: Automatic dark mode switch
+* FIX: Display webp images on browsers that don't support it AND have some specific anti-fingerpinting feature, like IceCat 60.7
+* FIX: Clean up some incorrect code dependencies from the backend to the frontend
+* FIX: PWA images now uploaded to ghcr.io instead of Docker Hub
+* FIX: Nightly build uploads to new server (with sftp instead of ssh)
+* BUGFIX: Fix random button behavior when no ZIM file has been selected
+
+Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/27?closed=1
+
 ## Kiwix-JS v3.3.1
 
 Released on *2022-02-12*
