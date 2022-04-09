@@ -10,7 +10,7 @@ Released on *TODO*
 
 * FEATURE: Provide automatic dark mode switching (based on the underlying OS theme) in browsers supporting theme detection
 * FEATURE: Use bootstrap modal for alert and confirm dialogue boxes instead of native browser dialogues
-* WORKAROUND: For WebP image conversion in older browsers that impement canvas anti-fingerprinting techniques
+* WORKAROUND: For WebP image conversion in older browsers that implement some specific canvas anti-fingerprinting techniques, like IceCat 60.7
 * FIX: Partially remove dependency of backend on the User Interface
 * FIX: Provide an alert if user selects random button when no ZIM is loaded
 * FIX: Automatic building of app now enabled on new Kiwix infrastructure
