@@ -13,7 +13,7 @@ Released on *TODO*
 * WORKAROUND: For WebP image conversion in older browsers that implement some specific canvas anti-fingerprinting techniques, like IceCat 60.7
 * FIX: Partially remove dependency of backend on the User Interface
 * FIX: Provide an alert if user selects random button when no ZIM is loaded
-* FIX: Automatic building of app now enabled on new Kiwix infrastructure
+* FIX: Nightly build are now uploaded to a new server (with sftp instead of ssh)
 * FIX: Manually trigger restart of Web app server after a successful build (removing dependency on Docker automation)
 * UPDATE: Routine updates to dependencies: Karma, node-fetch, follow-redirects, minimist
 
