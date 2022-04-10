@@ -4,6 +4,20 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Kiwix-JS v3.4.0
+
+Released on *2022-04-10*
+
+* FEATURE: Provide automatic dark mode switching (based on the underlying OS theme) in browsers supporting theme detection
+* FEATURE: Use bootstrap modal for alert and confirm dialogue boxes instead of native browser dialogues
+* WORKAROUND: For WebP image conversion in older browsers that implement some specific canvas anti-fingerprinting techniques, like IceCat 60.7
+* FIX: Partially remove dependency of backend on the User Interface
+* FIX: Provide an alert if user selects random button when no ZIM is loaded
+* FIX: Nightly builds are now uploaded to a new server (with sftp instead of ssh)
+* FIX: Deploy PWA image on a k8s cluster
+* FIX: PWA images are now uploaded to ghcr.io instead of Docker Hub. When a new image is uploaded, we also restart the pod to make it use the latest image
+* UPDATE: Routine updates to dependencies: Karma, node-fetch, follow-redirects, minimist
+
 ## Kiwix-JS v3.3.1
 
 Released on *2022-02-12*
