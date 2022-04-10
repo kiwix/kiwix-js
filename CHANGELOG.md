@@ -6,7 +6,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.4.0
 
-Released on *TODO*
+Released on *2022-04-10*
 
 * FEATURE: Provide automatic dark mode switching (based on the underlying OS theme) in browsers supporting theme detection
 * FEATURE: Use bootstrap modal for alert and confirm dialogue boxes instead of native browser dialogues
