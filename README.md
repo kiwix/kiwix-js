@@ -91,7 +91,7 @@ To report a bug, read our [REPORT_BUG](REPORT_BUG.md) guide.
 
 For code contributions, read our [CONTRIBUTING](CONTRIBUTING.md) guide.
 
-To get to know the Kiwix project better, please familiarize yourself with the content on https://www.kiwix.org. There is also a Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/enQtOTUyMTg4NzMxMTM4LTU0MzYyZDliYjdmMDYzYWMzNDA0MDc4MWE5OGM0ODFhYjAxNWIxMjVjZTU4MTkyODJlZWFkMmQ2YTZkYTUzZDY) group which you can join.
+To get to know the Kiwix project better, please familiarize yourself with the content on https://www.kiwix.org. There is also a Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/zt-19s7tsi68-xlgHdmDr5c6MJ7uFmJuBkg) group which you can join.
 
 We also have a [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) : everybody is expected to follow it.
 
