@@ -73,16 +73,15 @@ define(rqDef, function(settingsStore) {
                     resolve(false);
                 }
             });
-            // Enter key should accept default action
-            $("#alertModal").keydown(function(e){
+            document.getElementById('alertModal').addEventListener('keyup', function (e) {
                 if (/Enter/.test(e.key)){
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
                     if (isConfirm) {
-                        $("#approveConfirm").focus();
-                        $("#approveConfirm").click();
+                        document.getElementById('approveConfirm').focus();
+                        document.getElementById('approveConfirm').click();
                     } else {
-                        $("#closeMessage").focus();
-                        $("#closeMessage").click();
+                        document.getElementById('closeMessage').focus();
+                        document.getElementById('closeMessage').click();
                     }
                 }
             });
