@@ -90,6 +90,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
     // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
+    // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
+    params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
@@ -162,6 +164,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('titleSearchRangeVal').textContent = params.maxSearchResultsSize;
     document.getElementById('appThemeSelect').value = params.appTheme;
     document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
+    document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
@@ -477,6 +480,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.useHomeKeyToFocusSearchBar = this.checked ? true : false;
         settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
         switchHomeKeyToFocusSearchBar();
+    });
+    $('input:checkbox[name=openExternalLinksInNewTabs]').on('change', function () {
+        params.openExternalLinksInNewTabs = this.checked ? true : false;
+        settingsStore.setItem('openExternalLinksInNewTabs', params.openExternalLinksInNewTabs, Infinity);
     });
     document.getElementById('appThemeSelect').addEventListener('change', function (e) {
         params.appTheme = e.target.value;
@@ -1456,6 +1463,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // Configure home key press to focus #prefix only if the feature is in active state
                     if (params.useHomeKeyToFocusSearchBar)
                         iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                    if (params.openExternalLinksInNewTabs) {
+                        // Add event listener to iframe window to check for links to external resources
+                        iframeArticleContent.contentWindow.addEventListener('click', function (event) {
+                            // Find the closest enclosing A tag (if any)
+                            var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                            if (clickedAnchor) {
+                                var href = clickedAnchor.getAttribute('href');
+                                // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
+                                // it means it's a link to an external website.
+                                // We also do it for ftp even if it's not supported any more by recent browsers...
+                                if (/^(?:http|ftp)/i.test(href)) {
+                                    uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                                }
+                            }
+                        });
+                    }
                     // Reset UI when the article is unloaded
                     iframeArticleContent.contentWindow.onunload = function () {
                         // remove eventListener to avoid memory leaks
@@ -1561,7 +1584,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
     var anchorParameter;
-
+    
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -1699,10 +1722,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 } else if (anchorTarget) {
                     // It's a local anchor link : remove escapedUrl if any (see above)
                     anchor.setAttribute('href', '#' + anchorTarget[1]);
-                } else if (anchor.protocol !== currentProtocol ||
-                    anchor.host !== currentHost) {
+                } else if ((anchor.protocol !== currentProtocol ||
+                    anchor.host !== currentHost) && params.openExternalLinksInNewTabs) {
                     // It's an external URL : we should open it in a new tab
-                    anchor.target = '_blank';
+                    anchor.addEventListener('click', function(event) {
+                        // Find the closest enclosing A tag
+                        var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                    });
                 } else {
                     // It's a link to an article or file in the ZIM
                     var uriComponent = uiUtil.removeUrlParameters(href);
