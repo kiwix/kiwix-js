@@ -200,6 +200,10 @@ self.addEventListener('fetch', function (event) {
     // For APP_CACHE assets, we should ignore any querystring (whereas it should be conserved for ZIM assets,
     // especially .js assets, where it may be significant). Anchor targets are irreleveant in this context.
     if (cache === APP_CACHE) rqUrl = strippedUrl;
+    // Temporary quirk to upgrade VideoJS without modifying ZIM files
+    if (rqUrl.endsWith("video.min.js"))
+        event.respondWith(fetch('/video.min-7.19.2.js'));
+    else
     event.respondWith(
         // First see if the content is in the cache
         fromCache(cache, rqUrl).then(function (response) {
