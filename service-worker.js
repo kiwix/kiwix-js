@@ -202,7 +202,7 @@ self.addEventListener('fetch', function (event) {
     if (cache === APP_CACHE) rqUrl = strippedUrl;
     // Temporary quirk to upgrade VideoJS without modifying ZIM files
     if (rqUrl.endsWith("video.min.js"))
-        event.respondWith(fetch('/video.min-7.19.2.js'));
+        event.respondWith(fetch('/video-7.19.2.js'));
     else
     event.respondWith(
         // First see if the content is in the cache
