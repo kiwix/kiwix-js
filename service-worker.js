@@ -316,8 +316,18 @@ function fetchUrlFromZIM(urlObject, range) {
                 if (contentLength) headers.set('Content-Length', contentLength);
                 if (contentType) headers.set('Content-Type', contentType);
                 
+                // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
+                // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
+                // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
+                if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
+                    headers.set('Accept-Ranges', 'bytes');
+                }
+                
                 var slicedData = msgPortEvent.data.content;
                 if (range) {
+                    // The browser asks for a range of bytes (usually for a video or audio stream)
+                    // In this case, we honor this request, and send a partial content with the requested range
+                    // It's currently not optimal, as we in fact read all the content from the ZIM file
                     let partsOfRangeHeader = regexpByteRangeHeader.exec(range);
                     var begin = partsOfRangeHeader[1];
                     var end = partsOfRangeHeader[2];
@@ -331,14 +341,6 @@ function fetchUrlFromZIM(urlObject, range) {
                     console.debug('data content: first byte is ' + view[0] + ', last byte (offset ' + (end-begin) + ') is ' + view[end-begin], slicedData);
                 }
                 
-                // Test if the content is a video or audio file
-                // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
-                // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
-                if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
-                    // In case of a video (at least), Chrome and Edge need these HTTP headers or else seeking doesn't work
-                    // (even if we always send all the video content, not the requested range, until the backend supports it)
-                    headers.set('Accept-Ranges', 'bytes');
-                }
                 var responseInit = {
                     // HTTP status is usually 200, but has to bee 206 when a partial content (range) is sent
                     status: range? 206 : 200,
