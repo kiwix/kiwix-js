@@ -86,11 +86,15 @@ var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
 const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
 
 /**
- * Pattern to parse the "range" request header
- * TODO: this only accepts one byte range, where the spec allows several ranges, and several units. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+ * Pattern to parse the first offset of a "range" request header
+ * NB: this only reads the first offset of the first byte range, where the spec allows several ranges, and several units.
+ * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+ * But, in our case, we send a header to tell the browser we only accept the bytes unit.
+ * I did not see multiple ranges asked by a browser.
+ * 
  * @type {RegExp}
  */
-const regexpByteRangeHeader = /bytes=(\d+)-(.*)/;
+const regexpByteRangeHeader = /^[ \t]*bytes=(\d+)-/;
 
 /**
  * The list of files that the app needs in order to run entirely from offline code
@@ -326,13 +330,16 @@ function fetchUrlFromZIM(urlObject, range) {
                 var slicedData = msgPortEvent.data.content;
                 if (range) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
-                    // In this case, we honor this request, and send a partial content with the requested range
-                    // It's currently not optimal, as we in fact read all the content from the ZIM file
+                    // In this case, we partially honor the request: if it asks for offsets x to y,
+                    // we send a partial content starting at x offset, till the end of the data (ignoring y offset)
+                    // Our backend can currently only read the whole content from the ZIM file.
+                    // So it's probably better to send all we have: hopefully it will avoid some subsequent requests of
+                    // the browser to get the following chunks (which would trigger some other complete reads in the ZIM file)
+                    // This might be improved in the future with the libzim wasm backend, that should be able to handle ranges.
                     let partsOfRangeHeader = regexpByteRangeHeader.exec(range);
-                    var begin = partsOfRangeHeader[1];
-                    var end = partsOfRangeHeader[2];
-                    if (end === '') end = contentLength-1;
-                    slicedData = slicedData.slice(begin, end+1);
+                    let begin = partsOfRangeHeader[1];
+                    let end = contentLength-1;
+                    slicedData = slicedData.slice(begin);
                     
                     headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
                     headers.set('Content-Length', end-begin+1);
