@@ -86,6 +86,13 @@ var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
 const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
 
 /**
+ * Pattern to parse the "range" request header
+ * TODO: this only accepts one byte range, where the spec allows several ranges, and several units. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+ * @type {RegExp}
+ */
+const regexpByteRangeHeader = /bytes=(\d+)-(.*)/;
+
+/**
  * The list of files that the app needs in order to run entirely from offline code
  */
 let precacheFiles = [
@@ -188,6 +195,9 @@ let fetchCaptureEnabled = false;
  * Intercept selected Fetch requests from the browser window
  */
 self.addEventListener('fetch', function (event) {
+    if (event.request.url.endsWith('video.webm')) {
+        console.debug('SW is requested for the video', event.request, ...event.request.headers);
+    }
     // Only cache GET requests
     if (event.request.method !== "GET") return;
     var rqUrl = event.request.url;
@@ -209,7 +219,8 @@ self.addEventListener('fetch', function (event) {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
             if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                return fetchUrlFromZIM(urlObject).then(function (response) {
+                let range = event.request.headers.get('range');
+                return fetchUrlFromZIM(urlObject, range).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
                         !regexpExcludedURLSchema.test(event.request.url)) {
@@ -279,9 +290,10 @@ self.addEventListener('fetch', function (event) {
  * Handles URLs that need to be extracted from the ZIM archive
  * 
  * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
+ * @param {String} range optional byte range string
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM(urlObject) {
+function fetchUrlFromZIM(urlObject, range) {
     return new Promise(function (resolve, reject) {
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
         // Be sure that you haven't encoded any querystring along with the URL.
@@ -303,6 +315,22 @@ function fetchUrlFromZIM(urlObject) {
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 if (contentType) headers.set('Content-Type', contentType);
+                
+                var slicedData = msgPortEvent.data.content;
+                if (range) {
+                    let partsOfRangeHeader = regexpByteRangeHeader.exec(range);
+                    var begin = partsOfRangeHeader[1];
+                    var end = partsOfRangeHeader[2];
+                    if (end === '') end = contentLength-1;
+                    slicedData = slicedData.slice(begin, end+1);
+                    
+                    headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
+                    headers.set('Content-Length', end-begin+1);
+                    console.debug('video is read from backend and sent with headers', ...headers);
+                    let view = new Uint8Array(slicedData);
+                    console.debug('data content: first byte is ' + view[0] + ', last byte (offset ' + (end-begin) + ') is ' + view[end-begin], slicedData);
+                }
+                
                 // Test if the content is a video or audio file
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
@@ -310,15 +338,15 @@ function fetchUrlFromZIM(urlObject) {
                     // In case of a video (at least), Chrome and Edge need these HTTP headers or else seeking doesn't work
                     // (even if we always send all the video content, not the requested range, until the backend supports it)
                     headers.set('Accept-Ranges', 'bytes');
-                    headers.set('Content-Range', 'bytes 0-' + (contentLength - 1) + '/' + contentLength);
                 }
                 var responseInit = {
-                    status: 200,
+                    // HTTP status is usually 200, but has to bee 206 when a partial content (range) is sent
+                    status: range? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
-
-                var httpResponse = new Response(msgPortEvent.data.content, responseInit);
+                
+                var httpResponse = new Response(slicedData, responseInit);
 
                 // Let's send the content back from the ServiceWorker
                 resolve(httpResponse);
