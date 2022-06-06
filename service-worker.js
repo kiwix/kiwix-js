@@ -340,7 +340,6 @@ function fetchUrlFromZIM(urlObject, range) {
                     
                     headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
                     headers.set('Content-Length', end - begin + 1);
-                    let view = new Uint8Array(slicedData);
                 }
                 
                 var responseInit = {
