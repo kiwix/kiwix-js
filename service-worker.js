@@ -94,7 +94,7 @@ const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
  * 
  * @type {RegExp}
  */
-const regexpByteRangeHeader = /^[ \t]*bytes=(\d+)-/;
+const regexpByteRangeHeader = /^\s*bytes=(\d+)-/;
 
 /**
  * The list of files that the app needs in order to run entirely from offline code
@@ -199,9 +199,6 @@ let fetchCaptureEnabled = false;
  * Intercept selected Fetch requests from the browser window
  */
 self.addEventListener('fetch', function (event) {
-    if (event.request.url.endsWith('video.webm')) {
-        console.debug('SW is requested for the video', event.request, ...event.request.headers);
-    }
     // Only cache GET requests
     if (event.request.method !== "GET") return;
     var rqUrl = event.request.url;
@@ -294,7 +291,7 @@ self.addEventListener('fetch', function (event) {
  * Handles URLs that need to be extracted from the ZIM archive
  * 
  * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
- * @param {String} range optional byte range string
+ * @param {String} range Optional byte range string
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
 function fetchUrlFromZIM(urlObject, range) {
@@ -331,26 +328,24 @@ function fetchUrlFromZIM(urlObject, range) {
                 if (range) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
                     // In this case, we partially honor the request: if it asks for offsets x to y,
-                    // we send a partial content starting at x offset, till the end of the data (ignoring y offset)
+                    // we send partial contents starting at x offset, till the end of the data (ignoring y offset)
                     // Our backend can currently only read the whole content from the ZIM file.
                     // So it's probably better to send all we have: hopefully it will avoid some subsequent requests of
                     // the browser to get the following chunks (which would trigger some other complete reads in the ZIM file)
                     // This might be improved in the future with the libzim wasm backend, that should be able to handle ranges.
                     let partsOfRangeHeader = regexpByteRangeHeader.exec(range);
                     let begin = partsOfRangeHeader[1];
-                    let end = contentLength-1;
+                    let end = contentLength - 1;
                     slicedData = slicedData.slice(begin);
                     
                     headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
-                    headers.set('Content-Length', end-begin+1);
-                    console.debug('video is read from backend and sent with headers', ...headers);
+                    headers.set('Content-Length', end - begin + 1);
                     let view = new Uint8Array(slicedData);
-                    console.debug('data content: first byte is ' + view[0] + ', last byte (offset ' + (end-begin) + ') is ' + view[end-begin], slicedData);
                 }
                 
                 var responseInit = {
-                    // HTTP status is usually 200, but has to bee 206 when a partial content (range) is sent
-                    status: range? 206 : 200,
+                    // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
+                    status: range ? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
