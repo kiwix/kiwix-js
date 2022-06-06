@@ -86,6 +86,17 @@ var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
 const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
 
 /**
+ * Pattern to parse the first offset of a "range" request header
+ * NB: this only reads the first offset of the first byte range, where the spec allows several ranges, and several units.
+ * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+ * But, in our case, we send a header to tell the browser we only accept the bytes unit.
+ * I did not see multiple ranges asked by a browser.
+ * 
+ * @type {RegExp}
+ */
+const regexpByteRangeHeader = /^\s*bytes=(\d+)-/;
+
+/**
  * The list of files that the app needs in order to run entirely from offline code
  */
 let precacheFiles = [
@@ -209,7 +220,8 @@ self.addEventListener('fetch', function (event) {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
             if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                return fetchUrlFromZIM(urlObject).then(function (response) {
+                let range = event.request.headers.get('range');
+                return fetchUrlFromZIM(urlObject, range).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
                         !regexpExcludedURLSchema.test(event.request.url)) {
@@ -279,9 +291,10 @@ self.addEventListener('fetch', function (event) {
  * Handles URLs that need to be extracted from the ZIM archive
  * 
  * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
+ * @param {String} range Optional byte range string
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM(urlObject) {
+function fetchUrlFromZIM(urlObject, range) {
     return new Promise(function (resolve, reject) {
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
         // Be sure that you haven't encoded any querystring along with the URL.
@@ -303,22 +316,40 @@ function fetchUrlFromZIM(urlObject) {
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 if (contentType) headers.set('Content-Type', contentType);
-                // Test if the content is a video or audio file
+                
+                // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
                 if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
-                    // In case of a video (at least), Chrome and Edge need these HTTP headers or else seeking doesn't work
-                    // (even if we always send all the video content, not the requested range, until the backend supports it)
                     headers.set('Accept-Ranges', 'bytes');
-                    headers.set('Content-Range', 'bytes 0-' + (contentLength - 1) + '/' + contentLength);
                 }
+                
+                var slicedData = msgPortEvent.data.content;
+                if (range) {
+                    // The browser asks for a range of bytes (usually for a video or audio stream)
+                    // In this case, we partially honor the request: if it asks for offsets x to y,
+                    // we send partial contents starting at x offset, till the end of the data (ignoring y offset)
+                    // Our backend can currently only read the whole content from the ZIM file.
+                    // So it's probably better to send all we have: hopefully it will avoid some subsequent requests of
+                    // the browser to get the following chunks (which would trigger some other complete reads in the ZIM file)
+                    // This might be improved in the future with the libzim wasm backend, that should be able to handle ranges.
+                    let partsOfRangeHeader = regexpByteRangeHeader.exec(range);
+                    let begin = partsOfRangeHeader[1];
+                    let end = contentLength - 1;
+                    slicedData = slicedData.slice(begin);
+                    
+                    headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
+                    headers.set('Content-Length', end - begin + 1);
+                }
+                
                 var responseInit = {
-                    status: 200,
+                    // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
+                    status: range ? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
-
-                var httpResponse = new Response(msgPortEvent.data.content, responseInit);
+                
+                var httpResponse = new Response(slicedData, responseInit);
 
                 // Let's send the content back from the ServiceWorker
                 resolve(httpResponse);
