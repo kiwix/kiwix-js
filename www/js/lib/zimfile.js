@@ -199,12 +199,14 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 // DEBUG
                 if (pos > 2048)  console.debug('Found dirEntry.url of size > 2KB!' + (!data[pos] ? ' (' + pos + ')' : ''), dirEntry.url);
                 // END DEGUG
-                if (data[pos] !== 0) {
+                if (data[pos] === 0) {
+                    dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
+                } else {
+                    // DEV: If you encounter this warning in console, it means that a very large dirEntry.url has exceeded the maximum supported
+                    // dirEntry size. Consider increasing MAX_SUPPORTED_DIRENTRY_SIZE if such warnings are encountered regularly with a ZIM.
                     console.warn('WARNING! A Directory Entry URL larger than ' + MAX_SUPPORTED_DIRENTRY_SIZE + ' bytes was encountered! ' +
                         'The dirEntry.url is likely to be invalid.', dirEntry.url
                     );
-                } else {
-                    dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
                 }
                 return new zimDirEntry.DirEntry(that, dirEntry);
             }
