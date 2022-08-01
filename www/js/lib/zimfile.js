@@ -23,7 +23,7 @@
 
 /**
  * This code makes an assumption that no Directory Entry will be larger that MAX_SUPPORTED_DIRENTRY_SIZE bytes.
- * If a larger dirEntry is encountered, an error will display in console. Increase this value if necessary.
+ * If a larger dirEntry is encountered, a warning will display in console. Increase this value if necessary.
  */
 const MAX_SUPPORTED_DIRENTRY_SIZE = 5120;
 
@@ -197,7 +197,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                     if (data[pos] === 0) break;
                 }
                 // DEBUG
-                if (pos > 2048)  console.debug('Found dirEntry.url of size > 2048 bytes!' + (!data[pos] ? ' (' + pos + ')' : ''), dirEntry.url);
+                if (pos > 2048)  console.debug('Found dirEntry.url of size > 2KB!' + (!data[pos] ? ' (' + pos + ')' : ''), dirEntry.url);
                 // END DEGUG
                 if (data[pos] !== 0) {
                     console.warn('WARNING! A Directory Entry URL larger than ' + MAX_SUPPORTED_DIRENTRY_SIZE + ' bytes was encountered! ' +
@@ -311,7 +311,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * This supports reading a subset of user content that might be ordered differently from the main URL pointerlist.
      * In particular, it supports the v1 article pointerlist, which contains articles sorted by title, superseding the article
      * namespace ('A') in legazy ZIM archives.  
-     * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)  
+     * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)
      * @returns {Promise} A promise that populates calculated entries in the ZIM file header
      */
     ZIMFile.prototype.setListings = function (listings) {
