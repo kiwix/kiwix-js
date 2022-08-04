@@ -24,6 +24,8 @@
 /**
  * This code makes an assumption that no Directory Entry will be larger that MAX_SUPPORTED_DIRENTRY_SIZE bytes.
  * If a larger dirEntry is encountered, a warning will display in console. Increase this value if necessary.
+ * See https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers to understand
+ * why 5120 has been chosen here (maximum that IE11 can deal with in code).
  */
 const MAX_SUPPORTED_DIRENTRY_SIZE = 5120;
 
@@ -196,9 +198,6 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 for (pos; pos <= MAX_SUPPORTED_DIRENTRY_SIZE; pos++) {
                     if (data[pos] === 0) break;
                 }
-                // DEBUG
-                if (pos > 2048)  console.debug('Found dirEntry.url of size > 2KB!' + (!data[pos] ? ' (' + pos + ')' : ''), dirEntry.url);
-                // END DEBUG
                 if (data[pos] === 0) {
                     dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
                 } else {
