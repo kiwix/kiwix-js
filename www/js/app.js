@@ -94,10 +94,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
+    // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
+    params['infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault'] = settingsStore.getItem('infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
-        // Defaults to jquery in extensions, and serviceworker if accessing as a PWA
-        ((/^https?:$/i.test(window.location.protocol) && isServiceWorkerAvailable()) ? 'serviceworker' : 'jquery');
+        // Defaults to serviceworker mode when the API is available
+        (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
     // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
     // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
     params['useCanvasElementsForWebpTranscoding']; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode

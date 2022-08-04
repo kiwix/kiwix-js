@@ -299,27 +299,15 @@
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
                     
-                    <h4 id="modes">JQuery and ServiceWorker Modes</h4>
+                    <h4 id="modes">ServiceWorker and JQuery Modes</h4>
                     <p>
                         Depending on your browser or framework, this app may be capable of running in two different modes, which we call
-                        "JQuery Mode" and "ServiceWorker Mode" for short. There is a toggle under Compatibility Settings in Configuration.
+                        "ServiceWorker Mode" and "JQuert Mode" for short. There is a toggle under Compatibility Settings in Configuration.
                         Here is a technical explanation of what these modes do:
                         <ul>
                             <li>
-                                <b>JQuery Mode</b>: This mode (which does not in fact require JQuery) is fine for everyday use with 
-                                Wikipedia / WikiMedia archives, and is stable and safe. It is a way of inserting articles extracted from the
-                                ZIM into the DOM (browser document) by injecting the content into an iframe or tab. We then use
-                                native DOM methods, or sometimes JQuery, to parse the article's HTML and insert required assets 
-                                (images, stylesheets, event listeners for hyperlinks, etc.). On old devices DOM traversal can be slow, 
-                                but it is compensated for because we do not extract or run JavaScript assets (which would be technically
-                                extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On the downside,
-                                ZIMs that have a proprietary dynamic UI (such as Gutenberg or TED talks) are only partially supported in this
-                                mode: the UI does not work, but articles can be searched for and loaded from the search bar. This mode is
-                                compatible with older browsers and frameworks.
-                            </li>
-                            <li>
-                                <b>ServiceWorker Mode</b>: This mode, as its name implies, requires that the browser or framework be capable of
-                                installing a Service Worker. It works by intercepting the browser or framework's Fetch calls (network requests)
+                                <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the browser or framework be capable of
+                                installing a Service Worker, which is most usually the case. It works by intercepting the browser or framework's Fetch calls (network requests)
                                 and supplying the requested content from the ZIM. This mode requires no DOM traversal, and the content is
                                 read and supplied as-is from the archive. Dynamic content (e.g. JavaScript) and proprietary UIs are fully
                                 supported in this mode. It can feel initially a little slower while commonly used assets are being cached,
@@ -329,6 +317,18 @@
                                 extensions, we provide a functional workaround by re-launching the extension as a Progressive Web App (PWA).
                                 Note that this mode cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run
                                 by launching <code>index.html</code> from the file system).
+                            </li>
+                            <li>
+                                <b>JQuery Mode</b>: This mode is deprecated (and does not in fact require JQuery). It should however be fine
+                                for everyday use with Wikipedia / WikiMedia archives. It is a way of inserting articles extracted from the
+                                ZIM into the DOM (browser document) by injecting the content into an iframe or tab. We then use
+                                native DOM methods, or sometimes JQuery, to parse the article's HTML and insert required assets 
+                                (images, stylesheets, event listeners for hyperlinks, etc.). On old devices, DOM traversal can be slow, 
+                                but it is compensated for because we do not extract or run JavaScript assets (which would be technically
+                                extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On the downside,
+                                ZIMs that have a proprietary dynamic UI (such as Gutenberg or TED talks) are only partially supported in this
+                                mode: the UI does not work, but articles can be searched for and loaded from the search bar. This mode is
+                                compatible with older browsers and frameworks.
                             </li>
                         </ul> 
                     </p>
@@ -569,17 +569,17 @@
                             <div class="card-body">
                                 <p>See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
                                 <div class="radio">
-                                    <label title="This mode is fine for everyday use with Wikipedia / WikiMedia archives, and is stable and safe.">
-                                        <input type="radio" name="contentInjectionMode" value="jquery"
-                                            id="jQueryModeRadio" checked>
-                                        <strong>JQuery</strong> (compatible with older browsers and frameworks)
-                                    </label>
-                                </div>
-                                <div class="radio">
                                     <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
-                                        <strong>ServiceWorker</strong> (supports archives with dynamic content)
+                                        <strong>ServiceWorker</strong> (default, supports archives with dynamic content)
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices">
+                                        <input type="radio" name="contentInjectionMode" value="jquery"
+                                            id="jQueryModeRadio" checked>
+                                        <strong>JQuery</strong> (deprecated, but compatible with older browsers and frameworks)
                                     </label>
                                 </div>
                             </div>
