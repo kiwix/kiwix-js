@@ -22,6 +22,14 @@
 'use strict';
 
 /**
+ * This code makes an assumption that no Directory Entry will be larger that MAX_SUPPORTED_DIRENTRY_SIZE bytes.
+ * If a larger dirEntry is encountered, a warning will display in console. Increase this value if necessary.
+ * See https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers to understand
+ * why 5120 has been chosen here (maximum that IE11 can deal with in code).
+ */
+const MAX_SUPPORTED_DIRENTRY_SIZE = 5120;
+
+/**
  * Add Polyfill currently required by IE11 to run zstddec-asm and xzdec-asm
  * See https://github.com/emscripten-core/emscripten/issues/14700
  * If this is resolved upstream, remove this polyfill
@@ -171,7 +179,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      */
     ZIMFile.prototype.dirEntry = function (offset) {
         var that = this;
-        return this._readSlice(offset, 2048).then(function (data) {
+        return this._readSlice(offset, MAX_SUPPORTED_DIRENTRY_SIZE).then(function (data) {
             var dirEntry = {
                 offset: offset,
                 mimetypeInteger: readInt(data, 0, 2),
@@ -187,9 +195,18 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
             var pos = dirEntry.redirect ? 12 : 16;
             if (data.subarray) {
                 dirEntry.url = utf8.parse(data.subarray(pos), true);
-                while (data[pos] !== 0)
-                    pos++;
-                dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
+                for (pos; pos <= MAX_SUPPORTED_DIRENTRY_SIZE; pos++) {
+                    if (data[pos] === 0) break;
+                }
+                if (data[pos] === 0) {
+                    dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
+                } else {
+                    // DEV: If you encounter this warning in console, it means that a very large dirEntry.url has exceeded the maximum supported
+                    // dirEntry size. Consider increasing MAX_SUPPORTED_DIRENTRY_SIZE if such warnings are encountered regularly with a ZIM.
+                    console.warn('WARNING! A Directory Entry URL larger than ' + MAX_SUPPORTED_DIRENTRY_SIZE + ' bytes was encountered! ' +
+                        'The dirEntry.url is likely to be invalid.', dirEntry.url
+                    );
+                }
                 return new zimDirEntry.DirEntry(that, dirEntry);
             }
         });
@@ -295,7 +312,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * This supports reading a subset of user content that might be ordered differently from the main URL pointerlist.
      * In particular, it supports the v1 article pointerlist, which contains articles sorted by title, superseding the article
      * namespace ('A') in legazy ZIM archives.  
-     * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)  
+     * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)
      * @returns {Promise} A promise that populates calculated entries in the ZIM file header
      */
     ZIMFile.prototype.setListings = function (listings) {
