@@ -12,7 +12,7 @@ Released on *2022-08-05*
 * FIX: Switch to ServiceWorker mode via PWA workaround was broken due to a behaviour change in Firefox 103
 * FIX: Video seeking in ServiceWorker mode was not always working in some browser extensions
 * FIX: In ServiceWorker mode, open external links in new tabs (instead of inside the iframe, which could fail), and warn the user
-* FIX: Directory Entries were wrongly assumed to be no larger than 2048 bytes
+* FIX: Directory Entries were wrongly assumed to be no larger than 2048 bytes (this could lead to some infinite loop, with some very specific ZIM files)
 * UPDATE: Update logo on Firefox and Windows stores
 
 ## Kiwix-JS v3.4.0
