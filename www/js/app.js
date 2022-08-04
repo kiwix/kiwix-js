@@ -780,76 +780,85 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 caches.delete(ASSETS_CACHE);
             }
         } else if (value === 'serviceworker') {
-            if (!isServiceWorkerAvailable()) {
-                uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
-                    setContentInjectionMode('jquery');
-                });
-                return;
-            }
-            if (!isMessageChannelAvailable()) {
-                uiUtil.systemAlert('The MessageChannel API is not available on your device. Falling back to JQuery mode', 'MessageChannel API not available').then(function () {
-                    setContentInjectionMode('jquery');
-                });
-                return;
-            }
             var protocol = window.location.protocol;
-            if (!isServiceWorkerReady()) {
-                $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
-                if (navigator.serviceWorker.controller) {
-                    console.log("Active service worker found, no need to register");
-                    serviceWorkerRegistration = true;
-                    // Remove any jQuery hooks from a previous jQuery session
-                    $('#articleContent').contents().remove();
-                    // Create the MessageChannel and send 'init'
-                    initOrKeepAliveServiceWorker();
-                    refreshAPIStatus();
-                } else {
-                    navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
-                        // The ServiceWorker is registered
-                        serviceWorkerRegistration = reg;
-                        // We need to wait for the ServiceWorker to be activated
-                        // before sending the first init message
-                        var serviceWorker = reg.installing || reg.waiting || reg.active;
-                        serviceWorker.addEventListener('statechange', function(statechangeevent) {
-                            if (statechangeevent.target.state === 'activated') {
-                                // Remove any jQuery hooks from a previous jQuery session
-                                $('#articleContent').contents().remove();
-                                // Create the MessageChannel and send the 'init' message to the ServiceWorker
+            // Since Firefox 103, the ServiceWorker API is not available any more in Webextensions. See https://hg.mozilla.org/integration/autoland/rev/3a2907ad88e8 and https://bugzilla.mozilla.org/show_bug.cgi?id=1593931
+            // Previously, the API was available, but failed to register (which we could trap a fews lines below).
+            // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
+            // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
+            if (protocol === 'moz-extension:' && !isServiceWorkerAvailable()) {
+                launchMozillaExtensionServiceWorker();
+            } else {
+                if (!isServiceWorkerAvailable()) {
+                    uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
+                        setContentInjectionMode('jquery');
+                    });
+                    return;
+                }
+                if (!isMessageChannelAvailable()) {
+                    uiUtil.systemAlert('The MessageChannel API is not available on your device. Falling back to JQuery mode', 'MessageChannel API not available').then(function () {
+                        setContentInjectionMode('jquery');
+                    });
+                    return;
+                }
+                if (!isServiceWorkerReady()) {
+                    $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
+                    if (navigator.serviceWorker.controller) {
+                        console.log("Active service worker found, no need to register");
+                        serviceWorkerRegistration = true;
+                        // Remove any jQuery hooks from a previous jQuery session
+                        $('#articleContent').contents().remove();
+                        // Create the MessageChannel and send 'init'
+                        initOrKeepAliveServiceWorker();
+                        refreshAPIStatus();
+                    } else {
+                        navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
+                            // The ServiceWorker is registered
+                            serviceWorkerRegistration = reg;
+                            // We need to wait for the ServiceWorker to be activated
+                            // before sending the first init message
+                            var serviceWorker = reg.installing || reg.waiting || reg.active;
+                            serviceWorker.addEventListener('statechange', function(statechangeevent) {
+                                if (statechangeevent.target.state === 'activated') {
+                                    // Remove any jQuery hooks from a previous jQuery session
+                                    $('#articleContent').contents().remove();
+                                    // Create the MessageChannel and send the 'init' message to the ServiceWorker
+                                    initOrKeepAliveServiceWorker();
+                                    // We need to refresh cache status here on first activation because SW was inaccessible till now
+                                    // We also initialize the ASSETS_CACHE constant in SW here
+                                    refreshCacheStatus();
+                                    refreshAPIStatus();
+                                }
+                            });
+                            if (serviceWorker.state === 'activated') {
+                                // Even if the ServiceWorker is already activated,
+                                // We need to re-create the MessageChannel
+                                // and send the 'init' message to the ServiceWorker
+                                // in case it has been stopped and lost its context
                                 initOrKeepAliveServiceWorker();
-                                // We need to refresh cache status here on first activation because SW was inaccessible till now
-                                // We also initialize the ASSETS_CACHE constant in SW here
-                                refreshCacheStatus();
+                            }
+                            refreshCacheStatus();
+                            refreshAPIStatus();
+                        }).catch(function (err) {
+                            if (protocol === 'moz-extension:') {
+                                // This is still useful for Firefox<103 extensions, where the ServiceWorker API is available, but fails to register
+                                launchMozillaExtensionServiceWorker();
+                            } else {
+                                console.error('Error while registering serviceWorker', err);
                                 refreshAPIStatus();
+                                var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                                if (protocol === 'file:') {
+                                    message += "<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                                }
+                                uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
+                                    setContentInjectionMode('jquery');
+                                });
                             }
                         });
-                        if (serviceWorker.state === 'activated') {
-                            // Even if the ServiceWorker is already activated,
-                            // We need to re-create the MessageChannel
-                            // and send the 'init' message to the ServiceWorker
-                            // in case it has been stopped and lost its context
-                            initOrKeepAliveServiceWorker();
-                        }
-                        refreshCacheStatus();
-                        refreshAPIStatus();
-                    }).catch(function (err) {
-                        if (protocol === 'moz-extension:') {
-                            launchMozillaExtensionServiceWorker();
-                        } else {
-                            console.error('Error while registering serviceWorker', err);
-                            refreshAPIStatus();
-                            var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
-                            if (protocol === 'file:') {
-                                message += "<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
-                            }
-                            uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
-                                setContentInjectionMode('jquery');
-                            });                  
-                        }
-                    });
+                    }
+                } else {
+                    // We need to reactivate Service Worker
+                    initOrKeepAliveServiceWorker();
                 }
-            } else {
-                // We need to reactivate Service Worker
-                initOrKeepAliveServiceWorker();
             }
             // User has switched to Service Worker mode, so no longer needs the memory cache
             // We should empty it to ensure good memory management
