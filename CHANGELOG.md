@@ -4,6 +4,17 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Kiwix-JS v3.5.0
+
+Released on *2022-08-05*
+
+* FEATURE: Bootstrap dialog boxes now handle a default action with Enter key
+* FIX: Siwtch to the PWA version for Firefox in SW mode was broken by a behavior change of Firefox 103
+* FIX: Video seeking in ServiceWorker mode in some browser extensions
+* FIX: In ServiceWorker mode, open external links in new tabs (instead of inside the iframe, which could fail), and warn the user
+* FIX: Directory Entries were wrongly assumed to be no larger than 2048 bytes
+* UPDATE: Update logo on Firefox and Windows stores
+
 ## Kiwix-JS v3.4.0
 
 Released on *2022-04-10*
