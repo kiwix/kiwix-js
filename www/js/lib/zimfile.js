@@ -198,7 +198,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 }
                 // DEBUG
                 if (pos > 2048)  console.debug('Found dirEntry.url of size > 2KB!' + (!data[pos] ? ' (' + pos + ')' : ''), dirEntry.url);
-                // END DEGUG
+                // END DEBUG
                 if (data[pos] === 0) {
                     dirEntry.title = utf8.parse(data.subarray(pos + 1), true);
                 } else {
