@@ -12,8 +12,8 @@ while getopts tdv: option; do
     esac
 done
 
-MAJOR_NUMERIC_VERSION="3.5"
-VERSION_TO_REPLACE="3\.5-WIP"
+MAJOR_NUMERIC_VERSION="3.6"
+VERSION_TO_REPLACE="3\.6-WIP"
 
 # Set the secret environment variables if available
 # The file set_secret_environment_variables.sh should not be commited for security reasons
