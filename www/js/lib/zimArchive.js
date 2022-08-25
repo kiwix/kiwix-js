@@ -140,7 +140,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
     /**
      * Detects whether the supplied archive is a Zimit-style archive or an OpenZIM archive and
-     * sets a file.type property accordingly; also returns the detected type
+     * sets a file.type property accordingly; also returns the detected type. Extends ZIMFile.
      * @returns {String} Either 'zimit' for a Zimit archive, or 'open' for an OpenZIM archive
      */
      ZIMArchive.prototype.setZimType = function () {
