@@ -146,6 +146,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      ZIMArchive.prototype.setZimType = function () {
         var fileType = null;
         if (this.isReady()) {
+            fileType = 'open';
             this._file.mimeTypes.forEach(function (v) {
                 if (/warc-headers/i.test(v)) fileType = 'zimit';
             });
