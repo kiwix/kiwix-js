@@ -2045,14 +2045,27 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#searchingArticles").hide();
                 $("#welcomeText").show();
             } else {
-                // DEV: see comment above under goToRandomArticle()
-                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
-                    params.isLandingPage = true;
-                    readArticle(dirEntry);
-                } else {
-                    console.error("The main page of this archive does not seem to be an article");
+                // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
+                if (selectedArchive._file.type === 'zimit') {
+                    uiUtil.systemAlert('<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
+                        '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
+                        '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
+                        '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' + 
+                        'Kiwix Serve is included with <a href="https://www.kiwix.org/en/download/" target="_blank">Kiwix Desktop</a>.</p>',
+                        'Unsupported archive type!'
+                    );
                     $("#searchingArticles").hide();
                     $("#welcomeText").show();
+                } else {
+                    // DEV: see comment above under goToRandomArticle()
+                    if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+                        params.isLandingPage = true;
+                        readArticle(dirEntry);
+                    } else {
+                        console.error("The main page of this archive does not seem to be an article");
+                        $("#searchingArticles").hide();
+                        $("#welcomeText").show();
+                    }
                 }
             }
         });
