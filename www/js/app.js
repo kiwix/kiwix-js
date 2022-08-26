@@ -2046,7 +2046,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 $("#welcomeText").show();
             } else {
                 // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
-                if (selectedArchive._file.type === 'zimit') {
+                if (selectedArchive._file.zimType === 'zimit') {
                     uiUtil.systemAlert('<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
                         '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
                         '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +

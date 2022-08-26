@@ -140,7 +140,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
 
     /**
      * Detects whether the supplied archive is a Zimit-style archive or an OpenZIM archive and
-     * sets a file.type property accordingly; also returns the detected type. Extends ZIMFile.
+     * sets a _file.zimType property accordingly; also returns the detected type. Extends ZIMFile.
      * @returns {String} Either 'zimit' for a Zimit archive, or 'open' for an OpenZIM archive
      */
      ZIMArchive.prototype.setZimType = function () {
@@ -150,7 +150,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             this._file.mimeTypes.forEach(function (v) {
                 if (/warc-headers/i.test(v)) fileType = 'zimit';
             });
-            this._file.type = fileType;
+            this._file.zimType = fileType;
             console.debug('Archive type set to: ' + fileType);
         } else {
             console.error('ZIMArchive is not ready! Cannot set ZIM type.');
