@@ -86,6 +86,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * A ZIM File
      * 
      * See https://wiki.openzim.org/wiki/ZIM_file_format#Header
+     * Some properties below are extended and are not part of the official OpenZIM specification
      * 
      * @typedef {Object} ZIMFile
      * @property {Array<File>} _files Array of ZIM files
@@ -101,7 +102,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * @property {Integer} mimeListPos Position of the MIME type list (also header size)
      * @property {Integer} mainPage Main page or 0xffffffff if no main page
      * @property {Integer} layoutPage Layout page or 0xffffffffff if no layout page
-     * @property {Map} mimeTypes The ZIM file's MIME type table rendered as a Map (calculated entry)
+     * @property {String} zimType Extended property: currently either 'open' for OpenZIM file type, or 'zimit' for the warc2zim file type used by Zimit (set in zimArchive.js)
+     * @property {Map} mimeTypes Extended property: the ZIM file's MIME type table rendered as a Map (calculated entry)
      */
     
     /**

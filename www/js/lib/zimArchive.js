@@ -76,6 +76,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                         countName: 'articleCount'
                     }
                 ]);
+                // Set the archive file type ('open' or 'zimit')
+                that.setZimType();
                 // DEV: Currently, extended listings are only used for title (=article) listings when the user searches
                 // for an article or uses the Random button, by which time the listings will have been extracted.
                 // If, in the future, listings are used in a more time-critical manner, consider forcing a wait before
@@ -135,7 +137,27 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
     ZIMArchive.prototype.isReady = function() {
         return this._file !== null;
     };
-    
+
+    /**
+     * Detects whether the supplied archive is a Zimit-style archive or an OpenZIM archive and
+     * sets a _file.zimType property accordingly; also returns the detected type. Extends ZIMFile.
+     * @returns {String} Either 'zimit' for a Zimit archive, or 'open' for an OpenZIM archive
+     */
+     ZIMArchive.prototype.setZimType = function () {
+        var fileType = null;
+        if (this.isReady()) {
+            fileType = 'open';
+            this._file.mimeTypes.forEach(function (v) {
+                if (/warc-headers/i.test(v)) fileType = 'zimit';
+            });
+            this._file.zimType = fileType;
+            console.debug('Archive type set to: ' + fileType);
+        } else {
+            console.error('ZIMArchive is not ready! Cannot set ZIM type.');
+        }
+        return fileType;
+    };
+
     /**
      * Looks for the DirEntry of the main page
      * @param {callbackDirEntry} callback
