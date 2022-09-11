@@ -167,7 +167,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
+    document.getElementById('appVersion').appendChild(document.createTextNode('Kiwix ' + params.appVersion)); 
     setContentInjectionMode(params.contentInjectionMode);
 
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
@@ -608,7 +608,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Update Settings Store section of API panel with API name
         var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
         var apiName = params.storeType === 'cookie' ? 'Cookie' : params.storeType === 'local_storage' ? 'Local Storage' : 'None';
-        settingsStoreStatusDiv.innerHTML = 'Settings Storage API in use: ' + apiName;
+        settingsStoreStatusDiv.textContent = 'Settings Storage API in use: ' + apiName;
         settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
         settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
         apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
