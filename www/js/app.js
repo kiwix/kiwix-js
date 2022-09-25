@@ -622,7 +622,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
-        decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
+        // decompAPIStatusDiv.appendChild(document.createTextNode('Decompressor API: ' + apiName));
+        decompAPIStatusDiv.textContent = 'Decompressor API: ' + apiName ;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
 
@@ -677,8 +678,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
                 console.error('DEV: The ASSETS_CACHE defined in app.js does not match the ASSETS_CACHE defined in service-worker.js!');
             }
-            document.getElementById('cacheUsed').innerHTML = cache.description;
-            document.getElementById('assetsCount').innerHTML = cache.count;
+            document.getElementById('cacheUsed').textContent = cache.description;
+            document.getElementById('assetsCount').textContent = cache.count;
             var cacheSettings = document.getElementById('performanceSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function (card) {
@@ -1657,7 +1658,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             // Inject the new article's HTML into the iframe
             var articleContent = iframeContentDocument.documentElement;
-            articleContent.innerHTML = htmlArticle;
+            articleContent.textContent = htmlArticle;
 
             var docBody = articleContent.getElementsByTagName('body');
             docBody = docBody ? docBody[0] : null;
