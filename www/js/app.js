@@ -1609,7 +1609,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (!params.hideActiveContentWarning && params.isLandingPage) {
             if (regexpActiveContent.test(htmlArticle)) {
                 // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
-                if (!/<script\b[^'"]+['"][^'"]*?mooc.js/i.test(htmlArticle)) {
+                if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
                     uiUtil.displayActiveContentWarning();
                 }
             }
