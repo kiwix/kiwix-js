@@ -1949,7 +1949,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
             title = title.replace(/[^/]+\//g, '').substring(0,18);
-            cacheBlock.innerHTML = 'Caching ' + title + '...';
+            cacheBlock.textContent = 'Caching ' + title + '...';
         }
     }
 
