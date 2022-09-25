@@ -1607,7 +1607,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         // Display Bootstrap warning alert if the landing page contains active content
         if (!params.hideActiveContentWarning && params.isLandingPage) {
-            if (regexpActiveContent.test(htmlArticle)) uiUtil.displayActiveContentWarning();
+            if (regexpActiveContent.test(htmlArticle)) {
+                // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
+                if (!/<script\b[^'"]+['"][^'"]*?mooc.js/i.test(htmlArticle)) {
+                    uiUtil.displayActiveContentWarning();
+                }
+            }
         }
 
         // Calculate the current article's ZIM baseUrl to use when processing relative links
