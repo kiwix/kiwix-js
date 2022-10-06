@@ -80,11 +80,13 @@ if [ "${DRYRUN}zz" == "zz" ]; then
     # Change permissions on source files to match those expected by the server
     chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
-    # Rename files to include the date and remove extraneous info so that permalinks can be generated
-    for file in build/*; do
-        target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
-        mv "$file" "$target"
-    done
+    if [ "${TAG}zz" == "zz" ]; then
+        # It's a nightly build, so rename files to include the date and remove extraneous info so that permalinks can be generated
+        for file in build/*; do
+            target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
+            mv "$file" "$target"
+        done
+    fi
     # Upload the files on master.download.kiwix.org
     echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
     echo "mkdir /data/download/nightly/$CURRENT_DATE" | sftp -P 30022 -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@master.download.kiwix.org
