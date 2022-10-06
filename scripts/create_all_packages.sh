@@ -37,7 +37,7 @@ else
     # and we have to comply with their version string : https://developer.mozilla.org/en-US/docs/Mozilla/Toolkit_version_format
     # So we need to replace every number of the commit id by another string (with 32 cars max)
     # We are allowed only a few special caracters : +*.-_ so we prefered to use capital letters
-    # (hopping this string is case-sensitive)
+    # (hoping this string is case-sensitive)
     COMMIT_ID_FOR_MOZILLA_MANIFEST=$(echo $COMMIT_ID | tr '[0123456789]' '[ABCDEFGHIJ]')
     VERSION_FOR_MOZILLA_MANIFEST="${MAJOR_NUMERIC_VERSION}commit${COMMIT_ID_FOR_MOZILLA_MANIFEST}"
     echo "Packaging version $VERSION"
@@ -80,6 +80,11 @@ if [ "${DRYRUN}zz" == "zz" ]; then
     # Change permissions on source files to match those expected by the server
     chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
+    # Rename files to include the date and remove extraneous info so that permalinks can be generated
+    for file in build/*; do
+        target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
+        mv "$file" "$target"
+    done
     # Upload the files on master.download.kiwix.org
     echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
     echo "mkdir /data/download/nightly/$CURRENT_DATE" | sftp -P 30022 -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@master.download.kiwix.org
