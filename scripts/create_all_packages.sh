@@ -84,7 +84,7 @@ if [ "${DRYRUN}zz" == "zz" ]; then
         # It's a nightly build, so rename files to include the date and remove extraneous info so that permalinks can be generated
         for file in build/*; do
             target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
-            mv "$file" "$target"
+            mv --backup=numbered "$file" "$target"
         done
     fi
     # Upload the files on master.download.kiwix.org
