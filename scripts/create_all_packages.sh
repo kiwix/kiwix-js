@@ -80,7 +80,7 @@ if [ "${DRYRUN}zz" == "zz" ]; then
     # Change permissions on source files to match those expected by the server
     chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
-    if [ ! "${CRON_LAUNCHED}zz" == "zz" ]; then
+    if [ -n "${CRON_LAUNCHED}" ]; then
         # It's a nightly build, so rename files to include the date and remove extraneous info so that permalinks can be generated
         for file in build/*; do
             target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
