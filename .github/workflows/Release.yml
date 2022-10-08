@@ -64,7 +64,7 @@ jobs:
         run: |
           # If user dispateched with "nightly", simulate a CRON run
           if [ "$INPUT_TARGET" = "nightly" ]; then
-            CRON_LAUNCHED = "nightly"
+            CRON_LAUNCHED="nightly"
           fi
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
           Xvfb -ac :99 -screen 0 1280x1024x16 &
