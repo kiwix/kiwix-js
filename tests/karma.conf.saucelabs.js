@@ -18,33 +18,37 @@ module.exports = function (config) {
       firefox: {
         base: 'SauceLabs',
         browserName: 'firefox',
+        version: 'latest'
       },
       chrome58: {
         base: 'SauceLabs',
         browserName: 'chrome',
-        version: '58.0',
+        version: '58.0'
       },
       chrome: {
         base: 'SauceLabs',
         browserName: 'chrome',
+        version: 'latest'
       },
       edge: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
+        version: 'latest'
       },
       edge40: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
-        version: '15.15063',
+        version: '15.15063'
       },
       edge44: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
-        version: '18.17763',
+        version: '18.17763'
       },
       ie11: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
+        version: 'latest'
       }
     },
     // The free account on Sauce does not allow more than 5 concurrent sessions
