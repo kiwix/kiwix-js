@@ -24,10 +24,10 @@ if [ -r "$BASEDIR/scripts/set_secret_environment_variables.sh" ]; then
 fi
 
 # Use the passed version number, else use the commit id
-if [ ! "${VERSION}zz" == "zz" ]; then
+if [ -n "${VERSION}" ]; then
     echo "Packaging version $VERSION because it has been passed as an argument"
     VERSION_FOR_MOZILLA_MANIFEST="$VERSION"
-    if [ ! "${TAG}zz" == "zz" ]; then
+    if [ -n "${TAG}" ]; then
         echo "This version is a tag : we're releasing a public version"
     fi
 else
@@ -76,7 +76,7 @@ cp -f ubuntu_touch/* tmp/
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
-if [ "${DRYRUN}zz" == "zz" ]; then
+if [ -z "${DRYRUN}" ]; then
     # Change permissions on source files to match those expected by the server
     chmod 644 build/*
     CURRENT_DATE=$(date +'%Y-%m-%d')
