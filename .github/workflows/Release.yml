@@ -51,6 +51,7 @@ jobs:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
           TAG_NAME: ${{ github.event.release.tag_name }}
+          CRON_LAUNCHED: ${{ github.event.schedule }}
         shell: bash
         # Switch -t indicates a tag release (public release); add -d for dry run (for testing)
         # BEFORE the -v switch (because $TAG_NAME is empty for non-public builds)
