@@ -13,6 +13,10 @@ on:
     - cron: '37 1 * * *'
   # Allows us to run this workflow manually from the Actions tab
   workflow_dispatch:
+      target:
+        description: Do you wish to build release or nightly?
+        required: false
+        default: 'nightly'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,14 +56,19 @@ jobs:
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
           TAG_NAME: ${{ github.event.release.tag_name }}
           CRON_LAUNCHED: ${{ github.event.schedule }}
+          INPUT_TARGET: ${{ github.event.inputs.target }}
         shell: bash
         # Switch -t indicates a tag release (public release); add -d for dry run (for testing)
         # BEFORE the -v switch (because $TAG_NAME is empty for non-public builds)
         run: |
+          # If user dispateched with "nightly", simulate a CRON run
+          if [ "$INPUT_TARGET" = "nightly" ]; then
+            CRON_LAUNCHED = "nightly"
+          fi
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
           Xvfb -ac :99 -screen 0 1280x1024x16 &
           export DISPLAY=:99
-          if [ "x$TAG_NAME" = "x" ]; then
+          if [ -z "$TAG_NAME" ]; then
             ./scripts/create_all_packages.sh
           else
             ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
