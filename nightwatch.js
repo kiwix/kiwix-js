@@ -60,6 +60,7 @@ module.exports = {
         "browserName": "firefox",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
+        "platformName": "Windows 10",
         "build": build
       }
     },
