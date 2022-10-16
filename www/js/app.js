@@ -95,7 +95,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
-    params['injectionModeChangeAlertDisplayed'] = settingsStore.getItem('injectionModeChangeAlertDisplayed');
+    params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
         // Defaults to serviceworker mode when the API is available
@@ -171,15 +171,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     // We check here if we have to warn the user that we switched to ServiceWorkerMode
-    // This is only needed if the Service Worker mode is available, but the user's settings are stuck on jQuery mode,
-    // and the user has not already been alerted about the switch to Service Worker mode by default
-    if (isServiceWorkerAvailable() && params.contentInjectionMode === 'jquery' && !params.injectionModeChangeAlertDisplayed) {
+    // This is only needed if the Service Worker mode is available, or we are in a Firefox Extension that supports Service Worker
+    // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
+    // alerted about the switch to Service Worker mode by default
+    if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^moz-extension:/i.test(window.location.protocol))
+        && params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
         // Attempt to upgrade user to Service Worker mode
         params.contentInjectionMode = 'serviceworker';
     } else if (params.contentInjectionMode === 'serviceworker') {
         // User is already in SW mode, so we will never need to display the upgrade alert
-        params.injectionModeChangeAlertDisplayed = true;
-        settingsStore.setItem('injectionModeChangeAlertDisplayed', true, Infinity);
+        params.defaultModeChangeAlertDisplayed = true;
+        settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -589,15 +591,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Checks whether we need to display an alert that the default Content Injection Mode has now been switched to Service Worker Mode
      */
     function checkAndDisplayInjectionModeChangeAlert() {
-        if (!params.injectionModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
+        if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
             uiUtil.systemAlert('<p>We have switched you to ServiceWorker mode (this is now the default). ' +
                 'It supports more types of ZIM archives and is much more robust.</p>' +
                 '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
                 'In that case, please report the problems you experienced to us (see About section).</p>',
                 'Change of default content injection mode'
             );
-            params.injectionModeChangeAlertDisplayed = true;
-            settingsStore.setItem('injectionModeChangeAlertDisplayed', true, Infinity);
+            params.defaultModeChangeAlertDisplayed = true;
+            settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
         }
     }
 
@@ -658,7 +660,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Set visibility of UI elements according to mode
         document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
         // Check to see whether we need to alert the user that we have switched to Service Worker mode by default
-        if (!params.injectionModeChangeAlertDisplayed) setTimeout(checkAndDisplayInjectionModeChangeAlert, 1500);
+        if (!params.defaultModeChangeAlertDisplayed) setTimeout(checkAndDisplayInjectionModeChangeAlert, 1500);
     }
 
     /**
