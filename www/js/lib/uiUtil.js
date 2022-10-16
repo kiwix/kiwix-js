@@ -273,7 +273,7 @@ define(rqDef, function(settingsStore) {
      * Displays a Bootstrap warning alert with information about the injection mode change
      */
     var injectionModeWarningSetup = false;
-    function displayInjectionModeChangeWarning() {
+    function displayInjectionModeChangeAlert() {
         var alertInjectionMode = document.getElementById('switchedToServiceWorkerModeAsDefault');
         alertInjectionMode.style.display = 'block';
         if (!injectionModeWarningSetup) {
@@ -676,7 +676,7 @@ define(rqDef, function(settingsStore) {
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
-        displayInjectionModeChangeWarning: displayInjectionModeChangeWarning,
+        displayInjectionModeChangeAlert: displayInjectionModeChangeAlert,
         displayFileDownloadAlert: displayFileDownloadAlert,
         checkUpdateStatus: checkUpdateStatus,
         checkServerIsAccessible: checkServerIsAccessible,

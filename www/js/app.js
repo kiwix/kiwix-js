@@ -96,7 +96,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
     // If no contentInjectionMode has already been stored in the user preferences, it means we don't need to inform the user (we did not change its prefered mode)
-    params['infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault'] = settingsStore.getItem('infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault') || !settingsStore.getItem('contentInjectionMode');
+    params['injectionModeChangeAlertDisplayed'] = settingsStore.getItem('injectionModeChangeAlertDisplayed') || !settingsStore.getItem('contentInjectionMode');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
         // Defaults to serviceworker mode when the API is available
@@ -172,12 +172,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     // We check here if we have to warn the user that we switched to ServiceWorkerMode
-    if (isServiceWorkerAvailable() && !params['infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault'] && settingsStore.getItem('contentInjectionMode') === 'jquery') {
+    if (isServiceWorkerAvailable() && !params['injectionModeChangeAlertDisplayed'] && !settingsStore.getItem('contentInjectionMode')) {
         // It's too early to show the div, because we might need to switch to configuration section first
         // And it's the last moment we can detect this need (before the injectionMode is changed)
         // So we need to put that info in a variable, that will be read later
-        var needsToGiveInfoForContentInjectionModeSwitchToServiceWorker = true;
-        params.contentInjectionMode = 'serviceworker';
+        var displayInjectionModeChangeAlert = true;
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -1517,8 +1516,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             
             // Inform the user about content injection mode switch, if necessary
-            if (needsToGiveInfoForContentInjectionModeSwitchToServiceWorker) {
-                uiUtil.displayInjectionModeChangeWarning();
+            if (displayInjectionModeChangeAlert) {
+                uiUtil.displayInjectionModeChangeAlert();
             }
 
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
