@@ -599,10 +599,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 'In that case, please report the problems you experienced to us (see About section).</p>',
                 'Change of default content injection mode'];
         } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
-            message = ['<p>Your browser or platform does not appear to support Service Worker mode, which is now the default for this app.</p>' +
-                '<p>You can continue to use the app in the (now deprecated) JQuery mode, but please note that this mode only works well with ' +
-                'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or (for now) Stackexchange.</p>' +
-                '<p>If you are able, we strongly recommend that you update your browser to a version that supports Service Worker mode.</p>',
+            message = ['<p>Your browser does not appear to support Service Worker mode, which is now the default for this app.</p>' +
+                '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
+                'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
+                '<p>If you can, we recommend that you update your browser to a version that supports Service Worker mode.</p>',
                 'Service Worker mode unsupported'];
         }
         if (message) {
@@ -832,10 +832,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } else {
                 if (!isServiceWorkerAvailable()) {
                     var message =
-                        '<p>Your browser or platform does not appear to support Service Worker mode, which is now the default for this app.</p>' +
-                        '<p>You can continue to use the app in the (now deprecated) JQuery mode, but please note that this mode only works well with ' +
-                        'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or (for now) Stackexchange.</p>' +
-                        '<p>If you are able, we strongly recommend that you update your browser to a version that supports Service Worker mode.</p>';
+                        '<p>Your browser does not appear to support Service Worker mode, which is now the default for this app.</p>' +
+                        '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
+                        'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
+                        '<p>If you can, we recommend that you update your browser to a version that supports Service Worker mode.</p>';
                     uiUtil.systemAlert(message, 'ServiceWorker API not available').then(function () {
                         if (params.referrerExtensionURL) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
@@ -969,10 +969,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             ('<p>We shall attempt to switch you to Service Worker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p><p>We ');
         message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA).</p>' +
-            '<p>The PWA will be able to run offline, but will auto-update periodically when online as per the Service Worker spec.</p>';
-        message += (params.defaultModeChangeAlertDisplayed ? '<p>You can switch back any time by returning to JQuery mode.</p>' :
-            ('<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
-            'In that case, please report the problems you experienced to us (see About section).</p>')) +
+            '<p>If available, the PWA will work offline, but will auto-update periodically when online as per the ' + 
+            'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
             '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
