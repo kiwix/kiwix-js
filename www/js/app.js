@@ -174,12 +174,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // This is only needed if the Service Worker mode is available, but the user's settings are stuck on jQuery mode,
     // and the user has not already been alerted about the switch to Service Worker mode by default
     if (isServiceWorkerAvailable() && params.contentInjectionMode === 'jquery' && !params.injectionModeChangeAlertDisplayed) {
-        // It's too early to show the div, because we might need to switch to configuration section first
-        // And it's the last moment we can detect this need (before the injectionMode is changed)
-        // So we need to put that info in a variable, that will be read later
-        var displayInjectionModeChangeAlert = true;
-        // Attempt to upgrade user to Service Worker mode (will happen in the line after this enclosure)
+        // Attempt to upgrade user to Service Worker mode
         params.contentInjectionMode = 'serviceworker';
+    } else if (params.contentInjectionMode === 'serviceworker') {
+        // User is already in SW mode, so we will never need to display the upgrade alert
+        params.injectionModeChangeAlertDisplayed = true;
+        settingsStore.setItem('injectionModeChangeAlertDisplayed', true, Infinity);
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -584,6 +584,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
         }
     }
+
+    /**
+     * Checks whether we need to display an alert that the default Content Injection Mode has now been switched to Service Worker Mode
+     */
+    function checkAndDisplayInjectionModeChangeAlert() {
+        if (!params.injectionModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
+            uiUtil.systemAlert('<p>We have switched you to ServiceWorker mode (this is now the default). ' +
+                'It supports more types of ZIM archives and is much more robust.</p>' +
+                '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
+                'In that case, please report the problems you experienced to us (see About section).</p>',
+                'Change of default content injection mode'
+            );
+            params.injectionModeChangeAlertDisplayed = true;
+            settingsStore.setItem('injectionModeChangeAlertDisplayed', true, Infinity);
+        }
+    }
+
     /**
      * Displays or refreshes the API status shown to the user
      */
@@ -638,9 +655,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
-
         // Set visibility of UI elements according to mode
         document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+        // Check to see whether we need to alert the user that we have switched to Service Worker mode by default
+        if (!params.injectionModeChangeAlertDisplayed) setTimeout(checkAndDisplayInjectionModeChangeAlert, 1500);
     }
 
     /**
@@ -1518,11 +1536,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 return;
             }
             
-            // Inform the user about content injection mode switch, if necessary
-            if (displayInjectionModeChangeAlert) {
-                uiUtil.displayInjectionModeChangeAlert();
-            }
-
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
             iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
