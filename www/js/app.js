@@ -833,7 +833,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (!isServiceWorkerAvailable()) {
                     uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
                         if (params.referrerExtensionURL) {
-                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery';
+                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                         } else {
                             setContentInjectionMode('jquery');
