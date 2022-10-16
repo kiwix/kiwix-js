@@ -139,7 +139,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         // If we are in the PWA version launched from an extension, send a 'success' message to the extension
         if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
-            var message = '?PWA_launch=success';
+            var message = '?PWA_launch=' + (isServiceWorkerAvailable() ? 'success' : 'nosw');
             // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
             // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
             // so we need to send a 'success' message each time the PWA is launched
@@ -824,7 +824,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         } else if (value === 'serviceworker') {
             var protocol = window.location.protocol;
             // Since Firefox 103, the ServiceWorker API is not available any more in Webextensions. See https://hg.mozilla.org/integration/autoland/rev/3a2907ad88e8 and https://bugzilla.mozilla.org/show_bug.cgi?id=1593931
-            // Previously, the API was available, but failed to register (which we could trap a fews lines below).
+            // Previously, the API was available, but failed to register (which we could trap a few lines below).
             // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
             // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
             if (protocol === 'moz-extension:' && !isServiceWorkerAvailable()) {

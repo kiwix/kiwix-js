@@ -39,8 +39,8 @@ params['keyPrefix'] = 'kiwixjs-'
 if (/PWA_launch=/.test(window.location.search)) {
     var match = /PWA_launch=([^&]+)/.exec(window.location.search);
     localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
-    // If we have successfully launched the PWA, we can prevent future default mode change alerts
-    if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
+    // If we have successfully launched the PWA (even if there was no SW mode available), we prevent future default mode change alerts
+    if (match[1] !== 'fail') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
     console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
 } else {
 
