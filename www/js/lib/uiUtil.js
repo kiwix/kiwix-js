@@ -268,27 +268,6 @@ define(rqDef, function(settingsStore) {
             });
         }
     }
-    
-    /**
-     * Displays a Bootstrap warning alert with information about the injection mode change
-     */
-    var injectionModeWarningSetup = false;
-    function displayInjectionModeChangeAlert() {
-        var alertInjectionMode = document.getElementById('switchedToServiceWorkerModeAsDefault');
-        alertInjectionMode.style.display = 'block';
-        if (!injectionModeWarningSetup) {
-            // We are setting up the injection mode switch warning for the first time
-            injectionModeWarningSetup = true;
-            alertInjectionMode.querySelector('button[data-hide]').addEventListener('click', function() {
-                alertInjectionMode.style.display = 'none';
-            });
-            document.getElementById('acknowledgeServiceWorkerModeAsDefault').addEventListener('click', function () {
-                alertInjectionMode.style.display = 'none';
-                params.defaultModeChangeAlertDisplayed = true;
-                settingsStore.setItem('defaultModeChangeAlertDisplayed', true);
-            });
-        }
-    }
 
     /**
      * Displays a Bootstrap alert box at the foot of the page to enable saving the content of the given title to the device's filesystem
@@ -676,7 +655,6 @@ define(rqDef, function(settingsStore) {
         deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
         removeUrlParameters: removeUrlParameters,
         displayActiveContentWarning: displayActiveContentWarning,
-        displayInjectionModeChangeAlert: displayInjectionModeChangeAlert,
         displayFileDownloadAlert: displayFileDownloadAlert,
         checkUpdateStatus: checkUpdateStatus,
         checkServerIsAccessible: checkServerIsAccessible,
