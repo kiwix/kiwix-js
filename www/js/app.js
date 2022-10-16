@@ -139,7 +139,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         // If we are in the PWA version launched from an extension, send a 'success' message to the extension
         if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
-            var message = '?PWA_launch=' + (isServiceWorkerAvailable() ? 'success' : 'nosw');
+            var message = '?PWA_launch=success';
             // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
             // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
             // so we need to send a 'success' message each time the PWA is launched
@@ -147,7 +147,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             frame.id = 'kiwixComm';
             frame.style.display = 'none';
             document.body.appendChild(frame);
-            frame.src = params.referrerExtensionURL + '/www/index.html'+ message;
+            frame.src = params.referrerExtensionURL + '/www/index.html' + message;
             // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
             setTimeout(function () {
                 var kiwixComm = document.getElementById('kiwixComm');
@@ -832,7 +832,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } else {
                 if (!isServiceWorkerAvailable()) {
                     uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
-                        setContentInjectionMode('jquery');
+                        if (params.referrerExtensionURL) {
+                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery';
+                            window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                        } else {
+                            setContentInjectionMode('jquery');
+                        }
                     });
                     return;
                 }
