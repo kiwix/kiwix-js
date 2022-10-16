@@ -836,7 +836,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                         'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                         '<p>If you can, we recommend that you update your browser to a version that supports Service Worker mode.</p>';
-                    uiUtil.systemAlert(message, 'ServiceWorker API not available', true).then(function (response) {
+                    uiUtil.systemAlert(message, 'ServiceWorker API not available', true, 'Cancel', 'Use JQuery mode').then(function (response) {
                         if (params.referrerExtensionURL && response) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
