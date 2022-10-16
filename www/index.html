@@ -302,33 +302,32 @@
                     <h4 id="modes">ServiceWorker and JQuery Modes</h4>
                     <p>
                         Depending on your browser or framework, this app may be capable of running in two different modes, which we call
-                        "ServiceWorker Mode" and "JQuert Mode" for short. There is a toggle under Compatibility Settings in Configuration.
+                        "ServiceWorker Mode" and "JQuery Mode" for short. There is a toggle under Compatibility Settings in Configuration.
                         Here is a technical explanation of what these modes do:
                         <ul>
                             <li>
-                                <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the browser or framework be capable of
-                                installing a Service Worker, which is most usually the case. It works by intercepting the browser or framework's Fetch calls (network requests)
-                                and supplying the requested content from the ZIM. This mode requires no DOM traversal, and the content is
-                                read and supplied as-is from the archive. Dynamic content (e.g. JavaScript) and proprietary UIs are fully
-                                supported in this mode. It can feel initially a little slower while commonly used assets are being cached,
-                                but it soon equals JQuery mode in speed, at least in modern browsers. However, older browsers such as IE11 are
-                                incompatible with this mode, and the app must be running in a secure context (<code>https:</code>, <code>localhost</code>,
-                                or certain browser extensions). While this mode is not natively supported in Mozilla (Firefox) browser
-                                extensions, we provide a functional workaround by re-launching the extension as a Progressive Web App (PWA).
-                                Note that this mode cannot run with the <code>file:</code> protocol (but only IE11 and old Edge allow the app to run
-                                by launching <code>index.html</code> from the file system).
+                                <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the browser or
+                                framework be capable of installing a Service Worker, which is usually the case in modern browsers. It works
+                                by intercepting the browser or framework's Fetch calls (network requests) and supplying the requested content
+                                from the ZIM. This mode requires no DOM traversal, and the content is read and supplied as-is from the archive.
+                                Dynamic content (e.g. JavaScript) and proprietary UIs are fully supported in this mode. It can feel initially a
+                                little slower while commonly used assets are being cached, but it soon equals JQuery mode in speed, at least in
+                                modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the app must be running
+                                in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser extensions). While this mode
+                                is not natively supported in Mozilla (Firefox) browser extensions, we provide a functional workaround by re-launching
+                                the extension as a Progressive Web App (PWA). Note that this mode cannot run with the <code>file:</code> protocol
+                                (but only IE11 and old Edge allow the app to run by launching <code>index.html</code> from the file system).
                             </li>
                             <li>
-                                <b>JQuery Mode</b>: This mode is deprecated (and does not in fact require JQuery). It should however be fine
-                                for everyday use with Wikipedia / WikiMedia archives. It is a way of inserting articles extracted from the
-                                ZIM into the DOM (browser document) by injecting the content into an iframe or tab. We then use
-                                native DOM methods, or sometimes JQuery, to parse the article's HTML and insert required assets 
-                                (images, stylesheets, event listeners for hyperlinks, etc.). On old devices, DOM traversal can be slow, 
-                                but it is compensated for because we do not extract or run JavaScript assets (which would be technically
-                                extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On the downside,
-                                ZIMs that have a proprietary dynamic UI (such as Gutenberg or TED talks) are only partially supported in this
-                                mode: the UI does not work, but articles can be searched for and loaded from the search bar. This mode is
-                                compatible with older browsers and frameworks.
+                                <b>JQuery Mode</b>: This mode is deprecated (and does not in fact require JQuery). It should, however, be fine
+                                for everyday use with Wikipedia / WikiMedia archives with non-dynamic content. It is a way of inserting articles
+                                extracted from the ZIM into the DOM (browser document) by injecting the content into an iframe or tab. We then use
+                                native DOM methods, or sometimes JQuery, to parse the article's HTML and insert required assets (images, stylesheets,
+                                event listeners for hyperlinks, etc.). On old devices, DOM traversal can be slow, but it is compensated for because
+                                we do not extract or run JavaScript assets (which would be technically extremely complicated). As a result, for
+                                WikiMedia archives this mode is usually quite fast. On the downside, ZIMs that have a proprietary dynamic UI (such as
+                                Gutenberg or TED talks) are only partially supported in this mode: the UI does not work, but articles can be searched
+                                for and loaded from the search bar. This mode is compatible with older browsers and frameworks.
                             </li>
                         </ul> 
                     </p>
@@ -576,7 +575,7 @@
                                     </label>
                                 </div>
                                 <div class="radio">
-                                    <label title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices">
+                                    <label title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jQueryModeRadio" checked>
                                         <strong>JQuery</strong> (deprecated, but compatible with older browsers and frameworks)
@@ -668,9 +667,10 @@
                     </div>
                     <div id="switchedToServiceWorkerModeAsDefault" style="display:none;" class="kiwix-alert alert-warning alert-dismissible fade show">
                         <button type="button" class="close" data-hide="alert">&times;</button>
-                        We've switched you to ServiceWorker mode (that is now the default mode).
-                        It supports more types of ZIM files and is much more sustainable.
-                        If you have problems in this ServiceWorker mode, you can switch back to the (now deprecated) jQuery mode. In this case, please report the problems to us (see About section)
+                        We've switched you to ServiceWorker mode (this is now the default).
+                        It supports more types of ZIM archives and is much more robust.
+                        If you have problems in this mode, you can switch back to the (now deprecated) jQuery mode.
+                        In this case, please report the problems you experienced to us (see About section).
                         &nbsp;[<a id="acknowledgeServiceWorkerModeAsDefault" href="#" class="alert-link">Acknowledge</a>]
                     </div>
                 </div>
