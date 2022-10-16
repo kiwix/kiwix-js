@@ -946,15 +946,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // DEV: See explanation below for why we access localStorage directly here
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
-        var message = params.defaultModeChangeAlertDisplayed ? 
-            '<p>We are switching you to Service Worker mode (this is now the default). ' +
-            'It supports more types of ZIM archives and is much more robust.</p><p>We ' : '<p>To enable the Service Worker, we ';
+        var message = params.defaultModeChangeAlertDisplayed ? '<p>To enable the Service Worker, we ' :
+            ('<p>We are switching you to Service Worker mode (this is now the default). ' +
+            'It supports more types of ZIM archives and is much more robust.</p><p>We ');
         message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA).</p>' +
             '<p>The PWA will be able to run offline, but will auto-update periodically when online as per the Service Worker spec.</p>';
-        message += (params.defaultModeChangeAlertDisplayed ? 
-            '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
-            'In that case, please report the problems you experienced to us (see About section).</p>' :
-            '<p>You can switch back any time by returning to JQuery mode.</p>') +
+        message += (params.defaultModeChangeAlertDisplayed ? '<p>You can switch back any time by returning to JQuery mode.</p>' :
+            ('<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
+            'In that case, please report the problems you experienced to us (see About section).</p>')) +
             '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
