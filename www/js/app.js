@@ -95,8 +95,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
-    // If no contentInjectionMode has already been stored in the user preferences, it means we don't need to inform the user (we did not change its prefered mode)
-    params['injectionModeChangeAlertDisplayed'] = settingsStore.getItem('injectionModeChangeAlertDisplayed') || !settingsStore.getItem('contentInjectionMode');
+    params['injectionModeChangeAlertDisplayed'] = settingsStore.getItem('injectionModeChangeAlertDisplayed');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
         // Defaults to serviceworker mode when the API is available
@@ -172,11 +171,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
     // We check here if we have to warn the user that we switched to ServiceWorkerMode
-    if (isServiceWorkerAvailable() && !params['injectionModeChangeAlertDisplayed'] && !settingsStore.getItem('contentInjectionMode')) {
+    // This is only needed if the Service Worker mode is available, but the user's settings are stuck on jQuery mode,
+    // and the user has not already been alerted about the switch to Service Worker mode by default
+    if (isServiceWorkerAvailable() && params.contentInjectionMode === 'jquery' && !params.injectionModeChangeAlertDisplayed) {
         // It's too early to show the div, because we might need to switch to configuration section first
         // And it's the last moment we can detect this need (before the injectionMode is changed)
         // So we need to put that info in a variable, that will be read later
         var displayInjectionModeChangeAlert = true;
+        // Attempt to upgrade user to Service Worker mode (will happen in the line after this enclosure)
+        params.contentInjectionMode = 'serviceworker';
     }
     setContentInjectionMode(params.contentInjectionMode);
 
