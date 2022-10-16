@@ -599,7 +599,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 'In that case, please report the problems you experienced to us (see About section).</p>',
                 'Change of default content injection mode'];
         } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
-            message = ['<p>Your browser does not appear to support Service Worker mode, which is now the default for this app.</p>' +
+            message = ['<p>Unfortunately, your browser does not appear to support Service Worker mode, which is now the default for this app.</p>' +
                 '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                 'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                 '<p>If you can, we recommend that you update your browser to a version that supports Service Worker mode.</p>',
@@ -832,7 +832,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } else {
                 if (!isServiceWorkerAvailable()) {
                     var message =
-                        '<p>Your browser does not appear to support Service Worker mode, which is now the default for this app.</p>' +
+                        '<p>Unfortunately, your browser does not appear to support Service Worker mode, which is now the default for this app.</p>' +
                         '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                         'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                         '<p>If you can, we recommend that you update your browser to a version that supports Service Worker mode.</p>';
