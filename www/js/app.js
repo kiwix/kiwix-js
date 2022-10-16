@@ -831,7 +831,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 launchMozillaExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
-                    uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
+                    var message =
+                        '<p>Your browser or platform does not appear to support Service Worker mode, which is now the default for this app.</p>' +
+                        '<p>You can continue to use the app in the (now deprecated) JQuery mode, but please note that this mode only works well with ' +
+                        'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or (for now) Stackexchange.</p>' +
+                        '<p>If you are able, we strongly recommend that you update your browser to a version that supports Service Worker mode.</p>';
+                    uiUtil.systemAlert(message, 'ServiceWorker API not available').then(function () {
                         if (params.referrerExtensionURL) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
