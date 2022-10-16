@@ -591,13 +591,22 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Checks whether we need to display an alert that the default Content Injection Mode has now been switched to Service Worker Mode
      */
     function checkAndDisplayInjectionModeChangeAlert() {
+        var message;
         if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
-            uiUtil.systemAlert('<p>We have switched you to Service Worker mode (this is now the default). ' +
+            message = ['<p>We have switched you to Service Worker mode (this is now the default). ' +
                 'It supports more types of ZIM archives and is much more robust.</p>' +
                 '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
                 'In that case, please report the problems you experienced to us (see About section).</p>',
-                'Change of default content injection mode'
-            );
+                'Change of default content injection mode'];
+        } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
+            message = ['<p>Your browser or platform does not appear to support Service Worker mode, which is now the default for this app.</p>' +
+                '<p>You can continue to use the app in the (now deprecated) JQuery mode, but please note that this mode only works well with ' +
+                'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or (for now) Stackexchange.</p>' +
+                '<p>If you are able, we strongly recommend that you update your browser to a version that supports Service Worker mode.</p>',
+                'Service Worker mode unsupported'];
+        }
+        if (message) {
+            uiUtil.systemAlert(message[0], message[1]);
             params.defaultModeChangeAlertDisplayed = true;
             settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
         }
