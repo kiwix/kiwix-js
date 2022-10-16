@@ -284,8 +284,8 @@ define(rqDef, function(settingsStore) {
             });
             document.getElementById('acknowledgeServiceWorkerModeAsDefault').addEventListener('click', function () {
                 alertInjectionMode.style.display = 'none';
-                params['infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault'] = true;
-                settingsStore.setItem('infoGivenForContentInjectionModeSwitchToServiceWorkerByDefault', true);
+                params.injectionModeChangeAlertDisplayed = true;
+                settingsStore.setItem('injectionModeChangeAlertDisplayed', true);
             });
         }
     }
