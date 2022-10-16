@@ -968,8 +968,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var message = params.defaultModeChangeAlertDisplayed ? '<p>To enable the Service Worker, we ' :
             ('<p>We shall attempt to switch you to Service Worker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p><p>We ');
-        message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA).</p>' +
-            '<p>If available, the PWA will work offline, but will auto-update periodically when online as per the ' + 
+        message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
+            'If available, the PWA will work offline, but will auto-update periodically when online as per the ' + 
             'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
             '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
         var launchPWA = function () {
