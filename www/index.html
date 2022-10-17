@@ -176,11 +176,11 @@
                         everything except video and audio. Larger versions without any of these qualifiers contain everything, though pictures are always compressed. 
                     </p>
                     <p>
-                        <strong>Currently only Mediawiki-based content (for instance <a href="https://download.kiwix.org/zim/wikipedia/" 
-                        target="_blank">Wikipedia&nbsp;<img src="img/Icon_External_Link.png" /></a> and <a href="https://download.kiwix.org/zim/wikivoyage/" target="_blank">
-                        Wikivoyage&nbsp;<img src="img/Icon_External_Link.png" /></a>), and <a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank"> StackExchange&nbsp;<img
-                        src="img/Icon_External_Link.png" /></a>, have been thoroughly tested</strong>. Dynamic content (e.g. PhET) is only supported in ServiceWorker Mode
-                        (see <a href="#modes">technical explanation</a> below).
+                        <strong>Dynamic content (e.g. PhET, or the proprietary User Interface in Gutenberg and TED Talks ZIMs) is supported in ServiceWorker Mode only (the default),
+                        but not in JQuery mode (see <a href="#modes">technical explanation</a> below). If you cannot run ServiceWorker mode, then you will most likely be limited to
+                        static Mediawiki-based content (for instance <a href="https://download.kiwix.org/zim/wikipedia/" target="_blank">Wikipedia&nbsp;<img src="img/Icon_External_Link.png" /></a>
+                        and <a href="https://download.kiwix.org/zim/wikivoyage/" target="_blank">Wikivoyage&nbsp;<img src="img/Icon_External_Link.png" /></a>), and
+                        <a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank"> StackExchange&nbsp;<img src="img/Icon_External_Link.png" /></a>.</strong>
                     </p>
                     <p>
                         For a quick test, you can start with the <a href="https://download.kiwix.org/zim/wikipedia_en_ray_charles_maxi.zim" target="_blank">
@@ -664,7 +664,7 @@
                         <button type="button" class="close" data-hide="alert">&times;</button>
                         <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />
                         Content may be available by searching above (type a letter of the alphabet), or else 
-                        <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to Service Worker mode</a>
+                        <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to ServiceWorker mode</a>
                         if your platform supports it. &nbsp;[<a id="stop" href="#expertSettingsDiv" class="alert-link">Permanently hide</a>]
                     </div>
                 </div>
