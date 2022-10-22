@@ -669,7 +669,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Set visibility of UI elements according to mode
         document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
         // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
-        if (!params.defaultModeChangeAlertDisplayed) setTimeout(checkAndDisplayInjectionModeChangeAlert, 1500);
+        if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
     }
 
     /**
