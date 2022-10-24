@@ -1,10 +1,12 @@
 # Kiwix JS
 
-Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/.
+Kiwix is an offline viewer for Wikipedia, Stackexchange, Project Gutenberg, and other Web resources packaged as highly compressed ZIM
+archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
 
-This is a ZIM archive reader for browser extensions or add-ons, developed in HTML5/Javascript. You can get the extension from the Mozilla,
-Chrome and Edge extension stores (search for "Kiwix", or click on a badge below). There is a version implemented as an offline-first
-Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
+Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
+can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (search for "Kiwix", or click on a badge
+below). There is also a version implemented as an offline-first Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/,
+primarily intended for use within the Mozilla Extension.
 
 Once you have obtained an archive (see below), select it in Kiwix JS, or drag-and-drop it into the app, and start searching for article
 titles. No further Internet access is required to read the archive's content. For example, you can have the entire content of Wikipedia
