@@ -94,10 +94,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
+    // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
+    params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
     // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
-        // Defaults to jquery in extensions, and serviceworker if accessing as a PWA
-        ((/^https?:$/i.test(window.location.protocol) && isServiceWorkerAvailable()) ? 'serviceworker' : 'jquery');
+        // Defaults to serviceworker mode when the API is available
+        (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
     // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
     // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
     params['useCanvasElementsForWebpTranscoding']; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
@@ -145,7 +147,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             frame.id = 'kiwixComm';
             frame.style.display = 'none';
             document.body.appendChild(frame);
-            frame.src = params.referrerExtensionURL + '/www/index.html'+ message;
+            frame.src = params.referrerExtensionURL + '/www/index.html' + message;
             // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
             setTimeout(function () {
                 var kiwixComm = document.getElementById('kiwixComm');
@@ -168,6 +170,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
+    // We check here if we have to warn the user that we switched to ServiceWorkerMode
+    // This is only needed if the ServiceWorker mode is available, or we are in a Firefox Extension that supports Service Workers
+    // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
+    // alerted about the switch to ServiceWorker mode by default
+    if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^moz-extension:/i.test(window.location.protocol))
+        && params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
+        // Attempt to upgrade user to ServiceWorker mode
+        params.contentInjectionMode = 'serviceworker';
+    } else if (params.contentInjectionMode === 'serviceworker') {
+        // User is already in SW mode, so we will never need to display the upgrade alert
+        params.defaultModeChangeAlertDisplayed = true;
+        settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
+    }
     setContentInjectionMode(params.contentInjectionMode);
 
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
@@ -458,7 +473,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
         if (params.contentInjectionMode !== 'serviceworker') {
-            uiUtil.systemAlert('This setting can only be used in Service Worker mode!');
+            uiUtil.systemAlert('This setting can only be used in ServiceWorker mode!');
             this.checked = false;
         } else {
             params.appCache = !this.checked;
@@ -571,6 +586,38 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
         }
     }
+
+    /**
+     * Checks whether we need to display an alert that the default Content Injection Mode has now been switched to ServiceWorker Mode
+     */
+    function checkAndDisplayInjectionModeChangeAlert() {
+        var message;
+        if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
+            message = ['<p>We have switched you to ServiceWorker mode (this is now the default). ' +
+                'It supports more types of ZIM archives and is much more robust.</p>' +
+                '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
+                'In that case, please report the problems you experienced to us (see About section).</p>',
+                'Change of default content injection mode'];
+            uiUtil.systemAlert(message[0], message[1]).then(function () {
+                settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
+            });
+        } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
+            message = ['<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
+                '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
+                'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
+                '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>',
+                'ServiceWorker mode unsupported'];
+            uiUtil.systemAlert(message[0], message[1], true, 'Cancel', 'Okay').then(function (result) {
+                if (result) {
+                    // If user selected OK, then do not display again ever
+                    settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
+                }
+            });
+        }
+        // This prevents the alert being displayed again this session
+        params.defaultModeChangeAlertDisplayed = true;
+    }
+
     /**
      * Displays or refreshes the API status shown to the user
      */
@@ -625,9 +672,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
-
         // Set visibility of UI elements according to mode
         document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+        // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
+        if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
     }
 
     /**
@@ -782,15 +830,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         } else if (value === 'serviceworker') {
             var protocol = window.location.protocol;
             // Since Firefox 103, the ServiceWorker API is not available any more in Webextensions. See https://hg.mozilla.org/integration/autoland/rev/3a2907ad88e8 and https://bugzilla.mozilla.org/show_bug.cgi?id=1593931
-            // Previously, the API was available, but failed to register (which we could trap a fews lines below).
+            // Previously, the API was available, but failed to register (which we could trap a few lines below).
             // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
             // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
             if (protocol === 'moz-extension:' && !isServiceWorkerAvailable()) {
                 launchMozillaExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
-                    uiUtil.systemAlert('The ServiceWorker API is not available on your device. Falling back to JQuery mode', 'ServiceWorker API not available').then(function () {
-                        setContentInjectionMode('jquery');
+                    var message =
+                        '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
+                        '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
+                        'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
+                        '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
+                    uiUtil.systemAlert(message, 'ServiceWorker API not available', true, 'Cancel', 'Use JQuery mode').then(function (response) {
+                        if (params.referrerExtensionURL && response) {
+                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
+                            window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                        } else {
+                            setContentInjectionMode('jquery');
+                        }
                     });
                     return;
                 }
@@ -803,7 +861,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (!isServiceWorkerReady()) {
                     $('#serviceWorkerStatus').html("ServiceWorker API available : trying to register it...");
                     if (navigator.serviceWorker.controller) {
-                        console.log("Active service worker found, no need to register");
+                        console.log("Active Service Worker found, no need to register");
                         serviceWorkerRegistration = true;
                         // Remove any jQuery hooks from a previous jQuery session
                         $('#articleContent').contents().remove();
@@ -851,6 +909,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                                 }
                                 uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
                                     setContentInjectionMode('jquery');
+                                    // We need to wait for the previous dialogue box to unload fully before attempting to display another
+                                    setTimeout(function () {
+                                        params.defaultModeChangeAlertDisplayed = false;
+                                        settingsStore.removeItem('defaultModeChangeAlertDisplayed');
+                                        checkAndDisplayInjectionModeChangeAlert();
+                                    }, 1200);
                                 });
                             }
                         });
@@ -860,7 +924,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     initOrKeepAliveServiceWorker();
                 }
             }
-            // User has switched to Service Worker mode, so no longer needs the memory cache
+            // User has switched to ServiceWorker mode, so no longer needs the memory cache
             // We should empty it to ensure good memory management
             resetCssCache();
         }
@@ -913,12 +977,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // DEV: See explanation below for why we access localStorage directly here
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
-        var message = 'To enable the Service Worker, we need one-time access to our secure server ' + 
-            'so that the app can re-launch as a Progressive Web App (PWA).<br/><br/>' +
-            'The PWA will be able to run offline, but will auto-update periodically when online ' + 
-            'as per the Service Worker spec.<br/><br/>' +
-            'You can switch back any time by returning to JQuery mode.<br/><br/>' +
-            'WARNING: This will attempt to access the following server: <br/>' + params.PWAServer + '<br/>';
+        var message = params.defaultModeChangeAlertDisplayed ? '<p>To enable the Service Worker, we ' :
+            ('<p>We shall attempt to switch you to ServiceWorker mode (this is now the default). ' +
+            'It supports more types of ZIM archives and is much more robust.</p><p>We ');
+        message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
+            'If available, the PWA will work offline, but will auto-update periodically when online as per the ' + 
+            'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
+            '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
         var launchPWA = function () {
             uiUtil.spinnerDisplay(false);
             var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
@@ -968,8 +1033,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (response) {
                     checkPWAIsOnline();
                 } else {
+                    // User cancelled, so wants to stay in JQuery mode
                     setContentInjectionMode('jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    // We should not bother user with the default mode change alert again
+                    params.defaultModeChangeAlertDisplayed = true;
+                    settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity)
                 }
             });
         }
@@ -1504,7 +1573,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
                 return;
             }
-
+            
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
             iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
@@ -1889,7 +1958,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
        /**
         * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
-        * be attached to the DOM. Users who want JS support should switch to Service Worker mode if avaialable on
+        * be attached to the DOM. Users who want JS support should switch to ServiceWorker mode if avaialable on
         * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
         * <kiwix-js/javaScript-support>.
         */
