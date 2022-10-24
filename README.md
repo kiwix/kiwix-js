@@ -60,14 +60,15 @@ Injection mode supported by the specific browser engine.
 - Mozilla Firefox >=52 (as an extension : https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
 - Google Chrome (or Chromium) >=58 (as an extension : https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
 - Microsoft Edge (Chromium) >=79 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
-- Universal Windows Platform (UWP) >=10.0.10240, Electron and NWJS (as an HTML/JS application : see https://github.com/kiwix/kiwix-js-windows/)
+- Electron and NWJS (as an application : see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
+- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application : see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application : https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
 These platforms/browsers are deprecated. We still partially test against them, and we'll try to keep compatibility as long as it's not too complicated:
 
+- Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
 - Microsoft Edge Legacy >=40 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
 
