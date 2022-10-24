@@ -62,7 +62,7 @@ Injection mode supported by the specific browser engine.
 - Mozilla Firefox >=52 (as an extension : https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
 - Google Chrome (or Chromium) >=58 (as an extension : https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
 - Microsoft Edge (Chromium) >=79 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Electron and NWJS (as an application : see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
+- Electron >=1.8.0 and NWJS >=0.14.7 (as an application : see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
 - Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application : see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application : https://open-store.io/app/kiwix)
 
