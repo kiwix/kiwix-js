@@ -46,10 +46,10 @@ module.exports = {
         "waitForConditionTimeout": 600
       }
     },
-    "firefox45" : {
+    "firefox52" : {
       "desiredCapabilities": {
         "browserName": "firefox",
-        "version": "45.0",
+        "version": "52.0",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "build": build
@@ -58,6 +58,7 @@ module.exports = {
     "firefox" : {
       "desiredCapabilities": {
         "browserName": "firefox",
+        "version": "100",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "build": build

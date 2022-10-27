@@ -10,10 +10,10 @@ module.exports = function (config) {
       accessKey: process.env.SAUCE_ACCESS_KEY
     },
     customLaunchers: {
-      firefox45: {
+      firefox52: {
         base: 'SauceLabs',
         browserName: 'firefox',
-        version: '45.0'
+        version: '52.0'
       },
       firefox: {
         base: 'SauceLabs',
@@ -61,7 +61,7 @@ module.exports = function (config) {
       'edge',
       'edge40',
       'edge44',
-      'firefox45',
+      'firefox52',
       'chrome58'
       // Skip unit tests in Internet Explorer due to Promise undefined
       // 'ie11'
