@@ -18,7 +18,7 @@ module.exports = function (config) {
       firefox: {
         base: 'SauceLabs',
         browserName: 'firefox',
-        version: '104'
+        version: '100'
       },
       chrome58: {
         base: 'SauceLabs',
