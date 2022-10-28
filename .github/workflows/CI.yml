@@ -103,7 +103,7 @@ jobs:
         run: |
           ./node_modules/.bin/http-server . &
           sleep 2
-          # curl "http://localhost:8080" | head
+          curl "http://localhost:8080" | head
           # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
           # So we separate the recent and old browsers in order to respect this limit.
           # REMINDER: Keep this list in sync with the Unit tests, in tests/karma.conf.saucelabs.js
