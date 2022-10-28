@@ -102,7 +102,7 @@ jobs:
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
         run: |
           ./node_modules/.bin/http-server . &
-          sleep 2
+          sleep 10
           curl "http://localhost:8080" | head
           # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
           # So we separate the recent and old browsers in order to respect this limit.
