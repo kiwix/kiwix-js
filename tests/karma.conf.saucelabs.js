@@ -15,11 +15,11 @@ module.exports = function (config) {
         browserName: 'firefox',
         version: '52.0'
       },
-      firefox: {
-        base: 'SauceLabs',
-        browserName: 'firefox',
-        version: '100'
-      },
+      // firefox: {
+      //   base: 'SauceLabs',
+      //   browserName: 'firefox',
+      //   version: '100'
+      // },
       chrome58: {
         base: 'SauceLabs',
         browserName: 'chrome',
@@ -56,7 +56,7 @@ module.exports = function (config) {
 
     // REMINDER: Keep this list in sync with the UI tests, in .github/workflows/CI.yml.
     browsers: [
-      'firefox',
+      // 'firefox',
       'chrome',
       'edge',
       'edge40',
