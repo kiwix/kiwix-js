@@ -58,7 +58,7 @@ module.exports = {
     "firefox" : {
       "desiredCapabilities": {
         "browserName": "firefox",
-        "version": "100",
+        "version": "latest",
         "javascriptEnabled": true,
         "acceptSslCerts": true,
         "build": build

@@ -109,7 +109,7 @@ jobs:
           # REMINDER: Keep this list in sync with the Unit tests, in tests/karma.conf.saucelabs.js
           ./node_modules/.bin/nightwatch -c nightwatch.js --env chrome,edge,firefox
           ./node_modules/.bin/nightwatch -c nightwatch.js --env edge40,edge44
-          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox52,chrome58,ie11
+          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox52,chrome58
           pkill node || echo "Node process not running (anymore)"
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
