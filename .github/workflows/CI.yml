@@ -90,27 +90,27 @@ jobs:
 
 
       # Start a SauceLabs tunnel for Nightwatch (Karma does this automatically)
-      - name: Start tunnel for End-to-end tests
-        uses: saucelabs/sauce-connect-action@v1.1.2
-        with:
-          username: ${{ secrets.SAUCE_USERNAME }}
-          accessKey: ${{ secrets.SAUCE_ACCESS_KEY }}
+      # - name: Start tunnel for End-to-end tests
+      #   uses: saucelabs/sauce-connect-action@v1.1.2
+      #   with:
+      #     username: ${{ secrets.SAUCE_USERNAME }}
+      #     accessKey: ${{ secrets.SAUCE_ACCESS_KEY }}
 
-      - name: End-to-end tests (Cross-browser)
-        env:
-          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-        run: |
-          ./node_modules/.bin/http-server . &
-          sleep 2
-          curl "http://localhost:8080" | head
-          # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
-          # So we separate the recent and old browsers in order to respect this limit.
-          # REMINDER: Keep this list in sync with the Unit tests, in tests/karma.conf.saucelabs.js
-          ./node_modules/.bin/nightwatch -c nightwatch.js --env chrome,edge
-          ./node_modules/.bin/nightwatch -c nightwatch.js --env edge40,edge44
-          ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox52,chrome58
-          pkill node || echo "Node process not running (anymore)"
+      # - name: End-to-end tests (Cross-browser)
+      #   env:
+      #     SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+      #     SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+      #   run: |
+      #     ./node_modules/.bin/http-server . &
+      #     sleep 2
+      #     curl "http://localhost:8080" | head
+      #     # The free account on Sauce does not allow more than 5 concurrent sessions (including the main one)
+      #     # So we separate the recent and old browsers in order to respect this limit.
+      #     # REMINDER: Keep this list in sync with the Unit tests, in tests/karma.conf.saucelabs.js
+      #     ./node_modules/.bin/nightwatch -c nightwatch.js --env chrome,edge
+      #     ./node_modules/.bin/nightwatch -c nightwatch.js --env edge40,edge44
+      #     ./node_modules/.bin/nightwatch -c nightwatch.js --env firefox52,chrome58
+      #     pkill node || echo "Node process not running (anymore)"
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
   test-offline-files:
