@@ -15,12 +15,11 @@ module.exports = function (config) {
         browserName: 'firefox',
         version: '52.0'
       },
-      // Disable latest Firefox due to #894
-      // firefox: {
-      //   base: 'SauceLabs',
-      //   browserName: 'firefox',
-      //   version: 'latest'
-      // },
+      firefox: {
+        base: 'SauceLabs',
+        browserName: 'firefox',
+        version: 'latest'
+      },
       chrome58: {
         base: 'SauceLabs',
         browserName: 'chrome',
@@ -45,27 +44,26 @@ module.exports = function (config) {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
         version: '18.17763'
+      },
+      ie11: {
+        base: 'SauceLabs',
+        browserName: 'internet explorer',
+        version: 'latest'
       }
-      // Disable IE11 due to Promise error
-      // ie11: {
-      //   base: 'SauceLabs',
-      //   browserName: 'internet explorer',
-      //   version: 'latest'
-      // }
     },
     // The free account on Sauce does not allow more than 5 concurrent sessions
     concurrency: 4,
 
     // REMINDER: Keep this list in sync with the UI tests, in .github/workflows/CI.yml.
     browsers: [
-      'firefox',
+      // 'firefox', // Disable latest Firefox due to #894
       'chrome',
       'edge',
       'edge40',
       'edge44',
       'firefox52',
-      'chrome58',
-      'ie11'
+      'chrome58'
+      // 'ie11' // Disable IE11 due to Promise error
     ],
     frameworks: ['qunit'],
     client: {
