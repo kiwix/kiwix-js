@@ -56,15 +56,14 @@ module.exports = function (config) {
 
     // REMINDER: Keep this list in sync with the UI tests, in .github/workflows/CI.yml.
     browsers: [
-      // 'firefox',
+      'firefox',
       'chrome',
       'edge',
       'edge40',
       'edge44',
       'firefox52',
-      'chrome58'
-      // Skip unit tests in Internet Explorer due to Promise undefined
-      // 'ie11'
+      'chrome58',
+      'ie11'
     ],
     frameworks: ['qunit'],
     client: {
