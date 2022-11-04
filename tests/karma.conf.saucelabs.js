@@ -15,11 +15,12 @@ module.exports = function (config) {
         browserName: 'firefox',
         version: '52.0'
       },
-      firefox: {
-        base: 'SauceLabs',
-        browserName: 'firefox',
-        version: 'latest'
-      },
+      // Disable latest Firefox due to #894
+      // firefox: {
+      //   base: 'SauceLabs',
+      //   browserName: 'firefox',
+      //   version: 'latest'
+      // },
       chrome58: {
         base: 'SauceLabs',
         browserName: 'chrome',
@@ -44,12 +45,13 @@ module.exports = function (config) {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
         version: '18.17763'
-      },
-      ie11: {
-        base: 'SauceLabs',
-        browserName: 'internet explorer',
-        version: 'latest'
       }
+      // Disable IE11 due to Promise error
+      // ie11: {
+      //   base: 'SauceLabs',
+      //   browserName: 'internet explorer',
+      //   version: 'latest'
+      // }
     },
     // The free account on Sauce does not allow more than 5 concurrent sessions
     concurrency: 4,
