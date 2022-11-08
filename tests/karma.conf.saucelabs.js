@@ -56,7 +56,7 @@ module.exports = function (config) {
 
     // REMINDER: Keep this list in sync with the UI tests, in .github/workflows/CI.yml.
     browsers: [
-      // 'firefox', // Disable latest Firefox due to #894
+      'firefox', // Disable latest Firefox due to #894
       'chrome',
       'edge',
       'edge40',
