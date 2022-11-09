@@ -4,6 +4,16 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Kiwix-JS v3.6.0
+
+Released on *TODO*
+
+* FEATURE: ServiceWorker Mode is now the default, and compatible clients upgrade automatically to this mode
+* FEATURE: On first run after update, the user is informed of the ServiceWorker Mode upgrade status (upgraded or incompatible)
+* UPDATE: Detection of active content updated for compatibility with more no-namespace ZIM archives
+* UPDATE: Nightly packages on the download server now include the date in their filenames
+* FIX: Kiwix icon now has an outline so that it is visible against dark OS backgrounds
+
 ## Kiwix-JS v3.5.0
 
 Released on *2022-08-05*
