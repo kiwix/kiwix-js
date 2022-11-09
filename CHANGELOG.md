@@ -10,6 +10,7 @@ Released on *TODO*
 
 * FEATURE: ServiceWorker Mode is now the default, and compatible clients upgrade automatically to this mode
 * FEATURE: On first run after update, the user is informed of the ServiceWorker Mode upgrade status (upgraded or incompatible)
+* COMPATIBILITY: Minimum Firefox version has been raised to >=52, due to lack of full Extension APIs in earlier versions 
 * UPDATE: Detection of active content updated for compatibility with more no-namespace ZIM archives
 * UPDATE: Nightly packages on the download server now include the date in their filenames
 * FIX: Kiwix icon now has an outline so that it is visible against dark OS backgrounds
