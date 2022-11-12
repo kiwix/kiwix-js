@@ -4,7 +4,7 @@
   "architecture": "all",
   "maintainer": "Kiwix team <contact+ubuntutouch@kiwix.org>",
   "framework" : "ubuntu-sdk-16.04",
-  "version" : "3.6-WIP",
+  "version" : "3.7-WIP",
   "title": "Kiwix",
   "hooks": {
     "kiwix": {
