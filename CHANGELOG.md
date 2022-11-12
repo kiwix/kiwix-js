@@ -6,7 +6,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.6.0
 
-Released on *TODO*
+Released on *2022-12-11*
 
 * FEATURE: ServiceWorker Mode is now the default, and compatible clients upgrade automatically to this mode
 * FEATURE: On first run after update, the user is informed of the ServiceWorker Mode upgrade status (upgraded or incompatible)
