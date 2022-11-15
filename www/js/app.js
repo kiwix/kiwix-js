@@ -1709,7 +1709,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#articleContent').contents().remove();
 
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
-        document.getElementById('downloadAlert').style.display = 'none';
+        var downloadAlert = document.getElementById('downloadAlert');
+        if (downloadAlert) downloadAlert.style.display = 'none';
 
         var iframeArticleContent = document.getElementById('articleContent');
 
