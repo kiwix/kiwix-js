@@ -239,9 +239,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var prefix = document.getElementById('prefix').value;
         // Do not initiate the same search if it is already in progress
         if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
-        $("#welcomeText").hide();
+        document.getElementById('welcomeText').style.display = 'none';
         $('.kiwix-alert').hide();
-        $("#searchingArticles").show();
+        document.getElementById('searchingArticles').style.display = '';
         pushBrowserHistoryState(null, prefix);
         // Initiate the search
         searchDirEntriesFromPrefix(prefix);
@@ -267,7 +267,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Hide the article list
             e.preventDefault();
             e.stopPropagation();
-            $('#articleListWithHeader').hide();
+            document.getElementById('articleListWithHeader').style.display = 'none';
             $('#articleContent').focus();
             keyPressHandled = true;
         }
@@ -323,21 +323,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Restore the search results if user goes back into prefix field
     $('#prefix').on('focus', function() {
         if ($('#prefix').val() !== '')
-            $('#articleListWithHeader').show();
+            document.getElementById('articleListWithHeader').style.display = '';
     });
     // Hide the search results if user moves out of prefix field
     $('#prefix').on('blur', function() {
         if (!searchArticlesFocused) {
             appstate.search.status = 'cancelled';
-            $("#searchingArticles").hide();
-            $('#articleListWithHeader').hide();
+            document.getElementById('searchingArticles').style.display = 'none';
+            document.getElementById('articleListWithHeader').style.display = 'none';
         }
     });
     $("#btnRandomArticle").on("click", function() {
         $('#prefix').val("");
         goToRandomArticle();
-        $("#welcomeText").hide();
-        $('#articleListWithHeader').hide();
+        document.getElementById('welcomeText').style.display = 'none';
+        document.getElementById('articleListWithHeader').style.display = 'none';
         $('.navbar-collapse').collapse('hide');
     });
 
@@ -374,23 +374,23 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (params.showUIAnimations) {
            uiUtil.applyAnimationToSection("home");
         } else {
-            $('#articleContent').show();
-            $('#about').hide();
-            $('#configuration').hide();
+            document.getElementById('articleContent').style.display = '';
+            document.getElementById('about').style.display = 'none';
+            document.getElementById('configuration').style.display = 'none';
         }
-        $('#navigationButtons').show();
-        $('#formArticleSearch').show();
-        $("#welcomeText").show();
+        document.getElementById('navigationButtons').style.display = '';
+        document.getElementById('formArticleSearch').style.display = '';
+        document.getElementById('welcomeText').style.display = '';
         // Give the focus to the search field, and clean up the page contents
         $("#prefix").val("");
         $('#prefix').focus();
         $("#articleList").empty();
         $('#articleListHeaderMessage').empty();
-        $("#searchingArticles").hide();
-        $("#articleContent").hide();
+        document.getElementById('searchingArticles').style.display = 'none';
+        document.getElementById('articleContent').style.display = 'none';
         $("#articleContent").contents().empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            $("#welcomeText").hide();
+            document.getElementById('welcomeText').style.display = 'none';
             goToMainArticle();
         }
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
@@ -408,14 +408,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (params.showUIAnimations) {
             uiUtil.applyAnimationToSection("config");
         } else {
-            $('#about').hide();
-            $('#configuration').show();
-            $('#articleContent').hide();
+            document.getElementById('about').style.display = 'none';
+            document.getElementById('configuration').style.display = '';
+            document.getElementById('articleContent').style.display = 'none';
         }
-        $('#navigationButtons').hide();
-        $('#formArticleSearch').hide();
-        $("#welcomeText").hide();
-        $("#searchingArticles").hide();
+        document.getElementById('navigationButtons').style.display = 'none';
+        document.getElementById('formArticleSearch').style.display = 'none';
+        document.getElementById('welcomeText').style.display = 'none';
+        document.getElementById('searchingArticles').style.display = 'none';
         $('.kiwix-alert').hide();
         refreshAPIStatus();
         refreshCacheStatus();
@@ -435,15 +435,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (params.showUIAnimations) {
             uiUtil.applyAnimationToSection("about");
         } else {
-            $('#about').show();
-            $('#configuration').hide();
-            $('#articleContent').hide();
+            document.getElementById('about').style.display = '';
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('articleContent').style.display = 'none';
         }
-        $('#navigationButtons').hide();
-        $('#formArticleSearch').hide();
-        $("#welcomeText").hide();
-        $('#articleListWithHeader').hide();
-        $("#searchingArticles").hide();
+        document.getElementById('navigationButtons').style.display = 'none';
+        document.getElementById('formArticleSearch').style.display = 'none';
+        document.getElementById('welcomeText').style.display = 'none';
+        document.getElementById('articleListWithHeader').style.display = 'none';
+        document.getElementById('searchingArticles').style.display = 'none';
         $('.kiwix-alert').hide();
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
@@ -1062,7 +1062,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function searchForArchivesInStorage() {
         // If DeviceStorage is available, we look for archives in it
         $("#btnConfigure").click();
-        $('#scanningForArchives').show();
+        document.getElementById('scanningForArchives').style.display = '';
         zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives, function () {
             // callbackError function is called in case of an error
             uiUtil.systemAlert(message, label).then(populateDropDownListOfArchives(null));
@@ -1100,11 +1100,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var titleSearch = event.state.titleSearch;
 
             $('#prefix').val("");
-            $("#welcomeText").hide();
-            $("#searchingArticles").hide();
+            document.getElementById('welcomeText').style.display = 'none';
+            document.getElementById('searchingArticles').style.display = 'none';
             $('.navbar-collapse').collapse('hide');
-            $('#configuration').hide();
-            $('#articleListWithHeader').hide();
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('articleListWithHeader').style.display = 'none';
             $('#articleContent').contents().empty();
 
             if (title && !(""===title)) {
@@ -1125,8 +1125,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {Array.<String>} archiveDirectories
      */
     function populateDropDownListOfArchives(archiveDirectories) {
-        $('#scanningForArchives').hide();
-        $('#chooseArchiveFromLocalStorage').show();
+        document.getElementById('scanningForArchives').style.display = 'none';
+        document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
         var comboArchiveList = document.getElementById('archiveList');
         comboArchiveList.options.length = 0;
         for (var i = 0; i < archiveDirectories.length; i++) {
@@ -1383,10 +1383,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
             // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
             appstate.search = {'prefix': prefix, 'status': 'init', 'type': '', 'size': params.maxSearchResultsSize};
-            $('#activeContent').hide();
+            var activeContent = document.getElementById('activeContent');
+            if (activeContent) activeContent.style.display = 'none';
             selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
         } else {
-            $('#searchingArticles').hide();
+            document.getElementById('searchingArticles').style.display = 'none';
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             $("#searchArticles").focus();
@@ -1443,8 +1444,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             handleTitleClick(e);
             return false;
         });
-        if (!stillSearching) $('#searchingArticles').hide();
-        $('#articleListWithHeader').show();
+        if (!stillSearching) document.getElementById('searchingArticles').style.display = 'none';
+        document.getElementById('articleListWithHeader').style.display = '';
     }
 
     /**
@@ -1468,7 +1469,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
             // Remove focus from search field to hide keyboard and to allow navigation keys to be used
             document.getElementById('articleContent').contentWindow.focus();
-            $("#searchingArticles").show();
+            document.getElementById('searchingArticles').style.display = '';
             if (dirEntry.isRedirect()) {
                 selectedArchive.resolveRedirect(dirEntry, readArticle);
             } else {
@@ -1521,12 +1522,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
                 $("#cachingAssets").html("Caching assets...");
-                $("#cachingAssets").hide();
-                $("#searchingArticles").hide();
+                document.getElementById('cachingAssets').style.display = 'none';
+                document.getElementById('searchingArticles').style.display = 'none';
                 // Set the requested appTheme
                 uiUtil.applyAppTheme(params.appTheme);
                 // Display the iframe content
-                $("#articleContent").show();
+                document.getElementById('articleContent').style.display = '';
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
                 var docBody = doc ? doc.getElementsByTagName('body') : null;
@@ -1563,9 +1564,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
                         $("#articleList").empty();
                         $('#articleListHeaderMessage').empty();
-                        $('#articleListWithHeader').hide();
+                        document.getElementById('articleListWithHeader').style.display = 'none';
                         $("#prefix").val("");
-                        $("#searchingArticles").show();
+                        document.getElementById('searchingArticles').style.display = '';
                     };
                 }
             };
@@ -1583,7 +1584,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             } else {
                 // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
                 // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
-                $("#searchingArticles").show();
+                document.getElementById('searchingArticles').style.display = '';
                 selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
             }
         }
@@ -1709,7 +1710,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('#articleContent').contents().remove();
 
         // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
-        $('#downloadAlert').hide();
+        var downloadAlert = document.getElementById('downloadAlert');
+        if (downloadAlert) downloadAlert.style.display = 'none';
 
         var iframeArticleContent = document.getElementById('articleContent');
 
@@ -1717,7 +1719,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             iframeArticleContent.onload = function(){};
             $("#articleList").empty();
             $('#articleListHeaderMessage').empty();
-            $('#articleListWithHeader').hide();
+            document.getElementById('articleListWithHeader').style.display = 'none';
             $("#prefix").val("");
 
             var iframeContentDocument = iframeArticleContent.contentDocument;
@@ -1915,7 +1917,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     else uiUtil.feedNodeWithDataURI(link, 'href', nodeContent, link.type || 'image');
                     cssFulfilled++;
                 } else {
-                    if (params.assetsCache) $('#cachingAssets').show();
+                    if (params.assetsCache) document.getElementById('cachingAssets').style.display = '';
                     selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                         if (!dirEntry) {
                             cssCache.set(url, ''); // Prevent repeated lookups of this unfindable asset
@@ -1945,9 +1947,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
                     $('#cachingAssets').html('Caching assets...');
-                    $('#cachingAssets').hide();
-                    $('#searchingArticles').hide();
-                    $('#articleContent').show();
+                    document.getElementById('cachingAssets').style.display = 'none';
+                    document.getElementById('searchingArticles').style.display = 'none';
+                    document.getElementById('articleContent').style.display = '';
                     // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                     resizeIFrame();
                 } else {
@@ -2062,10 +2064,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} contentType The mimetype of the downloadable file, if known
      */
     function goToArticle(path, download, contentType) {
-        $("#searchingArticles").show();
+        document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
-                $("#searchingArticles").hide();
+                document.getElementById('searchingArticles').style.display = 'none';
                 uiUtil.systemAlert("Article with url " + path + " not found in the archive", "Error: article not found");
             } else if (download) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
@@ -2074,7 +2076,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 });
             } else {
                 params.isLandingPage = false;
-                $('#activeContent').hide();
+                var activeContent = document.getElementById('activeContent');
+                if (activeContent) activeContent.style.display = 'none';
                 readArticle(dirEntry);
             }
         }).catch(function(e) { uiUtil.systemAlert("Error reading article with url " + path + " : " + e, "Error while reading article"); });
@@ -2082,10 +2085,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     function goToRandomArticle() {
         if (selectedArchive !== null && selectedArchive.isReady()) {
-            $('#searchingArticles').show();
+            document.getElementById('searchingArticles').style.display = '';
             selectedArchive.getRandomDirEntry(function (dirEntry) {
                 if (dirEntry === null || dirEntry === undefined) {
-                    $('#searchingArticles').hide();
+                    document.getElementById('searchingArticles').style.display = 'none';
                     uiUtil.systemAlert('Error finding random article', 'Error finding article');
                 } else {
                     // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
@@ -2093,8 +2096,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // all dirEntries in an article-only listing must be articles.
                     if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                         params.isLandingPage = false;
-                        $('#activeContent').hide();
-                        $('#searchingArticles').show();
+                        var activeContent = document.getElementById('activeContent');
+                        if (activeContent) activeContent.style.display = 'none';
+                        document.getElementById('searchingArticles').style.display = '';
                         readArticle(dirEntry);
                     } else {
                         // If the random title search did not end up on an article,
@@ -2112,12 +2116,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     function goToMainArticle() {
-        $("#searchingArticles").show();
+        document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getMainPageDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 console.error("Error finding main article.");
-                $("#searchingArticles").hide();
-                $("#welcomeText").show();
+                document.getElementById('searchingArticles').style.display = 'none';
+                document.getElementById('welcomeText').style.display = '';
             } else {
                 // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
                 if (selectedArchive._file.zimType === 'zimit') {
@@ -2128,8 +2132,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         'Kiwix Serve is included with <a href="https://www.kiwix.org/en/download/" target="_blank">Kiwix Desktop</a>.</p>',
                         'Unsupported archive type!'
                     );
-                    $("#searchingArticles").hide();
-                    $("#welcomeText").show();
+                    document.getElementById('searchingArticles').style.display = 'none';
+                    document.getElementById('welcomeText').style.display = '';
                 } else {
                     // DEV: see comment above under goToRandomArticle()
                     if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
@@ -2137,8 +2141,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         readArticle(dirEntry);
                     } else {
                         console.error("The main page of this archive does not seem to be an article");
-                        $("#searchingArticles").hide();
-                        $("#welcomeText").show();
+                        document.getElementById('searchingArticles').style.display = 'none';
+                        document.getElementById('welcomeText').style.display = '';
                     }
                 }
             }

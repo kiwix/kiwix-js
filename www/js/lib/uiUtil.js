@@ -240,7 +240,7 @@ define(rqDef, function(settingsStore) {
     var activeContentWarningSetup = false;
     function displayActiveContentWarning() {
         var alertActiveContent = document.getElementById('activeContent');
-        alertActiveContent.style.display = 'block';
+        alertActiveContent.style.display = '';
         if (!activeContentWarningSetup) {
             // We are setting up the active content warning for the first time
             activeContentWarningSetup = true;
@@ -318,7 +318,7 @@ define(rqDef, function(settingsStore) {
                 });
             }
         }
-        $("#searchingArticles").hide();
+        document.getElementById('searchingArticles').style.display = 'none';
     }
 
     /**
@@ -422,52 +422,52 @@ define(rqDef, function(settingsStore) {
             if (!$('#configuration').is(':hidden')) {
                 $('#configuration').addClass('slideOut_R');
                 setTimeout(function () {
-                    $('#configuration').hide();
+                    document.getElementById('configuration').style.display = 'none';
                 }, 300);
             }
             if (!$('#about').is(':hidden')) {
                 $('#about').addClass('slideOut_R');
                 setTimeout(function () {
-                    $('#about').hide();
+                    document.getElementById('about').style.display = 'none';
                 }, 300);
             }
             $('#articleContent').addClass('slideIn_R');
             setTimeout(function () {
-                $('#articleContent').show();
+                document.getElementById('articleContent').style.display = '';
             }, 300);
         } else if (section == 'config') {
             if (!$('#about').is(':hidden')) {
                 $('#about').addClass('slideOut_R');
                 $('#configuration').addClass('slideIn_R');
                 setTimeout(function () {
-                    $('#about').hide();
+                    document.getElementById('about').style.display = 'none';
                 }, 300);
             } else if (!$('#articleContent').is(':hidden')) {
                 $('#articleContent').addClass('slideOut_L');
                 $('#configuration').addClass('slideIn_L');
                 setTimeout(function () {
-                    $('#articleContent').hide();
+                    document.getElementById('articleContent').style.display = 'none';
                 }, 300);
             }
             setTimeout(function () {
-                $('#configuration').show();
+                document.getElementById('configuration').style.display = '';
             }, 300);
         } else if (section == 'about') {
             if (!$('#configuration').is(':hidden')) {
                 $('#configuration').addClass('slideOut_L');
                 setTimeout(function () {
-                    $('#configuration').hide();
+                    document.getElementById('configuration').style.display = 'none';
                 }, 300);
             }
             if (!$('#articleContent').is(':hidden')) {
                 $('#articleContent').addClass('slideOut_L');
                 setTimeout(function () {
-                    $('#articleContent').hide();
+                    document.getElementById('articleContent').style.display = 'none';
                 }, 300);
             }
             $('#about').addClass('slideIn_L');
             setTimeout(function () {
-                $('#about').show();
+                document.getElementById('about').style.display = '';
             }, 300);
         }
     }
