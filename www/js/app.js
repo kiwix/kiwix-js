@@ -1383,7 +1383,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
             // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
             appstate.search = {'prefix': prefix, 'status': 'init', 'type': '', 'size': params.maxSearchResultsSize};
-            document.getElementById('activeContent').style.display = 'none';
+            var activeContent = document.getElementById('activeContent');
+            if (activeContent) activeContent.style.display = 'none';
             selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
         } else {
             document.getElementById('searchingArticles').style.display = 'none';
@@ -2075,7 +2076,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 });
             } else {
                 params.isLandingPage = false;
-                document.getElementById('activeContent').style.display = 'none';
+                var activeContent = document.getElementById('activeContent');
+                if (activeContent) activeContent.style.display = 'none';
                 readArticle(dirEntry);
             }
         }).catch(function(e) { uiUtil.systemAlert("Error reading article with url " + path + " : " + e, "Error while reading article"); });
@@ -2094,7 +2096,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     // all dirEntries in an article-only listing must be articles.
                     if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                         params.isLandingPage = false;
-                        document.getElementById('activeContent').style.display = 'none';
+                        var activeContent = document.getElementById('activeContent');
+                        if (activeContent) activeContent.style.display = 'none';
                         document.getElementById('searchingArticles').style.display = '';
                         readArticle(dirEntry);
                     } else {

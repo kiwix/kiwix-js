@@ -240,7 +240,7 @@ define(rqDef, function(settingsStore) {
     var activeContentWarningSetup = false;
     function displayActiveContentWarning() {
         var alertActiveContent = document.getElementById('activeContent');
-        alertActiveContent.style.display = 'block';
+        alertActiveContent.style.display = '';
         if (!activeContentWarningSetup) {
             // We are setting up the active content warning for the first time
             activeContentWarningSetup = true;
