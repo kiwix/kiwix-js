@@ -29,7 +29,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-img:not([class|="mwe-math-fallback-image"]),
+img:not([class|="mwe-math-fallback-image"], [class^="latex"]),
 video,
 canvas {
     filter: invert(1) hue-rotate(180deg);
