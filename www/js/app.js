@@ -354,7 +354,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         return false;
     });
     $('#btnHomeBottom').on('click', function() {
-        document.getElementById("btnHome").click();
+        document.getElementById('btnHome').click();
         return false;
     });
     $('#btnTop').on('click', function() {
@@ -383,13 +383,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('formArticleSearch').style.display = '';
         document.getElementById('welcomeText').style.display = '';
         // Give the focus to the search field, and clean up the page contents
-        $("#prefix").val("");
+        document.getElementById('prefix').value = '';
         document.getElementById('prefix').focus();
-        $("#articleList").empty();
-        $('#articleListHeaderMessage').empty();
+        let articleList = document.getElementById('articleList');
+        let articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
+        while(articleList.firstChild) articleList.removeChild(articleList.firstChild);
+        while(articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleContent').style.display = 'none';
-        $("#articleContent").contents().empty();
+        let articleContent = document.getElementById('articleContent');
+        while(articleContent.firstChild) articleContent.removeChild(articleContent.firstChild);
+        $('#articleContent').contents().empty();
         if (selectedArchive !== null && selectedArchive.isReady()) {
             document.getElementById('welcomeText').style.display = 'none';
             goToMainArticle();
@@ -400,15 +404,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     $('#btnConfigure').on('click', function() {
         // Highlight the selected section in the navbar
-        document.getElementById('liHomeNav').setAttribute("class", "");
-        document.getElementById('liConfigureNav').setAttribute("class", "active");
-        document.getElementById('liAboutNav').setAttribute("class", "");
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', 'active');
+        document.getElementById('liAboutNav').setAttribute('class', '');
 
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
         if (params.showUIAnimations) {
-            uiUtil.applyAnimationToSection("config");
+            uiUtil.applyAnimationToSection('config');
         } else {
             document.getElementById('about').style.display = 'none';
             document.getElementById('configuration').style.display = '';
@@ -428,10 +432,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     $('#btnAbout').on('click', function() {
         // Highlight the selected section in the navbar
-        document.getElementById('liHomeNav').setAttribute("class", "");
-        document.getElementById('liConfigureNav').setAttribute("class", "");
-        document.getElementById('liAboutNav').setAttribute("class", "active");
-
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', '');
+        document.getElementById('liAboutNav').setAttribute('class', 'active');
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
@@ -1092,7 +1095,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Archive files are already selected,
             setLocalArchiveFromFileSelect();
         } else {
-            document.getElementById("btnConfigure").click();
+            document.getElementById('btnConfigure').click();
         }
     }
 
@@ -1295,7 +1298,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
             // The archive is set : go back to home page to start searching
-            document.getElementById("btnHome").click();
+            document.getElementById('btnHome').click();
             document.getElementById('downloadInstruction').style.display = 'none';
         }, function (message, label) {
             // callbackError which is called in case of an error
@@ -1365,9 +1368,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             window.clearTimeout(window.timeoutKeyUpPrefix);
         }
         window.timeoutKeyUpPrefix = window.setTimeout(function () {
-            var prefix = $("#prefix").val();
+            var prefix = document.getElementById('prefix').value;
             if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
-                document.getElementById("searchArticles").click();
+                document.getElementById('searchArticles').click();
             }
         }, 500);
     }
@@ -1394,8 +1397,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
             document.getElementById('searchArticles').focus();
-            uiUtil.systemAlert("Archive not set : please select an archive", "No archive selected").then(function () {
-                document.getElementById("btnConfigure").click();
+            uiUtil.systemAlert('Archive not set : please select an archive', 'No archive selected').then(function () {
+                document.getElementById('btnConfigure').click();
             });
         }
     }
@@ -2113,7 +2116,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         } else {
             // Showing the relevant error message and redirecting to config page for adding the ZIM file
             uiUtil.systemAlert('Archive not set : please select an archive', 'No archive selected').then(function () {
-                document.getElementById("btnConfigure").click();
+                document.getElementById('btnConfigure').click();
             });
         }
     }
