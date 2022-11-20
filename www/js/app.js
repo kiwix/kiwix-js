@@ -268,7 +268,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             e.preventDefault();
             e.stopPropagation();
             document.getElementById('articleListWithHeader').style.display = 'none';
-            $('#articleContent').focus();
+            document.getElementById('articleContent').focus();
             keyPressHandled = true;
         }
         // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
@@ -354,7 +354,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         return false;
     });
     $('#btnHomeBottom').on('click', function() {
-        $('#btnHome').click();
+        document.getElementById("btnHome").click();
         return false;
     });
     $('#btnTop').on('click', function() {
@@ -365,9 +365,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Top menu :
     $('#btnHome').on('click', function() {
         // Highlight the selected section in the navbar
-        $('#liHomeNav').attr("class","active");
-        $('#liConfigureNav').attr("class","");
-        $('#liAboutNav').attr("class","");
+        document.getElementById('liHomeNav').setAttribute("class", "active");
+        document.getElementById('liConfigureNav').setAttribute("class", "");
+        document.getElementById('liAboutNav').setAttribute("class", "");
+
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
@@ -383,7 +384,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('welcomeText').style.display = '';
         // Give the focus to the search field, and clean up the page contents
         $("#prefix").val("");
-        $('#prefix').focus();
+        document.getElementById('prefix').focus();
         $("#articleList").empty();
         $('#articleListHeaderMessage').empty();
         document.getElementById('searchingArticles').style.display = 'none';
@@ -399,9 +400,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     $('#btnConfigure').on('click', function() {
         // Highlight the selected section in the navbar
-        $('#liHomeNav').attr("class","");
-        $('#liConfigureNav').attr("class","active");
-        $('#liAboutNav').attr("class","");
+        document.getElementById('liHomeNav').setAttribute("class", "");
+        document.getElementById('liConfigureNav').setAttribute("class", "active");
+        document.getElementById('liAboutNav').setAttribute("class", "");
+
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
@@ -426,9 +428,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     $('#btnAbout').on('click', function() {
         // Highlight the selected section in the navbar
-        $('#liHomeNav').attr("class","");
-        $('#liConfigureNav').attr("class","");
-        $('#liAboutNav').attr("class","active");
+        document.getElementById('liHomeNav').setAttribute("class", "");
+        document.getElementById('liConfigureNav').setAttribute("class", "");
+        document.getElementById('liAboutNav').setAttribute("class", "active");
+
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
@@ -1061,7 +1064,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     function searchForArchivesInStorage() {
         // If DeviceStorage is available, we look for archives in it
-        $("#btnConfigure").click();
+        document.getElementById("btnConfigure").click();
         document.getElementById('scanningForArchives').style.display = '';
         zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives, function () {
             // callbackError function is called in case of an error
@@ -1089,7 +1092,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Archive files are already selected,
             setLocalArchiveFromFileSelect();
         } else {
-            $("#btnConfigure").click();
+            document.getElementById("btnConfigure").click();
         }
     }
 
@@ -1114,7 +1117,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (titleSearch !== appstate.search.prefix) {
                     searchDirEntriesFromPrefix(titleSearch);
                 } else {
-                    $('#prefix').focus();
+                    document.getElementById('prefix').focus();
                 }
             }
         }
@@ -1154,7 +1157,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         } else {
             uiUtil.systemAlert("Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", "Welcome")
             .then(function () {
-                $("#btnAbout").click();
+                document.getElementById("btnAbout").click();
                 var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
                 if (isAndroid) {
                     uiUtil.systemAlert("You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", "Warning");
@@ -1202,7 +1205,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
                 settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
                 // The archive is set : go back to home page to start searching
-                $("#btnHome").click();
+                document.getElementById("btnHome").click();
             }, function (message, label) {
                 // callbackError which is called in case of an error
                 uiUtil.systemAlert(message, label);
@@ -1292,7 +1295,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         resetCssCache();
         selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
             // The archive is set : go back to home page to start searching
-            $("#btnHome").click();
+            document.getElementById("btnHome").click();
             document.getElementById('downloadInstruction').style.display = 'none';
         }, function (message, label) {
             // callbackError which is called in case of an error
@@ -1364,7 +1367,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         window.timeoutKeyUpPrefix = window.setTimeout(function () {
             var prefix = $("#prefix").val();
             if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
-                $('#searchArticles').click();
+                document.getElementById("searchArticles").click();
             }
         }, 500);
     }
@@ -1390,9 +1393,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             document.getElementById('searchingArticles').style.display = 'none';
             // We have to remove the focus from the search field,
             // so that the keyboard does not stay above the message
-            $("#searchArticles").focus();
+            document.getElementById('searchArticles').focus();
             uiUtil.systemAlert("Archive not set : please select an archive", "No archive selected").then(function () {
-                $("#btnConfigure").click();
+                document.getElementById("btnConfigure").click();
             });
         }
     }
@@ -2110,7 +2113,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         } else {
             // Showing the relevant error message and redirecting to config page for adding the ZIM file
             uiUtil.systemAlert('Archive not set : please select an archive', 'No archive selected').then(function () {
-                $('#btnConfigure').click();
+                document.getElementById("btnConfigure").click();
             });
         }
     }
