@@ -368,7 +368,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('liHomeNav').setAttribute("class", "active");
         document.getElementById('liConfigureNav').setAttribute("class", "");
         document.getElementById('liAboutNav').setAttribute("class", "");
-
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
@@ -406,7 +405,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', 'active');
         document.getElementById('liAboutNav').setAttribute('class', '');
-
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
