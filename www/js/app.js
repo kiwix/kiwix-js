@@ -387,13 +387,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('prefix').focus();
         let articleList = document.getElementById('articleList');
         let articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
-        while(articleList.firstChild) articleList.removeChild(articleList.firstChild);
-        while(articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
+        while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
+        while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleContent').style.display = 'none';
         let articleContent = document.getElementById('articleContent');
-        while(articleContent.firstChild) articleContent.removeChild(articleContent.firstChild);
-        $('#articleContent').contents().empty();
+        while (articleContent.firstChild) articleContent.removeChild(articleContent.firstChild);
         if (selectedArchive !== null && selectedArchive.isReady()) {
             document.getElementById('welcomeText').style.display = 'none';
             goToMainArticle();
@@ -1067,7 +1066,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     function searchForArchivesInStorage() {
         // If DeviceStorage is available, we look for archives in it
-        document.getElementById("btnConfigure").click();
+        document.getElementById('btnConfigure').click();
         document.getElementById('scanningForArchives').style.display = '';
         zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives, function () {
             // callbackError function is called in case of an error
