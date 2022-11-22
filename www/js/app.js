@@ -365,9 +365,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // Top menu :
     $('#btnHome').on('click', function() {
         // Highlight the selected section in the navbar
-        document.getElementById('liHomeNav').setAttribute("class", "active");
-        document.getElementById('liConfigureNav').setAttribute("class", "");
-        document.getElementById('liAboutNav').setAttribute("class", "");
+        document.getElementById('liHomeNav').setAttribute('class', 'active');
+        document.getElementById('liConfigureNav').setAttribute('class', '');
+        document.getElementById('liAboutNav').setAttribute('class', '');
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
@@ -1136,33 +1136,33 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         comboArchiveList.options.length = 0;
         for (var i = 0; i < archiveDirectories.length; i++) {
             var archiveDirectory = archiveDirectories[i];
-            if (archiveDirectory === "/") {
-                uiUtil.systemAlert("It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory", "Error: invalid archive files location");
+            if (archiveDirectory === '/') {
+                uiUtil.systemAlert('It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory', 'Error: invalid archive files location');
             } else {
                 comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
             }
         }
         // Store the list of archives in the Settings Store, to avoid rescanning at each start
-        settingsStore.setItem("listOfArchives", archiveDirectories.join('|'), Infinity);
+        settingsStore.setItem('listOfArchives', archiveDirectories.join('|'), Infinity);
 
         $('#archiveList').on('change', setLocalArchiveFromArchiveList);
         if (comboArchiveList.options.length > 0) {
-            var lastSelectedArchive = settingsStore.getItem("lastSelectedArchive");
-            if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== "") {
+            var lastSelectedArchive = settingsStore.getItem('lastSelectedArchive');
+            if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== '') {
                 // Attempt to select the corresponding item in the list, if it exists
                 if ($("#archiveList option[value='"+lastSelectedArchive+"']").length > 0) {
-                    $("#archiveList").val(lastSelectedArchive);
+                    $('#archiveList').val(lastSelectedArchive);
                 }
             }
             // Set the localArchive as the last selected (or the first one if it has never been selected)
             setLocalArchiveFromArchiveList();
         } else {
-            uiUtil.systemAlert("Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)", "Welcome")
+            uiUtil.systemAlert('Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)', 'Welcome')
             .then(function () {
-                document.getElementById("btnAbout").click();
-                var isAndroid = (navigator.userAgent.indexOf("Android") !== -1);
+                document.getElementById('btnAbout').click();
+                var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
                 if (isAndroid) {
-                    uiUtil.systemAlert("You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", "Warning");
+                    uiUtil.systemAlert("You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", 'Warning');
                 }
             });
         }
@@ -1189,7 +1189,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     }
                 }
                 if (selectedStorage === null) {
-                    uiUtil.systemAlert("Unable to find which device storage corresponds to directory " + archiveDirectory, "Error: no matching storage");
+                    uiUtil.systemAlert('Unable to find which device storage corresponds to directory ' + archiveDirectory, 'Error: no matching storage');
                 }
             } else {
                 // This happens when the archiveDirectory is not prefixed by the name of the storage
@@ -1198,16 +1198,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (storages.length === 1) {
                     selectedStorage = storages[0];
                 } else {
-                    uiUtil.systemAlert("Something weird happened with the DeviceStorage API : found a directory without prefix : "
-                    + archiveDirectory + ", but there were " + storages.length
-                    + " storages found with getDeviceStorages instead of 1", "Error: unprefixed directory");
+                    uiUtil.systemAlert('Something weird happened with the DeviceStorage API : found a directory without prefix : '
+                    + archiveDirectory + ', but there were ' + storages.length
+                    + ' storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
                 }
             }
             resetCssCache();
             selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
-                settingsStore.setItem("lastSelectedArchive", archiveDirectory, Infinity);
+                settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
                 // The archive is set : go back to home page to start searching
-                document.getElementById("btnHome").click();
+                document.getElementById('btnHome').click();
             }, function (message, label) {
                 // callbackError which is called in case of an error
                 uiUtil.systemAlert(message, label);
