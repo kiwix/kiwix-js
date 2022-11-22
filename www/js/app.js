@@ -391,7 +391,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleContent').style.display = 'none';
         let articleContent = document.getElementById('articleContent');
-        while (articleContent.firstChild) articleContent.removeChild(articleContent.firstChild);
+        let articleContentDoc = articleContent ? articleContent.contentDocument : null;
+        while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
         if (selectedArchive !== null && selectedArchive.isReady()) {
             document.getElementById('welcomeText').style.display = 'none';
             goToMainArticle();
