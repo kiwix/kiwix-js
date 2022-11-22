@@ -390,6 +390,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleContent').style.display = 'none';
+        // Empty and purge the article contents
         let articleContent = document.getElementById('articleContent');
         let articleContentDoc = articleContent ? articleContent.contentDocument : null;
         while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
