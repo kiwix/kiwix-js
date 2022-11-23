@@ -406,9 +406,9 @@ define(rqDef, function(settingsStore) {
      * Removes the animation effect between various sections
      */
     function removeAnimationClasses() {
-        $('#about').removeClass('slideIn_L').removeClass('slideOut_R');
-        $('#configuration').removeClass('slideIn_L').removeClass('slideIn_R').removeClass('slideOut_L').removeClass('slideOut_R');
-        $('#articleContent').removeClass('slideIn_R').removeClass('slideOut_L');
+        document.getElementById('about').classList.remove('slideIn_L','slideOut_R');
+        document.getElementById('configuration').classList.remove('slideIn_L', 'slideIn_R', 'slideOut_L', 'slideOut_R');
+        document.getElementById('articleContent').classList.remove('slideIn_R', 'slideOut_L');
     }
     
     /**
@@ -420,13 +420,13 @@ define(rqDef, function(settingsStore) {
     function applyAnimationToSection(section) {
         if (section == 'home') {
             if (!$('#configuration').is(':hidden')) {
-                $('#configuration').addClass('slideOut_R');
+                document.getElementById('configuration').classList.add('slideOut_R');
                 setTimeout(function () {
                     document.getElementById('configuration').style.display = 'none';
                 }, 300);
             }
             if (!$('#about').is(':hidden')) {
-                $('#about').addClass('slideOut_R');
+                document.getElementById('about').classList.add('slideOut_R');
                 setTimeout(function () {
                     document.getElementById('about').style.display = 'none';
                 }, 300);
@@ -443,8 +443,8 @@ define(rqDef, function(settingsStore) {
                     document.getElementById('about').style.display = 'none';
                 }, 300);
             } else if (!$('#articleContent').is(':hidden')) {
-                $('#articleContent').addClass('slideOut_L');
-                $('#configuration').addClass('slideIn_L');
+                document.getElementById('configuration').classList.add('slideIn_L');
+                document.getElementById('articleContent').classList.add('slideOut_L');
                 setTimeout(function () {
                     document.getElementById('articleContent').style.display = 'none';
                 }, 300);
@@ -454,18 +454,18 @@ define(rqDef, function(settingsStore) {
             }, 300);
         } else if (section == 'about') {
             if (!$('#configuration').is(':hidden')) {
-                $('#configuration').addClass('slideOut_L');
+                document.getElementById('configuration').classList.add('slideOut_L');
                 setTimeout(function () {
                     document.getElementById('configuration').style.display = 'none';
                 }, 300);
             }
             if (!$('#articleContent').is(':hidden')) {
-                $('#articleContent').addClass('slideOut_L');
+                document.getElementById('articleContent').classList.add('slideOut_L');
                 setTimeout(function () {
                     document.getElementById('articleContent').style.display = 'none';
                 }, 300);
             }
-            $('#about').addClass('slideIn_L');
+            document.getElementById('about').classList.add('slideIn_L');
             setTimeout(function () {
                 document.getElementById('about').style.display = '';
             }, 300);
