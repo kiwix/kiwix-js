@@ -358,7 +358,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         return false;
     });
     $('#btnTop').on('click', function() {
-        $('#articleContent').contents().scrollTop(0);
+        let articleContent = document.getElementById('articleContent');
+        console.log(articleContent.contentWindow);
+        articleContent.contentWindow.scrollTo({top:0,behavior: 'smooth'});
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
     });
@@ -630,34 +632,31 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var apiStatusPanel = document.getElementById('apiStatusDiv');
         apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
         var apiPanelClass = 'card-success';
+        let messageChannelStatus = document.getElementById('messageChannelStatus');
+        let serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
         if (isMessageChannelAvailable()) {
-            let messageChannelStatus = document.getElementById('messageChannelStatus');
             messageChannelStatus.innerHTML = 'MessageChannel API available';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            let messageChannelStatus = document.getElementById('messageChannelStatus');
             messageChannelStatus.innerHTML = 'MessageChannel API unavailable';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiUnavailable');
         }
         if (isServiceWorkerAvailable()) {
             if (isServiceWorkerReady()) {
-                let serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
                 serviceWorkerStatus.innerHTML = 'ServiceWorker API available, and registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiAvailable');
             } else {
                 apiPanelClass = 'card-warning';
-                let serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
                 serviceWorkerStatus.innerHTML = 'ServiceWorker API available, but not registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiUnavailable');
             }
         } else {
             apiPanelClass = 'card-warning';
-            let serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
             serviceWorkerStatus.innerHTML = 'ServiceWorker API unavailable';
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
