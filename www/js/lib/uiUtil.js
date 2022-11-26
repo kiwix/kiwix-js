@@ -406,12 +406,13 @@ define(rqDef, function(settingsStore) {
      * Removes the animation effect between various sections
      */
     function removeAnimationClasses() {
+        let configuration = document.getElementById('configuration');
+        configuration.classList.remove('slideIn_L');
+        configuration.classList.remove('slideIn_R');
+        configuration.classList.remove('slideOut_L');
+        configuration.classList.remove('slideOut_R');
         document.getElementById('about').classList.remove('slideIn_L');
         document.getElementById('about').classList.remove('slideOut_R');
-        document.getElementById('configuration').classList.remove('slideIn_L');
-        document.getElementById('configuration').classList.remove('slideIn_R');
-        document.getElementById('configuration').classList.remove('slideOut_L');
-        document.getElementById('configuration').classList.remove('slideOut_R');
         document.getElementById('articleContent').classList.remove('slideIn_R');
         document.getElementById('articleContent').classList.remove('slideOut_L');
     }
