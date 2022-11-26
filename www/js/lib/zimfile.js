@@ -98,7 +98,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * @property {Integer} urlPtrPos Position of the directory pointerlist ordered by URL
      * @property {Integer} titlePtrPos Position of the legacy v0 pointerlist ordered by title
      * @property {Integer} articlePtrPos Position of the v1 article-only pointerlist ordered by title (async calculated entry)
-     * @property {String} fullTextIndex Extended property: the path of the Xapian full text index, or empty if the ZIM does not contain one
+     * @property {Integer|String} fullTextIndex Extended property: position of the full text index, or its path if it exists but has no metadata
+     * @property {Integer} fullTextIndexSize Extended property: the size of the full text index as indicated in the metadata, or null if not specified
      * @property {Integer} clusterPtrPos Position of the cluster pointer list
      * @property {Integer} mimeListPos Position of the MIME type list (also header size)
      * @property {Integer} mainPage Main page or 0xffffffff if no main page
@@ -480,7 +481,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                     zf.urlPtrPos = urlPtrPos;
                     zf.titlePtrPos = readInt(header, 40, 8);
                     zf.articlePtrPos = null; // Calculated async by setListings()
-                    zf.fullTextIndex = ''; // Calculated async by setListings() 
+                    zf.fullTextIndex = null; // Calculated async by setListings()
+                    zf.fullTextIndexSize = null; // Calbulated async by setListings() 
                     zf.clusterPtrPos = readInt(header, 48, 8);
                     zf.mimeListPos = mimeListPos;
                     zf.mainPage = readInt(header, 64, 4);

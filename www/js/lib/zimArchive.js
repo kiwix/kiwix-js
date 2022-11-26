@@ -78,7 +78,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     {
                         // This tests for and specifies the existence of any Xapian Full Text Index
                         path: 'X/fulltext/xapian',
-                        ptrName: 'fullTextIndex'
+                        ptrName: 'fullTextIndex',
+                        countName: 'fullTextIndexSize'
                     }
                 ]);
                 // Set the archive file type ('open' or 'zimit')
