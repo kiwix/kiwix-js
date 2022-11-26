@@ -354,8 +354,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
         var listingAccessor = function (listing) {
             if (!listing) {
                 // No more listings, so exit
-                console.debug('ZIM DirListing version: ' + highestListingVersion, that);
+                console.debug('ZIM DirListing version: ' + highestListingVersion + (highestListingVersion ? '' : ' (legacy)'), that);
                 console.debug('Article count is: ' + that.articleCount);
+                if (that.fullTextIndex) console.debug('ZIM has fullTextIndex with listed size: ' + that.fullTextIndexSize);
                 return null;
             }
             // Check if we already have this listing's values, so we don't do redundant binary searches
