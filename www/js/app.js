@@ -358,7 +358,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         return false;
     });
     $('#btnTop').on('click', function() {
-        let articleContent = document.getElementById('articleContent');
+        var articleContent = document.getElementById('articleContent');
         articleContent.contentWindow.scrollTo({top: 0, behavior: 'smooth'});
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
@@ -385,15 +385,15 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Give the focus to the search field, and clean up the page contents
         document.getElementById('prefix').value = '';
         document.getElementById('prefix').focus();
-        let articleList = document.getElementById('articleList');
-        let articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
+        var articleList = document.getElementById('articleList');
+        var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
         while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleContent').style.display = 'none';
         // Empty and purge the article contents
-        let articleContent = document.getElementById('articleContent');
-        let articleContentDoc = articleContent ? articleContent.contentDocument : null;
+        var articleContent = document.getElementById('articleContent');
+        var articleContentDoc = articleContent ? articleContent.contentDocument : null;
         while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
         if (selectedArchive !== null && selectedArchive.isReady()) {
             document.getElementById('welcomeText').style.display = 'none';
@@ -631,8 +631,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var apiStatusPanel = document.getElementById('apiStatusDiv');
         apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
         var apiPanelClass = 'card-success';
-        let messageChannelStatus = document.getElementById('messageChannelStatus');
-        let serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
+        var messageChannelStatus = document.getElementById('messageChannelStatus');
+        var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
         if (isMessageChannelAvailable()) {
             messageChannelStatus.innerHTML = 'MessageChannel API available';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
@@ -867,7 +867,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     return;
                 }
                 if (!isServiceWorkerReady()) {
-                    let serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
+                    var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
                     serviceWorkerStatus.innerHTML = 'ServiceWorker API available : trying to register it...';
                     if (navigator.serviceWorker.controller) {
                         console.log("Active Service Worker found, no need to register");
@@ -1570,8 +1570,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     iframeArticleContent.contentWindow.onunload = function () {
                         // remove eventListener to avoid memory leaks
                         iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-                        let articleList = document.getElementById('articleList');
-                        let articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
+                        var articleList = document.getElementById('articleList');
+                        var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
                         while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
                         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
                         document.getElementById('articleListWithHeader').style.display = 'none';
@@ -1727,8 +1727,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         iframeArticleContent.onload = function() {
             iframeArticleContent.onload = function(){};
-            let articleList = document.getElementById('articleList');
-            let articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
+            var articleList = document.getElementById('articleList');
+            var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
             while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
             document.getElementById('articleListWithHeader').style.display = 'none';
