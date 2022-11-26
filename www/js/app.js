@@ -359,7 +359,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     });
     $('#btnTop').on('click', function() {
         let articleContent = document.getElementById('articleContent');
-        articleContent.contentWindow.scrollTo({top: 0,behavior: 'smooth'});
+        articleContent.contentWindow.scrollTo({top: 0, behavior: 'smooth'});
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
     });
