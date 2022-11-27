@@ -263,6 +263,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             // If user has initiated a new search, cancel this one
             if (search.status === 'cancelled') return callback([], search);
             if (prefixVariants.length === 0 || dirEntries.length >= search.size) {
+                // We have found all the title-search entries we are going to get, so launch full-text search if we are still missing entries
+                if (libzimWorker) {
+                    return that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
+                        search.status = 'complete';
+                        callback(fullTextDirEntries, search);
+                    });
+                }
                 search.status = 'complete';
                 return callback(dirEntries, search);
             }
@@ -356,6 +363,44 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             };
             return addDirEntries(firstIndex);
         }).then(callback);
+    };
+
+    /**
+     * Find Directory Entries corresponding to the requested search using Full Text search provided by libzim
+     * 
+     * @param {Object} search The appstate.search object
+     * @param {Array} dirEntries The array of already found Directory Entries
+     * @returns {Promise<callbackDirEntry>} The augmented array of Directory Entries with titles that correspond to search 
+     */
+    ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEntries) {
+        var that = this;
+        return this.callLibzimWorker({action: "search", text: search.prefix}).then(function (results) {
+            if (results) {
+                var dirEntryPaths = [];
+                var fullTextPaths = [];
+                // Collect all the found paths for the dirEntries
+                for (var i = 0; i < dirEntries.length; i++) {
+                    dirEntryPaths.push(dirEntries[i].namespace + '/' + dirEntries[i].url);
+                }
+                // Collect all the paths for full text search, pruning as we go
+                for (var j = 0; j < results.entries.length; j++) {
+                    if (~dirEntryPaths.indexOf(results.entries[j].path)) continue;
+                    fullTextPaths.push(results.entries[j].path);
+                }
+                var promisesForDirEntries = [];
+                for (var k = 0; k < fullTextPaths.length; k++) {
+                    promisesForDirEntries.push(that.getDirEntryByPath(fullTextPaths[k]));
+                }
+                return Promise.all(promisesForDirEntries).then(function (fullTextDirEntries) {
+                    for (var l = 0; l < fullTextDirEntries.length; l++) {
+                        dirEntries.push(fullTextDirEntries[l]);
+                    }
+                    return(dirEntries);
+                });
+            } else {
+                return(dirEntries);
+            }
+        });
     };
 
     /**
