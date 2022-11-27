@@ -98,6 +98,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * @property {Integer} urlPtrPos Position of the directory pointerlist ordered by URL
      * @property {Integer} titlePtrPos Position of the legacy v0 pointerlist ordered by title
      * @property {Integer} articlePtrPos Position of the v1 article-only pointerlist ordered by title (async calculated entry)
+     * @property {Integer|String} fullTextIndex Extended property: position of the full text index, or its path if it exists but has no metadata
+     * @property {Integer} fullTextIndexSize Extended property: the size of the full text index as indicated in the metadata, or null if not specified
      * @property {Integer} clusterPtrPos Position of the cluster pointer list
      * @property {Integer} mimeListPos Position of the MIME type list (also header size)
      * @property {Integer} mainPage Main page or 0xffffffff if no main page
@@ -322,7 +324,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
         // If we are in a legacy ZIM archive, we need to calculate the true article count (of entries in the A namespace)
         // This effectively emulates the v1 article pointerlist
         if (this.minorVersion === 0) {
-            console.debug('ZIM DirListing version: 0 (legacy)', this);
+            // console.debug('ZIM DirListing version: 0 (legacy)', this);
             // Initiate a binary search for the first or last article
             var getArticleIndexByOrdinal = function (ordinal) {
                 return util.binarySearch(0, that.entryCount, function(i) {
@@ -338,7 +340,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                     return index;
                 });
             };
-            return getArticleIndexByOrdinal('first').then(function(idxFirstArticle) {
+            getArticleIndexByOrdinal('first').then(function(idxFirstArticle) {
                 return getArticleIndexByOrdinal('last').then(function(idxLastArticle) {
                     // Technically idxLastArticle points to the entry after the last article in the 'A' namespace,
                     // We subtract the first from the last to get the number of entries in the 'A' namespace
@@ -352,8 +354,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
         var listingAccessor = function (listing) {
             if (!listing) {
                 // No more listings, so exit
-                console.debug('ZIM DirListing version: ' + highestListingVersion, that);
+                console.debug('ZIM DirListing version: ' + highestListingVersion + (highestListingVersion ? '' : ' (legacy)'), that);
                 console.debug('Article count is: ' + that.articleCount);
+                if (that.fullTextIndex) console.debug('ZIM has fullTextIndex with listed size: ' + that.fullTextIndexSize);
                 return null;
             }
             // Check if we already have this listing's values, so we don't do redundant binary searches
@@ -378,6 +381,10 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 return that.dirEntryByUrlIndex(index);
             }).then(function(dirEntry) {
                 if (!dirEntry) return null;
+                // Detect a full text index
+                if (/fulltext\//.test(dirEntry.url)) {
+                    that[listing.ptrName] = dirEntry.namespace + '/' + dirEntry.url
+                }
                 // Request the metadata for the blob represented by the dirEntry
                 return that.blob(dirEntry.cluster, dirEntry.blob, true);
             }).then(function(metadata) {
@@ -474,7 +481,9 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
                     zf.titlePtrPos = readInt(header, 40, 8);
-                    zf.articlePtrPos = null; // Calculated async by setListings() 
+                    zf.articlePtrPos = null; // Calculated async by setListings()
+                    zf.fullTextIndex = null; // Calculated async by setListings()
+                    zf.fullTextIndexSize = null; // Calbulated async by setListings() 
                     zf.clusterPtrPos = readInt(header, 48, 8);
                     zf.mimeListPos = mimeListPos;
                     zf.mainPage = readInt(header, 64, 4);
