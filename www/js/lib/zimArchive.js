@@ -41,6 +41,11 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
      * @callback callbackMetadata
      * @param {String} data metadata string
      */
+
+    /**
+     * @param {Worker} libzimWorker A Web Worker to run the libzim Web Assembly binary
+     */
+    var libzimWorker; 
     
     /**
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
@@ -81,7 +86,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                         ptrName: 'fullTextIndex',
                         countName: 'fullTextIndexSize'
                     }
-                ]);
+                ]).then(function () {
+                    if ('WebAssembly' in self && that._file.fullTextIndex) {
+                        console.log('Instantiating libzim Web Worker...');
+                        libzimWorker = new Worker('js/lib/libzim-wasm.js');
+                        that.callLibzimWorker({action: "init", files: that._file._files});
+                    };
+                });
                 // Set the archive file type ('open' or 'zimit')
                 that.setZimType();
                 // DEV: Currently, extended listings are only used for title (=article) listings when the user searches
@@ -330,6 +341,33 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
             };
             return addDirEntries(firstIndex);
         }).then(callback);
+    };
+
+    /**
+     * Calls the libzim Web Worker with the given parameters, and returns a Promise with its response
+     * 
+     * @param {Object} parameters
+     * @returns {Promise}
+     */
+    ZIMArchive.prototype.callLibzimWorker = function (parameters) {
+        return new Promise(function (resolve, reject) {
+            console.debug("Calling libzim WebWorker with parameters", parameters);
+            var tmpMessageChannel = new MessageChannel();
+            // var t0 = performance.now();
+            tmpMessageChannel.port1.onmessage = function (event) {
+                // var t1 = performance.now();
+                // var readTime = Math.round(t1 - t0);
+                // console.debug("Response given by the WebWorker in " + readTime + " ms", event.data);
+                resolve(event.data);
+            };
+            tmpMessageChannel.port1.onerror = function (event) {
+                // var t1 = performance.now();
+                // var readTime = Math.round(t1 - t0);
+                // console.error("Error sent by the WebWorker in " + readTime + " ms", event.data);
+                reject(event.data);
+            };
+            libzimWorker.postMessage(parameters, [tmpMessageChannel.port2]);
+        });
     };
     
     /**

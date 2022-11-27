@@ -401,7 +401,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 console.error('There was an error accessing a Directory Listing', err);
             });
         };
-        listingAccessor(listings.pop());
+        return listingAccessor(listings.pop());
     };    
 
     /**
