@@ -91,7 +91,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                         console.log('Instantiating libzim Web Worker...');
                         libzimWorker = new Worker('js/lib/libzim-wasm.js');
                         that.callLibzimWorker({action: "init", files: that._file._files});
-                    };
+                    }
                 });
                 // Set the archive file type ('open' or 'zimit')
                 that.setZimType();
