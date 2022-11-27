@@ -91,10 +91,15 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                     if ('WebAssembly' in self && that._file.fullTextIndex && !isSplitZim) {
                         console.log('Instantiating libzim Web Worker...');
                         libzimWorker = new Worker('js/lib/libzim-wasm.js');
-                        that.callLibzimWorker({action: "init", files: that._file._files});
+                        that.callLibzimWorker({action: "init", files: that._file._files})
+                        .then(function () {
+                            console.debug('Libzim worker successfully instantiated');
+                        }).catch(function (err) {
+                            console.error('The libzim worker could not be instantiated!', err);
+                        });
                     } else {
                         if (isSplitZim) console.warn('Full text searching was disabled because ZIM archive is split.');
-                    };
+                    }
                 });
                 // Set the archive file type ('open' or 'zimit')
                 that.setZimType();
