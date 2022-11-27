@@ -373,6 +373,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
      * @returns {Promise<callbackDirEntry>} The augmented array of Directory Entries with titles that correspond to search 
      */
     ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEntries) {
+        var cns = this.getContentNamespace();
         var that = this;
         // We give ourselves an overhead in caclulating the results needed, because full-text search will return some results already found
         var resultsNeeded = Math.floor(params.maxSearchResultsSize - dirEntries.length / 2);
@@ -385,9 +386,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                     dirEntryPaths.push(dirEntries[i].namespace + '/' + dirEntries[i].url);
                 }
                 // Collect all the paths for full text search, pruning as we go
+                var path;
                 for (var j = 0; j < results.entries.length; j++) {
-                    if (~dirEntryPaths.indexOf(results.entries[j].path)) continue;
-                    fullTextPaths.push(results.entries[j].path);
+                    path = results.entries[j].path;
+                    // Full-text search result paths are missing the namespace in Type 1 ZIMs, so we add it back
+                    path = cns === 'C' ? cns + '/' + path : path;
+                    if (~dirEntryPaths.indexOf(path)) continue;
+                    fullTextPaths.push(path);
                 }
                 var promisesForDirEntries = [];
                 for (var k = 0; k < fullTextPaths.length; k++) {
