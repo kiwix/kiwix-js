@@ -597,8 +597,10 @@ define(rqDef, function(settingsStore) {
     // Reports the search provider to the API Status Panel
     function reportSearchProviderToAPIStatusPanel(provider) {
         var providerAPI = document.getElementById('searchProvider');
-        providerAPI.innerHTML = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
-        providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
+        if (providerAPI) {
+            providerAPI.innerHTML = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
+            providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
+        }
     }
 
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
