@@ -138,7 +138,7 @@ iframe._invert, iframe._mwInvert {
 }
 
 .apiAvailable {
-    color : green;
+    color: green;
 }
 
 .apiUnavailable, .apiSuboptimal {

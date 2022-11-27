@@ -20,8 +20,8 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
-define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
-    function(zimfile, zimDirEntry, util, utf8) {
+define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
+    function(zimfile, zimDirEntry, util, uiUtil, utf8) {
     
     /**
      * ZIM Archive
@@ -63,6 +63,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
         var createZimfile = function (fileArray) {
             zimfile.fromFileArray(fileArray).then(function (file) {
                 that._file = file;
+                // Set a global parameter to report the search provider type
+                params.searchProvider = 'title';
                 // File has been created, but we need to add any Listings which extend the archive metadata
                 that._file.setListings([
                     // Provide here any Listings for which we need to extract metadata as key:value obects to be added to the file
@@ -87,17 +89,22 @@ define(['zimfile', 'zimDirEntry', 'util', 'utf8'],
                         countName: 'fullTextIndexSize'
                     }
                 ]).then(function () {
+                    // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                     var isSplitZim = /\.zima.$/i.test(that._file._files[0].name);
                     if ('WebAssembly' in self && that._file.fullTextIndex && !isSplitZim) {
                         console.log('Instantiating libzim Web Worker...');
                         libzimWorker = new Worker('js/lib/libzim-wasm.js');
                         that.callLibzimWorker({action: "init", files: that._file._files})
                         .then(function () {
-                            console.debug('Libzim worker successfully instantiated');
+                            params.searchProvider = 'fulltext';
+                            // Update the API panel
+                            uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                         }).catch(function (err) {
+                            uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                             console.error('The libzim worker could not be instantiated!', err);
                         });
                     } else {
+                        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                         if (isSplitZim) console.warn('Full text searching was disabled because ZIM archive is split.');
                     }
                 });

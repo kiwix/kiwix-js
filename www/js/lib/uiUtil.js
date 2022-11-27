@@ -594,6 +594,13 @@ define(rqDef, function(settingsStore) {
         document.getElementById('apiStatusDiv').className = 'card card-danger';
     }
 
+    // Reports the search provider to the API Status Panel
+    function reportSearchProviderToAPIStatusPanel(provider) {
+        var providerAPI = document.getElementById('searchProvider');
+        providerAPI.innerHTML = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
+        providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
+    }
+
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
     if (webpMachine) webpMachine = new webpHero.WebpMachine({useCanvasElements: true});
     
@@ -670,6 +677,7 @@ define(rqDef, function(settingsStore) {
         applyAnimationToSection: applyAnimationToSection,
         applyAppTheme: applyAppTheme,
         reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
+        reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
         warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
         closestAnchorEnclosingElement: closestAnchorEnclosingElement
     };
