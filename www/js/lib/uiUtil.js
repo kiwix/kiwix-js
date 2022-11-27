@@ -406,7 +406,7 @@ define(rqDef, function(settingsStore) {
      * Removes the animation effect between various sections
      */
     function removeAnimationClasses() {
-        let configuration = document.getElementById('configuration');
+        var configuration = document.getElementById('configuration');
         configuration.classList.remove('slideIn_L');
         configuration.classList.remove('slideIn_R');
         configuration.classList.remove('slideOut_L');
