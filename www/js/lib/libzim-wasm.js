@@ -68,7 +68,8 @@ self.addEventListener("message", function(e) {
     }
     else if (action === "search") {
         var text = e.data.text;
-        var entries = Module[action](text);
+        var numResults = e.data.numResults || 50;
+        var entries = Module[action](text, numResults);
         console.debug("Found nb results = " + entries.size(), entries);
         var serializedEntries = [];
         for (var i=0; i<entries.size(); i++) {
