@@ -136,14 +136,24 @@ let precacheFiles = [
     "www/js/lib/zimDirEntry.js",
     "www/js/lib/zimfile.js",
     "www/js/lib/fontawesome/fontawesome.js",
-    "www/js/lib/fontawesome/solid.js",
-    "www/js/lib/xzdec-asm.js",
-    "www/js/lib/zstddec-asm.js",
+    "www/js/lib/fontawesome/solid.js"
+];
+
+if ('WebAssembly' in self) {
+  precacheFiles.push(
     "www/js/lib/xzdec-wasm.js",
     "www/js/lib/xzdec-wasm.wasm",
     "www/js/lib/zstddec-wasm.js",
-    "www/js/lib/zstddec-wasm.wasm"
-];
+    "www/js/lib/zstddec-wasm.wasm",
+    "www/js/lib/libzim-wasm.js",
+    "www/js/lib/libzim-wasm.wasm"
+  );
+} else {
+  precacheFiles.push(
+    "www/js/lib/xzdec-asm.js",
+    "www/js/lib/zstddec-asm.js"
+  );
+}
 
 // Process install event
 self.addEventListener("install", function (event) {
