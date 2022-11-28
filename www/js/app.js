@@ -167,7 +167,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-    document.getElementById('appVersion').appendChild(document.createTextNode('Kiwix ' + params.appVersion)); 
+    document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion; 
     setContentInjectionMode(params.contentInjectionMode);
 
     // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
@@ -1663,7 +1663,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             // Inject the new article's HTML into the iframe
             var articleContent = iframeContentDocument.documentElement;
-            articleContent.textContent = htmlArticle;
+            articleContent.innerHTML = htmlArticle;
 
             var docBody = articleContent.getElementsByTagName('body');
             docBody = docBody ? docBody[0] : null;
