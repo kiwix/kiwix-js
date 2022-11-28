@@ -240,7 +240,7 @@ define(rqDef, function(settingsStore) {
     var activeContentWarningSetup = false;
     function displayActiveContentWarning() {
         var alertActiveContent = document.getElementById('activeContent');
-        alertActiveContent.style.display = 'block';
+        alertActiveContent.style.display = '';
         if (!activeContentWarningSetup) {
             // We are setting up the active content warning for the first time
             activeContentWarningSetup = true;
@@ -318,7 +318,7 @@ define(rqDef, function(settingsStore) {
                 });
             }
         }
-        $("#searchingArticles").hide();
+        document.getElementById('searchingArticles').style.display = 'none';
     }
 
     /**
@@ -406,9 +406,15 @@ define(rqDef, function(settingsStore) {
      * Removes the animation effect between various sections
      */
     function removeAnimationClasses() {
-        $('#about').removeClass('slideIn_L').removeClass('slideOut_R');
-        $('#configuration').removeClass('slideIn_L').removeClass('slideIn_R').removeClass('slideOut_L').removeClass('slideOut_R');
-        $('#articleContent').removeClass('slideIn_R').removeClass('slideOut_L');
+        var configuration = document.getElementById('configuration');
+        configuration.classList.remove('slideIn_L');
+        configuration.classList.remove('slideIn_R');
+        configuration.classList.remove('slideOut_L');
+        configuration.classList.remove('slideOut_R');
+        document.getElementById('about').classList.remove('slideIn_L');
+        document.getElementById('about').classList.remove('slideOut_R');
+        document.getElementById('articleContent').classList.remove('slideIn_R');
+        document.getElementById('articleContent').classList.remove('slideOut_L');
     }
     
     /**
@@ -420,54 +426,54 @@ define(rqDef, function(settingsStore) {
     function applyAnimationToSection(section) {
         if (section == 'home') {
             if (!$('#configuration').is(':hidden')) {
-                $('#configuration').addClass('slideOut_R');
+                document.getElementById('configuration').classList.add('slideOut_R');
                 setTimeout(function () {
-                    $('#configuration').hide();
+                    document.getElementById('configuration').style.display = 'none';
                 }, 300);
             }
             if (!$('#about').is(':hidden')) {
-                $('#about').addClass('slideOut_R');
+                document.getElementById('about').classList.add('slideOut_R');
                 setTimeout(function () {
-                    $('#about').hide();
+                    document.getElementById('about').style.display = 'none';
                 }, 300);
             }
             $('#articleContent').addClass('slideIn_R');
             setTimeout(function () {
-                $('#articleContent').show();
+                document.getElementById('articleContent').style.display = '';
             }, 300);
         } else if (section == 'config') {
             if (!$('#about').is(':hidden')) {
                 $('#about').addClass('slideOut_R');
                 $('#configuration').addClass('slideIn_R');
                 setTimeout(function () {
-                    $('#about').hide();
+                    document.getElementById('about').style.display = 'none';
                 }, 300);
             } else if (!$('#articleContent').is(':hidden')) {
-                $('#articleContent').addClass('slideOut_L');
-                $('#configuration').addClass('slideIn_L');
+                document.getElementById('configuration').classList.add('slideIn_L');
+                document.getElementById('articleContent').classList.add('slideOut_L');
                 setTimeout(function () {
-                    $('#articleContent').hide();
+                    document.getElementById('articleContent').style.display = 'none';
                 }, 300);
             }
             setTimeout(function () {
-                $('#configuration').show();
+                document.getElementById('configuration').style.display = '';
             }, 300);
         } else if (section == 'about') {
             if (!$('#configuration').is(':hidden')) {
-                $('#configuration').addClass('slideOut_L');
+                document.getElementById('configuration').classList.add('slideOut_L');
                 setTimeout(function () {
-                    $('#configuration').hide();
+                    document.getElementById('configuration').style.display = 'none';
                 }, 300);
             }
             if (!$('#articleContent').is(':hidden')) {
-                $('#articleContent').addClass('slideOut_L');
+                document.getElementById('articleContent').classList.add('slideOut_L');
                 setTimeout(function () {
-                    $('#articleContent').hide();
+                    document.getElementById('articleContent').style.display = 'none';
                 }, 300);
             }
-            $('#about').addClass('slideIn_L');
+            document.getElementById('about').classList.add('slideIn_L');
             setTimeout(function () {
-                $('#about').show();
+                document.getElementById('about').style.display = '';
             }, 300);
         }
     }
@@ -588,6 +594,15 @@ define(rqDef, function(settingsStore) {
         document.getElementById('apiStatusDiv').className = 'card card-danger';
     }
 
+    // Reports the search provider to the API Status Panel
+    function reportSearchProviderToAPIStatusPanel(provider) {
+        var providerAPI = document.getElementById('searchProvider');
+        if (providerAPI) {
+            providerAPI.innerHTML = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
+            providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
+        }
+    }
+
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
     if (webpMachine) webpMachine = new webpHero.WebpMachine({useCanvasElements: true});
     
@@ -664,6 +679,7 @@ define(rqDef, function(settingsStore) {
         applyAnimationToSection: applyAnimationToSection,
         applyAppTheme: applyAppTheme,
         reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
+        reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
         warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
         closestAnchorEnclosingElement: closestAnchorEnclosingElement
     };

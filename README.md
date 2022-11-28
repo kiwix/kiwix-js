@@ -1,18 +1,21 @@
 # Kiwix JS
 
-Kiwix is an offline Wikipedia viewer. See the official site: https://www.kiwix.org/.
+Kiwix is an offline viewer for Wikipedia, Stackexchange, Project Gutenberg, and other Web resources packaged as highly compressed ZIM
+archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
 
-This is a ZIM archive reader for browser extensions or add-ons, developed in HTML5/Javascript. You can get the extension from the Mozilla,
-Chrome and Edge extension stores (search for "Kiwix", or click on a badge below). There is a version implemented as an offline-first
-Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/, primarily intended for use within the Mozilla Extension.
+Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
+can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (search for "Kiwix", or click on a badge
+below). There is also a version implemented as an offline-first Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/,
+primarily intended for use within the Mozilla Extension.
 
-Once you have obtained an archive (see below), you can select it in Kiwix JS, and search for article titles. No further Internet access is required to
-read the archive's content. For example, you can have the entire content of Wikipedia in your own language inside your device (including images and
-audiovisual content) entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, observed or censored, you can still have
-access to this amazing repository of knowledge, information and culture.
+Once you have obtained an archive (see below), select it in Kiwix JS, or drag-and-drop it into the app, and start searching for article
+titles. No further Internet access is required to read the archive's content. For example, you can have the entire content of Wikipedia
+in your own language inside your device (including images and audiovisual content) entirely offline. If your Internet access is
+expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this amazing repository of
+knowledge, information and culture.
 
-The reader also works with other content in the OpenZIM format: https://wiki.openzim.org/wiki/OpenZIM, but our main targets are Mediawiki-based
-content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
+The reader also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), but our main targets are
+Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amaster)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amaster)
@@ -38,15 +41,16 @@ after starting the application (or you can drag-and-drop one into the app).
 Technically, after reading an article from a ZIM file, it is necessary to "inject" the dependencies (images, css, etc). For compatibility reasons,
 there are two main ways of doing this:
 
-- "JQuery" mode parses the DOM to find the HTML tags of these dependencies and modifies them to point to content we extract from the ZIM. This mode
-is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so some ZIMs with dynamic content do not work well (if at all).
-However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode;
-- "ServiceWorker" mode uses a Service Worker to catch any HTTP request the page may send and reply with content read from the ZIM file. It is a
-generic and much cleaner way of serving content to the browser than jQuery mode. It works in any recent browser, but not in older ones. Service
-Workers are currently disabled by Mozilla in Firefox extensions, but we use a workaround (an offline-first PWA version) as a substitute within
-the extension.
+- "ServiceWorker" mode (the default) uses a Service Worker to catch any HTTP request the page may send and reply with content read from
+the ZIM file. It is a generic and clean way of serving content to the browser. It works in any recent browser, but not in older ones.
+Service Workers are currently disabled by Mozilla in Firefox extensions, but we use a workaround (an offline-first PWA version) as a
+substitute within the extension;
+- "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract
+from the ZIM. This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so some ZIMs with dynamic
+content do not work well (if at all). However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
 
-You can switch between these content injection modes in Configuration.
+You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode, you are strongly
+advised to remain in this mode.
 
 ## Compatibility
 
@@ -55,17 +59,18 @@ Injection mode supported by the specific browser engine.
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=45 (as an extension : https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+- Mozilla Firefox >=52 (as an extension : https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
 - Google Chrome (or Chromium) >=58 (as an extension : https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-- Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
-- Microsoft Edge (Chromium) >=80 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Universal Windows Platform (UWP) >=10.0.10240, Electron and NWJS (as an HTML/JS application : see https://github.com/kiwix/kiwix-js-windows/)
+- Microsoft Edge (Chromium) >=79 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+- Electron >=1.8.0 and NWJS >=0.14.7 (as an application : see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
+- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application : see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application : https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
 These platforms/browsers are deprecated. We still partially test against them, and we'll try to keep compatibility as long as it's not too complicated:
 
+- Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
 - Microsoft Edge Legacy >=40 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
 
@@ -101,8 +106,7 @@ The browser extensions are distributed through the stores of each vendor (see li
 
 Some nightly builds are generated, and should only be used for testing purpose: https://download.kiwix.org/nightly/.
 
-There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy,
-experimental or unstable.
+There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy, experimental or unstable.
 
 ## Previous versions
 
