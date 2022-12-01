@@ -29,7 +29,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.6-WIP';
+const appVersion = '3.7-WIP';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -136,14 +136,24 @@ let precacheFiles = [
     "www/js/lib/zimDirEntry.js",
     "www/js/lib/zimfile.js",
     "www/js/lib/fontawesome/fontawesome.js",
-    "www/js/lib/fontawesome/solid.js",
-    "www/js/lib/xzdec-asm.js",
-    "www/js/lib/zstddec-asm.js",
+    "www/js/lib/fontawesome/solid.js"
+];
+
+if ('WebAssembly' in self) {
+  precacheFiles.push(
     "www/js/lib/xzdec-wasm.js",
     "www/js/lib/xzdec-wasm.wasm",
     "www/js/lib/zstddec-wasm.js",
-    "www/js/lib/zstddec-wasm.wasm"
-];
+    "www/js/lib/zstddec-wasm.wasm",
+    "www/js/lib/libzim-wasm.js",
+    "www/js/lib/libzim-wasm.wasm"
+  );
+} else {
+  precacheFiles.push(
+    "www/js/lib/xzdec-asm.js",
+    "www/js/lib/zstddec-asm.js"
+  );
+}
 
 // Process install event
 self.addEventListener("install", function (event) {

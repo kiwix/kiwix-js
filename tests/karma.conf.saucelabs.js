@@ -10,41 +10,45 @@ module.exports = function (config) {
       accessKey: process.env.SAUCE_ACCESS_KEY
     },
     customLaunchers: {
-      firefox45: {
+      firefox52: {
         base: 'SauceLabs',
         browserName: 'firefox',
-        version: '45.0'
+        version: '52.0'
       },
       firefox: {
         base: 'SauceLabs',
         browserName: 'firefox',
+        version: 'latest'
       },
       chrome58: {
         base: 'SauceLabs',
         browserName: 'chrome',
-        version: '58.0',
+        version: '58.0'
       },
       chrome: {
         base: 'SauceLabs',
         browserName: 'chrome',
+        version: 'latest'
       },
       edge: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
+        version: 'latest'
       },
       edge40: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
-        version: '15.15063',
+        version: '15.15063'
       },
       edge44: {
         base: 'SauceLabs',
         browserName: 'MicrosoftEdge',
-        version: '18.17763',
+        version: '18.17763'
       },
       ie11: {
         base: 'SauceLabs',
         browserName: 'internet explorer',
+        version: 'latest'
       }
     },
     // The free account on Sauce does not allow more than 5 concurrent sessions
@@ -52,15 +56,14 @@ module.exports = function (config) {
 
     // REMINDER: Keep this list in sync with the UI tests, in .github/workflows/CI.yml.
     browsers: [
-      'firefox',
+      // 'firefox', // Disable latest Firefox due to #894
       'chrome',
       'edge',
       'edge40',
       'edge44',
-      'firefox45',
+      'firefox52',
       'chrome58'
-      // Skip unit tests in Internet Explorer due to Promise undefined
-      // 'ie11'
+      // 'ie11' // Disable IE11 due to Promise error
     ],
     frameworks: ['qunit'],
     client: {
