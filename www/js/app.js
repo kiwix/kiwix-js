@@ -622,7 +622,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
-        // decompAPIStatusDiv.appendChild(document.createTextNode('Decompressor API: ' + apiName));
         decompAPIStatusDiv.textContent = 'Decompressor API: ' + apiName ;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
@@ -1646,66 +1645,76 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var iframeArticleContent = document.getElementById('articleContent');
 
         iframeArticleContent.onload = function() {
-            iframeArticleContent.onload = function(){};
-            $("#articleList").empty();
-            $('#articleListHeaderMessage').empty();
-            $('#articleListWithHeader').hide();
-            $("#prefix").val("");
+          iframeArticleContent.onload = function () {};
+          $("#articleList").empty();
+          $("#articleListHeaderMessage").empty();
+          $("#articleListWithHeader").hide();
+          $("#prefix").val("");
 
-            var iframeContentDocument = iframeArticleContent.contentDocument;
-            if (!iframeContentDocument && window.location.protocol === 'file:') {
-                uiUtil.systemAlert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
-                                    + "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)."
-                                    + "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
-                                    + "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
-                return;
-            }
+          var iframeContentDocument = iframeArticleContent.contentDocument;
+          if (!iframeContentDocument && window.location.protocol === "file:") {
+            uiUtil.systemAlert(
+              "You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons." +
+                "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)." +
+                "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)" +
+                "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config"
+            );
+            return;
+          }
 
-            // Inject the new article's HTML into the iframe
-            var articleContent = iframeContentDocument.documentElement;
-            articleContent.innerHTML = htmlArticle;
+          // Inject the new article's HTML into the iframe
+          var articleContent = iframeContentDocument.documentElement;
+          // Use of .innerHTML required
+          articleContent.innerHTML = htmlArticle;
 
-            var docBody = articleContent.getElementsByTagName('body');
-            docBody = docBody ? docBody[0] : null;
-            if (docBody) {
-                // Add any missing classes stripped from the <html> tag
-                if (htmlCSS) htmlCSS.forEach(function (cl) {
-                    docBody.classList.add(cl);
-                });
-                // Deflect drag-and-drop of ZIM file on the iframe to Config
-                docBody.addEventListener('dragover', handleIframeDragover);
-                docBody.addEventListener('drop', handleIframeDrop);
-            }
+          var docBody = articleContent.getElementsByTagName("body");
+          docBody = docBody ? docBody[0] : null;
+          if (docBody) {
+            // Add any missing classes stripped from the <html> tag
+            if (htmlCSS)
+              htmlCSS.forEach(function (cl) {
+                docBody.classList.add(cl);
+              });
+            // Deflect drag-and-drop of ZIM file on the iframe to Config
+            docBody.addEventListener("dragover", handleIframeDragover);
+            docBody.addEventListener("drop", handleIframeDrop);
+          }
 
-            // Set the requested appTheme
-            uiUtil.applyAppTheme(params.appTheme);
-            // Allow back/forward in browser history
-            pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
+          // Set the requested appTheme
+          uiUtil.applyAppTheme(params.appTheme);
+          // Allow back/forward in browser history
+          pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
-            parseAnchorsJQuery();
-            loadImagesJQuery();
-            // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
-            // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
-            // and noscript tags should be ignored
-            loadNoScriptTags();
-            //loadJavaScriptJQuery();
-            loadCSSJQuery();
-            insertMediaBlobsJQuery();
-            // Jump to any anchor parameter
-            if (anchorParameter) {
-                var target = iframeContentDocument.getElementById(anchorParameter);
-                if (target) target.scrollIntoView();
-                anchorParameter = '';
-            }
-            if (iframeArticleContent.contentWindow) {
-                // Configure home key press to focus #prefix only if the feature is in active state
-                if (params.useHomeKeyToFocusSearchBar)
-                    iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
-                // when unloaded remove eventListener to avoid memory leaks
-                iframeArticleContent.contentWindow.onunload = function () {
-                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-                };
-            }
+          parseAnchorsJQuery();
+          loadImagesJQuery();
+          // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
+          // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
+          // and noscript tags should be ignored
+          loadNoScriptTags();
+          //loadJavaScriptJQuery();
+          loadCSSJQuery();
+          insertMediaBlobsJQuery();
+          // Jump to any anchor parameter
+          if (anchorParameter) {
+            var target = iframeContentDocument.getElementById(anchorParameter);
+            if (target) target.scrollIntoView();
+            anchorParameter = "";
+          }
+          if (iframeArticleContent.contentWindow) {
+            // Configure home key press to focus #prefix only if the feature is in active state
+            if (params.useHomeKeyToFocusSearchBar)
+              iframeArticleContent.contentWindow.addEventListener(
+                "keydown",
+                focusPrefixOnHomeKey
+              );
+            // when unloaded remove eventListener to avoid memory leaks
+            iframeArticleContent.contentWindow.onunload = function () {
+              iframeArticleContent.contentWindow.removeEventListener(
+                "keydown",
+                focusPrefixOnHomeKey
+              );
+            };
+          }
         };
 
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
