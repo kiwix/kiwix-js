@@ -1734,18 +1734,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
             while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-            document.getElementById("articleListWithHeader").style.display = "none";
-            document.getElementById("prefix").value = "";
+            document.getElementById('articleListWithHeader').style.display = 'none';
+            document.getElementById('prefix').value = '';
 
             var iframeContentDocument = iframeArticleContent.contentDocument;
-            if (!iframeContentDocument && window.location.protocol === "file:") {
-            uiUtil.systemAlert(
-                "You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons." +
-                "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)." +
-                "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)" +
-                "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config"
-            );
-            return;
+            if (!iframeContentDocument && window.location.protocol === 'file:') {
+                uiUtil.systemAlert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
+                                    + "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)."
+                                    + "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
+                                    + "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+                return;
             }
 
             // Inject the new article's HTML into the iframe
@@ -1753,7 +1751,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // innerHTML required in this line
             articleContent.innerHTML = htmlArticle;
 
-            var docBody = articleContent.getElementsByTagName("body");
+            var docBody = articleContent.getElementsByTagName('body');
             docBody = docBody ? docBody[0] : null;
             if (docBody) {
             // Add any missing classes stripped from the <html> tag
