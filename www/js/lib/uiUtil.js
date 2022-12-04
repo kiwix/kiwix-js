@@ -598,7 +598,7 @@ define(rqDef, function(settingsStore) {
     function reportSearchProviderToAPIStatusPanel(provider) {
         var providerAPI = document.getElementById('searchProvider');
         if (providerAPI) {
-            providerAPI.innerHTML = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
+            providerAPI.textContent = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
             providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
         }
     }

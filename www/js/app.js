@@ -634,29 +634,29 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var messageChannelStatus = document.getElementById('messageChannelStatus');
         var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
         if (isMessageChannelAvailable()) {
-            messageChannelStatus.innerHTML = 'MessageChannel API available';
+            messageChannelStatus.textContent = 'MessageChannel API available';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            messageChannelStatus.innerHTML = 'MessageChannel API unavailable';
+            messageChannelStatus.textContent = "MessageChannel API unavailable";
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiUnavailable');
         }
         if (isServiceWorkerAvailable()) {
             if (isServiceWorkerReady()) {
-                serviceWorkerStatus.innerHTML = 'ServiceWorker API available, and registered';
+                serviceWorkerStatus.textContent = 'ServiceWorker API available, and registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiAvailable');
             } else {
                 apiPanelClass = 'card-warning';
-                serviceWorkerStatus.innerHTML = 'ServiceWorker API available, but not registered';
+                serviceWorkerStatus.textContent = 'ServiceWorker API available, but not registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiUnavailable');
             }
         } else {
             apiPanelClass = 'card-warning';
-            serviceWorkerStatus.innerHTML = 'ServiceWorker API unavailable';
+            serviceWorkerStatus.textContent = "ServiceWorker API unavailable";
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
         }
@@ -677,7 +677,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
-        decompAPIStatusDiv.textContent = 'Decompressor API: ' + apiName ;
+        // innerHTML is used here because the API name may contain HTML entities like &nbsp;
+        decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName ;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
         // Set visibility of UI elements according to mode
@@ -868,7 +869,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
                 if (!isServiceWorkerReady()) {
                     var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
-                    serviceWorkerStatus.innerHTML = 'ServiceWorker API available : trying to register it...';
+                    serviceWorkerStatus.textContent = 'ServiceWorker API available : trying to register it...';
                     if (navigator.serviceWorker.controller) {
                         console.log("Active Service Worker found, no need to register");
                         serviceWorkerRegistration = true;
@@ -1428,7 +1429,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             );
         }
 
-        articleListHeaderMessageDiv.innerHTML = message;
+        articleListHeaderMessageDiv.textContent = message;
 
         var articleListDiv = document.getElementById('articleList');
         var articleListDivHtml = '';
@@ -1443,6 +1444,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
         }
+
+        // innerHTML required for this line
         articleListDiv.innerHTML = articleListDivHtml;
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
         // and prevents this event from firing; note that touch also triggers mousedown
@@ -1529,7 +1532,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
-                document.getElementById('cachingAssets').innerHTML = 'Caching assets...';
+                document.getElementById('cachingAssets').textContent = 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
                 document.getElementById('searchingArticles').style.display = 'none';
                 // Set the requested appTheme
@@ -1726,78 +1729,78 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var iframeArticleContent = document.getElementById('articleContent');
 
         iframeArticleContent.onload = function() {
-          iframeArticleContent.onload = function () {};
-          var articleList = document.getElementById('articleList');
-          var articleListHeaderMessage =  document.getElementById("articleListHeaderMessage");
+            iframeArticleContent.onload = function(){};
+            var articleList = document.getElementById('articleList');
+            var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
             while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-          document.getElementById("articleListWithHeader").style.display = 'none';
-          document.getElementById('prefix').value = '';
+            document.getElementById("articleListWithHeader").style.display = "none";
+            document.getElementById("prefix").value = "";
 
-          var iframeContentDocument = iframeArticleContent.contentDocument;
-          if (!iframeContentDocument && window.location.protocol === "file:") {
+            var iframeContentDocument = iframeArticleContent.contentDocument;
+            if (!iframeContentDocument && window.location.protocol === "file:") {
             uiUtil.systemAlert(
-              "You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons." +
+                "You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons." +
                 "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)." +
                 "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)" +
                 "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config"
             );
             return;
-          }
+            }
 
-          // Inject the new article's HTML into the iframe
-          var articleContent = iframeContentDocument.documentElement;
-          // Use of .innerHTML required
-          articleContent.innerHTML = htmlArticle;
+            // Inject the new article's HTML into the iframe
+            var articleContent = iframeContentDocument.documentElement;
+            // innerHTML required in this line
+            articleContent.innerHTML = htmlArticle;
 
-          var docBody = articleContent.getElementsByTagName("body");
-          docBody = docBody ? docBody[0] : null;
-          if (docBody) {
+            var docBody = articleContent.getElementsByTagName("body");
+            docBody = docBody ? docBody[0] : null;
+            if (docBody) {
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS)
-              htmlCSS.forEach(function (cl) {
+                htmlCSS.forEach(function (cl) {
                 docBody.classList.add(cl);
-              });
+                });
             // Deflect drag-and-drop of ZIM file on the iframe to Config
             docBody.addEventListener("dragover", handleIframeDragover);
             docBody.addEventListener("drop", handleIframeDrop);
-          }
+            }
 
-          // Set the requested appTheme
-          uiUtil.applyAppTheme(params.appTheme);
-          // Allow back/forward in browser history
-          pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
+            // Set the requested appTheme
+            uiUtil.applyAppTheme(params.appTheme);
+            // Allow back/forward in browser history
+            pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
 
-          parseAnchorsJQuery();
-          loadImagesJQuery();
-          // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
-          // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
-          // and noscript tags should be ignored
-          loadNoScriptTags();
-          //loadJavaScriptJQuery();
-          loadCSSJQuery();
-          insertMediaBlobsJQuery();
-          // Jump to any anchor parameter
-          if (anchorParameter) {
+            parseAnchorsJQuery();
+            loadImagesJQuery();
+            // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
+            // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
+            // and noscript tags should be ignored
+            loadNoScriptTags();
+            //loadJavaScriptJQuery();
+            loadCSSJQuery();
+            insertMediaBlobsJQuery();
+            // Jump to any anchor parameter
+            if (anchorParameter) {
             var target = iframeContentDocument.getElementById(anchorParameter);
             if (target) target.scrollIntoView();
             anchorParameter = "";
-          }
-          if (iframeArticleContent.contentWindow) {
+            }
+            if (iframeArticleContent.contentWindow) {
             // Configure home key press to focus #prefix only if the feature is in active state
             if (params.useHomeKeyToFocusSearchBar)
-              iframeArticleContent.contentWindow.addEventListener(
+                iframeArticleContent.contentWindow.addEventListener(
                 "keydown",
                 focusPrefixOnHomeKey
-              );
+                );
             // when unloaded remove eventListener to avoid memory leaks
             iframeArticleContent.contentWindow.onunload = function () {
-              iframeArticleContent.contentWindow.removeEventListener(
+                iframeArticleContent.contentWindow.removeEventListener(
                 "keydown",
                 focusPrefixOnHomeKey
-              );
+                );
             };
-          }
+            }
         };
 
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -1968,7 +1971,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // until all CSS content is available [kiwix-js #381]
             function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
-                    document.getElementById('cachingAssets').innerHTML = 'Caching assets...';
+                    document.getElementById('cachingAssets').textContent = 'Caching assets...';
                     document.getElementById('cachingAssets').style.display = 'none';
                     document.getElementById('searchingArticles').style.display = 'none';
                     document.getElementById('articleContent').style.display = '';
