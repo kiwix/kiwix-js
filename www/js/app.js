@@ -1754,9 +1754,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var docBody = articleContent.getElementsByTagName('body');
             docBody = docBody ? docBody[0] : null;
             if (docBody) {
-            // Add any missing classes stripped from the <html> tag
-            if (htmlCSS) htmlCSS.forEach(function (cl) {
-                docBody.classList.add(cl);
+                // Add any missing classes stripped from the <html> tag
+                if (htmlCSS) htmlCSS.forEach(function (cl) {
+                    docBody.classList.add(cl);
                 });
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
@@ -1784,19 +1784,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 anchorParameter = '';
             }
             if (iframeArticleContent.contentWindow) {
-            // Configure home key press to focus #prefix only if the feature is in active state
-            if (params.useHomeKeyToFocusSearchBar)
-                iframeArticleContent.contentWindow.addEventListener(
-                "keydown",
-                focusPrefixOnHomeKey
-                );
-            // when unloaded remove eventListener to avoid memory leaks
-            iframeArticleContent.contentWindow.onunload = function () {
-                iframeArticleContent.contentWindow.removeEventListener(
-                "keydown",
-                focusPrefixOnHomeKey
-                );
-            };
+                // Configure home key press to focus #prefix only if the feature is in active state
+                if (params.useHomeKeyToFocusSearchBar)
+                    iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
+                // when unloaded remove eventListener to avoid memory leaks
+                iframeArticleContent.contentWindow.onunload = function () {
+                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                };
             }
         };
 
