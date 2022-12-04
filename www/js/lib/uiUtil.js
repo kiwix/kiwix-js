@@ -225,7 +225,7 @@ define(rqDef, function(settingsStore) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');
-            d.head.textContent = '<base href="' + base + '">';
+            d.head.innerHTML = '<base href="' + base + '">';
             var a = d.createElement('a');
             a.href = url;
             return { pathname: a.href.replace(dummy, '') };
@@ -304,7 +304,7 @@ define(rqDef, function(settingsStore) {
         a.classList.add('alert-link');
         a.textContent = filename;
         var alertMessage = document.getElementById('alertMessage');
-        alertMessage.textContent = '<strong>Download</strong> If the download does not start, please tap the following link: ';
+        alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
         // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
         alertMessage.appendChild(a);
         try { a.click(); }

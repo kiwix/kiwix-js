@@ -169,7 +169,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-    document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion; 
+    document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
     // We check here if we have to warn the user that we switched to ServiceWorkerMode
     // This is only needed if the ServiceWorker mode is available, or we are in a Firefox Extension that supports Service Workers
     // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
@@ -639,7 +639,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            messageChannelStatus.textContent = "MessageChannel API unavailable";
+            messageChannelStatus.textContent = 'MessageChannel API unavailable';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiUnavailable');
         }
@@ -656,7 +656,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
         } else {
             apiPanelClass = 'card-warning';
-            serviceWorkerStatus.textContent = "ServiceWorker API unavailable";
+            serviceWorkerStatus.textContent = 'ServiceWorker API unavailable';
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
         }
