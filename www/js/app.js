@@ -1755,13 +1755,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             docBody = docBody ? docBody[0] : null;
             if (docBody) {
             // Add any missing classes stripped from the <html> tag
-            if (htmlCSS)
-                htmlCSS.forEach(function (cl) {
+            if (htmlCSS) htmlCSS.forEach(function (cl) {
                 docBody.classList.add(cl);
                 });
-            // Deflect drag-and-drop of ZIM file on the iframe to Config
-            docBody.addEventListener("dragover", handleIframeDragover);
-            docBody.addEventListener("drop", handleIframeDrop);
+                // Deflect drag-and-drop of ZIM file on the iframe to Config
+                docBody.addEventListener('dragover', handleIframeDragover);
+                docBody.addEventListener('drop', handleIframeDrop);
             }
 
             // Set the requested appTheme
@@ -1780,9 +1779,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             insertMediaBlobsJQuery();
             // Jump to any anchor parameter
             if (anchorParameter) {
-            var target = iframeContentDocument.getElementById(anchorParameter);
-            if (target) target.scrollIntoView();
-            anchorParameter = "";
+                var target = iframeContentDocument.getElementById(anchorParameter);
+                if (target) target.scrollIntoView();
+                anchorParameter = '';
             }
             if (iframeArticleContent.contentWindow) {
             // Configure home key press to focus #prefix only if the feature is in active state
