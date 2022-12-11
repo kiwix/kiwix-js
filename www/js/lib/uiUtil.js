@@ -225,6 +225,7 @@ define(rqDef, function(settingsStore) {
             if (typeof URL === 'function') return new URL(url, base);
             // IE11 lacks URL API: workaround adapted from https://stackoverflow.com/a/28183162/9727685
             var d = document.implementation.createHTMLDocument('t');
+            // innerHTML required as string contains HTML tags
             d.head.innerHTML = '<base href="' + base + '">';
             var a = d.createElement('a');
             a.href = url;
@@ -302,8 +303,9 @@ define(rqDef, function(settingsStore) {
         a.type = contentType;
         a.download = filename;
         a.classList.add('alert-link');
-        a.innerHTML = filename;
+        a.textContent = filename;
         var alertMessage = document.getElementById('alertMessage');
+        //innerHTML required as it has HTML tags
         alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
         // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
         alertMessage.appendChild(a);
@@ -341,7 +343,7 @@ define(rqDef, function(settingsStore) {
                             // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
                             appstate.pwaUpdateNeeded = true;
                             updateAlert.style.display = 'block';
-                            document.getElementById('persistentMessage').innerHTML = 'Version ' + key.replace(cachePrefix, '') +
+                            document.getElementById('persistentMessage').textContent = 'Version ' + key.replace(cachePrefix, '') +
                                 ' is ready to install. (Re-launch app to install.)';
                         });
                     });
@@ -377,10 +379,10 @@ define(rqDef, function(settingsStore) {
         if (show) searchingArticles.style.display = 'block';
         else searchingArticles.style.display = 'none';
         if (message) {
-            spinnerMessage.innerHTML = message;
+            spinnerMessage.textContent = message;
             spinnerMessage.style.display = 'block';
         } else {
-            spinnerMessage.innerHTML = 'Caching assets...';
+            spinnerMessage.textContent = 'Caching assets...';
             spinnerMessage.style.display = 'none';
         }
     }
@@ -589,7 +591,7 @@ define(rqDef, function(settingsStore) {
         params.decompressorAPI.assemblerMachineType = assemblerMachineType;
         params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
         var decompAPI = document.getElementById('decompressorAPIStatus');
-        decompAPI.innerHTML = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
+        decompAPI.textContent = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
         decompAPI.className = 'apiBroken';
         document.getElementById('apiStatusDiv').className = 'card card-danger';
     }
@@ -598,7 +600,7 @@ define(rqDef, function(settingsStore) {
     function reportSearchProviderToAPIStatusPanel(provider) {
         var providerAPI = document.getElementById('searchProvider');
         if (providerAPI) {
-            providerAPI.innerHTML = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
+            providerAPI.textContent = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
             providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
         }
     }
