@@ -35,7 +35,7 @@ const MAX_SUPPORTED_DIRENTRY_SIZE = 5120;
  * If this is resolved upstream, remove this polyfill
  * Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
  */
-    if (!String.prototype.startsWith) {
+if (!String.prototype.startsWith) {
     Object.defineProperty(String.prototype, 'startsWith', {
         value: function(search, rawPos) {
             var pos = rawPos > 0 ? rawPos|0 : 0;
@@ -383,7 +383,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 if (!dirEntry) return null;
                 // Detect a full text index
                 if (/fulltext\//.test(dirEntry.url)) {
-                    that[listing.ptrName] = dirEntry.namespace + '/' + dirEntry.url
+                    that[listing.ptrName] = dirEntry.namespace + '/' + dirEntry.url;
                 }
                 // Request the metadata for the blob represented by the dirEntry
                 return that.blob(dirEntry.cluster, dirEntry.blob, true);
