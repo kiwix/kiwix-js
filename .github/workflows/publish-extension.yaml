@@ -8,9 +8,9 @@ name: Publish Mozilla extension
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow on push to master
+  # Triggers the workflow on push to main
   push:
-    branches: [ master ]
+    branches: [ main ]
   # Triggers the workflow when a release is published
   release:
     types: [ published ]
@@ -24,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Set any override version number to use (overrides on-master and tag-pattern). If it matches ^v?[0-9.]+, it will set the appVersion (v will be removed) and will be visible to users. Non-matching values will cause appVersion to be used.
+        description: Set any override version number to use (overrides on-main and tag-pattern). If it matches ^v?[0-9.]+, it will set the appVersion (v will be removed) and will be visible to users. Non-matching values will cause appVersion to be used.
         required: true
         default: 'dev'
       target:
@@ -69,7 +69,7 @@ jobs:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
           args: rollout restart deployments mozext-deployment -n pwa
-      # Publish to GitHub Pages if explicitly requested, or if releasing, or if pushing to master
+      # Publish to GitHub Pages if explicitly requested, or if releasing, or if pushing to main
       - name: Publish to GitHub Pages
         if: github.event.inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
         run: |
