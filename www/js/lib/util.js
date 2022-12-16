@@ -114,30 +114,6 @@ define([], function() {
     }
 
     /**
-     * Read an integer encoded in 4 bytes, little endian
-     * @param {Array} byteArray
-     * @param {Integer} firstIndex
-     * @returns {Integer}
-     */
-    function readIntegerFrom4Bytes(byteArray, firstIndex) {
-        var dataView = new DataView(byteArray.buffer, firstIndex, 4);
-        var integer = dataView.getUint32(0, true);
-        return integer;
-    }
-
-    /**
-     * Read an integer encoded in 2 bytes, little endian
-     * @param {Array} byteArray
-     * @param {Integer} firstIndex
-     * @returns {Integer}
-     */
-    function readIntegerFrom2Bytes(byteArray, firstIndex) {
-        var dataView = new DataView(byteArray.buffer, firstIndex, 2);
-        var integer = dataView.getUint16(0, true);
-        return integer;
-    }
-
-    /**
      * Read a float encoded in 2 bytes
      * @param {Array} byteArray
      * @param {Integer} firstIndex
@@ -148,22 +124,6 @@ define([], function() {
         var dataView = new DataView(byteArray.buffer, firstIndex, 4);
         var float = dataView.getFloat32(0, littleEndian);
         return float;
-    }
-
-    /**
-     * Convert a Uint8Array to a lowercase hex string
-     * @param {Array} byteArray
-     * @returns {String}
-     */
-    function uint8ArrayToHex(byteArray) {
-        var s = '';
-        var hexDigits = '0123456789abcdef';
-        for (var i = 0; i < byteArray.length; i++) {
-            var v = byteArray[i];
-            s += hexDigits[(v & 0xff) >> 4];
-            s += hexDigits[v & 0xf];
-        }
-        return s;
     }
 
     /**
@@ -240,10 +200,7 @@ define([], function() {
         allCaseFirstLetters: allCaseFirstLetters,
         removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
         endsWith: endsWith,
-        readIntegerFrom4Bytes: readIntegerFrom4Bytes,
-        readIntegerFrom2Bytes: readIntegerFrom2Bytes,
         readFloatFrom4Bytes: readFloatFrom4Bytes,
-        uint8ArrayToHex: uint8ArrayToHex,
         readFileSlice: readFileSlice,
         binarySearch: binarySearch,
         leftShift: leftShift

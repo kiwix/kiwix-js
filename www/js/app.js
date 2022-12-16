@@ -169,7 +169,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
     switchHomeKeyToFocusSearchBar();
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-    document.getElementById('appVersion').innerHTML = 'Kiwix ' + params.appVersion;
+    document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
     // We check here if we have to warn the user that we switched to ServiceWorkerMode
     // This is only needed if the ServiceWorker mode is available, or we are in a Firefox Extension that supports Service Workers
     // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
@@ -634,36 +634,36 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var messageChannelStatus = document.getElementById('messageChannelStatus');
         var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
         if (isMessageChannelAvailable()) {
-            messageChannelStatus.innerHTML = 'MessageChannel API available';
+            messageChannelStatus.textContent = 'MessageChannel API available';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            messageChannelStatus.innerHTML = 'MessageChannel API unavailable';
+            messageChannelStatus.textContent = 'MessageChannel API unavailable';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiUnavailable');
         }
         if (isServiceWorkerAvailable()) {
             if (isServiceWorkerReady()) {
-                serviceWorkerStatus.innerHTML = 'ServiceWorker API available, and registered';
+                serviceWorkerStatus.textContent = 'ServiceWorker API available, and registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiAvailable');
             } else {
                 apiPanelClass = 'card-warning';
-                serviceWorkerStatus.innerHTML = 'ServiceWorker API available, but not registered';
+                serviceWorkerStatus.textContent = 'ServiceWorker API available, but not registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiUnavailable');
             }
         } else {
             apiPanelClass = 'card-warning';
-            serviceWorkerStatus.innerHTML = 'ServiceWorker API unavailable';
+            serviceWorkerStatus.textContent = 'ServiceWorker API unavailable';
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
         }
         // Update Settings Store section of API panel with API name
         var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
         var apiName = params.storeType === 'cookie' ? 'Cookie' : params.storeType === 'local_storage' ? 'Local Storage' : 'None';
-        settingsStoreStatusDiv.innerHTML = 'Settings Storage API in use: ' + apiName;
+        settingsStoreStatusDiv.textContent = 'Settings Storage API in use: ' + apiName;
         settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
         settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
         apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
@@ -677,7 +677,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
-        decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
+        // innerHTML is used here because the API name may contain HTML entities like &nbsp;
+        decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName ;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
         // Set visibility of UI elements according to mode
@@ -733,8 +734,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
                 console.error('DEV: The ASSETS_CACHE defined in app.js does not match the ASSETS_CACHE defined in service-worker.js!');
             }
-            document.getElementById('cacheUsed').innerHTML = cache.description;
-            document.getElementById('assetsCount').innerHTML = cache.count;
+            document.getElementById('cacheUsed').textContent = cache.description;
+            document.getElementById('assetsCount').textContent = cache.count;
             var cacheSettings = document.getElementById('performanceSettingsDiv');
             var cacheStatusPanel = document.getElementById('cacheStatusPanel');
             [cacheSettings, cacheStatusPanel].forEach(function (card) {
@@ -868,7 +869,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
                 if (!isServiceWorkerReady()) {
                     var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
-                    serviceWorkerStatus.innerHTML = 'ServiceWorker API available : trying to register it...';
+                    serviceWorkerStatus.textContent = 'ServiceWorker API available : trying to register it...';
                     if (navigator.serviceWorker.controller) {
                         console.log("Active Service Worker found, no need to register");
                         serviceWorkerRegistration = true;
@@ -1428,7 +1429,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             );
         }
 
-        articleListHeaderMessageDiv.innerHTML = message;
+        articleListHeaderMessageDiv.textContent = message;
 
         var articleListDiv = document.getElementById('articleList');
         var articleListDivHtml = '';
@@ -1443,6 +1444,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
                 '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
         }
+
+        // innerHTML required for this line
         articleListDiv.innerHTML = articleListDivHtml;
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
         // and prevents this event from firing; note that touch also triggers mousedown
@@ -1529,7 +1532,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var iframeArticleContent = document.getElementById('articleContent');
             iframeArticleContent.onload = function () {
                 // The content is fully loaded by the browser : we can hide the spinner
-                document.getElementById('cachingAssets').innerHTML = 'Caching assets...';
+                document.getElementById('cachingAssets').textContent = 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
                 document.getElementById('searchingArticles').style.display = 'none';
                 // Set the requested appTheme
@@ -1745,6 +1748,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             // Inject the new article's HTML into the iframe
             var articleContent = iframeContentDocument.documentElement;
+            // innerHTML required in this line
             articleContent.innerHTML = htmlArticle;
 
             var docBody = articleContent.getElementsByTagName('body');
@@ -1958,7 +1962,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // until all CSS content is available [kiwix-js #381]
             function renderIfCSSFulfilled(title) {
                 if (cssFulfilled >= cssCount) {
-                    document.getElementById('cachingAssets').innerHTML = 'Caching assets...';
+                    document.getElementById('cachingAssets').textContent = 'Caching assets...';
                     document.getElementById('cachingAssets').style.display = 'none';
                     document.getElementById('searchingArticles').style.display = 'none';
                     document.getElementById('articleContent').style.display = '';
@@ -2036,7 +2040,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
             title = title.replace(/[^/]+\//g, '').substring(0,18);
-            cacheBlock.innerHTML = 'Caching ' + title + '...';
+            cacheBlock.textContent = 'Caching ' + title + '...';
         }
     }
 

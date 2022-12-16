@@ -7,7 +7,7 @@ Please follow these guidelines when contributing:
 
 - Ask to be assigned to an issue you wish to work on first (we have lots of past issues, some of which are no longer relevant or wanted);
 - We ask you only to pick issues for which you are confident that you have a solution;
-- If you are a newcomer to the repo, create a personal fork and clone it locally (for more details, see [Kiwix guidelines](https://github.com/kiwix/overview/blob/master/CONTRIBUTING.md)). Check out a new branch with a name relevant to the issue you are working on;
+- If you are a newcomer to the repo, create a personal fork and clone it locally (for more details, see [Kiwix guidelines](https://github.com/kiwix/overview/blob/main/CONTRIBUTING.md)). Check out a new branch with a name relevant to the issue you are working on;
 - Follow the coding style of the area you are editing, including indentation, and be consistent with quotation marks and spacing;
 - Use no higher than [ECMAScript 5](https://caniuse.com/es5) - notably, do not use arrow functions or `async` functions. However, Promises *are*
   supported via a polyfill;
