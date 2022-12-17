@@ -240,7 +240,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
      * 
      * @param {Object} search The current appstate.search object
      * @param {callbackDirEntryList} callback The function to call with the result
-     * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing) 
+     * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing)
      */
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noInterim) {
         var that = this;
@@ -273,6 +273,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             )
         );
         var dirEntries = [];
+        search.scanCount = 0;
 
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
@@ -364,9 +365,14 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 if (search.status === 'cancelled' || search.found >= search.size || index >= articleCount
                 || lastTitle && !~lastTitle.indexOf(prefix)) {
                     // DEV: Diagnostics to be removed before merge
-                    if (vDirEntries.length) console.debug('Scanned ' + (index - firstIndex) + ' titles for "' + prefix + 
-                        '" (found ' + vDirEntries.length + ' match' + (vDirEntries.length === 1 ? ')' : 'es)'));
-                    return vDirEntries;
+                    if (vDirEntries.length) {
+                        console.debug('Scanned ' + (index - firstIndex) + ' titles for "' + prefix + 
+                            '" (found ' + vDirEntries.length + ' match' + (vDirEntries.length === 1 ? ')' : 'es)'));
+                    }
+                    return {
+                        'dirEntries': vDirEntries,
+                        'nextStart': index
+                    };
                 }
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
                     search.scanCount++;
@@ -375,7 +381,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                     if (dirEntry.namespace === cns && title.indexOf(prefix) === 0) {
                         vDirEntries.push(dirEntry);
                         // Report interim result
-                        callback([dirEntry], true);
+                        callback([dirEntry], false, true);
                     }
                     return addDirEntries(index + 1, title);
                 });
