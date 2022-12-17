@@ -43,9 +43,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
      */
 
     /**
-     * @param {Worker} libzimWorker A Web Worker to run the libzim Web Assembly binary
+     * @param {Worker} LZ A Web Worker to run the libzim Web Assembly binary
      */
-    var libzimWorker; 
+    var LZ;
     
     /**
      * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
@@ -63,6 +63,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         var createZimfile = function (fileArray) {
             zimfile.fromFileArray(fileArray).then(function (file) {
                 that._file = file;
+                // Clear the previous libzimWoker
+                LZ = null;
                 // Set a global parameter to report the search provider type
                 params.searchProvider = 'title';
                 // File has been created, but we need to add any Listings which extend the archive metadata
@@ -91,25 +93,38 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 ]).then(function () {
                     // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                     var isSplitZim = /\.zima.$/i.test(that._file._files[0].name);
-                    if ('WebAssembly' in self && that._file.fullTextIndex && !isSplitZim) {
-                        console.log('Instantiating libzim Web Worker...');
-                        libzimWorker = new Worker('js/lib/libzim-wasm.js');
-                        that.callLibzimWorker({action: "init", files: that._file._files})
-                        .then(function () {
-                            params.searchProvider = 'fulltext';
+                    if (params.debugLibzimASM || that._file.fullTextIndex && !isSplitZim && typeof Atomics !== 'undefined' 
+                        // Note that Android and NWJS currently throw due to problems with Web Worker context
+                        && !/Android/.test(params.appType) && !(window.nw && that._file._files[0].readMode === 'electron')) {
+                        var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm' : 'asm');
+                        console.log('Instantiating libzim ' + libzimReaderType + ' Web Worker...');
+                        LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
+                        that.callLibzimWorker({action: "init", files: that._file._files}).then(function (msg) {
+                            // console.debug(msg);
+                            params.searchProvider = 'fulltext: ' + libzimReaderType;
                             // Update the API panel
                             uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                         }).catch(function (err) {
-                            uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+                            uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
                             console.error('The libzim worker could not be instantiated!', err);
                         });
                     } else {
+                        // var message = 'Full text searching is not available because ';
+                        if (!that._file.fullTextIndex) {
+                            params.searchProvider += ': no_fulltext'; // message += 'this ZIM does not have a full-text index.';
+                        } else if (isSplitZim) {
+                            params.searchProvider += ': split_zim'; // message += 'the ZIM archive is split.';
+                        } else if (typeof Atomics === 'undefined') {
+                            params.searchProvider += ': no_atomics'; // message += 'this browser does not support Atomic operations.';
+                        } else if (/Android/.test(params.appType)) {
+                            params.searchProvider += ': no_sharedArrayBuffer';
+                        }
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
-                        if (isSplitZim) console.warn('Full text searching was disabled because ZIM archive is split.');
+                        // uiUtil.systemAlert(message);
                     }
                 });
                 // Set the archive file type ('open' or 'zimit')
-                that.setZimType();
+                params.zimType = that.setZimType();
                 // DEV: Currently, extended listings are only used for title (=article) listings when the user searches
                 // for an article or uses the Random button, by which time the listings will have been extracted.
                 // If, in the future, listings are used in a more time-critical manner, consider forcing a wait before
@@ -225,7 +240,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
      * 
      * @param {Object} search The current appstate.search object
      * @param {callbackDirEntryList} callback The function to call with the result
-     * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing) 
+     * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing)
      */
     ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noInterim) {
         var that = this;
@@ -258,11 +273,19 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             )
         );
         var dirEntries = [];
+        search.scanCount = 0;
 
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
             if (search.status === 'cancelled') return callback([], search);
             if (prefixVariants.length === 0 || dirEntries.length >= search.size) {
+                // We have found all the title-search entries we are going to get, so launch full-text search if we are still missing entries
+                if (LZ) {
+                    return that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
+                        search.status = 'complete';
+                        callback(fullTextDirEntries, search);
+                    });
+                }
                 search.status = 'complete';
                 return callback(dirEntries, search);
             }
@@ -271,21 +294,24 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
             if (!noInterim) callback(dirEntries, search);
             search.found = dirEntries.length;
             var prefix = prefixVariants[0];
+            // console.debug('Searching for: ' + prefixVariants[0]);
             prefixVariants = prefixVariants.slice(1);
             that.findDirEntriesWithPrefixCaseSensitive(prefix, search,
-                function (newDirEntries, interim) {
+                function (newDirEntries, countReport, interim) {
+                    search.countReport = countReport;
                     if (search.status === 'cancelled') return callback([], search);
+                    if (!noInterim && countReport === true) return callback(dirEntries, search);
                     if (interim) {// Only push interim results (else results will be pushed again at end of variant loop)                    
                         [].push.apply(dirEntries, newDirEntries);
                         search.found = dirEntries.length;
-                        if (!noInterim && newDirEntries.length) callback(dirEntries, search);
-                    } else searchNextVariant();
+                        if (!noInterim && newDirEntries.length) return callback(dirEntries, search);
+                    } else return searchNextVariant();
                 }
             );
         }
         searchNextVariant();
     };
-
+    
     /**
      * A method to return the namespace in the ZIM file that contains the primary user content. In old-format ZIM files (minor
      * version 0) there are a number of content namespaces, but the primary one in which to search for titles is 'A'. In new-format
@@ -339,23 +365,75 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 if (search.status === 'cancelled' || search.found >= search.size || index >= articleCount
                 || lastTitle && !~lastTitle.indexOf(prefix)) {
                     // DEV: Diagnostics to be removed before merge
-                    if (vDirEntries.length) console.debug('Scanned ' + (index - firstIndex) + ' titles for "' + prefix + 
-                        '" (found ' + vDirEntries.length + ' match' + (vDirEntries.length === 1 ? ')' : 'es)'));
-                    return vDirEntries;
+                    if (vDirEntries.length) {
+                        console.debug('Scanned ' + (index - firstIndex) + ' titles for "' + prefix + 
+                            '" (found ' + vDirEntries.length + ' match' + (vDirEntries.length === 1 ? ')' : 'es)'));
+                    }
+                    return {
+                        'dirEntries': vDirEntries,
+                        'nextStart': index
+                    };
                 }
                 return that._file.dirEntryByTitleIndex(index).then(function(dirEntry) {
+                    search.scanCount++;
                     var title = dirEntry.getTitleOrUrl();
                     // Only return dirEntries with titles that actually begin with prefix
                     if (dirEntry.namespace === cns && title.indexOf(prefix) === 0) {
                         vDirEntries.push(dirEntry);
                         // Report interim result
-                        callback([dirEntry], true);
+                        callback([dirEntry], false, true);
                     }
                     return addDirEntries(index + 1, title);
                 });
             };
             return addDirEntries(firstIndex);
         }).then(callback);
+    };
+
+    /**
+     * Find Directory Entries corresponding to the requested search using Full Text search provided by libzim
+     * 
+     * @param {Object} search The appstate.search object
+     * @param {Array} dirEntries The array of already found Directory Entries
+     * @returns {Promise<callbackDirEntry>} The augmented array of Directory Entries with titles that correspond to search 
+     */
+    ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEntries) {
+        var cns = this.getContentNamespace();
+        var that = this;
+        // We give ourselves an overhead in caclulating the results needed, because full-text search will return some results already found
+        var resultsNeeded = Math.floor(params.maxSearchResultsSize - dirEntries.length / 2);
+        return this.callLibzimWorker({action: "search", text: search.prefix, numResults: resultsNeeded}).then(function (results) {
+            if (results) {
+                var dirEntryPaths = [];
+                var fullTextPaths = [];
+                // Collect all the found paths for the dirEntries
+                for (var i = 0; i < dirEntries.length; i++) {
+                    dirEntryPaths.push(dirEntries[i].namespace + '/' + dirEntries[i].url);
+                }
+                // Collect all the paths for full text search, pruning as we go
+                var path;
+                for (var j = 0; j < results.entries.length; j++) {
+                    search.scanCount++;
+                    path = results.entries[j].path;
+                    // Full-text search result paths are missing the namespace in Type 1 ZIMs, so we add it back
+                    path = cns === 'C' ? cns + '/' + path : path;
+                    if (~dirEntryPaths.indexOf(path)) continue;
+                    fullTextPaths.push(path);
+                }
+                var promisesForDirEntries = [];
+                for (var k = 0; k < fullTextPaths.length; k++) {
+                    promisesForDirEntries.push(that.getDirEntryByPath(fullTextPaths[k]));
+                }
+                return Promise.all(promisesForDirEntries).then(function (fullTextDirEntries) {
+                    for (var l = 0; l < fullTextDirEntries.length; l++) {
+                        dirEntries.push(fullTextDirEntries[l]);
+                    }
+                    return(dirEntries);
+                });
+            } else {
+                return(dirEntries);
+            }
+        });
     };
 
     /**
@@ -381,7 +459,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 // console.error("Error sent by the WebWorker in " + readTime + " ms", event.data);
                 reject(event.data);
             };
-            libzimWorker.postMessage(parameters, [tmpMessageChannel.port2]);
+            LZ.postMessage(parameters, [tmpMessageChannel.port2]);
         });
     };
     
@@ -466,7 +544,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         var index = Math.floor(Math.random() * articleCount);
         this._file.dirEntryByTitleIndex(index).then(callback);
     };
-    
+
     /**
      * Read a Metadata string inside the ZIM file.
      * @param {String} key

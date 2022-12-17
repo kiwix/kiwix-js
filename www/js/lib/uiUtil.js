@@ -598,10 +598,11 @@ define(rqDef, function(settingsStore) {
 
     // Reports the search provider to the API Status Panel
     function reportSearchProviderToAPIStatusPanel(provider) {
-        var providerAPI = document.getElementById('searchProvider');
+        var providerAPI = document.getElementById('searchProviderStatus');
         if (providerAPI) {
-            providerAPI.textContent = 'Search Provider: ' + (provider === 'fulltext' ? 'Title + Xapian (full text)' : 'Title only');
-            providerAPI.className = provider === 'fulltext' ? 'apiAvailable' : 'apiUnavailable';
+            providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']' :
+                /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
+            providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
         }
     }
 
