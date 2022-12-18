@@ -252,7 +252,7 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         var dirEntries = [];
         search.scanCount = 0;
         // Launch a full-text search if possible
-        if (LZ) that.findDirEntriesFromFullTextSearch(search, dirEntries, noInterim, callback).then(function (fullTextDirEntries) {
+        if (LZ) that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
             dirEntries = fullTextDirEntries;
             search.status = 'complete';
             callback(dirEntries, search);
@@ -395,11 +395,9 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
      * 
      * @param {Object} search The appstate.search object
      * @param {Array} dirEntries The array of already found Directory Entries
-     * @param {Boolean} noInterim Optional Boolean to indicate whether to suppress return of interim results
-     * @param {Function} callback Optional function to call with interim results
      * @returns {Promise<callbackDirEntry>} The augmented array of Directory Entries with titles that correspond to search 
      */
-    ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEntries, noInterim, callback) {
+    ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEntries) {
         var cns = this.getContentNamespace();
         var that = this;
         // We give ourselves an overhead in caclulating the results needed, because full-text search will return some results already found
@@ -425,14 +423,12 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 }
                 var promisesForDirEntries = [];
                 for (var k = 0; k < fullTextPaths.length; k++) {
-                    promisesForDirEntries.push(
-                        that.getDirEntryByPath(fullTextPaths[k]).then(function (dirEntry) {
-                            dirEntries.push(dirEntry);
-                            if (!noInterim && callback) callback(dirEntries, search);
-                        })
-                    );
+                    promisesForDirEntries.push(that.getDirEntryByPath(fullTextPaths[k]));
                 }
                 return Promise.all(promisesForDirEntries).then(function (fullTextDirEntries) {
+                    for (var l = 0; l < fullTextDirEntries.length; l++) {
+                        dirEntries.push(fullTextDirEntries[l]);
+                    }
                     return(dirEntries);
                 });
             } else {
