@@ -249,6 +249,14 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         // results much more quickly if we do this (and the user can click on a result before the rarer patterns complete)
         // NB duplicates are removed before processing search array
         var startArray = [];
+        var dirEntries = [];
+        search.scanCount = 0;
+        // Launch a full-text search if possible
+        if (LZ) that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
+            dirEntries = fullTextDirEntries;
+            search.status = 'complete';
+            callback(dirEntries, search);
+        });
         // Ensure a search is done on the string exactly as typed
         startArray.push(search.prefix);
         // Normalize any spacing and make string all lowercase
@@ -272,21 +280,13 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
                 )
             )
         );
-        var dirEntries = [];
-        search.scanCount = 0;
-
         function searchNextVariant() {
             // If user has initiated a new search, cancel this one
             if (search.status === 'cancelled') return callback([], search);
             if (prefixVariants.length === 0 || dirEntries.length >= search.size) {
-                // We have found all the title-search entries we are going to get, so launch full-text search if we are still missing entries
-                if (LZ) {
-                    return that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
-                        search.status = 'complete';
-                        callback(fullTextDirEntries, search);
-                    });
-                }
-                search.status = 'complete';
+                // We have found all the title-search entries we are going to get, so indicate search type if we're still searching
+                if (LZ && search.status !== 'complete') search.type = 'fulltext';
+                else search.status = 'complete';
                 return callback(dirEntries, search);
             }
             // Dynamically populate list of articles
@@ -401,7 +401,8 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         var cns = this.getContentNamespace();
         var that = this;
         // We give ourselves an overhead in caclulating the results needed, because full-text search will return some results already found
-        var resultsNeeded = Math.floor(params.maxSearchResultsSize - dirEntries.length / 2);
+        // var resultsNeeded = Math.floor(params.maxSearchResultsSize - dirEntries.length / 2);
+        var resultsNeeded = params.maxSearchResultsSize;
         return this.callLibzimWorker({action: "search", text: search.prefix, numResults: resultsNeeded}).then(function (results) {
             if (results) {
                 var dirEntryPaths = [];
