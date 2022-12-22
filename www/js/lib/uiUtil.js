@@ -599,11 +599,9 @@ define(rqDef, function(settingsStore) {
     // Reports the search provider to the API Status Panel
     function reportSearchProviderToAPIStatusPanel(provider) {
         var providerAPI = document.getElementById('searchProviderStatus');
-        if (providerAPI) {
-            providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']' :
-                /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
-            providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
-        }
+        providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']' :
+            /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
+        providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
     }
 
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
