@@ -159,8 +159,8 @@
                         if you are undertaking a long plane journey, hiking, and travelling or living in areas with weak Internet access.
                     </p>
                     <p>
-                        You can search through article titles and read any of these articles (including the images) completely offline. Archives are available
-                        with content in many different languages. There are "themed" archives with selected topics of interest from Wikipedia such as medicine,
+                        You can search through article titles, and in some cases undertake full-text search (see below), and read any of these articles (including the images) completely offline.
+                        Archives are available with content in many different languages. There are "themed" archives with selected topics of interest from Wikipedia such as medicine,
                         movies, history, geography, maths, physics, chemistry or computing (amongst many others).
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
@@ -213,22 +213,31 @@
                     <h4>Step 4: Enjoy your offline content!</h4>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
 
-                    <h3 id="searchSyntax">Title search usage</h3>
+                    <h3 id="searchSyntax">Title and full-text search usage</h3>
                     <p>
-                        Title search matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
+                        There are three types of search: title and alphabetical search (these are both universally available), and full-text search (only available in some ZIM
+                        archives and enabled in <i>modern</i> desktop browsers).
+                    </p>
+                    <p>
+                        <b>Title search</b> matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
                         'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited: e.g. if you
                         search for 'unesco world heritiage', it will try 'Unesco world heritage', 'UNESCO world heritage', 'unesco World heritage', 'Unesco WORLD heritage'
                         (etc.), but it won't try 'uNesCO' and other non-obvious case combinations. If you want to search for 'uNesCO', then you must type it exactly like that.
-                    </p>
-                    <p>
-                        If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration. Please note that we are
-                        currently unable to support full text search of the contents of articles and titles, though we have plans to do so in the future if it becomes technically
-                        possible.
+                        If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration.
                     </p>
                     <p>
                         <b>Alphabetical search:</b> If you type a letter of the alphabet in the title search box (upper case may be most useful), it will show an alphabetical
                         list of articles starting with that letter (up to the maximum number of search results you selected in Configuration). This is useful for ZIM archives
                         that have descriptive rather than semantic titles (e.g. TED Talks), expecially in <a href="#modes">JQuery mode</a>. 
+                    </p>
+                    <p>
+                        <b>Full-text search:</b> With the help of the openzim/javascript-libzim WASM project, we now support full-text search in certain contexts. Full-text search is
+                        launched in parallel with title search for those ZIMs and browsers where it is supported, but it is slower than title search, and you may notice a delay
+                        before full-text search results are added to the title search results. You do not need to do anything to initiate a full-text search: it will be performed
+                        automatically if it is supported. Please note that this type of search is only availalbe in relatively recent desktop browsers. It is not supported in mobile
+                        contexts, in Internet Explorer or Edge Legacy, or older versions of Chrome or Firefox. Additionally, you must be using a ZIM that contains an embedded full-text
+                        index. To see information on the ZIM and the browser, look in the API panel at the bottom of the Configuration page after you have loaded a ZIM.
+                        If it says "Xapian [fulltext]" then full-text search should be automatically enabled for that ZIM.
                     </p>
                     <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
                     

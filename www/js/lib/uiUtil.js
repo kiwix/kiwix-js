@@ -599,7 +599,7 @@ define(rqDef, function(settingsStore) {
     // Reports the search provider to the API Status Panel
     function reportSearchProviderToAPIStatusPanel(provider) {
         var providerAPI = document.getElementById('searchProviderStatus');
-        if (providerAPI) {
+        if (providerAPI) { // NB we need this so that tests don't fail
             providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']' :
                 /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
             providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';

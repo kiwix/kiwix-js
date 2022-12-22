@@ -679,6 +679,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
         // innerHTML is used here because the API name may contain HTML entities like &nbsp;
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName ;
+        // Update Search Provider
+        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
         // Set visibility of UI elements according to mode
