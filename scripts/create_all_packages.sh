@@ -1,6 +1,6 @@
 #!/bin/bash
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
-echo "BASEDIR is $BASEDIR"
+echo -e "\nBASEDIR is $BASEDIR"
 cd "$BASEDIR"
 
 # Reading arguments
@@ -8,12 +8,19 @@ while getopts tdv: option; do
     case "${option}" in
         t) TAG="-t";; # Indicates that we're releasing a public version from a tag
         d) DRYRUN="-d";; # Indicates a dryrun test, that does not modify anything on the network
-        v) VERSION=${OPTARG};; # Gives the version string to use (else it will use the commit id)
+        v) VERSION=${OPTARG};; # Gives the version string to use like -v 0.0 (else it will use the commit id)
     esac
 done
 
-MAJOR_NUMERIC_VERSION="3.7"
-VERSION_TO_REPLACE="3\.7-WIP"
+VERSION_TO_REPLACE="$(grep 'params\[.appVersion' www/js/app.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
+MAJOR_NUMERIC_VERSION=$(sed 's/-WIP//' <<<"$VERSION_TO_REPLACE")
+
+if [ -n $DRYRUN ]; then
+    echo "Executing script as DRYRUN"
+fi
+echo "Version passed to script: $VERSION"
+echo "Major Numeric Version: $MAJOR_NUMERIC_VERSION"
+echo -e "Version to replace: $VERSION_TO_REPLACE\n"
 
 # Set the secret environment variables if available
 # The file set_secret_environment_variables.sh should not be commited for security reasons
