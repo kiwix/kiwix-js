@@ -4,6 +4,23 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Kiwix-JS v3.7.0
+
+Released on *TODO*
+
+* FEATURE: Full-text search is now available in modern Firefox and Chromium if your ZIM archive has an ft index
+* NEW: The API panel in Configuration now informs you if full-text searching is available for your ZIM and platform
+* NEW: A new ZIM metadata property added in backend to show whether the loaded archive has an ft index
+* NEW: Added code to initialize the new javascript-libzim W/ASM if needed
+* UPDATE: Documentation updated to reflect the full-text searching capability 
+* UPDATE: Renamed the GitHub Repository 'master' branch to 'main'
+* UPDATE: Changed some hard-coded values in build script to dynamic
+* UPDATE: Provide a Workflow dispatch option to set the build version number
+* UPDATE: Release packages that do not need to be signed are now automatically uploaded to the release server 
+* CLEANUP: Many deprecated JQuery statements have been converted to native DOM equivalents, speeding up code
+* CLEANUP: Removed most usage of .innerHTML in the code
+* FIX: Tweaks to Wikimedia dark theme for greater compatibility with LaTeX images 
+
 ## Kiwix-JS v3.6.0
 
 Released on *2022-12-11*
