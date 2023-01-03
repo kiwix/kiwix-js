@@ -77,7 +77,7 @@ jobs:
           Xvfb -ac :99 -screen 0 1280x1024x16 &
           export DISPLAY=:99
           if [ -z "$TAG_NAME" ]; then
-            ./scripts/create_all_packages.sh -d
+            ./scripts/create_all_packages.sh
           else
-            ./scripts/create_all_packages.sh -d -t -v "$TAG_NAME"
+            ./scripts/create_all_packages.sh -t -v "$TAG_NAME"
           fi
