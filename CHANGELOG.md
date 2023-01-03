@@ -6,7 +6,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 ## Kiwix-JS v3.7.0
 
-Released on *TODO*
+Released on *2023-01-04*
 
 * FEATURE: Full-text search is now available in modern Firefox and Chromium if your ZIM archive has an ft index
 * NEW: The API panel in Configuration now informs you if full-text searching is available for your ZIM and platform
