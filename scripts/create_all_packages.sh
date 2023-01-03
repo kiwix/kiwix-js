@@ -4,9 +4,10 @@ echo -e "\nBASEDIR is $BASEDIR"
 cd "$BASEDIR"
 
 # Reading arguments
-while getopts tdv: option; do
+while getopts tcdv: option; do
     case "${option}" in
         t) TAG="-t";; # Indicates that we're releasing a public version from a tag
+        c) CRON_LAUNCHED="-c";; # Simulates a CRON_LAUNCHED run
         d) DRYRUN="-d";; # Indicates a dryrun test, that does not modify anything on the network
         v) VERSION=${OPTARG};; # Gives the version string to use like -v 0.0 (else it will use the commit id)
     esac
@@ -83,21 +84,37 @@ cp -f ubuntu_touch/* tmp/
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
+# Change permissions on source files to match those expected by the server
+chmod 644 build/*
+CURRENT_DATE=$(date +'%Y-%m-%d')
+if [ -n "${CRON_LAUNCHED}" ]; then
+    # It's a nightly build, so rename files to include the date and remove extraneous info so that permalinks can be generated
+    echo -e "\nChanging filenames because it is a nightly build..."
+    for file in build/*; do
+        target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
+        mv "$file" "$target"
+    done
+fi
 if [ -z "${DRYRUN}" ]; then
-    # Change permissions on source files to match those expected by the server
-    chmod 644 build/*
-    CURRENT_DATE=$(date +'%Y-%m-%d')
-    if [ -n "${CRON_LAUNCHED}" ]; then
-        # It's a nightly build, so rename files to include the date and remove extraneous info so that permalinks can be generated
-        for file in build/*; do
-            target=$(sed -E "s/-[0-9.]+commit[^.]+/_$CURRENT_DATE/" <<<"$file")
-            mv "$file" "$target"
-        done
-    fi
     # Upload the files on master.download.kiwix.org
-    echo "Uploading the files on https://download.kiwix.org/nightly/$CURRENT_DATE/"
+    echo -e "\nUploading the files to https://download.kiwix.org/nightly/$CURRENT_DATE/"
     echo "mkdir /data/download/nightly/$CURRENT_DATE" | sftp -P 30022 -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@master.download.kiwix.org
     scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* ci@master.download.kiwix.org:/data/download/nightly/$CURRENT_DATE
 else
-    echo "Skipping uploading the files, because it's a dryrun test"
+    echo -e "\n[DRYRUN] Would have uploaded these files to https://download.kiwix.org/nightly/$CURRENT_DATE/ :\n"
+    ls -l build/*
+fi
+# If we're dealing with a release, then we should also upload some files to the release directory
+if [ -n "$TAG" ]; then
+    if [ -z "${DRYRUN}" ]; then
+        echo -e "\nUploading the files to https://download.kiwix.org/release/"
+        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-firefoxos* ci@master.download.kiwix.org:/data/download/release/firefox-os
+        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-ubuntu-touch* ci@master.download.kiwix.org:/data/download/release/ubuntu-touch
+    else
+        echo -e "\n[DRRUN] Would have uploaded these files to https://download.kiwix.org/release/ :\n"
+        ls -l build/kiwix-firefoxos*
+        ls -l build/kiwix-ubuntu-touch*
+    fi
+    echo -e "\n*** DEV: Please note that Firefox and Chrome signed extension packages will need to be copied manually to the ***"
+    echo -e "*** release directory once they have been signed by the respective app stores. Unsigned versions in nightly.  ***\n"
 fi
