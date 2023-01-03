@@ -1,5 +1,5 @@
 # This is a utility script which helps developers choose sensible values for publishing the implementation of this app
-# to GitHub Pages, or to eh docker container. It is useful for testing and developing code in a specific branch. It checks
+# to GitHub Pages, or to the docker container. It is useful for testing and developing code in a specific branch. It checks
 # app.js and service-worker.js for consistency, and checks that the underlying branch of a PR has been checked out
 # (rather than the PR itself). It then calls the GitHub REST API for dispatching the workflow using the provided values.
 #
