@@ -59,12 +59,12 @@ Injection mode supported by the specific browser engine.
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=52 (as an extension : https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
-- Google Chrome (or Chromium) >=58 (as an extension : https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-- Microsoft Edge (Chromium) >=79 (as an add-on : https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Electron >=1.8.0 and NWJS >=0.14.7 (as an application : see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
-- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application : see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
-- Ubuntu Touch (as an application : https://open-store.io/app/kiwix)
+- Mozilla Firefox >=52 (as an extension: https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+- Google Chrome (or Chromium) >=58 (as an extension: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+- Microsoft Edge (Chromium) >=79 (as an add-on: https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+- Electron >=1.8.0 and NWJS >=0.14.7 (as an application: see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
+- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application: see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
+- Ubuntu Touch (as an application: https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
@@ -77,11 +77,16 @@ These platforms/browsers are deprecated. We still partially test against them, a
 ### Limitations
 
 It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
-security reasons). There are [versions of this app](https://www.kiwix.org/en/download/) that use frameworks like Electron, UWP or NWJS which have
-this capability. You can drag-and-drop a ZIM file into the app, which is a quick way to open an archive and switch between several archives in a
-folder.
+security reasons). A handy alternative is to drag-and-drop a ZIM file into the app, which is a quick way to open an archive
+and switch between several archives in a folder. There are
+[versions of this app](https://https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html) that use frameworks like Electron, UWP or NWJS
+which do have the capability of remembering the chosen archive between app launches. For desktop Chromium browsers, the
+[File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (see #656) is implemented in a PWA version at
+https://pwa.kiwix.org.
 
-Although the app has fast title search, it cannot yet do full text search of the entire archive. This may be possible in the future.
+The app has fast title search, and slower full-text search for ZIM archives that have a full-text index. Currently, full-text searching only
+works in browsers that support [Atomic Operations](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics), 
+which means recent desktop versions of Chromium and Firefox.
 
 ## Licence
 
