@@ -3,8 +3,8 @@
   "description": "Kiwix is an offline reader for content from Wikipedia, Project Gutenberg, TED Talks, Wikivoyage, Stackexchange, etc.",
   "architecture": "all",
   "maintainer": "Kiwix team <contact+ubuntutouch@kiwix.org>",
-  "framework" : "ubuntu-sdk-16.04",
-  "version" : "3.7-WIP",
+  "framework": "ubuntu-sdk-16.04",
+  "version": "3.7.1",
   "title": "Kiwix",
   "hooks": {
     "kiwix": {
