@@ -79,14 +79,15 @@ These platforms/browsers are deprecated. We still partially test against them, a
 It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
 security reasons). A handy alternative is to drag-and-drop a ZIM file into the app, which is a quick way to open an archive
 and switch between several archives in a folder. There are
-[versions of this app](https://https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html) that use frameworks like Electron, UWP or NWJS
+[versions of this app](https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html) that use frameworks like Electron, UWP or NWJS
 which do have the capability of remembering the chosen archive between app launches. For desktop Chromium browsers, the
-[File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (see #656) is implemented in a PWA version at
-https://pwa.kiwix.org.
+[File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (see
+[#656](https://github.com/kiwix/kiwix-js/issues/656)) is implemented in a PWA version at https://pwa.kiwix.org.
 
-The app has fast title search, and slower full-text search for ZIM archives that have a full-text index. Currently, full-text searching only
-works in browsers that support [Atomic Operations](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics), 
-which means recent desktop versions of Chromium and Firefox.
+The app has fast title search, and slower full-text search for ZIM archives that have a full-text index, thanks to the
+[openzim/javascript-libzim](https://github.com/openzim/javascript-libzim) project. Currently, full-text searching only works in browsers
+that support [Atomic Operations](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics), which means
+recent desktop versions of Chromium and Firefox.
 
 ## Licence
 
