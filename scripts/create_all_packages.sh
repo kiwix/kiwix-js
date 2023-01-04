@@ -56,6 +56,8 @@ fi
 mkdir -p tmp
 rm -rf tmp/*
 cp -r www webextension manifest.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
+# Remove unwanted files
+rm -f tmp/www/js/lib/libzim-*dev.*
 
 # Replace the version number everywhere
 # But Chrome would only accept a numeric version number : if it's not, we only use the prefix in manifest.json
