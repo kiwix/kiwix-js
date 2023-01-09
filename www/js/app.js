@@ -681,6 +681,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName ;
         // Update Search Provider
         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+        // Update PWA origin
+        var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
+        pwaOriginStatusDiv.className = 'apiAvailable';
+        pwaOriginStatusDiv.innerHTML = 'PWA Origin: ' + window.location.origin;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
         // Set visibility of UI elements according to mode
