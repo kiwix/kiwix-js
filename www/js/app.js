@@ -546,6 +546,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             document.getElementById('modes').scrollIntoView();
         }, 600);
     });
+    // Do update checks 10s after startup
+    setTimeout(function () {
+        console.log('Checking for updates to the PWA...');
+        uiUtil.checkUpdateStatus(appstate);
+    }, 10000);
+    
 
     //Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
     //Returning false prevents their dragging (which can cause some unexpected behavior)
