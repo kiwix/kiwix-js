@@ -234,9 +234,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     $(window).resize(resizeIFrame);
 
     // Define behavior of HTML elements
+    var prefixElement = document.getElementById('prefix');
     var searchArticlesFocused = false;
-    $('#searchArticles').on('click', function() {
-        var prefix = document.getElementById('prefix').value;
+    document.getElementById('searchArticles').addEventListener('click', function() {
+        var prefix = prefixElement.value;
         // Do not initiate the same search if it is already in progress
         if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
         document.getElementById('welcomeText').style.display = 'none';
@@ -246,21 +247,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Initiate the search
         searchDirEntriesFromPrefix(prefix);
         $('.navbar-collapse').collapse('hide');
-        document.getElementById('prefix').focus();
+        prefixElement.focus();
         // This flag is set to true in the mousedown event below
         searchArticlesFocused = false;
     });
-    $('#searchArticles').on('mousedown', function() {
+    document.getElementById('searchArticles').addEventListener('mousedown', function() {
         // We set the flag so that the blur event of #prefix can know that the searchArticles button has been clicked
         searchArticlesFocused = true;
     });
-    $('#formArticleSearch').on('submit', function() {
+    document.getElementById('formArticleSearch').addEventListener('submit', function() {
         document.getElementById('searchArticles').click();
         return false;
     });
     // Handle keyboard events in the prefix (article search) field
     var keyPressHandled = false;
-    $('#prefix').on('keydown', function(e) {
+    prefixElement.addEventListener('keydown', function(e) {
         // If user presses Escape...
         // IE11 returns "Esc" and the other browsers "Escape"; regex below matches both
         if (/^Esc/.test(e.key)) {
@@ -311,7 +312,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     // Search for titles as user types characters
-    $('#prefix').on('keyup', function(e) {
+    prefixElement.addEventListener('keyup', function(e) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             // Prevent processing by keyup event if we already handled the keypress in keydown event
             if (keyPressHandled)
@@ -321,50 +322,50 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     // Restore the search results if user goes back into prefix field
-    $('#prefix').on('focus', function() {
-        if (document.getElementById('prefix').value !== '')
+    prefixElement.addEventListener('focus', function() {
+        if (prefixElement.value !== '')
             document.getElementById('articleListWithHeader').style.display = '';
     });
     // Hide the search results if user moves out of prefix field
-    $('#prefix').on('blur', function() {
+    prefixElement.addEventListener('blur', function() {
         if (!searchArticlesFocused) {
             appstate.search.status = 'cancelled';
             document.getElementById('searchingArticles').style.display = 'none';
             document.getElementById('articleListWithHeader').style.display = 'none';
         }
     });
-    $('#btnRandomArticle').on('click', function() {
-        document.getElementById('prefix').value = '';
+    document.getElementById('btnRandomArticle').addEventListener('click', function() {
+        prefixElement.value = '';
         goToRandomArticle();
         document.getElementById('welcomeText').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
         $('.navbar-collapse').collapse('hide');
     });
 
-    $('#btnRescanDeviceStorage').on('click', function() {
+    document.getElementById('btnRescanDeviceStorage').addEventListener('click', function() {
         searchForArchivesInStorage();
     });
     // Bottom bar :
-    $('#btnBack').on('click', function() {
+    document.getElementById('btnBack').addEventListener('click', function() {
         history.back();
         return false;
     });
-    $('#btnForward').on('click', function() {
+    document.getElementById('btnForward').addEventListener('click', function() {
         history.forward();
         return false;
     });
-    $('#btnHomeBottom').on('click', function() {
+    document.getElementById('btnHomeBottom').addEventListener('click', function() {
         document.getElementById('btnHome').click();
         return false;
     });
-    $('#btnTop').on('click', function() {
+    document.getElementById('btnTop').addEventListener('click', function() {
         var articleContent = document.getElementById('articleContent');
         articleContent.contentWindow.scrollTo({top: 0, behavior: 'smooth'});
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
     });
     // Top menu :
-    $('#btnHome').on('click', function() {
+    document.getElementById('btnHome').addEventListener('click', function() {
         // Highlight the selected section in the navbar
         document.getElementById('liHomeNav').setAttribute('class', 'active');
         document.getElementById('liConfigureNav').setAttribute('class', '');
@@ -383,8 +384,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('formArticleSearch').style.display = '';
         document.getElementById('welcomeText').style.display = '';
         // Give the focus to the search field, and clean up the page contents
-        document.getElementById('prefix').value = '';
-        document.getElementById('prefix').focus();
+        prefixElement.value = '';
+        prefixElement.focus();
         var articleList = document.getElementById('articleList');
         var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
         while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
@@ -403,7 +404,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnConfigure').on('click', function() {
+    document.getElementById('btnConfigure').addEventListener('click', function() {
         // Highlight the selected section in the navbar
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', 'active');
@@ -430,7 +431,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnAbout').on('click', function() {
+    document.getElementById('btnAbout').addEventListener('click', function() {
         // Highlight the selected section in the navbar
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', '');
@@ -455,7 +456,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('input:radio[name=contentInjectionMode]').on('change', function() {
+    document.querySelector('input[name="contentInjectionMode"]').addEventListener('change', function() {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
     });
@@ -489,20 +490,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // This will also send any new values to Service Worker
         refreshCacheStatus();
     });
-    $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
+    document.querySelector('input[name=hideActiveContentWarning]').addEventListener('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     });
-    $('input:checkbox[name=showUIAnimations]').on('change', function () {
+    document.querySelector('input[name=showUIAnimations]').addEventListener('change', function () {
         params.showUIAnimations = this.checked ? true : false;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     });
-    $('input:checkbox[name=useHomeKeyToFocusSearchBar]').on('change', function () {
+    document.querySelector('input[name=useHomeKeyToFocusSearchBar]').addEventListener('change', function () {
         params.useHomeKeyToFocusSearchBar = this.checked ? true : false;
         settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
         switchHomeKeyToFocusSearchBar();
     });
-    $('input:checkbox[name=openExternalLinksInNewTabs]').on('change', function () {
+    document.querySelector('input[name=openExternalLinksInNewTabs]').addEventListener('change', function () {
         params.openExternalLinksInNewTabs = this.checked ? true : false;
         settingsStore.setItem('openExternalLinksInNewTabs', params.openExternalLinksInNewTabs, Infinity);
     });
@@ -565,7 +566,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (event.key === 'Home') {
             // wait to prevent interference with scrolling (default action)
             setTimeout(function() {
-                document.getElementById('prefix').focus();
+                prefixElement.focus();
             },0);
         }
     }
@@ -1120,7 +1121,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (event.state) {
             var title = event.state.title;
             var titleSearch = event.state.titleSearch;
-            document.getElementById('prefix').value = '';
+            prefixElement.value = '';
             document.getElementById('welcomeText').style.display = 'none';
             document.getElementById('searchingArticles').style.display = 'none';
             $('.navbar-collapse').collapse('hide');
@@ -1131,11 +1132,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if (title && !(""===title)) {
                 goToArticle(title);
             } else if (titleSearch && titleSearch !== '') {
-                document.getElementById('prefix').value = titleSearch;
+                prefixElement.value = titleSearch;
                 if (titleSearch !== appstate.search.prefix) {
                     searchDirEntriesFromPrefix(titleSearch);
                 } else {
-                    document.getElementById('prefix').focus();
+                    prefixElement.focus();
                 }
             }
         }
@@ -1161,7 +1162,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Store the list of archives in the Settings Store, to avoid rescanning at each start
         settingsStore.setItem('listOfArchives', archiveDirectories.join('|'), Infinity);
 
-        $('#archiveList').on('change', setLocalArchiveFromArchiveList);
+        document.getElementById('archiveList').addEventListener('change', setLocalArchiveFromArchiveList);
         if (comboArchiveList.options.length > 0) {
             var lastSelectedArchive = settingsStore.getItem('lastSelectedArchive');
             if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== '') {
@@ -1383,7 +1384,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             window.clearTimeout(window.timeoutKeyUpPrefix);
         }
         window.timeoutKeyUpPrefix = window.setTimeout(function () {
-            var prefix = document.getElementById('prefix').value;
+            var prefix = prefixElement.value;
             if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
                 document.getElementById('searchArticles').click();
             }
@@ -1461,7 +1462,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         articleListDiv.innerHTML = articleListDivHtml;
         // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
         // and prevents this event from firing; note that touch also triggers mousedown
-        $('#articleList a').on('mousedown', function (e) {
+        console.log('hello');
+        document.querySelector('#articleList a').addEventListener('mousedown', function (e) {
             // Cancel search immediately
             appstate.search.status = 'cancelled';
             handleTitleClick(e);
@@ -1590,7 +1592,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
                         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
                         document.getElementById('articleListWithHeader').style.display = 'none';
-                        document.getElementById('prefix').value = '';
+                        prefixElement.value = '';
                         document.getElementById('searchingArticles').style.display = '';
                     };
                 }
@@ -1747,7 +1749,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
             while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
             document.getElementById('articleListWithHeader').style.display = 'none';
-            document.getElementById('prefix').value = '';
+            prefixElement.value = '';
 
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
