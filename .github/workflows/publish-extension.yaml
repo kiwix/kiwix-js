@@ -37,7 +37,7 @@ jobs:
     name: Deploy Mozilla extension
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Modify version in source files
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}

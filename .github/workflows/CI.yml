@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Test integrity of app parameters
         shell: bash
@@ -36,7 +36,7 @@ jobs:
           ./scripts/test_pwa_server.sh
 
       # Install Node.js LTS
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 10.x
 
@@ -75,8 +75,8 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 10.x
       - name: Install dependencies
@@ -118,7 +118,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Test the list of offline files in Service Worker
         shell: pwsh
         run: ./scripts/Check-OfflineFilesList.ps1
