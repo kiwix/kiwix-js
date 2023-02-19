@@ -232,6 +232,8 @@ iframe._invert, iframe._mwInvert {
 /* Add missing margin to buttons */
 button {
     margin: 2px;
+    color: var(--primary-color);
+    background-color: white;
 }
 
 .btn-danger {
