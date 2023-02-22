@@ -92,6 +92,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
     // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
     params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
+    // A parameter to disable drag-and-drop
+    params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
     // A parameter to access the URL of any extension that this app was launched from
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
@@ -161,6 +163,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Set the State and UI settings associated with parameters defined above
      */
     document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+    document.getElementById('disableDragAndDropCheck').checked = params.disableDragAndDrop;
     document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
     document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
     document.getElementById('titleSearchRangeVal').textContent = params.maxSearchResultsSize;
@@ -488,6 +491,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
         // This will also send any new values to Service Worker
         refreshCacheStatus();
+    });
+    document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
+        params.disableDragAndDrop = this.checked ? true : false;
+        settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
+        uiUtil.systemAlert('<p>We will now attempt to reload the app to apply the new setting.</p>' + 
+            '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>', 'Reload app', true).then(function (result) {
+            if (result) {
+                window.location.reload();
+            }
+        });
     });
     $('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
         params.hideActiveContentWarning = this.checked ? true : false;
@@ -1248,17 +1261,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function displayFileSelect() {
         document.getElementById('openLocalFiles').style.display = 'block';
         // Set the main drop zone
-        configDropZone.addEventListener('dragover', handleGlobalDragover);
-        configDropZone.addEventListener('dragleave', function() {
-            configDropZone.style.border = '';
-        });
-        // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
-        globalDropZone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
-            e.dataTransfer.dropEffect = 'link';
-        });
-        globalDropZone.addEventListener('drop', handleFileDrop);
+        if (!params.disableDragAndDrop) {
+            configDropZone.addEventListener('dragover', handleGlobalDragover);
+            configDropZone.addEventListener('dragleave', function() {
+                configDropZone.style.border = '';
+            });
+            // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
+            globalDropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
+                e.dataTransfer.dropEffect = 'link';
+            });
+            globalDropZone.addEventListener('drop', handleFileDrop);
+        }
         // This handles use of the file picker
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
@@ -1552,12 +1567,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 // Display the iframe content
                 document.getElementById('articleContent').style.display = '';
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
-                var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
-                var docBody = doc ? doc.getElementsByTagName('body') : null;
-                docBody = docBody ? docBody[0] : null;
-                if (docBody) {
-                    docBody.addEventListener('dragover', handleIframeDragover);
-                    docBody.addEventListener('drop', handleIframeDrop);
+                if (!params.disableDragAndDrop) {
+                    var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
+                    var docBody = doc ? doc.getElementsByTagName('body') : null;
+                    docBody = docBody ? docBody[0] : null;
+                    if (docBody) {
+                        docBody.addEventListener('dragover', handleIframeDragover);
+                        docBody.addEventListener('drop', handleIframeDrop);
+                    }
                 }
                 resizeIFrame();
 
