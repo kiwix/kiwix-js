@@ -4,6 +4,15 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
+## Interim: Kiwix-JS v3.7.2
+
+This version is only published to the moz-extension PWA, and will be part of v3.8.0 when ready
+
+* NEW: Expert/troubleshooting setting to disable drag-and-drop
+* UPDATE: API status panel now displays the PWA origin
+* UPDATE: The PWA version now notifies more reliably that an update is available
+* DEV: CI now uses the latest GitHub workflow actions
+
 ## Kiwix-JS v3.7.0
 
 Released on *2023-01-04*
