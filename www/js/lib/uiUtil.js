@@ -63,16 +63,53 @@ define(rqDef, function(settingsStore) {
             document.getElementById("declineConfirm").style.display = isConfirm ? "inline" : "none";
             document.getElementById("closeMessage").style.display = isConfirm ? "none" : "inline";
             // Display the modal
-            $("#alertModal").modal("show");
-            // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
-            $("#alertModal").on("hide.bs.modal", function () {
-                const closeSource = document.activeElement;
-                if (closeSource.id === "approveConfirm") {
-                    resolve(true);
-                } else {
-                    resolve(false);
-                }
+            const modal = document.querySelector('#alertModal');
+            const backdrop = document.createElement('div');
+            backdrop.classList.add('modal-backdrop');
+            document.body.appendChild(backdrop);
+
+            modal.addEventListener('shown.bs.modal', function (_event) {
+              // Set focus to the first focusable element inside the modal
+              const firstFocusableElement = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+              firstFocusableElement.focus();
             });
+
+            // Show the modal
+            document.body.classList.add('modal-open');
+            modal.classList.add('show');
+            modal.style.display = 'block';
+            backdrop.classList.add('show');
+
+            // Set the ARIA attributes for the modal
+            modal.setAttribute('aria-hidden', 'false');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('role', 'dialog');
+
+            // Hide modal handlers
+            function closeModalHandler(){
+              document.body.classList.remove('modal-open');
+              modal.classList.remove('show');
+              modal.style.display = 'none';
+              backdrop.classList.remove('show');
+              if(Array.from(document.body.children).indexOf(backdrop)>=0){ 
+                document.body.removeChild(backdrop);
+              }
+            }
+            // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
+            document.getElementById("modalCloseBtn").addEventListener("click", function close(){
+              closeModalHandler();
+              resolve(false);
+            });
+            document.getElementById("declineConfirm").addEventListener("click", function () {
+              closeModalHandler();
+              resolve(false);
+            });
+            document.getElementById("approveConfirm").addEventListener("click", function () {
+              closeModalHandler();
+              resolve(true);
+            });
+
+          
             document.getElementById('alertModal').addEventListener('keyup', function (e) {
                 if (/Enter/.test(e.key)){
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
