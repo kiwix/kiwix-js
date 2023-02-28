@@ -109,7 +109,6 @@ define(rqDef, function(settingsStore) {
               resolve(true);
             });
 
-          
             document.getElementById('alertModal').addEventListener('keyup', function (e) {
                 if (/Enter/.test(e.key)){
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
