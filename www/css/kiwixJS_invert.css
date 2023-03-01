@@ -8,7 +8,7 @@
  * The actual inversion is done in app.css by applying an inversion filter to the element in the outer document (e.g. iframe)
  * that contains the embedded article. This stylesheet re-inverts images and videos so that they do not look like
  * photographic negatives. In principle, inversion could be achieved by adding the 'html' selector to the first rule below,
- * but this causes non-WAI-compliant flashes (to white) between article loads in Service Worker mode.
+ * but this causes non-WAI-compliant flashes (to white) between article loads in ServiceWorker mode.
  *
  * This file is part of Kiwix.
  *

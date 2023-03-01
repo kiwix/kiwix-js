@@ -144,7 +144,7 @@ define(rqDef, function(settingsStore) {
     /**
      * Determines whether the Canvas Elements Workaround for decoding WebP images is needed, and sets UI accordingly.
      * This also sets a global app parameter (useCanvasElementsForWebpTranscoding) that determines whether the workaround will be used in jQuery mode.
-     * Note that the workaround will never be used in Service Worker mode, but we still need to determine it in case the user switches modes.
+     * Note that the workaround will never be used in ServiceWorker mode, but we still need to determine it in case the user switches modes.
      * @returns {Boolean} A value to indicate the browser's capability (whether it requires the workaround or not) 
      */
     function determineCanvasElementsWorkaround() {

@@ -11,7 +11,7 @@ viewed pages). This history is lost on exiting the app and is not recorded in an
 This application only reads the archive files that you explicitly select on your device together
 with files in its own package. Some ZIM archives contain active content (scripts) which may, in
 rare circumstances, attempt to contact external servers for incidental files such as fonts.
-These scripts will only run if you enable Service Worker mode in Configuration. Nevertheless, if
+These scripts will only run if you enable ServiceWorker mode in Configuration. Nevertheless, if
 you believe your Internet access is insecure, or is being observed or censored, we recommend
 that you completely shut down your Internet (Data or WiFi) access before using the application.
 

@@ -83,8 +83,8 @@ Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/28?closed=1
 
 Released on *2022-02-06*
 
-* FEATURE: Provided a workaround to enable Service Worker mode in Firefox extensions (via a PWA)
-* NEW: App now defaults to Service Worker mode if accessed directly as a PWA (does not apply to browser extensions)
+* FEATURE: Provided a workaround to enable ServiceWorker mode in Firefox extensions (via a PWA)
+* NEW: App now defaults to ServiceWorker mode if accessed directly as a PWA (does not apply to browser extensions)
 * NEW: Provided methods for resetting the app and bypassing the appCache from the UI
 * NEW: Support for non-http URLs in img and link tags (e.g. data: javascript:) in JQuery mode
 * NEW: Added helpful tooltips to icons and settings in the app
@@ -161,7 +161,7 @@ Released on *2020-03-29*
 
 * NEW: Selectable dark mode for app UI and for articles (does not work on IE11)
 * NEW: Optional transition between app pages
-* NEW: Native asset caching in Service Worker mode - considerably speeds up article load times in some contexts
+* NEW: Native asset caching in ServiceWorker mode - considerably speeds up article load times in some contexts
 * UPDATE: Privacy Policy
 * UPDATE: Minor changes to Kiwix icon
 * UPDATE: Bootstrap updated to v4

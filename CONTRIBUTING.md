@@ -30,7 +30,7 @@ If your feature works and tests are passing, make a PR, describe the testing you
 
 Please note that the app caches its own code so that it can run as an offline-first Progressive Web App. This can complicate development, because you
 may not see your changes, even after you refresh the browser. In Configuration, under "Expert settings", you will find a button that allows you to do
-a full app reset, which will erase the PWA. When Service Worker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn
+a full app reset, which will erase the PWA. When ServiceWorker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn
 this on if you are frequently changing code and refreshing. Remember to turn it off for final testing. You can manually delete the App Cache in
 the browser's DevTools (see Application or Storage tabs). We also recommend you disable the browser's built-in cache, using the checkbox in the DevTools Network tab.
 
