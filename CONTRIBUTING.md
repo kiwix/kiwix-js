@@ -13,8 +13,7 @@ Please follow these guidelines when contributing:
   supported via a polyfill;
 - Do not prettify code you are not working on;
 - You must test your code yourself before asking for review, like this:
-  - set up a local Web server (we recommend Node/NPM's [http-server](https://www.npmjs.com/package/http-server));
-  - serve the root directory of the repository (e.g. `http-server .`);
+  - set up a local Web server (we recommend Node/NPM's [http-server](https://www.npmjs.com/package/http-server)) by running `npm run serve` in the root of this repo;
   - in a browser, navigate to the URL of the main `index.html` (e.g. http://localhost:8080/www/index.html);
   - manually test your fix in at least Firefox and Chromium (Edge or Chrome), ideally also in IE11 or in "IE Mode" in Edge;
   - be sure to test your fix in both "JQuery" mode and "Service Worker" mode (see Configuration);
