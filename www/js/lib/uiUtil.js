@@ -104,6 +104,10 @@ define(rqDef, function(settingsStore) {
               closeModalHandler();
               resolve(false);
             });
+            document.getElementById("closeMessage").addEventListener("click", function () {
+              closeModalHandler();
+              resolve(false);
+            });
             document.getElementById("approveConfirm").addEventListener("click", function () {
               closeModalHandler();
               resolve(true);
