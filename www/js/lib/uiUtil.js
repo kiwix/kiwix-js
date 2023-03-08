@@ -112,6 +112,14 @@ define(rqDef, function(settingsStore) {
               closeModalHandler();
               resolve(true);
             });
+            
+            modal.addEventListener("click", function (e) {
+              closeModalHandler();
+              resolve(false);
+            });
+            document.getElementsByClassName("modal-dialog")[0].addEventListener("click", function(e){
+              e.stopPropagation();
+            })
 
             document.getElementById('alertModal').addEventListener('keyup', function (e) {
                 if (/Enter/.test(e.key)){
