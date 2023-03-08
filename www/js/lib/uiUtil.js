@@ -68,7 +68,7 @@ define(rqDef, function(settingsStore) {
             backdrop.classList.add('modal-backdrop');
             document.body.appendChild(backdrop);
 
-            modal.addEventListener('shown.bs.modal', function (_event) {
+            modal.addEventListener('shown.bs.modal', function () {
               // Set focus to the first focusable element inside the modal
               const firstFocusableElement = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
               firstFocusableElement.focus();
@@ -113,7 +113,7 @@ define(rqDef, function(settingsStore) {
               resolve(true);
             });
             
-            modal.addEventListener("click", function (_e) {
+            modal.addEventListener("click", function () {
               closeModalHandler();
               resolve(false);
             });
