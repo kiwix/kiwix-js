@@ -113,7 +113,7 @@ define(rqDef, function(settingsStore) {
               resolve(true);
             });
             
-            modal.addEventListener("click", function (e) {
+            modal.addEventListener("click", function (_e) {
               closeModalHandler();
               resolve(false);
             });
