@@ -7,6 +7,7 @@
         <meta name="description" content="Offline Wikipedia reader">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://download.kiwix.org https://master.download.kiwix.org 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; frame-src 'self'; object-src 'none';">
+        <meta name="referrer" content="none">
         <!--
         Kiwix (offline Wikipedia reader) - HTML5/Javascript version
         Home page : https://www.kiwix.org
@@ -687,7 +688,7 @@
                         if your platform supports it. &nbsp;[<a id="stop" href="#expertSettingsDiv" class="alert-link">Permanently hide</a>]
                     </div>
                 </div>
-                <iframe id="articleContent" class="articleIFrame" src="article.html" referrerpolicy="same-origin" sandbox="allow-same-origin allow-scripts allow-modals allow-forms allow-popups allow-downloads"></iframe>
+                <iframe id="articleContent" class="articleIFrame" src="article.html" referrerpolicy="no-referrer" sandbox="allow-same-origin allow-scripts allow-modals allow-forms allow-popups allow-downloads"></iframe>
             </article>
             <footer>
                 <!-- Bootstrap alert box -->

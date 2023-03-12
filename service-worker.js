@@ -329,6 +329,7 @@ function fetchUrlFromZIM(urlObject, range) {
                 // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
                 headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: 'unsafe-inline' 'unsafe-eval'");
                 headers.set('Content-Security-Policy', 'sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads');
+                headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
                 
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
