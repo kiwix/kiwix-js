@@ -45,34 +45,30 @@ define(rqDef, function(settingsStore) {
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
      */
     function systemAlert(message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
-        declineConfirmLabel = declineConfirmLabel || "Cancel";
-        approveConfirmLabel = approveConfirmLabel || "Confirm";
-        closeMessageLabel = closeMessageLabel || "Okay";
-        label = label || (isConfirm ? "Confirmation" : "Message");
+        declineConfirmLabel = declineConfirmLabel || 'Cancel';
+        approveConfirmLabel = approveConfirmLabel || 'Confirm';
+        closeMessageLabel = closeMessageLabel || 'Okay';
+        label = label || (isConfirm ? 'Confirmation' : 'Message');
         return new Promise(function (resolve, reject) {
-            if (!message) reject("Missing body message");
+            if (!message) reject('Missing body message');
             // Set the text to the modal and its buttons
-            document.getElementById("approveConfirm").textContent = approveConfirmLabel;
-            document.getElementById("declineConfirm").textContent = declineConfirmLabel;
-            document.getElementById("closeMessage").textContent = closeMessageLabel;
-            document.getElementById("modalLabel").textContent = label;
+            document.getElementById('approveConfirm').textContent = approveConfirmLabel;
+            document.getElementById('declineConfirm').textContent = declineConfirmLabel;
+            document.getElementById('closeMessage').textContent = closeMessageLabel;
+            document.getElementById('modalLabel').textContent = label;
             // Using innerHTML to set the message to allow HTML formatting
-            document.getElementById("modalText").innerHTML = message;
+            document.getElementById('modalText').innerHTML = message;
             // Display buttons acc to the type of alert
-            document.getElementById("approveConfirm").style.display = isConfirm ? "inline" : "none";
-            document.getElementById("declineConfirm").style.display = isConfirm ? "inline" : "none";
-            document.getElementById("closeMessage").style.display = isConfirm ? "none" : "inline";
+            document.getElementById('approveConfirm').style.display = isConfirm ? 'inline' : 'none';
+            document.getElementById('declineConfirm').style.display = isConfirm ? 'inline' : 'none';
+            document.getElementById('closeMessage').style.display = isConfirm ? 'none' : 'inline';
             // Display the modal
             const modal = document.querySelector('#alertModal');
             const backdrop = document.createElement('div');
             backdrop.classList.add('modal-backdrop');
             document.body.appendChild(backdrop);
-
-            modal.addEventListener('shown.bs.modal', function () {
-              // Set focus to the first focusable element inside the modal
-              const firstFocusableElement = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-              firstFocusableElement.focus();
-            });
+            // Set focus to the first focusable element inside the modal
+            modal.focus();
 
             // Show the modal
             document.body.classList.add('modal-open');
@@ -96,32 +92,32 @@ define(rqDef, function(settingsStore) {
               }
             }
             // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
-            document.getElementById("modalCloseBtn").addEventListener("click", function close(){
+            document.getElementById('modalCloseBtn').addEventListener('click', function close(){
               closeModalHandler();
               resolve(false);
             });
-            document.getElementById("declineConfirm").addEventListener("click", function () {
+            document.getElementById('declineConfirm').addEventListener('click', function () {
               closeModalHandler();
               resolve(false);
             });
-            document.getElementById("closeMessage").addEventListener("click", function () {
+            document.getElementById('closeMessage').addEventListener('click', function () {
               closeModalHandler();
               resolve(false);
             });
-            document.getElementById("approveConfirm").addEventListener("click", function () {
+            document.getElementById('approveConfirm').addEventListener('click', function () {
               closeModalHandler();
               resolve(true);
             });
             
-            modal.addEventListener("click", function () {
+            modal.addEventListener('click', function () {
               closeModalHandler();
               resolve(false);
             });
-            document.getElementsByClassName("modal-dialog")[0].addEventListener("click", function(e){
+            document.getElementsByClassName('modal-dialog')[0].addEventListener('click', function(e){
               e.stopPropagation();
             })
 
-            document.getElementById('alertModal').addEventListener('keyup', function (e) {
+            document.addEventListener('keyup', function (e) {
                 if (/Enter/.test(e.key)){
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
                     if (isConfirm) {
@@ -131,6 +127,9 @@ define(rqDef, function(settingsStore) {
                         document.getElementById('closeMessage').focus();
                         document.getElementById('closeMessage').click();
                     }
+                } else if (/Esc/.test(e.key)) {
+                    document.getElementById('modalCloseBtn').focus();
+                    document.getElementById('modalCloseBtn').click();
                 }
             });
         });
