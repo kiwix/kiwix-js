@@ -9,9 +9,14 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 This version is only published to the moz-extension PWA, and will be part of v3.8.0 when ready
 
 * NEW: Expert/troubleshooting setting to disable drag-and-drop
+* SECURITY: Add sandbox to iframe to prevent third-party content and top-level navigation
+* SECURITY: Apply a CSP for the app as a whole (via meta http-equiv)
+* SECURITY: Apply a CSP for iframe contents in SW mode (via response headers)
 * UPDATE: API status panel now displays the PWA origin
 * UPDATE: The PWA version now notifies more reliably that an update is available
 * DEV: CI now uses the latest GitHub workflow actions
+* DEV: Script provided (`npm run serve`) to launch local http-server for development and testing
+* FIX: Full-text search results were not properly cancelled by user selecting a title search result
 
 ## Kiwix-JS v3.7.0
 
