@@ -88,34 +88,42 @@ define(rqDef, function(settingsStore) {
               if(Array.from(document.body.children).indexOf(backdrop)>=0){ 
                 document.body.removeChild(backdrop);
               }
+              //remove event listeners
+              document.getElementById('modalCloseBtn').removeEventListener('click', close);
+              document.getElementById('declineConfirm').removeEventListener('click', close);
+              document.getElementById('closeMessage').removeEventListener('click', close);
+              document.getElementById('approveConfirm').removeEventListener('click', close);
+              modal.removeEventListener('click', close);
+              document.getElementsByClassName('modal-dialog')[0].removeEventListener('click', close);
+              modal.removeEventListener('keyup', close);
             }
             // When hide modal is called, resolve promise with true if hidden using approve button, false otherwise
             document.getElementById('modalCloseBtn').addEventListener('click', function close(){
               closeModalHandler();
               resolve(false);
             });
-            document.getElementById('declineConfirm').addEventListener('click', function () {
+            document.getElementById('declineConfirm').addEventListener('click', function close() {
               closeModalHandler();
               resolve(false);
             });
-            document.getElementById('closeMessage').addEventListener('click', function () {
+            document.getElementById('closeMessage').addEventListener('click', function close() {
               closeModalHandler();
               resolve(false);
             });
-            document.getElementById('approveConfirm').addEventListener('click', function () {
+            document.getElementById('approveConfirm').addEventListener('click', function close() {
               closeModalHandler();
               resolve(true);
             });
             
-            modal.addEventListener('click', function () {
+            modal.addEventListener('click', function close() {
               closeModalHandler();
               resolve(false);
             });
-            document.getElementsByClassName('modal-dialog')[0].addEventListener('click', function(e){
+            document.getElementsByClassName('modal-dialog')[0].addEventListener('click', function close(e){
               e.stopPropagation();
             })
 
-            modal.addEventListener('keyup', function (e) {
+            modal.addEventListener('keyup', function close(e) {
                 if (/Enter/.test(e.key)){
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
                     if (isConfirm) {
