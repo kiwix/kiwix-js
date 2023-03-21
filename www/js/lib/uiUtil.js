@@ -67,8 +67,6 @@ define(rqDef, function(settingsStore) {
             const backdrop = document.createElement('div');
             backdrop.classList.add('modal-backdrop');
             document.body.appendChild(backdrop);
-            // Set focus to the first focusable element inside the modal
-            modal.focus();
 
             // Show the modal
             document.body.classList.add('modal-open');
@@ -91,7 +89,7 @@ define(rqDef, function(settingsStore) {
                 document.body.removeChild(backdrop);
               }
             }
-            // When hide model is called, resolve promise with true if hidden using approve button, false otherwise
+            // When hide modal is called, resolve promise with true if hidden using approve button, false otherwise
             document.getElementById('modalCloseBtn').addEventListener('click', function close(){
               closeModalHandler();
               resolve(false);
@@ -132,6 +130,8 @@ define(rqDef, function(settingsStore) {
                     document.getElementById('modalCloseBtn').click();
                 }
             });
+            // Set focus to the first focusable element inside the modal
+            modal.focus();
         });
     }
   
