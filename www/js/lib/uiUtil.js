@@ -80,37 +80,37 @@ define(rqDef, function(settingsStore) {
             modal.setAttribute('role', 'dialog');
 
             // Hide modal handlers
-            function closeModalHandler(){
-              document.body.classList.remove('modal-open');
-              modal.classList.remove('show');
-              modal.style.display = 'none';
-              backdrop.classList.remove('show');
-              if(Array.from(document.body.children).indexOf(backdrop)>=0){ 
-                document.body.removeChild(backdrop);
-              }
-              //remove event listeners
-              document.getElementById('modalCloseBtn').removeEventListener('click', close);
-              document.getElementById('declineConfirm').removeEventListener('click', close);
-              document.getElementById('closeMessage').removeEventListener('click', close);
-              document.getElementById('approveConfirm').removeEventListener('click', closeConfirm);
-              modal.removeEventListener('click', close);
-              document.getElementsByClassName('modal-dialog')[0].removeEventListener('click', stopOutsideModalClick);
-              modal.removeEventListener('keyup', keyHandler);
-            }
+            let closeModalHandler = function (){
+                document.body.classList.remove('modal-open');
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                backdrop.classList.remove('show');
+                if(Array.from(document.body.children).indexOf(backdrop)>=0){ 
+                    document.body.removeChild(backdrop);
+                }
+                //remove event listeners
+                document.getElementById('modalCloseBtn').removeEventListener('click', close);
+                document.getElementById('declineConfirm').removeEventListener('click', close);
+                document.getElementById('closeMessage').removeEventListener('click', close);
+                document.getElementById('approveConfirm').removeEventListener('click', closeConfirm);
+                modal.removeEventListener('click', close);
+                document.getElementsByClassName('modal-dialog')[0].removeEventListener('click', stopOutsideModalClick);
+                modal.removeEventListener('keyup', keyHandler);
+            };
 
             // function to call when modal is closed
-            function close(){
-              closeModalHandler();
-              resolve(false);
-            }
-            function closeConfirm(){
-              closeModalHandler();
-              resolve(true);
-            }
-            function stopOutsideModalClick(e){
-              e.stopPropagation();
-            }
-            function keyHandler(e) {
+            let close = function (){
+                closeModalHandler();
+                resolve(false);
+            };
+            let closeConfirm = function (){
+                closeModalHandler();
+                resolve(true);
+            };
+            let stopOutsideModalClick = function (e){
+                e.stopPropagation();
+            };
+            let keyHandler = function (e) {
                 if (/Enter/.test(e.key)){
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
                     if (isConfirm) {
@@ -124,7 +124,7 @@ define(rqDef, function(settingsStore) {
                     document.getElementById('modalCloseBtn').focus();
                     document.getElementById('modalCloseBtn').click();
                 }
-            }
+            };
 
             // When hide modal is called, resolve promise with true if hidden using approve button, false otherwise
             document.getElementById('modalCloseBtn').addEventListener('click', close);
