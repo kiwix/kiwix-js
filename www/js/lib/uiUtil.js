@@ -80,7 +80,7 @@ define(rqDef, function(settingsStore) {
             modal.setAttribute('role', 'dialog');
 
             // Hide modal handlers
-            let closeModalHandler = function (){
+            let closeModalHandler = function () {
                 document.body.classList.remove('modal-open');
                 modal.classList.remove('show');
                 modal.style.display = 'none';
@@ -99,19 +99,19 @@ define(rqDef, function(settingsStore) {
             };
 
             // function to call when modal is closed
-            let close = function (){
+            let close = function () {
                 closeModalHandler();
                 resolve(false);
             };
-            let closeConfirm = function (){
+            let closeConfirm = function () {
                 closeModalHandler();
                 resolve(true);
             };
-            let stopOutsideModalClick = function (e){
+            let stopOutsideModalClick = function (e) {
                 e.stopPropagation();
             };
             let keyHandler = function (e) {
-                if (/Enter/.test(e.key)){
+                if (/Enter/.test(e.key)) {
                     // We need to focus before clicking the button, because the handler above is based on document.activeElement
                     if (isConfirm) {
                         document.getElementById('approveConfirm').focus();
