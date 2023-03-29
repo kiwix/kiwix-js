@@ -326,9 +326,12 @@ function fetchUrlFromZIM(urlObject, range) {
                 var contentType = msgPortEvent.data.mimetype;
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
-                // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
-                headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
-                headers.set('Referrer-Policy', 'no-referrer');
+                // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs), but not if we're dealing with a PDF, as Chromium <= 90
+                // has a bug that prevents PDFs from loading if CSP is set
+                if (!(contentType === 'application/pdf' || /\.pdf$/i.test(msgPortEvent.data.title))) {
+                    headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
+                    headers.set('Referrer-Policy', 'no-referrer');
+                }
                 if (contentType) headers.set('Content-Type', contentType);
                 
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
