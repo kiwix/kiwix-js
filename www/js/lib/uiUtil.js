@@ -621,11 +621,12 @@ define(rqDef, function(settingsStore) {
         if (!clickedAnchor) clickedAnchor = event.target;
         var target = clickedAnchor.target;
         var message = '<p>Do you want to open this external link?';
+        if (/\.pdf/.test(clickedAnchor.href)) message = '<p>Do you want to open or download this PDF file?';
         if (!target || target === '_blank') {
             message += ' (in a new tab)';
         }
         message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
-        systemAlert(message, 'Opening external link', true).then(function (response) {
+        systemAlert(message, 'Opening external link or PDF', true).then(function (response) {
             if (response) {
                 if (!target)
                     target = '_blank';

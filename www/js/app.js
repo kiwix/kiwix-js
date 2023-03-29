@@ -1589,10 +1589,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
                             if (clickedAnchor) {
                                 var href = clickedAnchor.getAttribute('href');
-                                // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
-                                // it means it's a link to an external website.
-                                // We also do it for ftp even if it's not supported any more by recent browsers...
-                                if (/^(?:http|ftp)/i.test(href)) {
+                                // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
+                                // PDFs are also considered external links, as they are not supported by the iframe sandbox in Chromium browsers.
+                                // We also do it for ftp, even if it's not supported any more by recent browsers...
+                                if (/^(?:http|ftp)|\.pdf($|[?#])/i.test(href)) {
                                     uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
                                 }
                                 // if (/\.pdf$/i.test(href)) {
