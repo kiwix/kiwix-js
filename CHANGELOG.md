@@ -233,7 +233,7 @@ Released on *2018-06-04*
 * NEW: Add a cache on CSS stylesheets to improve performance in jQuery mode
 * UPDATE: Change the technical way to display articles, so that all CSS styles can be loaded, and to avoid other technical issues
 * UPDATE: Make the content visible only when CSS styles are read, to avoid repaints that can be very slow
-* BUGFIX: Fix redirections in ServiceWorker mode in ZIM files like StackExchange, and make the ServiceWorker handle all the articles (including the main one, and the first displayed after a search or random search)
+* BUGFIX: Fix redirections in ServiceWorker mode in ZIM files like StackExchange, and make the Service Worker handle all the articles (including the main one, and the first displayed after a search or random search)
 * BUGFIX: Fix links with an anchor in the URL
 * BUGFIX: In recent Wikipedia and other Wikimedia ZIM files, open all the sections when using a small screen (mobile stylesheet), so that the content remains readable (it only works in jQuery mode, this should be fixed in ServiceWorker mode in next version)
 * BUGFIX: Fix CSS UTF-8 encoding

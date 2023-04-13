@@ -30,7 +30,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
  function($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess) {
 
     /**
-     * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
+     * The delay (in milliseconds) between two "keepalive" messages sent to the Service Worker (so that it is not stopped
      * by the browser, and keeps the MessageChannel to communicate with the application)
      * @type Integer
      */
@@ -48,7 +48,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
      * This cache is used by default in jQuery mode, but can be turned off in Configuration for low-memory devices
-     * In ServiceWorker mode, the Cache API will be used instead
+     * In Service Worker mode, the Cache API will be used instead
      * @type {Map}
      */
     var cssCache = new Map();
@@ -98,9 +98,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
     params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
-    // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
+    // A parameter to set the content injection mode ('jquery' or 'service worker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
-        // Defaults to serviceworker mode when the API is available
+        // Defaults to service worker mode when the API is available
         (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
     // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
     // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
