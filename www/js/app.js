@@ -1595,6 +1595,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                                 if (/^(?:http|ftp)/i.test(href)) {
                                     uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
                                 }
+                                if (/\.pdf$/i.test(href)) {
+                                    // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                                    event.preventDefault();
+                                    window.open(clickedAnchor.href, '_blank');
+                                }
                             }
                         });
                     }

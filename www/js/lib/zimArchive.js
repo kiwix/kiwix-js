@@ -253,6 +253,10 @@ define(['zimfile', 'zimDirEntry', 'util', 'uiUtil', 'utf8'],
         search.scanCount = 0;
         // Launch a full-text search if possible
         if (LZ) that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
+            // If user initiated a new search, cancel this one
+            // In particular, do not set the search status back to 'complete'
+            // as that would cause outdated results to unexpectedly pop up
+            if (search.status === 'cancelled') return callback([], search);
             dirEntries = fullTextDirEntries;
             search.status = 'complete';
             callback(dirEntries, search);
