@@ -34,5 +34,5 @@ else {
 
 genericBrowser.action.onClicked.addListener(function (tab) {
     var newURL = chrome.runtime.getURL("www/index.html");
-    chrome.tabs.create({ url: newURL + "?=" + tab.url });
+    chrome.tabs.create({ url: newURL });
 });

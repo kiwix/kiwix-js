@@ -28,7 +28,7 @@
     },
 
     "background": {
-        "service_worker": "backgroundscript.js"
+        "service_worker": "service-worker.js"
     },
 
     "permissions": ["storage", "activeTab", "scripting"],
