@@ -157,10 +157,10 @@ if ('WebAssembly' in self) {
 }
 
 /**
- * If we're in an extension, add a listener to launch the tab when the icon is clicked
+ * If we're in a Chromium extension, add a listener to launch the tab when the icon is clicked
  */
-if (chrome && chrome.action) chrome.action.onClicked.addListener(function (tab) {
-    var newURL = chrome.runtime.getURL("www/index.html");
+if (typeof chrome !== 'undefined') chrome.action.onClicked.addListener(function () {
+    var newURL = chrome.runtime.getURL('www/index.html');
     chrome.tabs.create({ url: newURL });
 });
 
