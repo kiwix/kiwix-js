@@ -1,9 +1,9 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Kiwix",
     "version": "3.8.1",
 
-    "description": "Kiwix : offline Wikipedia reader",
+    "description": "Kiwix Offline Browser",
     
     "icons": {
         "16": "www/img/icons/kiwix-16.png",
@@ -16,7 +16,8 @@
         "128": "www/img/icons/kiwix-128.png"
     },
 
-    "browser_action": {
+    "action": {
+        "default_popup": "www/index.html",
         "default_icon": {
             "16": "www/img/icons/kiwix-16.png",
             "19": "www/img/icons/kiwix-19.png",
@@ -27,19 +28,10 @@
         "default_title": "Kiwix"
     },
     
-    "applications": {
-        "gecko": {
-            "id": "kiwix-html5-unlisted@kiwix.org"
-        }
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self';",
+        "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
     },
-    
-    "web_accessible_resources": ["www/index.html"],
-
-    "background": {
-        "scripts": ["webextension/backgroundscript.js"]
-    },
-
-    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
     
     "author": "mossroy",
     "homepage_url": "https://www.kiwix.org",
