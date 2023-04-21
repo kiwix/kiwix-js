@@ -2116,12 +2116,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function goToArticle(path, download, contentType) {
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
+            var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
                 uiUtil.systemAlert("Article with url " + path + " not found in the archive", "Error: article not found");
-            } else if (download) {
+            } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
+                download = true;
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                    var mimetype = contentType || fileDirEntry.getMimetype();
                     uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
                 });
             } else {
