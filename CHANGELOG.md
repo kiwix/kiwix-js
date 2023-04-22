@@ -4,9 +4,11 @@ Please note that this application has changed its name over time.
 It was first called Evopedia (and was using the file format of Evopedia).
 Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
 
-## Interim: Kiwix-JS v3.7.2
+## Kiwix-JS v3.8.0
 
-This version is only published to the moz-extension PWA, and will be part of v3.8.0 when ready
+This version incorporates an interim version 3.7.2 that was only published to the moz-extension PWA
+
+Released on *2023-04-23*
 
 * NEW: Expert/troubleshooting setting to disable drag-and-drop
 * SECURITY: Add sandbox to iframe to prevent third-party content and top-level navigation
@@ -14,9 +16,13 @@ This version is only published to the moz-extension PWA, and will be part of v3.
 * SECURITY: Apply a CSP for iframe contents in SW mode (via response headers)
 * UPDATE: API status panel now displays the PWA origin
 * UPDATE: The PWA version now notifies more reliably that an update is available
+* UPDATE: JavaScript libzim updated to v0.2
+* CLEANUP: Removed usage of jQuery in Bootstrap modals
 * DEV: CI now uses the latest GitHub workflow actions
 * DEV: Script provided (`npm run serve`) to launch local http-server for development and testing
 * FIX: Full-text search results were not properly cancelled by user selecting a title search result
+* FIX: Fall back to using MIME type to determine type of document being downloaded from the ZIM
+* FIX: Broken epub downloads in IE11
 
 ## Kiwix-JS v3.7.0
 
