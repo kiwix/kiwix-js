@@ -8,7 +8,7 @@ Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed
 
 This version incorporates an interim version 3.7.2 that was only published to the moz-extension PWA
 
-Released on *TODO*
+Released on *2023-04-23*
 
 * NEW: Expert/troubleshooting setting to disable drag-and-drop
 * SECURITY: Add sandbox to iframe to prevent third-party content and top-level navigation
