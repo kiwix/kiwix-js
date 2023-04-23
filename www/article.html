@@ -6,8 +6,7 @@
         <script>
             window.addEventListener('message', function(e) {
                 var html = e.data.html;
-                //html = html.replace(/(<head\b[^>]*>\s*)/, '$1<base href="' + e.data.baseHref + '">');
-                document.baseURI = e.data.baseHref;
+                html = html.replace(/(<head\b[^>]*>\s*)/, '$1<base href="' + e.data.baseHref + '">');
                 var article = document.getElementById('article');
                 // if (oldArticle) oldArticle.parentNode.removeChild(oldArticle);
                 // var article = document.createElement('iframe');
