@@ -38,6 +38,11 @@
         "sandbox": "sandbox allow-scripts allow-downloads allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
     },
 
+    "web_accessible_resources": [{
+        "resources": ["www/index.html"],
+        "matches": ["https://*.kiwix.org/*"]
+    }],
+
     "author": "Kiwixy",
     "homepage_url": "https://www.kiwix.org",
     "offline_enabled": true
