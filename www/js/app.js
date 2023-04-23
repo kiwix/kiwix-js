@@ -177,7 +177,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // This is only needed if the ServiceWorker mode is available, or we are in a Firefox Extension that supports Service Workers
     // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
     // alerted about the switch to ServiceWorker mode by default
-    if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^moz-extension:/i.test(window.location.protocol))
+    if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^(moz|chrome)-extension:/i.test(window.location.protocol))
         && params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
         // Attempt to upgrade user to ServiceWorker mode
         params.contentInjectionMode = 'serviceworker';
@@ -877,7 +877,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Previously, the API was available, but failed to register (which we could trap a few lines below).
             // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
             // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
-            if (/^(moz|chrome)-extension:/.test(protocol) && !params.serviceWorkerLocal) {
+            if (/^(moz|chrome)-extension:/.test(protocol)) {
                 launchMozillaExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
