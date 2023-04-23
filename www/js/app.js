@@ -401,9 +401,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Empty and purge the article contents
         var articleContent = document.getElementById('articleContent');
         var articleContentDoc = articleContent ? articleContent.contentDocument : null;
-        if (articleContentDoc) {
-            while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
-        }
+        while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
         if (selectedArchive !== null && selectedArchive.isReady()) {
             document.getElementById('welcomeText').style.display = 'none';
             goToMainArticle();
@@ -1618,17 +1616,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         });
                     }
                     // Reset UI when the article is unloaded
-                    // iframeArticleContent.contentWindow.onunload = function () {
-                    //     // remove eventListener to avoid memory leaks
-                    //     iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-                    //     var articleList = document.getElementById('articleList');
-                    //     var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
-                    //     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
-                    //     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-                    //     document.getElementById('articleListWithHeader').style.display = 'none';
-                    //     document.getElementById('prefix').value = '';
-                    //     document.getElementById('searchingArticles').style.display = '';
-                    // };
+                    iframeArticleContent.contentWindow.onunload = function () {
+                        // remove eventListener to avoid memory leaks
+                        iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                        var articleList = document.getElementById('articleList');
+                        var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
+                        while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
+                        while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
+                        document.getElementById('articleListWithHeader').style.display = 'none';
+                        document.getElementById('prefix').value = '';
+                        document.getElementById('searchingArticles').style.display = '';
+                    };
                 }
             };
 
@@ -1637,8 +1635,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            // iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
-            iframeArticleContent.contentWindow.postMessage('../' + selectedArchive._file.name + '/' + dirEntry.namespace + '/' + encodedUrl, '*');
+            iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
