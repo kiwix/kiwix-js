@@ -3,6 +3,13 @@
     <head>
         <meta charset="utf-8">
         <title>Placeholder for injecting an article into the iframe</title>
+        <script>
+            window.addEventListener('message', function(e) {
+                document.getElementById('article').src = e.data;
+            });
+        </script>
     </head>
-    <body></body>
+    <body>
+        <iframe id="article" src="about:blank" width="100%" height="100%"></iframe>
+    </body>
 </html>
