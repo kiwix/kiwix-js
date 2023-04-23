@@ -818,6 +818,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
+        params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
         params.serviceWorkerLocal = false;
         if (value === 'serviceworkerlocal') {
             value = 'serviceworker';
@@ -1077,8 +1078,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (response) {
                     checkPWAIsOnline();
                 } else {
-                    // User cancelled, so wants to stay in previous mode (so long as this wasn't SW mode)
-                    params.oldInjectionMode = params.oldInjectionMode === 'serviceworker' ? /^chrome-extension:/i.test(window.location.protocol) ? 'serviceworkerlocal' : null : params.oldInjectionMode;
+                    // User cancelled, so wants to stay in previous mode
                     setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     // We should not bother user with the default mode change alert again
