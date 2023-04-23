@@ -5,11 +5,23 @@
         <title>Placeholder for injecting an article into the iframe</title>
         <script>
             window.addEventListener('message', function(e) {
-                document.getElementById('article').src = e.data;
+                var html = e.data.html;
+                html = html.replace(/(<head\b[^>]*>\s*)/, '$1<base href="' + e.data.baseHref + '">');
+                var article = document.getElementById('article');
+                // if (oldArticle) oldArticle.parentNode.removeChild(oldArticle);
+                // var article = document.createElement('iframe');
+                // article.frameBorder = 0;
+                // article.id = 'article';
+                // article.width = '100%';
+                // article.height = '100%';
+                // article.srcdoc = e.data;
+                // document.body.appendChild(article);
+                var shadow = article.attachShadow({mode: 'open'});
+                shadow.innerHTML = html;
             });
         </script>
     </head>
     <body>
-        <iframe id="article" src="about:blank" width="100%" height="100%"></iframe>
+        <article id="article"></article>
     </body>
 </html>
