@@ -188,7 +188,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     if (!/^chrome-extension:/i.test(window.location.protocol)) {
         document.getElementById('serviceWorkerLocal').style.display = 'none';
-        document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -819,7 +818,6 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
-        params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
         params.serviceWorkerLocal = false;
         if (value === 'serviceworkerlocal') {
             value = 'serviceworker';
@@ -877,7 +875,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Previously, the API was available, but failed to register (which we could trap a few lines below).
             // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
             // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
-            if (/^(moz|chrome)-extension:/.test(protocol)) {
+            if (/^(moz|chrome)-extension:/.test(protocol) && !params.serviceWorkerLocal) {
                 launchMozillaExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
