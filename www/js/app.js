@@ -818,6 +818,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
+        params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
         params.serviceWorkerLocal = false;
         if (value === 'serviceworkerlocal') {
             value = 'serviceworker';
@@ -889,7 +890,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                         } else {
-                            setContentInjectionMode('jquery');
+                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
                         }
                     });
                     return;
@@ -1055,7 +1056,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
                     '<br/>Please try again when you have a stable Internet connection.', 'Error!').then(function () {
                         settingsStore.setItem('allowInternetAccess', false, Infinity);
-                        setContentInjectionMode('jquery');
+                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     });
             });
         };
@@ -1068,7 +1069,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         checkPWAIsOnline();
                     } else {
                         settingsStore.setItem('allowInternetAccess', false, Infinity);
-                        setContentInjectionMode('jquery');
+                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     }
                 })
             }
@@ -1077,8 +1078,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (response) {
                     checkPWAIsOnline();
                 } else {
-                    // User cancelled, so wants to stay in JQuery mode
-                    setContentInjectionMode('jquery');
+                    // User cancelled, so wants to stay in previous mode
+                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     // We should not bother user with the default mode change alert again
                     params.defaultModeChangeAlertDisplayed = true;
