@@ -265,7 +265,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
         //     document.getElementById('searchArticles').click();
         //     return false;
         // });
-        
+
         // Handle keyboard events in the prefix (article search) field
         var keyPressHandled = false;
         $('#prefix').on('keydown', function (e) {
@@ -2211,6 +2211,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     });
 
 
+// Navigation Bar Logic 
 
 if (window.innerWidth < 750) {
     document.getElementById("horizontalNavBtn").innerHTML = "";
