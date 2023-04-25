@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
- [role=region] {
+[role=region] {
     top: 0;
     right: 0;
     bottom: 0;
@@ -273,59 +273,17 @@ button {
     }
 }
 
-/* Reduce the size of some elements for small screens */
-@media (max-width: 768px) {
 
-    /* Reduce the height of top menu */
-    .navbar {
-        min-height: 20px !important;
-        margin-bottom: 1px !important;
-        padding: 0.2rem 1rem
+@media (min-width: 1227px) {
+    .justify-content-between {
+        justify-content: space-between;
     }
+}
 
-    .navbar-brand {
-        padding-top: 2px !important;
-        padding-bottom: 1px !important;
-        height: 25px !important;
-    }
 
-    .navbar-toggle {
-        padding-top: 2px !important;
-        padding-bottom: 2px !important;
-        margin-top: 2px !important;
-        margin-bottom: 0 !important;
-    }
-
-    [role=region]>header {
-        margin-bottom: 0 !important;
-    }
-
-    /* Remove space between search zone and iframe */
-    .list-group {
-        margin-bottom: 0 !important;
-    }
-
-    /* Reduce height of the search field */
-    .form-control {
-        padding-bottom: 5px !important;
-    }
-
-    #formArticleSearch {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-    }
-
-    /* Reduce size of the top buttons */
-    .btn-outline-secondary {
-        font-size: 10px !important;
-    }
-
-    /* Reduce size of the bottom buttons */
-    .btn-lg,
-    .btn-group-lg>.btn {
-        padding-top: 1px !important;
-        padding-bottom: 1px !important;
-        font-size: 16px !important;
+@media (min-width : 770px){
+    .togBTN{
+        display: none;
     }
 }
 
@@ -359,4 +317,25 @@ button {
 
 .nav-link-active {
     background-color: lightsteelblue;
+}
+
+/* side navbar css  */
+.upperSideNav {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    right: 4px;
+    top: 47;
+    z-index: 1;
+}
+
+.togBTN {
+    position: absolute;
+    right: 30px;
+}
+
+.sideNav {
+    display: flex;
+    flex-direction: column;
+
 }

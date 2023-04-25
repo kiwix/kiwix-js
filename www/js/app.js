@@ -2206,3 +2206,26 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
         }
 
     });
+
+
+    
+if (window.innerWidth < 750) {
+    document.getElementById("horizontalNavBtn").innerHTML = "";
+}
+
+// navigation bar collapsing button logic 
+function collapBtn() {
+    var btn = document.getElementById("collapbtn");
+    var sideNav = document.getElementById("sideNav");
+
+    btn.addEventListener('click', (e) => {
+        if (sideNav.style.display === "flex") {
+            sideNav.style.display = "none";
+        }
+        else {
+            sideNav.style.display = "flex";
+        }
+    })
+}
+
+collapBtn();

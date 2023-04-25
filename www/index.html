@@ -43,6 +43,7 @@
     <!-- <link href="css/bootstrap.min.css" rel="stylesheet" media="screen" /> -->
 
     <!-- Local app.css must be loaded after boostrap.css so that any local style overrides work -->
+
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/transition.css" />
     <link rel="icon" type="image/png" href="img/icons/kiwix-60.png" sizes="60x60" />
@@ -90,7 +91,7 @@
         <header id="top">
             <nav class="navbar navbar-expand-md" role="navigation" style="background-color: #d9edf7;">
                 <div style="width: 100%;">
-                    <div class="row justify-content-between">
+                    <div class="row">
 
                         <!-- kiwix js logo Here  -->
                         <div class="col-2 col-md-1">
@@ -108,7 +109,7 @@
                         <!-- Other Options Link (Search,Config,About,Random) icons  -->
                         <div class="col-3 col-md-2" style="display: flex; align-items: center;">
                             <div class="collapse navbar-collapse" id="collapsibleNavbar">
-                                <span class="d-flex align-item-center justify-content-center">
+                                <span class="d-flex align-item-center justify-content-center" id="horizontalNavBtn">
                                     <a id="searchArticles" class="nav-icon"><span id="searchArticles"
                                             class="glyphicon glyphicon-search"></span></a>
                                     <a id="" class="nav-icon"><span id="btnRandomArticle"
@@ -123,15 +124,25 @@
                             </div>
 
                             <!-- Toggler/collapsible Button -->
-                            <button class="navbar-toggler" type="button" data-toggle="collapse"
-                                data-target=".navbar-collapse">
-                                <i class="fas fa-bars"></i>
-                            </button>
+                            <span class="togBTN" id="collapbtn" type="button" data-toggle="collapse" data-target="">
+                                <span class="glyphicon glyphicon-option-vertical"></span>
+                            </span>
 
                         </div>
                     </div>
                 </div>
             </nav>
+            <div class="upperSideNav" id="sideNav">
+                <span class="sideNav">
+                    <a id="searchArticles" class="nav-icon"><span id="searchArticles"
+                            class="glyphicon glyphicon-search"></span></a>
+                    <a id="" class="nav-icon"><span id="btnRandomArticle" class="glyphicon glyphicon-random"></span></a>
+                    <a id="liConfigureNav" class="nav-icon"><span id="btnConfigure"
+                            class="glyphicon glyphicon-wrench"><i class="fa-solid fa-wrench"></i></span></a>
+                    <a id="liAboutNav" class="nav-icon"><span id="btnAbout" class="glyphicon glyphicon-info-sign"><i
+                                class="fa-solid fa-circle-info"></i></span></a>
+                </span>
+            </div>
         </header>
         <!-- Header Secsion Ends Here  -->
 
