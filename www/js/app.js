@@ -65,47 +65,47 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
          */
         var selectedArchive = null;
 
-    /**
-     * Set parameters from the Settings Store, together with any defaults
-     * Note that the params global object is declared in init.js so that it is available to modules
-     * WARNING: Only change these paramaeters if you know what you are doing
-     */
-    // The current version number of this app
-    params['appVersion'] = '3.8.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
-    // The PWA server (currently only for use with the Mozilla extension)
-    params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
-    // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
-    // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
-    // A parameter to determine the Settings Store API in use
-    
-    params['storeType'] = settingsStore.getBestAvailableStorageAPI();
-    params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
-    params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
-    // Maximum number of article titles to return (range is 5 - 50, default 25)
-    params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-    // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
-    params['assetsCache'] = settingsStore.getItem('assetsCache') !== 'false';
-    // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
-    params['appCache'] = settingsStore.getItem('appCache') !== 'false';
-    // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-    params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
-    // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
-    params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
-    // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
-    params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
-    // A parameter to disable drag-and-drop
-    params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
-    // A parameter to access the URL of any extension that this app was launched from
-    params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
-    // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
-    params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
-    // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
-    params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
-        // Defaults to serviceworker mode when the API is available
-        (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
-    // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
-    // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
-    params['useCanvasElementsForWebpTranscoding']; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
+        /**
+         * Set parameters from the Settings Store, together with any defaults
+         * Note that the params global object is declared in init.js so that it is available to modules
+         * WARNING: Only change these paramaeters if you know what you are doing
+         */
+        // The current version number of this app
+        params['appVersion'] = '3.8.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+        // The PWA server (currently only for use with the Mozilla extension)
+        params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
+        // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
+        // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
+        // A parameter to determine the Settings Store API in use
+
+        params['storeType'] = settingsStore.getBestAvailableStorageAPI();
+        params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
+        params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
+        // Maximum number of article titles to return (range is 5 - 50, default 25)
+        params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
+        // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
+        params['assetsCache'] = settingsStore.getItem('assetsCache') !== 'false';
+        // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
+        params['appCache'] = settingsStore.getItem('appCache') !== 'false';
+        // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
+        params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
+        // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
+        params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
+        // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
+        params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
+        // A parameter to disable drag-and-drop
+        params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
+        // A parameter to access the URL of any extension that this app was launched from
+        params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
+        // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
+        params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
+        // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
+        params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
+            // Defaults to serviceworker mode when the API is available
+            (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
+        // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
+        // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
+        params['useCanvasElementsForWebpTranscoding']; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 
         // An object to hold the current search and its state (allows cancellation of search across modules)
         appstate['search'] = {
@@ -211,7 +211,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
         uiUtil.applyAppTheme(params.appTheme);
 
         // Whenever the system theme changes, call applyAppTheme function
-        darkPreference.onchange = function() {
+        darkPreference.onchange = function () {
             uiUtil.applyAppTheme(params.appTheme);
         }
 
@@ -227,7 +227,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
                 region.style.height = window.innerHeight + 'px';
             } else {
                 // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-                setTimeout(function() {
+                setTimeout(function () {
                     // Get  header height *including* its bottom margin
                     var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
                     iframe.style.height = window.innerHeight - headerHeight + 'px';
@@ -241,7 +241,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
 
         // Define behavior of HTML elements
         var searchArticlesFocused = false;
-        $('#searchArticles').on('click', function() {
+        $('#searchArticles').on('click', function () {
             var prefix = document.getElementById('prefix').value;
             // Do not initiate the same search if it is already in progress
             if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
@@ -260,10 +260,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
             // We set the flag so that the blur event of #prefix can know that the searchArticles button has been clicked
             searchArticlesFocused = true;
         });
+
         // $('#formArticleSearch').on('submit', function() {
         //     document.getElementById('searchArticles').click();
         //     return false;
         // });
+        
         // Handle keyboard events in the prefix (article search) field
         var keyPressHandled = false;
         $('#prefix').on('keydown', function (e) {
@@ -2209,7 +2211,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     });
 
 
-    
+
 if (window.innerWidth < 750) {
     document.getElementById("horizontalNavBtn").innerHTML = "";
 }
