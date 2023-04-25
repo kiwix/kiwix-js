@@ -77,6 +77,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
     // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
     // A parameter to determine the Settings Store API in use
+    
     params['storeType'] = settingsStore.getBestAvailableStorageAPI();
     params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
     params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
