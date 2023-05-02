@@ -281,14 +281,14 @@ button {
 }
 
 
-@media (min-width : 770px){
-    .togBTN{
+@media (min-width : 770px) {
+    .togBTN {
         display: none;
     }
 }
 
 /* css of refactoring navigation bar  */
-.search-con {
+/* .search-con {
     padding: 0px;
     display: flex;
     align-items: center;
@@ -315,12 +315,10 @@ button {
     background-color: lightsteelblue;
 }
 
-.nav-link-active {
-    background-color: lightsteelblue;
-}
+
 
 /* side navbar css  */
-.upperSideNav {
+/* .upperSideNav {
     display: none;
     flex-direction: column;
     position: absolute;
@@ -338,4 +336,154 @@ button {
     display: flex;
     flex-direction: column;
 
+}  */
+
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-logo {
+    padding: 1px 15px;
+}
+
+.search-bar {
+    width: 80vw;
+    border: 1px;
+    padding: 2px 5px;
+}
+
+.nav-icon-con {
+    display: flex;
+    padding: 7px 0px;
+    margin-left: 10px;
+    padding-left: 0px;
+}
+
+.nav-icon a {
+    padding: 3px 15px;
+    cursor: pointer;
+    margin-right: 1px;
+}
+
+.nav-icon span {
+    /* font-weight: bold; */
+    color: rgb(24, 24, 164);
+}
+
+.nav-icon a:hover {
+    background-color: lightsteelblue;
+}
+
+.serch-icon:hover {
+    background-color: lightsteelblue;
+}
+
+.TogBTN {
+    display: none;
+    padding: 5px 20px;
+}
+
+.nav-link-active {
+    /* padding: 3px 10px; */
+    background-color: lightsteelblue;
+
+}
+
+
+/* Code Responsive Navigation Bar Start From Here  */
+@media screen and (max-width :1512px) {
+    .search-bar {
+        width: 80vw;
+    }
+}
+
+@media screen and (max-width :1300px) {
+    .search-bar {
+        width: 75vw;
+    }
+}
+
+@media screen and (max-width :1020px) {
+    .search-bar {
+        width: 69vw;
+    }
+}
+
+@media screen and (max-width :910px) {
+    .search-bar {
+        width: 65vw;
+    }
+}
+
+@media screen and (max-width :800px) {
+    .search-bar {
+        width: 65vw;
+    }
+}
+
+@media screen and (max-width :710px) {
+    .search-bar {
+        width: 57vw;
+    }
+}
+
+@media screen and (max-width :630px) {
+    .search-bar {
+        width: 53vw;
+    }
+}
+
+@media screen and (max-width :530px) {
+    .search-bar {
+        width: 45vw;
+    }
+}
+
+@media screen and (max-width :420px) {
+    .search-bar {
+        width: 33vw;
+    }
+    .nav-icon-con{
+        padding-right: 15px;
+    }
+}
+
+@media screen and (max-width :350px) {
+    .search-bar {
+        width: 50vw;
+    }
+
+    .nav-icon-con {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        right: 0;
+        top: 35px;
+        display: none;
+        z-index: 1;
+    }
+
+    .TogBTN {
+        position: relative;
+        right: 0;
+        display: block;
+    }
+}
+
+@media screen and (min-width :390px) {
+    .nav-icon-con {
+        display: flex;
+    }
+}
+@media screen and (max-width :300px) {
+    .search-bar{
+        width: 37vw;
+    }
+}
+
+.active-icon {
+    display: flex;
 }

@@ -89,50 +89,47 @@
     <!-- Header Secsion of Application Start From Here -->
     <section id="search-article" role="region">
         <header id="top">
-            <nav class="navbar navbar-expand-md" role="navigation" style="background-color: #d9edf7;">
-                <div style="width: 100%;">
-                    <div class="row">
-
+            <nav class="navbar navbar-expand-md" role="navigation" style="background-color: #d9edf7;;">
+                <div class="container-fluid">
+                    <div class="nav-container">
                         <!-- kiwix js logo Here  -->
-                        <div class="col-1 col-md-1">
-                            <a id="btnHome" class="navbar-brand" style="cursor: pointer;">
+                        <div class="nav-logo">
+                            <a id="btnHome" class="" style="cursor: pointer;">
                                 <img id="liHomeNav" src="./img/icons/kiwix-blue-32.png" alt="Kiwix">
                             </a>
                         </div>
 
                         <!-- Search Bar Here  -->
-                        <div class="col-9 col-lg-9 search-con">
-                            <input type="search" title="Search for article titles" id="prefix" placeholder="Search..."
-                                class="form-control" />
-                        </div>
+                        <input type="search" title="Search for article titles" id="prefix" placeholder="Search..."
+                            class="search-bar" />
+                        <a id="searchArticles" class="nav-icon serch-icon" style="padding: 3px 10px; cursor: pointer; margin-left: 15px;"><span id="searchArticles"
+                                class="glyphicon glyphicon-search"></span></a>
 
                         <!-- Other Options Link (Search,Config,About,Random) icons  -->
-                        <div class="col-3 col-md-2" style="display: flex; align-items: center;">
-                            <div class="collapse navbar-collapse" id="collapsibleNavbar">
-                                <span class="d-flex align-item-center justify-content-center" id="horizontalNavBtn">
-                                    <a id="searchArticles" class="nav-icon"><span id="searchArticles"
-                                            class="glyphicon glyphicon-search"></span></a>
-                                    <a id="btnRandomArticle" class="nav-icon"><span id=""
-                                            class="glyphicon glyphicon-random"></span></a>
-                                    <a id="liConfigureNav" class="nav-icon"><span id="btnConfigure"
-                                            class="glyphicon glyphicon-wrench"><i
-                                                class="fa-solid fa-wrench"></i></span></a>
-                                    <a id="liAboutNav" class="nav-icon"><span id="btnAbout"
-                                            class="glyphicon glyphicon-info-sign"><i
-                                                class="fa-solid fa-circle-info"></i></span></a>
-                                </span>
-                            </div>
+                        <div class="nav-icon-con" id="horizontalNavBtn">
 
-                            <!-- Toggler/collapsible Button -->
-                            <span class="togBTN" id="collapbtn" type="button" data-toggle="collapse" data-target="">
-                                <span class="glyphicon glyphicon-option-vertical"></span>
+                            <span class="nav-icon">
+                                <a id="btnRandomArticle"><span class="glyphicon glyphicon-random"></span></a>
                             </span>
+                            <span id="btnConfigure" class="nav-icon">
+                                <a id="liConfigureNav"><span class="glyphicon glyphicon-wrench"><i
+                                            class="fa-solid fa-wrench"></i></span></a>
+                            </span>
+                            <span id="btnAbout" class="nav-icon">
+                                <a id="liAboutNav" ><span class="glyphicon glyphicon-info-sign"><i
+                                            class="fa-solid fa-circle-info"></i></span></a>
+                            </span>
+                        </div>
 
+
+                        <!-- Toggler/collapsible Button -->
+                        <div class="TogBTN" id="collapbtn">
+                            <span class="glyphicon glyphicon-option-vertical"></span>
                         </div>
                     </div>
                 </div>
             </nav>
-            <div class="upperSideNav" id="sideNav">
+            <!-- <div class="upperSideNav" id="sideNav">
                 <span class="sideNav">
                     <a id="searchArticles" class="nav-icon"><span id="searchArticles"
                             class="glyphicon glyphicon-search"></span></a>
@@ -142,7 +139,7 @@
                     <a id="liAboutNav" class="nav-icon"><span id="btnAbout" class="glyphicon glyphicon-info-sign"><i
                                 class="fa-solid fa-circle-info"></i></span></a>
                 </span>
-            </div>
+            </div> -->
         </header>
         <!-- Header Secsion Ends Here  -->
 

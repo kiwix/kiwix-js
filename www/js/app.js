@@ -376,6 +376,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
         // Top menu :
         $('#btnHome').on('click', function () {
             // Highlight the selected section in the navbar
+            setTimeout(() => {
+                document.getElementById('liHomeNav').classList.remove('nav-link-active');
+            }, 3000);
             document.getElementById('liHomeNav').classList.add('nav-link-active');
             document.getElementById('liConfigureNav').classList.remove('nav-link-active');
             document.getElementById('liAboutNav').classList.remove('nav-link-active');
@@ -2211,23 +2214,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     });
 
 
-// Navigation Bar Logic 
-
-if (window.innerWidth < 750) {
-    document.getElementById("horizontalNavBtn").innerHTML = "";
-}
-
 // navigation bar collapsing button logic 
 function collapBtn() {
     var btn = document.getElementById("collapbtn");
-    var sideNav = document.getElementById("sideNav");
+    var navIcons = document.getElementById("horizontalNavBtn");
 
     btn.addEventListener('click', (e) => {
-        if (sideNav.style.display === "flex") {
-            sideNav.style.display = "none";
+        if (navIcons.classList.contains("active-icon")) {
+            navIcons.classList.remove("active-icon")
         }
         else {
-            sideNav.style.display = "flex";
+            navIcons.classList.add("active-icon")
         }
     })
 }
