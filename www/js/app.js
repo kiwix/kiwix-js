@@ -2219,7 +2219,7 @@ function collapBtn() {
     var btn = document.getElementById("collapbtn");
     var navIcons = document.getElementById("horizontalNavBtn");
 
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
         if (navIcons.classList.contains("active-icon")) {
             navIcons.classList.remove("active-icon")
         }

@@ -457,7 +457,6 @@ button {
     }
 
     .nav-icon-con {
-        display: flex;
         flex-direction: column;
         position: absolute;
         right: 0;
