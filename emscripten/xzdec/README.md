@@ -1,4 +1,4 @@
-# Source code and compilations of zstandard decompression library
+# Source code and compilations of XZ decompression library
 
 This folder shows how to compile the public-domain XZ decoder to make a webassembly binary and an asm JavaScript version.
 
