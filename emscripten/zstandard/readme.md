@@ -7,4 +7,6 @@ The source code can be compiled with Emscripten by setting up the Emscripten SDK
 
 You may be able to compile easily using docker. Look in the `/scripts` directory for helper scripts for your platform.
 
+If you need these builds to support ES6 modules (i.e. `import` and `export` module syntax), you can add `-s EXPORT_ES6=1` to the compile commands in `compile.sh`.
+
 For a fuller Emscripten distribution of the full zstandard library for `node.js`, see https://github.com/yoshihitoh/zstd-codec/tree/develop/js/example.
