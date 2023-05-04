@@ -584,14 +584,14 @@
                                     <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
-                                        <strong>ServiceWorker</strong> (default, supports archives with dynamic content and inline JavaScript)
+                                        <strong>ServiceWorker</strong> (<i>recommended</i>, fully supports dynamic content and inline JavaScript)
                                     </label>
                                 </div>
                                 <div id="serviceWorkerLocal" class="radio">
                                     <label title="For Chromium extensions only. This mode is the same as above, but uses local code only, not a PWA. It is not capable of running inline JavaScript.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworkerlocal"
                                             id="serviceworkerLocalModeRadio">
-                                        <strong>ServiceWorkerLocal</strong> (for Chromium extensions, local code only but no inline JavaScript)
+                                        <strong>ServiceWorkerLocal</strong> (for Chromium extensions: local code only, but no inline JavaScript)
                                     </label>
                                 </div>
                                 <div class="radio">
