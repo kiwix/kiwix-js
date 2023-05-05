@@ -16,7 +16,7 @@ Please follow these guidelines when contributing:
   - set up a local Web server: we recommend Node/NPM's [http-server](https://www.npmjs.com/package/http-server)), which you can launch by running `npm run serve` in the root of this repository;
   - in a browser, navigate to the URL of the main `index.html` (e.g. http://localhost:8080/www/index.html);
   - manually test your fix in at least Firefox and Chromium (Edge or Chrome), ideally also in IE11 or in "IE Mode" in Edge;
-  - be sure to test your fix in both "JQuery" mode and "Service Worker" mode (see Configuration);
+  - be sure to test your fix in both "JQuery" mode and "ServiceWorker" mode (see Configuration);
   - run the Unit tests (see below) in at least the above browsers.
 
 If all the tests are working fine, you can finally test the extension versions, like this:

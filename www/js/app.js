@@ -48,7 +48,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
      * This cache is used by default in jQuery mode, but can be turned off in Configuration for low-memory devices
-     * In Service Worker mode, the Cache API will be used instead
+     * In ServiceWorker mode, the Cache API will be used instead
      * @type {Map}
      */
     var cssCache = new Map();
@@ -100,7 +100,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
     // A parameter to set the content injection mode ('jquery' or 'service worker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
-        // Defaults to service worker mode when the API is available
+        // Defaults to ServiceWorker mode when the API is available
         (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
     // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
     // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
@@ -779,7 +779,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Send an 'init' message to the ServiceWorker with a new MessageChannel
      * to initialize it, or to keep it alive.
-     * This MessageChannel allows a 2-way communication between the ServiceWorker
+     * This MessageChannel allows a 2-way communication between the Service Worker
      * and the application
      */
     function initOrKeepAliveServiceWorker() {
@@ -788,7 +788,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Create a new messageChannel
             var tmpMessageChannel = new MessageChannel();
             tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
-            // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
+            // Send the init message to the Service Worker, with this MessageChannel as a parameter
             if (navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
                     'action': 'init'
