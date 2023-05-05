@@ -312,7 +312,7 @@
                     
                     <h4 id="modes">ServiceWorker and JQuery Modes</h4>
                     <p>
-                        Depending on your browser or framework, this app may be capable of running in two different modes, which we call
+                        Depending on your browser or framework, this app may be capable of running in different modes, which we call
                         "ServiceWorker Mode" and "JQuery Mode" for short. There is a toggle under Compatibility Settings in Configuration.
                         Here is a technical explanation of what these modes do:
                         <ul>
@@ -329,6 +329,13 @@
                                 not natively supported in Mozilla (Firefox) browser extensions, we provide a functional workaround by re-launching
                                 the extension as a Progressive Web App (PWA). Note that this mode cannot run with the <code>file:</code> protocol
                                 (but only IE11 and old Edge allow the app to run by launching <code>index.html</code> from the file system).
+                            </li>
+                            <li id="serviceWorkerLocalDescription">
+                                <b>ServiceWorkerLocal Mode</b>: This is only available in Chromium extensions. It is the same as above, but due to
+                                very tight security restrictions in these extensions, no inline JavaScript or eval statements can run. Unfortunately,
+                                modern ZIMs may have such dynamic content, and so functionality may be restricted in this mode. Nevertheless, it is
+                                more secure: the content is sandboxed and no one-time server access is required to enable the Service Worker. You
+                                are protected from inline code execution at the cost of loss of some features in dynamic ZIMs.
                             </li>
                             <li>
                                 <b>JQuery Mode</b>: This mode is now deprecated (and does not in fact require JQuery). It is retained for
@@ -581,24 +588,24 @@
                             <div class="card-body">
                                 <p>See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
                                 <div class="radio">
-                                    <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
+                                    <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It enables dynamic ZIM content and running JavaScript (including inline JS). It works by intercepting the browser's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
-                                        <strong>ServiceWorker</strong> (<i>recommended</i>, fully supports dynamic content and inline JavaScript)
+                                        <strong>ServiceWorker</strong> (<i>recommended</i>, supports dynamic content and inline JavaScript)
                                     </label>
                                 </div>
                                 <div id="serviceWorkerLocal" class="radio">
-                                    <label title="For Chromium extensions only. This mode is the same as above, but uses local code only, not a PWA. It is not capable of running inline JavaScript.">
+                                    <label title="[For Chromium extensions only:] This mode runs the Service Worker in a secure local sandbox, and does not need one-time access to our PWA server. However, due to the strong security restrictions in the API, it is not capable of running inline JavaScript, so dynamic ZIM content may fail.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworkerlocal"
                                             id="serviceworkerLocalModeRadio">
-                                        <strong>ServiceWorkerLocal</strong> (for Chromium extensions: local code only, but no inline JavaScript)
+                                        <strong>ServiceWorkerLocal</strong> (secure local Service Worker, but <i>no inline JavaScript</i>)
                                     </label>
                                 </div>
                                 <div class="radio">
                                     <label title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jQueryModeRadio" checked>
-                                        <strong>JQuery</strong> (deprecated, but compatible with older browsers and frameworks)
+                                        <strong>JQuery</strong> (<i>deprecated</i>: no dynamic content, compatible with older browsers)
                                     </label>
                                 </div>
                             </div>
