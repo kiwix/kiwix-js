@@ -365,7 +365,7 @@ function fetchUrlFromZIM(urlObject, range) {
                 
                 var httpResponse = new Response(slicedData, responseInit);
 
-                // Let's send the content back from the ServiceWorker
+                // Let's send the content back from the Service Worker
                 resolve(httpResponse);
             } else if (msgPortEvent.data.action === 'sendRedirect') {
                 resolve(Response.redirect(prefix + msgPortEvent.data.redirectUrl));
