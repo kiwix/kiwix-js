@@ -188,6 +188,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     if (!/^chrome-extension:/i.test(window.location.protocol)) {
         document.getElementById('serviceWorkerLocal').style.display = 'none';
+        document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -1078,7 +1079,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (response) {
                     checkPWAIsOnline();
                 } else {
-                    // User cancelled, so wants to stay in previous mode
+                    // User cancelled, so wants to stay in previous mode (so long as this wasn't SW mode)
+                    params.oldInjectionMode = params.oldInjectionMode === 'serviceworker' ? /^chrome-extension:/i.test(window.location.protocol) ? 'serviceworkerlocal' : null : params.oldInjectionMode;
                     setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     // We should not bother user with the default mode change alert again
