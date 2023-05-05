@@ -1,12 +1,14 @@
 # Changelog of Kiwix JS
 
 Please note that this application has changed its name over time.
-It was first called Evopedia (and was using the file format of Evopedia).
-Then it was renamed Kiwix-html5 (and uses ZIM files), and then again was renamed to Kiwix-JS.
+It was first called "Evopedia" (and was using the file format of Evopedia).
+Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Interim: Kiwix-JS v3.7.2
+## Kiwix JS v3.8.0
 
-This version is only published to the moz-extension PWA, and will be part of v3.8.0 when ready
+This version incorporates an interim version 3.7.2 that was only published to the moz-extension PWA
+
+Released on *2023-04-23*
 
 * NEW: Expert/troubleshooting setting to disable drag-and-drop
 * SECURITY: Add sandbox to iframe to prevent third-party content and top-level navigation
@@ -14,11 +16,15 @@ This version is only published to the moz-extension PWA, and will be part of v3.
 * SECURITY: Apply a CSP for iframe contents in SW mode (via response headers)
 * UPDATE: API status panel now displays the PWA origin
 * UPDATE: The PWA version now notifies more reliably that an update is available
+* UPDATE: JavaScript libzim updated to v0.2
+* CLEANUP: Removed usage of jQuery in Bootstrap modals
 * DEV: CI now uses the latest GitHub workflow actions
 * DEV: Script provided (`npm run serve`) to launch local http-server for development and testing
 * FIX: Full-text search results were not properly cancelled by user selecting a title search result
+* FIX: Fall back to using MIME type to determine type of document being downloaded from the ZIM
+* FIX: Broken epub downloads in IE11
 
-## Kiwix-JS v3.7.0
+## Kiwix JS v3.7.0
 
 Released on *2023-01-04*
 
@@ -35,7 +41,7 @@ Released on *2023-01-04*
 * CLEANUP: Removed most usage of .innerHTML in the code
 * FIX: Tweaks to Wikimedia dark theme for greater compatibility with LaTeX images 
 
-## Kiwix-JS v3.6.0
+## Kiwix JS v3.6.0
 
 Released on *2022-12-11*
 
@@ -47,7 +53,7 @@ Released on *2022-12-11*
 * UPDATE: Nightly packages on the download server now include the date in their filenames
 * FIX: Kiwix icon now has an outline so that it is visible against dark OS backgrounds
 
-## Kiwix-JS v3.5.0
+## Kiwix JS v3.5.0
 
 Released on *2022-08-05*
 
@@ -58,7 +64,7 @@ Released on *2022-08-05*
 * FIX: Directory Entries were wrongly assumed to be no larger than 2048 bytes (this could lead to some infinite loop, with some very specific ZIM files)
 * UPDATE: Update logo on Firefox and Windows stores
 
-## Kiwix-JS v3.4.0
+## Kiwix JS v3.4.0
 
 Released on *2022-04-10*
 
@@ -72,7 +78,7 @@ Released on *2022-04-10*
 * FIX: PWA images are now uploaded to ghcr.io instead of Docker Hub. When a new image is uploaded, we also restart the pod to make it use the latest image
 * UPDATE: Routine updates to dependencies: Karma, node-fetch, follow-redirects, minimist
 
-## Kiwix-JS v3.3.1
+## Kiwix JS v3.3.1
 
 Released on *2022-02-12*
 
@@ -84,7 +90,7 @@ Released on *2022-02-12*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/28?closed=1
 
-## Kiwix-JS v3.3.0
+## Kiwix JS v3.3.0
 
 Released on *2022-02-06*
 
@@ -106,7 +112,7 @@ Released on *2022-02-06*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/26?closed=1
 
-## Kiwix-JS v3.2.0
+## Kiwix JS v3.2.0
 
 Released on *2021-08-22*
 
@@ -125,7 +131,7 @@ Released on *2021-08-22*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/25?closed=1
 
-## Kiwix-JS v3.1.0
+## Kiwix JS v3.1.0
 
 Released on *2020-12-12*
 
@@ -137,7 +143,7 @@ Released on *2020-12-12*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/24?closed=1
 
-## Kiwix-JS v3.0.0
+## Kiwix JS v3.0.0
 
 Released on *2020-10-04*
 
@@ -146,7 +152,7 @@ Released on *2020-10-04*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/23?closed=1
 
-## Kiwix-JS v2.8.0
+## Kiwix JS v2.8.0
 
 Released on *2020-07-11*
 
@@ -160,7 +166,7 @@ Released on *2020-07-11*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/22?closed=1
 
-## Kiwix-JS v2.7.0
+## Kiwix JS v2.7.0
 
 Released on *2020-03-29*
 
@@ -179,7 +185,7 @@ Released on *2020-03-29*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/21?closed=1
 
-## Kiwix-JS v2.6.0
+## Kiwix JS v2.6.0
 
 Released on *2019-07-20*
 
@@ -188,7 +194,7 @@ Released on *2019-07-20*
 * NEW: Drag and drop support of ZIM files (on desktop)
 * NEW: Support download of epub files (for Gutenberg ZIM files) and some other types of downloads
 * NEW: Generic handling of MIME Types, instead of the previously hard-coded ones
-* NEW: Add explanations and detect when there are CORS issues when running kiwix-js through file://
+* NEW: Add explanations and detect when there are CORS issues when running Kiwix JS through file://
 * UPDATE: Upgrade the underlying Ubuntu Touch platform to Xenial
 * UPDATE: Improve the automated UI tests with a more complete scenario
 * UPDATE: Simplify the code by removing the base tag
@@ -198,7 +204,7 @@ Released on *2019-07-20*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/20?closed=1
 
-## Kiwix-JS v2.5.0
+## Kiwix JS v2.5.0
 
 Released on *2019-01-16*
 
@@ -209,7 +215,7 @@ Released on *2019-01-16*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/19?closed=1
 
-## Kiwix-JS v2.4.0
+## Kiwix JS v2.4.0
 
 Released on *2018-09-22*
 
@@ -218,7 +224,7 @@ Released on *2018-09-22*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/16?closed=1
 
-## Kiwix-JS v2.3.1
+## Kiwix JS v2.3.1
 
 Released on *2018-09-08*
 
@@ -226,7 +232,7 @@ Released on *2018-09-08*
 * BUGFIX: Fix excessive memory consumption
 * BUGFIX: Fix SVG file handling
 
-## Kiwix-JS v2.3.0
+## Kiwix JS v2.3.0
 
 Released on *2018-06-04*
 
@@ -240,14 +246,14 @@ Released on *2018-06-04*
 
 Detailed changelog: https://github.com/kiwix/kiwix-js/milestone/18?closed=1
 
-## Kiwix-JS v2.2.0
+## Kiwix JS v2.2.0
 
 Released on *2018-01-07*
 
 * NEW: Support for StackExchange ZIM files (and maybe for some other ZIM files with a structure different than the Mediawiki-based ZIM files).
 * NEW: Make geo: and tel: links work.
 * NEW: Ubuntu Touch support.
-* UPDATE: Rename the project to Kiwix-JS instead of Kiwix-html5.
+* UPDATE: Rename the project to Kiwix JS instead of Kiwix HTML5.
 * UPDATE: Compatibility with split English Wikipedia ZIM files (which now have more than 26 files).
 * UPDATE: Slightly improved memory handling of content decompression.
 * UPDATE: Library updates (jQuery, Bootstrap, requireJS).

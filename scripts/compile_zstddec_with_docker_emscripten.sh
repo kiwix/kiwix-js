@@ -14,4 +14,4 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Run the emscripten compilation through docker
-docker run -v "$REPO_DIR":/project -w /project -u $(id -u):$(id -g) emscripten/emsdk:2.0.25 /bin/sh -c 'cd emscripten/zstandard/; sh ./compile.sh'
+docker run -v "$REPO_DIR":/project -w /project -u $(id -u):$(id -g) emscripten/emsdk:3.1.37 /bin/sh -c 'cd emscripten/zstandard/; sh ./compile.sh'

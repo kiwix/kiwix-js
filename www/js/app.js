@@ -71,7 +71,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * WARNING: Only change these paramaeters if you know what you are doing
      */
     // The current version number of this app
-    params['appVersion'] = '3.7.2'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+    params['appVersion'] = '3.8.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
     // The PWA server (currently only for use with the Mozilla extension)
     params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
     // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
@@ -185,6 +185,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // User is already in SW mode, so we will never need to display the upgrade alert
         params.defaultModeChangeAlertDisplayed = true;
         settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
+    }
+    if (!/^chrome-extension:/i.test(window.location.protocol)) {
+        document.getElementById('serviceWorkerLocal').style.display = 'none';
+        document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -815,6 +819,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
     function setContentInjectionMode(value) {
+        params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
+        params.serviceWorkerLocal = false;
+        if (value === 'serviceworkerlocal') {
+            value = 'serviceworker';
+            params.serviceWorkerLocal = true;
+        }
         params.contentInjectionMode = value;
         if (value === 'jquery') {
             if (!params.appCache) {
@@ -867,7 +877,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Previously, the API was available, but failed to register (which we could trap a few lines below).
             // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
             // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
-            if (protocol === 'moz-extension:' && !isServiceWorkerAvailable()) {
+            if (/^(moz|chrome)-extension:/.test(protocol) && !params.serviceWorkerLocal) {
                 launchMozillaExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
@@ -881,7 +891,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                         } else {
-                            setContentInjectionMode('jquery');
+                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
                         }
                     });
                     return;
@@ -964,9 +974,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             resetCssCache();
         }
         $('input:radio[name=contentInjectionMode]').prop('checked', false);
-        $('input:radio[name=contentInjectionMode]').filter('[value="' + value + '"]').prop('checked', true);
+        var trueMode = params.serviceWorkerLocal ? value + 'local' : value;
+        $('input:radio[name=contentInjectionMode]').filter('[value="' + trueMode + '"]').prop('checked', true);
         // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
-        settingsStore.setItem('contentInjectionMode', value, Infinity);
+        settingsStore.setItem('contentInjectionMode', trueMode, Infinity);
         refreshCacheStatus();
         refreshAPIStatus();
         // Set the visibility of WebP workaround after change of content injection mode
@@ -1046,7 +1057,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
                     '<br/>Please try again when you have a stable Internet connection.', 'Error!').then(function () {
                         settingsStore.setItem('allowInternetAccess', false, Infinity);
-                        setContentInjectionMode('jquery');
+                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     });
             });
         };
@@ -1059,7 +1070,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         checkPWAIsOnline();
                     } else {
                         settingsStore.setItem('allowInternetAccess', false, Infinity);
-                        setContentInjectionMode('jquery');
+                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     }
                 })
             }
@@ -1068,8 +1079,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (response) {
                     checkPWAIsOnline();
                 } else {
-                    // User cancelled, so wants to stay in JQuery mode
-                    setContentInjectionMode('jquery');
+                    // User cancelled, so wants to stay in previous mode (so long as this wasn't SW mode)
+                    params.oldInjectionMode = params.oldInjectionMode === 'serviceworker' ? /^chrome-extension:/i.test(window.location.protocol) ? 'serviceworkerlocal' : null : params.oldInjectionMode;
+                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     // We should not bother user with the default mode change alert again
                     params.defaultModeChangeAlertDisplayed = true;
@@ -2116,12 +2128,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function goToArticle(path, download, contentType) {
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
+            var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
                 uiUtil.systemAlert("Article with url " + path + " not found in the archive", "Error: article not found");
-            } else if (download) {
+            } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
+                download = true;
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                    var mimetype = contentType || fileDirEntry.getMimetype();
                     uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
                 });
             } else {
