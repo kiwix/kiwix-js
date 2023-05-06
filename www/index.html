@@ -369,157 +369,115 @@
                     (<a href="#modes">see below</a>).
                 </p>
 
-                <h4 id="FAT">Downloading and storing large archives</h4>
-                <p>
-                    Full version of Wikipedia can be enormous: French, German and Spanish Wikipedia with images are each
-                    >25GB; full English Wikipedia with images
-                    is >90GB. For these very large archives you can find convenient <a
-                        href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">
-                        Torrent links&nbsp;<img src="img/Icon_External_Link.png" /></a> which may be more reliable than
-                    attempting to use your browser. You can use an
-                    open-source BitTorrent client such as <a href="https://www.qbittorrent.org/"
-                        target="_blank">QBittorrent&nbsp;<img src="img/Icon_External_Link.png" /></a>
-                    with these links (install the software before clicking on the torrent link).
-                </p>
-                <p>
-                    If you need to store a large ZIM archive on an older filesystem formatted as FAT16 or FAT32, you
-                    need to be aware of the file size limits of those systems
-                    (FAT16 &lt; 2GiB; FAT32 &lt; 4GiB). Most modern microSD cards, thumb drives or hard drives are
-                    formatted as exFAT or another modern FS such as NTFS, which do not
-                    have this issue. If your ZIM archive is larger than the FS limit, it is possible to split the
-                    archive into several 2GiB-1 or 4GiB-1 files (or smaller).
-                    You will need to give a file extension to each chunk in the right order following this pattern:
-                    <code>*.zimaa</code>, <code>*.zimab</code>, <code>*.zimac</code>,
-                    <code>...</code>, etc.). When you pick this archive in the app, be sure to pick <b>all</b> the
-                    chunks, or drag-and-drop them all into the app.
-                </p>
-                <p>
-                    For some information on how to split archves, see <a
-                        href="https://web.archive.org/web/20180307122026/https://wiki.kiwix.org/wiki/FAQ">
-                        Archive of the Kiwix FAQ&nbsp;<img src="img/Icon_External_Link.png" /></a> (current FAQ is <a
-                        href="https://wiki.kiwix.org/wiki/FAQ">here&nbsp;<img src="img/Icon_External_Link.png" /></a>).
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h4 id="modes">ServiceWorker and JQuery Modes</h4>
-                <p>
-                    Depending on your browser or framework, this app may be capable of running in two different modes,
-                    which we call
-                    "ServiceWorker Mode" and "JQuery Mode" for short. There is a toggle under Compatibility Settings in
-                    Configuration.
-                    Here is a technical explanation of what these modes do:
-                <ul>
-                    <li>
-                        <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the
-                        browser or framework
-                        be capable of installing a Service Worker, which is usually the case in modern browsers. It
-                        works by intercepting
-                        the browser or framework's Fetch calls (network requests) and supplying the requested content
-                        from the ZIM. In this
-                        mode, the content is read and supplied as-is from the archive to the browser. Dynamic content
-                        (e.g. JavaScript) and
-                        proprietary UIs are fully supported in this mode. However, Zimit archives are <b>not</b>
-                        currently supported due to
-                        a conflict between the Kiwix JS Service Worker and the WARC Service Worker. This mode can feel
-                        initially a little
-                        slower than JQuery mode until commonly used assets are cached, but it soon equals JQuery mode in
-                        speed, at least in
-                        modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the
-                        app must be running
-                        in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser
-                        extensions). While this mode is
-                        not natively supported in Mozilla (Firefox) browser extensions, we provide a functional
-                        workaround by re-launching
-                        the extension as a Progressive Web App (PWA). Note that this mode cannot run with the
-                        <code>file:</code> protocol
-                        (but only IE11 and old Edge allow the app to run by launching <code>index.html</code> from the
-                        file system).
-                    </li>
-                    <li>
-                        <b>JQuery Mode</b>: This mode is now deprecated (and does not in fact require JQuery). It is
-                        retained for
-                        compatibility with older browsers or frameworks that cannot run Service Workers. The mode has
-                        limitations which
-                        mean that only static content can be displayed, such as that found in Wikipedia / WikiMedia
-                        archives and (for now)
-                        Stackexchange. It is a way of inserting articles extracted from the ZIM into the DOM (browser
-                        document) by injecting
-                        the content into an iframe or tab. We then use native DOM methods, or sometimes JQuery, to parse
-                        the article's HTML
-                        and insert required assets (images, stylesheets, event listeners for hyperlinks, etc.). On old
-                        devices, DOM traversal
-                        can be slow, but it is compensated for because we do not extract or run JavaScript assets (which
-                        would be technically
-                        extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On
-                        the downside, ZIMs
-                        that have a proprietary dynamic UI (such as Gutenberg or TED talks) are only partially supported
-                        in this mode: the UI
-                        does not work, but articles can be searched for and loaded from the search bar.
-                    </li>
-                </ul>
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="feedback">Feedback / helping / contributing</h3>
-                <p>We welcome constructive feedback and suggestions for improvement. We will consider feature requests,
-                    but it is even better if you
-                    can contribute to improving the app! The source code is on <a
-                        href="https://github.com/kiwix/kiwix-js" target="_blank">GitHub&nbsp;<img
-                            src="img/Icon_External_Link.png" /></a>, and we welcome Pull Requests (it's worth opening an
-                    issue and discussing your
-                    proposal first).
-                </p>
-                <p>
-                    The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bug and issue
-                        tracker&nbsp;<img src="img/Icon_External_Link.png" /></a>
-                    is on GitHub too. We use it as our roadmap.
-                    <br />Alternatively, you can send your feedback <a
-                        href="mailto:mossroy@mossroy.fr?subject=%5BKiwix%5D%20Feedback%20about%20Kiwix%20JS">by
-                        email</a>.
-                    <br />In all cases, if you are reporting a bug, please give as much detail as you can: which device
-                    you are using, which version of Kiwix, which archive,
-                    which articles etc.
-                </p>
-                <p>
-                    If you like the Kiwix project and use it, please consider giving donations:
-                <ul>
-                    <li>to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a
-                            href="https://donate.wikimedia.org/" target="_blank">
-                            donation page&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
-                    <li>to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in the
-                        <a href="https://www.kiwix.org">home page of
-                            kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a>
-                    </li>
-                </ul>
-                You can also help by:
-                <ul>
-                    <li>Adding articles or improving the existing ones, by <a
-                            href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing online
-                            wikipedia
-                            articles&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
-                    <li><a href="https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate"
-                            target="_blank">Participating&nbsp;<img src="img/Icon_External_Link.png" /></a> in the Kiwix
-                        project</li>
-                </ul>
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="credits">Credits</h3>
-                <p>We owe a big debt of gratitude to:
-                <ul>
-                    <li>Kelson and all the Kiwix community for welcoming us in this project</li>
-                    <li>Wikipedia teams and contributors to help spreading knowledge to everybody</li>
-                    <li>All the developers of libraries and tools we used, for releasing them as Free software (see
-                        Licence paragraph)</li>
-                </ul>
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="licence">Licence information</h3>
-                Copyright 2013-2021 Mossroy, Peter-x, Jaifroid, sharun-s and other contributors
-                <br />This application is licensed under the GPL v3 Licence:
-                <br />
-                <i>
+                    <h4 id="FAT">Downloading and storing large archives</h4>
+                    <p>
+                        Full version of Wikipedia can be enormous: French, German and Spanish Wikipedia with images are each >25GB; full English Wikipedia with images
+                        is >90GB. For these very large archives you can find convenient <a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">
+                        Torrent links&nbsp;<img src="img/Icon_External_Link.png" /></a> which may be more reliable than attempting to use your browser. You can use an
+                        open-source BitTorrent client such as <a href="https://www.qbittorrent.org/" target="_blank">QBittorrent&nbsp;<img src="img/Icon_External_Link.png" /></a>
+                        with these links (install the software before clicking on the torrent link).
+                    </p>
+                    <p>
+                        If you need to store a large ZIM archive on an older filesystem formatted as FAT16 or FAT32, you need to be aware of the file size limits of those systems
+                        (FAT16 &lt; 2GiB; FAT32 &lt; 4GiB). Most modern microSD cards, thumb drives or hard drives are formatted as exFAT or another modern FS such as NTFS, which do not
+                        have this issue. If your ZIM archive is larger than the FS limit, it is possible to split the archive into several 2GiB-1 or 4GiB-1 files (or smaller).
+                        You will need to give a file extension to each chunk in the right order following this pattern: <code>*.zimaa</code>, <code>*.zimab</code>, <code>*.zimac</code>,
+                        <code>...</code>, etc.). When you pick this archive in the app, be sure to pick <b>all</b> the chunks, or drag-and-drop them all into the app.
+                    </p>
+                    <p>
+                        For some information on how to split archves, see <a href="https://web.archive.org/web/20180307122026/https://wiki.kiwix.org/wiki/FAQ">
+                        Archive of the Kiwix FAQ&nbsp;<img src="img/Icon_External_Link.png" /></a> (current FAQ is <a href="https://wiki.kiwix.org/wiki/FAQ">here&nbsp;<img src="img/Icon_External_Link.png" /></a>).
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h4 id="modes">ServiceWorker and JQuery Modes</h4>
+                    <p>
+                        Depending on your browser or framework, this app may be capable of running in different modes, which we call
+                        "ServiceWorker Mode" and "JQuery Mode" for short. There is a toggle under Compatibility Settings in Configuration.
+                        Here is a technical explanation of what these modes do:
+                        <ul>
+                            <li>
+                                <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the browser or framework
+                                be capable of installing a Service Worker, which is usually the case in modern browsers. It works by intercepting
+                                the browser or framework's Fetch calls (network requests) and supplying the requested content from the ZIM. In this
+                                mode, the content is read and supplied as-is from the archive to the browser. Dynamic content (e.g. JavaScript) and
+                                proprietary UIs are fully supported in this mode. However, Zimit archives are <b>not</b> currently supported due to
+                                a conflict between the Kiwix JS Service Worker and the WARC Service Worker. This mode can feel initially a little
+                                slower than JQuery mode until commonly used assets are cached, but it soon equals JQuery mode in speed, at least in
+                                modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the app must be running
+                                in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser extensions). While this mode is
+                                not natively supported in Mozilla (Firefox) browser extensions, we provide a functional workaround by re-launching
+                                the extension as a Progressive Web App (PWA). Note that this mode cannot run with the <code>file:</code> protocol
+                                (but only IE11 and old Edge allow the app to run by launching <code>index.html</code> from the file system).
+                            </li>
+                            <li id="serviceWorkerLocalDescription">
+                                <b>ServiceWorkerLocal Mode</b>: This is only available in Chromium extensions. It is the same as above, but due to
+                                very tight security restrictions in these extensions, no inline JavaScript or eval statements can run. Unfortunately,
+                                modern ZIMs may have such dynamic content, and so functionality may be restricted in this mode. Nevertheless, it is
+                                more secure: the content is sandboxed and no one-time server access is required to enable the Service Worker. You
+                                are protected from inline code execution at the cost of loss of some features in dynamic ZIMs.
+                            </li>
+                            <li>
+                                <b>JQuery Mode</b>: This mode is now deprecated (and does not in fact require JQuery). It is retained for
+                                compatibility with older browsers or frameworks that cannot run Service Workers. The mode has limitations which
+                                mean that only static content can be displayed, such as that found in Wikipedia / WikiMedia archives and (for now)
+                                Stackexchange. It is a way of inserting articles extracted from the ZIM into the DOM (browser document) by injecting
+                                the content into an iframe or tab. We then use native DOM methods, or sometimes JQuery, to parse the article's HTML
+                                and insert required assets (images, stylesheets, event listeners for hyperlinks, etc.). On old devices, DOM traversal
+                                can be slow, but it is compensated for because we do not extract or run JavaScript assets (which would be technically
+                                extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On the downside, ZIMs
+                                that have a proprietary dynamic UI (such as Gutenberg or TED talks) are only partially supported in this mode: the UI
+                                does not work, but articles can be searched for and loaded from the search bar.
+                            </li>
+                        </ul> 
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="feedback">Feedback / helping / contributing</h3>
+                    <p>We welcome constructive feedback and suggestions for improvement. We will consider feature requests, but it is even better if you
+                        can contribute to improving the app! The source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">GitHub&nbsp;<img
+                            src="img/Icon_External_Link.png" /></a>, and we welcome Pull Requests (it's worth opening an issue and discussing your
+                        proposal first).
+                    </p>
+                    <p>
+                        The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bug and issue tracker&nbsp;<img src="img/Icon_External_Link.png" /></a>
+                        is on GitHub too. We use it as our roadmap.
+                        <br />Alternatively, you can send your feedback <a href="mailto:mossroy@mossroy.fr?subject=%5BKiwix%5D%20Feedback%20about%20Kiwix%20JS">by email</a>.
+                        <br />In all cases, if you are reporting a bug, please give as much detail as you can: which device you are using, which version of Kiwix, which archive,
+                        which articles etc.
+                    </p>
+                    <p>
+                        If you like the Kiwix project and use it, please consider giving donations:
+                        <ul>
+                            <li>to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">
+                                donation page&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                            <li>to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in  the <a href="https://www.kiwix.org">home page of
+                                kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                        </ul>
+                        You can also help by:
+                        <ul>
+                            <li>Adding articles or improving the existing ones, by <a href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing online wikipedia
+                                articles&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                            <li><a href="https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate" target="_blank">Participating&nbsp;<img src="img/Icon_External_Link.png" /></a> in the Kiwix project</li>
+                        </ul>
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="credits">Credits</h3>
+                    <p>We owe a big debt of gratitude to:
+                        <ul>
+                            <li>Kelson and all the Kiwix community for welcoming us in this project</li>
+                            <li>Wikipedia teams and contributors to help spreading knowledge to everybody</li>
+                            <li>All the developers of libraries and tools we used, for releasing them as Free software (see Licence paragraph)</li>
+                        </ul>
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="licence">Licence information</h3>
+                    Copyright 2013-2021 Mossroy, Peter-x, Jaifroid, sharun-s and other contributors
+                    <br />This application is licensed under the GPL v3 Licence:
+                    <br />
+                    <i>
                     <br />Kiwix is free software: you can redistribute it and/or modify
                     <br />it under the terms of the GNU General Public Licence as published by
                     <br />the Free Software Foundation, either version 3 of the Licence, or
@@ -591,263 +549,249 @@
                 <br />
             </div>
 
-            <div id="configuration" style="display: none;">
-                <div class="container">
-                    <h2>Configuration</h2>
-                    <!-- Bootstrap alert box -->
-                    <div id="updateAlert" class="alert alert-warning alert-dismissible" style="display: none;">
-                        <button type="button" class="close" data-hide="alert">&times;</button>
-                        <span id="persistentMessage"></span>
-                    </div>
-                    <p id="downloadInstruction">This application needs a ZIM archive to work. For download
-                        instructions, please see the About section</p>
-                    <div id="selectorsDisplay" style="display: none;">
-                        <p>Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
-                                file selectors</a></p>
-                    </div>
-                    <div id="openLocalFiles" style="display: none;">
-                        <p>Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
-                            case of a split ZIM file)</p>
-                        <input type="file" id="archiveFiles" multiple class="btn"
-                            accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
-
-                        <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
-                            some video-based ZIMs (e.g. TEDx) have been tested</strong>.
-                        Dynamic content is not currently supported in jQuery mode.<br />
-                    </div>
-                    <div id="scanningForArchives" style="display: none;">
-                        <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
-                    </div>
-                    <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                        <br /> Please select the archive you want to use : <select id="archiveList"
-                            class="form-control"></select>
-                        <br /><button type="button" class="btn btn-light" id="btnRescanDeviceStorage">Rescan</button>
-                        Rescans your SD Cards and internal memory
-                    </div>
-                </div>
-                <br />
-                <div class="container">
-                    <h3>Display settings</h3>
-                    <div class="card card-info" id="displaySettingsDiv">
-                        <div class="card-header">Display options:</div>
-                        <div class="card-body">
-                            <div class="checkbox">
-                                <label
-                                    title="The animation is on by default and can be disabled by unchecking this option.">
-                                    <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck" checked>
-                                    <strong>Animate transition between app pages</strong>
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label title="Enables quick access to search, no matter where you are in an article.">
-                                    <input type="checkbox" name="useHomeKeyToFocusSearchBar"
-                                        id="useHomeKeyToFocusSearchBarCheck">
-                                    <strong>Use Home key to focus search bar</strong> (may rarely have side effects on
-                                    ZIM files that handle Home key)
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label
-                                    title="Opens the external links outside kiwix-js (avoids some side-effects affecting kiwix-js UI).">
-                                    <input type="checkbox" name="openExternalLinksInNewTabs"
-                                        id="openExternalLinksInNewTabsCheck" checked>
-                                    <strong>Open external links in new tabs</strong>. Disabling this might break
-                                    kiwix-js UI in some specific cases
-                                </label>
-                            </div>
-                            <div class="form-group">
-                                <label
-                                    title="Allows selection of themes either for the app only, or for the app and the loaded content.">
-                                    <b>Select app theme</b> (content inversion is experimental):
-                                </label>
-                                <select class="form-control" id="appThemeSelect">
-                                    <option value="light">Light</option>
-                                    <option value="dark">Dark (app only)</option>
-                                    <option value="dark_invert">Dark (generic invert)</option>
-                                    <option value="dark_mwInvert">Dark (wikimedia invert)*</option>
-                                    <option class="auto" value="auto">Auto (app only)</option>
-                                    <option class="auto" value="auto_invert">Auto (generic invert)</option>
-                                    <option class="auto" value="auto_mwInvert">Auto (wikimedia invert)*</option>
-                                </select>
-                                <p class="text-muted" id="kiwix-auto-description" style="margin-bottom: 0;">&emsp;(Auto
-                                    themes match the dark/light mode of your device.)</p>
-                                <p id="mwInvert-help" class="appThemeInfo form-text text-muted">* Implements workarounds
-                                    specific to Wikimedia ZIMs. Try generic option if there are display errors with
-                                    recent ZIMs.</p>
-                                <a id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with
-                                    applied theme&nbsp;]</a>
-                            </div>
+                <div id="configuration" style="display: none;">
+                    <div class="container">
+                        <h2>Configuration</h2>
+                        <!-- Bootstrap alert box -->
+                        <div id="updateAlert" class="alert alert-warning alert-dismissible" style="display: none;">
+                            <button type="button" class="close" data-hide="alert">&times;</button>
+                            <span id="persistentMessage"></span>
+                        </div>
+                        <p id="downloadInstruction">This application needs a ZIM archive to work. For download
+                            instructions, please see the About section</p>
+                        <div id="selectorsDisplay" style="display: none;">
+                            <p>Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
+                                    file selectors</a></p>
+                        </div>
+                        <div id="openLocalFiles" style="display: none;">
+                            <p>Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
+                                case of a split ZIM file)</p>
+                            <input type="file" id="archiveFiles" multiple class="btn"
+                                accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
+                            <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
+                                some video-based ZIMs (e.g. TEDx) have been tested</strong>.
+                            Dynamic content is not currently supported in jQuery mode.<br />
+                        </div>
+                        <div id="scanningForArchives" style="display: none;">
+                            <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
+                        </div>
+                        <div id="chooseArchiveFromLocalStorage" style="display: none;">
+                            <br /> Please select the archive you want to use : <select id="archiveList"
+                                class="form-control"></select>
+                            <br /><button type="button" class="btn btn-light" id="btnRescanDeviceStorage">Rescan</button>
+                            Rescans your SD Cards and internal memory
                         </div>
                     </div>
-                </div>
-                <br />
-                <div class="container">
-                    <h3>Performance settings</h3>
-                    <div class="card card-warning" id="performanceSettingsDiv">
-                        <div class="card-header">Speed up archive access</div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="radio">
-                                        <p>Kiwix JS can speed up the display of articles by caching assets:</p>
-                                        <label
-                                            title="The cache provides high-speed access to ZIM assets such as stylesheets and scripts, which will improve article load times.">
-                                            <input type="radio" name="cachedAssetsMode" value="true"
-                                                id="cachedAssetsModeRadioTrue" checked>
-                                            <strong>Cache assets</strong> (recommended)
-                                        </label>
-                                    </div>
-                                    <div class="radio">
-                                        <label
-                                            title="For low-memory devices, caching assets may cause app instability. This option allows you to disable the cache.">
-                                            <input type="radio" name="cachedAssetsMode" value="false"
-                                                id="cachedAssetsModeRadioFalse">
-                                            <strong>Do not cache assets</strong> (empties caches: for low-memory
-                                            devices)
-                                        </label>
-                                    </div>
+                    <br />
+                    <div class="container">
+                        <h3>Display settings</h3>
+                        <div class="card card-info" id="displaySettingsDiv">
+                            <div class="card-header">Display options:</div>
+                            <div class="card-body">
+                                <div class="checkbox">
+                                    <label title="The animation is on by default and can be disabled by unchecking this option." >
+                                        <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
+                                            checked>
+                                        <strong>Animate transition between app pages</strong>
+                                    </label>
                                 </div>
-                                <div class="col-sm-6">
-                                    <div id="cacheStatusPanel" class="card card-footer" style="overflow: hidden">
-                                        <div>
-                                            <p><b>Cache status:</b></p>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-7">
-                                                <p>Cache used: <b id="cacheUsed"></b></p>
-                                            </div>
-                                            <div class="col-5">
-                                                <p>Assets: <b id="assetsCount"></b></p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="checkbox">
+                                    <label title="Enables quick access to search, no matter where you are in an article.">
+                                        <input type="checkbox" name="useHomeKeyToFocusSearchBar"
+                                               id="useHomeKeyToFocusSearchBarCheck">
+                                        <strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)
+                                    </label>
                                 </div>
-                            </div>
-                            <br />
-                            <div class="row">
-                                <div class="col-sm-4">
-                                    <p>Select max number of search results:</p>
+                                <div class="checkbox">
+                                    <label title="Opens the external links outside kiwix-js (avoids some side-effects affecting kiwix-js UI).">
+                                        <input type="checkbox" name="openExternalLinksInNewTabs"
+                                               id="openExternalLinksInNewTabsCheck" checked>
+                                        <strong>Open external links in new tabs</strong>. Disabling this might break kiwix-js UI in some specific cases
+                                    </label>
                                 </div>
-                                <div class="col-sm-8">
-                                    <div class="range">
-                                        <label>
-                                            <input type="range" class="form-control-range" min="5" max="100"
-                                                id="titleSearchRange" value="25">
-                                            <span>Value: <span id="titleSearchRangeVal"></span> (<i>default 25, higher
-                                                    values increase search time</i>)</span>
-                                        </label>
-                                    </div>
+                                <div class="form-group">
+                                    <label title="Allows selection of themes either for the app only, or for the app and the loaded content.">
+                                        <b>Select app theme</b> (content inversion is experimental):
+                                    </label>
+                                    <select class="form-control" id="appThemeSelect">
+                                        <option value="light">Light</option>
+                                        <option value="dark">Dark (app only)</option>
+                                        <option value="dark_invert">Dark (generic invert)</option>
+                                        <option value="dark_mwInvert">Dark (wikimedia invert)*</option>
+                                        <option class="auto" value="auto">Auto (app only)</option>
+                                        <option class="auto" value="auto_invert">Auto (generic invert)</option>
+                                        <option class="auto" value="auto_mwInvert">Auto (wikimedia invert)*</option>
+                                    </select>
+                                    <p class="text-muted" id="kiwix-auto-description" style="margin-bottom: 0;">&emsp;(Auto themes match the dark/light mode of your device.)</p>
+                                    <p id="mwInvert-help" class="appThemeInfo form-text text-muted">* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.</p>
+                                    <a id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with applied theme&nbsp;]</a>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <br />
-                <div class="container">
-                    <h3>Compatibility settings</h3>
-                    <div class="card card-warning" id="contentInjectionModeDiv">
-                        <div class="card-header">Content injection mode</div>
-                        <div class="card-body">
-                            <p>See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation
-                                of the difference between these modes:</p>
-                            <div class="radio">
-                                <label
-                                    title="This mode requires that the browser or framework be capable of installing a Service Worker. It works by intercepting the browser or framework's Fetch calls and supplying the requested content from the ZIM.">
-                                    <input type="radio" name="contentInjectionMode" value="serviceworker"
-                                        id="serviceworkerModeRadio">
-                                    <strong>ServiceWorker</strong> (default, supports archives with dynamic content)
-                                </label>
-                            </div>
-                            <div class="radio">
-                                <label
-                                    title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
-                                    <input type="radio" name="contentInjectionMode" value="jquery" id="jQueryModeRadio"
-                                        checked>
-                                    <strong>JQuery</strong> (deprecated, but compatible with older browsers and
-                                    frameworks)
-                                </label>
                             </div>
                         </div>
                     </div>
                     <br />
-                    <div id="imgHandlingModeDiv">
-                        <div class="card card-warning">
-                            <div class="card-header">Image handling</div>
+                    <div class="container">
+                        <h3>Performance settings</h3>
+                        <div class="card card-warning" id="performanceSettingsDiv">
+                            <div class="card-header">Speed up archive access</div>
                             <div class="card-body">
-                                <p>Work around anti-fingerprinting measures by substituting WebP images with canvas
-                                    elements
-                                    (setting determined automatically, can be disabled):
-                                </p>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="radio">
+                                            <p>Kiwix JS can speed up the display of articles by caching assets:</p>
+                                            <label title="The cache provides high-speed access to ZIM assets such as stylesheets and scripts, which will improve article load times.">
+                                                <input type="radio" name="cachedAssetsMode" value="true"
+                                                    id="cachedAssetsModeRadioTrue" checked>
+                                                <strong>Cache assets</strong> (recommended)
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label title="For low-memory devices, caching assets may cause app instability. This option allows you to disable the cache.">
+                                                <input type="radio" name="cachedAssetsMode" value="false"
+                                                    id="cachedAssetsModeRadioFalse">
+                                                <strong>Do not cache assets</strong> (empties caches: for low-memory
+                                                devices)
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div id="cacheStatusPanel" class="card card-footer" style="overflow: hidden">
+                                            <div>
+                                                <p><b>Cache status:</b></p>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-7">
+                                                    <p>Cache used: <b id="cacheUsed"></b></p>
+                                                </div>
+                                                <div class="col-5">
+                                                    <p>Assets: <b id="assetsCount"></b></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <p>Select max number of search results:</p>
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="range">
+                                            <label>
+                                                <input type="range" class="form-control-range" min="5" max="100" id="titleSearchRange" value="25">
+                                                <span>Value: <span id="titleSearchRangeVal"></span> (<i>default 25, higher values increase search time</i>)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="container">
+                        <h3>Compatibility settings</h3>
+                        <div class="card card-warning" id="contentInjectionModeDiv">
+                            <div class="card-header">Content injection mode</div>
+                            <div class="card-body">
+                                <p>See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
+                                <div class="radio">
+                                    <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It enables dynamic ZIM content and running JavaScript (including inline JS). It works by intercepting the browser's Fetch calls and supplying the requested content from the ZIM.">
+                                        <input type="radio" name="contentInjectionMode" value="serviceworker"
+                                            id="serviceworkerModeRadio">
+                                        <strong>ServiceWorker</strong> (<i>recommended</i>, supports dynamic content and inline JavaScript)
+                                    </label>
+                                </div>
+                                <div id="serviceWorkerLocal" class="radio">
+                                    <label title="[For Chromium extensions only:] This mode runs the Service Worker in a secure local sandbox, and does not need one-time access to our PWA server. However, due to the strong security restrictions in the API, it is not capable of running inline JavaScript, so dynamic ZIM content may fail.">
+                                        <input type="radio" name="contentInjectionMode" value="serviceworkerlocal"
+                                            id="serviceworkerLocalModeRadio">
+                                        <strong>ServiceWorkerLocal</strong> (secure local Service Worker, but <i>no inline JavaScript</i>)
+                                    </label>
+                                </div>
+                                <div class="radio">
+                                    <label title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
+                                        <input type="radio" name="contentInjectionMode" value="jquery"
+                                            id="jQueryModeRadio" checked>
+                                        <strong>JQuery</strong> (<i>deprecated</i>: no dynamic content, compatible with older browsers)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div id="imgHandlingModeDiv">
+                            <div class="card card-warning">
+                                <div class="card-header">Image handling</div>
+                                <div class="card-body">
+                                    <p>Work around anti-fingerprinting measures by substituting WebP images with canvas elements
+                                        (setting determined automatically, can be disabled):
+                                    </p>
+                                    <div class="checkbox">
+                                        <label title="For browsers that do not have native WebP support and that implement anti-fingerprinting measures, we cannot extract the image data from the canvas elements produced by the polyfill, so we use the canvas as substitute for the image. If not needed, disabling this may improve performance." >
+                                            <input type="checkbox" name="useCanvasElements" id="useCanvasElementsCheck">
+                                            <strong>Use WebP workaround if needed</strong>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="container">
+                        <h3>Expert settings</h3>
+                        <div class="card card-danger" id="expertSettingsDiv">
+                            <div class="card-header">Troubleshooting and development</div>
+                            <div class="card-body">
                                 <div class="checkbox">
+                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
+                                        <input type="checkbox" name="hideActiveContentWarning"
+                                            id="hideActiveContentWarningCheck">
+                                        <strong>Permanently hide active content warning</strong> (for
+                                        experienced users)
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label title="In some browsers on some platforms, drag-and-drop may malfunction and make it difficult to select text, and other operations. Disable it here if it is causing issues." >
+                                        <input type="checkbox" name="disableDragAndDrop"
+                                            id="disableDragAndDropCheck">
+                                        <strong>Disable drag-and-drop</strong> (in case it is causing anomalies)
+                                    </label>
+                                </div>
+                                <div class="checkbox" id="bypassAppCacheDiv">
                                     <label
-                                        title="For browsers that do not have native WebP support and that implement anti-fingerprinting measures, we cannot extract the image data from the canvas elements produced by the polyfill, so we use the canvas as substitute for the image. If not needed, disabling this may improve performance.">
-                                        <input type="checkbox" name="useCanvasElements" id="useCanvasElementsCheck">
-                                        <strong>Use WebP workaround if needed</strong>
+                                        title="WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.">
+                                        <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
+                                        <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
+                                    </label>
+                                </div>
+                                <p class="pt-2">Reset the app to default settings and erase all caches:</p>
+                                <div class="button">
+                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
+                                        <button type="button" class="btn btn-danger" id="btnReset">Reset App</button>
                                     </label>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <br />
-                <div class="container">
-                    <h3>Expert settings</h3>
-                    <div class="card card-danger" id="expertSettingsDiv">
-                        <div class="card-header">Troubleshooting and development</div>
-                        <div class="card-body">
-                            <div class="checkbox">
-                                <label
-                                    title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning.">
-                                    <input type="checkbox" name="hideActiveContentWarning"
-                                        id="hideActiveContentWarningCheck">
-                                    <strong>Permanently hide active content warning</strong> (for
-                                    experienced users)
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label
-                                    title="In some browsers on some platforms, drag-and-drop may malfunction and make it difficult to select text, and other operations. Disable it here if it is causing issues.">
-                                    <input type="checkbox" name="disableDragAndDrop" id="disableDragAndDropCheck">
-                                    <strong>Disable drag-and-drop</strong> (in case it is causing anomalies)
-                                </label>
-                            </div>
-                            <div class="checkbox" id="bypassAppCacheDiv">
-                                <label
-                                    title="WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.">
-                                    <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
-                                    <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
-                                </label>
-                            </div>
-                            <p class="pt-2">Reset the app to default settings and erase all caches:</p>
-                            <div class="button">
-                                <label
-                                    title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
-                                    <button type="button" class="btn btn-danger" id="btnReset">Reset App</button>
-                                </label>
+                    <br />
+                    <div class="container">
+                        <div class="card card-warning" id="apiStatusDiv">
+                            <div class="card-header">API Status</div>
+                            <div class="card-body">
+                                <div id="serviceWorkerStatus"></div>
+                                <div id="messageChannelStatus"></div>
+                                <div id="settingsStoreStatus"></div>
+                                <div id="decompressorAPIStatus"></div>
+                                <div id="searchProviderStatus"></div>
+                                <div id="pwaOriginStatus"></div>
                             </div>
                         </div>
                     </div>
+                    <br />
                 </div>
-                <br />
-                <div class="container">
-                    <div class="card card-warning" id="apiStatusDiv">
-                        <div class="card-header">API Status</div>
-                        <div class="card-body">
-                            <div id="serviceWorkerStatus"></div>
-                            <div id="messageChannelStatus"></div>
-                            <div id="settingsStoreStatus"></div>
-                            <div id="decompressorAPIStatus"></div>
-                            <div id="searchProviderStatus"></div>
-                            <div id="pwaOriginStatus"></div>
-                        </div>
-                    </div>
+                <div id="welcomeText" class="container">
+                    You can search the content of your ZIM archive by typing in the above search field.
+                    <br />It will suggest articles starting with the letters you type.
                 </div>
-                <br />
-            </div>
-            <div id="welcomeText" class="container">
-                You can search the content of your ZIM archive by typing in the above search field.
-                <br />It will suggest articles starting with the letters you type.
-            </div>
 
             <!-- List of articles matching the typed prefix -->
             <div id="articleListWithHeader" style="display: none;" class="container">
