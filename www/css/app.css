@@ -195,6 +195,13 @@ iframe._invert, iframe._mwInvert {
     text-align: center;
 }
 
+.modal-dialog {
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.1s;
+    animation-name: animatetop;
+    animation-duration: 0.1s;
+}
+
 /* Modify default Bootstrap 4 colours */
 .card-info {
     border-color: #bce8f1;
@@ -242,6 +249,12 @@ button {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Animation for .modal-dialog */
+@keyframes animatetop {
+    from {top: -300px; opacity: 0}
+    to {top: 0px; opacity: 1}
 }
 
 /* Reduce the size of some elements for small screens */
