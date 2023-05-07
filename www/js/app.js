@@ -174,7 +174,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
     document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
     // We check here if we have to warn the user that we switched to ServiceWorkerMode
-    // This is only needed if the ServiceWorker mode is available, or we are in a Firefox Extension that supports Service Workers
+    // This is only needed if the ServiceWorker mode is available, or we are in an Extension that supports Service Workers
     // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
     // alerted about the switch to ServiceWorker mode by default
     if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^(moz|chrome)-extension:/i.test(window.location.protocol))
@@ -188,6 +188,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
     if (!/^chrome-extension:/i.test(window.location.protocol)) {
         document.getElementById('serviceWorkerLocal').style.display = 'none';
+        document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
     }
     setContentInjectionMode(params.contentInjectionMode);
 
@@ -1078,7 +1079,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (response) {
                     checkPWAIsOnline();
                 } else {
-                    // User cancelled, so wants to stay in previous mode
+                    // User cancelled, so wants to stay in previous mode (so long as this wasn't SW mode)
+                    params.oldInjectionMode = params.oldInjectionMode === 'serviceworker' ? /^chrome-extension:/i.test(window.location.protocol) ? 'serviceworkerlocal' : null : params.oldInjectionMode;
                     setContentInjectionMode(params.oldInjectionMode || 'jquery');
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     // We should not bother user with the default mode change alert again
