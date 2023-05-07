@@ -60,7 +60,7 @@ var useAssetsCache = true;
  * This is an expert setting in Configuration
  * @type {Boolean}
  */
-var useAppCache = true;
+ var useAppCache = true;
 
 
 /**  
@@ -137,29 +137,24 @@ let precacheFiles = [
     "www/js/lib/zimfile.js",
     "www/js/lib/fontawesome/fontawesome.js",
     "www/js/lib/fontawesome/solid.js",
-    "www/fonts/glyphicons-halflings-regular.woff2",
-    "www/img/icons/circle-info-solid.svg",
-    "www/img/icons/magnifying-glass-solid (1).svg",
-    "www/img/icons/kiwix-blue-32.png",
-    "www/img/icons/shuffle-solid.svg",
-    "www/img/icons/wrench-solid.svg"
+    "www/img/icons/kiwix-blue-32.png"
 ];
 
 if ('WebAssembly' in self) {
-    precacheFiles.push(
-        "www/js/lib/xzdec-wasm.js",
-        "www/js/lib/xzdec-wasm.wasm",
-        "www/js/lib/zstddec-wasm.js",
-        "www/js/lib/zstddec-wasm.wasm",
-        "www/js/lib/libzim-wasm.js",
-        "www/js/lib/libzim-wasm.wasm"
-    );
+  precacheFiles.push(
+    "www/js/lib/xzdec-wasm.js",
+    "www/js/lib/xzdec-wasm.wasm",
+    "www/js/lib/zstddec-wasm.js",
+    "www/js/lib/zstddec-wasm.wasm",
+    "www/js/lib/libzim-wasm.js",
+    "www/js/lib/libzim-wasm.wasm"
+  );
 } else {
-    precacheFiles.push(
-        "www/js/lib/xzdec-asm.js",
-        "www/js/lib/zstddec-asm.js",
-        "www/js/lib/libzim-asm.js"
-    );
+  precacheFiles.push(
+    "www/js/lib/xzdec-asm.js",
+    "www/js/lib/zstddec-asm.js",
+    "www/js/lib/libzim-asm.js"
+  );
 }
 
 // Process install event
@@ -268,7 +263,7 @@ self.addEventListener('fetch', function (event) {
 /**
  * Handle custom commands sent from app.js
  */
-self.addEventListener('message', function (event) {
+ self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
@@ -336,14 +331,14 @@ function fetchUrlFromZIM(urlObject, range) {
                 headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
                 headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
-
+                
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
                 if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
                     headers.set('Accept-Ranges', 'bytes');
                 }
-
+                
                 var slicedData = msgPortEvent.data.content;
                 if (range) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
@@ -357,18 +352,18 @@ function fetchUrlFromZIM(urlObject, range) {
                     let begin = partsOfRangeHeader[1];
                     let end = contentLength - 1;
                     slicedData = slicedData.slice(begin);
-
+                    
                     headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
                     headers.set('Content-Length', end - begin + 1);
                 }
-
+                
                 var responseInit = {
                     // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
                     status: range ? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
-
+                
                 var httpResponse = new Response(slicedData, responseInit);
 
                 // Let's send the content back from the ServiceWorker
@@ -433,10 +428,10 @@ function testCacheAndCountAssets(url) {
     return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', ASSETS_CACHE, 'Cache API', keys.length];
-        }).catch(function (err) {
+        }).catch(function(err) {
             return err;
         });
-    }).catch(function (err) {
+    }).catch(function(err) {
         return err;
     });
 }
