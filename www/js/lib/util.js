@@ -200,7 +200,7 @@ define([], function() {
      *   *A Promise Factory is merely a Promise wrapped in a function to prevent it from executing immediately. E.g. to use
      *   this function with a Promise, call it like this (or, more likely, use your own pre-wrapped Promise):
      * 
-     *      PromiseQueue.enqueue(function () {
+     *      return util.PromiseQueue.enqueue(function () {
      *          return new Promise(function (resolve, reject) { ... });
      *      });
      * 
