@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html>
+    <head>
+        <meta charset="utf-8">
 
-<head>
-    <meta charset="utf-8">
-
-    <title>Kiwix</title>
-    <meta name="description" content="Offline Wikipedia reader">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' data: https://download.kiwix.org https://master.download.kiwix.org https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; frame-src 'self' moz-extension: chrome-extension:; object-src 'none';">
-    <meta name="referrer" content="none">
-    <!--
+        <title>Kiwix</title>
+        <meta name="description" content="Offline Wikipedia reader">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://download.kiwix.org https://master.download.kiwix.org https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; frame-src 'self' moz-extension: chrome-extension:; object-src 'none';">
+        <meta name="referrer" content="none">
+        <!--
         Kiwix (offline Wikipedia reader) - HTML5/Javascript version
         Home page : https://www.kiwix.org
 
@@ -35,339 +33,258 @@
         GNU General Public License for more details.
 
         You should have received a copy of the GNU General Public License
-        along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <https://www.gnu.org/licenses/> -->
+        along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <https://www.gnu.org/licenses/>
 
+        -->
 
-    <!-- Bootstrap -->
-    <link href="css/bootstrap.css" rel="stylesheet" media="screen" />
-    <!-- <link href="css/bootstrap.min.css" rel="stylesheet" media="screen" /> -->
-
-    <!-- Local app.css must be loaded after boostrap.css so that any local style overrides work -->
-
-    <link rel="stylesheet" href="css/app.css" />
-    <link rel="stylesheet" href="css/transition.css" />
-    <link rel="icon" type="image/png" href="img/icons/kiwix-60.png" sizes="60x60" />
-    <link rel="icon" type="image/png" href="img/icons/kiwix-120.png" sizes="120x120" />
-    <link rel="icon" type="image/png" href="img/icons/kiwix-256.png" sizes="256x256" />
-
-</head>
-
-<body role="application">
-    <!--Bootstrap modal for alert and confirmation pop up-->
-    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Modal title goes here</h5>
-                    <button type="button" id="modalCloseBtn" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p id="modalText">Modal text goes here.</p>
-                </div>
-                <div class="modal-footer" id="modalFooter">
-                    <button type="button" class="btn btn-primary" id="approveConfirm"
-                        data-dismiss="modal">Confirm</button>
-                    <button type="button" class="btn btn-secondary" id="declineConfirm"
-                        data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
+        <!-- Local app.css must be loaded after boostrap.css so that any local style overrides work -->
+        <link rel="stylesheet" href="css/app.css"/>
+        <link rel="stylesheet" href="css/transition.css"/>
+        <link rel="icon" type="image/png" href="img/icons/kiwix-60.png" sizes="60x60"/>
+        <link rel="icon" type="image/png" href="img/icons/kiwix-120.png" sizes="120x120"/>
+        <link rel="icon" type="image/png" href="img/icons/kiwix-256.png" sizes="256x256"/>
+    </head>
+    <body role="application">
+        <!--Bootstrap modal for alert and confirmation pop up-->
+        <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalLabel">Modal title goes here</h5>
+                        <button type="button" id="modalCloseBtn" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalText">Modal text goes here.</p>
+                    </div>
+                    <div class="modal-footer" id="modalFooter">
+                        <button type="button" class="btn btn-primary" id="approveConfirm" data-dismiss="modal">Confirm</button>
+                        <button type="button" class="btn btn-secondary" id="declineConfirm" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Status indicators -->
-    <div id="searchingArticles" style="display: none;" class="status">
-        <div class="loader"></div>
-        <div id="cachingAssets" style="display: none;" class="message">
-            Caching assets...
+        <!-- Status indicators -->
+        <div id="searchingArticles" style="display: none;" class="status">
+            <div class="loader"></div>
+            <div id="cachingAssets" style="display: none;" class="message">
+                Caching assets...
+            </div>
         </div>
-    </div>
-
-    <!-- Header Secsion of Application Start From Here -->
-    <section id="search-article" role="region">
-        <header id="top">
-            <nav class="navbar navbar-expand-md" role="navigation" style="background-color: #d9edf7;">
-                <div class="container-fluid">
-                    <div class="nav-container">
-                        <!-- kiwix js logo Here  -->
-                        <div class="nav-logo">
-                            <a id="btnHome" class="" style="cursor: pointer;">
-                                <img id="liHomeNav" src="./img/icons/kiwix-blue-32.png" alt="Kiwix">
-                            </a>
-                        </div>
-
-                        <!-- Search Bar Here  -->
-                        <input type="search" title="Search for article titles" id="prefix" placeholder="Search..."
-                            class="search-bar" />
-                        <a id="searchArticles" class="nav-icon serch-icon" style="padding: 3px 10px; cursor: pointer; margin-left: 15px;"><span id="searchArticles"
-                                class="glyphicon glyphicon-search"></span></a>
-
-                        <!-- Other Options Link (Search,Config,About,Random) icons  -->
-                        <div class="nav-icon-con" id="horizontalNavBtn">
-
-                            <span class="nav-icon">
-                                <a id="btnRandomArticle"><span class="glyphicon glyphicon-random"></span></a>
-                            </span>
-                            <span id="btnConfigure" class="nav-icon">
-                                <a id="liConfigureNav"><span class="glyphicon glyphicon-wrench"><i
-                                            class="fa-solid fa-wrench"></i></span></a>
-                            </span>
-                            <span id="btnAbout" class="nav-icon">
-                                <a id="liAboutNav" ><span class="glyphicon glyphicon-info-sign"><i
-                                            class="fa-solid fa-circle-info"></i></span></a>
-                            </span>
-                        </div>
-
-
-                        <!-- Toggler/collapsible Button -->
-                        <div class="TogBTN" id="collapbtn">
-                            <span class="glyphicon glyphicon-option-vertical"></span>
+        <section id="search-article" role="region">
+            <header id="top">
+                <nav class="navbar navbar-expand-md" role="navigation" style="background-color: #d9edf7;">
+                    <div class="container-fluid">
+                        <div class="nav-container">
+                            <div class="nav-logo">
+                                <a id="btnHome" class="" style="cursor: pointer;">
+                                    <img id="liHomeNav" src="./img/icons/kiwix-blue-32.png" alt="Kiwix">
+                                </a>
+                            </div>
+                            <input type="search" title="Search for article titles" id="prefix" placeholder="Search..."
+                                class="search-bar" />
+                            <a id="searchArticles" class="nav-icon serch-icon" style="padding: 3px 10px; cursor: pointer; margin-left: 15px;"><span id="searchArticles"
+                                    class="glyphicon glyphicon-search"></span></a>
+    
+                            <div class="nav-icon-con" id="horizontalNavBtn">
+    
+                                <span class="nav-icon">
+                                    <a id="btnRandomArticle"><span class="glyphicon glyphicon-random"></span></a>
+                                </span>
+                                <span id="btnConfigure" class="nav-icon">
+                                    <a id="liConfigureNav"><span class="glyphicon glyphicon-wrench"><i
+                                                class="fa-solid fa-wrench"></i></span></a>
+                                </span>
+                                <span id="btnAbout" class="nav-icon">
+                                    <a id="liAboutNav" ><span class="glyphicon glyphicon-info-sign"><i
+                                                class="fa-solid fa-circle-info"></i></span></a>
+                                </span>
+                            </div>
+                            <!-- Toggler/collapsible Button -->
+                            <div class="TogBTN" id="collapbtn">
+                                <span class="glyphicon glyphicon-option-vertical"></span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </nav>
-            <!-- <div class="upperSideNav" id="sideNav">
-                <span class="sideNav">
-                    <a id="searchArticles" class="nav-icon"><span id="searchArticles"
-                            class="glyphicon glyphicon-search"></span></a>
-                    <a id="" class="nav-icon"><span id="btnRandomArticle" class="glyphicon glyphicon-random"></span></a>
-                    <a id="liConfigureNav" class="nav-icon"><span id="btnConfigure"
-                            class="glyphicon glyphicon-wrench"><i class="fa-solid fa-wrench"></i></span></a>
-                    <a id="liAboutNav" class="nav-icon"><span id="btnAbout" class="glyphicon glyphicon-info-sign"><i
-                                class="fa-solid fa-circle-info"></i></span></a>
-                </span>
-            </div> -->
-        </header>
-        <!-- Header Secsion Ends Here  -->
+                </nav>
+            </header>
+            
+            <article class="view-content">
+                <div id="about" style="display: none;" class="container">
+                    <h2 id="contents">
+                        <img src="img/icons/kiwix-60.png" id="kiwixLogo" alt="Kiwix icon"/>
+                        Kiwix : offline Wikipedia viewer
+                    </h2>
+                    <p>Official site : <a href="https://www.kiwix.org/" target="_blank">https://www.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></p>
+                    <ul>
+                        <li><a href="#aboutApp">About this App</a></li>
+                        <li><a href="#usage">Usage</a></li>
+                        <li><a href="#searchSyntax">Title Search Usage</a></li>
+                        <li><a href="#imageDownload">Image Download</a></li>
+                        <li><a href="#privacy">Privacy Policy</a></li>
+                        <li><a href="#technical">Technical Information</a>
+                            <ul>
+                                <li><a href="#format">ZIM Archive Format</a></li>
+                                <li><a href="#FAT">Downloading and Storing Large Archives</a></li>
+                                <li><a href="#modes">JQuery and ServiceWorker Modes</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#feedback">Feedback/Helping/Contributing</a></li>
+                        <li><a href="#credits">Credits</a></li>
+                        <li><a href="#licence">Licence Information</a></li>
+                        <li><a href="#other">Other Platforms/Versions</a></li>
+                        <li>Download ZIM archives (content):
+                            <ul>
+                                <li><a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download by language&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                                <li><a href="https://download.kiwix.org/zim/" target="_blank">Index of all files&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    
+                    <h4 id="aboutApp">About this app</h4>
+                    <p>
+                        If your Internet access is expensive, slow, unreliable, insecure or censored, you can still gain free offline access to vast
+                        repositories of human knowledge and culture. Carry the world's largest Encyclopaedia around in your pocket, in any language,
+                        or a worldwide Travel Guide when you are on the road! 
+                    </p>
+                    <p>
+                        To <a href="#usage">use this app</a>, you will need to download one or more archives (called ZIM archives) from the Kiwix website and store them on your device
+                        or a thumb drive. You will then be able to access Wikipedia, Wiktionary, WikiMed, Wikivoyage and many other sources offline, even
+                        if you are undertaking a long plane journey, hiking, and travelling or living in areas with weak Internet access.
+                    </p>
+                    <p>
+                        You can search through article titles, and in some cases undertake full-text search (see below), and read any of these articles (including the images) completely offline.
+                        Archives are available with content in many different languages. There are "themed" archives with selected topics of interest from Wikipedia such as medicine,
+                        movies, history, geography, maths, physics, chemistry or computing (amongst many others).
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="usage">Usage</h3>
 
-
-        <article class="view-content" style="margin-top: 60px;">
-            <div id="about" style="display: none;" class="container">
-                <h2 id="contents">
-                    <img src="img/icons/kiwix-60.png" id="kiwixLogo" alt="Kiwix icon" />
-                    Kiwix : offline Wikipedia viewer
-                </h2>
-                <p>Official site : <a href="https://www.kiwix.org/" target="_blank">https://www.kiwix.org&nbsp;<img
-                            src="img/Icon_External_Link.png" /></a></p>
-                <ul>
-                    <li><a href="#aboutApp">About this App</a></li>
-                    <li><a href="#usage">Usage</a></li>
-                    <li><a href="#searchSyntax">Title Search Usage</a></li>
-                    <li><a href="#imageDownload">Image Download</a></li>
-                    <li><a href="#privacy">Privacy Policy</a></li>
-                    <li><a href="#technical">Technical Information</a>
-                        <ul>
-                            <li><a href="#format">ZIM Archive Format</a></li>
-                            <li><a href="#FAT">Downloading and Storing Large Archives</a></li>
-                            <li><a href="#modes">JQuery and ServiceWorker Modes</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#feedback">Feedback/Helping/Contributing</a></li>
-                    <li><a href="#credits">Credits</a></li>
-                    <li><a href="#licence">Licence Information</a></li>
-                    <li><a href="#other">Other Platforms/Versions</a></li>
-                    <li>Download ZIM archives (content):
-                        <ul>
-                            <li><a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download
-                                    by language&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
-                            <li><a href="https://download.kiwix.org/zim/" target="_blank">Index of all files&nbsp;<img
-                                        src="img/Icon_External_Link.png" /></a></li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <h4 id="aboutApp">About this app</h4>
-                <p>
-                    If your Internet access is expensive, slow, unreliable, insecure or censored, you can still gain
-                    free offline access to vast
-                    repositories of human knowledge and culture. Carry the world's largest Encyclopaedia around in your
-                    pocket, in any language,
-                    or a worldwide Travel Guide when you are on the road!
-                </p>
-                <p>
-                    To <a href="#usage">use this app</a>, you will need to download one or more archives (called ZIM
-                    archives) from the Kiwix website and store them on your device
-                    or a thumb drive. You will then be able to access Wikipedia, Wiktionary, WikiMed, Wikivoyage and
-                    many other sources offline, even
-                    if you are undertaking a long plane journey, hiking, and travelling or living in areas with weak
-                    Internet access.
-                </p>
-                <p>
-                    You can search through article titles, and in some cases undertake full-text search (see below), and
-                    read any of these articles (including the images) completely offline.
-                    Archives are available with content in many different languages. There are "themed" archives with
-                    selected topics of interest from Wikipedia such as medicine,
-                    movies, history, geography, maths, physics, chemistry or computing (amongst many others).
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="usage">Usage</h3>
-
-                <h4>Step 1: Download some content</h4>
-                <p>
-                    Go to <a href="https://download.kiwix.org/zim/"
-                        target="_blank">https://download.kiwix.org/zim&nbsp;<img
-                            src="img/Icon_External_Link.png" /></a>,
-                    with a regular computer and download an archive that interests you. If you find the list
-                    overwhelming, you can limit the selection by language
-                    on the <a href="https://wiki.kiwix.org/wiki/Content_in_all_languages"
-                        target="_blank">Download-by-language site&nbsp;<img src="img/Icon_External_Link.png" /></a>.
-                    Note that archives with "mini" in their name only contain the lede (first) portion of each article;
-                    "nopic" means no pictures; "maxi" means
-                    everything except video and audio. Larger versions without any of these qualifiers contain
-                    everything, though pictures are always compressed.
-                </p>
-                <p>
-                    <strong>Dynamic content (e.g. PhET, or the proprietary User Interface in Gutenberg and TED Talks
-                        ZIMs) is supported in ServiceWorker Mode only (the default),
-                        but not in JQuery mode (see <a href="#modes">technical explanation</a> below). If you cannot run
-                        ServiceWorker mode, then you will most likely be limited to
-                        static Mediawiki-based content (for instance <a href="https://download.kiwix.org/zim/wikipedia/"
-                            target="_blank">Wikipedia&nbsp;<img src="img/Icon_External_Link.png" /></a>
-                        and <a href="https://download.kiwix.org/zim/wikivoyage/" target="_blank">Wikivoyage&nbsp;<img
-                                src="img/Icon_External_Link.png" /></a>), and
-                        <a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank">
-                            StackExchange&nbsp;<img src="img/Icon_External_Link.png" /></a>.</strong>
-                </p>
-                <p>
-                    For a quick test, you can start with the <a
-                        href="https://download.kiwix.org/zim/wikipedia_en_ray_charles_maxi.zim" target="_blank">
-                        Ray Charles ZIM file&nbsp;<img src="img/Icon_External_Link.png" /></a>, which contains some
-                    Wikipedia articles about the Jazz musician, or a
-                    small archive containing the <a href="https://download.kiwix.org/zim/wikipedia_en_100_maxi.zim"
-                        target="_blank">top 100 English Wikipedia
+                    <h4>Step 1: Download some content</h4>
+                    <p>
+                        Go to <a href="https://download.kiwix.org/zim/" target="_blank">https://download.kiwix.org/zim&nbsp;<img src="img/Icon_External_Link.png" /></a>,
+                        with a regular computer and download an archive that interests you. If you find the list overwhelming, you can limit the selection by language
+                        on the <a href="https://wiki.kiwix.org/wiki/Content_in_all_languages" target="_blank">Download-by-language site&nbsp;<img src="img/Icon_External_Link.png" /></a>.
+                        Note that archives with "mini" in their name only contain the lede (first) portion of each article; "nopic" means no pictures; "maxi" means
+                        everything except video and audio. Larger versions without any of these qualifiers contain everything, though pictures are always compressed. 
+                    </p>
+                    <p>
+                        <strong>Dynamic content (e.g. PhET, or the proprietary User Interface in Gutenberg and TED Talks ZIMs) is supported in ServiceWorker Mode only (the default),
+                        but not in JQuery mode (see <a href="#modes">technical explanation</a> below). If you cannot run ServiceWorker mode, then you will most likely be limited to
+                        static Mediawiki-based content (for instance <a href="https://download.kiwix.org/zim/wikipedia/" target="_blank">Wikipedia&nbsp;<img src="img/Icon_External_Link.png" /></a>
+                        and <a href="https://download.kiwix.org/zim/wikivoyage/" target="_blank">Wikivoyage&nbsp;<img src="img/Icon_External_Link.png" /></a>), and
+                        <a href="https://download.kiwix.org/zim/stack_exchange/" target="_blank"> StackExchange&nbsp;<img src="img/Icon_External_Link.png" /></a>.</strong>
+                    </p>
+                    <p>
+                        For a quick test, you can start with the <a href="https://download.kiwix.org/zim/wikipedia_en_ray_charles_maxi.zim" target="_blank">
+                        Ray Charles ZIM file&nbsp;<img src="img/Icon_External_Link.png" /></a>, which contains some Wikipedia articles about the Jazz musician, or a
+                        small archive containing the <a href="https://download.kiwix.org/zim/wikipedia_en_100_maxi.zim" target="_blank">top 100 English Wikipedia
                         articles and images&nbsp;<img src="img/Icon_External_Link.png" /></a>.
-                </p>
-                <p>
-                    After that, download any content in your favourite language(s). Check the size before you download
-                    archives as many file sizes are very
-                    large (several Gigabytes). Themed versions such as WikiMed, or versions without images are smaller
-                    than full Wikipedia archives and can
-                    be readily downloaded in your browser. <b>Kiwix ZIM archives are completely open source and free to
-                        download.</b>
-                </p>
-                <p>
-                    See <a href="#FAT">Downloading large archives</a> below for details of how to download very large
-                    files.
-                </p>
+                    </p>
+                    <p>
+                        After that, download any content in your favourite language(s). Check the size before you download archives as many file sizes are very
+                        large (several Gigabytes). Themed versions such as WikiMed, or versions without images are smaller than full Wikipedia archives and can
+                        be readily downloaded in your browser. <b>Kiwix ZIM archives are completely open source and free to download.</b>
+                    </p>
+                    <p> 
+                        See <a href="#FAT">Downloading large archives</a> below for details of how to download very large files.
+                    </p>
+                    
+                    <h4>Step 2: Copy the content onto your device</h4>
+                    <p>
+                        If you have enough space, you can put several archives on your device! If you don't have enough internal storage, consider using a modern
+                        microSD card or thumb drive. For larger archives (greater than 2GB) on older devices, it is possible that an archive might not be supported
+                        if your storage is formatted using a FAT filesystem (NB exFAT is fine). See <a href="#FAT">technical information</a> below for a solution.
+                    </p>
+                    
+                    <h4>Step 3: Drag and drop the file into the app</h4>
+                    <p>
+                        You can drag and drop the archive file into the the open app (if you have a split file, be sure to drag all parts), or else you can go to the
+                        "Configure" menu and select your ZIM file.
+                    </p>
+                    
+                    <h4>Step 4: Enjoy your offline content!</h4>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
 
-                <h4>Step 2: Copy the content onto your device</h4>
-                <p>
-                    If you have enough space, you can put several archives on your device! If you don't have enough
-                    internal storage, consider using a modern
-                    microSD card or thumb drive. For larger archives (greater than 2GB) on older devices, it is possible
-                    that an archive might not be supported
-                    if your storage is formatted using a FAT filesystem (NB exFAT is fine). See <a href="#FAT">technical
-                        information</a> below for a solution.
-                </p>
+                    <h3 id="searchSyntax">Title and full-text search usage</h3>
+                    <p>
+                        There are three types of search: title and alphabetical search (these are both universally available), and full-text search (only available in some ZIM
+                        archives and enabled in <i>modern</i> desktop browsers).
+                    </p>
+                    <p>
+                        <b>Title search</b> matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
+                        'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited: e.g. if you
+                        search for 'unesco world heritiage', it will try 'Unesco world heritage', 'UNESCO world heritage', 'unesco World heritage', 'Unesco WORLD heritage'
+                        (etc.), but it won't try 'uNesCO' and other non-obvious case combinations. If you want to search for 'uNesCO', then you must type it exactly like that.
+                        If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration.
+                    </p>
+                    <p>
+                        <b>Alphabetical search:</b> If you type a letter of the alphabet in the title search box (upper case may be most useful), it will show an alphabetical
+                        list of articles starting with that letter (up to the maximum number of search results you selected in Configuration). This is useful for ZIM archives
+                        that have descriptive rather than semantic titles (e.g. TED Talks), expecially in <a href="#modes">JQuery mode</a>. 
+                    </p>
+                    <p>
+                        <b>Full-text search:</b> With the help of the openzim/javascript-libzim WASM project, we now support full-text search in certain contexts. Full-text search is
+                        launched in parallel with title search for those ZIMs and browsers where it is supported, but it is slower than title search, and you may notice a delay
+                        before full-text search results are added to the title search results. You do not need to do anything to initiate a full-text search: it will be performed
+                        automatically if it is supported. Please note that this type of search is only availalbe in relatively recent desktop browsers. It is not supported in mobile
+                        contexts, in Internet Explorer or Edge Legacy, or older versions of Chrome or Firefox. Additionally, you must be using a ZIM that contains an embedded full-text
+                        index. To see information on the ZIM and the browser, look in the API panel at the bottom of the Configuration page after you have loaded a ZIM.
+                        If it says "Xapian [fulltext]" then full-text search should be automatically enabled for that ZIM.
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="imageDownload">Image Download</h3>
+                    <p>
+                        Unfortunately it is not possible to download an image (from an article in a ZIM archive) using the standard method in most browsers (usually right-click
+                        -> "Save image as..."). See <a href="https://github.com/kiwix/kiwix-js/issues/694">issue 694</a>.
+                    </p>
+                    <p>
+                        One workaround (at least in browser extensions) is to choose "Copy Image" in the context menu (after right-click or long-press), then paste it in any
+                        suitable software (Paint, Gimp etc, or even a Word processor), then save it.
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="privacy">Privacy policy</h3>
 
-                <h4>Step 3: Drag and drop the file into the app</h4>
-                <p>
-                    You can drag and drop the archive file into the the open app (if you have a split file, be sure to
-                    drag all parts), or else you can go to the
-                    "Configure" menu and select your ZIM file.
-                </p>
+                    <h4>Short version:</h4>
+                    <p>
+                        Kiwix JS works offline, and does not collect or record any of your personal data. It only remembers
+                        your browsing history for the duration of a session (for the purpose of returning to previously
+                        viewed pages). This history is lost on exiting the app and is not recorded in any way.
+                    </p>
+                    
+                    <h4>Longer version:</h4>
+                    <p>
+                        This application only reads the archive files that you explicitly select on your device together
+                        with files in its own package. Some ZIM archives contain active content (scripts) which may, in
+                        rare circumstances, attempt to contact external servers for incidental files such as fonts.
+                        These scripts will only run if you enable <a href="#modes">ServiceWorker Mode</a> in Configuration.
+                        Nevertheless, if you believe your Internet access is insecure, or is being observed or censored, we
+                        recommend that you completely shut down your Internet (Data or WiFi) access before using the application.</p>
+                    <p>
+                        Additionally, if you obtained this app from a vendor Store (including extensions), then the Store
+                        operator may track your usage of the app (e.g. download, install, uninstall, date and number of
+                        sessions) for the purpose of providing anonymous, aggregate usage statistics to developers. If
+                        this concerns you, you should check the relevant Store Privacy Policy for further information.
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="technical">Technical information</h3>
 
-                <h4>Step 4: Enjoy your offline content!</h4>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="searchSyntax">Title and full-text search usage</h3>
-                <p>
-                    There are three types of search: title and alphabetical search (these are both universally
-                    available), and full-text search (only available in some ZIM
-                    archives and enabled in <i>modern</i> desktop browsers).
-                </p>
-                <p>
-                    <b>Title search</b> matches the <b>start</b> of an article title, so if you search for 'France' you
-                    will get 'France (country)', 'France (disambiguation)',
-                    'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of
-                    case variants tried is necessarily limited: e.g. if you
-                    search for 'unesco world heritiage', it will try 'Unesco world heritage', 'UNESCO world heritage',
-                    'unesco World heritage', 'Unesco WORLD heritage'
-                    (etc.), but it won't try 'uNesCO' and other non-obvious case combinations. If you want to search for
-                    'uNesCO', then you must type it exactly like that.
-                    If not enough results are returned, you can increase the maximum number of search results using the
-                    slider in Configuration.
-                </p>
-                <p>
-                    <b>Alphabetical search:</b> If you type a letter of the alphabet in the title search box (upper case
-                    may be most useful), it will show an alphabetical
-                    list of articles starting with that letter (up to the maximum number of search results you selected
-                    in Configuration). This is useful for ZIM archives
-                    that have descriptive rather than semantic titles (e.g. TED Talks), expecially in <a
-                        href="#modes">JQuery mode</a>.
-                </p>
-                <p>
-                    <b>Full-text search:</b> With the help of the openzim/javascript-libzim WASM project, we now support
-                    full-text search in certain contexts. Full-text search is
-                    launched in parallel with title search for those ZIMs and browsers where it is supported, but it is
-                    slower than title search, and you may notice a delay
-                    before full-text search results are added to the title search results. You do not need to do
-                    anything to initiate a full-text search: it will be performed
-                    automatically if it is supported. Please note that this type of search is only availalbe in
-                    relatively recent desktop browsers. It is not supported in mobile
-                    contexts, in Internet Explorer or Edge Legacy, or older versions of Chrome or Firefox. Additionally,
-                    you must be using a ZIM that contains an embedded full-text
-                    index. To see information on the ZIM and the browser, look in the API panel at the bottom of the
-                    Configuration page after you have loaded a ZIM.
-                    If it says "Xapian [fulltext]" then full-text search should be automatically enabled for that ZIM.
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="imageDownload">Image Download</h3>
-                <p>
-                    Unfortunately it is not possible to download an image (from an article in a ZIM archive) using the
-                    standard method in most browsers (usually right-click
-                    -> "Save image as..."). See <a href="https://github.com/kiwix/kiwix-js/issues/694">issue 694</a>.
-                </p>
-                <p>
-                    One workaround (at least in browser extensions) is to choose "Copy Image" in the context menu (after
-                    right-click or long-press), then paste it in any
-                    suitable software (Paint, Gimp etc, or even a Word processor), then save it.
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="privacy">Privacy policy</h3>
-
-                <h4>Short version:</h4>
-                <p>
-                    Kiwix JS works offline, and does not collect or record any of your personal data. It only remembers
-                    your browsing history for the duration of a session (for the purpose of returning to previously
-                    viewed pages). This history is lost on exiting the app and is not recorded in any way.
-                </p>
-
-                <h4>Longer version:</h4>
-                <p>
-                    This application only reads the archive files that you explicitly select on your device together
-                    with files in its own package. Some ZIM archives contain active content (scripts) which may, in
-                    rare circumstances, attempt to contact external servers for incidental files such as fonts.
-                    These scripts will only run if you enable <a href="#modes">ServiceWorker Mode</a> in Configuration.
-                    Nevertheless, if you believe your Internet access is insecure, or is being observed or censored, we
-                    recommend that you completely shut down your Internet (Data or WiFi) access before using the
-                    application.</p>
-                <p>
-                    Additionally, if you obtained this app from a vendor Store (including extensions), then the Store
-                    operator may track your usage of the app (e.g. download, install, uninstall, date and number of
-                    sessions) for the purpose of providing anonymous, aggregate usage statistics to developers. If
-                    this concerns you, you should check the relevant Store Privacy Policy for further information.
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="technical">Technical information</h3>
-
-                <h4 id="format">ZIM archive format</h4>
-                <p>
-                    Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM
-                        format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
-                    but note that this app has only been tested extensively on Wikipedia, WikiMedia, Gutenberg,
-                    Stackexchage and TED Talks archives. Video content is
-                    supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic
-                    UI which is only supported in ServiceWorker Mode
-                    (<a href="#modes">see below</a>).
-                </p>
+                    <h4 id="format">ZIM archive format</h4>
+                    <p>
+                        Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
+                        but note that this app has only been tested extensively on Wikipedia, WikiMedia, Gutenberg, Stackexchage and TED Talks archives. Video content is
+                        supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
+                        (<a href="#modes">see below</a>).
+                    </p>
 
                     <h4 id="FAT">Downloading and storing large archives</h4>
                     <p>
@@ -489,65 +406,38 @@
                     <br />GNU General Public Licence for more details.
                     <br />
                     <br />You should have received a copy of the GNU General Public Licence
-                    <br />along with Kiwix (file LICENSE-GPLv3.txt). If not, see <a
-                        href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>
-                </i>
-                <br />
-                <br />Main libraries and resources used:
-                <ul>
-                    <li><a href="https://jquery.com/" target="_blank">jQuery</a> 3, released under the <a
-                            href="https://jquery.org/license" target="_blank">MIT Licence</a></li>
-                    <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap 4</a>, released under an <a
-                            href="https://github.com/twbs/bootstrap/blob/master/LICENSE" target="_blank">MIT Licence</a>
-                    </li>
-                    <li><a href="https://github.com/FortAwesome/Font-Awesome" target="_blank">Fontawesome Free</a>,
-                        icons licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC
-                            BY 4.0 Licence</a>, code licensed under a <a href="https://opensource.org/licenses/MIT"
-                            target="_blank">MIT Licence</a></li>
-                    <li><a href="https://requirejs.org/" target="_blank">RequireJS</a> 2, released under the <a
-                            href="https://github.com/jrburke/requirejs/blob/master/LICENSE" target="_blank">MIT Licence
-                            or new BSD Licence</a></li>
-                    <li><a href="https://qunitjs.com/" target="_blank">QUnit</a> 2, released under the <a
-                            href="https://jquery.org/license" target="_blank">MIT Licence</a></li>
-                    <li>Kiwix logo from <a href="https://www.kiwix.org/" target="_blank">kiwix.org</a>, released under
-                        the <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons
-                            Attribution Share Alike Licence</a></li>
-                    <li>OpenZIM specifications from <a href="https://wiki.openzim.org/wiki/OpenZIM"
-                            target="_blank">www.openzim.org</a>, released under the <a
-                            href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons
-                            Attribution Share Alike Licence</a></li>
-                    <li>Emscripten to generate XZ and ZSTD decompressors in javascript : <a
-                            href="https://github.com/kripken/emscripten"
-                            target="_blank">https://github.com/kripken/emscripten</a>, released under the <a
-                            href="https://github.com/kripken/emscripten" target="_blank">MIT Licence</a></li>
-                    <li><a href="https://tukaani.org/xz/embedded.html">XZ Embedded</a> (the XZ library converted to
-                        Javascript with Emscripten), in public domain</li>
-                    <li>The <a href="https://github.com/facebook/zstd" target="_blank">Zstandard library</a>, released
-                        under a <a href="https://github.com/facebook/zstd/blob/dev/LICENSE" target="_blank">BSD
-                            Licence</a> and a <a href="https://github.com/facebook/zstd/blob/dev/COPYING"
-                            target="_blank">GPLv2 Copying Licence</a></li>
-                    <li>The <a href="https://github.com/chase-moskal/webp-hero" target="_blank">WebP-Hero browser
-                            polyfill</a>, copyright Chase Moskal, released under an <a
-                            href="https://github.com/chase-moskal/webp-hero/blob/master/LICENSE" target="_blank">MIT
-                            Licence</a></li>
-                </ul>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <h3 id="other">Other platforms/versions</h3>
-                <p>Other Kiwix clients exist on various platforms such as desktop and mobile apps for Linux, Windows,
-                    Android and iOS.</p>
-                <p>
-                    See the official download site: <a href="https://www.kiwix.org/download/"
-                        target="_blank">https://www.kiwix.org/download&nbsp;<img src="img/Icon_External_Link.png" /></a>
-                </p>
-                <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
-
-                <!-- We need to add a few lines else the bottom bar hides the last actual lines of text -->
-                <br />
-                <br />
-                <br />
-                <br />
-            </div>
+                    <br />along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <a href="https://www.gnu.org/licenses/">https://www.gnu.org/licenses/</a>
+                    </i>
+                    <br />
+                    <br />Main libraries and resources used:
+                    <ul>
+                        <li><a href="https://jquery.com/" target="_blank">jQuery</a> 3, released under the <a href="https://jquery.org/license" target="_blank">MIT Licence</a></li>
+                        <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap 4</a>, released under an <a href="https://github.com/twbs/bootstrap/blob/master/LICENSE" target="_blank">MIT Licence</a></li>
+                        <li><a href="https://github.com/FortAwesome/Font-Awesome" target="_blank">Fontawesome Free</a>, icons licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 Licence</a>, code licensed under a <a href="https://opensource.org/licenses/MIT" target="_blank">MIT Licence</a></li>
+                        <li><a href="https://requirejs.org/" target="_blank">RequireJS</a> 2, released under the <a href="https://github.com/jrburke/requirejs/blob/master/LICENSE" target="_blank">MIT Licence or new BSD Licence</a></li>
+                        <li><a href="https://qunitjs.com/" target="_blank">QUnit</a> 2, released under the <a href="https://jquery.org/license" target="_blank">MIT Licence</a></li>
+                        <li>Kiwix logo from <a href="https://www.kiwix.org/" target="_blank">kiwix.org</a>, released under the <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution Share Alike Licence</a></li>
+                        <li>OpenZIM specifications from <a href="https://wiki.openzim.org/wiki/OpenZIM" target="_blank">www.openzim.org</a>, released under the <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution Share Alike Licence</a></li>
+                        <li>Emscripten to generate XZ and ZSTD decompressors in javascript : <a href="https://github.com/kripken/emscripten" target="_blank">https://github.com/kripken/emscripten</a>, released under the <a href="https://github.com/kripken/emscripten" target="_blank">MIT Licence</a></li>
+                        <li><a href="https://tukaani.org/xz/embedded.html">XZ Embedded</a> (the XZ library converted to Javascript with Emscripten), in public domain</li>
+                        <li>The <a href="https://github.com/facebook/zstd" target="_blank">Zstandard library</a>, released under a <a href="https://github.com/facebook/zstd/blob/dev/LICENSE" target="_blank">BSD Licence</a> and a <a href="https://github.com/facebook/zstd/blob/dev/COPYING" target="_blank">GPLv2 Copying Licence</a></li>
+                        <li>The <a href="https://github.com/chase-moskal/webp-hero" target="_blank">WebP-Hero browser polyfill</a>, copyright Chase Moskal, released under an <a href="https://github.com/chase-moskal/webp-hero/blob/master/LICENSE" target="_blank">MIT Licence</a></li>
+                    </ul>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="other">Other platforms/versions</h3>
+                    <p>Other Kiwix clients exist on various platforms such as desktop and mobile apps for Linux, Windows, Android and iOS.</p>
+                    <p>
+                        See the official download site: <a href="https://www.kiwix.org/download/" target="_blank">https://www.kiwix.org/download&nbsp;<img src="img/Icon_External_Link.png" /></a>
+                    </p>
+                    <p style="text-align: right"><a href="#contents">↑ Back to Contents</a></p>
+                    
+                    <!-- We need to add a few lines else the bottom bar hides the last actual lines of text -->
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                </div>
 
                 <div id="configuration" style="display: none;">
                     <div class="container">
@@ -793,53 +683,48 @@
                     <br />It will suggest articles starting with the letters you type.
                 </div>
 
-            <!-- List of articles matching the typed prefix -->
-            <div id="articleListWithHeader" style="display: none;" class="container">
-                <span id="articleListHeaderMessage"></span>
-                <div id="articleList" class="list-group">
+                <!-- List of articles matching the typed prefix -->
+                <div id="articleListWithHeader" style="display: none;" class="container">
+                    <span id="articleListHeaderMessage"></span>
+                    <div id="articleList" class="list-group">
+                    </div>
                 </div>
-            </div>
-            <!-- Bootstrap alert box -->
-            <div id="alertBoxHeader">
-                <div id="activeContent" style="display:none;"
-                    class="kiwix-alert alert alert-warning alert-dismissible fade show">
-                    <button type="button" class="close" data-hide="alert">&times;</button>
-                    <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery
-                    mode.<br />
-                    Content may be available by searching above (type a letter of the alphabet), or else
-                    <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to ServiceWorker
-                        mode</a>
-                    if your platform supports it. &nbsp;[<a id="stop" href="#expertSettingsDiv"
-                        class="alert-link">Permanently hide</a>]
+                <!-- Bootstrap alert box -->
+                <div id="alertBoxHeader">
+                    <div id="activeContent" style="display:none;" class="kiwix-alert alert alert-warning alert-dismissible fade show">
+                        <button type="button" class="close" data-hide="alert">&times;</button>
+                        <strong>Unable to display active content:</strong> This ZIM is not fully supported in jQuery mode.<br />
+                        Content may be available by searching above (type a letter of the alphabet), or else 
+                        <a id="swModeLink" href="#contentInjectionModeDiv" class="alert-link">switch to ServiceWorker mode</a>
+                        if your platform supports it. &nbsp;[<a id="stop" href="#expertSettingsDiv" class="alert-link">Permanently hide</a>]
+                    </div>
                 </div>
-            </div>
-            <iframe id="articleContent" class="articleIFrame" src="article.html" referrerpolicy="no-referrer"
-                sandbox="allow-same-origin allow-scripts allow-modals allow-forms allow-popups allow-downloads"></iframe>
-        </article>
-        <footer>
-            <!-- Bootstrap alert box -->
-            <div id="alertBoxFooter">
-                <div id="downloadAlert" style="display:none;"
-                    class="kiwix-alert alert alert-info alert-dismissible fade show">
-                    <button type="button" class="close" data-hide="alert">&times;</button>
-                    <span id="alertMessage"></span>
+                <iframe id="articleContent" class="articleIFrame" src="article.html" referrerpolicy="no-referrer" sandbox="allow-same-origin allow-scripts allow-modals allow-forms allow-popups allow-downloads"></iframe>
+            </article>
+            <footer>
+                <!-- Bootstrap alert box -->
+                <div id="alertBoxFooter">
+                    <div id="downloadAlert" style="display:none;" class="kiwix-alert alert alert-info alert-dismissible fade show">
+                        <button type="button" class="close" data-hide="alert">&times;</button>
+                        <span id="alertMessage"></span>
+                    </div>
                 </div>
-            </div>
-            <div id="navigationButtons" class="btn-group btn-block">
-                <a href="#" class="btn btn-lg" id="btnHomeBottom" title="Home"><i class="fas fa-home"></i></a>
-                <a href="#" class="btn btn-lg" id="btnBack" title="Back"><i class="fas fa-arrow-left"></i></a>
-                <a href="#" class="btn btn-lg" id="btnForward" title="Forward"><i class="fas fa-arrow-right"></i></a>
-                <a href="#top" class="btn btn-lg" id="btnTop" title="Top"><i class="fas fa-arrow-up"></i></a>
-            </div>
-        </footer>
-    </section>
+                <div id="navigationButtons" class="btn-group btn-block">
+                    <a href="#" class="btn btn-lg" id="btnHomeBottom" title="Home"><i class="fas fa-home"></i></a>
+                    <a href="#" class="btn btn-lg" id="btnBack" title="Back"><i class="fas fa-arrow-left"></i></a>
+                    <a href="#" class="btn btn-lg" id="btnForward" title="Forward"><i class="fas fa-arrow-right"></i></a>
+                    <a href="#top" class="btn btn-lg" id="btnTop" title="Top"><i class="fas fa-arrow-up"></i></a>
+                </div>
+            </footer>
+        </section>
 
-    <!-- Using require.js, a module system for javascript, include the
+        <!-- Using require.js, a module system for javascript, include the
              js files. This loads "init.js", which in turn can load other
              files, all handled by require.js:
              https://requirejs.org/docs/api.html#jsfiles -->
-    <script type="text/javascript" data-main="js/init.js" src="js/lib/require.js">
-    </script>
-</body>
-
+        <script type="text/javascript"
+            data-main="js/init.js"
+            src="js/lib/require.js">
+        </script>
+    </body>
 </html>
