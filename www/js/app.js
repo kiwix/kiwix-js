@@ -159,6 +159,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     })();
 
+    // Since contentInjectionMode can be overriden when returning from remote PWA to extension (for example), we have to prevent an infinite loop
+    // with code that warns the user to turn off the App Cache bypass in jQuery mode. Note that to turn OFF the bypass, we have to set the VALUE to true
+    params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCache;    
+
     /**
      * Set the State and UI settings associated with parameters defined above
      */
