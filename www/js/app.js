@@ -98,7 +98,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
     // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
     params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
-    // A parameter to set the content injection mode ('jquery' or 'service worker') used by this app
+    // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
     params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
         // Defaults to ServiceWorker mode when the API is available
         (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
