@@ -31,7 +31,7 @@ if (webpMachine) {
     rqDef.push('webpHeroBundle');
 }
 
-define(rqDef, function (settingsStore) {
+define(rqDef, function(settingsStore) {
 
     /**
      * Displays a Bootstrap alert or confirm dialog box depending on the options provided
@@ -85,7 +85,7 @@ define(rqDef, function (settingsStore) {
                 modal.classList.remove('show');
                 modal.style.display = 'none';
                 backdrop.classList.remove('show');
-                if (Array.from(document.body.children).indexOf(backdrop) >= 0) {
+                if(Array.from(document.body.children).indexOf(backdrop)>=0){ 
                     document.body.removeChild(backdrop);
                 }
                 //remove event listeners
@@ -131,7 +131,7 @@ define(rqDef, function (settingsStore) {
             document.getElementById('declineConfirm').addEventListener('click', close);
             document.getElementById('closeMessage').addEventListener('click', close);
             document.getElementById('approveConfirm').addEventListener('click', closeConfirm);
-
+            
             modal.addEventListener('click', close);
             document.getElementsByClassName('modal-dialog')[0].addEventListener('click', stopOutsideModalClick);
 
@@ -140,7 +140,7 @@ define(rqDef, function (settingsStore) {
             modal.focus();
         });
     }
-
+  
     /**
      * Creates a data: URI from the given content
      * The given attribute of the DOM node (nodeAttribute) is then set to this URI
@@ -216,7 +216,7 @@ define(rqDef, function (settingsStore) {
             useCanvasElementsCheck.checked = userPreference;
         }
         params.useCanvasElementsForWebpTranscoding = browserRequiresWorkaround ? userPreference : false;
-        // Return the determined browser capability (which may be different from the user's preference) in case caller wants this
+         // Return the determined browser capability (which may be different from the user's preference) in case caller wants this
         return browserRequiresWorkaround;
     }
 
@@ -231,7 +231,7 @@ define(rqDef, function (settingsStore) {
      * @param {Element} link The original link node from the DOM
      * @param {String} cssContent The content to insert as an inline stylesheet
      */
-    function replaceCSSLinkWithInlineCSS(link, cssContent) {
+    function replaceCSSLinkWithInlineCSS (link, cssContent) {
         var cssElement = document.createElement('style');
         cssElement.type = 'text/css';
         if (cssElement.styleSheet) {
@@ -249,7 +249,7 @@ define(rqDef, function (settingsStore) {
         }
         link.parentNode.replaceChild(cssElement, link);
     }
-
+        
     /**
      * Removes parameters and anchors from a URL
      * @param {type} url The URL to be processed
@@ -298,10 +298,10 @@ define(rqDef, function (settingsStore) {
         if (!activeContentWarningSetup) {
             // We are setting up the active content warning for the first time
             activeContentWarningSetup = true;
-            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function () {
+            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function() {
                 alertActiveContent.style.display = 'none';
             });
-            ['swModeLink', 'stop'].forEach(function (id) {
+            ['swModeLink', 'stop'].forEach(function(id) {
                 // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
                 // the options that the user needs to select
                 document.getElementById(id).addEventListener('click', function () {
@@ -337,7 +337,7 @@ define(rqDef, function (settingsStore) {
     function displayFileDownloadAlert(title, download, contentType, content) {
         var downloadAlert = document.getElementById('downloadAlert');
         downloadAlert.style.display = 'block';
-        if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function () {
+        if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function() {
             // We are setting up the alert for the first time
             downloadAlert.style.display = 'none';
         });
@@ -367,7 +367,7 @@ define(rqDef, function (settingsStore) {
             // If the click fails, user may be able to download by manually clicking the link
             // But for IE11 we need to force use of the saveBlob method with the onclick event 
             if (window.navigator && window.navigator.msSaveBlob) {
-                a.addEventListener('click', function (e) {
+                a.addEventListener('click', function(e) {
                     window.navigator.msSaveBlob(blob, filename);
                     e.preventDefault();
                 });
@@ -414,7 +414,7 @@ define(rqDef, function (settingsStore) {
      * @param {any} onSuccess A function to call if the image can be loaded
      * @param {any} onError A function to call if the image cannot be loaded
      */
-    function checkServerIsAccessible(imageSrc, onSuccess, onError) {
+     function checkServerIsAccessible(imageSrc, onSuccess, onError) {
         var image = new Image();
         image.onload = onSuccess;
         image.onerror = onError;
@@ -453,7 +453,7 @@ define(rqDef, function (settingsStore) {
         var rect = el.getBoundingClientRect();
         if (fully)
             return rect.top > 0 && rect.bottom < window.innerHeight && rect.left > 0 && rect.right < window.innerWidth;
-        else
+        else 
             return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
     }
 
@@ -471,7 +471,7 @@ define(rqDef, function (settingsStore) {
         document.getElementById('articleContent').classList.remove('slideIn_R');
         document.getElementById('articleContent').classList.remove('slideOut_L');
     }
-
+    
     /**
      * Adds the slide animation between different sections
      * 
@@ -610,7 +610,7 @@ define(rqDef, function (settingsStore) {
         }
         // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
         // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
-        if (document.getElementById('liConfigureNav').classList.contains('nav-link-active') && doc &&
+        if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
             doc.title !== "Placeholder for injecting an article into the iframe") {
             showReturnLink();
         }
@@ -620,12 +620,12 @@ define(rqDef, function (settingsStore) {
     function showReturnLink() {
         var viewArticle = document.getElementById('viewArticle');
         viewArticle.style.display = 'block';
-        viewArticle.addEventListener('click', function (e) {
+        viewArticle.addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('liConfigureNav').classList.remove('active');
-            document.getElementById('liHomeNav').classList.add('nav-link-active');
+            document.getElementById('liHomeNav').classList.add('active');
             removeAnimationClasses();
-            if (params.showUIAnimations) {
+            if (params.showUIAnimations) { 
                 applyAnimationToSection('home');
             } else {
                 document.getElementById('configuration').style.display = 'none';
@@ -660,8 +660,8 @@ define(rqDef, function (settingsStore) {
     }
 
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
-    if (webpMachine) webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
-
+    if (webpMachine) webpMachine = new webpHero.WebpMachine({useCanvasElements: true});
+    
     /**
      * Warn the user that he/she clicked on an external link, and open it in a new tab
      * 
@@ -686,7 +686,7 @@ define(rqDef, function (settingsStore) {
             }
         });
     }
-
+    
     /**
      * Finds the closest <a> or <area> enclosing tag of an element.
      * Returns undefined if there isn't any.
