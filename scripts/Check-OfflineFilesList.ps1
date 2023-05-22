@@ -24,8 +24,8 @@ $ListOfExemptions = (
   'www/js/lib/libzim-asm.dev.js',
   'www/js/lib/libzim-wasm.dev.js',
   'www/js/lib/libzim-wasm.dev.wasm',
-  'www/js/lib/jquery-3.7.0-slim.js',
-  'www/js/lib/jquery-3.7.0-slim.min.map'
+  'www/js/lib/jquery-3.7.0.slim.js',
+  'www/js/lib/jquery-3.7.0.slim.min.map'
 )
 
 # Get the absolute root directory
