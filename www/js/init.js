@@ -47,7 +47,7 @@ if (/PWA_launch=/.test(window.location.search)) {
     require.config({
         baseUrl: 'js/lib',
         paths: {
-            'jquery': 'jquery-3.2.1.slim',
+            'jquery': 'jquery-3.7.0.slim.min',
             'bootstrap': 'bootstrap.bundle',
             'webpHeroBundle': 'webpHeroBundle_0.0.2',
             'fontawesome': 'fontawesome/fontawesome',
