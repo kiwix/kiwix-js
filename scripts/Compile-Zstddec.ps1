@@ -11,4 +11,4 @@
 #     * Run this script by opening a PowerShell terminal, cd to the kiwix-js repo and run './scripts/Compile-Zstddec.ps1'
 
 $repo_dir = ($PSScriptRoot -replace '[\\/]scripts[\\/]*$', '')
-docker container run -v $repo_dir\:/project -w /project emscripten/emsdk:3.1.37 /bin/sh -c 'cd emscripten/zstandard/; ./compile.sh'
+docker container run -v $repo_dir\:/project -w /project emscripten/emsdk:2.0.34 /bin/sh -c 'cd emscripten/zstandard/; ./compile.sh'
