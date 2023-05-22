@@ -29,7 +29,7 @@ var webpMachine = true;
 require.config({
     baseUrl: (window.__karma__ ? 'base/' : '') + 'www/js/lib/',
     paths: {
-        'jquery': 'jquery-3.2.1.slim',
+        'jquery': 'jquery-3.7.0.slim.min',
         'webpHeroBundle': 'webpHeroBundle_0.0.2'
     },
     shim: {
