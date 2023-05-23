@@ -60067,14 +60067,14 @@ class SWReplay {
 
     this.stats = sp.get("stats") ? new StatsTracker() : null;
 
-    self.addEventListener("install", () => {
-      self.skipWaiting();
-    });
+    // self.addEventListener("install", () => {
+    //   self.skipWaiting();
+    // });
 
-    self.addEventListener("activate", (event) => {
-      event.waitUntil(self.clients.claim());
-      console.log("Activate!");
-    });
+    // self.addEventListener("activate", (event) => {
+    //   event.waitUntil(self.clients.claim());
+    //   console.log("Activate!");
+    // });
 
     self.addEventListener("fetch", (event) => {
       event.respondWith(this.handleFetch(event));
@@ -60099,12 +60099,12 @@ class SWReplay {
       if (url === "chrome-extension://invalid/") {
         return notFound(event.request, "Invalid URL");
       }
-      return this.defaultFetch(event.request);
+      return this.defaultFetch(event.request, event);
     }
 
     // special handling when root collection set: pass through any root files, eg. /index.html
     if (this.collections.root && url.slice(this.prefix.length).indexOf("/") < 0) {
-      return this.defaultFetch(event.request);
+      return this.defaultFetch(event.request, event);
     }
 
     // JS rewrite on static/external files not from archive
@@ -60134,7 +60134,7 @@ class SWReplay {
     if ((parsedUrl.protocol == "http:" || parsedUrl.protocol == "https:") && (parsedUrl.pathname.indexOf("/", 1) < 0)) {
       return this.handleOffline(event.request);
     } else {
-      return this.defaultFetch(event.request);
+      return this.defaultFetch(event.request, event);
     }
   }
 
@@ -60145,11 +60145,16 @@ class SWReplay {
     return this.defaultFetch(request);
   }
 
-  defaultFetch(request) {
+  defaultFetch(request, event) {
     const opts = {};
     if (request.cache === "only-if-cached" && request.mode !== "same-origin") {
       opts.cache = "default";
     }
+    
+    if (event && regexpZIMUrlWithNamespace.test(request.url)) {
+      return handleZIMFetchEvent(event);
+    }
+
     return self.fetch(request, opts);
   }
 

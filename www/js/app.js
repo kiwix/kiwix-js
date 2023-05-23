@@ -834,10 +834,10 @@ function initServiceWorkerMessaging () {
         }
     };
     // Send the init message to the ServiceWorker
-    if (navigator.serviceWorker.controller) {
+            if (navigator.serviceWorker.controller) {
         console.log('Initializing SW messaging...');
-        navigator.serviceWorker.controller.postMessage({
-            action: 'init'
+                navigator.serviceWorker.controller.postMessage({
+                    action: 'init'
         });
     } else if (serviceWorkerRegistration) {
         // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
@@ -848,9 +848,9 @@ function initServiceWorkerMessaging () {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
-        window.location.reload();
-    }
-}
+                window.location.reload();
+            }
+        }
 
     /**
      * Sets the given injection mode.
@@ -1095,9 +1095,9 @@ function isServiceWorkerReady () {
             uiUtil.systemAlert((translateUI.t('dialog-serveraccess-check-failed') || 'The server is not currently accessible! ' +
                     '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
                 '<br/>Please try again when you have a stable Internet connection.'), (translateUI.t('dialog-error-title') || 'Error!')).then(function () {
-                settingsStore.setItem('allowInternetAccess', false, Infinity);
-                setContentInjectionMode(params.oldInjectionMode || 'jquery');
-            });
+                        settingsStore.setItem('allowInternetAccess', false, Infinity);
+                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                    });
             });
         };
         if (settingsStore.getItem('allowInternetAccess') === 'true') {
@@ -1168,7 +1168,7 @@ function searchForArchivesInStorage () {
         // This way, it is only done once at this moment, instead of being done several times in callbacks
         // After that, we can start looking for archives
         storages[0].get('fake-file-to-read').then(searchForArchivesInPreferencesOrStorage,
-        searchForArchivesInPreferencesOrStorage);
+                                                  searchForArchivesInPreferencesOrStorage);
     } else {
         // If DeviceStorage is not available, we display the file select components
         displayFileSelect();
@@ -1301,7 +1301,7 @@ function setLocalArchiveFromArchiveList () {
 function resetCssCache () {
     // Reset the cssCache if an archive is loaded
     if (selectedArchive) selectedArchive.cssCache = new Map();
-}
+        }
 
 let webKitFileList = null
 
@@ -1883,7 +1883,7 @@ function readArticle (dirEntry) {
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
-                }
+            }
             });
         }
     }
@@ -1896,41 +1896,38 @@ function readArticle (dirEntry) {
      * @param {Event} event The event object of the message channel
      */
 function handleMessageChannelMessage (event) {
-    // We received a message from the ServiceWorker
-    // The ServiceWorker asks for some content
-    var title = event.data.title;
-    var messagePort = event.ports[0];
-    var readFile = function (dirEntry) {
-        if (dirEntry === null) {
-            console.error('Title ' + title + ' not found in archive.');
-            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
-        } else if (dirEntry.isRedirect()) {
-            selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
-                // Ask the ServiceWorker to send an HTTP redirect to the browser.
-                // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
-                // Else, if the redirect URL is in a different directory than the original URL,
-                // the relative links in the HTML content would fail. See #312
-                messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
-            });
-        } else {
-            // Let's read the content in the ZIM file
-            selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                var mimetype = fileDirEntry.getMimetype();
-                // Let's send the content to the ServiceWorker
-                var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
-                messagePort.postMessage(message, [content.buffer]);
-            });
-        }
-    };
+            // We received a message from the ServiceWorker
+                // The ServiceWorker asks for some content
+                var title = event.data.title;
+                var messagePort = event.ports[0];
+                var readFile = function (dirEntry) {
+                    if (dirEntry === null) {
+                        console.error('Title ' + title + ' not found in archive.');
+                        messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+                    } else if (dirEntry.isRedirect()) {
+                        return selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+                            var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
+                            // Ask the ServiceWorker to send an HTTP redirect to the browser.
+                            // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
+                            // Else, if the redirect URL is in a different directory than the original URL,
+                            // the relative links in the HTML content would fail. See #312
+                            messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
+                        });
+                    } else {
+                        // Let's read the content in the ZIM file
+                        return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                            var mimetype = fileDirEntry.getMimetype();
+                            // Let's send the content to the ServiceWorker
+                            var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
+                            return messagePort.postMessage(message, [content.buffer]);
+                        });
+                    }
+                };
                 var returnEmptyContent = function () {
-        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+                    messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
                 };
-                if (/(^|\/)A\/load\.js/.test(title) && selectedArchive._file.zimType === 'zimit') {
-                    returnEmptyContent();
-                };
-                selectedArchive.getDirEntryByPath(title).then(readFile).catch(returnEmptyContent);
-}
+                return selectedArchive.getDirEntryByPath(title).then(readFile).catch(returnEmptyContent);
+            }
 
     // Compile some regular expressions needed to modify links
     // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
@@ -2047,7 +2044,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 htmlCSS.forEach(function (cl) {
                     docBody.classList.add(cl);
                 });
-            }
+}
                 // Deflect drag-and-drop of ZIM file on the iframe to Config
                 docBody.addEventListener('dragover', handleIframeDragover);
                 docBody.addEventListener('drop', handleIframeDrop);
@@ -2117,7 +2114,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 return;
             }
             if ((anchor.protocol !== currentProtocol ||
-              anchor.host !== currentHost) && params.openExternalLinksInNewTabs) {
+                    anchor.host !== currentHost) && params.openExternalLinksInNewTabs) {
                 var newHref = href;
                 if (selectedArchive.zimType === 'zimit') {
                     // We need to check that the link isn't from a domain contained in the Zimit archive
@@ -2136,27 +2133,27 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     href = selectedArchive.zimitPrefix + newHref;
                 }
             }
-            // It's a link to an article or file in the ZIM
-            var uriComponent = uiUtil.removeUrlParameters(href);
-            var contentType;
-            var downloadAttrValue;
-            // Some file types need to be downloaded rather than displayed (e.g. *.epub)
-            // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
-            // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
-            // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
-            // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
-            var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
-            if (isDownloadableLink) {
-                downloadAttrValue = anchor.getAttribute('download');
-                // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
-                downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
-                contentType = anchor.getAttribute('type');
-            }
-            // Add an onclick event to extract this article or file from the ZIM
-            // instead of following the link
-            anchor.addEventListener('click', function (e) {
-                anchorParameter = href.match(/#([^#;]+)$/);
-                anchorParameter = anchorParameter ? anchorParameter[1] : '';
+                    // It's a link to an article or file in the ZIM
+                    var uriComponent = uiUtil.removeUrlParameters(href);
+                    var contentType;
+                    var downloadAttrValue;
+                    // Some file types need to be downloaded rather than displayed (e.g. *.epub)
+                    // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
+                    // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
+                    // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
+                    // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
+                    var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
+                    if (isDownloadableLink) {
+                        downloadAttrValue = anchor.getAttribute('download');
+                        // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
+                        downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
+                        contentType = anchor.getAttribute('type');
+                    }
+                    // Add an onclick event to extract this article or file from the ZIM
+                    // instead of following the link
+                    anchor.addEventListener('click', function (e) {
+                        anchorParameter = href.match(/#([^#;]+)$/);
+                        anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
                 if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
                     // It's already a full ZIM URL, so we can use it directly
@@ -2165,9 +2162,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                 }
-                goToArticle(zimUrl, downloadAttrValue, contentType);
-                e.preventDefault();
-            });
+                        goToArticle(zimUrl, downloadAttrValue, contentType);
+                        e.preventDefault();
+                    });
             });
         }
 
@@ -2284,7 +2281,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             }
         }
 
-    /**
+       /**
         * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
         * be attached to the DOM. Users who want JS support should switch to ServiceWorker mode if avaialable on
         * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
@@ -2465,7 +2462,7 @@ function goToMainArticle () {
                     'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
                 translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
                 document.getElementById('searchingArticles').style.display = 'none';
-                // document.getElementById('welcomeText').style.display = '';
+            //     document.getElementById('welcomeText').style.display = '';
                 // Some basic support for displaying Zimit content is available if we set the contentInjectionMode to jquery, storing the original value
                 params.originalContentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
                 params.contentInjectionMode = 'jquery';
@@ -2474,15 +2471,15 @@ function goToMainArticle () {
                 params.contentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
                 params.originalContentInjectionMode = null;
             }
-            // DEV: see comment above under goToRandomArticle()
-            if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
-                params.isLandingPage = true;
-                readArticle(dirEntry);
-            } else {
-                console.error('The main page of this archive does not seem to be an article');
-                document.getElementById('searchingArticles').style.display = 'none';
-                document.getElementById('welcomeText').style.display = '';
-            }
+                    // DEV: see comment above under goToRandomArticle()
+                    if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+                        params.isLandingPage = true;
+                        readArticle(dirEntry);
+                    } else {
+                        console.error('The main page of this archive does not seem to be an article');
+                        document.getElementById('searchingArticles').style.display = 'none';
+                        document.getElementById('welcomeText').style.display = '';
+                    }
                 // }
             }
         });

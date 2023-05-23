@@ -25,6 +25,9 @@
 
 /* global chrome */
 
+// Import the wabac.js Service Worker for reading warc2zim / Zimit-based archives
+importScripts('www/js/lib/wabac.js');
+
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
@@ -227,14 +230,59 @@ self.addEventListener('activate', function (event) {
 let fetchCaptureEnabled = true;
 
 /**
+ * Handle custom commands sent from app.js
+ */
+ self.addEventListener('message', function (event) {
+    if (event.data.action) {
+        if (event.data.action === 'init') {
+            // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
+            outgoingMessagePort = event.ports[0];
+            fetchCaptureEnabled = true;
+        } else if (event.data.action === 'disable') {
+            // On 'disable' message, we delete the outgoingMessagePort and disable the fetchEventListener
+            outgoingMessagePort = null;
+            fetchCaptureEnabled = false;
+        }
+        var oldValue;
+        if (event.data.action.assetsCache) {
+            // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
+            oldValue = useAssetsCache;
+            useAssetsCache = event.data.action.assetsCache === 'enable';
+            if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + useAssetsCache);
+        }
+        if (event.data.action.appCache) {
+            // Enables or disables use of appCache
+            oldValue = useAppCache;
+            useAppCache = event.data.action.appCache === 'enable';
+            if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
+        }
+        if (event.data.action === 'getCacheNames') {
+            event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
+        }
+        if (event.data.action.checkCache) {
+            // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
+            testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
+                event.ports[0].postMessage({ type: cacheArr[0], name: cacheArr[1], description: cacheArr[2], count: cacheArr[3] });
+            });
+        }
+    }
+});
+
+/**
  * Intercept selected Fetch requests from the browser window
  */
-self.addEventListener('fetch', function (event) {
+// self.addEventListener('fetch', handleZIMFetchEvent);
+
+function handleZIMFetchEvent (event) {
     // Only handle GET or POST requests (POST is intended to handle video in Zimit ZIMs)
     if (!/GET|POST/.test(event.request.method)) return;
     var rqUrl = event.request.url;
     // Filter out requests that do not match the scope of the Service Worker
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
+    if (/(^|\/)A\/load\.js$/.test(rqUrl)) {
+        // Intercept and change the path of load.js, to load if from our custom copy, instad of that provided by the ZIM file
+        rqUrl = rqUrl.replace(/^(.+?\/)[^/]+\.zim\/[CA/]+/, '$1www/js/lib/');
+    };
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;
@@ -246,7 +294,7 @@ self.addEventListener('fetch', function (event) {
     if (cache === APP_CACHE) rqUrl = strippedUrl;
     return event.respondWith(
         // First see if the content is in the cache
-        fromCache(cache, rqUrl).then(function (response) {
+        return fromCache(cache, rqUrl).then(function (response) {
             // The response was found in the cache so we respond with it 
             return response;
         }, function () {
@@ -268,7 +316,7 @@ self.addEventListener('fetch', function (event) {
                 });
             } else {
                 // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
-                return fetch(event.request).then(function (response) {
+                return fetch(rqUrl).then(function (response) {
                     // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
                     if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
                         event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
@@ -301,7 +349,7 @@ self.addEventListener('fetch', function (event) {
             // Note that this code doesn't currently run because the app currently never sends a 'disable' message
             // This is because the app may be running as a PWA, and still needs to be able to fetch assets even in jQuery mode
             fetchCaptureEnabled = false;
-        }
+}
         var oldValue;
         if (event.data.action.assetsCache) {
             // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
@@ -410,13 +458,13 @@ function fetchUrlFromZIM(urlObject, range) {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = messageListener;
                 client.postMessage({
-                    action: 'askForContent',
+            action: 'askForContent',
                     title: titleWithNameSpace,
                     search: uriComponent,
                     anchorTarget: anchorTarget,
                     zimFileName: zimName
-                }, [messageChannel.port2]);
-            });
+        }, [messageChannel.port2]);
+    });
         });
     });
 }
