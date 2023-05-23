@@ -282,7 +282,7 @@ function handleZIMFetchEvent (event) {
     if (/(^|\/)A\/load\.js$/.test(rqUrl)) {
         // Intercept and change the path of load.js, to load if from our custom copy, instad of that provided by the ZIM file
         rqUrl = rqUrl.replace(/^(.+?\/)[^/]+\.zim\/[CA/]+/, '$1www/js/lib/');
-    };
+    }
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;
