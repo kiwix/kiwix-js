@@ -1617,8 +1617,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                                 // We also do it for ftp even if it's not supported any more by recent browsers...
                                 if (/^(?:http|ftp)/i.test(href)) {
                                     uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                                }
-                                if (/\.pdf$/i.test(href)) {
+                                } else if (/\.pdf([?#]|$)/i.test(href)) {
                                     // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                                     event.preventDefault();
                                     window.open(clickedAnchor.href, '_blank');
@@ -1729,7 +1728,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     // DEV: The regex below matches ZIM links (anchor hrefs) that should have the html5 "donwnload" attribute added to
     // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
     // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
-    var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.pdf($|\?)|^.*?\.zip($|\?)/i;
+    var regexpDownloadLinks = /^.*?\.epub([?#]|$)|^.*?\.pdf([?#]|$)|^.*?\.odt([?#]|$)|^.*?\.zip([?#]|$)/i;
 
     // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
     var anchorParameter;
