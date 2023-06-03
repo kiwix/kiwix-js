@@ -532,6 +532,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         params.appTheme = e.target.value;
         settingsStore.setItem('appTheme', params.appTheme, Infinity);
         uiUtil.applyAppTheme(params.appTheme);
+        refreshCacheStatus();
     });
     document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
         if (e.target.checked) {
@@ -763,6 +764,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function refreshCacheStatus() {
         // Update radio buttons and checkbox
         document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
+        // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
+        if (params.appCache) {    
+            document.documentElement.style.removeProperty('background');
+        } else {
+            document.documentElement.style.background = /^dark/.test(document.documentElement.dataset.theme) ? '#300000' : 'mistyrose';
+        }
         // Get cache attributes, then update the UI with the obtained data
         getAssetsCacheAttributes().then(function (cache) {
             if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
