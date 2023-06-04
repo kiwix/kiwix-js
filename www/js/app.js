@@ -381,6 +381,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('liHomeNav').setAttribute('class', 'active');
         document.getElementById('liConfigureNav').setAttribute('class', '');
         document.getElementById('liAboutNav').setAttribute('class', '');
+        setTimeout(function(){
+            document.getElementById('liHomeNav').classList.remove('active')
+        },2000)
         $('.navbar-collapse').collapse('hide');
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();

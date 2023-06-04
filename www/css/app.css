@@ -374,6 +374,11 @@ button {
         width: 75vw;
     }
 }
+@media screen and (max-width :1110px) {
+    .search-bar {
+        width: 72vw;
+    }
+}
 
 @media screen and (max-width :1020px) {
     .search-bar {
@@ -411,6 +416,16 @@ button {
     }
 }
 
+@media screen and (max-width :487px) {
+    .search-bar {
+        width: 42vw;
+    }
+}
+@media screen and (max-width :450px) {
+    .search-bar {
+        width: 40vw;
+    }
+}
 @media screen and (max-width :420px) {
     .search-bar {
         width: 33vw;
@@ -420,7 +435,7 @@ button {
     }
 }
 
-@media screen and (max-width :350px) {
+@media screen and (max-width :388px) {
     .search-bar {
         width: 50vw;
     }
