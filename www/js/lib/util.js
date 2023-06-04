@@ -194,6 +194,52 @@ define([], function() {
     }
 
     /**
+     * Queues Promise Factories* to be resolved or rejected sequentially. This helps to avoid overlapping Promise functions.
+     * Primarily used by uiUtil.systemAlert, to prevent alerts showing while others are being displayed.
+     * 
+     *   *A Promise Factory is merely a Promise wrapped in a function to prevent it from executing immediately. E.g. to use
+     *   this function with a Promise, call it like this (or, more likely, use your own pre-wrapped Promise):
+     * 
+     *      return util.PromiseQueue.enqueue(function () {
+     *          return new Promise(function (resolve, reject) { ... });
+     *      });
+     * 
+     * Adapted from https://medium.com/@karenmarkosyan/how-to-manage-promises-into-dynamic-queue-with-vanilla-javascript-9d0d1f8d4df5
+     * 
+     * @type {Object} PromiseQueue
+     * @property {Function} enqueue Queues a Promise Factory. Call this function repeatedly to queue Promises sequentially
+     * @param {Function<Promise>} promiseFactory A Promise wrapped in an ordinary function
+     * @returns {Promise} A Promise that resolves or rejects with the resolved/rejected value of the Promise Factory
+     */
+    var PromiseQueue = {
+        _queue: [],
+        _working: false,
+        enqueue: function (promiseFactory) {
+            var that = this;
+            return new Promise(function (resolve, reject) {
+                that._queue.push({promise: promiseFactory, resolve: resolve, reject: reject});
+                if (!that._working) that._dequeue();
+            });
+        },
+        _dequeue: function () {
+            this._working = true;
+            var that = this;
+            var deferred = this._queue.shift();
+            if (!deferred) {
+                this._working = false;
+                return false;
+            }
+            return deferred.promise().then(function (val) {
+                deferred.resolve(val);
+                return that._dequeue();
+            }).catch(function (err) {
+                deferred.reject(err);
+                return that._dequeue();
+            });
+        }
+    };
+
+    /*
      * Functions and classes exposed by this module
      */
     return {
@@ -203,6 +249,7 @@ define([], function() {
         readFloatFrom4Bytes: readFloatFrom4Bytes,
         readFileSlice: readFileSlice,
         binarySearch: binarySearch,
-        leftShift: leftShift
+        leftShift: leftShift,
+        PromiseQueue: PromiseQueue
     };
 });

@@ -122,7 +122,7 @@ let precacheFiles = [
     "www/js/lib/arrayFromPolyfill.js",
     "www/js/lib/bootstrap.bundle.js",
     "www/js/lib/filecache.js",
-    "www/js/lib/jquery-3.2.1.slim.js",
+    "www/js/lib/jquery-3.7.0.slim.min.js",
     "www/js/lib/promisePolyfill.js",
     "www/js/lib/require.js",
     "www/js/lib/settingsStore.js",
