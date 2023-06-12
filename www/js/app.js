@@ -205,13 +205,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var configDropZone = document.getElementById('configuration');
 
     // Unique identifier of the article expected to be displayed
-    var expectedArticleURLToBeDisplayed = "";
+    var expectedArticleURLToBeDisplayed = '';
 
     // define and store dark preference for matchMedia
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // if 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
     if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
-        var optionsToBeRemoved = document.getElementById("appThemeSelect").querySelectorAll('.auto');
+        var optionsToBeRemoved = document.getElementById('appThemeSelect').querySelectorAll('.auto');
         for (var i = 0; i < optionsToBeRemoved.length; i++) {
             optionsToBeRemoved[i].parentNode.removeChild(optionsToBeRemoved[i]);
         }
@@ -294,7 +294,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             e.stopPropagation();
             // This is needed to prevent processing in the keyup event : https://stackoverflow.com/questions/9951274
             keyPressHandled = true;
-            var activeElement = document.querySelector("#articleList .hover") || document.querySelector("#articleList a");
+            var activeElement = document.querySelector('#articleList .hover') || document.querySelector('#articleList a');
             if (!activeElement) return;
             // If user presses Enter, read the dirEntry
             if (/Enter/.test(e.key)) {
@@ -388,7 +388,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
         if (params.showUIAnimations) {
-           uiUtil.applyAnimationToSection("home");
+           uiUtil.applyAnimationToSection('home');
         } else {
             document.getElementById('articleContent').style.display = '';
             document.getElementById('about').style.display = 'none';
@@ -454,7 +454,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Show the selected content in the page
         uiUtil.removeAnimationClasses();
         if (params.showUIAnimations) {
-            uiUtil.applyAnimationToSection("about");
+            uiUtil.applyAnimationToSection('about');
         } else {
             document.getElementById('about').style.display = '';
             document.getElementById('configuration').style.display = 'none';
@@ -922,7 +922,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
                     serviceWorkerStatus.textContent = 'ServiceWorker API available : trying to register it...';
                     if (navigator.serviceWorker.controller) {
-                        console.log("Active Service Worker found, no need to register");
+                        console.log('Active Service Worker found, no need to register');
                         serviceWorkerRegistration = true;
                         // Remove any jQuery hooks from a previous jQuery session
                         $('#articleContent').contents().remove();
@@ -964,11 +964,11 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             } else {
                                 console.error('Error while registering serviceWorker', err);
                                 refreshAPIStatus();
-                                var message = "The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : " + err;
+                                var message = 'The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : ' + err;
                                 if (protocol === 'file:') {
-                                    message += "<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)";
+                                    message += '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)';
                                 }
-                                uiUtil.systemAlert(message, "Failed to register ServiceWorker").then(function () {
+                                uiUtil.systemAlert(message, 'Failed to register ServiceWorker').then(function () {
                                     setContentInjectionMode('jquery');
                                     // We need to wait for the previous dialogue box to unload fully before attempting to display another
                                     setTimeout(function () {
@@ -1114,8 +1114,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     var storages = [];
     function searchForArchivesInPreferencesOrStorage() {
         // First see if the list of archives is stored in the Settings Store
-        var listOfArchivesFromSettingsStore = settingsStore.getItem("listOfArchives");
-        if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== "") {
+        var listOfArchivesFromSettingsStore = settingsStore.getItem('listOfArchives');
+        if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== '') {
             var directories = listOfArchivesFromSettingsStore.split('|');
             populateDropDownListOfArchives(directories);
         } else {
@@ -1134,7 +1134,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     if ($.isFunction(navigator.getDeviceStorages)) {
         // The method getDeviceStorages is available (FxOS>=1.1)
-        storages = $.map(navigator.getDeviceStorages("sdcard"), function(s) {
+        storages = $.map(navigator.getDeviceStorages('sdcard'), function(s) {
             return new abstractFilesystemAccess.StorageFirefoxOS(s);
         });
     }
@@ -1143,7 +1143,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
         // This way, it is only done once at this moment, instead of being done several times in callbacks
         // After that, we can start looking for archives
-        storages[0].get("fake-file-to-read").then(searchForArchivesInPreferencesOrStorage,
+        storages[0].get('fake-file-to-read').then(searchForArchivesInPreferencesOrStorage,
                                                   searchForArchivesInPreferencesOrStorage);
     } else {
         // If DeviceStorage is not available, we display the file select components
@@ -1169,7 +1169,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             document.getElementById('articleListWithHeader').style.display = 'none';
             $('#articleContent').contents().empty();
 
-            if (title && !(""===title)) {
+            if (title && !(''===title)) {
                 goToArticle(title);
             } else if (titleSearch && titleSearch !== '') {
                 document.getElementById('prefix').value = titleSearch;
@@ -1381,8 +1381,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function readRemoteArchive(url) {
         return new Promise(function (resolve, reject) {
             var request = new XMLHttpRequest();
-            request.open("GET", url);
-            request.responseType = "blob";
+            request.open('GET', url);
+            request.responseType = 'blob';
             request.onreadystatechange = function () {
                 if (request.readyState === XMLHttpRequest.DONE) {
                     if (request.status >= 200 && request.status < 300 || request.status === 0) {
@@ -1390,7 +1390,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         request.response.name = url;
                         resolve(request.response);
                     } else {
-                        reject("HTTP status " + request.status + " when reading " + url);
+                        reject('HTTP status ' + request.status + ' when reading ' + url);
                     }
                 }
             };
@@ -1543,7 +1543,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 readArticle(dirEntry);
             }
         } else {
-            uiUtil.systemAlert("Data files not set", "Archive not ready");
+            uiUtil.systemAlert('Data files not set', 'Archive not ready');
         }
     }
 
@@ -1552,10 +1552,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
     function isDirEntryExpectedToBeDisplayed(dirEntry) {
-        var curArticleURL = dirEntry.namespace + "/" + dirEntry.url;
+        var curArticleURL = dirEntry.namespace + '/' + dirEntry.url;
 
         if (expectedArticleURLToBeDisplayed !== curArticleURL) {
-            console.debug("url of current article :" + curArticleURL + ", does not match the expected url :" +
+            console.debug('url of current article :' + curArticleURL + ', does not match the expected url :' +
             expectedArticleURLToBeDisplayed);
             return false;
         }
@@ -1570,7 +1570,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Reset search prefix to allow users to search the same string again if they want to
         appstate.search.prefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
-        expectedArticleURLToBeDisplayed = dirEntry.namespace + "/" + dirEntry.url;
+        expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
         // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
         // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
         if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
@@ -1650,7 +1650,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
 
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
+            iframeArticleContent.src = '../' + selectedArchive._file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
         } else {
             // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
             if (dirEntry.isRedirect()) {
@@ -1672,21 +1672,21 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      */
     function handleMessageChannelMessage(event) {
         if (event.data.error) {
-            console.error("Error in MessageChannel", event.data.error);
+            console.error('Error in MessageChannel', event.data.error);
             throw event.data.error;
         } else {
             // We received a message from the ServiceWorker
-            if (event.data.action === "askForContent") {
+            if (event.data.action === 'askForContent') {
                 // The ServiceWorker asks for some content
                 var title = event.data.title;
                 var messagePort = event.ports[0];
                 var readFile = function (dirEntry) {
                     if (dirEntry === null) {
-                        console.error("Title " + title + " not found in archive.");
+                        console.error('Title ' + title + ' not found in archive.');
                         messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
                     } else if (dirEntry.isRedirect()) {
                         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                            var redirectURL = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
+                            var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
                             // Ask the ServiceWorker to send an HTTP redirect to the browser.
                             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
                             // Else, if the redirect URL is in a different directory than the original URL,
@@ -1707,7 +1707,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
                 });
             } else {
-                console.error("Invalid message received", event.data);
+                console.error('Invalid message received', event.data);
             }
         }
     }
@@ -1800,9 +1800,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             var iframeContentDocument = iframeArticleContent.contentDocument;
             if (!iframeContentDocument && window.location.protocol === 'file:') {
-                uiUtil.systemAlert("You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons."
-                                    + "<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store)."
-                                    + "<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)"
+                uiUtil.systemAlert('You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.'
+                                    + '<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store).'
+                                    + '<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)'
                                     + "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
                 return;
             }
@@ -1827,7 +1827,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
             // Allow back/forward in browser history
-            pushBrowserHistoryState(dirEntry.namespace + "/" + dirEntry.url);
+            pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 
             parseAnchorsJQuery();
             loadImagesJQuery();
@@ -1856,7 +1856,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         };
 
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
-        iframeArticleContent.src = "article.html";
+        iframeArticleContent.src = 'article.html';
 
         function parseAnchorsJQuery() {
             var currentProtocol = location.protocol;
@@ -1953,7 +1953,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         });
                     });
                 }).catch(function (e) {
-                    console.error("could not find DirEntry for image:" + url, e);
+                    console.error('could not find DirEntry for image:' + url, e);
                     images.busy = false;
                     extractImage();
                 });
@@ -2003,7 +2003,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         var mimetype = dirEntry.getMimetype();
                         var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
                         return readFile(dirEntry, function (fileDirEntry, content) {
-                            var fullUrl = fileDirEntry.namespace + "/" + fileDirEntry.url;
+                            var fullUrl = fileDirEntry.namespace + '/' + fileDirEntry.url;
                             if (params.assetsCache) cssCache.set(fullUrl, content);
                             if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
                             else uiUtil.feedNodeWithDataURI(link, 'href', content, mimetype);
@@ -2011,7 +2011,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             renderIfCSSFulfilled(fileDirEntry.url);
                         });
                     }).catch(function (e) {
-                        console.error("Could not find DirEntry for link element: " + url, e);
+                        console.error('Could not find DirEntry for link element: ' + url, e);
                         cssCount--;
                         renderIfCSSFulfilled();
                     });
@@ -2115,16 +2115,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var stateObj = {};
         var urlParameters;
         var stateLabel;
-        if (title && !(""===title)) {
+        if (title && !(''===title)) {
             // Prevents creating a double history for the same page
             if (history.state && history.state.title === title) return;
             stateObj.title = title;
-            urlParameters = "?title=" + title;
-            stateLabel = "Wikipedia Article : " + title;
-        } else if (titleSearch && !(""===titleSearch)) {
+            urlParameters = '?title=' + title;
+            stateLabel = 'Wikipedia Article : ' + title;
+        } else if (titleSearch && !(''===titleSearch)) {
             stateObj.titleSearch = titleSearch;
-            urlParameters = "?titleSearch=" + titleSearch;
-            stateLabel = "Wikipedia search : " + titleSearch;
+            urlParameters = '?titleSearch=' + titleSearch;
+            stateLabel = 'Wikipedia search : ' + titleSearch;
         } else {
             return;
         }
@@ -2146,7 +2146,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
-                uiUtil.systemAlert("Article with url " + path + " not found in the archive", "Error: article not found");
+                uiUtil.systemAlert('Article with url ' + path + ' not found in the archive', 'Error: article not found');
             } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
                 download = true;
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
@@ -2158,7 +2158,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (activeContent) activeContent.style.display = 'none';
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { uiUtil.systemAlert("Error reading article with url " + path + " : " + e, "Error while reading article"); });
+        }).catch(function(e) { uiUtil.systemAlert('Error reading article with url ' + path + ' : ' + e, 'Error while reading article'); });
     }
 
     function goToRandomArticle() {
@@ -2197,7 +2197,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getMainPageDirEntry(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
-                console.error("Error finding main article.");
+                console.error('Error finding main article.');
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('welcomeText').style.display = '';
             } else {
@@ -2218,7 +2218,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         params.isLandingPage = true;
                         readArticle(dirEntry);
                     } else {
-                        console.error("The main page of this archive does not seem to be an article");
+                        console.error('The main page of this archive does not seem to be an article');
                         document.getElementById('searchingArticles').style.display = 'none';
                         document.getElementById('welcomeText').style.display = '';
                     }
