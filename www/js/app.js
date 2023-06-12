@@ -165,7 +165,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // Since contentInjectionMode can be overriden when returning from remote PWA to extension (for example), we have to prevent an infinite loop
     // with code that warns the user to turn off the App Cache bypass in jQuery mode. Note that to turn OFF the bypass, we have to set the VALUE to true
-    params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCache;    
+    params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCache;
 
     /**
      * Set the State and UI settings associated with parameters defined above
@@ -206,7 +206,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // Unique identifier of the article expected to be displayed
     var expectedArticleURLToBeDisplayed = "";
- 
+
     // define and store dark preference for matchMedia
     var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // if 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
@@ -507,7 +507,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
         params.disableDragAndDrop = this.checked ? true : false;
         settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
-        uiUtil.systemAlert('<p>We will now attempt to reload the app to apply the new setting.</p>' + 
+        uiUtil.systemAlert('<p>We will now attempt to reload the app to apply the new setting.</p>' +
             '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>', 'Reload app', true).then(function (result) {
             if (result) {
                 window.location.reload();
@@ -577,7 +577,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         console.log('Checking for updates to the PWA...');
         uiUtil.checkUpdateStatus(appstate);
     }, 10000);
-    
+
 
     //Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
     //Returning false prevents their dragging (which can cause some unexpected behavior)
@@ -768,7 +768,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Update radio buttons and checkbox
         document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
         // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
-        if (params.appCache) {    
+        if (params.appCache) {
             document.documentElement.style.removeProperty('background');
         } else {
             document.documentElement.style.background = /^dark/.test(document.documentElement.dataset.theme) ? '#300000' : 'mistyrose';
@@ -1043,7 +1043,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             ('<p>We shall attempt to switch you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p><p>We ');
         message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
-            'If available, the PWA will work offline, but will auto-update periodically when online as per the ' + 
+            'If available, the PWA will work offline, but will auto-update periodically when online as per the ' +
             'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
             '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
         var launchPWA = function () {
@@ -1648,7 +1648,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
                 return;
             }
-            
+
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
             iframeArticleContent.src = "../" + selectedArchive._file.name + "/" + dirEntry.namespace + "/" + encodedUrl;
         } else {
@@ -1737,7 +1737,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
     var anchorParameter;
-    
+
     /**
      * Display the the given HTML article in the web page,
      * and convert links to javascript calls
@@ -2206,7 +2206,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     uiUtil.systemAlert('<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
                         '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
                         '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
-                        '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' + 
+                        '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
                         'Kiwix Serve is included with <a href="https://www.kiwix.org/en/download/" target="_blank">Kiwix Desktop</a>.</p>',
                         'Unsupported archive type!'
                     );
