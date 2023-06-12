@@ -31,7 +31,7 @@
 // http://requirejs.org/docs/api.html#define
 
 define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesystemAccess'],
- function($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess) {
+ function ($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess) {
 
     /**
      * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
@@ -126,7 +126,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
      * problematic settings, by crafting the querystring appropriately.
      */
-    (function overrideParams() {
+    (function overrideParams () {
         var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
         var matches = regexpUrlParams.exec(window.location.search);
         while (matches) {
@@ -220,14 +220,14 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     uiUtil.applyAppTheme(params.appTheme);
 
     // Whenever the system theme changes, call applyAppTheme function
-    darkPreference.onchange = function() {
+    darkPreference.onchange = function () {
         uiUtil.applyAppTheme(params.appTheme);
     }
 
     /**
      * Resize the IFrame height, so that it fills the whole available height in the window
      */
-    function resizeIFrame() {
+    function resizeIFrame () {
         var headerStyles = getComputedStyle(document.getElementById('top'));
         var iframe = document.getElementById('articleContent');
         var region = document.getElementById('search-article');
@@ -236,7 +236,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             region.style.height = window.innerHeight + 'px';
         } else {
             // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-            setTimeout(function() {
+            setTimeout(function () {
                 // Get  header height *including* its bottom margin
                 var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
                 iframe.style.height = window.innerHeight - headerHeight + 'px';
@@ -250,7 +250,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // Define behavior of HTML elements
     var searchArticlesFocused = false;
-    $('#searchArticles').on('click', function() {
+    $('#searchArticles').on('click', function () {
         var prefix = document.getElementById('prefix').value;
         // Do not initiate the same search if it is already in progress
         if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
@@ -265,17 +265,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // This flag is set to true in the mousedown event below
         searchArticlesFocused = false;
     });
-    $('#searchArticles').on('mousedown', function() {
+    $('#searchArticles').on('mousedown', function () {
         // We set the flag so that the blur event of #prefix can know that the searchArticles button has been clicked
         searchArticlesFocused = true;
     });
-    $('#formArticleSearch').on('submit', function() {
+    $('#formArticleSearch').on('submit', function () {
         document.getElementById('searchArticles').click();
         return false;
     });
     // Handle keyboard events in the prefix (article search) field
     var keyPressHandled = false;
-    $('#prefix').on('keydown', function(e) {
+    $('#prefix').on('keydown', function (e) {
         // If user presses Escape...
         // IE11 returns "Esc" and the other browsers "Escape"; regex below matches both
         if (/^Esc/.test(e.key)) {
@@ -326,7 +326,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     // Search for titles as user types characters
-    $('#prefix').on('keyup', function(e) {
+    $('#prefix').on('keyup', function (e) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             // Prevent processing by keyup event if we already handled the keypress in keydown event
             if (keyPressHandled)
@@ -336,19 +336,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     // Restore the search results if user goes back into prefix field
-    $('#prefix').on('focus', function() {
+    $('#prefix').on('focus', function () {
         if (document.getElementById('prefix').value !== '')
             document.getElementById('articleListWithHeader').style.display = '';
     });
     // Hide the search results if user moves out of prefix field
-    $('#prefix').on('blur', function() {
+    $('#prefix').on('blur', function () {
         if (!searchArticlesFocused) {
             appstate.search.status = 'cancelled';
             document.getElementById('searchingArticles').style.display = 'none';
             document.getElementById('articleListWithHeader').style.display = 'none';
         }
     });
-    $('#btnRandomArticle').on('click', function() {
+    $('#btnRandomArticle').on('click', function () {
         document.getElementById('prefix').value = '';
         goToRandomArticle();
         document.getElementById('welcomeText').style.display = 'none';
@@ -356,30 +356,30 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         $('.navbar-collapse').collapse('hide');
     });
 
-    $('#btnRescanDeviceStorage').on('click', function() {
+    $('#btnRescanDeviceStorage').on('click', function () {
         searchForArchivesInStorage();
     });
     // Bottom bar :
-    $('#btnBack').on('click', function() {
+    $('#btnBack').on('click', function () {
         history.back();
         return false;
     });
-    $('#btnForward').on('click', function() {
+    $('#btnForward').on('click', function () {
         history.forward();
         return false;
     });
-    $('#btnHomeBottom').on('click', function() {
+    $('#btnHomeBottom').on('click', function () {
         document.getElementById('btnHome').click();
         return false;
     });
-    $('#btnTop').on('click', function() {
+    $('#btnTop').on('click', function () {
         var articleContent = document.getElementById('articleContent');
         articleContent.contentWindow.scrollTo({top: 0, behavior: 'smooth'});
         // We return true, so that the link to #top is still triggered (useful in the About section)
         return true;
     });
     // Top menu :
-    $('#btnHome').on('click', function() {
+    $('#btnHome').on('click', function () {
         // Highlight the selected section in the navbar
         document.getElementById('liHomeNav').setAttribute('class', 'active');
         document.getElementById('liConfigureNav').setAttribute('class', '');
@@ -418,7 +418,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnConfigure').on('click', function() {
+    $('#btnConfigure').on('click', function () {
         // Highlight the selected section in the navbar
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', 'active');
@@ -445,7 +445,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('#btnAbout').on('click', function() {
+    $('#btnAbout').on('click', function () {
         // Highlight the selected section in the navbar
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', '');
@@ -470,7 +470,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         setTimeout(resizeIFrame, 400);
         return false;
     });
-    $('input:radio[name=contentInjectionMode]').on('change', function() {
+    $('input:radio[name=contentInjectionMode]').on('change', function () {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
     });
@@ -555,12 +555,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     });
     var titleSearchRangeVal = document.getElementById('titleSearchRangeVal');
-    document.getElementById('titleSearchRange').addEventListener('change', function(e) {
+    document.getElementById('titleSearchRange').addEventListener('change', function (e) {
         settingsStore.setItem('maxSearchResultsSize', e.target.value, Infinity);
         params.maxSearchResultsSize = e.target.value;
         titleSearchRangeVal.textContent = e.target.value;
     });
-    document.getElementById('titleSearchRange').addEventListener('input', function(e) {
+    document.getElementById('titleSearchRange').addEventListener('input', function (e) {
         titleSearchRangeVal.textContent = e.target.value;
     });
     document.getElementById('modesLink').addEventListener('click', function () {
@@ -579,24 +579,24 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }, 10000);
 
 
-    //Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
-    //Returning false prevents their dragging (which can cause some unexpected behavior)
-    //Doing that in javascript is the only way to make it cross-browser compatible
+    // Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
+    // Returning false prevents their dragging (which can cause some unexpected behavior)
+    // Doing that in javascript is the only way to make it cross-browser compatible
     document.getElementById('kiwixLogo').ondragstart=function () {return false;}
     document.getElementById('navigationButtons').ondragstart=function () {return false;}
 
-    //focus search bar (#prefix) if Home key is pressed
-    function focusPrefixOnHomeKey(event) {
-        //check if home key is pressed
+    // focus search bar (#prefix) if Home key is pressed
+    function focusPrefixOnHomeKey (event) {
+        // check if home key is pressed
         if (event.key === 'Home') {
             // wait to prevent interference with scrolling (default action)
-            setTimeout(function() {
+            setTimeout(function () {
                 document.getElementById('prefix').focus();
             },0);
         }
     }
-    //switch on/off the feature to use Home Key to focus search bar
-    function switchHomeKeyToFocusSearchBar() {
+    // switch on/off the feature to use Home Key to focus search bar
+    function switchHomeKeyToFocusSearchBar () {
         var iframeContentWindow = document.getElementById('articleContent').contentWindow;
         // Test whether iframe is accessible (because if not, we do not want to throw an error at this point, before we can tell the user what is wrong)
         var isIframeAccessible = true;
@@ -610,17 +610,17 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (!isIframeAccessible) return;
         // when the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) {
-            //Handle Home key press inside window(outside iframe) to focus #prefix
+            // Handle Home key press inside window(outside iframe) to focus #prefix
             window.addEventListener('keydown', focusPrefixOnHomeKey);
-            //only for initial empty iFrame loaded using `src` attribute
-            //in any other case listener gets removed on reloading of iFrame content
+            // only for initial empty iFrame loaded using `src` attribute
+            // in any other case listener gets removed on reloading of iFrame content
             iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
         }
         // when the feature is not active
         else {
-            //remove event listener for window(outside iframe)
+            // remove event listener for window(outside iframe)
             window.removeEventListener('keydown', focusPrefixOnHomeKey);
-            //if feature is deactivated and no zim content is loaded yet
+            // if feature is deactivated and no zim content is loaded yet
             iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
         }
     }
@@ -628,7 +628,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Checks whether we need to display an alert that the default Content Injection Mode has now been switched to ServiceWorker Mode
      */
-    function checkAndDisplayInjectionModeChangeAlert() {
+    function checkAndDisplayInjectionModeChangeAlert () {
         var message;
         if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
             message = ['<p>We have switched you to ServiceWorker mode (this is now the default). ' +
@@ -659,7 +659,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Displays or refreshes the API status shown to the user
      */
-    function refreshAPIStatus() {
+    function refreshAPIStatus () {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
         apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
         var apiPanelClass = 'card-success';
@@ -730,7 +730,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * If Service Worker is not available, the attributes of the memory cache are returned instead
      * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
      */
-    function getAssetsCacheAttributes() {
+    function getAssetsCacheAttributes () {
         return new Promise(function (resolve, reject) {
             if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker && navigator.serviceWorker.controller) {
                 // Create a Message Channel
@@ -764,7 +764,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Refreshes the UI (Configuration) with the cache attributes obtained from getAssetsCacheAttributes()
      */
-    function refreshCacheStatus() {
+    function refreshCacheStatus () {
         // Update radio buttons and checkbox
         document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
         // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
@@ -801,7 +801,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * This MessageChannel allows a 2-way communication between the ServiceWorker
      * and the application
      */
-    function initOrKeepAliveServiceWorker() {
+    function initOrKeepAliveServiceWorker () {
         var delay = DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER;
         if (params.contentInjectionMode === 'serviceworker') {
             // Create a new messageChannel
@@ -833,7 +833,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      *
      * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
      */
-    function setContentInjectionMode(value) {
+    function setContentInjectionMode (value) {
         params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
         params.serviceWorkerLocal = false;
         if (value === 'serviceworkerlocal') {
@@ -936,7 +936,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             // We need to wait for the ServiceWorker to be activated
                             // before sending the first init message
                             var serviceWorker = reg.installing || reg.waiting || reg.active;
-                            serviceWorker.addEventListener('statechange', function(statechangeevent) {
+                            serviceWorker.addEventListener('statechange', function (statechangeevent) {
                                 if (statechangeevent.target.state === 'activated') {
                                     // Remove any jQuery hooks from a previous jQuery session
                                     $('#articleContent').contents().remove();
@@ -1005,7 +1005,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
      * @returns {Boolean}
      */
-    function isServiceWorkerAvailable() {
+    function isServiceWorkerAvailable () {
         return ('serviceWorker' in navigator);
     }
 
@@ -1014,12 +1014,12 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
      * @returns {Boolean}
      */
-    function isMessageChannelAvailable() {
-        try{
+    function isMessageChannelAvailable () {
+        try {
             var dummyMessageChannel = new MessageChannel();
             if (dummyMessageChannel) return true;
         }
-        catch (e){
+        catch (e) {
             return false;
         }
         return false;
@@ -1030,7 +1030,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and inject content in articles.
      * @returns {Boolean}
      */
-    function isServiceWorkerReady() {
+    function isServiceWorkerReady () {
         // Return true if the serviceWorkerRegistration is not null and not undefined
         return (serviceWorkerRegistration);
     }
@@ -1112,7 +1112,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @type Array.<StorageFirefoxOS>
      */
     var storages = [];
-    function searchForArchivesInPreferencesOrStorage() {
+    function searchForArchivesInPreferencesOrStorage () {
         // First see if the list of archives is stored in the Settings Store
         var listOfArchivesFromSettingsStore = settingsStore.getItem('listOfArchives');
         if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== '') {
@@ -1122,7 +1122,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             searchForArchivesInStorage();
         }
     }
-    function searchForArchivesInStorage() {
+    function searchForArchivesInStorage () {
         // If DeviceStorage is available, we look for archives in it
         document.getElementById('btnConfigure').click();
         document.getElementById('scanningForArchives').style.display = '';
@@ -1134,7 +1134,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     if ($.isFunction(navigator.getDeviceStorages)) {
         // The method getDeviceStorages is available (FxOS>=1.1)
-        storages = $.map(navigator.getDeviceStorages('sdcard'), function(s) {
+        storages = $.map(navigator.getDeviceStorages('sdcard'), function (s) {
             return new abstractFilesystemAccess.StorageFirefoxOS(s);
         });
     }
@@ -1157,7 +1157,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     // Display the article when the user goes back in the browser history
-    window.onpopstate = function(event) {
+    window.onpopstate = function (event) {
         if (event.state) {
             var title = event.state.title;
             var titleSearch = event.state.titleSearch;
@@ -1186,7 +1186,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Populate the drop-down list of archives with the given list
      * @param {Array.<String>} archiveDirectories
      */
-    function populateDropDownListOfArchives(archiveDirectories) {
+    function populateDropDownListOfArchives (archiveDirectories) {
         document.getElementById('scanningForArchives').style.display = 'none';
         document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
         var comboArchiveList = document.getElementById('archiveList');
@@ -1228,7 +1228,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Sets the localArchive from the selected archive in the drop-down list
      */
-    function setLocalArchiveFromArchiveList() {
+    function setLocalArchiveFromArchiveList () {
         var archiveDirectory = document.getElementById('archiveList').value;
         if (archiveDirectory && archiveDirectory.length > 0) {
             // Now, try to find which DeviceStorage has been selected by the user
@@ -1276,7 +1276,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Resets the CSS Cache (used only in jQuery mode)
      */
-    function resetCssCache() {
+    function resetCssCache () {
         // Reset the cssCache. Must be done when archive changes.
         if (cssCache) {
             cssCache = new Map();
@@ -1286,16 +1286,16 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Displays the zone to select files from the archive
      */
-    function displayFileSelect() {
+    function displayFileSelect () {
         document.getElementById('openLocalFiles').style.display = 'block';
         // Set the main drop zone
         if (!params.disableDragAndDrop) {
             configDropZone.addEventListener('dragover', handleGlobalDragover);
-            configDropZone.addEventListener('dragleave', function() {
+            configDropZone.addEventListener('dragleave', function () {
                 configDropZone.style.border = '';
             });
             // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
-            globalDropZone.addEventListener('dragover', function(e) {
+            globalDropZone.addEventListener('dragover', function (e) {
                 e.preventDefault();
                 if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
                 e.dataTransfer.dropEffect = 'link';
@@ -1306,25 +1306,25 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
 
-    function handleGlobalDragover(e) {
+    function handleGlobalDragover (e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'link';
         configDropZone.style.border = '3px dotted red';
     }
 
-    function handleIframeDragover(e) {
+    function handleIframeDragover (e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'link';
         document.getElementById('btnConfigure').click();
     }
 
-    function handleIframeDrop(e) {
+    function handleIframeDrop (e) {
         e.stopPropagation();
         e.preventDefault();
-        return;
+        
     }
 
-    function handleFileDrop(packet) {
+    function handleFileDrop (packet) {
         packet.stopPropagation();
         packet.preventDefault();
         configDropZone.style.border = '';
@@ -1338,13 +1338,13 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     }
 
     // Add event listener to link which allows user to show file selectors
-    document.getElementById('selectorsDisplayLink').addEventListener('click', function(e) {
+    document.getElementById('selectorsDisplayLink').addEventListener('click', function (e) {
         e.preventDefault();
         document.getElementById('openLocalFiles').style.display = 'block';
         document.getElementById('selectorsDisplay').style.display = 'none';
     });
 
-    function setLocalArchiveFromFileList(files) {
+    function setLocalArchiveFromFileList (files) {
         // Check for usable file types
         for (var i = files.length; i--;) {
             // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
@@ -1367,7 +1367,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     /**
      * Sets the localArchive from the File selects populated by user
      */
-    function setLocalArchiveFromFileSelect() {
+    function setLocalArchiveFromFileSelect () {
         setLocalArchiveFromFileList(document.getElementById('archiveFiles').files);
     }
 
@@ -1378,7 +1378,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} url The URL of the archive to read
      * @returns {Promise<Blob>} A promise for the requested file (blob)
      */
-    function readRemoteArchive(url) {
+    function readRemoteArchive (url) {
         return new Promise(function (resolve, reject) {
             var request = new XMLHttpRequest();
             request.open('GET', url);
@@ -1419,7 +1419,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Handle key input in the prefix input zone
      * @param {Event} evt The event data to handle
      */
-    function onKeyUpPrefix() {
+    function onKeyUpPrefix () {
         // Use a timeout, so that very quick typing does not cause a lot of overhead
         // It is also necessary for the words suggestions to work inside Firefox OS
         if (window.timeoutKeyUpPrefix) {
@@ -1438,7 +1438,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * with a binary search inside the index file)
      * @param {String} prefix The string that must appear at the start of any title searched for
      */
-    function searchDirEntriesFromPrefix(prefix) {
+    function searchDirEntriesFromPrefix (prefix) {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             // Cancel the old search (zimArchive search object will receive this change)
             appstate.search.status = 'cancelled';
@@ -1466,7 +1466,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
      * @param {Object} reportingSearch The reporting search object
      */
-    function populateListOfArticles(dirEntryArray, reportingSearch) {
+    function populateListOfArticles (dirEntryArray, reportingSearch) {
         // Do not allow cancelled searches to report
         if (reportingSearch.status === 'cancelled') return;
         var stillSearching = reportingSearch.status === 'interim';
@@ -1519,7 +1519,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {Event} event The click event to handle
      * @returns {Boolean} Always returns false for JQuery event handling
      */
-    function handleTitleClick(event) {
+    function handleTitleClick (event) {
         var dirEntryId = decodeURIComponent(event.target.getAttribute('dirEntryId'));
         findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
         return false;
@@ -1530,7 +1530,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * and call the function to read the corresponding article
      * @param {String} dirEntryId The stringified Directory Entry to parse and launch
      */
-    function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
+    function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
         if (selectedArchive.isReady()) {
             var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
             // Remove focus from search field to hide keyboard and to allow navigation keys to be used
@@ -1551,7 +1551,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
-    function isDirEntryExpectedToBeDisplayed(dirEntry) {
+    function isDirEntryExpectedToBeDisplayed (dirEntry) {
         var curArticleURL = dirEntry.namespace + '/' + dirEntry.url;
 
         if (expectedArticleURLToBeDisplayed !== curArticleURL) {
@@ -1566,7 +1566,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Read the article corresponding to the given dirEntry
      * @param {DirEntry} dirEntry The directory entry of the article to read
      */
-    function readArticle(dirEntry) {
+    function readArticle (dirEntry) {
         // Reset search prefix to allow users to search the same string again if they want to
         appstate.search.prefix = '';
         // Only update for expectedArticleURLToBeDisplayed.
@@ -1645,7 +1645,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 }
             };
 
-            if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+            if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
                 return;
             }
 
@@ -1670,7 +1670,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      *
      * @param {Event} event The event object of the message channel
      */
-    function handleMessageChannelMessage(event) {
+    function handleMessageChannelMessage (event) {
         if (event.data.error) {
             console.error('Error in MessageChannel', event.data.error);
             throw event.data.error;
@@ -1745,8 +1745,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {DirEntry} dirEntry
      * @param {String} htmlArticle
      */
-    function displayArticleContentInIframe(dirEntry, htmlArticle) {
-        if(! isDirEntryExpectedToBeDisplayed(dirEntry)){
+    function displayArticleContentInIframe (dirEntry, htmlArticle) {
+        if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
             return;
         }
         // Display Bootstrap warning alert if the landing page contains active content
@@ -1765,7 +1765,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
         // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
         // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function(match, blockStart, equals, quote, relAssetUrl) {
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl) {
             var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
@@ -1789,8 +1789,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
         var iframeArticleContent = document.getElementById('articleContent');
 
-        iframeArticleContent.onload = function() {
-            iframeArticleContent.onload = function(){};
+        iframeArticleContent.onload = function () {
+            iframeArticleContent.onload = function () {};
             var articleList = document.getElementById('articleList');
             var articleListHeaderMessage =  document.getElementById('articleListHeaderMessage');
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
@@ -1835,7 +1835,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
             // and noscript tags should be ignored
             loadNoScriptTags();
-            //loadJavaScriptJQuery();
+            // loadJavaScriptJQuery();
             loadCSSJQuery();
             insertMediaBlobsJQuery();
             // Jump to any anchor parameter
@@ -1858,7 +1858,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
         iframeArticleContent.src = 'article.html';
 
-        function parseAnchorsJQuery() {
+        function parseAnchorsJQuery () {
             var currentProtocol = location.protocol;
             var currentHost = location.host;
             // Percent-encode dirEntry.url and add regex escape character \ to the RegExp special characters - see https://www.regular-expressions.info/characters.html;
@@ -1887,7 +1887,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 } else if ((anchor.protocol !== currentProtocol ||
                     anchor.host !== currentHost) && params.openExternalLinksInNewTabs) {
                     // It's an external URL : we should open it in a new tab
-                    anchor.addEventListener('click', function(event) {
+                    anchor.addEventListener('click', function (event) {
                         // Find the closest enclosing A tag
                         var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
                         uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
@@ -1922,7 +1922,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
         }
 
-        function loadImagesJQuery() {
+        function loadImagesJQuery () {
             // Make an array from the images that need to be processed
             var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
             // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
@@ -1930,7 +1930,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
             // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
             // DOM, making for a better user experience (because images above the fold are extracted first)
-            (function extractImage() {
+            (function extractImage () {
                 if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
                 images.busy = true;
                 // Extract the image at the top of the images array and remove it from the array
@@ -1947,7 +1947,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                         var mimetype = dirEntry.getMimetype();
-                        uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function() {
+                        uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function () {
                             images.busy = false;
                             extractImage();
                         });
@@ -1960,7 +1960,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             })();
         }
 
-        function loadNoScriptTags() {
+        function loadNoScriptTags () {
             // For each noscript tag, we replace it with its content, so that the browser interprets it
             $('#articleContent').contents().find('noscript').replaceWith(function () {
                 // When javascript is enabled, browsers interpret the content of noscript tags as text
@@ -1970,7 +1970,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             });
         }
 
-        function loadCSSJQuery() {
+        function loadCSSJQuery () {
             // Ensure all sections are open for clients that lack JavaScript support, or that have some restrictive CSP [kiwix-js #355].
             // This is needed only for some versions of ZIM files generated by mwoffliner (at least in early 2018), where the article sections are closed by default on small screens.
             // These sections can be opened by clicking on them, but this is done with some javascript.
@@ -2021,7 +2021,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
             // Some pages are extremely heavy to render, so we prevent rendering by keeping the iframe hidden
             // until all CSS content is available [kiwix-js #381]
-            function renderIfCSSFulfilled(title) {
+            function renderIfCSSFulfilled (title) {
                 if (cssFulfilled >= cssCount) {
                     document.getElementById('cachingAssets').textContent = 'Caching assets...';
                     document.getElementById('cachingAssets').style.display = 'none';
@@ -2062,10 +2062,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         //     });
         // }
 
-        function insertMediaBlobsJQuery() {
+        function insertMediaBlobsJQuery () {
             var iframe = iframeArticleContent.contentDocument;
             Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
-            .forEach(function(mediaSource) {
+            .forEach(function (mediaSource) {
                 var source = mediaSource.getAttribute('src');
                 source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
@@ -2077,7 +2077,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
                 // If the "controls" property is missing, we need to add it to ensure jQuery-only users can operate the video. See kiwix-js #760.
                 if (/audio|video/i.test(mediaElement.tagName) && !mediaElement.hasAttribute('controls')) mediaElement.setAttribute('controls', '');
-                selectedArchive.getDirEntryByPath(source).then(function(dirEntry) {
+                selectedArchive.getDirEntryByPath(source).then(function (dirEntry) {
                     return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
                         var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
                         var blob = new Blob([mediaArray], { type: mimeType });
@@ -2096,7 +2096,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * Displays a message to the user that a style or other asset is being cached
      * @param {String} title The title of the file to display in the caching message block
      */
-    function updateCacheStatus(title) {
+    function updateCacheStatus (title) {
         if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
@@ -2111,7 +2111,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      * @param {String} title
      * @param {String} titleSearch
      */
-    function pushBrowserHistoryState(title, titleSearch) {
+    function pushBrowserHistoryState (title, titleSearch) {
         var stateObj = {};
         var urlParameters;
         var stateLabel;
@@ -2140,9 +2140,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
      *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
      * @param {String} contentType The mimetype of the downloadable file, if known
      */
-    function goToArticle(path, download, contentType) {
+    function goToArticle (path, download, contentType) {
         document.getElementById('searchingArticles').style.display = '';
-        selectedArchive.getDirEntryByPath(path).then(function(dirEntry) {
+        selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
             var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
@@ -2158,10 +2158,10 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 if (activeContent) activeContent.style.display = 'none';
                 readArticle(dirEntry);
             }
-        }).catch(function(e) { uiUtil.systemAlert('Error reading article with url ' + path + ' : ' + e, 'Error while reading article'); });
+        }).catch(function (e) { uiUtil.systemAlert('Error reading article with url ' + path + ' : ' + e, 'Error while reading article'); });
     }
 
-    function goToRandomArticle() {
+    function goToRandomArticle () {
         if (selectedArchive !== null && selectedArchive.isReady()) {
             document.getElementById('searchingArticles').style.display = '';
             selectedArchive.getRandomDirEntry(function (dirEntry) {
@@ -2193,9 +2193,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         }
     }
 
-    function goToMainArticle() {
+    function goToMainArticle () {
         document.getElementById('searchingArticles').style.display = '';
-        selectedArchive.getMainPageDirEntry(function(dirEntry) {
+        selectedArchive.getMainPageDirEntry(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 console.error('Error finding main article.');
                 document.getElementById('searchingArticles').style.display = 'none';
