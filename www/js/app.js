@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 /**
  * app.js : User Interface implementation
  * This file handles the interaction between the application and the user
@@ -24,7 +25,7 @@
 'use strict';
 
 // The global parameters object is defined in init.js
-/* global params, define */
+/* global params, define, webpMachine */
 
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
@@ -840,6 +841,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             params.serviceWorkerLocal = true;
         }
         params.contentInjectionMode = value;
+        var message = '';
         if (value === 'jquery') {
             if (!params.appCache) {
                 uiUtil.systemAlert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!', 'Deselect "Bypass AppCache"').then(function () {
@@ -849,7 +851,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             }
             if (params.referrerExtensionURL) {
                 // We are in an extension, and the user may wish to revert to local code
-                var message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
+                message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
                 var launchLocal = function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
@@ -895,7 +897,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 launchMozillaExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
-                    var message =
+                    message =
                         '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
                         '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                         'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
@@ -1126,7 +1128,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         document.getElementById('scanningForArchives').style.display = '';
         zimArchiveLoader.scanForArchives(storages, populateDropDownListOfArchives, function () {
             // callbackError function is called in case of an error
-            uiUtil.systemAlert(message, label).then(populateDropDownListOfArchives(null));
+            uiUtil.systemAlert().then(populateDropDownListOfArchives(null));
         });
     }
 
@@ -1671,7 +1673,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
     function handleMessageChannelMessage(event) {
         if (event.data.error) {
             console.error("Error in MessageChannel", event.data.error);
-            reject(event.data.error);
+            throw event.data.error;
         } else {
             // We received a message from the ServiceWorker
             if (event.data.action === "askForContent") {
