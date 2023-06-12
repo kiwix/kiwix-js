@@ -112,9 +112,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
-        'prefix': '', // A field to hold the original search string
-        'status': '',  // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
-        'type': ''    // The type of the search: 'basic'|'full' (set automatically in search algorithm)
+        prefix: '', // A field to hold the original search string
+        status: '', // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
+        type: '' // The type of the search: 'basic'|'full' (set automatically in search algorithm)
     };
 
     // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
@@ -743,19 +743,19 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 };
                 // Ask Service Worker for its cache status and asset count
                 navigator.serviceWorker.controller.postMessage({
-                    'action': {
-                        'assetsCache': params.assetsCache ? 'enable' : 'disable',
-                        'appCache': params.appCache ? 'enable' : 'disable',
-                        'checkCache': window.location.href
+                    action: {
+                        assetsCache: params.assetsCache ? 'enable' : 'disable',
+                        appCache: params.appCache ? 'enable' : 'disable',
+                        checkCache: window.location.href
                     }
                 }, [channel.port2]);
             } else {
                 // No Service Worker has been established, so we resolve the Promise with cssCache details only
                 resolve({
-                    'type': params.assetsCache ? 'memory' : 'none',
-                    'name': 'cssCache',
-                    'description': params.assetsCache ? 'Memory' : 'None',
-                    'count': cssCache.size
+                    type: params.assetsCache ? 'memory' : 'none',
+                    name: 'cssCache',
+                    description: params.assetsCache ? 'Memory' : 'None',
+                    count: cssCache.size
                 });
             }
         });
@@ -810,7 +810,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
             if (navigator.serviceWorker.controller) {
                 navigator.serviceWorker.controller.postMessage({
-                    'action': 'init'
+                    action: 'init'
                 }, [tmpMessageChannel.port2]);
             } else if (keepAliveServiceWorkerHandle) {
                 console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
@@ -882,7 +882,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var channel = new MessageChannel();
                 if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({
-                        'action': { 'assetsCache': 'disable' }
+                        action: { assetsCache: 'disable' }
                     }, [channel.port2]);
                 }
                 caches.delete(ASSETS_CACHE);
@@ -1446,7 +1446,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
             // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
             // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
-            appstate.search = {'prefix': prefix, 'status': 'init', 'type': '', 'size': params.maxSearchResultsSize};
+            appstate.search = {prefix: prefix, status: 'init', type: '', size: params.maxSearchResultsSize};
             var activeContent = document.getElementById('activeContent');
             if (activeContent) activeContent.style.display = 'none';
             selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
@@ -1683,7 +1683,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                 var readFile = function (dirEntry) {
                     if (dirEntry === null) {
                         console.error("Title " + title + " not found in archive.");
-                        messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': '' });
+                        messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
                     } else if (dirEntry.isRedirect()) {
                         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
                             var redirectURL = resolvedDirEntry.namespace + "/" + resolvedDirEntry.url;
@@ -1691,20 +1691,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
                             // Else, if the redirect URL is in a different directory than the original URL,
                             // the relative links in the HTML content would fail. See #312
-                            messagePort.postMessage({ 'action': 'sendRedirect', 'title': title, 'redirectUrl': redirectURL });
+                            messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
                         });
                     } else {
                         // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
-                            var message = { 'action': 'giveContent', 'title': title, 'content': content.buffer, 'mimetype': mimetype };
+                            var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
                 };
                 selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-                    messagePort.postMessage({ 'action': 'giveContent', 'title': title, 'content': new Uint8Array() });
+                    messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
                 });
             } else {
                 console.error("Invalid message received", event.data);
