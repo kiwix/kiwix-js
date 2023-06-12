@@ -23,6 +23,9 @@
 
 'use strict';
 
+// The global parameters object is defined in init.js
+/* global params, define */
+
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
