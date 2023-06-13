@@ -3,17 +3,21 @@ BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 cd "$BASEDIR"
 
 # Reading arguments
-while getopts tdv: option; do
+while getopts m:tdv: option; do
     case "${option}" in
+        m) MV=$OPTARG;; # Optionally indicates the manifest version we're using (2 or 3); if present, the version will be added to filename
         t) TAG="-t";; # Indicates that we're releasing a public version from a tag
         d) DRYRUN="-d";; # Indicates a dryrun test, that does not modify anything on the network
         v) VERSION=${OPTARG};;
     esac
 done
-
-echo "Packaging unsigned Chrome extension, version $VERSION"
+if [ -n $MV ]; then
+    echo "Manifest version passed to script: $MV"
+    VERSION="MV$MV-$VERSION"
+fi
+echo -e "\nPackaging unsigned Chrome extension, version $VERSION"
 cd tmp
-zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www webextension manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 cd ..
 if [ "${TAG}zz" == "zz" ]; then
     # Package the extension with Chrome or Chromium, if we're not packaging a public version
