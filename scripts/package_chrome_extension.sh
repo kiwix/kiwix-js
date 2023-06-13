@@ -12,14 +12,14 @@ while getopts m:tdv: option; do
     esac
 done
 if [ -n $MV ]; then
-    echo "Manifest version passed to script: $MV"
+    echo -e "\nManifest version passed to this script: $MV"
     VERSION="MV$MV-$VERSION"
 fi
-echo -e "\nPackaging unsigned Chrome extension, version $VERSION"
+echo -e "Packaging unsigned Chrome extension, version $VERSION"
 cd tmp
 zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 cd ..
-if [ "${TAG}zz" == "zz" ]; then
+if [ -z $TAG ]; then
     # Package the extension with Chrome or Chromium, if we're not packaging a public version
     if hash chromium-browser 2>/dev/null
     then
@@ -32,6 +32,7 @@ if [ "${TAG}zz" == "zz" ]; then
     echo "Signing the extension for $CHROME_BIN, version $VERSION"
     $CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
     mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.crx
+    ls -l build/kiwix-chrome-signed-extension-$VERSION.crx
 else
     echo "This unsigned extension must be manually uploaded to Google to be signed and distributed from their store"
 fi

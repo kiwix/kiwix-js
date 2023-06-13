@@ -78,6 +78,7 @@ rm -rf build/*
 # Package for Chromium/Chrome with Manifest V3
 scripts/package_chrome_extension.sh -m 3 $DRYRUN $TAG -v $VERSION
 # Package for Chromium/Chrome with Manifest V2
+cp backgroundscript.js tmp/
 rm tmp/manifest.json
 mv tmp/manifest.v2.json tmp/manifest.json
 scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
