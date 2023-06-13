@@ -850,7 +850,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
                     uriParams += '&appTheme=' + params.appTheme;
                     uriParams += '&showUIAnimations=' + params.showUIAnimations;
                     window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
-                    'Beam me down, Scotty!';
+                    console.log('Beam me down, Scotty!');
                 };
                 uiUtil.systemAlert(message, 'Warning!', true).then(function (response) {
                     if (response) {
@@ -1054,7 +1054,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
             // regarding the location of the key to be able to retrieve it in init.js before settingsStore is initialized
             localStorage.setItem(params.keyPrefix + 'PWA_launch', 'fail');
             window.location.href = params.PWAServer + 'www/index.html' + uriParams;
-            'Beam me up, Scotty!';
+            console.log('Beam me up, Scotty!');
         };
         var checkPWAIsOnline = function () {
             uiUtil.spinnerDisplay(true, 'Checking server access...');
