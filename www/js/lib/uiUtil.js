@@ -1,25 +1,29 @@
 /**
  * uiUtil.js : Utility functions for the User Interface
- * 
+ *
  * Copyright 2013-2020 Mossroy and contributors
  * License GPL v3:
- * 
+ *
  * This file is part of Kiwix.
- * 
+ *
  * Kiwix is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
+
 'use strict';
+
+/* eslint-disable no-global-assign */
+/* global $, define, webpMachine, webpHero, params */
 
 // DEV: Put your RequireJS definition in the rqDef array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load WebP polyfills conditionally. The WebP polyfills are only needed by a few old browsers, so loading them
@@ -31,27 +35,26 @@ if (webpMachine) {
     rqDef.push('webpHeroBundle');
 }
 
-define(rqDef, function(settingsStore, util) {
-
+define(rqDef, function (settingsStore, util) {
     /**
      * Displays a Bootstrap alert or confirm dialog box depending on the options provided
-     * 
-     * @param {String} message The alert message(can be formatted using HTML) to display in the body of the modal. 
+     *
+     * @param {String} message The alert message(can be formatted using HTML) to display in the body of the modal.
      * @param {String} label The modal's label or title which appears in the header (optional, Default = "Confirmation" or "Message")
-     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message 
-     * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel") 
+     * @param {Boolean} isConfirm If true, the modal will be a confirm dialog box, otherwise it will be a simple alert message
+     * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel")
      * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
      * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
      * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
      */
-    function systemAlert(message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
+    function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
         declineConfirmLabel = declineConfirmLabel || 'Cancel';
         approveConfirmLabel = approveConfirmLabel || 'Confirm';
         closeMessageLabel = closeMessageLabel || 'Okay';
         label = label || (isConfirm ? 'Confirmation' : 'Message');
         return util.PromiseQueue.enqueue(function () {
             return new Promise(function (resolve, reject) {
-                if (!message) reject('Missing body message');
+                if (!message) reject(new Error('Missing body message'));
                 // Set the text to the modal and its buttons
                 document.getElementById('approveConfirm').textContent = approveConfirmLabel;
                 document.getElementById('declineConfirm').textContent = declineConfirmLabel;
@@ -86,10 +89,10 @@ define(rqDef, function(settingsStore, util) {
                     modal.classList.remove('show');
                     modal.style.display = 'none';
                     backdrop.classList.remove('show');
-                    if(Array.from(document.body.children).indexOf(backdrop)>=0){ 
+                    if (Array.from(document.body.children).indexOf(backdrop) >= 0) {
                         document.body.removeChild(backdrop);
                     }
-                    //remove event listeners
+                    // remove event listeners
                     document.getElementById('modalCloseBtn').removeEventListener('click', close);
                     document.getElementById('declineConfirm').removeEventListener('click', close);
                     document.getElementById('closeMessage').removeEventListener('click', close);
@@ -132,7 +135,7 @@ define(rqDef, function(settingsStore, util) {
                 document.getElementById('declineConfirm').addEventListener('click', close);
                 document.getElementById('closeMessage').addEventListener('click', close);
                 document.getElementById('approveConfirm').addEventListener('click', closeConfirm);
-                
+
                 modal.addEventListener('click', close);
                 document.getElementsByClassName('modal-dialog')[0].addEventListener('click', stopOutsideModalClick);
 
@@ -142,20 +145,20 @@ define(rqDef, function(settingsStore, util) {
             });
         });
     }
-  
+
     /**
      * Creates a data: URI from the given content
      * The given attribute of the DOM node (nodeAttribute) is then set to this URI
-     * 
+     *
      * This is used to inject images (and other dependencies) into the article DOM
-     * 
+     *
      * @param {Object} node The node to which the URI should be added
      * @param {String} nodeAttribute The attribute to set to the URI
      * @param {Uint8Array} content The binary content to convert to a URI
      * @param {String} mimeType The MIME type of the content
      * @param {Function} callback An optional function to call to start processing the next item
      */
-    function feedNodeWithDataURI(node, nodeAttribute, content, mimeType, callback) {
+    function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback) {
         // Decode WebP data if the browser does not support WebP and the mimeType is webp
         if (webpMachine && /image\/webp/i.test(mimeType)) {
             // If we're dealing with a dataURI, first convert to Uint8Array
@@ -200,9 +203,9 @@ define(rqDef, function(settingsStore, util) {
      * Determines whether the Canvas Elements Workaround for decoding WebP images is needed, and sets UI accordingly.
      * This also sets a global app parameter (useCanvasElementsForWebpTranscoding) that determines whether the workaround will be used in jQuery mode.
      * Note that the workaround will never be used in Service Worker mode, but we still need to determine it in case the user switches modes.
-     * @returns {Boolean} A value to indicate the browser's capability (whether it requires the workaround or not) 
+     * @returns {Boolean} A value to indicate the browser's capability (whether it requires the workaround or not)
      */
-    function determineCanvasElementsWorkaround() {
+    function determineCanvasElementsWorkaround () {
         var userPreference = settingsStore.getItem('useCanvasElementsForWebpTranscoding') !== 'false';
         // Determine whether the browser is able to read canvas data correctly
         var browserRequiresWorkaround = webpMachine && webpHero && !webpHero.detectCanvasReadingSupport();
@@ -218,18 +221,18 @@ define(rqDef, function(settingsStore, util) {
             useCanvasElementsCheck.checked = userPreference;
         }
         params.useCanvasElementsForWebpTranscoding = browserRequiresWorkaround ? userPreference : false;
-         // Return the determined browser capability (which may be different from the user's preference) in case caller wants this
+        // Return the determined browser capability (which may be different from the user's preference) in case caller wants this
         return browserRequiresWorkaround;
     }
 
     /**
      * Replace the given CSS link (from the DOM) with an inline CSS of the given content
-     * 
+     *
      * Due to CSP, Firefox OS does not accept <link> syntax with href="data:text/css..." or href="blob:..."
      * So we replace the tag with a <style type="text/css">...</style>
      * while copying some attributes of the original tag
      * Cf http://jonraasch.com/blog/javascript-style-node
-     * 
+     *
      * @param {Element} link The original link node from the DOM
      * @param {String} cssContent The content to insert as an inline stylesheet
      */
@@ -251,13 +254,13 @@ define(rqDef, function(settingsStore, util) {
         }
         link.parentNode.replaceChild(cssElement, link);
     }
-        
+
     /**
      * Removes parameters and anchors from a URL
      * @param {type} url The URL to be processed
      * @returns {String} The same URL without its parameters and anchors
      */
-    function removeUrlParameters(url) {
+    function removeUrlParameters (url) {
         // Remove any querystring
         var strippedUrl = url.replace(/\?[^?]*$/, '');
         // Remove any anchor parameters - note that we are deliberately excluding entity references, e.g. '&#39;'.
@@ -267,13 +270,13 @@ define(rqDef, function(settingsStore, util) {
 
     /**
      * Derives the URL.pathname from a relative or semi-relative URL using the given base ZIM URL
-     * 
+     *
      * @param {String} url The (URI-encoded) URL to convert (e.g. "Einstein", "../Einstein",
      *      "../../I/im%C3%A1gen.png", "-/s/style.css", "/A/Einstein.html", "../static/bootstrap/css/bootstrap.min.css")
      * @param {String} base The base ZIM URL of the currently loaded article (e.g. "A/", "A/subdir1/subdir2/", "C/Singapore/")
      * @returns {String} The derived ZIM URL in decoded form (e.g. "A/Einstein", "I/imágen.png", "C/")
      */
-    function deriveZimUrlFromRelativeUrl(url, base) {
+    function deriveZimUrlFromRelativeUrl (url, base) {
         // We use a dummy domain because URL API requires a valid URI
         var dummy = 'http://d/';
         var deriveZimUrl = function (url, base) {
@@ -294,16 +297,16 @@ define(rqDef, function(settingsStore, util) {
      * Displays a Bootstrap warning alert with information about how to access content in a ZIM with unsupported active UI
      */
     var activeContentWarningSetup = false;
-    function displayActiveContentWarning() {
+    function displayActiveContentWarning () {
         var alertActiveContent = document.getElementById('activeContent');
         alertActiveContent.style.display = '';
         if (!activeContentWarningSetup) {
             // We are setting up the active content warning for the first time
             activeContentWarningSetup = true;
-            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function() {
+            alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function () {
                 alertActiveContent.style.display = 'none';
             });
-            ['swModeLink', 'stop'].forEach(function(id) {
+            ['swModeLink', 'stop'].forEach(function (id) {
                 // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
                 // the options that the user needs to select
                 document.getElementById(id).addEventListener('click', function () {
@@ -328,7 +331,7 @@ define(rqDef, function(settingsStore, util) {
     /**
      * Displays a Bootstrap alert box at the foot of the page to enable saving the content of the given title to the device's filesystem
      * and initiates download/save process if this is supported by the OS or Browser
-     * 
+     *
      * @param {String} title The path and filename to the file to be extracted
      * @param {Boolean|String} download A Bolean value that will trigger download of title, or the filename that should
      *     be used to save the file in local FS
@@ -336,23 +339,25 @@ define(rqDef, function(settingsStore, util) {
      * @param {Uint8Array} content The binary-format content of the downloadable file
      */
     var downloadAlertSetup = false;
-    function displayFileDownloadAlert(title, download, contentType, content) {
+    function displayFileDownloadAlert (title, download, contentType, content) {
         var downloadAlert = document.getElementById('downloadAlert');
         downloadAlert.style.display = 'block';
-        if (!downloadAlertSetup) downloadAlert.querySelector('button[data-hide]').addEventListener('click', function() {
-            // We are setting up the alert for the first time
-            downloadAlert.style.display = 'none';
-        });
+        if (!downloadAlertSetup) {
+            downloadAlert.querySelector('button[data-hide]').addEventListener('click', function () {
+                // We are setting up the alert for the first time
+                downloadAlert.style.display = 'none';
+            });
+        }
         downloadAlertSetup = true;
-        // Download code adapted from https://stackoverflow.com/a/19230668/9727685 
+        // Download code adapted from https://stackoverflow.com/a/19230668/9727685
         // Set default contentType if none was provided
         if (!contentType) contentType = 'application/octet-stream';
         var a = document.createElement('a');
-        var blob = new Blob([content], { 'type': contentType });
+        var blob = new Blob([content], { type: contentType });
         // If the filename to use for saving has not been specified, construct it from title
-        var filename = download === true ? title.replace(/^.*\/([^\/]+)$/, '$1') : download;
+        var filename = download === true ? title.replace(/^.*\/([^/]+)$/, '$1') : download;
         // Make filename safe
-        filename = filename.replace(/[\/\\:*?"<>|]/g, '_');
+        filename = filename.replace(/[/\\:*?"<>|]/g, '_');
         a.href = window.URL.createObjectURL(blob);
         a.target = '_blank';
         a.type = contentType;
@@ -360,16 +365,17 @@ define(rqDef, function(settingsStore, util) {
         a.classList.add('alert-link');
         a.textContent = filename;
         var alertMessage = document.getElementById('alertMessage');
-        //innerHTML required as it has HTML tags
+        // innerHTML required as it has HTML tags
         alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
         // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
         alertMessage.appendChild(a);
-        try { a.click(); }
-        catch (err) {
+        try {
+            a.click();
+        } catch (err) {
             // If the click fails, user may be able to download by manually clicking the link
-            // But for IE11 we need to force use of the saveBlob method with the onclick event 
+            // But for IE11 we need to force use of the saveBlob method with the onclick event
             if (window.navigator && window.navigator.msSaveBlob) {
-                a.addEventListener('click', function(e) {
+                a.addEventListener('click', function (e) {
                     window.navigator.msSaveBlob(blob, filename);
                     e.preventDefault();
                 });
@@ -382,7 +388,7 @@ define(rqDef, function(settingsStore, util) {
      * Check for update of Service Worker (PWA) and display information to user
      */
     var updateAlert = document.getElementById('updateAlert');
-    function checkUpdateStatus(appstate) {
+    function checkUpdateStatus (appstate) {
         if ('serviceWorker' in navigator && !appstate.pwaUpdateNeeded) {
             settingsStore.getCacheNames(function (cacheNames) {
                 if (cacheNames && !cacheNames.error) {
@@ -406,9 +412,11 @@ define(rqDef, function(settingsStore, util) {
             });
         }
     }
-    if (updateAlert) updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
-        updateAlert.style.display = 'none';
-    });
+    if (updateAlert) {
+        updateAlert.querySelector('button[data-hide]').addEventListener('click', function () {
+            updateAlert.style.display = 'none';
+        });
+    }
 
     /**
      * Checks if a server is accessible by attempting to load a test image from the server
@@ -416,7 +424,7 @@ define(rqDef, function(settingsStore, util) {
      * @param {any} onSuccess A function to call if the image can be loaded
      * @param {any} onError A function to call if the image cannot be loaded
      */
-     function checkServerIsAccessible(imageSrc, onSuccess, onError) {
+    function checkServerIsAccessible (imageSrc, onSuccess, onError) {
         var image = new Image();
         image.onload = onSuccess;
         image.onerror = onError;
@@ -425,10 +433,10 @@ define(rqDef, function(settingsStore, util) {
 
     /**
      * Show or hide the spinner together with a message
-     * @param {Boolean} show True to show the spinner, false to hide it 
-     * @param {String} message A message to display, or hide the message if null 
+     * @param {Boolean} show True to show the spinner, false to hide it
+     * @param {String} message A message to display, or hide the message if null
      */
-    function spinnerDisplay(show, message) {
+    function spinnerDisplay (show, message) {
         var searchingArticles = document.getElementById('searchingArticles');
         var spinnerMessage = document.getElementById('cachingAssets');
         if (show) searchingArticles.style.display = 'block';
@@ -444,25 +452,26 @@ define(rqDef, function(settingsStore, util) {
 
     /**
      * Checks whether an element is partially or fully inside the current viewport
-     * 
+     *
      * @param {Element} el The DOM element for which to check visibility
-     * @param {Boolean} fully If true, checks that the entire element is inside the viewport; 
+     * @param {Boolean} fully If true, checks that the entire element is inside the viewport;
      *          if false, checks whether any part of the element is inside the viewport
      * @returns {Boolean} True if the element is fully or partially (depending on the value of <fully>)
      *          inside the current viewport
      */
-    function isElementInView(el, fully) {
+    function isElementInView (el, fully) {
         var rect = el.getBoundingClientRect();
-        if (fully)
+        if (fully) {
             return rect.top > 0 && rect.bottom < window.innerHeight && rect.left > 0 && rect.right < window.innerWidth;
-        else 
+        } else {
             return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
+        }
     }
 
     /**
      * Removes the animation effect between various sections
      */
-    function removeAnimationClasses() {
+    function removeAnimationClasses () {
         var configuration = document.getElementById('configuration');
         configuration.classList.remove('slideIn_L');
         configuration.classList.remove('slideIn_R');
@@ -473,15 +482,15 @@ define(rqDef, function(settingsStore, util) {
         document.getElementById('articleContent').classList.remove('slideIn_R');
         document.getElementById('articleContent').classList.remove('slideOut_L');
     }
-    
+
     /**
      * Adds the slide animation between different sections
-     * 
+     *
      * @param {String} section It takes the name of the section to which the animation is to be added
-     * 
+     *
      */
-    function applyAnimationToSection(section) {
-        if (section == 'home') {
+    function applyAnimationToSection (section) {
+        if (section === 'home') {
             if (!$('#configuration').is(':hidden')) {
                 document.getElementById('configuration').classList.add('slideOut_R');
                 setTimeout(function () {
@@ -498,7 +507,7 @@ define(rqDef, function(settingsStore, util) {
             setTimeout(function () {
                 document.getElementById('articleContent').style.display = '';
             }, 300);
-        } else if (section == 'config') {
+        } else if (section === 'config') {
             if (!$('#about').is(':hidden')) {
                 $('#about').addClass('slideOut_R');
                 $('#configuration').addClass('slideIn_R');
@@ -515,7 +524,7 @@ define(rqDef, function(settingsStore, util) {
             setTimeout(function () {
                 document.getElementById('configuration').style.display = '';
             }, 300);
-        } else if (section == 'about') {
+        } else if (section === 'about') {
             if (!$('#configuration').is(':hidden')) {
                 document.getElementById('configuration').classList.add('slideOut_L');
                 setTimeout(function () {
@@ -537,17 +546,17 @@ define(rqDef, function(settingsStore, util) {
 
     /**
      * Applies the requested app and content theme
-     * 
+     *
      * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
      * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
      * Current themes are: light, dark, dark_invert, dark_mwInvert but code below is written for extensibility
      * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
      * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
      * A rule may additionally be needed in app.css for full implementation of contentTheme
-     * 
+     *
      * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
      */
-    function applyAppTheme(theme) {
+    function applyAppTheme (theme) {
         var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
         // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
         var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
@@ -583,7 +592,7 @@ define(rqDef, function(settingsStore, util) {
         // Hide any previously displayed description for auto themes
         var oldDescription = document.getElementById('kiwix-auto-description');
         if (oldDescription) oldDescription.style.display = 'none';
-        // Show description for auto themes 
+        // Show description for auto themes
         var description = document.getElementById('kiwix-' + theme.replace(/_.*$/, '') + '-description');
         if (description) description.style.display = 'block';
         // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
@@ -613,21 +622,21 @@ define(rqDef, function(settingsStore, util) {
         // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
         // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
         if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
-            doc.title !== "Placeholder for injecting an article into the iframe") {
+            doc.title !== 'Placeholder for injecting an article into the iframe') {
             showReturnLink();
         }
     }
 
     // Displays the return link and handles click event. Called by applyAppTheme()
-    function showReturnLink() {
+    function showReturnLink () {
         var viewArticle = document.getElementById('viewArticle');
         viewArticle.style.display = 'block';
-        viewArticle.addEventListener('click', function(e) {
+        viewArticle.addEventListener('click', function (e) {
             e.preventDefault();
             document.getElementById('liConfigureNav').classList.remove('active');
             document.getElementById('liHomeNav').classList.add('active');
             removeAnimationClasses();
-            if (params.showUIAnimations) { 
+            if (params.showUIAnimations) {
                 applyAnimationToSection('home');
             } else {
                 document.getElementById('configuration').style.display = 'none';
@@ -641,7 +650,7 @@ define(rqDef, function(settingsStore, util) {
 
     // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
     // This can't be done in app.js because the error occurs after the API panel is first displayed
-    function reportAssemblerErrorToAPIStatusPanel(decoderType, error, assemblerMachineType) {
+    function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMachineType) {
         console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
         params.decompressorAPI.assemblerMachineType = assemblerMachineType;
         params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
@@ -652,25 +661,25 @@ define(rqDef, function(settingsStore, util) {
     }
 
     // Reports the search provider to the API Status Panel
-    function reportSearchProviderToAPIStatusPanel(provider) {
+    function reportSearchProviderToAPIStatusPanel (provider) {
         var providerAPI = document.getElementById('searchProviderStatus');
         if (providerAPI) { // NB we need this so that tests don't fail
-            providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']' :
-                /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
+            providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']'
+                : /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
             providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
         }
     }
 
     // If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
-    if (webpMachine) webpMachine = new webpHero.WebpMachine({useCanvasElements: true});
-    
+    if (webpMachine) webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
+
     /**
      * Warn the user that he/she clicked on an external link, and open it in a new tab
-     * 
+     *
      * @param {Event} event the click event (on an anchor) to handle
      * @param {Element} clickedAnchor the DOM anchor that has been clicked (optional, defaults to event.target)
      */
-    function warnAndOpenExternalLinkInNewTab(event, clickedAnchor) {
+    function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
         event.preventDefault();
         event.stopPropagation();
         if (!clickedAnchor) clickedAnchor = event.target;
@@ -682,21 +691,22 @@ define(rqDef, function(settingsStore, util) {
         message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
         systemAlert(message, 'Opening external link', true).then(function (response) {
             if (response) {
-                if (!target)
+                if (!target) {
                     target = '_blank';
+                }
                 window.open(clickedAnchor.href, target);
             }
         });
     }
-    
+
     /**
      * Finds the closest <a> or <area> enclosing tag of an element.
      * Returns undefined if there isn't any.
-     * 
+     *
      * @param {Element} element
      * @returns {Element} closest enclosing anchor tag (if any)
      */
-    function closestAnchorEnclosingElement(element) {
+    function closestAnchorEnclosingElement (element) {
         if (Element.prototype.closest) {
             // Recent browsers support that natively. See https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
             return element.closest('a,area');
