@@ -1,5 +1,5 @@
 /**
- * backgroundscript.js: Background script for the WebExtension
+ * backgroundscript.js: Background script for the WebExtension Manifest V2
  *
  * Copyright 2017 Mossroy and contributors
  * License GPL v3:
@@ -20,19 +20,20 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
+/* global chrome, browser */
+
 // In order to work on both Firefox and Chromium/Chrome (and derivatives).
 // browser and chrome variables expose almost the same APIs
 var genericBrowser;
 if (typeof browser !== 'undefined') {
     // Firefox
     genericBrowser = browser;
-}
-else {
+} else {
     // Chromium/Chrome
     genericBrowser = chrome;
 }
 
 genericBrowser.action.onClicked.addListener(function (tab) {
-    var newURL = chrome.runtime.getURL("www/index.html");
+    var newURL = chrome.runtime.getURL('www/index.html');
     chrome.tabs.create({ url: newURL });
 });

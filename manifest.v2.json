@@ -36,7 +36,7 @@
     "web_accessible_resources": ["www/index.html"],
 
     "background": {
-        "scripts": ["webextension/backgroundscript.js"]
+        "scripts": ["backgroundscript.js"]
     },
 
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
