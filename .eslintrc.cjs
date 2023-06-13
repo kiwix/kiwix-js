@@ -17,6 +17,7 @@ module.exports = {
         'no-extra-parens': 1,
         'no-unused-expressions': 1,
         'no-unused-vars': 1,
-        'n/no-callback-literal': 0
+        'n/no-callback-literal': 0,
+        'object-shorthand': 0
     }
 }
