@@ -1,4 +1,3 @@
-/* eslint-disable indent */
 /**
  * app.js : User Interface implementation
  * This file handles the interaction between the application and the user
@@ -26,6 +25,7 @@
 
 // The global parameters object is defined in init.js
 /* global params, define, webpMachine */
+/* eslint-disable indent */
 
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
