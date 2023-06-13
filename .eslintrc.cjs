@@ -11,6 +11,7 @@ module.exports = {
     rules: {
         semi: 0,
         indent: ['error', 4],
-        'dot-notation': 0
+        'dot-notation': 0,
+        'no-var': 0
     }
 }
