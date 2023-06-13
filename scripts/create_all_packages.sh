@@ -55,7 +55,7 @@ fi
 # Copy only the necessary files in a temporary directory
 mkdir -p tmp
 rm -rf tmp/*
-cp -r www webextension manifest.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
+cp -r www manifest.json manifest.v2.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
 # Remove unwanted files
 rm -f tmp/www/js/lib/libzim-*dev.*
 
@@ -64,8 +64,10 @@ rm -f tmp/www/js/lib/libzim-*dev.*
 regexpNumericVersion='^[0-9\.]+$'
 if [[ $VERSION =~ $regexpNumericVersion ]] ; then
    sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+   sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.v2.json
 else
    sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
+   sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.v2.json
 fi
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
@@ -73,17 +75,26 @@ sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
 
 mkdir -p build
 rm -rf build/*
-# Package for Chromium/Chrome
-scripts/package_chrome_extension.sh $DRYRUN $TAG -v $VERSION
+# Package for Chromium/Chrome with Manifest V3
+scripts/package_chrome_extension.sh -m 3 $DRYRUN $TAG -v $VERSION
+# Package for Chromium/Chrome with Manifest V2
+cp backgroundscript.js tmp/
+rm tmp/manifest.json
+mv tmp/manifest.v2.json tmp/manifest.json
+scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
+
 # Package for Firefox and Firefox OS
 # We have to put a unique version string inside the manifest.json (which Chrome might not have accepted)
-# So we take the original manifest again, and replace the version inside it again
-cp manifest.json tmp/
+# So we take the original manifest v2 again, and replace the version inside it again
+cp manifest.v2.json tmp/manifest.json
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
+echo ""
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
+echo ""
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
 # Change permissions on source files to match those expected by the server
