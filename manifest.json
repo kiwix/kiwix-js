@@ -43,7 +43,7 @@
         "matches": ["https://*.kiwix.org/*"]
     }],
 
-    "author": "Kiwixy",
+    "author": "Kiwix",
     "homepage_url": "https://www.kiwix.org",
     "offline_enabled": true
 }
