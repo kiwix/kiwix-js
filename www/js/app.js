@@ -30,7 +30,7 @@
 // This uses require.js to structure javascript:
 // http://requirejs.org/docs/api.html#define
 
-define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesystemAccess'],
+define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesystemAccess'],
  function ($, zimArchiveLoader, uiUtil, settingsStore, abstractFilesystemAccess) {
     /**
      * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
@@ -107,7 +107,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
     // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
     // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
-    params['useCanvasElementsForWebpTranscoding']; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
+    params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 
     // An object to hold the current search and its state (allows cancellation of search across modules)
     appstate['search'] = {
@@ -586,7 +586,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // wait to prevent interference with scrolling (default action)
             setTimeout(function () {
                 document.getElementById('prefix').focus();
-            },0);
+            }, 0);
         }
     }
     // switch on/off the feature to use Home Key to focus search bar
@@ -608,10 +608,8 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
             // only for initial empty iFrame loaded using `src` attribute
             // in any other case listener gets removed on reloading of iFrame content
             iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
-        }
-        // when the feature is not active
-        else {
-            // remove event listener for window(outside iframe)
+        } else {
+             // When the feature is not active, remove event listener for window (outside iframe)
             window.removeEventListener('keydown', focusPrefixOnHomeKey);
             // if feature is deactivated and no zim content is loaded yet
             iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
@@ -1032,7 +1030,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
         var message = params.defaultModeChangeAlertDisplayed
-? '<p>To enable the Service Worker, we '
+            ? '<p>To enable the Service Worker, we '
             : ('<p>We shall attempt to switch you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p><p>We ');
         message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
@@ -1381,7 +1379,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                         request.response.name = url;
                         resolve(request.response);
                     } else {
-                        reject('HTTP status ' + request.status + ' when reading ' + url);
+                        reject(new Error('HTTP status ' + request.status + ' when reading ' + url));
                     }
                 }
             };
@@ -1989,7 +1987,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
                     selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                         if (!dirEntry) {
                             cssCache.set(url, ''); // Prevent repeated lookups of this unfindable asset
-                            throw 'DirEntry ' + typeof dirEntry;
+                            throw new Error('DirEntry ' + typeof dirEntry);
                         }
                         var mimetype = dirEntry.getMimetype();
                         var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
@@ -2091,7 +2089,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore','abstractFilesys
         if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
             var cacheBlock = document.getElementById('cachingAssets');
             cacheBlock.style.display = 'block';
-            title = title.replace(/[^/]+\//g, '').substring(0,18);
+            title = title.replace(/[^/]+\//g, '').substring(0, 18);
             cacheBlock.textContent = 'Caching ' + title + '...';
         }
     }
