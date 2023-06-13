@@ -1433,9 +1433,9 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
             appstate.search.status = 'cancelled';
             // Initiate a new search object and point appstate.search to it (the zimArchive search object will continue to point to the old object)
             // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
-            // in memory {'prefix': prefix, 'status': 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
+            // in memory {prefix: prefix, status: 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
             // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
-            appstate.search = { prefix, status: 'init', type: '', size: params.maxSearchResultsSize };
+            appstate.search = { prefix: prefix, status: 'init', type: '', size: params.maxSearchResultsSize };
             var activeContent = document.getElementById('activeContent');
             if (activeContent) activeContent.style.display = 'none';
             selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
@@ -1671,7 +1671,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
                 var readFile = function (dirEntry) {
                     if (dirEntry === null) {
                         console.error('Title ' + title + ' not found in archive.');
-                        messagePort.postMessage({ action: 'giveContent', title, content: '' });
+                        messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
                     } else if (dirEntry.isRedirect()) {
                         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
                             var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
@@ -1679,20 +1679,20 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
                             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
                             // Else, if the redirect URL is in a different directory than the original URL,
                             // the relative links in the HTML content would fail. See #312
-                            messagePort.postMessage({ action: 'sendRedirect', title, redirectUrl: redirectURL });
+                            messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
                         });
                     } else {
                         // Let's read the content in the ZIM file
                         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                             var mimetype = fileDirEntry.getMimetype();
                             // Let's send the content to the ServiceWorker
-                            var message = { action: 'giveContent', title, content: content.buffer, mimetype };
+                            var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
                             messagePort.postMessage(message, [content.buffer]);
                         });
                     }
                 };
                 selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-                    messagePort.postMessage({ action: 'giveContent', title, content: new Uint8Array() });
+                    messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
                 });
             } else {
                 console.error('Invalid message received', event.data);
