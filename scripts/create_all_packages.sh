@@ -88,10 +88,13 @@ scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
 # So we take the original manifest v2 again, and replace the version inside it again
 cp manifest.v2.json tmp/manifest.json
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
+echo ""
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
+echo ""
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
 sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
 # Change permissions on source files to match those expected by the server

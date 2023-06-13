@@ -12,10 +12,10 @@ while getopts m:tdv: option; do
     esac
 done
 if [ -n $MV ]; then
-    echo -e "\nManifest version passed to this script: $MV"
+    echo -e "\nManifest version requested: $MV"
     VERSION="MV$MV-$VERSION"
 fi
-echo -e "Packaging unsigned Chrome extension, version $VERSION"
+echo "Packaging unsigned Chrome extension, version $VERSION"
 cd tmp
 zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 cd ..
