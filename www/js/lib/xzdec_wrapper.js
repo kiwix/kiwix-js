@@ -19,7 +19,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
+
 'use strict';
+
+/* global params, define, XZ */
 
 // DEV: Put your RequireJS definition in the rqDefXZ array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load the wasm or asm versions of xzdec conditionally. Older browsers can only use the asm version
@@ -40,7 +43,7 @@ if ('WebAssembly' in self) {
     rqDefXZ.push('xzdec-asm');
 }
 
-define(rqDefXZ, function(uiUtil) {
+define(rqDefXZ, function (uiUtil) {
     // DEV: xzdec.js has been compiled with `-s EXPORT_NAME="XZ" -s MODULARIZE=1` to avoid a clash with zstddec.js
     // Note that we include xzdec-asm or xzdec-wasm above in requireJS definition, but we cannot change the name in the function list
     // There is no longer any need to load it in index.html
@@ -78,19 +81,19 @@ define(rqDefXZ, function(uiUtil) {
             });
         }
     });
-     
+
     /**
      * Number of milliseconds to wait for the decompressor to be available for another chunk
      * @type Integer
      */
     var DELAY_WAITING_IDLE_DECOMPRESSOR = 50;
-    
+
     /**
      * Is the decompressor already working?
      * @type Boolean
      */
     var busy = false;
-    
+
     /**
      * @typedef Decompressor
      * @property {Integer} _chunkSize
@@ -100,14 +103,14 @@ define(rqDefXZ, function(uiUtil) {
      * @property {Integer} _outStreamPos
      * @property {Array} _outBuffer
      */
-    
+
     /**
      * @constructor
      * @param {FileReader} reader
      * @param {Integer} chunkSize
      * @returns {Decompressor}
      */
-    function Decompressor(reader, chunkSize) {
+    function Decompressor (reader, chunkSize) {
         params.decompressorAPI.decompressorLastUsed = 'XZ';
         this._chunkSize = chunkSize || 1024 * 5;
         this._reader = reader;
@@ -119,7 +122,7 @@ define(rqDefXZ, function(uiUtil) {
      * @param {Integer} offset
      * @param {Integer} length
      */
-    Decompressor.prototype.readSlice = function(offset, length) {
+    Decompressor.prototype.readSlice = function (offset, length) {
         busy = true;
         var that = this;
         this._inStreamPos = 0;
@@ -127,13 +130,13 @@ define(rqDefXZ, function(uiUtil) {
         this._decHandle = xzdec._init_decompression(this._chunkSize);
         this._outBuffer = new Int8Array(new ArrayBuffer(length));
         this._outBufferPos = 0;
-        return this._readLoop(offset, length).then(function(data) {
+        return this._readLoop(offset, length).then(function (data) {
             xzdec._release(that._decHandle);
             busy = false;
             return data;
         });
     };
-    
+
     /**
      * Reads stream of data from file offset for length of bytes to send to the decompresor
      * This function ensures that only one decompression runs at a time
@@ -159,14 +162,14 @@ define(rqDefXZ, function(uiUtil) {
     };
 
     /**
-     * 
+     *
      * @param {Integer} offset
      * @param {Integer} length
      * @returns {Array}
      */
-    Decompressor.prototype._readLoop = function(offset, length) {
+    Decompressor.prototype._readLoop = function (offset, length) {
         var that = this;
-        return this._fillInBufferIfNeeded().then(function() {
+        return this._fillInBufferIfNeeded().then(function () {
             var ret = xzdec._decompress(that._decHandle);
             var finished = false;
             if (ret === 0) {
@@ -180,37 +183,41 @@ define(rqDefXZ, function(uiUtil) {
             }
 
             var outPos = xzdec._get_out_pos(that._decHandle);
-            if (outPos > 0 && that._outStreamPos + outPos >= offset)
-            {
+            if (outPos > 0 && that._outStreamPos + outPos >= offset) {
                 var outBuffer = xzdec._get_out_buffer(that._decHandle);
                 var copyStart = offset - that._outStreamPos;
-                if (copyStart < 0)
+                if (copyStart < 0) {
                     copyStart = 0;
-                for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++)
+                }
+                for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++) {
                     that._outBuffer[that._outBufferPos++] = xzdec.HEAP8[outBuffer + i];
+                }
             }
             that._outStreamPos += outPos;
-            if (outPos > 0)
+            if (outPos > 0) {
                 xzdec._out_buffer_cleared(that._decHandle);
-            if (finished || that._outStreamPos >= offset + length)
+            }
+            if (finished || that._outStreamPos >= offset + length) {
                 return that._outBuffer;
-            else
+            } else {
                 return that._readLoop(offset, length);
+            }
         });
     };
-    
+
     /**
-     * 
+     *
      * @returns {Promise}
      */
-    Decompressor.prototype._fillInBufferIfNeeded = function() {
+    Decompressor.prototype._fillInBufferIfNeeded = function () {
         if (!xzdec._input_empty(this._decHandle)) {
             return Promise.resolve(0);
         }
         var that = this;
-        return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
-            if (data.length > that._chunkSize)
+        return this._reader(this._inStreamPos, this._chunkSize).then(function (data) {
+            if (data.length > that._chunkSize) {
                 data = data.slice(0, that._chunkSize);
+            }
             // For some reason, xzdec.writeArrayToMemory does not seem to be available, and is equivalent to xzdec.HEAP8.set
             xzdec.HEAP8.set(data, xzdec._get_in_buffer(that._decHandle));
             that._inStreamPos += data.length;
