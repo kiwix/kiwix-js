@@ -4,6 +4,23 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Kiwix JS v3.9.0
+
+Released on *TODO*
+
+* ENHANCEMENT: Enabled full dynamic content in the Chromium extension via the PWA workaround
+* ENHANCEMENT: Migrate to Manifest Version 3 for the Chromium browser extension
+* ENHANCEMENT: Added a Promise queue to prevent overlapping dialogue boxes
+* UPDATE: JQuery updated to v3.7.0
+* FIX: Restored dialogue box animations lost when JQuery was removed from the dialogue box code
+* FIX: Increase the number of download types recognized by the JQuery mode code
+* BUGFIX: Removed use of `Promise.finally()` incompatible with older browsers
+* BUGFIX: Fixed infinite loop with the Bypass AppCache option when returning from PWA to local extension code
+* CLEANUP: Added an ESLint configuration and dev dependency
+* CLEANUP: Fixed style issues identified by ESLint
+* DEV: Added a warning colour to Configuration when the appCache is disabled
+* DEV: Compile xzdec and zstddec as ES6 modules (for future use)
+
 ## Kiwix JS v3.8.0
 
 This version incorporates an interim version 3.7.2 that was only published to the moz-extension PWA
