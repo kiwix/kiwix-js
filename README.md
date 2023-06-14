@@ -1,20 +1,20 @@
 # Kiwix JS
 
-Kiwix is an offline viewer for Wikipedia, Stackexchange, Project Gutenberg, and other Web resources packaged as highly compressed ZIM
+Kiwix is an offline browser for Wikipedia, Stackexchange, Project Gutenberg, and other Web resources packaged as highly compressed ZIM
 archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
 
 Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
 can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (search for "Kiwix", or click on a badge
-below). There is also a version implemented as an offline-first Progressive Web App (PWA) at https://moz-extension.kiwix.org/current/,
-primarily intended for use within the Mozilla Extension.
+below). There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
+at https://moz-extension.kiwix.org/current/. Alternatively, for a dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
 
-Once you have obtained an archive (see below), select it in Kiwix JS, or drag-and-drop it into the app, and start searching for article
-titles. No further Internet access is required to read the archive's content. For example, you can have the entire content of Wikipedia
-in your own language inside your device (including images and audiovisual content) entirely offline. If your Internet access is
-expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this amazing repository of
-knowledge, information and culture.
+To use Kiwix JS, you will need to obtain, completely free, a content archive (see below). Once you have this on your device, select it in Kiwix JS,
+or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to read the archive's content. You can
+have the entire content of Wikipedia in your own language inside your device (including images and audiovisual content) entirely offline. If your Internet
+access is expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this amazing repository of knowledge,
+information and culture.
 
-The reader also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), but our main targets are
+The Kiwix browser also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), but our main targets are
 Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
@@ -29,12 +29,17 @@ Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchang
 
 Install "Kiwix JS" from your browser's add-on store. This is the best way to get the extension, because it will be kept up to date automatically. If
 you would rather not use a store, you can get a file-based version of the extension from http://download.kiwix.org/release/browsers/, but you will
-have to update this manually. Alternatively, you can bookmark or install the PWA version from https://moz-extension.kiwix.org/current/ (it will
-auto-update). To install the PWA in Chromium browsers, go to Settings -> Apps -> Install this site as an app.
+have to update this manually.
 
-Additionally, the app requires ZIM archives that you can download from https://download.kiwix.org/zim/ or
-https://wiki.kiwix.org/wiki/Content_in_all_languages. You have to download these separately, store them in your filesystem, and manually select them
-after starting the application (or you can drag-and-drop one into the app).
+Alternatively, you can bookmark or install the PWA version from https://moz-extension.kiwix.org/current/ (it will auto-update), or try our dedicated
+PWA version at https://pwa.kiwix.org. To install the PWA (in Chromium browsers), go to Settings -> Apps -> Install this site as an app.
+
+As mentioned above, the app requires at least one ZIM archive of offline content. You can download one from https://library.kiwix.org (this has a nice,
+graphical interface and a preview of each ZIM archive) or from https://download.kiwix.org/zim/ (a more basic list of archives). You have to download
+these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
+
+Please note that certain "Zimit"-based archives (available from the "zimit" directory on https://download.kiwix.org/zim/) are not (yet) compatible
+with this reader. There is experimental support for these in our sister app https://pwa.kiwix.org.
 
 ## Some technical details
 
@@ -55,7 +60,9 @@ advised to remain in this mode.
 ## Compatibility
 
 Since the app is written in HTML/JavaScript, it should work in most recent browser engines and many older ones too, depending on the Content
-Injection mode supported by the specific browser engine.
+Injection mode supported by the specific browser engine. Archives containing dynamic content (most non-Wikimedia archives) work much better
+in ServiceWorker mode (see above), but unfortunately this is not available in many older browsers. If you wish to read such archives, we
+would suggest that you upgrade to a browser that supports Service Workers (Chrome 58+, Firefox 61+ [not ESR versions], Edge 17+, Safari 12+).
 
 ### Officially supported platforms
 
@@ -71,7 +78,7 @@ Injection mode supported by the specific browser engine.
 These platforms/browsers are deprecated. We still partially test against them, and we'll try to keep compatibility as long as it's not too complicated:
 
 - Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
-- Microsoft Edge Legacy >=40 (needs to run a local copy of the source code)
+- Microsoft Edge Legacy >=15 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
 
 ### Limitations
@@ -104,7 +111,7 @@ For code contributions, read our [CONTRIBUTING](CONTRIBUTING.md) guide.
 
 To get to know the Kiwix project better, please familiarize yourself with the content on https://www.kiwix.org. There is also a Kiwix [Slack](https://join.slack.com/t/kiwixoffline/shared_invite/zt-19s7tsi68-xlgHdmDr5c6MJ7uFmJuBkg) group which you can join.
 
-We also have a [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md) : everybody is expected to follow it.
+We also have a [CODE_OF_CONDUCT](CODE_OF_CONDUCT.md): everybody is expected to follow it.
 
 ## Public releases and nightly builds
 
