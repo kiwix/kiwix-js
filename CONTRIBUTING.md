@@ -16,14 +16,15 @@ Please follow these guidelines when contributing:
   - set up a local Web server: we recommend Node/NPM's [http-server](https://www.npmjs.com/package/http-server)), which you can launch by running `npm run serve` in the root of this repository;
   - in a browser, navigate to the URL of the main `index.html` (e.g. http://localhost:8080/www/index.html);
   - manually test your fix in at least Firefox and Chromium (Edge or Chrome), ideally also in IE11 or in "IE Mode" in Edge;
-  - be sure to test your fix in both "JQuery" mode and "Service Worker" mode (see Configuration);
+  - to refresh cached code after making changes, ensure the option "Bypass AppCache" is enabled under Expert settings, and pres Ctrl-Shift-R with DevTools open (see bottom of this section for more info)
+  - be sure to test your fix in both "JQuery" mode and "Service Worker" mode (under Compatibility settings);
   - run the Unit tests (see below) in at least the above browsers.
 
-If all the tests are working fine, you can finally test the extension versions, like this:
+If all the tests are working fine, you can finally test the extension versions. Plese note that we are using Manifest V3 for the Chromium extensions, and Manifest V2
+for the Firefox extension, so there are different instructions for the two browser families:
 
-  - Remove the '-WIP' from the version key from the manifest.json file present in the root of this repo;
   - In Chromium, you can install the extension by loading the root folder with Extensions -> Load Unpacked (with Developer Mode turned ON) -> select the root folder of the repository;
-  - In Firefox, you can load an extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, and then pick any file in the repository.
+  - In Firefox, you need to rename manifest.json to manifest.v3.json, and then rename manifest.v2.json to manifest.json. Then you can load the extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, and then pick any file in the repository.
 
 If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review.
 

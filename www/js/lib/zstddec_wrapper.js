@@ -1,7 +1,7 @@
 ﻿/**
  * zstddec_wrapper.js: Javascript wrapper around compiled zstd decompressor.
  *
- * Copyright 2020 Jaifroid, Mossroy and contributors
+ * Copyright 2023 Jaifroid, Mossroy and contributors
  * License GPL v3:
  *
  * This file is part of Kiwix.
@@ -19,7 +19,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
+
 'use strict';
+
+/* global define, params, ZD */
+/* eslint-disable no-multi-spaces */
 
 // DEV: Put your RequireJS definition in the rqDefZD array below, and any function exports in the function parenthesis of the define statement
 // We need to do it this way in order to load the wasm or asm versions of zstddec conditionally. Older browsers can only use the asm version
@@ -40,7 +44,7 @@ if ('WebAssembly' in self) {
     rqDefZD.push('zstddec-asm');
 }
 
-define(rqDefZD, function(uiUtil) {
+define(rqDefZD, function (uiUtil) {
     // DEV: zstddec.js has been compiled with `-s EXPORT_NAME="ZD" -s MODULARIZE=1` to avoid a clash with xzdec.js
     // Note that we include zstddec-wasm or zstddec-asm above in requireJS definition, but we cannot change the name in the function list
     // For explanation of loading method below to avoid conflicts, see https://github.com/emscripten-core/emscripten/blob/master/src/settings.js
@@ -68,7 +72,7 @@ define(rqDefZD, function(uiUtil) {
         // Get a permanent decoder handle (pointer to control structure)
         // NB there is no need to change this handle even between ZIM loads: zstddeclib encourages re-using assigned structures
         zd._decHandle = zd._ZSTD_createDStream();
-        // In-built function below provides a max recommended chunk size 
+        // In-built function below provides a max recommended chunk size
         zd._chunkSize = zd._ZSTD_DStreamInSize();
         // Change _chunkSize if you need a more conservative memory environment, but you may need to experiment with INITIAL_MEMORY
         // in zstddec.js (see below) for this to make any difference
@@ -142,7 +146,7 @@ define(rqDefZD, function(uiUtil) {
     /**
      * @typedef Decompressor
      * @property {FileReader} _reader The filereader to use (uses plain blob reader defined in zimfile.js)
-     * @property {Integer} _inStreamPos The current known position in the steam of compressed bytes 
+     * @property {Integer} _inStreamPos The current known position in the steam of compressed bytes
      * @property {Integer} _inStreamChunkedPos The position once the currently loaded chunk will have been consumed
      * @property {Integer} _outStreamPos The position in the decoded byte stream (offset from start of cluster)
      * @property {Array} _outDataBuf The buffer that stores decoded bytes (it is set to the requested blob's length, and when full, the data are returned)
@@ -153,7 +157,7 @@ define(rqDefZD, function(uiUtil) {
      * @constructor
      * @param {FileReader} reader The reader used to extract file slices (defined in zimfile.js)
      */
-    function Decompressor(reader) {
+    function Decompressor (reader) {
         params.decompressorAPI.decompressorLastUsed = 'ZSTD';
         this._reader = reader;
     }
@@ -174,7 +178,7 @@ define(rqDefZD, function(uiUtil) {
         this._outDataBufPos = 0;
         var ret = zd._ZSTD_initDStream(zd._decHandle);
         if (zd._ZSTD_isError(ret)) {
-            return Promise.reject('Failed to initialize ZSTD decompression');
+            return Promise.reject(new Error('Failed to initialize ZSTD decompression'));
         }
 
         return this._readLoop(offset, length).then(function (data) {
@@ -225,7 +229,7 @@ define(rqDefZD, function(uiUtil) {
             var finished = false;
             var ret = zd._ZSTD_decompressStream(zd._decHandle, zd._outBuffer.ptr, zd._inBuffer.ptr);
             if (zd._ZSTD_isError(ret)) {
-                var errorMessage = "Failed to decompress data stream!\n" + zd.getErrorString(ret);
+                var errorMessage = 'Failed to decompress data stream!\n' + zd.getErrorString(ret);
                 return Promise.reject(errorMessage);
             }
             // Get updated outbuffer values
@@ -236,8 +240,9 @@ define(rqDefZD, function(uiUtil) {
             if (outPos > 0 && that._outStreamPos + outPos >= offset) {
                 var copyStart = offset - that._outStreamPos;
                 if (copyStart < 0) copyStart = 0;
-                for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++)
+                for (var i = copyStart; i < outPos && that._outDataBufPos < that._outDataBuf.length; i++) {
                     that._outDataBuf[that._outDataBufPos++] = zd.HEAP8[zd._outBuffer.dst + i];
+                }
             }
             if (that._outDataBufPos === that._outDataBuf.length) finished = true;
             // Return without further processing if decompressor has finished
@@ -293,7 +298,7 @@ define(rqDefZD, function(uiUtil) {
      * @param {Integer} sizeOfData The number of bytes to be allocated
      * @returns {Integer} Pointer to the assigned data block
      */
-    function mallocOrDie(sizeOfData) {
+    function mallocOrDie (sizeOfData) {
         const dataPointer = zd._malloc(sizeOfData);
         if (dataPointer === 0) { // error allocating memory
             var errorMessage = 'Failed allocation of ' + sizeOfData + ' bytes.';
