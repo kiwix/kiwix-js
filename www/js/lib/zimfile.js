@@ -21,6 +21,8 @@
  */
 'use strict';
 
+/* global define, params */
+
 /**
  * This code makes an assumption that no Directory Entry will be larger that MAX_SUPPORTED_DIRENTRY_SIZE bytes.
  * If a larger dirEntry is encountered, a warning will display in console. Increase this value if necessary.
@@ -37,8 +39,8 @@ const MAX_SUPPORTED_DIRENTRY_SIZE = 5120;
  */
 if (!String.prototype.startsWith) {
     Object.defineProperty(String.prototype, 'startsWith', {
-        value: function(search, rawPos) {
-            var pos = rawPos > 0 ? rawPos|0 : 0;
+        value: function (search, rawPos) {
+            var pos = rawPos > 0 ? rawPos | 0 : 0;
             return this.substring(pos, pos + search.length) === search;
         }
     });
@@ -58,12 +60,11 @@ params.decompressorAPI = {
     errorStatus: null
 };
 
-define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'filecache'], function(xz, zstd, util, utf8, zimDirEntry, FileCache) {
-
+define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'filecache'], function (xz, zstd, util, utf8, zimDirEntry, FileCache) {
     /**
      * A variable to keep track of the currently loaded ZIM archive, e.g., for labelling cache entries
      * The ID is temporary and is reset to 0 at each session start; it is incremented by 1 each time a new ZIM is loaded
-     * @type {Integer} 
+     * @type {Integer}
      */
     var tempFileId = 0;
 
@@ -81,13 +82,13 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
         }
         return r;
     };
-                
+
     /**
      * A ZIM File
-     * 
+     *
      * See https://wiki.openzim.org/wiki/ZIM_file_format#Header
      * Some properties below are extended and are not part of the official OpenZIM specification
-     * 
+     *
      * @typedef {Object} ZIMFile
      * @property {Array<File>} _files Array of ZIM files
      * @property {String} name Abstract archive name for file set
@@ -107,12 +108,12 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * @property {String} zimType Extended property: currently either 'open' for OpenZIM file type, or 'zimit' for the warc2zim file type used by Zimit (set in zimArchive.js)
      * @property {Map} mimeTypes Extended property: the ZIM file's MIME type table rendered as a Map (calculated entry)
      */
-    
+
     /**
      * Abstract an array of one or more (split) ZIM archives
      * @param {Array<File>} abstractFileArray An array of ZIM file parts
      */
-    function ZIMFile(abstractFileArray) {
+    function ZIMFile (abstractFileArray) {
         this._files = abstractFileArray;
     }
 
@@ -120,7 +121,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * Read and decode an integer value from the ZIM archive
      * @param {Integer} offset The offset at which the integer is found
      * @param {Integer} size The size of data to read
-     * @returns {Promise<Integer>} A Promise for the returned value 
+     * @returns {Promise<Integer>} A Promise for the returned value
      */
     ZIMFile.prototype._readInteger = function (offset, size) {
         return this._readSlice(offset, size).then(function (data) {
@@ -134,15 +135,15 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * @param {Integer} size The number of bytes to read
      * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the requested data
      */
-    ZIMFile.prototype._readSlice = function(offset, size) {
+    ZIMFile.prototype._readSlice = function (offset, size) {
         return FileCache.read(this, offset, offset + size);
     };
 
     /**
      * Read a slice from a set of one or more ZIM files constituting a single archive, and concatenate the data parts
-     * @param {Integer} begin The absolute byte offset from which to start reading 
+     * @param {Integer} begin The absolute byte offset from which to start reading
      * @param {Integer} end The absolute byte offset where reading should stop (the end byte is not read)
-     * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the concatenated data 
+     * @returns {Promise<Uint8Array>} A Promise for a Uint8Array containing the concatenated data
      */
     ZIMFile.prototype._readSplitSlice = function (begin, end) {
         var file = this;
@@ -308,14 +309,14 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
      * @typedef {Object} DirListing A list of pointers to directory entries (via the URL pointerlist)
      * @property {String} path The path (url) to the directory entry for the Listing
      * @property {String} ptrName The name of the pointer to the Listing's data that will be added to the ZIMFile obect
-     * @property {String} countName The name of the key that will contain the number of entries in the Listing, to be added to the ZIMFile object 
+     * @property {String} countName The name of the key that will contain the number of entries in the Listing, to be added to the ZIMFile object
      */
 
     /**
      * Read the metadata (archive offset pointer, and number of entiries) of one or more ZIM directory Listings.
      * This supports reading a subset of user content that might be ordered differently from the main URL pointerlist.
      * In particular, it supports the v1 article pointerlist, which contains articles sorted by title, superseding the article
-     * namespace ('A') in legazy ZIM archives.  
+     * namespace ('A') in legazy ZIM archives.
      * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)
      * @returns {Promise} A promise that populates calculated entries in the ZIM file header
      */
@@ -327,8 +328,8 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
             // console.debug('ZIM DirListing version: 0 (legacy)', this);
             // Initiate a binary search for the first or last article
             var getArticleIndexByOrdinal = function (ordinal) {
-                return util.binarySearch(0, that.entryCount, function(i) {
-                    return that.dirEntryByTitleIndex(i).then(function(dirEntry) {
+                return util.binarySearch(0, that.entryCount, function (i) {
+                    return that.dirEntryByTitleIndex(i).then(function (dirEntry) {
                         var ns = dirEntry.namespace;
                         var url = ns + '/' + dirEntry.getTitleOrUrl();
                         var prefix = ordinal === 'first' ? 'A' : 'B';
@@ -336,12 +337,12 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                         else if (prefix > ns) return 1;
                         return prefix < url ? -1 : 1;
                     });
-                }, true).then(function(index) {
+                }, true).then(function (index) {
                     return index;
                 });
             };
-            getArticleIndexByOrdinal('first').then(function(idxFirstArticle) {
-                return getArticleIndexByOrdinal('last').then(function(idxLastArticle) {
+            getArticleIndexByOrdinal('first').then(function (idxFirstArticle) {
+                return getArticleIndexByOrdinal('last').then(function (idxLastArticle) {
                     // Technically idxLastArticle points to the entry after the last article in the 'A' namespace,
                     // We subtract the first from the last to get the number of entries in the 'A' namespace
                     that.articlePtrPos = that.titlePtrPos + idxFirstArticle * 4;
@@ -366,20 +367,21 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 return listingAccessor(listings.pop());
             }
             // Initiate a binary search for the listing URL
-            return util.binarySearch(0, that.entryCount, function(i) {
-                return that.dirEntryByUrlIndex(i).then(function(dirEntry) {
-                    var url = dirEntry.namespace + "/" + dirEntry.url;
-                    if (listing.path < url)
+            return util.binarySearch(0, that.entryCount, function (i) {
+                return that.dirEntryByUrlIndex(i).then(function (dirEntry) {
+                    var url = dirEntry.namespace + '/' + dirEntry.url;
+                    if (listing.path < url) {
                         return -1;
-                    else if (listing.path > url)
+                    } else if (listing.path > url) {
                         return 1;
-                    else
+                    } else {
                         return 0;
+                    }
                 });
-            }).then(function(index) {
+            }).then(function (index) {
                 if (index === null) return null;
                 return that.dirEntryByUrlIndex(index);
-            }).then(function(dirEntry) {
+            }).then(function (dirEntry) {
                 if (!dirEntry) return null;
                 // Detect a full text index
                 if (/fulltext\//.test(dirEntry.url)) {
@@ -387,7 +389,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 }
                 // Request the metadata for the blob represented by the dirEntry
                 return that.blob(dirEntry.cluster, dirEntry.blob, true);
-            }).then(function(metadata) {
+            }).then(function (metadata) {
                 // Note that we do not accept a listing if its size is 0, i.e. if it contains no data
                 // (although this should not occur, we have been asked to handle it - see kiwix-js #708)
                 if (metadata && metadata.size) {
@@ -397,25 +399,25 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 }
                 // Get the next Listing
                 return listingAccessor(listings.pop());
-            }).catch(function(err) {
+            }).catch(function (err) {
                 console.error('There was an error accessing a Directory Listing', err);
             });
         };
         return listingAccessor(listings.pop());
-    };    
+    };
 
     /**
      * Reads the whole MIME type list and returns it as a populated Map
      * The mimeTypeMap is extracted once after the user has picked the ZIM file
      * and is stored as ZIMFile.mimeTypes
-     * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list 
+     * @param {File} file The ZIM file (or first file in array of files) from which the MIME type list
      *      is to be extracted
      * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
      * @param {Integer} urlPtrPos The offset of URL Pointer List in the archive
      * @returns {Promise} A promise for the MIME Type list as a Map
      */
-    function readMimetypeMap(file, mimeListPos, urlPtrPos) {
-        var typeMap = new Map;
+    function readMimetypeMap (file, mimeListPos, urlPtrPos) {
+        var typeMap = new Map();
         var size = urlPtrPos - mimeListPos;
         // ZIM archives produced since May 2020 relocate the URL Pointer List to the end of the archive
         // so we limit the slice size to max 1024 bytes in order to prevent reading the entire archive into an array buffer
@@ -429,7 +431,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                 while (pos < size) {
                     pos++;
                     mimeString = utf8.parse(data.subarray(pos), true);
-                    // If the parsed data is an empty string, we have reached the end of the MIME type list, so break 
+                    // If the parsed data is an empty string, we have reached the end of the MIME type list, so break
                     if (!mimeString) break;
                     // Store the parsed string in the Map
                     typeMap.set(i, mimeString);
@@ -442,7 +444,7 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
             return typeMap;
         }).catch(function (err) {
             console.error('Unable to read MIME type list', err);
-            return new Map;
+            return new Map();
         });
     }
 
@@ -477,13 +479,13 @@ define(['xzdec_wrapper', 'zstddec_wrapper', 'util', 'utf8', 'zimDirEntry', 'file
                     zf.majorVersion = readInt(header, 4, 2); // Not currently used by this implementation
                     zf.minorVersion = readInt(header, 6, 2); // Used to determine the User Content namespace
                     zf.entryCount = readInt(header, 24, 4);
-                    zf.articleCount = null; // Calculated async by setListings() called from zimArchive.js 
+                    zf.articleCount = null; // Calculated async by setListings() called from zimArchive.js
                     zf.clusterCount = readInt(header, 28, 4);
                     zf.urlPtrPos = urlPtrPos;
                     zf.titlePtrPos = readInt(header, 40, 8);
                     zf.articlePtrPos = null; // Calculated async by setListings()
                     zf.fullTextIndex = null; // Calculated async by setListings()
-                    zf.fullTextIndexSize = null; // Calbulated async by setListings() 
+                    zf.fullTextIndexSize = null; // Calbulated async by setListings()
                     zf.clusterPtrPos = readInt(header, 48, 8);
                     zf.mimeListPos = mimeListPos;
                     zf.mainPage = readInt(header, 64, 4);

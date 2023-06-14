@@ -19,6 +19,8 @@ module.exports = {
         'no-unused-vars': 1,
         'n/no-callback-literal': 0,
         'object-shorthand': 0,
-        'multiline-ternary': 0
+        'multiline-ternary': 0,
+        'no-extend-native': 0,
+        'no-global-assign': 0
     }
 }
