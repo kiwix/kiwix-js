@@ -11,7 +11,9 @@ Released on *TODO*
 * ENHANCEMENT: Enabled full dynamic content in the Chromium extension via the PWA workaround
 * ENHANCEMENT: Migrate to Manifest Version 3 for the Chromium browser extension
 * ENHANCEMENT: Added a Promise queue to prevent overlapping dialogue boxes
+* UPDATE: In-app documentation updated to reflect latest practices
 * UPDATE: JQuery updated to v3.7.0
+* UPDATE: PWA server URL updated to https://browser-extension.kiwix.org
 * FIX: Restored dialogue box animations lost when JQuery was removed from the dialogue box code
 * FIX: Increase the number of download types recognized by the JQuery mode code
 * BUGFIX: Removed use of `Promise.finally()` incompatible with older browsers
