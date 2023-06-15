@@ -338,7 +338,7 @@ function fetchUrlFromZIM (urlObject, range) {
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
-                headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
+                headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
                 headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
 
