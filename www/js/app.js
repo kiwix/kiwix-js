@@ -76,7 +76,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     // The current version number of this app
     params['appVersion'] = '3.8.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
     // The PWA server (currently only for use with the Mozilla extension)
-    params['PWAServer'] = 'https://moz-extension.kiwix.org/current/'; // Include final slash!
+    params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
     // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
     // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
     // A parameter to determine the Settings Store API in use
