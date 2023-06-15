@@ -1,10 +1,10 @@
-# Workflow to publish the Mozilla extension
+# Workflow to publish the browser extension
 # Conditionally publishes the current branch to GitHub Pages, and/or
-# updates docker image for moz-extension.kiwix.org
+# updates docker image for browser-extension.kiwix.org
 # This workflow uses openzim/docker-publish-action@v6
 # Documentation: https://github.com/openzim/docker-publish-action#readme
 
-name: Publish Mozilla extension
+name: Publish browser extension
 
 # Controls when the action will run.
 on:
@@ -34,7 +34,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Deploy Mozilla extension
+    name: Deploy browser extension
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -57,7 +57,7 @@ jobs:
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
           tag-pattern: /^v?([0-9.]+)$/
           latest-on-tag: true
-          dockerfile: docker/dockerfile-moz-extension.pwa
+          dockerfile: docker/dockerfile-browser-extension.pwa
           restrict-to: kiwix/kiwix-js
           registries: ghcr.io
           manual-tag: ${{ github.event.inputs.version }}

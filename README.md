@@ -6,7 +6,7 @@ archives. For full information about the open-source Kiwix project, see our main
 Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
 can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (search for "Kiwix", or click on a badge
 below). There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
-at https://moz-extension.kiwix.org/current/. Alternatively, for a dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
+at https://browser-extension.kiwix.org/current/. Alternatively, for a dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
 
 To use Kiwix JS, you will need to obtain, completely free, a content archive (see below). Once you have this on your device, select it in Kiwix JS,
 or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to read the archive's content. You can
@@ -31,7 +31,7 @@ Install "Kiwix JS" from your browser's add-on store. This is the best way to get
 you would rather not use a store, you can get a file-based version of the extension from http://download.kiwix.org/release/browsers/, but you will
 have to update this manually.
 
-Alternatively, you can bookmark or install the PWA version from https://moz-extension.kiwix.org/current/ (it will auto-update), or try our dedicated
+Alternatively, you can bookmark or install the PWA version from https://browser-extension.kiwix.org/current/ (it will auto-update), or try our dedicated
 PWA version at https://pwa.kiwix.org. To install the PWA (in Chromium browsers), go to Settings -> Apps -> Install this site as an app.
 
 As mentioned above, the app requires at least one ZIM archive of offline content. You can download one from https://library.kiwix.org (this has a nice,
