@@ -6,7 +6,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v3.9.0
 
-Released on *TODO*
+Released on *2023-06-16*
 
 * ENHANCEMENT: Enabled full dynamic content in the Chromium extension via the PWA workaround
 * ENHANCEMENT: Migrate to Manifest Version 3 for the Chromium browser extension
