@@ -75,7 +75,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
      */
     // The current version number of this app
     params['appVersion'] = '3.8.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
-    // The PWA server (currently only for use with the Mozilla extension)
+    // The PWA server (for use with the browser extensions in ServiceWorker mode)
     params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
     // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
     // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
@@ -885,7 +885,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
             // So we now need to suggest a switch to the PWA if we are inside a Firefox Extension and the ServiceWorker API is unavailable.
             // Even if some older firefox versions do not support ServiceWorkers at all (versions 42, 43, 45ESR, 52ESR, 60ESR and 68ESR, based on https://caniuse.com/serviceworkers). In this case, the PWA will not work either.
             if (/^(moz|chrome)-extension:/.test(protocol) && !params.serviceWorkerLocal) {
-                launchMozillaExtensionServiceWorker();
+                launchBrowserExtensionServiceWorker();
             } else {
                 if (!isServiceWorkerAvailable()) {
                     message =
@@ -951,7 +951,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
                         }).catch(function (err) {
                             if (protocol === 'moz-extension:') {
                                 // This is still useful for Firefox<103 extensions, where the ServiceWorker API is available, but fails to register
-                                launchMozillaExtensionServiceWorker();
+                                launchBrowserExtensionServiceWorker();
                             } else {
                                 console.error('Error while registering serviceWorker', err);
                                 refreshAPIStatus();
@@ -992,7 +992,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     }
 
     /**
-     * Tells if the ServiceWorker API is available
+     * Detects whether the ServiceWorker API is available
      * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
      * @returns {Boolean}
      */
@@ -1001,7 +1001,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
     }
 
     /**
-     * Tells if the MessageChannel API is available
+     * Detects whether the MessageChannel API is available
      * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
      * @returns {Boolean}
      */
@@ -1025,7 +1025,7 @@ define(['jquery', 'zimArchiveLoader', 'uiUtil', 'settingsStore', 'abstractFilesy
         return (serviceWorkerRegistration);
     }
 
-    function launchMozillaExtensionServiceWorker () {
+    function launchBrowserExtensionServiceWorker () {
         // DEV: See explanation below for why we access localStorage directly here
         var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
         var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
