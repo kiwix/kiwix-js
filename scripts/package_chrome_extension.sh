@@ -17,7 +17,11 @@ if [ -n $MV ]; then
 fi
 echo "Packaging unsigned Chrome extension, version $VERSION"
 cd tmp
-zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+if [ $MV -eq 2 ]; then
+    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www backgroundscript.js manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+else
+    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+fi
 cd ..
 if [ -z $TAG ]; then
     # Package the extension with Chrome or Chromium, if we're not packaging a public version
@@ -26,7 +30,7 @@ if [ -z $TAG ]; then
         echo "Chromium is available"
         CHROME_BIN=chromium-browser
     else
-        echo "Chromium is not available : trying to use Chrome"
+        echo "Chromium is not available: trying to use Chrome"
         CHROME_BIN=google-chrome-stable
     fi
     echo "Signing the extension for $CHROME_BIN, version $VERSION"
