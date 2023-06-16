@@ -141,6 +141,11 @@ const precacheFiles = [
     'www/js/lib/zimArchiveLoader.js',
     'www/js/lib/zimDirEntry.js',
     'www/js/lib/zimfile.js',
+    // Test files for loading wabac and wombat
+    'www/js/lib/load.js',
+    'www/js/lib/wabac.js',
+    'www/js/lib/wombat.js',
+    'www/topFrame.html'
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
     'node_modules/bootstrap/dist/css/bootstrap.min.css',
