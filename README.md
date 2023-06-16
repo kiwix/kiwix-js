@@ -67,8 +67,10 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 ### Officially supported platforms
 
 - Mozilla Firefox >=52 (as an extension: https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
-- Google Chrome (or Chromium) >=58 (as an extension: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-- Microsoft Edge (Chromium) >=79 (as an add-on: https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+- Google Chrome / Chromium >=88  (as a Manifest V3 extension: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+- Google Chrome / Chromium 58-87 (as a Manifest V2 extension: use unsigned MV2 zip from https://download.kiwix.org/release/browsers/chrome/, see [instructions below](#installing-unsigned-extensions-in-chromium))
+- Microsoft Edge (Chromium) >=88 (as an add-on: https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+- Microsoft Edge (Chromium) 79-87 (as a Manifest V2 extension: use unsigned MV2 zip from https://download.kiwix.org/release/browsers/edge/, see [instructions below](#installing-unsigned-extensions-in-chromium))
 - Electron >=1.8.0 and NWJS >=0.14.7 (as an application: see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
 - Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application: see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application: https://open-store.io/app/kiwix)
@@ -80,6 +82,14 @@ These platforms/browsers are deprecated. We still partially test against them, a
 - Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
 - Microsoft Edge Legacy >=15 (needs to run a local copy of the source code)
 - Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
+
+### Installing unsigned extensions in Chromium
+
+If you need to install an unsigned extension version, e.g. if your browser doesn't support Manivest V3, then you will need to download an unsigned ZIP file from
+a relevant directory in https://download.kiwix.org/release/browsers/, or else a nightly version from https://download.kiwix.org/nightly/. Unzip this extension into
+a folder, and note the location. Open the extension management page in your browser, e.g. chrome://extensions/ or edge://extensions/, and turn on Developer mode.
+Then select "Load unpacked" and choose the folder that contains the unzipped extension. The browser will periodically ask you if you want to keep developer mode
+extensions installed.
 
 ### Limitations
 
