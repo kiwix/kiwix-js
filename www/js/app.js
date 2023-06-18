@@ -264,7 +264,7 @@ $('#searchArticles').on('click', function () {
     pushBrowserHistoryState(null, prefix);
     // Initiate the search
     searchDirEntriesFromPrefix(prefix);
-    // $('.navbar-collapse').collapse('hide');
+    $('.navbar-collapse').collapse('hide');
     document.getElementById('prefix').focus();
     // This flag is set to true in the mousedown event below
     searchArticlesFocused = false;
@@ -384,7 +384,7 @@ $('#btnHome').on('click', function () {
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
-    // $('.navbar-collapse').collapse('hide');
+    $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
@@ -423,7 +423,7 @@ $('#btnConfigure').on('click', function () {
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
     document.getElementById('liAboutNav').setAttribute('class', '');
-    // $('.navbar-collapse').collapse('hide');
+    $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
@@ -450,7 +450,7 @@ $('#btnAbout').on('click', function () {
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
-    // $('.navbar-collapse').collapse('hide');
+    $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
