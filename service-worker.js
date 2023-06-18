@@ -123,7 +123,7 @@ const precacheFiles = [
     'www/js/lib/arrayFromPolyfill.js',
     'www/js/lib/bootstrap.bundle.js',
     'www/js/lib/filecache.js',
-    'www/js/lib/jquery-3.7.0.slim.min.js',
+    'www/js/lib/jquery.module.js',
     'www/js/lib/promisePolyfill.js',
     'www/js/lib/require.js',
     'www/js/lib/settingsStore.js',
@@ -135,9 +135,7 @@ const precacheFiles = [
     'www/js/lib/zimArchive.js',
     'www/js/lib/zimArchiveLoader.js',
     'www/js/lib/zimDirEntry.js',
-    'www/js/lib/zimfile.js',
-    'www/js/lib/fontawesome/fontawesome.js',
-    'www/js/lib/fontawesome/solid.js'
+    'www/js/lib/zimfile.js'
 ];
 
 if ('WebAssembly' in self) {
