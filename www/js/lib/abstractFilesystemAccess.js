@@ -26,84 +26,67 @@
  */
 
 'use strict';
+function StorageFirefoxOS(storage) {
+    this._storage = storage;
+    this.storageName = storage.storageName;
+}
+/**
+ * Access the given file.
+ * @param {String} path absolute path to the file
+ * @return {Promise} Promise which is resolved with a HTML5 file object and
+ *         rejected with an error message.
+ */
+StorageFirefoxOS.prototype.get = function (path) {
+    var that = this;
+    return new Promise(function (resolve, reject) {
+        var request = that._storage.get(path);
+        request.onsuccess = function () { resolve(this.result); };
+        request.onerror = function () { reject(this.error.name); };
+    });
+};
 
-/* global define */
+// We try to match both a standalone ZIM file (.zim) or
+// the first file of a split ZIM files collection (.zimaa)
+var regexpZIMFileName = /\.zim(aa)?$/i;
 
-define([], function () {
-    /**
-     * Storage implemented by Firefox OS
-     *
-     * @typedef StorageFirefoxOS
-     * @property {DeviceStorage} _storage DeviceStorage
-     * @property {String} storageName Name of the storage
-     */
+/**
+ * Searches for archive files or directories.
+ * @return {Promise} Promise which is resolved with an array of
+ *         paths and rejected with an error message.
+ */
+StorageFirefoxOS.prototype.scanForArchives = function () {
+    var that = this;
+    return new Promise(function (resolve, reject) {
+        var directories = [];
+        var cursor = that._storage.enumerate();
+        cursor.onerror = function () {
+            reject(cursor.error);
+        };
+        cursor.onsuccess = function () {
+            if (!cursor.result) {
+                resolve(directories);
+                return;
+            }
+            var file = cursor.result;
 
-    /**
-     * Creates an abstraction layer around the FirefoxOS storage.
-     * @param storage FirefoxOS DeviceStorage object
-     */
-    function StorageFirefoxOS (storage) {
-        this._storage = storage;
-        this.storageName = storage.storageName;
-    };
-    /**
-     * Access the given file.
-     * @param {String} path absolute path to the file
-     * @return {Promise} Promise which is resolved with a HTML5 file object and
-     *         rejected with an error message.
-     */
-    StorageFirefoxOS.prototype.get = function (path) {
-        var that = this;
-        return new Promise(function (resolve, reject) {
-            var request = that._storage.get(path);
-            request.onsuccess = function () { resolve(this.result); };
-            request.onerror = function () { reject(this.error.name); };
-        });
-    };
+            if (regexpZIMFileName.test(file.name)) {
+                directories.push(file.name);
+            }
 
-    // We try to match both a standalone ZIM file (.zim) or
-    // the first file of a split ZIM files collection (.zimaa)
-    var regexpZIMFileName = /\.zim(aa)?$/i;
+            cursor.continue();
+        };
+    });
+};
 
-    /**
-     * Searches for archive files or directories.
-     * @return {Promise} Promise which is resolved with an array of
-     *         paths and rejected with an error message.
-     */
-    StorageFirefoxOS.prototype.scanForArchives = function () {
-        var that = this;
-        return new Promise(function (resolve, reject) {
-            var directories = [];
-            var cursor = that._storage.enumerate();
-            cursor.onerror = function () {
-                reject(cursor.error);
-            };
-            cursor.onsuccess = function () {
-                if (!cursor.result) {
-                    resolve(directories);
-                    return;
-                }
-                var file = cursor.result;
+/**
+ * Browse a path through DeviceStorage API
+ * @param path Path where to look for files
+ * @return {DOMCursor} Cursor of files found in given path
+ */
+StorageFirefoxOS.prototype.enumerate = function (path) {
+    return this._storage.enumerate();
+};
 
-                if (regexpZIMFileName.test(file.name)) {
-                    directories.push(file.name);
-                }
-
-                cursor.continue();
-            };
-        });
-    };
-
-    /**
-     * Browse a path through DeviceStorage API
-     * @param path Path where to look for files
-     * @return {DOMCursor} Cursor of files found in given path
-     */
-    StorageFirefoxOS.prototype.enumerate = function (path) {
-        return this._storage.enumerate();
-    };
-
-    return {
-        StorageFirefoxOS: StorageFirefoxOS
-    };
-});
+export default {
+    StorageFirefoxOS: StorageFirefoxOS
+};

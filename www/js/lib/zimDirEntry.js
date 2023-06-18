@@ -22,117 +22,87 @@
 
 'use strict';
 
-/* global define */
+function DirEntry(zimfile, dirEntryData) {
+    this._zimfile = zimfile;
+    this.redirect = dirEntryData.redirect;
+    this.offset = dirEntryData.offset;
+    this.mimetypeInteger = dirEntryData.mimetypeInteger;
+    this.namespace = dirEntryData.namespace;
+    this.redirectTarget = dirEntryData.redirectTarget;
+    this.cluster = dirEntryData.cluster;
+    this.blob = dirEntryData.blob;
+    this.url = dirEntryData.url;
+    this.title = dirEntryData.title;
+}
 
-define([], function () {
-    /**
-     * A Directory Entry in a ZIM File
-     *
-     * See https://wiki.openzim.org/wiki/ZIM_file_format#Directory_Entries
-     *
-     * @typedef DirEntry
-     * @property {File} _zimfile The ZIM file
-     * @property {Boolean} redirect
-     * @property {Integer} offset
-     * @property {Integer} mimetypeInteger MIME type number as defined in the MIME type list
-     * @property {String} namespace defines to which namespace this directory entry belongs
-     * @property {Integer} redirectTarget
-     * @property {Integer} cluster cluster number in which the data of this directory entry is stored
-     * @property {Integer} blob blob number inside the compressed cluster where the contents are stored
-     * @property {String} url string with the URL as refered in the URL pointer list
-     * @property {String} title string with a title as refered in the Title pointer list (or empty)
-     *
-     */
+/**
+ * Serialize some attributes of a DirEntry, to be able to store them in a HTML tag attribute,
+ * and retrieve them later.
+ *
+ * @returns {String}
+ */
+DirEntry.prototype.toStringId = function () {
+    // @todo also store isRedirect and redirectTarget
+    return this.offset + '|' + this.mimetypeInteger + '|' + this.namespace + '|' + this.cluster + '|' +
+            this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
+};
 
-    /**
-     * @param {File} zimfile
-     * @param {unresolved} dirEntryData
-     */
-    function DirEntry (zimfile, dirEntryData) {
-        this._zimfile = zimfile;
-        this.redirect = dirEntryData.redirect;
-        this.offset = dirEntryData.offset;
-        this.mimetypeInteger = dirEntryData.mimetypeInteger;
-        this.namespace = dirEntryData.namespace;
-        this.redirectTarget = dirEntryData.redirectTarget;
-        this.cluster = dirEntryData.cluster;
-        this.blob = dirEntryData.blob;
-        this.url = dirEntryData.url;
-        this.title = dirEntryData.title;
-    };
+/**
+ *
+ * @returns {Boolean}
+ */
+DirEntry.prototype.isRedirect = function () {
+    return this.redirect;
+};
 
-    /**
-     * Serialize some attributes of a DirEntry, to be able to store them in a HTML tag attribute,
-     * and retrieve them later.
-     *
-     * @returns {String}
-     */
-    DirEntry.prototype.toStringId = function () {
-        // @todo also store isRedirect and redirectTarget
-        return this.offset + '|' + this.mimetypeInteger + '|' + this.namespace + '|' + this.cluster + '|' +
-                this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
-    };
+/**
+ *
+ * @returns {Promise}
+ */
+DirEntry.prototype.readData = function () {
+    return this._zimfile.blob(this.cluster, this.blob);
+};
 
-    /**
-     *
-     * @returns {Boolean}
-     */
-    DirEntry.prototype.isRedirect = function () {
-        return this.redirect;
-    };
+/**
+ *
+ * @param {File} zimfile
+ * @param {String} stringId
+ * @returns {DirEntry}
+ */
+DirEntry.fromStringId = function (zimfile, stringId) {
+    var data = {};
+    var idParts = stringId.split('|');
+    data.offset = parseInt(idParts[0], 10);
+    data.mimetypeInteger = parseInt(idParts[1], 10);
+    data.namespace = idParts[2];
+    data.cluster = parseInt(idParts[3], 10);
+    data.blob = parseInt(idParts[4], 10);
+    data.url = idParts[5];
+    data.title = idParts[6];
+    data.redirect = (idParts[7] === 'true');
+    data.redirectTarget = idParts[8];
+    return new DirEntry(zimfile, data);
+};
 
-    /**
-     *
-     * @returns {Promise}
-     */
-    DirEntry.prototype.readData = function () {
-        return this._zimfile.blob(this.cluster, this.blob);
-    };
+/**
+ * Defines a function that returns the URL if the title is empty, as per the specification
+ * See https://wiki.openzim.org/wiki/ZIM_file_format#Directory_Entries
+ *
+ * @returns {String} The dirEntry's title or, if empty, the dirEntry's (unescaped) URL
+ */
+DirEntry.prototype.getTitleOrUrl = function () {
+    return this.title ? this.title : this.url;
+};
 
-    /**
-     *
-     * @param {File} zimfile
-     * @param {String} stringId
-     * @returns {DirEntry}
-     */
-    DirEntry.fromStringId = function (zimfile, stringId) {
-        var data = {};
-        var idParts = stringId.split('|');
-        data.offset = parseInt(idParts[0], 10);
-        data.mimetypeInteger = parseInt(idParts[1], 10);
-        data.namespace = idParts[2];
-        data.cluster = parseInt(idParts[3], 10);
-        data.blob = parseInt(idParts[4], 10);
-        data.url = idParts[5];
-        data.title = idParts[6];
-        data.redirect = (idParts[7] === 'true');
-        data.redirectTarget = idParts[8];
-        return new DirEntry(zimfile, data);
-    };
+/**
+ * Looks up the dirEntry's mimetype number in the ZIM file's MIME type list, and returns the corresponding MIME type
+ *
+ * @return {String} The MIME type corresponding to mimetypeInteger in the ZIM file's MIME type list
+ */
+DirEntry.prototype.getMimetype = function () {
+    return this._zimfile.mimeTypes.get(this.mimetypeInteger);
+};
 
-    /**
-     * Defines a function that returns the URL if the title is empty, as per the specification
-     * See https://wiki.openzim.org/wiki/ZIM_file_format#Directory_Entries
-     *
-     * @returns {String} The dirEntry's title or, if empty, the dirEntry's (unescaped) URL
-     */
-    DirEntry.prototype.getTitleOrUrl = function () {
-        return this.title ? this.title : this.url;
-    };
-
-    /**
-     * Looks up the dirEntry's mimetype number in the ZIM file's MIME type list, and returns the corresponding MIME type
-     *
-     * @return {String} The MIME type corresponding to mimetypeInteger in the ZIM file's MIME type list
-     */
-    DirEntry.prototype.getMimetype = function () {
-        return this._zimfile.mimeTypes.get(this.mimetypeInteger);
-    };
-
-    /**
-     * Functions and classes exposed by this module
-     */
-    return {
-        DirEntry: DirEntry
-    };
-});
+export default {
+    DirEntry: DirEntry
+};

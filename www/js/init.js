@@ -1,8 +1,8 @@
-/**
- * init.js : Configuration for the library require.js
- * This file handles the dependencies between javascript libraries
+/*!
+ * init.js : Configuration for the app
+ * This file sets the app's main parameters and variables
  *
- * Copyright 2013-2020 Mossroy and contributors
+ * Copyright 2013-2023 Mossroy, Jaifroid and contributors
  * License GPL v3:
  *
  * This file is part of Kiwix.
@@ -20,9 +20,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-'use strict';
 
-/* global requirejs */
+'use strict';
 
 /**
  * A global parameter object for storing variables that need to be remembered between page loads,
@@ -45,36 +44,6 @@ if (/PWA_launch=/.test(window.location.search)) {
     if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
     console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
 } else {
-    require.config({
-        baseUrl: 'js/lib',
-        paths: {
-            jquery: 'jquery-3.7.0.slim.min',
-            bootstrap: 'bootstrap.bundle',
-            webpHeroBundle: 'webpHeroBundle_0.0.2',
-            fontawesome: 'fontawesome/fontawesome',
-            'fontawesome-solid': 'fontawesome/solid'
-        },
-        shim: {
-            jquery: {
-                exports: '$'
-            },
-            bootstrap: {
-                deps: ['jquery', 'fontawesome', 'fontawesome-solid']
-            },
-            webpHeroBundle: ''
-        }
-    });
-
-    var req = ['bootstrap']; // Baseline Require array
-
-    // Add polyfills to the Require array only if needed
-    if (!('Promise' in self)) req.push('promisePolyfill');
-    if (!('from' in Array)) req.push('arrayFromPolyfill');
-
-    requirejs(req, function () {
-        requirejs(['../app']);
-    });
-
     // Test if WebP is natively supported, and if not, set webpMachine to true. The value of webpMachine
     // will determine whether the WebP Polyfills will be loaded (currently only used in uiUtil.js)
     var webpMachine = false;
