@@ -23,6 +23,8 @@
 
 'use strict';
 
+/* global webpHero */
+
 // Define global params needed for tests to run on existing app code
 var params = {};
 
@@ -48,4 +50,3 @@ var webpMachine = false;
         document.head.appendChild(webpScript);
     }
 });
-

@@ -23,6 +23,8 @@
 
 'use strict';
 
+/* global webpHero */
+
 /**
  * A global parameter object for storing variables that need to be remembered between page loads,
  * or across different functions and modules
@@ -44,8 +46,7 @@ if (/PWA_launch=/.test(window.location.search)) {
     if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
     console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
 } else {
-    // Test if WebP is natively supported, and if not, set webpMachine to true. The value of webpMachine
-    // will determine whether the WebP Polyfills will be loaded (currently only used in uiUtil.js)
+    // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
     var webpMachine = false;
 
     // We use a self-invoking function here to avoid defining unnecessary global functions and variables
@@ -58,7 +59,13 @@ if (/PWA_launch=/.test(window.location.search)) {
         webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
     })(function (support) {
         if (!support) {
-            webpMachine = true;
+            // Note we set the location of this to be the directory where scripts reside after bundling
+            var webpScript = document.createElement('script');
+            webpScript.onload = function () {
+                webpMachine = new webpHero.WebpMachine();
+            }
+            webpScript.src = '../www/js/lib/webpHeroBundle_0.0.2.js';
+            document.head.appendChild(webpScript);
         }
     });
 }
