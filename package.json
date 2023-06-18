@@ -3,11 +3,11 @@
   "scripts": {
     "serve": "http-server .",
     "test": "npm run test-unit-local",
-    "test-unit-local": "karma start tests/karma.conf.local.js",
-    "test-unit-firefox": "karma start tests/karma.conf.local.js --browsers FirefoxHeadless",
-    "test-unit-chromium": "karma start tests/karma.conf.local.js --browsers ChromiumHeadless",
-    "test-unit-chrome": "karma start tests/karma.conf.local.js --browsers ChromeHeadless",
-    "test-unit-saucelabs": "karma start tests/karma.conf.saucelabs.js"
+    "test-unit-local": "karma start tests/karma.conf.local.cjs",
+    "test-unit-firefox": "karma start tests/karma.conf.local.cjs --browsers FirefoxHeadless",
+    "test-unit-chromium": "karma start tests/karma.conf.local.cjs --browsers ChromiumHeadless",
+    "test-unit-chrome": "karma start tests/karma.conf.local.cjs --browsers ChromeHeadless",
+    "test-unit-saucelabs": "karma start tests/karma.conf.saucelabs.cjs"
   },
   "engines": {
     "node": ">=10"
