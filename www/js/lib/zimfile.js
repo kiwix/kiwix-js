@@ -24,6 +24,13 @@
 
 /* global params */
 
+import xz from './xzdec_wrapper.js';
+import zstd from './zstddec_wrapper.js';
+import util from './util.js';
+import utf8 from './utf8.js';
+import zimDirEntry from './zimDirEntry.js';
+import FileCache from './filecache.js';
+
 /**
  * This code makes an assumption that no Directory Entry will be larger that MAX_SUPPORTED_DIRENTRY_SIZE bytes.
  * If a larger dirEntry is encountered, a warning will display in console. Increase this value if necessary.
@@ -60,13 +67,6 @@ params.decompressorAPI = {
     decompressorLastUsed: null,
     errorStatus: null
 };
-
-import xz from './xzdec_wrapper.js';
-import zstd from './zstddec_wrapper.js';
-import util from './util.js';
-import utf8 from './utf8.js';
-import zimDirEntry from './zimDirEntry.js';
-import FileCache from './filecache.js';
 
 /**
  * A variable to keep track of the currently loaded ZIM archive, e.g., for labelling cache entries

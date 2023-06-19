@@ -26,6 +26,7 @@
  */
 
 'use strict';
+
 function StorageFirefoxOS(storage) {
     this._storage = storage;
     this.storageName = storage.storageName;

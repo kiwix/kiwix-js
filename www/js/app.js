@@ -30,8 +30,8 @@
 // import styles from '../css/app.css' assert { type: "css" };
 // import bootstrap from '../css/bootstrap.min.css' assert { type: "css" };
 import $ from './lib/jquery.module.js';
-import 'bootstrap';
-import 'fontawesome';
+import '../../node_modules/bootstrap/dist/js/bootstrap.bundle.js';
+import '../../node_modules/@fortawesome/fontawesome-free/js/all.js';
 import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
