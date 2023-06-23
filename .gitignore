@@ -48,6 +48,7 @@ www-ghdeploy
 /scripts/kiwix-*.pem
 /scripts/set_secret_environment_variables.sh
 /build/
+/dist/
 /scripts/travisci_builder_id_key
 /scripts/ssh_key
 /scripts/secret_files.tar.gz
