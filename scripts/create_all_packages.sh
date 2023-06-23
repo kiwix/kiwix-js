@@ -124,13 +124,13 @@ if [ -n "$TAG" ]; then
         echo -e "\nUploading the files to https://download.kiwix.org/release/"
         scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-firefoxos* ci@master.download.kiwix.org:/data/download/release/firefox-os
         scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-ubuntu-touch* ci@master.download.kiwix.org:/data/download/release/ubuntu-touch
-        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome*MV2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/chrome/kiwix-chrome-MV2_$VERSION.zip
-        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome*MV2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/edge/kiwix-edge-MV2_$VERSION.zip
+        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome*mv2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/chrome/kiwix-chrome-mv2_$VERSION.zip
+        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome*mv2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/edge/kiwix-edge-mv2_$VERSION.zip
     else
         echo -e "\n[DRRUN] Would have uploaded these files to https://download.kiwix.org/release/ :\n"
         ls -l build/kiwix-firefoxos*
         ls -l build/kiwix-ubuntu-touch*
-        ls -l build/kiwix-chrome*MV2*.zip
+        ls -l build/kiwix-chrome*mv2*.zip
     fi
     echo -e "\n\e[0;32m*** DEV: Please note that Firefox and Chrome signed extension packages will need to be copied manually to the ***"
     echo -e "*** release directory once they have been signed by the respective app stores. Unsigned versions in nightly.  ***\n\e[0m"
