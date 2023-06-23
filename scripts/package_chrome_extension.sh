@@ -13,7 +13,7 @@ while getopts m:tdv: option; do
 done
 if [ -n $MV ]; then
     echo -e "\nManifest version requested: $MV"
-    VERSION="MV$MV-$VERSION"
+    VERSION="mv$MV-$VERSION"
 fi
 echo "Packaging unsigned Chrome extension, version $VERSION"
 cd tmp
