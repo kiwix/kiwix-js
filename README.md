@@ -4,9 +4,9 @@ Kiwix is an offline browser for Wikipedia, Stackexchange, Project Gutenberg, and
 archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
 
 Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
-can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (search for "Kiwix", or click on a badge
-below). There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
-at https://browser-extension.kiwix.org/current/. Alternatively, for a dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
+can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (see [Store links](#officially-supported-platforms) below).
+There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
+at https://browser-extension.kiwix.org/current/. For the dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
 
 To use Kiwix JS, you will need to obtain, completely free, a content archive (see below). Once you have this on your device, select it in Kiwix JS,
 or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to read the archive's content. You can
@@ -66,14 +66,14 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=52 (as an extension): https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/
+- Mozilla Firefox >=52 (as an extension): [Mozilla Add-ons Store](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
 - Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
-    + Google Chrome >=88: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk
-    + Microsoft Edge >=88 https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp
-- Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use unsigned MV2 zip from the chrome or edge folder in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-unsigned-extensions-in-chromium)
-- Electron >=1.8.0 and NWJS >=0.14.7 (as an application: see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
-- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application: see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
-- Ubuntu Touch (as an application: https://open-store.io/app/kiwix)
+    + Google Chrome >=88: [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+    + Microsoft Edge >=88: [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+- Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use unsigned MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-unsigned-extensions-in-chromium)
+- Electron >=1.8.0 and NWJS >=0.14.7 (as an application): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
+- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
+- Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
