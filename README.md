@@ -66,11 +66,11 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=52 (as an extension: https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
-- Google Chrome / Chromium >=88  (as a Manifest V3 extension: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-- Google Chrome / Chromium 58-87 (as a Manifest V2 extension: use unsigned MV2 zip from https://download.kiwix.org/release/browsers/chrome/, see [instructions below](#installing-unsigned-extensions-in-chromium))
-- Microsoft Edge (Chromium) >=88 (as an add-on: https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Microsoft Edge (Chromium) 79-87 (as a Manifest V2 extension: use unsigned MV2 zip from https://download.kiwix.org/release/browsers/edge/, see [instructions below](#installing-unsigned-extensions-in-chromium))
+- Mozilla Firefox >=52 (as an extension): https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/
+- Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
+    + Google Chrome >=88: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk
+    + Microsoft Edge >=88 https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp
+- Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use unsigned MV2 zip from the chrome or edge folder in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-unsigned-extensions-in-chromium)
 - Electron >=1.8.0 and NWJS >=0.14.7 (as an application: see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
 - Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application: see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application: https://open-store.io/app/kiwix)
