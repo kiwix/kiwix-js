@@ -4,9 +4,9 @@ Kiwix is an offline browser for Wikipedia, Stackexchange, Project Gutenberg, and
 archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
 
 Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
-can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (search for "Kiwix", or click on a badge
-below). There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
-at https://browser-extension.kiwix.org/current/. Alternatively, for a dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
+can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (see [Store links](#officially-supported-platforms) below).
+There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
+at https://browser-extension.kiwix.org/current/. For the dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
 
 To use Kiwix JS, you will need to obtain, completely free, a content archive (see below). Once you have this on your device, select it in Kiwix JS,
 or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to read the archive's content. You can
@@ -20,10 +20,11 @@ Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchang
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![CodeFactor](https://www.codefactor.io/repository/github/kiwix/kiwix-js/badge)](https://www.codefactor.io/repository/github/kiwix/kiwix-js)
-[![Kiwix for Firefox](https://img.shields.io/amo/v/kiwix-offline?label=Kiwix%20for%20Firefox)](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
-[![Kiwix for Chrome](https://img.shields.io/chrome-web-store/v/donaljnlmapmngakoipdmehbfcioahhk?label=Kiwix%20for%20Chrome)](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-[![Kiwix for Edge](https://img.shields.io/badge/dynamic/json?label=Kiwix%20for%20Edge&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fjlepddlenlljlnnhjinfaciabanbnjbp)](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+[![Kiwix for Firefox](https://img.shields.io/amo/v/kiwix-offline?label=Kiwix%20for%20Firefox&logo=firefoxbrowser&logoColor=whitesmoke)](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+[![Kiwix for Chrome](https://img.shields.io/chrome-web-store/v/donaljnlmapmngakoipdmehbfcioahhk?label=Kiwix%20for%20Chrome&logo=googlechrome&logoColor=whitesmoke)](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+[![Kiwix for Edge](https://img.shields.io/badge/dynamic/json?label=Kiwix%20for%20Edge&logo=microsoftedge&logoColor=whitesmoke&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fjlepddlenlljlnnhjinfaciabanbnjbp)](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
 
 ## Usage
 
@@ -66,14 +67,14 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=52 (as an extension: https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
-- Google Chrome / Chromium >=88  (as a Manifest V3 extension: https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-- Google Chrome / Chromium 58-87 (as a Manifest V2 extension: use unsigned MV2 zip from https://download.kiwix.org/release/browsers/chrome/, see [instructions below](#installing-unsigned-extensions-in-chromium))
-- Microsoft Edge (Chromium) >=88 (as an add-on: https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Microsoft Edge (Chromium) 79-87 (as a Manifest V2 extension: use unsigned MV2 zip from https://download.kiwix.org/release/browsers/edge/, see [instructions below](#installing-unsigned-extensions-in-chromium))
-- Electron >=1.8.0 and NWJS >=0.14.7 (as an application: see https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html)
-- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application: see https://www.microsoft.com/store/apps/9P8SLZ4J979J)
-- Ubuntu Touch (as an application: https://open-store.io/app/kiwix)
+- Mozilla Firefox >=52 (as an extension): <img src="images/firefoxbrowser-color.svg" width="20" /> [Mozilla Add-ons Store](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+- Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
+    + Google Chrome >=88: <img src="images/googlechrome-color.svg" width="20" /> [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+    + Microsoft Edge >=88: <img src="images/microsoftedge-color.svg" width="20" /> [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+- Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use unsigned MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-unsigned-extensions-in-chromium)
+- Electron >=1.8.0 and NWJS >=0.14.7 (as an application): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
+- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
+- Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
