@@ -37,6 +37,10 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 
+// Make jQuery available globally
+window.$ = $;
+window.jQuery = $;
+
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
  * by the browser, and keeps the MessageChannel to communicate with the application)
