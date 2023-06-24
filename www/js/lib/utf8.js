@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
- 
+
 'use strict';
 
 /* eslint-disable eqeqeq */

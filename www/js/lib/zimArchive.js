@@ -100,9 +100,9 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             ]).then(function () {
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                 var isSplitZim = /\.zima.$/i.test(that._file._files[0].name);
-                if (that._file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' 
+                if (that._file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
-                    && !/Android/.test(params.appType) && !(window.nw && that._file._files[0].readMode === 'electron'))) {
+                    !/Android/.test(params.appType) && !(window.nw && that._file._files[0].readMode === 'electron'))) {
                     var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm' : 'asm');
                     console.log('Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');

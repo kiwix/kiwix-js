@@ -22,7 +22,7 @@
 
 'use strict';
 
-function DirEntry(zimfile, dirEntryData) {
+function DirEntry (zimfile, dirEntryData) {
     this._zimfile = zimfile;
     this.redirect = dirEntryData.redirect;
     this.offset = dirEntryData.offset;
