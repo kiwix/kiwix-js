@@ -13,7 +13,6 @@ const config = {
     output: {
         format: 'iife',
         name: 'KiwixJSBundle'
-        // assetFileNames: "[name]-[hash][extname]"
     },
     treeshake: 'recommended',
     plugins: [
@@ -40,9 +39,13 @@ const config = {
             preventAssignment: true
         }),
         copy({
-            targets: [
-                { src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*', '!www/js/lib/libzim-wasm.dev*'], dest: 'dist/www/js' },
-                { src: ['archives', 'index.html', 'manifest.json', 'manifest.v2.json', 'package.json', 'LICENSE', 'CHANGELOG.md', '*.pfx', '*.cjs'], dest: 'dist' }
+            targets: [{
+                src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*',
+                    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.*', 'node_modules/jquery/dist/jquery.slim.min.*', '!www/js/lib/libzim-wasm.dev*'],
+                dest: 'dist/www/js'
+            },
+            { src: ['node_modules/bootstrap/dist/css/bootstrap.min.*'], dest: 'dist/www/css' },
+            { src: ['archives', 'index.html', 'manifest.json', 'manifest.v2.json', 'package.json', 'LICENSE', 'CHANGELOG.md', '*.pfx', '*.cjs'], dest: 'dist' }
             ],
             flatten: true
         })
@@ -70,6 +73,11 @@ if (process.env.BUILD === 'production') {
                         .replace(/(www[\\/]js[\\/])app.js/, '$1bundle.min.js')
                     // Remove all the lib files that will be included in the bundle
                         .replace(/,\s+["']www[\\/]js[\\/]lib[\\/]abstractFilesystemAccess[\s\S]+zimfile.js["']\s*/, '')
+                    // Replace any references to node_modules
+                        .replace(/node_modules\/.*dist\/((?:js|css)\/)?/g, function (m, p1) {
+                            p1 = p1 || 'js/';
+                            return 'www/' + p1;
+                        })
                     // Alter remaining lib references
                         .replace(/([\\/])js[\\/]lib/g, '$1js')
                     // Remove unneeded ASM/WASM binaries
@@ -85,6 +93,10 @@ if (process.env.BUILD === 'production') {
                         .replace(/bundle\.js/, 'bundle.min.js')
                     // Comment out the old app.js link
                         .replace(/(<script type="module.*app.js.*)/, '<!-- $1 -->')
+                    // Redirect jQuery and bootstrap
+                        .replace(/(<script\s.*src=").*jquery.slim.min.js/, '$1js/jquery.slim.min.js')
+                        .replace(/(<script\s.*src=").*bootstrap.bundle.min.js/, '$1js/bootstrap.bundle.min.js')
+                        .replace(/(<link\s.*href=").*bootstrap.min.css/, '$1css/bootstrap.min.css')
                 }
             ],
             flatten: false
@@ -108,9 +120,14 @@ if (process.env.BUILD === 'production') {
                     // Modify the Service Worker precache files
                     transform: (contents, filename) => contents.toString()
                     // Replace the entry point with the bundle
-                        .replace(/(www[\\/]js[\\/])app.js/, '$1bundle.js')
+                        .replace(/(www\/js\/)app.js/, '$1bundle.js')
                     // Remove all the lib files that will be included in the bundle
-                        .replace(/,\s+["']www[\\/]js[\\/]lib[\\/]abstractFilesystemAccess[\s\S]+zimfile.js["']/, '')
+                        .replace(/,\s+["']www\/js\/lib\/abstractFilesystemAccess[\s\S]+zimfile.js["']/, '')
+                    // Replace any references to node_modules
+                        .replace(/node_modules\/.*dist\/((?:js|css)\/)?/g, function (m, p1) {
+                            p1 = p1 || 'js/';
+                            return 'www/' + p1;
+                        })
                     // Alter remaining lib references
                         .replace(/([\\/])js[\\/]lib/g, '$1js')
                     // Remove unneeded ASM/WASM binaries
@@ -125,6 +142,10 @@ if (process.env.BUILD === 'production') {
                         .replace(/<!--\s(<script type="text\/javascript.*bundle.js.*)\s-->/, '$1')
                     // Comment out the old app.js link
                         .replace(/(<script type="module.*app.js.*)/, '<!-- $1 -->')
+                    // Redirect jQuery and bootstrap
+                        .replace(/(<script\s.*src=").*jquery.slim.min.js/, '$1js/jquery.slim.min.js')
+                        .replace(/(<script\s.*src=").*bootstrap.bundle.min.js/, '$1js/bootstrap.bundle.min.js')
+                        .replace(/(<link\s.*href=").*bootstrap.min.css/, '$1css/bootstrap.min.css')
                 }
             ],
             flatten: false
