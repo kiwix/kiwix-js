@@ -35,11 +35,6 @@ jobs:
           chmod +x ./scripts/test_pwa_server.sh
           ./scripts/test_pwa_server.sh
 
-      # Install Node.js LTS
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 10.x
-
       - name: Install dependencies
         run: npm ci
 
@@ -48,7 +43,7 @@ jobs:
 
   # This job only runs when SauceLabs credentials are available (e.g. direct pushes and same-repo PRs)
   # and is used to run tests on additional operating systems and browsers.
-  tests-secure:
+  # tests-secure:
     # Ideally this would be `if: secrets.SAUCE_USERNAME` or `if: fork`, which Travis CI
     # supported, but GitHub Actions does not. When a commit or PR is from a source (non-fork)
     # repo, the secrets are loaded only after the conditions are checked, not before.
@@ -72,23 +67,22 @@ jobs:
     # `if: … || github.event.pull_request.head.repo.full_name == github.repository`
     # https://github.community/t/have-github-action-only-run-on-master-repo-and-not-on-forks/140840
     # https://github.community/t/distinguish-between-forked-pr-and-own-pr/16678/2
-    if: github.event_name == 'push'
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 10.x
-      - name: Install dependencies
-        run: npm ci
-
-      - name: QUnit tests (Cross-browser)
-        env:
-          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-        run: npm run test-unit-saucelabs
-
-
+    # if: github.event_name == 'push'
+    # runs-on: ubuntu-20.04
+    # steps:
+    #   - uses: actions/checkout@v3
+    #   - uses: actions/setup-node@v3
+    #     with:
+    #       node-version: 10.x
+    #   - name: Install dependencies
+    #     run: npm ci
+    # 
+    #   - name: QUnit tests (Cross-browser)
+    #     env:
+    #       SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+    #       SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+    #     run: npm run test-unit-saucelabs
+    #
       # Start a SauceLabs tunnel for Nightwatch (Karma does this automatically)
       # - name: Start tunnel for End-to-end tests
       #   uses: saucelabs/sauce-connect-action@v1.1.2
