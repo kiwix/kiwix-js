@@ -23,7 +23,7 @@
 module.exports = {
     'UI Tests': function (browser) {
         browser
-            .url('http://localhost:8080/')
+            .url('http://localhost:8080/www/index.html')
             .waitForElementVisible('#archiveFiles', 20000)
             // Select the ZIM archive of Ray Charles
             .execute(function () {
@@ -67,53 +67,53 @@ module.exports = {
         // We did not investigate a lot on that, because manual tests show they work fine,
         // and because Microsoft announced that future Edge versions will be built on Chromium instead of EdgeHTML
         // (which will probably make these issues disappear, as Chromium does not have them)
-        if (browser.options.desiredCapabilities.browserName !== 'MicrosoftEdge' ||
-                (browser.options.desiredCapabilities.version !== '15.15063' &&
-                    browser.options.desiredCapabilities.version !== '17.17134' &&
-                    browser.options.desiredCapabilities.version !== '18.17763')) {
-            browser.click("//div[@id='articleList']/a[text()='Ray Charles']")
-                .frame('articleContent')
-                // Check the text in the article "Ray Charles"
-                .useXpath()
-                .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
-                .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
-                // Wait for a particular image to be visible and check its size
-                .useXpath()
-                .waitForElementVisible("//td[@id='mwCA']/p/span/img", 20000)
-                .assert.attributeEquals("//td[@id='mwCA']/p/span/img", 'naturalWidth', '250')
-                // Check the CSS style
-                .useCss()
-                .waitForElementVisible('#mwBA', 20000)
-                .assert.cssProperty('#mwBA', 'float', 'right')
+        // if (browser.options.desiredCapabilities.browserName !== 'MicrosoftEdge' ||
+        //         (browser.options.desiredCapabilities.version !== '15.15063' &&
+        //             browser.options.desiredCapabilities.version !== '17.17134' &&
+        //             browser.options.desiredCapabilities.version !== '18.17763')) {
+        browser.click("//div[@id='articleList']/a[text()='Ray Charles']")
+            .frame('articleContent')
+            // Check the text in the article "Ray Charles"
+            .useXpath()
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
+            // Wait for a particular image to be visible and check its size
+            .useXpath()
+            .waitForElementVisible("//td[@id='mwCA']/p/span/img", 20000)
+            .assert.attributeEquals("//td[@id='mwCA']/p/span/img", 'naturalWidth', '250')
+            // Check the CSS style
+            .useCss()
+            .waitForElementVisible('#mwBA', 20000)
+            .assert.cssProperty('#mwBA', 'float', 'right')
 
-                // Click on a hypertext link to another article "Quincy Jones"
-                .waitForElementVisible('#mwBTI', 20000)
-                .click('#mwBTI')
-                // Check the text of the article "Quincy Jones"
-                .useXpath()
-                .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/blockquote[@id='mwnw']", 40000)
-                .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/blockquote[@id='mwnw']", 'perspective of past, present and future')
-                // Wait for a particular image to be visible and check its size
-                .useCss()
-                .waitForElementVisible('#mwAiI', 20000)
-                .assert.attributeEquals('#mwAiI', 'naturalWidth', '180')
-                // Check the CSS style
-                .waitForElementVisible('#mwBA', 20000)
-                .assert.cssProperty('#mwBA', 'float', 'right')
+            // Click on a hypertext link to another article "Quincy Jones"
+            .waitForElementVisible('#mwBTI', 20000)
+            .click('#mwBTI')
+            // Check the text of the article "Quincy Jones"
+            .useXpath()
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/blockquote[@id='mwnw']", 40000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/blockquote[@id='mwnw']", 'perspective of past, present and future')
+            // Wait for a particular image to be visible and check its size
+            .useCss()
+            .waitForElementVisible('#mwAiI', 20000)
+            .assert.attributeEquals('#mwAiI', 'naturalWidth', '180')
+            // Check the CSS style
+            .waitForElementVisible('#mwBA', 20000)
+            .assert.cssProperty('#mwBA', 'float', 'right')
 
-                // Use the back button of the browser, to go back to "Ray Charles" article
-                .back()
-                .frameParent()
-                .frame('articleContent')
-                // Check the text in the article "Ray Charles"
-                .useXpath()
-                .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
-                .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
-                // Wait for a particular image to be visible and check its size
-                .useXpath()
-                .waitForElementVisible("//td[@id='mwCA']/p/span/img", 20000)
-                .assert.attributeEquals("//td[@id='mwCA']/p/span/img", 'naturalWidth', '250')
-                .end();
-        }
+            // Use the back button of the browser, to go back to "Ray Charles" article
+            .back()
+            .frameParent()
+            .frame('articleContent')
+            // Check the text in the article "Ray Charles"
+            .useXpath()
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
+            // Wait for a particular image to be visible and check its size
+            .useXpath()
+            .waitForElementVisible("//td[@id='mwCA']/p/span/img", 20000)
+            .assert.attributeEquals("//td[@id='mwCA']/p/span/img", 'naturalWidth', '250')
+            .end();
+        // }
     }
 };
