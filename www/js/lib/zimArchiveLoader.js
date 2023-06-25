@@ -23,7 +23,6 @@
 'use strict';
 
 import zimArchive from './zimArchive.js';
-import jQuery from './jquery.module.js';
 
 /**
  * Create a ZIMArchive from DeviceStorage location
@@ -63,14 +62,14 @@ function loadArchiveFromFiles (files, callbackReady, callbackError) {
  */
 function scanForArchives (storages, callbackFunction, callbackError) {
     var directories = [];
-    var promises = jQuery.map(storages, function (storage) {
+    var promises = $.map(storages, function (storage) {
         return storage.scanForArchives()
             .then(function (dirs) {
-                jQuery.merge(directories, dirs);
+                $.merge(directories, dirs);
                 return true;
             });
     });
-    jQuery.when.apply(null, promises).then(function () {
+    $.when.apply(null, promises).then(function () {
         callbackFunction(directories);
     }).catch(function (error) {
         callbackError('Error scanning your device storage : ' + error +

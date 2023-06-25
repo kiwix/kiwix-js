@@ -38,7 +38,7 @@
         -->
 
         <!-- Bootstrap -->
-        <link href="css/bootstrap.css" rel="stylesheet" media="screen"/>
+        <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" media="screen"/>
         <!-- Local app.css must be loaded after boostrap.css so that any local style overrides work -->
         <link rel="stylesheet" href="css/app.css"/>
         <link rel="stylesheet" href="css/transition.css"/>
@@ -722,15 +722,11 @@
                 </div>
             </footer>
         </section>
-    <!-- <script type="importmap">
-        {
-            "imports": {
-                "bootstrap": "../node_modules/bootstrap/dist/js/bootstrap.bundle.js",
-                "jquery": "../node_modules/jquery/dist/jquery.slim.min.js",
-                "fontawesome": "../node_modules/@fortawesome/fontawesome-free/js/all.js"
-            }
-        }
-    </script> -->
+    <!-- Legacy jQuery and Bootstrap are not ES-module-aware, and interact with each other using side-effects, so we are forced to load them globally here.
+        There is code in rollup.config.js which alters these references, and the link reference above, to point to the local destination of the copied modules.
+    -->
+    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.slim.min.js"></script>
+    <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="js/init.js"></script>
     <script type="module" defer src="js/app.js"></script>
     <!-- <script type="text/javascript" defer src="js/bundle.js"></script> -->

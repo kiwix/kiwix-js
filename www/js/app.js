@@ -24,22 +24,16 @@
 'use strict';
 
 // The global parameters object is defined in init.js
-/* global params, webpMachine */
+/* global params, webpMachine, $ */
 /* eslint-disable indent */
 
 // import styles from '../css/app.css' assert { type: "css" };
 // import bootstrap from '../css/bootstrap.min.css' assert { type: "css" };
-import $ from './lib/jquery.module.js';
-import '../../node_modules/bootstrap/dist/js/bootstrap.bundle.js';
 import '../../node_modules/@fortawesome/fontawesome-free/js/all.js';
 import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
-
-// Make jQuery available globally
-window.$ = $;
-window.jQuery = $;
 
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped

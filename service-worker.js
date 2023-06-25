@@ -105,7 +105,6 @@ const precacheFiles = [
     'manifest.json',
     'service-worker.js',
     'www/css/app.css',
-    'www/css/bootstrap.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
     'www/css/transition.css',
@@ -121,9 +120,7 @@ const precacheFiles = [
     'www/js/init.js',
     'www/js/lib/abstractFilesystemAccess.js',
     'www/js/lib/arrayFromPolyfill.js',
-    'www/js/lib/bootstrap.bundle.js',
     'www/js/lib/filecache.js',
-    'www/js/lib/jquery.module.js',
     'www/js/lib/promisePolyfill.js',
     'www/js/lib/settingsStore.js',
     'www/js/lib/uiUtil.js',
@@ -134,7 +131,13 @@ const precacheFiles = [
     'www/js/lib/zimArchive.js',
     'www/js/lib/zimArchiveLoader.js',
     'www/js/lib/zimDirEntry.js',
-    'www/js/lib/zimfile.js'
+    'www/js/lib/zimfile.js',
+    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
+    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
+    'node_modules/bootstrap/dist/css/bootstrap.min.css',
+    'node_modules/bootstrap/dist/css/bootstrap.min.css.map',
+    'node_modules/jquery/dist/jquery.slim.min.js',
+    'node_modules/jquery/dist/jquery.slim.min.map'
 ];
 
 if ('WebAssembly' in self) {
