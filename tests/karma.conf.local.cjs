@@ -25,7 +25,6 @@ module.exports = function (config) {
         },
         // logLevel: 'DEBUG',
         files: [
-            'www/js/lib/require.js',
             'tests/init.js',
             { pattern: 'www/**/*', included: false },
             { pattern: 'tests/**/*', included: false }
