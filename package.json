@@ -7,11 +7,11 @@
     "build-min": "rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
     "build-src": "rollup --config --file dist/www/js/bundle.js",
     "del-dist": "del-cli dist",
-    "test": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe all ./tests/initTestCafe.js'",
-    "test-unit-browsers": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe firefox:headless,chrome:headless,edge:headless ./tests/initTestCafe.js'",
-    "test-unit-firefox": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe firefox:headless ./tests/initTestCafe.js'",
-    "test-unit-chrome": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe chrome:headless ./tests/initTestCafe.js'",
-    "test-unit-edge": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe edge:headless ./tests/initTestCafe.js'",
+    "test": "testcafe all ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-browsers": "testcafe firefox:headless,chrome:headless,edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"'",
+    "test-unit-firefox": "testcafe firefox:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"'",
+    "test-unit-chrome": "testcafe chrome:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-edge": "testcafe edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "web-server": "http-server -p 8080 ."
   },
   "engines": {
