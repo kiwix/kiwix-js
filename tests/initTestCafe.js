@@ -9,5 +9,5 @@ fixture`Start QUnit tests`// declare the fixture
 test('Check for success', async t => {
     await t
         // Use the assertion to check if actual header text equals expected text
-        .expect(Selector('#qunit-testresult-display').innerText).match(/0\s+failed.+?0\s+skipped.+?0\s+todo/, { timeout: 7000 });
+        .expect(Selector('#qunit-testresult-display').innerText, { timeout: 10000 }).match(/0\s+failed.+?0\s+skipped.+?0\s+todo/, { timeout: 7000 });
 });

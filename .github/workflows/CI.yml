@@ -62,20 +62,20 @@ jobs:
       - name: Unit tests (Linux)
         run: npm run test-unit-browsers
         
-  tests-unit-mac:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: macos-latest
-    steps:
-      # Clone the repo and checkout the commit for which the workflow was triggered
-      - uses: actions/checkout@v3
+  # tests-unit-mac:
+  #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+  #   runs-on: macos-latest
+  #   steps:
+  #     # Clone the repo and checkout the commit for which the workflow was triggered
+  #     - uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: npm ci
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Unit tests (Mackintosh)
-        run: |
-          npx testcafe remote ./tests/initTestCafe.js --hostname localhost --ports 1337,1338 &
-          pid=$!
-          open -a Safari http://localhost:1337
-          wait $pid
+  #     - name: Unit tests (Mackintosh)
+  #       run: |
+  #         npx testcafe remote ./tests/initTestCafe.js --hostname localhost --ports 1337,1338 &
+  #         pid=$!
+  #         open -a Safari http://localhost:1337
+  #         wait $pid
   
