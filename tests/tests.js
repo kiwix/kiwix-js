@@ -22,8 +22,10 @@
 
 /* global QUnit, Promise */
 
-import '../www/js/lib/promisePolyfill.js';
-import '../www/js/lib/arrayFromPolyfill.js';
+// import '../www/js/lib/promisePolyfill.js';
+// import '../www/js/lib/arrayFromPolyfill.js';
+import './init.js';
+// import '../www/js/app.js';
 import zimArchive from '../www/js/lib/zimArchive.js';
 import zimDirEntry from '../www/js/lib/zimDirEntry.js';
 import util from '../www/js/lib/util.js';

@@ -9,10 +9,10 @@
     "del-dist": "del-cli dist",
     "test": "npm run test-unit-local",
     "test-unit-local": "npx nightwatch ./nightwatch/browser-tests/",
-    "test-unit-firefox": "npx nightwatch ./nightwatch/browser-tests/ --env firefox",
+    "test-unit-firefox": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe firefox ./tests/initTestCafe.js'",
     "test-unit-chromium": "npx nightwatch ./nightwatch/browser-tests/ --env chromium",
-    "test-unit-chrome": "npx nightwatch ./nightwatch/browser-tests/ --env chrome",
-    "test-unit-saucelabs": "karma start tests/karma.conf.saucelabs.cjs"
+    "test-unit-edge": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe edge ./tests/initTestCafe.js'",
+    "web-server": "http-server -p 8080 ."
   },
   "engines": {
     "node": ">=10"
@@ -36,8 +36,8 @@
     "@vitejs/plugin-legacy": "^4.0.3",
     "babel-plugin-polyfill-corejs3": "^0.7.1",
     "chromedriver": "^114.0.2",
-    "edgedriver": "^5.2.1",
     "del-cli": "^5.0.0",
+    "edgedriver": "^5.2.1",
     "eslint": "^8.42.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
@@ -46,9 +46,11 @@
     "geckodriver": "^4.0.4",
     "http-server": "^14.1.1",
     "nightwatch": "^3.0.1",
-    "qunit": "^2.13.0",
+    "qunit": "^2.19.4",
     "rollup": "^3.21.3",
     "rollup-plugin-copy": "^3.4.0",
+    "start-server-and-test": "^2.0.0",
+    "testcafe": "^3.0.0",
     "vite": "^4.3.4"
   }
 }

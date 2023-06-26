@@ -39,7 +39,7 @@ jobs:
         run: npm ci
 
       - name: Unit tests (Linux)
-        run: npm test
+        run: npm run test-unit-firefox && npm run test-unit-edge
 
   # This job only runs when SauceLabs credentials are available (e.g. direct pushes and same-repo PRs)
   # and is used to run tests on additional operating systems and browsers.
