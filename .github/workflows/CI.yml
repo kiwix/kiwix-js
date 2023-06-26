@@ -9,7 +9,7 @@ on:
 jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
-  tests-unit-build-windows:
+  tests-files-build-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
@@ -26,10 +26,6 @@ jobs:
       - name: Test that the app can be built
         shell: pwsh
         run: npm run build
-
-      - name: Unit tests (Windows)
-        run: npm run test-unit-browsers
-
 
   # This job runs always, including for remote pull requests, and
   # has external dependencies or special permission needs, besides a
@@ -62,6 +58,22 @@ jobs:
       - name: Unit tests (Linux)
         run: npm run test-unit-browsers
         
+  tests-unit-windows:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: windows-latest
+    steps:
+      # Clone the repo and checkout the commit for which the workflow was triggered
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests (Windows)
+        shell: pwsh
+        run: |
+          npm run test-unit-edge
+          npm run test-unit-firefox
+
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
   #   runs-on: macos-latest
