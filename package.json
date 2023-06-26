@@ -12,7 +12,7 @@
     "test-unit-firefox": "testcafe firefox:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "test-unit-chrome": "testcafe chrome:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "test-unit-edge": "testcafe edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-mac": "testcafe safari:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-mac": "testcafe safari ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "web-server": "http-server -p 8080 ."
   },
   "engines": {

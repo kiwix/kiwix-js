@@ -9,7 +9,7 @@ on:
 jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
-  test-files-and-build:
+  tests-unit-build-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
@@ -27,6 +27,10 @@ jobs:
         shell: pwsh
         run: npm run build
 
+      - name: Unit tests (Windows)
+        run: npm run test-unit-browsers
+
+
   # This job runs always, including for remote pull requests, and
   # has external dependencies or special permission needs, besides a
   # local install of Node.js, Firefox, and Chromium or Chrome.
@@ -34,7 +38,7 @@ jobs:
   # You can run these same tests locally in your own developer
   # environment via `npm ci && npm test`.
 
-  tests-basic-linux:
+  tests-unit-linux:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-20.04
@@ -57,21 +61,8 @@ jobs:
 
       - name: Unit tests (Linux)
         run: npm run test-unit-browsers
-
-  tests-basic-windows:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: windows-latest
-    steps:
-      # Clone the repo and checkout the commit for which the workflow was triggered
-      - uses: actions/checkout@v3
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Unit tests (Windows)
-        run: npm run test-unit-browsers
         
-  tests-basic-mac:
+  tests-unit-mac:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: macos-latest
     steps:
@@ -82,5 +73,5 @@ jobs:
         run: npm ci
 
       - name: Unit tests (Mackintosh)
-        run: npm run test-unit-mac
+        run: npm run test-unit-browsers
   
