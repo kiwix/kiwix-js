@@ -9,9 +9,9 @@
     "del-dist": "del-cli dist",
     "test": "npm run test-unit-local",
     "test-unit-local": "npx nightwatch ./nightwatch/browser-tests/",
-    "test-unit-firefox": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe firefox ./tests/initTestCafe.js'",
+    "test-unit-firefox": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe firefox:headless ./tests/initTestCafe.js'",
     "test-unit-chromium": "npx nightwatch ./nightwatch/browser-tests/ --env chromium",
-    "test-unit-edge": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe edge ./tests/initTestCafe.js'",
+    "test-unit-edge": "start-server-and-test 'http-server --silent -p 8080 .' 8080 'testcafe edge:headless ./tests/initTestCafe.js'",
     "web-server": "http-server -p 8080 ."
   },
   "engines": {
