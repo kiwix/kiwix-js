@@ -76,6 +76,6 @@ jobs:
         run: |
           npx testcafe remote ./tests/initTestCafe.js --hostname localhost --ports 1337,1338 &
           pid=$!
-          open -a Safari http://localhost:1337/tests/
+          open -a Safari http://localhost:1337
           wait $pid
   
