@@ -189,6 +189,70 @@ function leftShift (int, bits) {
 }
 
 /**
+ * Converts base 64 code to Uint6
+ * From https://developer.mozilla.org/en-US/docs/Glossary/Base64
+ * @param {Integer} nChr Numerical character code
+ * @returns {Integer} Converted character code
+ */
+function b64ToUint6(nChr) {
+    return nChr > 64 && nChr < 91 ?
+        nChr - 65 :
+        nChr > 96 && nChr < 123 ?
+        nChr - 71 :
+        nChr > 47 && nChr < 58 ?
+        nChr + 4 :
+        nChr === 43 ?
+        62 :
+        nChr === 47 ?
+        63 :
+        0;
+}
+
+/**
+ * Recommended rewrite of the faulty .btoa() function in JavaScript because of the problem with UTF-8-encoded data
+ * From https://developer.mozilla.org/en-US/docs/Glossary/Base64
+ * @param {String} sBase64 Base 64 encoded string 
+ * @param {Integer} nBlocksSize Optional block size
+ * @returns {Uint8Array} A Uint8Array containing the converted data
+ */
+function base64DecToArr(sBase64, nBlocksSize) {
+    var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, ""),
+        nInLen = sB64Enc.length,
+        nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2,
+        taBytes = new Uint8Array(nOutLen);
+    for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+        nMod4 = nInIdx & 3;
+        nUint24 |= b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 6 * (3 - nMod4);
+        if (nMod4 === 3 || nInLen - nInIdx === 1) {
+            for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+                taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+            }
+            nUint24 = 0;
+        }
+    }
+    return taBytes;
+}
+
+/**
+ Converts a dataURI to Uint8Array
+ * @param {String} dataURI The data URI to convert
+ * @returns {Uint8Array} A Uint8Array with the converted buffer
+ */
+function dataURItoUint8Array(dataURI) {
+    var parsedString = dataURI.match(/^data:([^,]*),(.*)/i);
+    if (parsedString && /base64/i.test(parsedString[1])) {
+        return base64DecToArr(parsedString[2]);
+    } else {
+        var byteString = decodeURI(parsedString[2]);
+        var ab = [];
+        for (var i = 0; i < byteString.length; i++) {
+            ab[i] = byteString.charCodeAt(i);
+        }
+        return new Uint8Array(ab);
+    }
+}
+
+/**
  * Queues Promise Factories* to be resolved or rejected sequentially. This helps to avoid overlapping Promise functions.
  * Primarily used by uiUtil.systemAlert, to prevent alerts showing while others are being displayed.
  *
@@ -239,6 +303,7 @@ var PromiseQueue = {
 export default {
     allCaseFirstLetters: allCaseFirstLetters,
     removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
+    dataURItoUint8Array: dataURItoUint8Array,
     endsWith: endsWith,
     readFloatFrom4Bytes: readFloatFrom4Bytes,
     readFileSlice: readFileSlice,

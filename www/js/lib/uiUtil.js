@@ -155,9 +155,7 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback) 
     if (webpMachine && /image\/webp/i.test(mimeType)) {
         // If we're dealing with a dataURI, first convert to Uint8Array
         if (/^data:/i.test(content)) {
-            // Using webpHero's utility: it uses deprecated atob() but should be OK for WebP image data
-            // DEV: If you ever need an alternative to atob(), please see Mozilla-recommended methods: https://developer.mozilla.org/en-US/docs/Glossary/Base64
-            content = webpHero.convertDataURIToBinary(content);
+            content = util.dataURItoUint8Array(content);
         }
         // DEV: Note that webpMachine is single threaded and will reject an image if it is busy
         // However, the loadImagesJQuery() function in app.js is sequential (it waits for a callback
@@ -661,9 +659,6 @@ function reportSearchProviderToAPIStatusPanel (provider) {
         providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
     }
 }
-
-// If global variable webpMachine is true (set in init.js), then we need to initialize the WebP Polyfill
-if (webpMachine) webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
 
 /**
  * Warn the user that he/she clicked on an external link, and open it in a new tab

@@ -62,7 +62,7 @@ if (/PWA_launch=/.test(window.location.search)) {
             // Note we set the location of this to be the directory where scripts reside after bundling
             var webpScript = document.createElement('script');
             webpScript.onload = function () {
-                webpMachine = new webpHero.WebpMachine();
+                webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
             }
             webpScript.src = '../www/js/lib/webpHeroBundle_0.0.2.js';
             document.head.appendChild(webpScript);
