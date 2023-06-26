@@ -8,10 +8,10 @@
     "build-src": "rollup --config --file dist/www/js/bundle.js",
     "del-dist": "del-cli dist",
     "test": "npm run test-unit-local",
-    "test-unit-local": "karma start tests/karma.conf.local.cjs",
-    "test-unit-firefox": "karma start tests/karma.conf.local.cjs --browsers FirefoxHeadless",
-    "test-unit-chromium": "karma start tests/karma.conf.local.cjs --browsers ChromiumHeadless",
-    "test-unit-chrome": "karma start tests/karma.conf.local.cjs --browsers ChromeHeadless",
+    "test-unit-local": "npx nightwatch ./nightwatch/browser-tests/",
+    "test-unit-firefox": "npx nightwatch ./nightwatch/browser-tests/ --env firefox",
+    "test-unit-chromium": "npx nightwatch ./nightwatch/browser-tests/ --env chromium",
+    "test-unit-chrome": "npx nightwatch ./nightwatch/browser-tests/ --env chrome",
     "test-unit-saucelabs": "karma start tests/karma.conf.saucelabs.cjs"
   },
   "engines": {
