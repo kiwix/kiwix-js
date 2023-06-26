@@ -10,7 +10,7 @@ const config = {
                     chrome: '67',
                     safari: '11.1'
                 },
-                modules: false,
+                modules: 'auto',
                 spec: true,
                 useBuiltIns: 'usage',
                 // "forceAllTransforms": true,
