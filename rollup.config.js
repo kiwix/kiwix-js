@@ -45,7 +45,7 @@ const config = {
                 dest: 'dist/www/js'
             },
             { src: ['node_modules/bootstrap/dist/css/bootstrap.min.*'], dest: 'dist/www/css' },
-            { src: ['archives', 'index.html', 'manifest.json', 'manifest.v2.json', 'package.json', 'LICENSE', 'CHANGELOG.md', '*.pfx', '*.cjs'], dest: 'dist' }
+            { src: ['archives', 'backgroundscript.js', 'index.html', 'manifest.json', 'manifest.v2.json', 'manifest.webapp', 'package.json', 'LICENSE', 'CHANGELOG.md', '*.pfx', '*.cjs'], dest: 'dist' }
             ],
             flatten: true
         })
