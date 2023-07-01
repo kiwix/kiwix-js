@@ -96,5 +96,5 @@ jobs:
           fi
           # Set gh-pages branch on origin to the currently checked-out branch
           git push origin HEAD:gh-pages --force
-          echo "After deployment, the app will be available at https://kiwix.github.io/kiwix-js-windows/"
-          echo "The production deployment will be available at https://kiwix.github.io/kiwix-js-windows/dist/"
+          echo "After deployment, the app will be available at https://kiwix.github.io/kiwix-js/"
+          echo "The production deployment will be available at https://kiwix.github.io/kiwix-js/dist/"
