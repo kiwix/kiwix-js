@@ -67,7 +67,8 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=52 (as an extension): <img src="images/firefoxbrowser-color.svg" width="20" /> [Mozilla Add-ons Store](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+- Mozilla Firefox >=56 (as an extension): <img src="images/firefoxbrowser-color.svg" width="20" /> [Mozilla Add-ons Store](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+    + Firefox 52-56 and ESR version 58: Limited support (jQuery mode only)
 - Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
     + Google Chrome >=88: <img src="images/googlechrome-color.svg" width="20" /> [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
     + Microsoft Edge >=88: <img src="images/microsoftedge-color.svg" width="20" /> [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
