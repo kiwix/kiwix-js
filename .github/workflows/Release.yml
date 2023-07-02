@@ -38,8 +38,9 @@ jobs:
       - name: Build app for production
         shell: bash
         run: |
-          npm ci
-          npm run build
+          npm install
+          # Build the minified version of the app
+          npm run build-min
           # Install packages in dist folder as well
           cp package-lock.json ./dist/
           cd ./dist
