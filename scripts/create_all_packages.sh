@@ -96,11 +96,13 @@ pwd & ls -l build
 # So we take the original manifest v2 again, and replace the version inside it again
 cp manifest.v2.json tmp/manifest.json
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
-echo ""
+echo "Manifest version for Firefox extension:"
+cat tmp/manifest.json
+echo -e "\nPacking for Firefox..."
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
 echo "The following extensions have been built so far:"
 pwd & ls -l build
-echo ""
+echo -e "\nPacking for Firefox OS..."
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json

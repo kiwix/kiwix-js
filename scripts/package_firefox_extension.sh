@@ -1,6 +1,7 @@
 #!/bin/bash
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 cd "$BASEDIR"
+pwd
 
 # Reading arguments
 while getopts tdv: option; do
@@ -13,6 +14,7 @@ done
 
 # Install web-ext if it's not already installed (and if we're not doing a dryrun test)
 if [ ! -f node_modules/web-ext/bin/web-ext ] && [ "${DRYRUN}zz" == "zz" ]; then
+    echo "Installing web-ext in $(pwd)"
     npm install web-ext
 fi
 
