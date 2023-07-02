@@ -147,5 +147,5 @@ if [ -n "$TAG" ]; then
         ls -l build/kiwix-chrome*mv2*.zip
     fi
     echo -e "\n\e[0;32m*** DEV: Please note that Firefox and Chrome signed extension packages will need to be copied manually to the ***"
-    echo -e "*** release directory once they have been signed by the respective app stores. Unsigned versions in nightly.  ***\n\e[0m"
+    echo -e "\e[0;32m*** release directory once they have been signed by the respective app stores. Unsigned versions in nightly.  ***\n\e[0m"
 fi
