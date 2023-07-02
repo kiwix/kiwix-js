@@ -77,7 +77,7 @@ sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
 sed -i -E "s/(appVersion.*?)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle.js
-sed -i -E "s/(appVersion=.)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle-min.js
+sed -i -E "s/(appVersion=.)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle.min.js
 
 mkdir -p build
 rm -rf build/*
