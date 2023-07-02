@@ -45,6 +45,8 @@ jobs:
           cp package-lock.json ./dist/
           cd ./dist
           npm ci
+          # Remove files we should not be packing
+          rm -rf www/js/*.map
       
       # Set up secret files from encrypted secrets
       - name: Set up secret files and copy needed scripts to dist
