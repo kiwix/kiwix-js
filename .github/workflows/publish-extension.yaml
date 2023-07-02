@@ -49,12 +49,12 @@ jobs:
       - name: Build app with src bundle
         if: github.event.inputs.target == 'ghpages' || github.event_name == 'push'
         run: |
-          npm install
+          npm ci
           npm run build-src
       - name: Build app with production bundle (src bundle also provided)
         if: github.event.inputs.target == 'docker' || github.event_name == 'release'
         run: |
-          npm install
+          npm ci
           npm run build
           echo "After deployment the production app will be available at https://browser-extension.kiwix.org"
       # Publish to docker only if explicitly requested or we are releasing

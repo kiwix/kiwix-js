@@ -4,9 +4,9 @@ EXPOSE 80
 
 RUN mkdir /usr/share/nginx/html/current/
 COPY ./docker/index.nginx.html /usr/share/nginx/html/index.html
-COPY ./manifest.json /usr/share/nginx/html/current/
-COPY ./service-worker.js /usr/share/nginx/html/current/
-COPY ./index.html /usr/share/nginx/html/current/
-COPY ./CHANGELOG.md /usr/share/nginx/html/current/
-COPY ./LICENSE-GPLv3.txt /usr/share/nginx/html/current/
-COPY ./www /usr/share/nginx/html/current/www/
+COPY ./dist/manifest.json /usr/share/nginx/html/current/
+COPY ./dist/service-worker.js /usr/share/nginx/html/current/
+COPY ./dist/index.html /usr/share/nginx/html/current/
+COPY ./dist/CHANGELOG.md /usr/share/nginx/html/current/
+COPY ./dist/LICENSE-GPLv3.txt /usr/share/nginx/html/current/
+COPY ./dist/www /usr/share/nginx/html/current/www/
