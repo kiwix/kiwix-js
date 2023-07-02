@@ -26,8 +26,9 @@ if [ "${TAG}zz" == "zz" ]; then
 
     if [ "${DRYRUN}zz" == "zz" ]; then
         # Sign the extension with the Mozilla API through web-ext, if we're not packaging a public version
-        echo "Signing the extension for Firefox with Mozilla API, version $VERSION"
-        npx web-ext sign --api-key=${MOZILLA_API_KEY} --api-secret=${MOZILLA_API_SECRET}
+        echo "*** It appears it is no longer posible to sign the extension for Firefox with Mozilla API, version $VERSION ***"
+        echo "Instead, please upload the extension to the Firefox store, and get a signed version from there"
+        # npx web-ext sign --api-key=${MOZILLA_API_KEY} --api-secret=${MOZILLA_API_SECRET}
     else
         echo "Skipping signing the extension with the Mozilla API, because it's a dryrun test"
     fi
