@@ -64,7 +64,7 @@ jobs:
           cp ./scripts/package_chrome_extension.sh ./dist/scripts/package_chrome_extension.sh
           cp ./scripts/package_firefox_extension.sh ./dist/scripts/package_firefox_extension.sh
           cp ./scripts/package_ubuntu_touch_app.sh ./dist/scripts/package_ubuntu_touch_app.sh
-          cp -f ./ubuntu_touch/* dist/
+          cp -rf ./ubuntu_touch dist/ubuntu_touch
 
       # Set up the environment
       - name: Setup environment
