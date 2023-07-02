@@ -2,7 +2,7 @@
 
 # This bash script tests whether PWAServer has been set correctly in app.js
 
-SERVER=$(grep -E '^[^/]+params.+?PWAServer.+?http' ./www/js/app.js)
+SERVER=$(grep -E '^[^/]+?params.+?PWAServer.+?http' ./www/js/app.js)
 echo "The PWAServer is set to $SERVER"
 SERVER_COUNT=$(grep -o 'PWAServer' <<< "$SERVER" | wc -l)
 echo "$SERVER_COUNT server(s) are set in app.js"

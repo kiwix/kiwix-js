@@ -30,12 +30,8 @@
         <script>
             QUnit.config.autostart = false;
         </script>
-
-        <!-- Using require.js, a module system for javascript, include the
-             js files. This loads "main.js", which in turn can load other
-             files, all handled by require.js:
-             http://requirejs.org/docs/api.html#jsfiles -->
-        <script src="www/js/lib/require.js" data-main="tests/init.js"></script>
+        <script type="text/javascript" src="./tests/init.js"></script>
+        <script type="module" src="./tests/tests.js"></script>
     </head>
     <body>
         <b>NOTE:</b> Firefox and Chrome do not allow access to some local filesystem files used in testing. So, if you're opening this through a file:// URL, you should instead go through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...).<br/>

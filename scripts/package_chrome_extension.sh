@@ -18,11 +18,18 @@ fi
 echo "Packaging unsigned Chrome extension, version $VERSION"
 cd tmp
 if [ $MV -eq 2 ]; then
+    echo "Packing MV2 extension"
+    pwd & ls -l
+    cat manifest.json
     zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www backgroundscript.js manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 else
+    echo "Packing MV3 extension"
+    pwd & ls -l
+    cat manifest.json
     zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 fi
 cd ..
+ls -l build/kiwix-chrome-unsigned-extension-$VERSION.zip
 if [ -z $TAG ]; then
     # Package the extension with Chrome or Chromium, if we're not packaging a public version
     if hash chromium-browser 2>/dev/null

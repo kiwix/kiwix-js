@@ -25,8 +25,8 @@ on:
     inputs:
       version:
         description: Set any override version number to use (overrides on-main and tag-pattern). If it matches ^v?[0-9.]+, it will set the appVersion (v will be removed) and will be visible to users. Non-matching values will cause appVersion to be used.
-        required: true
-        default: 'dev'
+        required: false
+        default: ''
       target:
         description: 'Set the target to update: "ghpages" or "docker" (will update GitHub Pages by default)'
         required: false
@@ -34,8 +34,8 @@ on:
 
 jobs:
   build-and-push:
-    name: Deploy browser extension
-    runs-on: ubuntu-20.04
+    name: Deploy browser extension to Docker and/or GitHub Pages
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Modify version in source files
@@ -46,6 +46,17 @@ jobs:
         run: |
           chmod +x ./scripts/rewrite_app_version_number.sh
           ./scripts/rewrite_app_version_number.sh
+      - name: Build app with src bundle
+        if: github.event.inputs.target == 'ghpages' || github.event_name == 'push'
+        run: |
+          npm ci
+          npm run build-src
+      - name: Build app with production bundle (src bundle also provided)
+        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        run: |
+          npm ci
+          npm run build
+          echo "After deployment the production app will be available at https://browser-extension.kiwix.org"
       # Publish to docker only if explicitly requested or we are releasing
       - name: Build and push to docker
         if: github.event.inputs.target == 'docker' || github.event_name == 'release'
@@ -77,9 +88,13 @@ jobs:
           echo "Publishing to GitHub pages..."
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
+          # Delete gitignore entry for the dist folder
+          sed -i "/^\/dist\/$/d" .gitignore
           if [ ! -z "$(git status --porcelain)" ]; then
             git add .
             git commit -m "Set GitHub Pages release version"
           fi
           # Set gh-pages branch on origin to the currently checked-out branch
           git push origin HEAD:gh-pages --force
+          echo "After deployment, the app will be available at https://kiwix.github.io/kiwix-js/"
+          echo "The production deployment will be available at https://kiwix.github.io/kiwix-js/dist/"
