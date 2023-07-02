@@ -34,17 +34,33 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      # Build the production version of the app
+      - name: Build app for production
+        shell: bash
+        run: |
+          npm ci
+          npm run build
+          # Install packages in dist folder as well
+          cd ./dist
+          npm ci
+      
       # Set up secret files from encrypted secrets
-      - name: Set up secret files
+      - name: Set up secret files and copy needed scripts to dist
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
         shell: bash
         run: |
-          echo "$SSH_KEY" > ./scripts/ssh_key
-          chmod 600 ./scripts/ssh_key
-          echo "$CHROME_EXTENSION_KEY" > ./scripts/kiwix-html5.pem
-          chmod 600 ./scripts/kiwix-html5.pem
+          mkdir -p ./dist/scripts
+          echo "$SSH_KEY" > ./dist/scripts/ssh_key
+          chmod 600 ./dist/scripts/ssh_key
+          echo "$CHROME_EXTENSION_KEY" > ./dist/scripts/kiwix-html5.pem
+          chmod 600 ./dist/scripts/kiwix-html5.pem
+          cp ./scripts/create_all_packages.sh ./dist/scripts/create_all_packages.sh
+          cp ./scripts/package_chrome_extension.sh ./dist/scripts/package_chrome_extension.sh
+          cp ./scripts/package_firefox_extension.sh ./dist/scripts/package_firefox_extension.sh
+          cp ./scripts/package_ubuntu_touch_app.sh ./dist/scripts/package_ubuntu_touch_app.sh
+          cp -f ./ubuntu_touch/* dist/
 
       # Set up the environment
       - name: Setup environment
@@ -54,7 +70,7 @@ jobs:
           sudo apt-get --yes install ./scripts/ubuntu_touch_packages/*.deb
 
       # Runs the build scripts
-      - name: Run the build scripts
+      - name: Run the build scripts to make extensions and packages
         env:
           MOZILLA_API_SECRET: ${{ secrets.MOZILLA_API_SECRET }}
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
@@ -76,6 +92,8 @@ jobs:
           # Run xvfb to make Chrome/Chromium believe it has a display. Else it fails signing the package
           Xvfb -ac :99 -screen 0 1280x1024x16 &
           export DISPLAY=:99
+          # Switch to the distribution directory
+          cd ./dist
           if [ -z "$TAG_NAME" ]; then
             ./scripts/create_all_packages.sh
           else

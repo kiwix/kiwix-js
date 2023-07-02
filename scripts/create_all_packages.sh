@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# DEV: If running this script manually, you probably want to build the app first (npm run build), copy the
+# scripts/ into dist/scripts, and cd to the dist directory before running this script from dist/scripts.
+
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 echo -e "\nBASEDIR is $BASEDIR"
 cd "$BASEDIR"
@@ -26,7 +30,7 @@ echo -e "Version to replace: $VERSION_TO_REPLACE\n"
 # Set the secret environment variables if available
 # The file set_secret_environment_variables.sh should not be commited for security reasons
 # It is only useful to run the scripts locally.
-# Travis injects the same environment variables by itself
+# Github injects the same environment variables by itself
 if [ -r "$BASEDIR/scripts/set_secret_environment_variables.sh" ]; then
   . "$BASEDIR/scripts/set_secret_environment_variables.sh"
 fi
@@ -56,7 +60,7 @@ fi
 mkdir -p tmp
 rm -rf tmp/*
 cp -r www manifest.json manifest.v2.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
-# Remove unwanted files
+# Remove unwanted files (this line should not be necessary if building from dist/)
 rm -f tmp/www/js/lib/libzim-*dev.*
 
 # Replace the version number everywhere
