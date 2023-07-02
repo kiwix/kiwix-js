@@ -27,14 +27,16 @@ do a one-time setup before you start coding, like this:
   and for Windows [here](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nodejs-on-windows);
 * Create a personal fork  of Kiwix JS and clone it locally (for more details, see [Kiwix guidelines](https://github.com/kiwix/overview/blob/main/CONTRIBUTING.md));
 * In a Terminal (Bash, PowerShell) run `npm install` in the project's root directory to install development and bundling dependencies;
-* Test the development server by running `npm run serve`. This will open the (unbundled) source code in your browser. **While viewing this, we strongly recommend
-  that you go to configuration and turn on the option to Bypass AppCache under "Expert Settings", as this will ensure you are always looking at the latest version
-  (otherwise the app caches its own code, and you won't see your changes easily)**. You can exit this server by typing `q` in the Terminal that launched it;
+* Test the development server by running `npm run serve`. This will open the (unbundled) source code in your browser. **While viewing this, we strongly recommend**
+  **that you go to configuration and turn on the option to Bypass AppCache under "Expert Settings", as this will ensure you are always looking at the latest version**
+  (otherwise the app caches its own code, and you won't see your changes easily). You can exit this server by typing `q` in the Terminal that launched it;
 * Test that bundling works by running `npm run preview`. This should build the app and launch a preview of the production code in a server. Again, we strongly recommend,
-  while here, that you turn on the Bypass AppCache option. To exit this server, press `Ctrl-C` in the Terminal that launched it.
+  while here, that you **turn on the Bypass AppCache option**. To exit this server, press `Ctrl-C` in the Terminal that launched it;
+* You can build the bundled version without previewing it with `npm run build`. It will be built to the `/dist` directory.
 
-You can use any Integrated Development Environment (IDE) that you wish. If you don't have a preference, we can recommend [Visual Studio Code](https://code.visualstudio.com/).
-If using this, also install the [ESLint plugin](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) within VS Code.
+You can use any Integrated Development Environment (IDE) that you wish. If you don't have a preference, we can recommend
+[Visual Studio Code](https://code.visualstudio.com/). If using this, also install the
+[ESLint plugin](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) within VS Code.
 
 ## Contributing guidelines
 

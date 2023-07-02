@@ -82,8 +82,11 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 These platforms/browsers are deprecated. We still partially test against them, and we'll try to keep compatibility as long as it's not too complicated:
 
 - Firefox OS >=1.2 (needs to be installed manually on the device with WebIDE)
-- Microsoft Edge Legacy >=15 (needs to run a local copy of the source code)
-- Microsoft Internet Explorer 11 (needs to run a local copy of the source code)
+- Microsoft Edge Legacy >=15 (needs to run a bundled version of the source code)
+- Microsoft Internet Explorer 11 (needs to run a bundled version of the source code)
+
+You can build a bundled version by running `npm install` and `npm run build` in the root directory of this repo. Alternatively, a bundled version is served
+as a web app for testing from https://kiwix.github.io/kiwix-js/dist/ (also available on the `gh-pages` branch of this repo, under `/dist`). 
 
 ### Installing unsigned extensions in Chromium
 
@@ -135,7 +138,9 @@ The browser extensions are distributed through the stores of each vendor (see li
 
 Some nightly builds are generated, and should only be used for testing purpose: https://download.kiwix.org/nightly/.
 
-There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/, but this is used for development, and may be buggy, experimental or unstable.
+There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/ (unbundled: needs a modern browser that suppors native ES6 modules), and a bundled version for any
+HTML5 browser (>=IE11) at https://kiwix.github.io/kiwix-js/dist/, but these implementations are used for development, and may be buggy, experimental or unstable. A stable PWA version for
+use in the browser extensions is available from https://browser-extension.kiwix.org/current/.
 
 ## Previous versions
 
