@@ -17,7 +17,7 @@ while getopts tcdv: option; do
     esac
 done
 
-VERSION_TO_REPLACE="$(grep 'params\[.appVersion' www/js/app.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
+VERSION_TO_REPLACE="$(grep '"version":' manifest.json | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
 MAJOR_NUMERIC_VERSION=$(sed 's/-WIP//' <<<"$VERSION_TO_REPLACE")
 
 if [ -n $DRYRUN ]; then
@@ -67,15 +67,17 @@ rm -f tmp/www/js/lib/libzim-*dev.*
 # But Chrome would only accept a numeric version number : if it's not, we only use the prefix in manifest.json
 regexpNumericVersion='^[0-9\.]+$'
 if [[ $VERSION =~ $regexpNumericVersion ]] ; then
-   sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
-   sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.v2.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.v2.json
 else
-   sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
-   sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.v2.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.v2.json
 fi
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
+sed -i -E "s/(appVersion.*?)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle.js
+sed -i -E "s/(appVersion=.)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle-min.js
 
 mkdir -p build
 rm -rf build/*
@@ -91,13 +93,13 @@ scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
 # We have to put a unique version string inside the manifest.json (which Chrome might not have accepted)
 # So we take the original manifest v2 again, and replace the version inside it again
 cp manifest.v2.json tmp/manifest.json
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
 echo ""
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
 echo ""
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 
