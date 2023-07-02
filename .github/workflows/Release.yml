@@ -41,12 +41,8 @@ jobs:
           npm install
           # Build the minified version of the app
           npm run build-min
-          # Install packages in dist folder as well
-          cp package-lock.json ./dist/
-          cd ./dist
-          npm ci
           # Remove files we should not be packing
-          rm -rf www/js/*.map
+          rm -rf dist/www/js/*.map
       
       # Set up secret files from encrypted secrets
       - name: Set up secret files and copy needed scripts to dist

@@ -15,6 +15,7 @@ done
 # Install web-ext if it's not already installed (and if we're not doing a dryrun test)
 if [ ! -f node_modules/web-ext/bin/web-ext ] && [ "${DRYRUN}zz" == "zz" ]; then
     echo "Installing web-ext in $(pwd)"
+    rm package.json
     npm install web-ext
 fi
 
@@ -26,7 +27,7 @@ if [ "${TAG}zz" == "zz" ]; then
     if [ "${DRYRUN}zz" == "zz" ]; then
         # Sign the extension with the Mozilla API through web-ext, if we're not packaging a public version
         echo "Signing the extension for Firefox with Mozilla API, version $VERSION"
-        ../node_modules/web-ext/bin/web-ext sign --api-key=${MOZILLA_API_KEY} --api-secret=${MOZILLA_API_SECRET}
+        npx web-ext sign --api-key=${MOZILLA_API_KEY} --api-secret=${MOZILLA_API_SECRET}
     else
         echo "Skipping signing the extension with the Mozilla API, because it's a dryrun test"
     fi
