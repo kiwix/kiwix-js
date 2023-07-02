@@ -29,6 +29,7 @@ else
     zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 fi
 cd ..
+ls -l build/kiwix-chrome-unsigned-extension-$VERSION.zip
 if [ -z $TAG ]; then
     # Package the extension with Chrome or Chromium, if we're not packaging a public version
     if hash chromium-browser 2>/dev/null

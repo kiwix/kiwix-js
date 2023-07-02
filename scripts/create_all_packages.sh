@@ -88,6 +88,8 @@ cp backgroundscript.js tmp/
 rm tmp/manifest.json
 mv tmp/manifest.v2.json tmp/manifest.json
 scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
+echo "The following extensions have been built so far:"
+pwd & ls -l build
 
 # Package for Firefox and Firefox OS
 # We have to put a unique version string inside the manifest.json (which Chrome might not have accepted)
@@ -96,12 +98,16 @@ cp manifest.v2.json tmp/manifest.json
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
 echo ""
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
+echo "The following extensions have been built so far:"
+pwd & ls -l build
 echo ""
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
+echo -e "\nThe following apps have been built:"
+pwd & ls -l build
 
 # Change permissions on source files to match those expected by the server
 chmod 644 build/*

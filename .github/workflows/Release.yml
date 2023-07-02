@@ -63,6 +63,7 @@ jobs:
           cp ./scripts/create_all_packages.sh ./dist/scripts/create_all_packages.sh
           cp ./scripts/package_chrome_extension.sh ./dist/scripts/package_chrome_extension.sh
           cp ./scripts/package_firefox_extension.sh ./dist/scripts/package_firefox_extension.sh
+          cp ./scripts/package_firefoxos_app.sh ./dist/scripts/package_firefoxos_app.sh
           cp ./scripts/package_ubuntu_touch_app.sh ./dist/scripts/package_ubuntu_touch_app.sh
           cp -rf ./ubuntu_touch dist/ubuntu_touch
 
