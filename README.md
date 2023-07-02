@@ -88,10 +88,14 @@ These platforms/browsers are deprecated. We still partially test against them, a
 ### Installing unsigned extensions in Chromium
 
 If you need to install an unsigned extension version, e.g. if your browser doesn't support Manifest V3, then you will need to download an unsigned ZIP file from
-a relevant directory in https://download.kiwix.org/release/browsers/, or else a nightly version from https://download.kiwix.org/nightly/. Unzip this extension into
-a folder, and note the location. Open the extension management page in your browser, e.g. chrome://extensions/ or edge://extensions/, and turn on Developer mode.
-Then select "Load unpacked" and choose the folder that contains the unzipped extension. The browser will periodically ask you if you want to keep developer mode
-extensions installed.
+a relevant directory in https://download.kiwix.org/release/browsers/, or else a nightly version from https://download.kiwix.org/nightly/. Open the extension
+management page in your browser, e.g. chrome://extensions/ or edge://extensions/, and turn on Developer mode. Now, you should be able to drag and drop the ZIP
+file into this page. Verify the extension is showing in the management page.
+
+Alternatively, if drag-and-drop is difficult, you can instead unzip the extension ZIP into a folder, and note the location. Then select "Load unpacked" and choose 
+the folder that contains the unzipped extension.
+
+The browser will periodically ask you if you want to keep developer mode extensions installed.
 
 ### Limitations
 
