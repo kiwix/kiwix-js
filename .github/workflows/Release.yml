@@ -41,6 +41,7 @@ jobs:
           npm ci
           npm run build
           # Install packages in dist folder as well
+          cp package-lock.json ./dist/
           cd ./dist
           npm ci
       
