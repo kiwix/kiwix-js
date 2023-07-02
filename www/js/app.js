@@ -991,7 +991,8 @@ function setContentInjectionMode (value) {
     refreshCacheStatus();
     refreshAPIStatus();
     // Set the visibility of WebP workaround after change of content injection mode
-    uiUtil.determineCanvasElementsWorkaround();
+    // Note we need a timeout because loading the webpHero script in init.js is asynchronous
+    setTimeout(uiUtil.determineCanvasElementsWorkaround, 1500);
 }
 
 /**
