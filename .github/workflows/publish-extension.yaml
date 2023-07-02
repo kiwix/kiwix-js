@@ -90,6 +90,8 @@ jobs:
           git config user.email "<>"
           # Delete gitignore entry for the dist folder
           sed -i "/^\/dist\/$/d" .gitignore
+          # Apply the patch to gitignore to allow some dependencies to be included
+          git apply ./scripts/gitignore.patch
           if [ ! -z "$(git status --porcelain)" ]; then
             git add .
             git commit -m "Set GitHub Pages release version"
