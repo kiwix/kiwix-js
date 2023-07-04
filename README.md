@@ -72,7 +72,7 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 - Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
     + Google Chrome >=88: <img src="images/googlechrome-color.svg" width="20" /> [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
     + Microsoft Edge >=88: <img src="images/microsoftedge-color.svg" width="20" /> [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
-- Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use unsigned MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-unsigned-extensions-in-chromium)
+- Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use the MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-signed-or-unsigned-extension-files-in-chromium)
 - Electron >=1.8.0 and NWJS >=0.14.7 (as an application): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
 - Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
@@ -88,17 +88,22 @@ These platforms/browsers are deprecated. We still partially test against them, a
 You can build a bundled version by running `npm install` and `npm run build` in the root directory of this repo. Alternatively, a bundled version is served
 as a web app for testing from https://kiwix.github.io/kiwix-js/dist/ (also available on the `gh-pages` branch of this repo, under `/dist`). 
 
-### Installing unsigned extensions in Chromium
+### Installing signed or unsigned extension files in Chromium
 
-If you need to install an unsigned extension version, e.g. if your browser doesn't support Manifest V3, then you will need to download an unsigned ZIP file from
-a relevant directory in https://download.kiwix.org/release/browsers/, or else a nightly version from https://download.kiwix.org/nightly/. Open the extension
-management page in your browser, e.g. chrome://extensions/ or edge://extensions/, and turn on Developer mode. Now, you should be able to drag and drop the ZIP
-file into this page. Verify the extension is showing in the management page.
+If you need to install Chromium (Chrome or Edge) extension from a file instead of from a Store, e.g. if your browser doesn't support Manifest V3, then you will need to download a
+signed or unsigned CRX or ZIP file from a relevant directory in https://download.kiwix.org/release/browsers/, or else a nightly version from https://download.kiwix.org/nightly/.
+Files with `mv2` in their filename are in the legacy Manifest V2 format.
 
-Alternatively, if drag-and-drop is difficult, you can instead unzip the extension ZIP into a folder, and note the location. Then select "Load unpacked" and choose 
-the folder that contains the unzipped extension.
+To install your CRX or ZIP, open the extension management page in your browser, e.g. chrome://extensions/ or edge://extensions/, and turn on Developer mode. Now, you should be
+able to drag and drop the ZIP file into this page. Verify the extension is showing in the management page.
 
-The browser will periodically ask you if you want to keep developer mode extensions installed.
+Files that we deliver with a `.crx` file extension are files that have been validated by the Edge or Chrome Stores, and you should be able to install these as "first-class" apps.
+ZIP files provided in https://download.kiwix.org/release/browsers/, or the ones labelled `signed` in nightly, are actually signed CRX files that have been renamed with a `.zip`
+extension to facilitate downloading and installing them in Chromium browsers. Although signed, you cannot install them as CRX files, because they have not been validated by the
+Chrome or Edge Stores. For this reason, the browser will periodically ask you if you want to turn off developer-mode extensions. Just choose "ask again in two weeks".
+
+If drag-and-drop is difficult, you can instead unzip the extension ZIP into a folder, and note the location. Then select "Load unpacked" and choose  the folder that contains the
+unzipped extension. To unzip these with a utility like 7Zip, you will need to change the extension name to `.crx`. On Linux, `unzip` can read them without changing the filename.
 
 ### Limitations
 
