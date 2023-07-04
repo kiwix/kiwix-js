@@ -42,22 +42,6 @@ these separately, store them in your filesystem, and manually select them after 
 Please note that certain "Zimit"-based archives (available from the "zimit" directory on https://download.kiwix.org/zim/) are not (yet) compatible
 with this reader. There is experimental support for these in our sister app https://pwa.kiwix.org.
 
-## Some technical details
-
-Technically, after reading an article from a ZIM file, it is necessary to "inject" the dependencies (images, css, etc). For compatibility reasons,
-there are two main ways of doing this:
-
-- "ServiceWorker" mode (the default) uses a Service Worker to catch any HTTP request the page may send and reply with content read from
-the ZIM file. It is a generic and clean way of serving content to the browser. It works in any recent browser, but not in older ones.
-Service Workers are currently disabled by Mozilla in Firefox extensions, but we use a workaround (an offline-first PWA version) as a
-substitute within the extension;
-- "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract
-from the ZIM. This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so some ZIMs with dynamic
-content do not work well (if at all). However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
-
-You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode, you are strongly
-advised to remain in this mode.
-
 ## Compatibility
 
 Since the app is written in HTML/JavaScript, it should work in most recent browser engines and many older ones too, depending on the Content
@@ -100,10 +84,26 @@ able to drag and drop the ZIP file into this page. Verify the extension is showi
 Files that we deliver with a `.crx` file extension are files that have been validated by the Edge or Chrome Stores, and you should be able to install these as "first-class" apps.
 ZIP files provided in https://download.kiwix.org/release/browsers/, or the ones labelled `signed` in nightly, are actually signed CRX files that have been renamed with a `.zip`
 extension to facilitate downloading and installing them in Chromium browsers. Although signed, you cannot install them as CRX files, because they have not been validated by the
-Chrome or Edge Stores. For this reason, the browser will periodically ask you if you want to turn off developer-mode extensions. Just choose "ask again in two weeks".
+Chrome or Edge Stores. **_For this reason, the browser will periodically ask you if you want to turn off developer-mode extensions. Just choose "ask again in two weeks"._**
 
 If drag-and-drop is difficult, you can instead unzip the extension ZIP into a folder, and note the location. Then select "Load unpacked" and choose  the folder that contains the
-unzipped extension. To unzip these with a utility like 7Zip, you will need to change the extension name to `.crx`. On Linux, `unzip` can read them without changing the filename.
+unzipped extension. To unzip the MV2 files with a utility like 7Zip, you will need to change the extension name to `.crx`. On Linux, `unzip` can read them without changing the filename.
+
+## Some technical details
+
+Technically, after reading an article from a ZIM file, it is necessary to "inject" the dependencies (images, css, etc). For compatibility reasons,
+there are two main ways of doing this:
+
+- "ServiceWorker" mode (the default) uses a Service Worker to catch any HTTP request the page may send and reply with content read from
+the ZIM file. It is a generic and clean way of serving content to the browser. It works in any recent browser, but not in older ones.
+Service Workers are currently disabled by Mozilla in Firefox extensions, but we use a workaround (an offline-first PWA version) as a
+substitute within the extension;
+- "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract
+from the ZIM. This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so some ZIMs with dynamic
+content do not work well (if at all). However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
+
+You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode, you are strongly
+advised to remain in this mode.
 
 ### Limitations
 
