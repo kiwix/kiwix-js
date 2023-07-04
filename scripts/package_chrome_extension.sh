@@ -42,8 +42,9 @@ if [ -z $TAG ]; then
     fi
     echo "Signing the extension for $CHROME_BIN, version $VERSION"
     $CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
-    mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.crx
-    ls -l build/kiwix-chrome-signed-extension-$VERSION.crx
+    mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.zip
+    ls -l build/kiwix-chrome-signed-extension-$VERSION.zip
+    echo "This signed extension can be installed by dragging and dropping it into Chromium with developer mode turned on. It is a .crx file renamed to .zip, so that it can be downloaded."
 else
     echo "This unsigned extension must be manually uploaded to Google to be signed and distributed from their store"
 fi
