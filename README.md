@@ -8,14 +8,14 @@ can get the extension, completely free, from the Mozilla, Chrome and Edge extens
 There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
 at https://browser-extension.kiwix.org/current/. For the dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
 
-To use Kiwix JS, you will need to obtain, completely free, a content archive (see below). Once you have this on your device, select it in Kiwix JS,
-or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to read the archive's content. You can
-have the entire content of Wikipedia in your own language inside your device (including images and audiovisual content) entirely offline. If your Internet
-access is expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this amazing repository of knowledge,
-information and culture.
+To use Kiwix JS, you will need to obtain, completely free, a content archive (see [Usage](#usage)). Once you have this on your device, select it with the
+file selector (Configuration page), or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to
+read the archive's content. You can have the entire content of Wikipedia in your own language inside your device (including images and audiovisual content)
+entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this
+amazing repository of knowledge, information and culture.
 
-The Kiwix browser also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), but our main targets are
-Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
+The Kiwix browser also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), but our main targets are Mediawiki-based
+content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
