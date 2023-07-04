@@ -57,7 +57,7 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
     + Google Chrome >=88: <img src="images/googlechrome-color.svg" width="20" /> [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
     + Microsoft Edge >=88: <img src="images/microsoftedge-color.svg" width="20" /> [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
 - Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use the MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-signed-or-unsigned-extension-files-in-chromium)
-- Safari >=11.3 on macOS or iOS: no extension available, but use https://browser-extension.kiwix.org and install to Home screen; for a more fully featured PWA, use https://pwa.kiwix.org
+- Safari >=11.3 on macOS or iOS:  <img src="images/safari-color.svg" width="20" /> no extension available, but use https://browser-extension.kiwix.org and install to Home screen; for a more fully featured PWA, use https://pwa.kiwix.org
 - Electron >=1.8.0 and NWJS >=0.14.7 (as an application): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
 - Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
