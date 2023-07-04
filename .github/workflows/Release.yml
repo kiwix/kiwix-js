@@ -15,8 +15,12 @@ on:
   workflow_dispatch:
     inputs:
       target:
+        type: choice
         description: Do you wish to build release or nightly?
         required: false
+        options:
+          - release
+          - nightly
         default: 'nightly'
       version:
         description: If building a release version, please set the version number here, like 9.9 (ignored if you selected nightly build)
@@ -77,8 +81,8 @@ jobs:
           MOZILLA_API_KEY: ${{ secrets.MOZILLA_API_KEY }}
           TAG_NAME: ${{ github.event.release.tag_name }}
           CRON_LAUNCHED: ${{ github.event.schedule }}
-          INPUT_TARGET: ${{ github.event.inputs.target }}
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          INPUT_TARGET: ${{ inputs.target }}
+          RELEASE_VERSION: ${{ inputs.version }}
         shell: bash
         # Switch -t indicates a tag release (public release); add -d for dry run (for testing)
         # BEFORE the -v switch (because $TAG_NAME is empty for non-public builds)

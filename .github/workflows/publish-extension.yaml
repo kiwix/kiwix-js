@@ -28,8 +28,12 @@ on:
         required: false
         default: ''
       target:
+        type: choice
         description: 'Set the target to update: "ghpages" or "docker" (will update GitHub Pages by default)'
         required: false
+        options:
+          - ghpages
+          - docker
         default: ghpages
 
 jobs:
@@ -40,26 +44,26 @@ jobs:
       - uses: actions/checkout@v3
       - name: Modify version in source files
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_VERSION: ${{ inputs.version }}
           TAG_VERSION: ${{ github.event.release.tag_name }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           chmod +x ./scripts/rewrite_app_version_number.sh
           ./scripts/rewrite_app_version_number.sh
       - name: Build app with src bundle
-        if: github.event.inputs.target == 'ghpages' || github.event_name == 'push'
+        if: inputs.target == 'ghpages' || github.event_name == 'push'
         run: |
           npm ci
           npm run build-src
       - name: Build app with production bundle (src bundle also provided)
-        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        if: inputs.target == 'docker' || github.event_name == 'release'
         run: |
           npm ci
           npm run build
           echo "After deployment the production app will be available at https://browser-extension.kiwix.org"
       # Publish to docker only if explicitly requested or we are releasing
       - name: Build and push to docker
-        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        if: inputs.target == 'docker' || github.event_name == 'release'
         uses: openzim/docker-publish-action@v8
         with:
           image-name: kiwix/kiwix-moz-extension
@@ -71,10 +75,10 @@ jobs:
           dockerfile: docker/dockerfile-browser-extension.pwa
           restrict-to: kiwix/kiwix-js
           registries: ghcr.io
-          manual-tag: ${{ github.event.inputs.version }}
+          manual-tag: ${{ inputs.version }}
       # Restart live webapp only if we pushed an image to registry
       - name: Restart live webapp
-        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        if: inputs.target == 'docker' || github.event_name == 'release'
         uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
@@ -82,7 +86,7 @@ jobs:
           args: rollout restart deployments mozext-deployment -n pwa
       # Publish to GitHub Pages if explicitly requested, or if releasing, or if pushing to main
       - name: Publish to GitHub Pages
-        if: github.event.inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
+        if: inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
         run: |
           # Set up username and email
           echo "Publishing to GitHub pages..."
