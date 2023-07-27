@@ -247,12 +247,13 @@ function resizeIFrame () {
         }, 100);
     }
 }
-document.addEventListener('load', resizeIFrame);
+document.addEventListener('DOMContentLoaded', resizeIFrame);
 window.addEventListener('resize', resizeIFrame);
 
 // Define behavior of HTML elements
 var searchArticlesFocused = false;
-document.getElementById('searchArticles').addEventListener('click', function () {
+const searchArticle = document.getElementById('searchArticles')
+searchArticle.addEventListener('click', function () {
     var prefix = document.getElementById('prefix').value;
     // Do not initiate the same search if it is already in progress
     if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
@@ -267,13 +268,12 @@ document.getElementById('searchArticles').addEventListener('click', function () 
     // This flag is set to true in the mousedown event below
     searchArticlesFocused = false;
 });
-document.getElementById('searchArticles').addEventListener('mousedown', function () {
+searchArticle.addEventListener('mousedown', function () {
     // We set the flag so that the blur event of #prefix can know that the searchArticles button has been clicked
     searchArticlesFocused = true;
 });
 document.getElementById('formArticleSearch').addEventListener('submit', function () {
     document.getElementById('searchArticles').click();
-    return false;
 });
 // Handle keyboard events in the prefix (article search) field
 var keyPressHandled = false;
@@ -328,18 +328,19 @@ document.getElementById('prefix').addEventListener('keydown', function (e) {
     }
 });
 // Search for titles as user types characters
-document.getElementById('prefix').addEventListener('keyup', function (e) {
+const prefixElement = document.getElementById('prefix')
+prefixElement.addEventListener('keyup', function (e) {
     if (selectedArchive !== null && selectedArchive.isReady()) {
         // Prevent processing by keyup event if we already handled the keypress in keydown event
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
 });
 // Restore the search results if user goes back into prefix field
-document.getElementById('prefix').addEventListener('focus', function () {
+prefixElement.addEventListener('focus', function () {
     if (document.getElementById('prefix').value !== '') { document.getElementById('articleListWithHeader').style.display = ''; }
 });
 // Hide the search results if user moves out of prefix field
-document.getElementById('prefix').addEventListener('blur', function () {
+prefixElement.addEventListener('blur', function () {
     if (!searchArticlesFocused) {
         appstate.search.status = 'cancelled';
         document.getElementById('searchingArticles').style.display = 'none';
@@ -360,7 +361,9 @@ document.getElementById('btnRescanDeviceStorage').addEventListener('click', func
 // Bottom bar :
 document.getElementById('btnBack').addEventListener('click', function () {
     history.back();
-    return false;
+});
+document.getElementById('btnForward').addEventListener('click', function () {
+    history.forward();
 });
 $('#btnForward').on('click', function () {
     history.forward();
@@ -368,13 +371,10 @@ $('#btnForward').on('click', function () {
 });
 document.getElementById('btnHomeBottom').addEventListener('click', function () {
     document.getElementById('btnHome').click();
-    return false;
 });
 document.getElementById('btnTop').addEventListener('click', function () {
     var articleContent = document.getElementById('articleContent');
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
-    // We return true, so that the link to #top is still triggered (useful in the About section)
-    return true;
 });
 // Top menu :
 document.getElementById('btnHome').addEventListener('click', function () {
@@ -414,7 +414,6 @@ document.getElementById('btnHome').addEventListener('click', function () {
     }
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
-    return false;
 });
 document.getElementById('btnConfigure').addEventListener('click', function () {
     // Highlight the selected section in the navbar
@@ -441,7 +440,6 @@ document.getElementById('btnConfigure').addEventListener('click', function () {
     uiUtil.checkUpdateStatus(appstate);
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
-    return false;
 });
 document.getElementById('btnAbout').addEventListener('click', function () {
     // Highlight the selected section in the navbar
@@ -466,7 +464,6 @@ document.getElementById('btnAbout').addEventListener('click', function () {
     document.querySelector('.kiwix-alert').style.display = 'none';
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
-    return false;
 });
 document.querySelectorAll('input[name="contentInjectionMode"][type="checkbox"]').forEach(function (element) {
     element.addEventListener('change', function () {
