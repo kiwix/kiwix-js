@@ -1,0 +1,12 @@
+FROM nginx:latest
+
+EXPOSE 80
+
+RUN mkdir /usr/share/nginx/html/current/
+COPY ./docker/index.nginx.html /usr/share/nginx/html/index.html
+COPY ./dist/manifest.json /usr/share/nginx/html/current/
+COPY ./dist/service-worker.js /usr/share/nginx/html/current/
+COPY ./dist/index.html /usr/share/nginx/html/current/
+COPY ./dist/CHANGELOG.md /usr/share/nginx/html/current/
+COPY ./dist/LICENSE-GPLv3.txt /usr/share/nginx/html/current/
+COPY ./dist/www /usr/share/nginx/html/current/www/

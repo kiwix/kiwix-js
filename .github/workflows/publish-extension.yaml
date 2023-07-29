@@ -1,10 +1,10 @@
-# Workflow to publish the Mozilla extension
+# Workflow to publish the browser extension
 # Conditionally publishes the current branch to GitHub Pages, and/or
-# updates docker image for moz-extension.kiwix.org
+# updates docker image for browser-extension.kiwix.org
 # This workflow uses openzim/docker-publish-action@v6
 # Documentation: https://github.com/openzim/docker-publish-action#readme
 
-name: Publish Mozilla extension
+name: Publish browser extension
 
 # Controls when the action will run.
 on:
@@ -25,30 +25,45 @@ on:
     inputs:
       version:
         description: Set any override version number to use (overrides on-main and tag-pattern). If it matches ^v?[0-9.]+, it will set the appVersion (v will be removed) and will be visible to users. Non-matching values will cause appVersion to be used.
-        required: true
-        default: 'dev'
+        required: false
+        default: ''
       target:
+        type: choice
         description: 'Set the target to update: "ghpages" or "docker" (will update GitHub Pages by default)'
         required: false
+        options:
+          - ghpages
+          - docker
         default: ghpages
 
 jobs:
   build-and-push:
-    name: Deploy Mozilla extension
-    runs-on: ubuntu-20.04
+    name: Deploy browser extension to Docker and/or GitHub Pages
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Modify version in source files
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_VERSION: ${{ inputs.version }}
           TAG_VERSION: ${{ github.event.release.tag_name }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           chmod +x ./scripts/rewrite_app_version_number.sh
           ./scripts/rewrite_app_version_number.sh
+      - name: Build app with src bundle
+        if: inputs.target == 'ghpages' || github.event_name == 'push'
+        run: |
+          npm ci
+          npm run build-src
+      - name: Build app with production bundle (src bundle also provided)
+        if: inputs.target == 'docker' || github.event_name == 'release'
+        run: |
+          npm ci
+          npm run build
+          echo "After deployment the production app will be available at https://browser-extension.kiwix.org"
       # Publish to docker only if explicitly requested or we are releasing
       - name: Build and push to docker
-        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        if: inputs.target == 'docker' || github.event_name == 'release'
         uses: openzim/docker-publish-action@v8
         with:
           image-name: kiwix/kiwix-moz-extension
@@ -57,13 +72,13 @@ jobs:
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
           tag-pattern: /^v?([0-9.]+)$/
           latest-on-tag: true
-          dockerfile: docker/dockerfile-moz-extension.pwa
+          dockerfile: docker/dockerfile-browser-extension.pwa
           restrict-to: kiwix/kiwix-js
           registries: ghcr.io
-          manual-tag: ${{ github.event.inputs.version }}
+          manual-tag: ${{ inputs.version }}
       # Restart live webapp only if we pushed an image to registry
       - name: Restart live webapp
-        if: github.event.inputs.target == 'docker' || github.event_name == 'release'
+        if: inputs.target == 'docker' || github.event_name == 'release'
         uses: actions-hub/kubectl@master
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
@@ -71,15 +86,21 @@ jobs:
           args: rollout restart deployments mozext-deployment -n pwa
       # Publish to GitHub Pages if explicitly requested, or if releasing, or if pushing to main
       - name: Publish to GitHub Pages
-        if: github.event.inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
+        if: inputs.target == 'ghpages' || github.event_name == 'release' || github.event_name == 'push'
         run: |
           # Set up username and email
           echo "Publishing to GitHub pages..."
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
+          # Delete gitignore entry for the dist folder
+          sed -i "/^\/dist\/$/d" .gitignore
+          # Apply the patch to gitignore to allow some dependencies to be included
+          git apply ./scripts/gitignore.patch
           if [ ! -z "$(git status --porcelain)" ]; then
             git add .
             git commit -m "Set GitHub Pages release version"
           fi
           # Set gh-pages branch on origin to the currently checked-out branch
           git push origin HEAD:gh-pages --force
+          echo "After deployment, the app will be available at https://kiwix.github.io/kiwix-js/"
+          echo "The production deployment will be available at https://kiwix.github.io/kiwix-js/dist/"

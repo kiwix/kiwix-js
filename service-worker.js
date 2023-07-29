@@ -31,7 +31,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.8.1';
+const appVersion = '3.9.1';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -105,7 +105,6 @@ const precacheFiles = [
     'manifest.json',
     'service-worker.js',
     'www/css/app.css',
-    'www/css/bootstrap.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
     'www/css/transition.css',
@@ -121,11 +120,8 @@ const precacheFiles = [
     'www/js/init.js',
     'www/js/lib/abstractFilesystemAccess.js',
     'www/js/lib/arrayFromPolyfill.js',
-    'www/js/lib/bootstrap.bundle.js',
     'www/js/lib/filecache.js',
-    'www/js/lib/jquery-3.7.0.slim.min.js',
     'www/js/lib/promisePolyfill.js',
-    'www/js/lib/require.js',
     'www/js/lib/settingsStore.js',
     'www/js/lib/uiUtil.js',
     'www/js/lib/utf8.js',
@@ -136,8 +132,12 @@ const precacheFiles = [
     'www/js/lib/zimArchiveLoader.js',
     'www/js/lib/zimDirEntry.js',
     'www/js/lib/zimfile.js',
-    'www/js/lib/fontawesome/fontawesome.js',
-    'www/js/lib/fontawesome/solid.js'
+    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
+    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
+    'node_modules/bootstrap/dist/css/bootstrap.min.css',
+    'node_modules/bootstrap/dist/css/bootstrap.min.css.map',
+    'node_modules/jquery/dist/jquery.slim.min.js',
+    'node_modules/jquery/dist/jquery.slim.min.map'
 ];
 
 if ('WebAssembly' in self) {
@@ -338,7 +338,7 @@ function fetchUrlFromZIM (urlObject, range) {
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
-                headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: https://moz-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
+                headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
                 headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
 

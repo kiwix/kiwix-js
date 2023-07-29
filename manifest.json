@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Kiwix",
-    "version": "3.8.1",
+    "version": "3.9.1",
 
     "description": "Kiwix Offline Browser",
     
@@ -31,8 +31,6 @@
         "service_worker": "service-worker.js"
     },
 
-    "permissions": ["storage", "activeTab", "scripting"],
-    
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
         "sandbox": "sandbox allow-scripts allow-downloads allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"

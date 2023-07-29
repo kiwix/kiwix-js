@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# DEV: If running this script manually, you probably want to build the app first (npm run build), copy the
+# scripts/ into dist/scripts, and cd to the dist directory before running this script from dist/scripts.
+
 BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/..
 echo -e "\nBASEDIR is $BASEDIR"
 cd "$BASEDIR"
@@ -13,7 +17,7 @@ while getopts tcdv: option; do
     esac
 done
 
-VERSION_TO_REPLACE="$(grep 'params\[.appVersion' www/js/app.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
+VERSION_TO_REPLACE="$(grep '"version":' manifest.json | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
 MAJOR_NUMERIC_VERSION=$(sed 's/-WIP//' <<<"$VERSION_TO_REPLACE")
 
 if [ -n $DRYRUN ]; then
@@ -26,7 +30,7 @@ echo -e "Version to replace: $VERSION_TO_REPLACE\n"
 # Set the secret environment variables if available
 # The file set_secret_environment_variables.sh should not be commited for security reasons
 # It is only useful to run the scripts locally.
-# Travis injects the same environment variables by itself
+# Github injects the same environment variables by itself
 if [ -r "$BASEDIR/scripts/set_secret_environment_variables.sh" ]; then
   . "$BASEDIR/scripts/set_secret_environment_variables.sh"
 fi
@@ -56,22 +60,24 @@ fi
 mkdir -p tmp
 rm -rf tmp/*
 cp -r www manifest.json manifest.v2.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
-# Remove unwanted files
+# Remove unwanted files (this line should not be necessary if building from dist/)
 rm -f tmp/www/js/lib/libzim-*dev.*
 
 # Replace the version number everywhere
 # But Chrome would only accept a numeric version number : if it's not, we only use the prefix in manifest.json
 regexpNumericVersion='^[0-9\.]+$'
 if [[ $VERSION =~ $regexpNumericVersion ]] ; then
-   sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
-   sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.v2.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.v2.json
 else
-   sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
-   sed -i -e "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.v2.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
+   sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.v2.json
 fi
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/app.js
+sed -i -E "s/(appVersion.*?)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle.js
+sed -i -E "s/(appVersion=.)$VERSION_TO_REPLACE/\1$VERSION/" tmp/www/js/bundle.min.js
 
 mkdir -p build
 rm -rf build/*
@@ -82,20 +88,28 @@ cp backgroundscript.js tmp/
 rm tmp/manifest.json
 mv tmp/manifest.v2.json tmp/manifest.json
 scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
+echo "The following extensions have been built so far:"
+pwd & ls -l build
 
 # Package for Firefox and Firefox OS
 # We have to put a unique version string inside the manifest.json (which Chrome might not have accepted)
 # So we take the original manifest v2 again, and replace the version inside it again
 cp manifest.v2.json tmp/manifest.json
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
-echo ""
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
+echo "Manifest version for Firefox extension:"
+cat tmp/manifest.json
+echo -e "\nPacking for Firefox..."
 scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
-echo ""
+echo "The following extensions have been built so far:"
+pwd & ls -l build
+echo -e "\nPacking for Firefox OS..."
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/
-sed -i -e "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
+echo -e "\nThe following apps have been built:"
+pwd & ls -l build
 
 # Change permissions on source files to match those expected by the server
 chmod 644 build/*
@@ -108,6 +122,7 @@ if [ -n "${CRON_LAUNCHED}" ]; then
         mv "$file" "$target"
     done
 fi
+# If it's not a dryrun, then upload the files to the server
 if [ -z "${DRYRUN}" ]; then
     # Upload the files on master.download.kiwix.org
     echo -e "\nUploading the files to https://download.kiwix.org/nightly/$CURRENT_DATE/"
@@ -123,11 +138,14 @@ if [ -n "$TAG" ]; then
         echo -e "\nUploading the files to https://download.kiwix.org/release/"
         scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-firefoxos* ci@master.download.kiwix.org:/data/download/release/firefox-os
         scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-ubuntu-touch* ci@master.download.kiwix.org:/data/download/release/ubuntu-touch
+        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome-signed*mv2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/chrome/kiwix-chrome-mv2_$VERSION.zip
+        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome-signed*mv2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/edge/kiwix-edge-mv2_$VERSION.zip
     else
         echo -e "\n[DRRUN] Would have uploaded these files to https://download.kiwix.org/release/ :\n"
         ls -l build/kiwix-firefoxos*
         ls -l build/kiwix-ubuntu-touch*
+        ls -l build/kiwix-chrome*mv2*.zip
     fi
-    echo -e "\n*** DEV: Please note that Firefox and Chrome signed extension packages will need to be copied manually to the ***"
-    echo -e "*** release directory once they have been signed by the respective app stores. Unsigned versions in nightly.  ***\n"
+    echo -e "\n\e[0;32m*** DEV: Please note that Firefox and Chrome signed extension packages will need to be copied manually to the ***"
+    echo -e "\e[0;32m*** release directory once they have been signed by the respective app stores. Unsigned versions in nightly.  ***\n\e[0m"
 fi

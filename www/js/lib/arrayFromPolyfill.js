@@ -9,7 +9,8 @@
 
 		var arNew = [],
 			k = [], // used for convert Set to an Array
-			i = 0;
+			i = 0,
+			v;
 
 		//if you do not need a Set object support then
 		//you can comment or delete the following if statement
@@ -21,11 +22,12 @@
 			arr = k;
 		}
 
-		for (; i < arr.length; i++)
+		for (; i < (arr.length || arr.size); i++) {
+			v = typeof arr[i] !== 'undefined' ? arr[i] : arr.get ? arr.get(i) : null;
 			arNew[i] = callbackFn ?
-			callbackFn.call(thisArg, arr[i], i, arr) :
-			arr[i];
-
+			callbackFn.call(thisArg, v, i, arr) : v;
+		}
+		
 		return arNew;
 	}
 	//You could also use it without the following line, but it is not recommended because native function is faster.

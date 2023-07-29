@@ -23,29 +23,30 @@
 
 'use strict';
 
-/* global requirejs */
+/* global webpHero */
 
 // Define global params needed for tests to run on existing app code
 var params = {};
-var webpMachine = true;
 
-require.config({
-    baseUrl: (window.__karma__ ? 'base/' : '') + 'www/js/lib/',
-    paths: {
-        jquery: 'jquery-3.7.0.slim.min',
-        webpHeroBundle: 'webpHeroBundle_0.0.2'
-    },
-    shim: {
-        webpHeroBundle: ''
+// Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
+var webpMachine = false;
+
+// We use a self-invoking function here to avoid defining unnecessary global functions and variables
+(function (callback) {
+    // Tests for native WebP support
+    var webP = new Image();
+    webP.onload = webP.onerror = function () {
+        callback(webP.height === 2);
+    };
+    webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
+})(function (support) {
+    if (!support) {
+        // Note we set the location of this to be the directory where scripts reside **after bundling**
+        var webpScript = document.createElement('script');
+        webpScript.onload = function () {
+            webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
+        }
+        webpScript.src = '../www/js/webpHeroBundle_0.0.2.js';
+        document.head.appendChild(webpScript);
     }
-});
-
-var req = []; // Baseline Require array
-
-// Add polyfills to the Require array only if needed
-if (!('Promise' in self)) req.push('promisePolyfill');
-if (!('from' in Array)) req.push('arrayFromPolyfill');
-
-requirejs(req, function () {
-    requirejs(['../../../tests/tests']);
 });

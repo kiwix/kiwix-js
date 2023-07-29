@@ -13,26 +13,37 @@ while getopts m:tdv: option; do
 done
 if [ -n $MV ]; then
     echo -e "\nManifest version requested: $MV"
-    VERSION="MV$MV-$VERSION"
+    VERSION="mv$MV-$VERSION"
 fi
 echo "Packaging unsigned Chrome extension, version $VERSION"
 cd tmp
-zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
-cd ..
-if [ -z $TAG ]; then
-    # Package the extension with Chrome or Chromium, if we're not packaging a public version
-    if hash chromium-browser 2>/dev/null
-    then
-        echo "Chromium is available"
-        CHROME_BIN=chromium-browser
-    else
-        echo "Chromium is not available : trying to use Chrome"
-        CHROME_BIN=google-chrome-stable
-    fi
-    echo "Signing the extension for $CHROME_BIN, version $VERSION"
-    $CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
-    mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.crx
-    ls -l build/kiwix-chrome-signed-extension-$VERSION.crx
+if [ $MV -eq 2 ]; then
+    echo "Packing MV2 extension"
+    pwd & ls -l
+    cat manifest.json
+    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www backgroundscript.js manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 else
+    echo "Packing MV3 extension"
+    pwd & ls -l
+    cat manifest.json
+    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+fi
+cd ..
+ls -l build/kiwix-chrome-unsigned-extension-$VERSION.zip
+if [ -n $TAG ]; then
     echo "This unsigned extension must be manually uploaded to Google to be signed and distributed from their store"
 fi
+# Package the extension with Chrome or Chromium and sign it
+if hash chromium-browser 2>/dev/null
+then
+    echo "Chromium is available"
+    CHROME_BIN=chromium-browser
+else
+    echo "Chromium is not available: trying to use Chrome"
+    CHROME_BIN=google-chrome-stable
+fi
+echo "Signing the extension for $CHROME_BIN, version $VERSION"
+$CHROME_BIN --no-sandbox --pack-extension=tmp --pack-extension-key=./scripts/kiwix-html5.pem
+mv tmp.crx build/kiwix-chrome-signed-extension-$VERSION.zip
+ls -l build/kiwix-chrome-signed-extension-$VERSION.zip
+echo "This signed extension can be installed by dragging and dropping it into Chromium with developer mode turned on. It is a .crx file renamed to .zip, so that it can be downloaded."

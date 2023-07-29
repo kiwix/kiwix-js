@@ -1,0 +1,42 @@
+# DEV: This patch file is used in the publish-extension.yaml workflow to allow some dependenicies in node_modules to be committed to the repo
+# in the gh-pages branch. This is needed because the gh-pages branch is used to publish an implementation of the app. You may need to maintain
+# this list if more dependencies are added to the extension via npm.
+ .gitignore | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/.gitignore b/.gitignore
+index 69d180f..45218ed 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -43,7 +43,29 @@ build/config/buildinfo.properties
+ 
+ www-built
+ www-ghdeploy
+-/node_modules/
++/node_modules/*
++!/node_modules/@fortawesome
++/node_modules/@fortawesome/*
++!/node_modules/@fortawesome/fontawesome-free
++/node_modules/@fortawesome/fontawesome-free/*
++!/node_modules/@fortawesome/fontawesome-free/js
++/node_modules/@fortawesome/fontawesome-free/js/*
++!/node_modules/@fortawesome/fontawesome-free/js/all.js
++!/node_modules/bootstrap
++/node_modules/bootstrap/*
++!/node_modules/bootstrap/dist
++/node_modules/bootstrap/dist/*
++!/node_modules/bootstrap/dist/css
++/node_modules/bootstrap/dist/css/*
++!/node_modules/bootstrap/dist/css/bootstrap.min.*
++!/node_modules/bootstrap/dist/js
++/node_modules/bootstrap/dist/js/*
++!/node_modules/bootstrap/dist/js/bootstrap.bundle.min.*
++!/node_modules/jquery
++/node_modules/jquery/*
++!/node_modules/jquery/dist
++/node_modules/jquery/dist/*
++!/node_modules/jquery/dist/jquery.slim.min.*
+ /tmp/
+ /scripts/kiwix-*.pem
+ /scripts/set_secret_environment_variables.sh
+ 
