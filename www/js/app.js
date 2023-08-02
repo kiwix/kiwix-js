@@ -347,7 +347,8 @@ prefixElement.addEventListener('blur', function () {
         document.getElementById('articleListWithHeader').style.display = 'none';
     }
 });
-document.getElementById('btnRandomArticle').addEventListener('click', function () {
+document.getElementById('btnRandomArticle').addEventListener('click', function (event) {
+    event.preventDefault()
     document.getElementById('prefix').value = '';
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
@@ -359,26 +360,28 @@ document.getElementById('btnRescanDeviceStorage').addEventListener('click', func
     searchForArchivesInStorage();
 });
 // Bottom bar :
-document.getElementById('btnBack').addEventListener('click', function () {
+document.getElementById('btnBack').addEventListener('click', function (event) {
+    event.preventDefault()
     history.back();
 });
-document.getElementById('btnForward').addEventListener('click', function () {
+document.getElementById('btnForward').addEventListener('click', function (event) {
+    event.preventDefault()
     history.forward();
 });
-$('#btnForward').on('click', function () {
-    history.forward();
-    return false;
-});
-document.getElementById('btnHomeBottom').addEventListener('click', function () {
+
+document.getElementById('btnHomeBottom').addEventListener('click', function (event) {
+    event.preventDefault()
     document.getElementById('btnHome').click();
 });
-document.getElementById('btnTop').addEventListener('click', function () {
+document.getElementById('btnTop').addEventListener('click', function (event) {
+    event.preventDefault()
     var articleContent = document.getElementById('articleContent');
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
 });
 // Top menu :
-document.getElementById('btnHome').addEventListener('click', function () {
+document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
+    event.preventDefault()
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
