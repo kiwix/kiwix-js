@@ -2,6 +2,8 @@ import { Builder, By } from 'selenium-webdriver';
 import assert from 'assert';
 import path from 'path';
 
+/* global describe, it, beforeEach, afterEach */
+
 const rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
 let rayCharlesAllParts = '';
 for (let i = 0; i < 15; i++) {
@@ -10,13 +12,13 @@ for (let i = 0; i < 15; i++) {
         rayCharlesAllParts += '\n';
     }
 }
-describe('Ray Charles test', function() {
+describe('Ray Charles test', function () {
     this.timeout(30000);
     let driver;
-    beforeEach(async function() {
+    beforeEach(async function () {
         driver = await new Builder().forBrowser('MicrosoftEdge').build()
     });
-    afterEach(async function() {
+    afterEach(async function () {
         await driver.quit();
     });
 
@@ -27,7 +29,7 @@ describe('Ray Charles test', function() {
         assert.equal('Kiwix', title);
 
         await driver.findElement(By.id('archiveFiles')).sendKeys(rayCharlesAllParts);
-        await driver.manage().setTimeouts({implicit: 500});
+        await driver.manage().setTimeouts({ implicit: 500 });
         await driver.findElement(By.id('prefix')).sendKeys('Ray');
 
         const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
