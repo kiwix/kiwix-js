@@ -33,26 +33,33 @@ function runTests (driver) {
     describe('Legacy Ray Charles test (XZ compression)', function () {
         this.timeout(30000);
         this.slow(10000);
-        it('Load app', async function () {
-            await driver.get('http://localhost:8080/dist/www/index.html');
-            const title = await driver.getTitle();
-            assert.equal('Kiwix', title);
+        describe('Load app', function () {
+            it('Load Kiwix JS and check title', async function () {
+                await driver.get('http://localhost:8080/dist/www/index.html');
+                const title = await driver.getTitle();
+                assert.equal('Kiwix', title);
+            });
         });
-        it('Load Ray Charles and check index contains specified article', async function () {
-            await driver.findElement(By.id('archiveFiles')).sendKeys(rayCharlesAllParts);
-            await driver.wait(until.elementLocated(By.id('btnHome')), 5000);
-            await driver.findElement(By.id('btnHome')).click()
-            await driver.switchTo().frame(0);
-            const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
-            // console.log(articleLink);
-            assert.equal('This Little Girl of Mine', await articleLink.getText());
+        describe('Load archive', function () {
+            it('Load legacy Ray Charles and check index contains specified article', async function () {
+                await driver.findElement(By.id('archiveFiles')).sendKeys(rayCharlesAllParts);
+                // await driver.wait(until.elementLocated(By.id('btHome')), 5000);
+                await driver.findElement(By.id('btnHome')).click()
+                await driver.findElement(By.id('btnHome')).click()
+                await driver.switchTo().frame(0);
+                const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
+                // console.log(articleLink);
+                assert.equal('This Little Girl of Mine', await articleLink.getText());
+            });
         });
-        it('Search for Ray Charles in title index', async function () {
-            await driver.switchTo().defaultContent()
-            await driver.findElement(By.id('prefix')).sendKeys('Ray');
-            const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
-            assert.equal('Ray Charles', await resultElement.getText());
-            driver.quit();
+        describe('Initiate search', function () {
+            it('Search for Ray Charles in title index', async function () {
+                await driver.switchTo().defaultContent()
+                await driver.findElement(By.id('prefix')).sendKeys('Ray');
+                const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
+                assert.equal('Ray Charles', await resultElement.getText());
+                driver.quit();
+            });
         });
     });
 }
