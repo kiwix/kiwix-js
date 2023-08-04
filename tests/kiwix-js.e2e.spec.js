@@ -1,4 +1,4 @@
-import { Builder, By } from 'selenium-webdriver';
+import { By } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import path from 'path';
@@ -11,8 +11,8 @@ import path from 'path';
 
 // Set the browsers to test
 // const driver_fx = new Builder().forBrowser('firefox').build();
-const driver_chr = new Builder().forBrowser('chrome').build();
-const driver_edge = new Builder().forBrowser('MicrosoftEdge').build();
+// const driver_chr = new Builder().forBrowser('chrome').build();
+// const driver_edge = new Builder().forBrowser('MicrosoftEdge').build();
 
 // Set the archives to load
 const rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
@@ -26,8 +26,8 @@ for (let i = 0; i < 15; i++) {
 
 // Run the tests
 // runTests(driver_fx);
-runTests(driver_chr);
-runTests(driver_edge);
+// runTests(driver_chr);
+// runTests(driver_edge);
 
 function runTests (driver) {
     driver.getCapabilities().then(function (caps) {
@@ -57,3 +57,7 @@ function runTests (driver) {
         });
     });
 }
+
+export default {
+    runTests: runTests
+};
