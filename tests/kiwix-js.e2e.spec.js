@@ -71,9 +71,9 @@ function runTests (driver, modes) {
                     // Wait until the mode has switched
                     const serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     if (mode === 'serviceworker') {
-                        assert.equal('ServiceWorker API available, and registered', serviceWorkerStatus);
+                        assert.equal(true, /and\registered/i.test(serviceWorkerStatus));
                     } else {
-                        assert.notEqual('ServiceWorker API available, and registered', serviceWorkerStatus);
+                        assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                     }
                 });
             });
