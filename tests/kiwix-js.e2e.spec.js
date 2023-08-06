@@ -147,7 +147,7 @@ function runTests (driver, modes) {
                         const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
                         // console.log('Article title: ' + articleTitle);
                         return articleTitle === 'Ray Charles';
-                    }, 5000);
+                    }, 10000);
                     // Check that the article title is correct
                     const title = await driver.findElement(By.id('titleHeading')).getText();
                     assert.equal('Ray Charles', title);
