@@ -123,12 +123,12 @@ function runTests (driver, modes) {
             describe('Initiate search and navigate', function () {
                 it('Search for Ray Charles in title index and go to article', async function () {
                     // Pause by searching for a non-existent element
-                    try {
-                        const approveButton = await driver.findElement(By.id('approvConfirm'));
-                        await approveButton.click();
-                    } catch (e) {
-                        // Do nothing
-                    }
+                    // try {
+                    //     const approveButton = await driver.findElement(By.id('approvConfirm'));
+                    //     await approveButton.click();
+                    // } catch (e) {
+                    //     // Do nothing
+                    // }
                     await driver.switchTo().defaultContent();
                     const prefix = await driver.findElement(By.id('prefix'));
                     await prefix.sendKeys('Ray');
@@ -136,7 +136,8 @@ function runTests (driver, modes) {
                     let resultElement;
                     await driver.wait(async function () {
                         resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
-                        const resultText = await resultElement.getText();
+                        const resultText = await driver.executeScript('var el = arguments[0]; el.scrollIntoView(true); return el.innerText;', resultElement);
+                        console.log('Result text: ' + resultText);
                         assert.equal('Ray Charles', resultText);
                         return resultText;
                     }, 8000);
