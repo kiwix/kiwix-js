@@ -133,9 +133,14 @@ function runTests (driver, modes) {
                     // }, 5000);
                     await prefix.sendKeys('Ray');
                     await prefix.click();
-                    const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
-                    assert.equal('Ray Charles', await resultElement.getText());
-                    await resultElement.click();
+                    // Wait for the result to appear and click it
+                    await driver.wait(async function () {
+                        const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
+                        const resultText = await resultElement.getText();
+                        assert.equal('Ray Charles', resultText);
+                        await resultElement.click();
+                        return resultText;
+                    }, 5000);
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
                     await driver.wait(async function () {
