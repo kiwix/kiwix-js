@@ -133,14 +133,9 @@ function runTests (driver, modes) {
                     // }, 5000);
                     await prefix.sendKeys('Ray');
                     await prefix.click();
-                    driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']")).then(function (resultElement) {
-                        return resultElement.getText().then(function (text) {
-                            assert.equal('Ray Charles', text);
-                            resultElement.click();
-                        });
-                    });
-                    // assert.equal('Ray Charles', await resultElement.getText());
-                    // await resultElement.click();
+                    const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
+                    assert.equal('Ray Charles', await resultElement.getText());
+                    await resultElement.click();
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
                     await driver.wait(async function () {
