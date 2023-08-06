@@ -69,12 +69,14 @@ function runTests (driver, modes) {
                         // Do nothing
                     }
                     // Wait until the mode has switched
-                    const serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
-                    if (mode === 'serviceworker') {
-                        assert.equal(true, /and\registered/i.test(serviceWorkerStatus));
-                    } else {
-                        assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
-                    }
+                    driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
+                        // console.log('Service worker status: ' + serviceWorkerStatus);
+                        if (mode === 'serviceworker') {
+                            assert.equal(true, /and\registered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
+                    });
                 });
             });
             describe('Load archive', function () {
