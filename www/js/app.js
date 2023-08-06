@@ -182,7 +182,7 @@ document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useH
 document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
 switchHomeKeyToFocusSearchBar();
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
+// document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 // We check here if we have to warn the user that we switched to ServiceWorkerMode
 // This is only needed if the ServiceWorker mode is available, or we are in an Extension that supports Service Workers
 // outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
