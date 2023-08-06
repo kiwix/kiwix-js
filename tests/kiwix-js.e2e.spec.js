@@ -132,7 +132,7 @@ function runTests (driver, modes) {
                     //     return prefixContainsText;
                     // }, 5000);
                     await prefix.sendKeys('Ray');
-                    await prefix.click();
+                    // await prefix.click();
                     // Wait for the result to appear
                     let resultElement;
                     let resultText;
