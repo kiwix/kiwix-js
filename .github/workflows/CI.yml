@@ -91,8 +91,8 @@ jobs:
           npm run build-min
           npm run test-e2e-edge
           npm run test-e2e-firefox
+          npm run test-e2e-iemode
   
-
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
   #   runs-on: macos-latest
