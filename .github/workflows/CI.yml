@@ -9,6 +9,7 @@ on:
 jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
+  # Also runs end-to-end tests on Windows (taking advantage of the build)
   tests-files-build-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -26,6 +27,16 @@ jobs:
       - name: Test that the app can be built
         shell: pwsh
         run: npm run build
+
+      - name: End-to-end tests (Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        shell: pwsh
+        run: |
+          npm run test-e2e-edge
+          npm run test-e2e-chrome
+          npm run test-e2e-firefox
+
 
   # This job runs always, including for remote pull requests, and
   # has external dependencies or special permission needs, besides a
@@ -58,7 +69,7 @@ jobs:
       - name: Unit tests (Linux)
         run: npm run test-unit-browsers
         
-  tests-windows:
+  tests-unit-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
@@ -73,15 +84,6 @@ jobs:
         run: |
           npm run test-unit-edge
           npm run test-unit-firefox
-
-      - name: End-to-end tests (Windows)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        shell: pwsh
-        run: |
-          npm run test-e2e-edge
-          npm run test-e2e-chrome
-          npm run test-e2e-firefox
 
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
