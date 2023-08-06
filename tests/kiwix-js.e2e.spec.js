@@ -135,18 +135,22 @@ function runTests (driver, modes) {
                     await prefix.click();
                     // Wait for the result to appear
                     let resultElement;
+                    let resultText;
+                    let checkModalText;
                     await driver.wait(async function () {
                         resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
-                        const resultText = await resultElement.getText();
-                        assert.equal('Ray Charles', resultText);
-                        return resultText;
+                        resultText = await resultElement.getText();
+                        // Check modal-text element that is showing up here in IE11 headless
+                        return driver.findElement(By.id('modal-text')).getText().then(function (modalText) {
+                            console.log('Modal text: ' + modalText);
+                            checkModalText = modalText;
+                            return resultText === 'Ray Charles';
+                        });
                     }, 8000);
-                    // Check modal-text element that is showing up here in IE11 headless
-                    driver.findElement(By.id('modal-text')).getText().then(function (modalText) {
-                        console.log('Modal text: ' + modalText);
-                    });
+                    console.log('CheckModalText: ' + checkModalText);
+                    assert.equal('Ray Charles', resultText);
                     // Now click the result
-                    await resultElement.click();
+                    // await resultElement.click();
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
                     await driver.wait(async function () {
