@@ -45,7 +45,7 @@ jobs:
   # You can run these same tests locally in your own developer
   # environment via `npm ci && npm test`.
 
-  tests-unit-linux:
+  tests-linux:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-20.04
@@ -68,6 +68,15 @@ jobs:
 
       - name: Unit tests (Linux)
         run: npm run test-unit-browsers
+
+      - name: End-to-end tests (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        shell: pwsh
+        run: |
+          npm run build-min
+          npm run test-e2e-chrome
+          npm run test-e2e-firefox
         
   tests-unit-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
