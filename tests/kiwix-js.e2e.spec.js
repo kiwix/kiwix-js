@@ -133,19 +133,9 @@ function runTests (driver, modes) {
                     // }, 5000);
                     await prefix.sendKeys('Ray');
                     await prefix.click();
-                    await driver.wait(async function () {
-                        return driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']")).then(function (resultElement) {
-                            const thisReusltElement = resultElement;
-                            console.log('Result element: ' + thisReusltElement);
-                            return thisReusltElement.getText().then(function (resultElementText) {
-                                // console.log('Result element text: ' + resultElementText);
-                                assert.equal('Ray Charles', resultElementText);
-                                return driver.executeScript('var el = thisReusltElement; setTimeout(function () { el.click(); }, 500);', thisReusltElement).then(function () {
-                                    return true;
-                                });
-                            });
-                        });
-                    }, 10000);
+                    const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
+                    assert.equal('Ray Charles', await resultElement.getText());
+                    await resultElement.click();
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
                     await driver.wait(async function () {
