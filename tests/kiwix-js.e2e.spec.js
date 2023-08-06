@@ -1,4 +1,4 @@
-import { By, until } from 'selenium-webdriver';
+import { By } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import path from 'path';
@@ -24,41 +24,131 @@ for (let i = 0; i < 15; i++) {
     }
 }
 
-function runTests (driver) {
+function runTests (driver, modes) {
+    let browserName, browserVersion;
     driver.getCapabilities().then(function (caps) {
-        console.log('\nRunning tests on: ' + caps.get('browserName'));
+        browserName = caps.get('browserName');
+        browserVersion = caps.get('browserVersion');
+        console.log('\nRunning tests on: ' + browserName + ' ' + browserVersion);
     });
-    // Set the implicit wait to 10 seconds
-    driver.manage().setTimeouts({ implicit: 5000 });
-    describe('Legacy Ray Charles test (XZ compression)', function () {
-        this.timeout(30000);
-        this.slow(10000);
-        describe('Load app', function () {
-            it('Load Kiwix JS and check title', async function () {
-                await driver.get('http://localhost:8080/dist/www/index.html');
-                const title = await driver.getTitle();
-                assert.equal('Kiwix', title);
+    // Set the implicit wait to 3 seconds
+    driver.manage().setTimeouts({ implicit: 3000 });
+
+    // Set the modes to test if they were not passed to the testing function
+    if (!modes) {
+        modes = ['jquery', 'serviceworker'];
+    }
+
+    // Run tests for each mode
+    modes.forEach(function (mode) {
+        describe('Legacy Ray Charles test (XZ compression)', async function () {
+            this.timeout(30000);
+            this.slow(10000);
+            // Run tests twice, once in serviceworker mode and once in jquery mode
+            describe('Load app', function () {
+                it('Load Kiwix JS and check title', async function () {
+                    await driver.get('http://localhost:8080/dist/www/index.html');
+                    const title = await driver.getTitle();
+                    assert.equal('Kiwix', title);
+                });
             });
-        });
-        describe('Load archive', function () {
-            it('Load legacy Ray Charles and check index contains specified article', async function () {
-                await driver.findElement(By.id('archiveFiles')).sendKeys(rayCharlesAllParts);
-                // await driver.wait(until.elementLocated(By.id('btHome')), 5000);
-                await driver.findElement(By.id('btnHome')).click()
-                await driver.findElement(By.id('btnHome')).click()
-                await driver.switchTo().frame(0);
-                const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
-                // console.log(articleLink);
-                assert.equal('This Little Girl of Mine', await articleLink.getText());
+            // Switch to the requested contentInjectionMode
+            describe('Switch to ' + mode + ' mode', function () {
+                it('Switch to ' + mode + ' mode', async function () {
+                    const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
+                    // Scroll the element into view so that it can be clicked
+                    await driver.wait(async function () {
+                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
+                        return elementIsVisible;
+                    }, 5000);
+                    // Click any approve button in dialogue box
+                    try {
+                        const approveButton = await driver.findElement(By.id('approvConfirm'));
+                        await approveButton.click();
+                    } catch (e) {
+                        // Do nothing
+                    }
+                    // Wait until the mode has switched
+                    const serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                    if (mode === 'serviceworker') {
+                        assert.equal('ServiceWorker API available, and registered', serviceWorkerStatus);
+                    } else {
+                        assert.notEqual('ServiceWorker API available, and registered', serviceWorkerStatus);
+                    }
+                });
             });
-        });
-        describe('Initiate search', function () {
-            it('Search for Ray Charles in title index', async function () {
-                await driver.switchTo().defaultContent()
-                await driver.findElement(By.id('prefix')).sendKeys('Ray');
-                const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
-                assert.equal('Ray Charles', await resultElement.getText());
-                driver.quit();
+            describe('Load archive', function () {
+                it('Load legacy Ray Charles and check index contains specified article', async function () {
+                    const archiveFiles = await driver.findElement(By.id('archiveFiles'));
+                    await archiveFiles.sendKeys(rayCharlesAllParts);
+                    // Wait until files have loaded
+                    var filesLength;
+                    await driver.wait(async function () {
+                        // if (browserName === 'internet explorer' || browserName === 'friefox') {
+                        filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+                        // } else {
+                        //     filesLength = await driver.executeScript('setTimeout(function () {document.getElementById("btnHome").click();}, 500); return document.getElementById("archiveFiles").files.length');
+                        // }
+                        return filesLength === 15;
+                    }, 5000);
+                    // Check that we loaded 15 files
+                    assert.equal(15, filesLength);
+                });
+            });
+            describe('Navigate to linked article', function () {
+                it('Navigate to "This Littlge Girl of Mine"', async function () {
+                    // console.log('FilesLength outer: ' + filesLength);
+                    // Switch to iframe and check that the index contains the specified article
+                    await driver.switchTo().frame('articleContent');
+                    // Wait until the index has loaded
+                    await driver.wait(async function () {
+                        const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
+                        return contentAvailable;
+                    }, 5000);
+                    const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                    // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
+                    assert.equal('This Little Girl of Mine', await articleLink.getText());
+                    // Scroll the element into view and navigate to it
+                    await driver.wait(async function () {
+                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
+                        // console.log('Element is visible: ' + elementIsVisible);
+                        return elementIsVisible;
+                    }, 5000);
+                    // Check that the article title is correct
+                    assert.equal('Instrumentation by the Ray Charles Orchestra', await driver.findElement(By.id('mwYw')).getText());
+                });
+            });
+            describe('Initiate search and navigate', function () {
+                it('Search for Ray Charles in title index and go to article', async function () {
+                    await driver.switchTo().defaultContent();
+                    const prefix = await driver.findElement(By.id('prefix'));
+                    // Focus the prefix element
+                    // await prefix.click();
+                    // await driver.wait(async function () {
+                    //     const prefixContainsText = await driver.executeScript('var el = document.getElementById("prefix"); el.focus(); el.value = "ray"; return el.value;');
+                    //     console.log('Prefix contains text: ' + prefixContainsText);
+                    //     return prefixContainsText;
+                    // }, 5000);
+                    await prefix.sendKeys('Ray');
+                    await prefix.click();
+                    const resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
+                    assert.equal('Ray Charles', await resultElement.getText());
+                    await resultElement.click();
+                    await driver.switchTo().frame('articleContent');
+                    // Wait until the article has loaded and check title
+                    await driver.wait(async function () {
+                        const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
+                        // console.log('Article title: ' + articleTitle);
+                        return articleTitle === 'Ray Charles';
+                    }, 5000);
+                    // Check that the article title is correct
+                    const title = await driver.findElement(By.id('titleHeading')).getText();
+                    assert.equal('Ray Charles', title);
+                    // If we have reached the last mode, quit the driver
+                    if (mode === modes[modes.length - 1]) {
+                        await driver.quit();
+                    }
+                });
             });
         });
     });
