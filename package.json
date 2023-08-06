@@ -14,7 +14,11 @@
     "test-unit-edge": "testcafe edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "test-unit-mac": "testcafe safari ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "web-server": "http-server -p 8080 .",
-    "test-e2e": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/seleniumEnd2End.js'"
+    "test-e2e": "npm run test-e2e-firefox && npm run test-e2e-chrome && npm run test-e2e-edge && npm run test-e2e-iemode",
+    "test-e2e-firefox": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/firefox.e2e.runner.js'",
+    "test-e2e-chrome": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/chromium.e2e.runner.js'",
+    "test-e2e-edge": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/microsoftEdge.e2e.runner.js'",
+    "test-e2e-iemode": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/ieMode.e2e.runner.js'"
   },
   "engines": {
     "node": ">=10"
