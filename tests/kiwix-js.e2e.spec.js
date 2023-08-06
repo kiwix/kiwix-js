@@ -141,6 +141,10 @@ function runTests (driver, modes) {
                         assert.equal('Ray Charles', resultText);
                         return resultText;
                     }, 8000);
+                    // Check modal-text element that is showing up here in IE11 headless
+                    driver.findElement(By.id('modal-text')).getText().then(function (modalText) {
+                        console.log('Modal text: ' + modalText);
+                    });
                     // Now click the result
                     await resultElement.click();
                     await driver.switchTo().frame('articleContent');

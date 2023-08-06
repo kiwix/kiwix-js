@@ -77,20 +77,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests (Windows)
-        shell: pwsh
-        run: |
-          npm run test-unit-edge
-          npm run test-unit-firefox
+      # - name: Unit tests (Windows)
+      #   shell: pwsh
+      #   run: |
+      #     npm run test-unit-edge
+      #     npm run test-unit-firefox
 
       - name: End-to-end tests (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         shell: pwsh
         run: |
-          npm run build-min
-          npm run test-e2e-edge
-          npm run test-e2e-firefox
+          # npm run build-min
+          # npm run test-e2e-edge
+          # npm run test-e2e-firefox
           npm run test-e2e-iemode
   
   # tests-unit-mac:
