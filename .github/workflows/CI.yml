@@ -63,8 +63,11 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         shell: pwsh
         run: |
+          echo -e "\n\e[0;32mTesting on Edge Chromium..."
           npm run test-e2e-edge
+          echo -e "\n\e[0;32mTesting on Chrome..."
           npm run test-e2e-chrome
+          echo -e "\n\e[0;32mTesting on Firefox..."
           npm run test-e2e-firefox
         
   tests-windows:
@@ -77,20 +80,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Unit tests (Windows)
-      #   shell: pwsh
-      #   run: |
-      #     npm run test-unit-edge
-      #     npm run test-unit-firefox
+      - name: Unit tests (Windows)
+        shell: pwsh
+        run: |
+          npm run test-unit-edge
+          npm run test-unit-firefox
 
       - name: End-to-end tests (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         shell: pwsh
         run: |
+          Write-Host "`nBuilding the app..." -ForegroundColor Cyan
           npm run build-min
-          # npm run test-e2e-edge
-          # npm run test-e2e-firefox
+          Write-Host "`nTesting on Edge Chromium..." -ForegroundColor Cyan
+          npm run test-e2e-edge
+          Write-Host "`nTesting on Firefox..." -ForegroundColor Cyan
+          npm run test-e2e-firefox
+          Write-Host "`nTesting on IE11..." -ForegroundColor Cyan
           npm run test-e2e-iemode
   
   # tests-unit-mac:
