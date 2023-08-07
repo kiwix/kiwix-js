@@ -1,4 +1,4 @@
-import { By } from 'selenium-webdriver';
+import { By, Key } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import path from 'path';
@@ -132,17 +132,19 @@ function runTests (driver, modes) {
                     await driver.switchTo().defaultContent();
                     const prefix = await driver.findElement(By.id('prefix'));
                     await prefix.sendKeys('Ray');
-                    // Wait for the result to appear
-                    let resultElement;
+                    // Wait for at least four results to appear
+                    await driver.findElement(By.css('.list-group-item:nth-child(4)'));
+                    // Check the contents of the result and Add the hover attribute to it so we can select it with the keyboard
                     await driver.wait(async function () {
-                        resultElement = await driver.findElement(By.xpath("//div[@id='articleList']/a[text()='Ray Charles']"));
-                        const resultText = await driver.executeScript('var el = arguments[0]; el.scrollIntoView(true); return el.innerText;', resultElement);
-                        console.log('Result text: ' + resultText);
-                        assert.equal('Ray Charles', resultText);
-                        return resultText;
-                    }, 8000);
-                    // Now click the result
-                    await resultElement.click();
+                        // NB dispatchEvent for keydown does not work in IE, so we do this later using WebDriver methods
+                        // const found = await driver.executeScript('return new Promise(function (resolve) { setTimeout(function () { var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); document.getElementById("prefix").dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter"})); resolve(found); }, 1000); });');
+                        const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); return found;');
+                        assert.equal(true, found);
+                        return found;
+                    }, 3000);
+                    // Now select the result by sending the enter key
+                    await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
+                    // await resultElement.click();
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
                     await driver.wait(async function () {
