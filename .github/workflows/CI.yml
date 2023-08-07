@@ -61,7 +61,7 @@ jobs:
       - name: End-to-end tests (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        shell: pwsh
+        shell: bash
         run: |
           echo -e "\n\e[0;32mTesting on Edge Chromium..."
           npm run test-e2e-edge
