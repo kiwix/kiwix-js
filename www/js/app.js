@@ -275,9 +275,11 @@ searchArticle.addEventListener('mousedown', function () {
 document.getElementById('formArticleSearch').addEventListener('submit', function () {
     document.getElementById('searchArticles').click();
 });
+
+const prefixElement = document.getElementById('prefix');
 // Handle keyboard events in the prefix (article search) field
 var keyPressHandled = false;
-document.getElementById('prefix').addEventListener('keydown', function (e) {
+prefixElement.addEventListener('keydown', function (e) {
     // If user presses Escape...
     // IE11 returns "Esc" and the other browsers "Escape"; regex below matches both
     if (/^Esc/.test(e.key)) {
@@ -328,7 +330,6 @@ document.getElementById('prefix').addEventListener('keydown', function (e) {
     }
 });
 // Search for titles as user types characters
-const prefixElement = document.getElementById('prefix')
 prefixElement.addEventListener('keyup', function (e) {
     if (selectedArchive !== null && selectedArchive.isReady()) {
         // Prevent processing by keyup event if we already handled the keypress in keydown event
@@ -348,7 +349,7 @@ prefixElement.addEventListener('blur', function () {
     }
 });
 document.getElementById('btnRandomArticle').addEventListener('click', function (event) {
-    event.preventDefault()
+    event.preventDefault();
     document.getElementById('prefix').value = '';
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
@@ -361,27 +362,27 @@ document.getElementById('btnRescanDeviceStorage').addEventListener('click', func
 });
 // Bottom bar :
 document.getElementById('btnBack').addEventListener('click', function (event) {
-    event.preventDefault()
+    event.preventDefault();
     history.back();
 });
 document.getElementById('btnForward').addEventListener('click', function (event) {
-    event.preventDefault()
+    event.preventDefault();
     history.forward();
 });
 
 document.getElementById('btnHomeBottom').addEventListener('click', function (event) {
-    event.preventDefault()
+    event.preventDefault();
     document.getElementById('btnHome').click();
 });
 document.getElementById('btnTop').addEventListener('click', function (event) {
-    event.preventDefault()
+    event.preventDefault();
     var articleContent = document.getElementById('articleContent');
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
 });
 // Top menu :
 document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
-    event.preventDefault()
+    event.preventDefault();
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
@@ -418,7 +419,8 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
-document.getElementById('btnConfigure').addEventListener('click', function () {
+document.getElementById('btnConfigure').addEventListener('click', function (event) {
+    event.preventDefault();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
@@ -444,7 +446,8 @@ document.getElementById('btnConfigure').addEventListener('click', function () {
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
-document.getElementById('btnAbout').addEventListener('click', function () {
+document.getElementById('btnAbout').addEventListener('click', function (event) {
+    event.preventDefault();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', '');
