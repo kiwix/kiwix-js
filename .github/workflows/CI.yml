@@ -91,13 +91,13 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         shell: pwsh
         run: |
-          Write-Host "`nBuilding the app..." -ForegroundColor Cyan
+          Write-Host "`nBuilding the app..." -ForegroundColor Green
           npm run build-min
-          Write-Host "`nTesting on Edge Chromium..." -ForegroundColor Cyan
+          Write-Host "`nTesting on Edge Chromium..." -ForegroundColor Green
           npm run test-e2e-edge
-          Write-Host "`nTesting on Firefox..." -ForegroundColor Cyan
+          Write-Host "`nTesting on Firefox..." -ForegroundColor Green
           npm run test-e2e-firefox
-          Write-Host "`nTesting on IE11..." -ForegroundColor Cyan
+          Write-Host "`nTesting on IE11..." -ForegroundColor Green
           npm run test-e2e-iemode
   
   # tests-unit-mac:
