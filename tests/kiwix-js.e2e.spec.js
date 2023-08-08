@@ -40,11 +40,14 @@ function runTests (driver, modes) {
         this.slow(10000);
         it('Click the app reset button and accpet warning', async function () {
             await driver.get('http://localhost:8080/dist/www/index.html');
-            // Doing this twice clears the SW incompaitibility alert box on IE11
-            await driver.get('http://localhost:8080/dist/www/index.html');
-            // Pause by searching for a non-existent element
+            // Accept any alert dialogue box on opening, e.g. for browsers that do not support the ServiceWorker API
             try {
-                driver.findElement(By.id('dummyElement'));
+                const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                if (activeAlertModal) {
+                    // console.log('Found active alert modal');
+                    const approveButton = await driver.findElement(By.id('approveConfirm'));
+                    await approveButton.click();
+                }
             } catch (e) {
                 // Do nothing
             }
