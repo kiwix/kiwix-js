@@ -17,4 +17,4 @@ async function loadIEModeDriver () {
 
 const driver_ie = await loadIEModeDriver();
 
-e2e.runTests(driver_ie, ['jquery']);
+e2e.runTests(driver_ie);
