@@ -247,12 +247,13 @@ function resizeIFrame () {
         }, 100);
     }
 }
-$(document).ready(resizeIFrame);
-$(window).resize(resizeIFrame);
+document.addEventListener('DOMContentLoaded', resizeIFrame);
+window.addEventListener('resize', resizeIFrame);
 
 // Define behavior of HTML elements
 var searchArticlesFocused = false;
-$('#searchArticles').on('click', function () {
+const searchArticle = document.getElementById('searchArticles')
+searchArticle.addEventListener('click', function () {
     var prefix = document.getElementById('prefix').value;
     // Do not initiate the same search if it is already in progress
     if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
@@ -267,17 +268,18 @@ $('#searchArticles').on('click', function () {
     // This flag is set to true in the mousedown event below
     searchArticlesFocused = false;
 });
-$('#searchArticles').on('mousedown', function () {
+searchArticle.addEventListener('mousedown', function () {
     // We set the flag so that the blur event of #prefix can know that the searchArticles button has been clicked
     searchArticlesFocused = true;
 });
-$('#formArticleSearch').on('submit', function () {
+document.getElementById('formArticleSearch').addEventListener('submit', function () {
     document.getElementById('searchArticles').click();
-    return false;
 });
+
+const prefixElement = document.getElementById('prefix');
 // Handle keyboard events in the prefix (article search) field
 var keyPressHandled = false;
-$('#prefix').on('keydown', function (e) {
+prefixElement.addEventListener('keydown', function (e) {
     // If user presses Escape...
     // IE11 returns "Esc" and the other browsers "Escape"; regex below matches both
     if (/^Esc/.test(e.key)) {
@@ -328,25 +330,26 @@ $('#prefix').on('keydown', function (e) {
     }
 });
 // Search for titles as user types characters
-$('#prefix').on('keyup', function (e) {
+prefixElement.addEventListener('keyup', function (e) {
     if (selectedArchive !== null && selectedArchive.isReady()) {
         // Prevent processing by keyup event if we already handled the keypress in keydown event
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
 });
 // Restore the search results if user goes back into prefix field
-$('#prefix').on('focus', function () {
+prefixElement.addEventListener('focus', function () {
     if (document.getElementById('prefix').value !== '') { document.getElementById('articleListWithHeader').style.display = ''; }
 });
 // Hide the search results if user moves out of prefix field
-$('#prefix').on('blur', function () {
+prefixElement.addEventListener('blur', function () {
     if (!searchArticlesFocused) {
         appstate.search.status = 'cancelled';
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
     }
 });
-$('#btnRandomArticle').on('click', function () {
+document.getElementById('btnRandomArticle').addEventListener('click', function (event) {
+    event.preventDefault();
     document.getElementById('prefix').value = '';
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
@@ -354,31 +357,32 @@ $('#btnRandomArticle').on('click', function () {
     $('.navbar-collapse').collapse('hide');
 });
 
-$('#btnRescanDeviceStorage').on('click', function () {
+document.getElementById('btnRescanDeviceStorage').addEventListener('click', function () {
     searchForArchivesInStorage();
 });
 // Bottom bar :
-$('#btnBack').on('click', function () {
+document.getElementById('btnBack').addEventListener('click', function (event) {
+    event.preventDefault();
     history.back();
-    return false;
 });
-$('#btnForward').on('click', function () {
+document.getElementById('btnForward').addEventListener('click', function (event) {
+    event.preventDefault();
     history.forward();
-    return false;
 });
-$('#btnHomeBottom').on('click', function () {
+
+document.getElementById('btnHomeBottom').addEventListener('click', function (event) {
+    event.preventDefault();
     document.getElementById('btnHome').click();
-    return false;
 });
-$('#btnTop').on('click', function () {
+document.getElementById('btnTop').addEventListener('click', function (event) {
+    event.preventDefault();
     var articleContent = document.getElementById('articleContent');
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
-    // We return true, so that the link to #top is still triggered (useful in the About section)
-    return true;
 });
 // Top menu :
-$('#btnHome').on('click', function () {
+document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
+    event.preventDefault();
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
@@ -414,9 +418,9 @@ $('#btnHome').on('click', function () {
     }
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
-    return false;
 });
-$('#btnConfigure').on('click', function () {
+document.getElementById('btnConfigure').addEventListener('click', function (event) {
+    event.preventDefault();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
@@ -441,9 +445,9 @@ $('#btnConfigure').on('click', function () {
     uiUtil.checkUpdateStatus(appstate);
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
-    return false;
 });
-$('#btnAbout').on('click', function () {
+document.getElementById('btnAbout').addEventListener('click', function (event) {
+    event.preventDefault();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', '');
@@ -466,11 +470,12 @@ $('#btnAbout').on('click', function () {
     document.querySelector('.kiwix-alert').style.display = 'none';
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
-    return false;
 });
-$('input:radio[name=contentInjectionMode]').on('change', function () {
-    // Do the necessary to enable or disable the Service Worker
-    setContentInjectionMode(this.value);
+document.querySelectorAll('input[name="contentInjectionMode"][type="radio"]').forEach(function (element) {
+    element.addEventListener('change', function () {
+        // Do the necessary to enable or disable the Service Worker
+        setContentInjectionMode(this.value);
+    })
 });
 document.getElementById('useCanvasElementsCheck').addEventListener('change', function () {
     if (this.checked) {
@@ -512,22 +517,30 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
         }
     });
 });
-$('input:checkbox[name=hideActiveContentWarning]').on('change', function () {
-    params.hideActiveContentWarning = !!this.checked;
-    settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
+document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
+    element.addEventListener('change', function () {
+        params.hideActiveContentWarning = !!this.checked;
+        settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
+    })
 });
-$('input:checkbox[name=showUIAnimations]').on('change', function () {
-    params.showUIAnimations = !!this.checked;
-    settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
+document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
+    element.addEventListener('change', function () {
+        params.showUIAnimations = !!this.checked;
+        settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
+    })
 });
-$('input:checkbox[name=useHomeKeyToFocusSearchBar]').on('change', function () {
-    params.useHomeKeyToFocusSearchBar = !!this.checked;
-    settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
-    switchHomeKeyToFocusSearchBar();
-});
-$('input:checkbox[name=openExternalLinksInNewTabs]').on('change', function () {
-    params.openExternalLinksInNewTabs = !!this.checked;
-    settingsStore.setItem('openExternalLinksInNewTabs', params.openExternalLinksInNewTabs, Infinity);
+document.querySelectorAll('input[type="checkbox"][name=useHomeKeyToFocusSearchBar]').forEach(function (element) {
+    element.addEventListener('change', function () {
+        params.useHomeKeyToFocusSearchBar = !!this.checked;
+        settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
+        switchHomeKeyToFocusSearchBar();
+    })
+})
+document.querySelectorAll('input[type="checkbox"][name=openExternalLinksInNewTabs]').forEach(function (element) {
+    element.addEventListener('change', function () {
+        params.openExternalLinksInNewTabs = !!this.checked;
+        settingsStore.setItem('openExternalLinksInNewTabs', params.openExternalLinksInNewTabs, Infinity);
+    })
 });
 document.getElementById('appThemeSelect').addEventListener('change', function (e) {
     params.appTheme = e.target.value;
@@ -612,7 +625,7 @@ function switchHomeKeyToFocusSearchBar () {
         // in any other case listener gets removed on reloading of iFrame content
         iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
     } else {
-         // When the feature is not active, remove event listener for window (outside iframe)
+        // When the feature is not active, remove event listener for window (outside iframe)
         window.removeEventListener('keydown', focusPrefixOnHomeKey);
         // if feature is deactivated and no zim content is loaded yet
         iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
@@ -1196,8 +1209,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
     }
     // Store the list of archives in the Settings Store, to avoid rescanning at each start
     settingsStore.setItem('listOfArchives', archiveDirectories.join('|'), Infinity);
-
-    $('#archiveList').on('change', setLocalArchiveFromArchiveList);
+    document.getElementById('archiveList').addEventListener('change', setLocalArchiveFromArchiveList);
     if (comboArchiveList.options.length > 0) {
         var lastSelectedArchive = settingsStore.getItem('lastSelectedArchive');
         if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== '') {
@@ -1497,12 +1509,14 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     articleListDiv.innerHTML = articleListDivHtml;
     // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
     // and prevents this event from firing; note that touch also triggers mousedown
-    $('#articleList a').on('mousedown', function (e) {
-        // Cancel search immediately
-        appstate.search.status = 'cancelled';
-        handleTitleClick(e);
-        return false;
-    });
+    document.querySelectorAll('#articleList a').forEach(function (link) {
+        link.addEventListener('mousedown', function (e) {
+          // Cancel search immediately
+          appstate.search.status = 'cancelled';
+          handleTitleClick(e);
+          return false;
+        });
+      });
     if (!stillSearching) document.getElementById('searchingArticles').style.display = 'none';
     document.getElementById('articleListWithHeader').style.display = '';
 }
