@@ -87,13 +87,16 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
           # Use node console to show green text
-          Write-Verbose "Testing on Edge Chromium..." -Verbose
+          Write-Host ""
           Write-Verbose "Building the app..." -Verbose
           npm run build-min
+          Write-Host ""
           Write-Verbose "Testing on Edge Chromium..." -Verbose
           npm run test-e2e-edge
+          Write-Host ""
           Write-Verbose "Testing on Firefox..." -Verbose
           npm run test-e2e-firefox
+          Write-Host ""
           Write-Verbose "Testing on IE11..." -Verbose
           npm run test-e2e-iemode
   

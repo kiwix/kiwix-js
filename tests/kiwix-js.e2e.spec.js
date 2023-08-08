@@ -54,8 +54,8 @@ function runTests (driver, modes) {
         this.slow(10000);
         it('Click the app reset button and accpet warning', async function () {
             await driver.get('http://localhost:8080/dist/www/index.html');
-            // Pause for 2 seconds to allow the app to load
-            await driver.sleep(2000);
+            // Pause for 1.3 seconds to allow the app to load
+            await driver.sleep(1300);
             // Accept any alert dialogue box on opening, e.g. for browsers that do not support the ServiceWorker API
             try {
                 const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
@@ -113,8 +113,8 @@ function runTests (driver, modes) {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                         return elementIsVisible;
                     }, 5000);
-                    // Pause for 2 seconds to allow app to reload
-                    await driver.sleep(2000);
+                    // Pause for 1.3 seconds to allow app to reload
+                    await driver.sleep(1300);
                     // Check for and click any approve button in dialogue box
                     try {
                         const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
