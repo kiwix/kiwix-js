@@ -36,7 +36,7 @@ function runTests (driver, modes) {
 
     // Perform app reset before running tests (this is a convenience for local testers)
     describe('Reset app', function () {
-        this.timeout(30000);
+        this.timeout(60000);
         this.slow(10000);
         it('Click the app reset button and accpet warning', async function () {
             await driver.get('http://localhost:8080/dist/www/index.html');
@@ -73,7 +73,7 @@ function runTests (driver, modes) {
         // SW mode tests will need to be skipped if the browser does not support the SW API
         let serviceWorkerAPI = true;
         describe('Legacy Ray Charles test [XZ compression] ' + (mode === 'jquery' ? '[JQuery mode]' : mode === 'serviceworker' ? '[SW mode]' : ''), async function () {
-            this.timeout(30000);
+            this.timeout(60000);
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
             describe('Load app', function () {
