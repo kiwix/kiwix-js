@@ -1,3 +1,25 @@
+/**
+ * kiwix-js.e2e.spec.js : End-to-end tests implemented with Selenium WebDriver and Mocha
+ *
+ * Copyright 2023 Jaifroid and contributors
+ * Licence GPL v3:
+ *
+ * This file is part of Kiwix.
+ *
+ * Kiwix is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kiwix is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
+ */
+
 import { By, Key } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
@@ -5,14 +27,6 @@ import path from 'path';
 
 /* eslint-disable camelcase */
 /* global describe, it */
-
-// const options = new firefox.Options();
-// options.setBinary('C:/UTILS/FirefoxPortable/App/Firefox64/firefox.exe');
-
-// Set the browsers to test
-// const driver_fx = new Builder().forBrowser('firefox').build();
-// const driver_chr = new Builder().forBrowser('chrome').build();
-// const driver_edge = new Builder().forBrowser('MicrosoftEdge').build();
 
 // Set the archives to load
 const rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
