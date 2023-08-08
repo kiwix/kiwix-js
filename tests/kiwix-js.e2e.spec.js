@@ -34,6 +34,35 @@ function runTests (driver, modes) {
     // Set the implicit wait to 3 seconds
     driver.manage().setTimeouts({ implicit: 3000 });
 
+    // Perform app reset before running tests (this is a convenience for local testers)
+    describe('Reset app', function () {
+        this.timeout(30000);
+        this.slow(10000);
+        it('Click the app reset button and accpet warning', async function () {
+            await driver.get('http://localhost:8080/dist/www/index.html');
+            // Pause by searching for a non-existent element
+            try {
+                driver.findElement(By.id('dummyElement'));
+            } catch (e) {
+                // Do nothing
+            }
+            const resetButton = await driver.findElement(By.id('btnReset'));
+            await resetButton.click();
+            // Check for and click any approve button in subsequent dialogue box
+            // E.g. on IE11, a "ServiceWorker unsppoerted" alert will appear
+            try {
+                const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                if (activeAlertModal) {
+                    // console.log('Found active alert modal');
+                    const approveButton = await driver.findElement(By.id('approveConfirm'));
+                    await approveButton.click();
+                }
+            } catch (e) {
+                // Do nothing
+            }
+        });
+    });
+
     // Set the modes to test if they were not passed to the testing function
     if (!modes) {
         modes = ['jquery', 'serviceworker'];
@@ -41,7 +70,9 @@ function runTests (driver, modes) {
 
     // Run tests for each mode
     modes.forEach(function (mode) {
-        describe('Legacy Ray Charles test (XZ compression)', async function () {
+        // SW mode tests will need to be skipped if the browser does not support the SW API
+        let serviceWorkerAPI = true;
+        describe('Legacy Ray Charles test [XZ compression] ' + (mode === 'jquery' ? '[JQuery mode]' : mode === 'serviceworker' ? '[SW mode]' : ''), async function () {
             this.timeout(30000);
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
@@ -61,26 +92,42 @@ function runTests (driver, modes) {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                         return elementIsVisible;
                     }, 5000);
-                    // Click any approve button in dialogue box
+                    // Check for and click any approve button in dialogue box
                     try {
-                        const approveButton = await driver.findElement(By.id('approvConfirm'));
+                        const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                        if (activeAlertModal) {
+                            // Check if ServiceWorker mode API is supported
+                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                                return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
+                            });
+                        }
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
                         await approveButton.click();
                     } catch (e) {
                         // Do nothing
                     }
-                    // Wait until the mode has switched
-                    driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
-                        // console.log('Service worker status: ' + serviceWorkerStatus);
-                        if (mode === 'serviceworker') {
-                            assert.equal(true, /and\registered/i.test(serviceWorkerStatus));
-                        } else {
-                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
-                        }
-                    });
+                    if (serviceWorkerAPI) {
+                        // Wait until the mode has switched
+                        await driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
+                            if (mode === 'serviceworker') {
+                                assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                            } else {
+                                assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                            }
+                        });
+                    } else {
+                        // Skip remaining SW mode tests if the browser does not support the SW API
+                        console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                        await driver.quit();
+                    }
                 });
             });
             describe('Load archive', function () {
                 it('Load legacy Ray Charles and check index contains specified article', async function () {
+                    if (!serviceWorkerAPI) {
+                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                        return;
+                    }
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     await archiveFiles.sendKeys(rayCharlesAllParts);
                     // Wait until files have loaded
@@ -99,6 +146,10 @@ function runTests (driver, modes) {
             });
             describe('Navigate to linked article', function () {
                 it('Navigate to "This Littlge Girl of Mine"', async function () {
+                    if (!serviceWorkerAPI) {
+                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                        return;
+                    }
                     // console.log('FilesLength outer: ' + filesLength);
                     // Switch to iframe and check that the index contains the specified article
                     await driver.switchTo().frame('articleContent');
@@ -122,13 +173,10 @@ function runTests (driver, modes) {
             });
             describe('Initiate search and navigate', function () {
                 it('Search for Ray Charles in title index and go to article', async function () {
-                    // Pause by searching for a non-existent element
-                    // try {
-                    //     const approveButton = await driver.findElement(By.id('approvConfirm'));
-                    //     await approveButton.click();
-                    // } catch (e) {
-                    //     // Do nothing
-                    // }
+                    if (!serviceWorkerAPI) {
+                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                        return;
+                    }
                     await driver.switchTo().defaultContent();
                     const prefix = await driver.findElement(By.id('prefix'));
                     await prefix.sendKeys('Ray');
