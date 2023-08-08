@@ -471,7 +471,7 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
-document.querySelectorAll('input[name="contentInjectionMode"][type="checkbox"]').forEach(function (element) {
+document.querySelectorAll('input[name="contentInjectionMode"][type="radio"]').forEach(function (element) {
     element.addEventListener('change', function () {
         // Do the necessary to enable or disable the Service Worker
         setContentInjectionMode(this.value);
