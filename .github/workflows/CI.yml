@@ -87,15 +87,14 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
           # Use node console to show green text
-          # node -e "console.log('\x1b[36m%s\x1b[0m', '\nTesting on Edge Chromium...')"
-          Write-Verbose "`nTesting on Edge Chromium..." -Verbose
-          node -e "console.log('\x1b[36m%s\x1b[0m', '\nBuilding the app...')";
+          Write-Verbose "Testing on Edge Chromium..." -Verbose
+          Write-Verbose "Building the app..." -Verbose
           npm run build-min
-          node -e "console.log('\x1b[36m%s\x1b[0m', '\nTesting on Edge Chromium...')";
+          Write-Verbose "Testing on Edge Chromium..." -Verbose
           npm run test-e2e-edge
-          node -e "console.log('\x1b[36m%s\x1b[0m', '\nTesting on Firefox...')";
+          Write-Verbose "Testing on Firefox..." -Verbose
           npm run test-e2e-firefox
-          node -e "console.log('\x1b[36m%s\x1b[0m', '\nTesting on IE11...')";
+          Write-Verbose "Testing on IE11..." -Verbose
           npm run test-e2e-iemode
   
   # tests-unit-mac:
