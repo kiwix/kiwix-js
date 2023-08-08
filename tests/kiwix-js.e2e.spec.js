@@ -40,6 +40,8 @@ function runTests (driver, modes) {
         this.slow(10000);
         it('Click the app reset button and accpet warning', async function () {
             await driver.get('http://localhost:8080/dist/www/index.html');
+            // Doing this twice clears the SW incompaitibility alert box on IE11
+            await driver.get('http://localhost:8080/dist/www/index.html');
             // Pause by searching for a non-existent element
             try {
                 driver.findElement(By.id('dummyElement'));

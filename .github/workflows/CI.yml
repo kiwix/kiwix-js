@@ -86,13 +86,15 @@ jobs:
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
-          Write-Host "`n*** Building the app... ***" -ForegroundColor Green
+          # Use node console to show green text
+          node -e "console.log('\\x1b[36m%s\\x1b[0m', '\nTesting on Edge Chromium...')"
+          node -e "console.log('\\x1b[36m%s\\x1b[0m', '\nBuilding the app...')";
           npm run build-min
-          Write-Host "`n*** Testing on Edge Chromium... ***" -ForegroundColor Green
+          node -e "console.log('\\x1b[36m%s\\x1b[0m', '\nTesting on Edge Chromium...')";
           npm run test-e2e-edge
-          Write-Host "`n*** Testing on Firefox... ***" -ForegroundColor Green
+          node -e "console.log('\\x1b[36m%s\\x1b[0m', '\nTesting on Firefox...')";
           npm run test-e2e-firefox
-          Write-Host "`n*** Testing on IE11... ***" -ForegroundColor Green
+          node -e "console.log('\\x1b[36m%s\\x1b[0m', '\nTesting on IE11...')";
           npm run test-e2e-iemode
   
   # tests-unit-mac:
