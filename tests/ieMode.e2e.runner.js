@@ -1,6 +1,6 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/ie.js';
-import e2e from './kiwix-js.e2e.spec.js';
+import e2e from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
