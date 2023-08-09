@@ -79,9 +79,13 @@ _You must test your code yourself before asking for review, like this_:
   that their fix is working, but we discover they only applied the fix in one of these two modes. Don't be **that** contributor!
 * Unit tests, which test for regressions with basic app functions, are run automatically with GitHub Actions on each PR and push to a PR. If one of these tests fails, you will want
   to debug. First, see if you can also see the failure by running the tests with `npm test`, whcih should run the tests in all your installed browsers. To address any issues
-  identified, see below under "Unit tests" so you can debug;
+  identified, see [TESTS.md](./TESTS.md) so you can debug;
+* End-to-end (e2e) tests are also run on GitHub Actions when you push to your PR. These test typical user actions in a headless browser. Tests are currently enabled for latest
+  Firefox, Edge, Chrome in Linux and Windows, and in IE Mode on Windows (this is the equivalent to testing on Internet Explorer 11). You can run these tests yourself in a
+  non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS.md](./TESTS.md). 
 * As an alternative to the Vite server, we also provide [http-server](https://www.npmjs.com/package/http-server), which you can launch by running `npm run web-server` in the root of
-  this repository. This does not have Hot Module Replacement, and you will need to refresh the page yourself by doing `Ctrl-Shift-R` with DevTools open. Again, you will only see the latest version of your code if you turn on "Bypass AppCache" and turn off the browser's native caching (see above).
+  this repository. This does not have Hot Module Replacement, and you will need to refresh the page yourself by doing `Ctrl-Shift-R` with DevTools open. Again, you will only see the
+  latest version of your code if you turn on "Bypass AppCache" and turn off the browser's native caching (see above).
 
 If all the tests are working fine in your browsers, you **must finally test the extension versions**. Please note that we are using Manifest V3 for the Chromium extensions,
 and Manifest V2 for the Firefox extension, so there are different instructions for the two browser families:
@@ -91,21 +95,3 @@ and Manifest V2 for the Firefox extension, so there are different instructions f
 
 If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review. If you do not state what testing you have done, we reserve
 the right not to review your code until you have completed these manual tests!
-
-## Unit tests
-
-You can manually run and debug Unit tests simply by opening `tests/index.html` in Firefox, Edge, or Chromium/Chrome through a (local) web server, such as Vite or http-server (see above).
-Use DevTools (F12) to debug and find out what is failing. Note that this only tests the unbundled (source) code, and so it only works in browsers that support ES6 modules. You can't use
-these tests in IE11 or older Firefox/Chromium.
-
-You can run the UI tests with npm on all your installed browsers with `npm test` in your terminal. Before running the tests, if you didn't already, you will need to fetch development
-dependencies (see "Build system and setup" above). If testing this way, make sure that `http-server` is not already running, because another copy is launched for these tests, and the
-ports may conflict. If running tests in parallel like this produces unexpected results (some tests might be too slow and assert before they have completed correctly), then you can run
-individual tests in headless mode with `npm run test-unit-firefox`, `npm run test-unit-edge`, etc. (see `package.json` for full list of scripts). Note that browsers need to be available
-in standard locations for this to work: they won't be fetched or installed by the script.
-
-We use [Test_Café_](https://testcafe.io/) for testing. You can find out which browsers it knows about by running `npx testcafe --list-browsers` (it may take some time to discover local
-browsers).
-
-If you want to run individual tests visually, not headless, it's easiest simply to open `tests/index.html` in the respective browser, and this allows you to debug. If you really want to
-do it from the commandline, then you'll need, e.g., `npx testcafe chrome ./tests/initTestCafe.js --app "http-server --silent -p 8080 ."` (adapt the browser as necessary). 

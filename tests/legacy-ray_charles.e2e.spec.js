@@ -1,5 +1,5 @@
 /**
- * kiwix-js.e2e.spec.js : End-to-end tests implemented with Selenium WebDriver and Mocha
+ * legacy-ray_charles.e2e.spec.js : End-to-end tests implemented with Selenium WebDriver and Mocha
  *
  * Copyright 2023 Jaifroid and contributors
  * Licence GPL v3:
