@@ -8,11 +8,11 @@ functions that the rest of the app relies on. End-to-end tests are designed to t
 Unit tests are implemented, for historic reaons, with QUnit. When run in an automated way, these are currently run by using the browser testing framework Test_Café.
 
 You can manually run and debug Unit tests simply by opening `tests/index.html` in Firefox, Edge, or Chromium/Chrome through a (local) web server, such as Vite or http-server (see
-[CONTRIBUTING](https://github.com/kiwix/kiwix-js/blob/main/CONTRIBUTING.md)). Use DevTools (F12) to debug and find out what is failing. Note that this only tests the unbundled
+[CONTRIBUTING](./CONTRIBUTING.md)). Use DevTools (F12) to debug and find out what is failing. Note that this only tests the unbundled
 (source) code, and so it only works in browsers that support ES6 modules. You *cannot* use these tests in IE11 or older Firefox/Chromium.
 
 You can run the unit tests with npm on all your installed browsers with `npm test` in your terminal. Before running the tests, if you didn't already, you will need to fetch
-development dependencies (see "[Build system and setup](https://github.com/kiwix/kiwix-js/blob/main/CONTRIBUTING.md#build-system-and-setup)"). If testing this way,
+development dependencies (see "[Build system and setup](./CONTRIBUTING.md#build-system-and-setup)"). If testing this way,
 make sure that `http-server` is not already running, because another copy is launched for these tests, and the ports may conflict. If running tests in parallel like this produces
 unexpected results (some tests might be too slow and assert before they have completed correctly), then you can run individual tests in headless mode with
 `npm run test-unit-firefox`, `npm run test-unit-edge`, etc. (see `package.json` for full list of scripts). Note that browsers need to be available in standard locations for this
@@ -46,8 +46,7 @@ following procedure:
 The ZIM archive that is tested is also found in `tests`. In the case of `legacy-ray_charles.e2e.spec.js`, this is a legacy split ZIM archive that has XZ compression, so a useful test
 of that type of ZIM. We are looking to expand the tests to run also on a modern small ZIM with ZSTD compression and dynamic content.
 
-If you wish to develop tests for a new archive, be sure to create a new `e2e.spc.js` file that corresponds to that archive. It will be easiest to duplicate the existing legacy
-ray_charles suite and change the name of your copy. To luanch your new tests, you will need to add them to each browser's runner as an import. Finally, once the test is working
-locally, it can be added to the corresponding script in `package.json` (`test-e2e-edge`, `test-e2e-chrome`, etc.).
+If you wish to develop tests for a new archive, be sure to create a new `e2e.spec.js` file that corresponds to that archive. It will be easiest to duplicate the existing legacy
+ray_charles suite and change the name of your copy. To luanch your new tests, you will need to add them to each browser's runner as an import.
 
 Please note that we are currently using **Selenium** WebDriver, *not* WebDriver.io, which is a different (but related) project with subtly different test syntax.
