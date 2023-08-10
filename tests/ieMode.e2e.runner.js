@@ -1,6 +1,6 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/ie.js';
-import e2e from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -17,4 +17,4 @@ async function loadIEModeDriver () {
 
 const driver_ie = await loadIEModeDriver();
 
-e2e.runTests(driver_ie);
+legacyRayCharles.runTests(driver_ie);

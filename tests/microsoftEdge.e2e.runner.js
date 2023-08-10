@@ -1,6 +1,6 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/edge.js';
-import e2e from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -19,4 +19,4 @@ async function loadMSEdgeDriver () {
 
 const driver_edge = await loadMSEdgeDriver();
 
-e2e.runTests(driver_edge);
+legacyRayCharles.runTests(driver_edge);

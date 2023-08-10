@@ -1,6 +1,6 @@
 import { Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
-import e2e from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -19,4 +19,4 @@ async function loadFirefoxDriver () {
 
 const driver_fx = await loadFirefoxDriver();
 
-e2e.runTests(driver_fx);
+legacyRayCharles.runTests(driver_fx);

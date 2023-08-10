@@ -1,6 +1,6 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/chrome.js';
-import e2e from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -19,4 +19,4 @@ async function loadChromiumDriver () {
 
 const driver_chrome = await loadChromiumDriver();
 
-e2e.runTests(driver_chrome);
+legacyRayCharles.runTests(driver_chrome);
