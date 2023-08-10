@@ -9,7 +9,8 @@ on:
 jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
-  tests-files-build-windows:
+  # Also runs end-to-end tests on Windows (taking advantage of the build)
+  tests-files-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
@@ -20,12 +21,7 @@ jobs:
         run: npm ci
 
       - name: Test the list of offline files in Service Worker
-        shell: pwsh
         run: ./scripts/Check-OfflineFilesList.ps1
-
-      - name: Test that the app can be built
-        shell: pwsh
-        run: npm run build
 
   # This job runs always, including for remote pull requests, and
   # has external dependencies or special permission needs, besides a
@@ -34,7 +30,7 @@ jobs:
   # You can run these same tests locally in your own developer
   # environment via `npm ci && npm test`.
 
-  tests-unit-linux:
+  tests-linux:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-20.04
@@ -43,7 +39,6 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Test integrity of app parameters
-        shell: bash
         run: |
           # Check that values of assetsCache and appVersion are correctly duplicated
           chmod +x ./scripts/test_duplicate_values.sh
@@ -57,8 +52,22 @@ jobs:
 
       - name: Unit tests (Linux)
         run: npm run test-unit-browsers
+
+      - name: Test a full build of the app
+        run: npm run build
+
+      - name: End-to-end tests (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: |
+          echo -e "\n\e[0;32mTesting on Edge Chromium..."
+          npm run test-e2e-edge
+          echo -e "\n\e[0;32mTesting on Chrome..."
+          npm run test-e2e-chrome
+          echo -e "\n\e[0;32mTesting on Firefox..."
+          npm run test-e2e-firefox
         
-  tests-unit-windows:
+  tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
@@ -69,11 +78,28 @@ jobs:
         run: npm ci
 
       - name: Unit tests (Windows)
-        shell: pwsh
         run: |
           npm run test-unit-edge
           npm run test-unit-firefox
 
+      - name: End-to-end tests (Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: |
+          # Use node console to show green text
+          Write-Host ""
+          Write-Verbose "Building the app..." -Verbose
+          npm run build-min
+          Write-Host ""
+          Write-Verbose "Testing on Edge Chromium..." -Verbose
+          npm run test-e2e-edge
+          Write-Host ""
+          Write-Verbose "Testing on Firefox..." -Verbose
+          npm run test-e2e-firefox
+          Write-Host ""
+          Write-Verbose "Testing on IE11..." -Verbose
+          npm run test-e2e-iemode
+  
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
   #   runs-on: macos-latest
