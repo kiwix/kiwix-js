@@ -54,7 +54,7 @@ function runTests (driver, modes) {
     describe('Reset app', function () {
         this.timeout(60000);
         this.slow(10000);
-        it('Click the app reset button and accpet warning', async function () {
+        it('Click the app reset button and accept warning', async function () {
             await driver.get('http://localhost:' + port + '/dist/www/index.html');
             // Pause for 1.3 seconds to allow the app to load
             await driver.sleep(1300);
@@ -154,6 +154,8 @@ function runTests (driver, modes) {
                         return;
                     }
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
+                    // Unhide the element using JavaScript in case it is hidden
+                    await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
                     await archiveFiles.sendKeys(rayCharlesAllParts);
                     // Wait until files have loaded
                     var filesLength;
