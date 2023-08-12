@@ -11,10 +11,11 @@ const capabilities = {
         browserVersion: '18.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
         buildName: 'BStack Build Name: Edge Legacy',
+        local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
-        seleniumVersion: '4.10.0',
+        seleniumVersion: '3.9.1',
         edge: {
             enablePopups: true
         }
@@ -24,7 +25,7 @@ const capabilities = {
 
 async function loadEdgeLegacyDriver () {
     const driver = await new Builder()
-        .forBrowser('edge')
+        // .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();

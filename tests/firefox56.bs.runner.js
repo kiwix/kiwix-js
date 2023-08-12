@@ -11,6 +11,7 @@ const capabilities = {
         browserVersion: '56.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
         buildName: 'BStack Build Name: Firefox Legacy',
+        local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,

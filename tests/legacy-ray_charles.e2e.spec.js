@@ -29,9 +29,9 @@ import path from 'path';
 /* global describe, it */
 
 // Get the BrowserStack environment variable
-const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+// const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // DEV: For local testing, use line below instead
-// const BROWSERSTACK = true;
+const BROWSERSTACK = true;
 
 // Select the correct port according to the environment
 const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
@@ -188,7 +188,7 @@ function runTests (driver, modes) {
                     } else {
                         // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
                         await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', rayCharlesFileArray);
-                        await driver.sleep('800');
+                        await driver.sleep('1300');
                     }
                 });
             });
