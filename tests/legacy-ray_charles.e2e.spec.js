@@ -29,12 +29,12 @@ import path from 'path';
 /* global describe, it */
 
 // Get the BrowserStack environment variable
-const BROWSERSTACK = process.env.BROWSERSTACK_LOCAL;
+const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // DEV: For local testing, use line below instead
 // const BROWSERSTACK = true;
 
 // Select the correct port according to the environment
-const port = process.env.BROWSERSTACK_LOCAL ? '8099' : '8080';
+const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 
 // Set the archives to load
 let rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
