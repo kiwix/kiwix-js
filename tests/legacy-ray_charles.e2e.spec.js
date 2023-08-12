@@ -25,14 +25,29 @@ import { By, Key } from 'selenium-webdriver';
 import assert from 'assert';
 import path from 'path';
 
-/* eslint-disable camelcase */
+/* eslint-disable camelcase, one-var, prefer-const */
 /* global describe, it */
 
+// Get the BrowserStack environment variable
+const BROWSERSTACK = process.env.BROWSERSTACK_LOCAL;
+// DEV: For local testing, use line below instead
+// const BROWSERSTACK = true;
+
+// Select the correct port according to the environment
+const port = process.env.BROWSERSTACK_LOCAL ? '8099' : '8080';
+
 // Set the archives to load
-const rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
-let rayCharlesAllParts = '';
+let rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
+// For BrowserStack, we have to construct the file blops with XHR instead
+if (BROWSERSTACK) {
+    rayCharlesBaseFile = 'http://localhost:' + port + '/tests/wikipedia_en_ray_charles_2015-06.zimaa';
+}
+let rayCharlesAllParts = '', rayCharlesFileArray = [];
 for (let i = 0; i < 15; i++) {
-    rayCharlesAllParts += rayCharlesBaseFile.replace(/zimaa$/, `zima${String.fromCharCode(97 + i)}`);
+    let rayCharlesPart = rayCharlesBaseFile.replace(/zimaa$/, `zima${String.fromCharCode(97 + i)}`);
+    // console.log('Loading archive: ' + rayCharlesPart);
+    rayCharlesFileArray.push(rayCharlesPart);
+    rayCharlesAllParts += rayCharlesPart;
     if (i < 14) {
         rayCharlesAllParts += '\n';
     }
@@ -48,8 +63,6 @@ function runTests (driver, modes) {
     });
     // Set the implicit wait to 3 seconds
     driver.manage().setTimeouts({ implicit: 3000 });
-    // Select the correct port according to the environment
-    const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 
     // Perform app reset before running tests (this is a convenience for local testers)
     describe('Reset app', function () {
@@ -157,19 +170,26 @@ function runTests (driver, modes) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     // Unhide the element using JavaScript in case it is hidden
                     await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
-                    await archiveFiles.sendKeys(rayCharlesAllParts);
-                    // Wait until files have loaded
-                    var filesLength;
-                    await driver.wait(async function () {
-                        // if (browserName === 'internet explorer' || browserName === 'friefox') {
-                        filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
-                        // } else {
-                        //     filesLength = await driver.executeScript('setTimeout(function () {document.getElementById("btnHome").click();}, 500); return document.getElementById("archiveFiles").files.length');
-                        // }
-                        return filesLength === 15;
-                    }, 5000);
-                    // Check that we loaded 15 files
-                    assert.equal(15, filesLength);
+                    if (!BROWSERSTACK) {
+                        // We are running tests locally or on GitHub Actions
+                        await archiveFiles.sendKeys(rayCharlesAllParts);
+                        // Wait until files have loaded
+                        var filesLength;
+                        await driver.wait(async function () {
+                            // if (browserName === 'internet explorer' || browserName === 'friefox') {
+                            filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+                            // } else {
+                            //     filesLength = await driver.executeScript('setTimeout(function () {document.getElementById("btnHome").click();}, 500); return document.getElementById("archiveFiles").files.length');
+                            // }
+                            return filesLength === 15;
+                        }, 5000);
+                        // Check that we loaded 15 files
+                        assert.equal(15, filesLength);
+                    } else {
+                        // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
+                        await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', rayCharlesFileArray);
+                        await driver.sleep('800');
+                    }
                 });
             });
             describe('Navigate to linked article', function () {
