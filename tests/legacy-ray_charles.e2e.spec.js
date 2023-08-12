@@ -29,9 +29,9 @@ import path from 'path';
 /* global describe, it */
 
 // Get the BrowserStack environment variable
-// const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // DEV: For local testing, use line below instead
-const BROWSERSTACK = true;
+// const BROWSERSTACK = true;
 
 // Select the correct port according to the environment
 const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
