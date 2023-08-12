@@ -56,7 +56,7 @@ jobs:
       - name: Test a full build of the app
         run: npm run build
 
-      - name: End-to-end tests (Linux)
+      - name: End-to-end tests on GitHub (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
@@ -66,6 +66,30 @@ jobs:
           npm run test-e2e-chrome
           echo -e "\n\e[0;32mTesting on Firefox..."
           npm run test-e2e-firefox
+        
+      - name: BrowserStack environment setup
+        uses: browserstack/github-actions/setup-env@master
+        with:
+          username:  ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      
+      - name: BrowserStack local tunnel setup
+        uses: browserstack/github-actions/setup-local@master
+        with:
+          local-testing: start
+          local-identifier: random
+
+      - name: Run BroserStack tests
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: |
+          npx http-server --silent -p 8099 &
+          npx mocha tests/*.bs.runner.js
+      - name: Stop BrowserStackLocal
+        uses: browserstack/github-actions/setup-local@master
+        with:
+          local-testing: stop
         
   tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository

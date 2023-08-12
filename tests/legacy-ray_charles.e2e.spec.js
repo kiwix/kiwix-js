@@ -53,7 +53,9 @@ function runTests (driver, modes) {
         this.timeout(60000);
         this.slow(10000);
         it('Click the app reset button and accpet warning', async function () {
-            await driver.get('http://localhost:8080/dist/www/index.html');
+            // Select the correct port according to the environment
+            const port = process.env.BROOWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+            await driver.get('http://localhost:' + port + '/dist/www/index.html');
             // Pause for 1.3 seconds to allow the app to load
             await driver.sleep(1300);
             // Accept any alert dialogue box on opening, e.g. for browsers that do not support the ServiceWorker API
