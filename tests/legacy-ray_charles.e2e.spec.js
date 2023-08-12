@@ -47,14 +47,14 @@ function runTests (driver, modes) {
     });
     // Set the implicit wait to 3 seconds
     driver.manage().setTimeouts({ implicit: 3000 });
+    // Select the correct port according to the environment
+    const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 
     // Perform app reset before running tests (this is a convenience for local testers)
     describe('Reset app', function () {
         this.timeout(60000);
         this.slow(10000);
         it('Click the app reset button and accpet warning', async function () {
-            // Select the correct port according to the environment
-            const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
             await driver.get('http://localhost:' + port + '/dist/www/index.html');
             // Pause for 1.3 seconds to allow the app to load
             await driver.sleep(1300);
@@ -101,7 +101,7 @@ function runTests (driver, modes) {
             // Run tests twice, once in serviceworker mode and once in jquery mode
             describe('Load app', function () {
                 it('Load Kiwix JS and check title', async function () {
-                    await driver.get('http://localhost:8080/dist/www/index.html');
+                    await driver.get('http://localhost:' + port + '/dist/www/index.html');
                     const title = await driver.getTitle();
                     assert.equal('Kiwix', title);
                 });
