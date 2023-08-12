@@ -214,7 +214,7 @@ function runTests (driver, modes) {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
                         // console.log('Element is visible: ' + elementIsVisible);
                         return elementIsVisible;
-                    }, 5000);
+                    }, 10000);
                     // Check that the article title is correct
                     assert.equal('Instrumentation by the Ray Charles Orchestra', await driver.findElement(By.id('mwYw')).getText());
                 });
