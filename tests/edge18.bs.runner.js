@@ -24,6 +24,7 @@ const capabilities = {
 
 async function loadEdgeLegacyDriver () {
     const driver = await new Builder()
+        .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();

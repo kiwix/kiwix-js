@@ -37,6 +37,7 @@ for (let i = 0; i < 15; i++) {
         rayCharlesAllParts += '\n';
     }
 }
+console.log('\nLoading archive:\n' + rayCharlesAllParts + '\n');
 
 function runTests (driver, modes) {
     let browserName, browserVersion;
