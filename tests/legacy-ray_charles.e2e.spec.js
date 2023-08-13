@@ -244,7 +244,15 @@ function runTests (driver, modes) {
                     }, 3000);
                     // Now select the result by sending the enter key
                     await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
-                    // await resultElement.click();
+                    // Check if that worked, and if search result still visible, try with a click instead
+                    try {
+                        const resultElement = await driver.findElement(By.css('.list-group-item:nth-child(4)'));
+                        if (resultElement) {
+                            await resultElement.click();
+                        }
+                    } catch (e) {
+                        // Do nothing
+                    }
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
                     await driver.sleep(750);
