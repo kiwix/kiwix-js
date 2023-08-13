@@ -216,8 +216,14 @@ function runTests (driver, modes) {
                     }, 10000);
                     // Pause for 1 second to allow article to load
                     await driver.sleep(1300);
-                    // Find the mwYw element in JavaScript and get its content
-                    const elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
+                    let elementText = '';
+                    try {
+                        // Find the mwYw element in JavaScript and get its content
+                        elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
+                    } catch (e) {
+                        // We probably got a NoSuchFrameError on Safari, so try a different method
+                        elementText = await driver.findElement(By.id('mwYw')).getText();
+                    }
                     // console.log('Element text: ' + elementText);
                     // Check that the article title is correct
                     assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
