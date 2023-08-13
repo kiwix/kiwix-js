@@ -54,6 +54,12 @@ for (let i = 0; i < 15; i++) {
 }
 console.log('\nLoading archive:\n' + rayCharlesAllParts + '\n');
 
+/**
+ *  Run the tests
+ * @param {WebDriver} driver - Selenium WebDriver object
+ * @param {array} modes - Array of modes to run the tests in
+ * @returns {undefined}
+*/
 function runTests (driver, modes) {
     let browserName, browserVersion;
     driver.getCapabilities().then(function (caps) {
