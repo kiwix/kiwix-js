@@ -16,7 +16,6 @@ const capabilities = {
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
         seleniumVersion: '4.10.0',
-        resolution: '2048x1536',
         edge: {
             enablePopups: true
         }
@@ -34,5 +33,8 @@ async function loadEdgeLegacyDriver () {
 };
 
 const driver_edge_legacy = await loadEdgeLegacyDriver();
+
+// Maximize the window
+await driver_edge_legacy.manage().window().maximize();
 
 legacyRayCharles.runTests(driver_edge_legacy);
