@@ -40,7 +40,7 @@ const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 let rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
 // For BrowserStack, we have to construct the file blops with XHR instead
 if (BROWSERSTACK) {
-    rayCharlesBaseFile = 'http://localhost:' + port + '/tests/wikipedia_en_ray_charles_2015-06.zimaa';
+    rayCharlesBaseFile = '/tests/wikipedia_en_ray_charles_2015-06.zimaa';
 }
 let rayCharlesAllParts = '', rayCharlesFileArray = [];
 for (let i = 0; i < 15; i++) {
