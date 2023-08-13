@@ -8,9 +8,9 @@ const capabilities = {
     'bstack:options': {
         os: 'Windows',
         osVersion: '10',
-        browserVersion: '56.0',
+        browserVersion: '45.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Firefox Legacy',
+        buildName: 'BStack Build Name: Firefox Legacy 45',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
@@ -29,14 +29,10 @@ async function loadFirefoxDriver () {
     return driver;
 };
 
-// Run tests in jQuery mode
-// const driver_fx_jquery = await loadFirefoxDriver();
-// // Maximize the window so that full browser state is visible in the screenshots
-// await driver_fx_jquery.manage().window().maximize();
-// legacyRayCharles.runTests(driver_fx_jquery, ['jquery']);
+// Run tests in jQuery mode only (this browser does not support Service Workers)
+const driver_fx = await loadFirefoxDriver();
 
-// Run tests in ServiceWorker mode
-const driver_fx_sw = await loadFirefoxDriver();
 // Maximize the window so that full browser state is visible in the screenshots
-await driver_fx_sw.manage().window().maximize();
-legacyRayCharles.runTests(driver_fx_sw, ['serviceworker']);
+await driver_fx.manage().window().maximize();
+
+legacyRayCharles.runTests(driver_fx, ['jquery']);
