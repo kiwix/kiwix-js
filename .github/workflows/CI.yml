@@ -93,8 +93,8 @@ jobs:
           # npx mocha tests/firefox61.bs.runner.js
           echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
           npx mocha tests/chrome58.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Safari 13 / Catalina..."
-          npx mocha tests/safari13.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
+          npx mocha tests/safari14.bs.runner.js
           
       - name: Stop BrowserStackLocal
         uses: browserstack/github-actions/setup-local@master

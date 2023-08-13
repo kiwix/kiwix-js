@@ -8,9 +8,9 @@ const capabilities = {
     'bstack:options': {
         os: 'OS X',
         osVersion: 'Catalina',
-        browserVersion: '13.1',
+        browserVersion: '14.1',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Safari 13 on Catalina',
+        buildName: 'BStack Build Name: Safari 14 on Big Sur',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
