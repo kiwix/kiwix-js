@@ -8,7 +8,7 @@ const capabilities = {
     'bstack:options': {
         os: 'Windows',
         osVersion: '10',
-        browserVersion: '45.0',
+        browserVersion: '56.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
         buildName: 'BStack Build Name: Firefox Legacy 45',
         local: true,
