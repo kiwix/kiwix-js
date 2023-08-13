@@ -33,5 +33,6 @@ const driver_safari = await loadSafariDriver();
 
 // Maximize the window so that full browser state is visible in the screenshots
 await driver_safari.manage().window().maximize();
-
-legacyRayCharles.runTests(driver_safari);
+// Browserstack Safari does not support Service Workers
+console.log('Running tests in jQuery mode only for this browser version')
+legacyRayCharles.runTests(driver_safari, ['jquery']);
