@@ -7,7 +7,7 @@ import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 const capabilities = {
     'bstack:options': {
         os: 'OS X',
-        osVersion: 'Catalina',
+        osVersion: 'Big Sur',
         browserVersion: '14.1',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
         buildName: 'BStack Build Name: Safari 14 on Big Sur',
