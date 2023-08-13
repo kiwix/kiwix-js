@@ -7,10 +7,10 @@ import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 const capabilities = {
     'bstack:options': {
         os: 'OS X',
-        osVersion: 'Mojave',
-        browserVersion: '12.0',
+        osVersion: 'Catalina',
+        browserVersion: '13.1',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Safari 12 on Mojave',
+        buildName: 'BStack Build Name: Safari 13 on Catalina',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
