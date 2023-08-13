@@ -187,7 +187,7 @@ function runTests (driver, modes) {
                     } else {
                         // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
                         await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', rayCharlesFileArray);
-                        await driver.sleep('1300');
+                        await driver.sleep('1500');
                     }
                 });
             });
