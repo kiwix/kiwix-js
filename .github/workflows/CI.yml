@@ -85,12 +85,12 @@ jobs:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: |
           npx http-server --silent -p 8099 &
-          # echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
-          # npx mocha tests/edge18.bs.runner.js
-          # echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
-          # npx mocha tests/firefox56.bs.runner.js
-          # echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
-          # npx mocha tests/firefox61.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
+          npx mocha tests/edge18.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
+          npx mocha tests/firefox56.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
+          npx mocha tests/firefox61.bs.runner.js
           echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
           npx mocha tests/chrome58.bs.runner.js
           echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
