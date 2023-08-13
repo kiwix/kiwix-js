@@ -212,9 +212,11 @@ function runTests (driver, modes) {
                     // Scroll the element into view and navigate to it
                     await driver.wait(async function () {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
-                        // console.log('Element is visible: ' + elementIsVisible);
+                        console.log('Element is visible: ' + elementIsVisible);
                         return elementIsVisible;
                     }, 10000);
+                    // Pause for 1 second to allow aprticle to load
+                    await driver.sleep(1000);
                     // Check that the article title is correct
                     assert.equal('Instrumentation by the Ray Charles Orchestra', await driver.findElement(By.id('mwYw')).getText());
                 });
