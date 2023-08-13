@@ -221,9 +221,9 @@ function runTests (driver, modes) {
                         // Find the mwYw element in JavaScript and get its content
                         elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
                     } catch (e) {
-                        // We probably got a NoSuchFrameError on Safari, so try selecting the frame again
-                        await driver.switchTo().frame('articleContent');
-                        elementText = await driver.findElement(By.id('mwYw')).getText();
+                        // We probably got a NoSuchFrameError on Safari, so try selecting it with a different method
+                        await driver.switchTo().defaultContent();
+                        elementText = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mwYw").textContent;');
                     }
                     // console.log('Element text: ' + elementText);
                     // Check that the article title is correct
