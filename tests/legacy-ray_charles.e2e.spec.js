@@ -217,8 +217,11 @@ function runTests (driver, modes) {
                     }, 10000);
                     // Pause for 1 second to allow aprticle to load
                     await driver.sleep(1000);
+                    // Find the mwYw element in JavaScript and get its content
+                    const elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
+                    console.log('Element text: ' + elementText);
                     // Check that the article title is correct
-                    assert.equal('Instrumentation by the Ray Charles Orchestra', await driver.findElement(By.id('mwYw')).getText());
+                    assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
                 });
             });
             describe('Initiate search and navigate', function () {
