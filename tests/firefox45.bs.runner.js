@@ -15,7 +15,7 @@ const capabilities = {
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
-        seleniumVersion: '3.141.59'
+        seleniumVersion: '3.2.0'
     },
     browserName: 'Firefox'
 };
