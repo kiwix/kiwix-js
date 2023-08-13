@@ -32,6 +32,6 @@ async function loadChromeDriver () {
 const driver_chrome = await loadChromeDriver();
 
 // Maximize the window so that full browser state is visible in the screenshots
-await driver_chrome.manage().window().maximize();
+// await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
 
 legacyRayCharles.runTests(driver_chrome);
