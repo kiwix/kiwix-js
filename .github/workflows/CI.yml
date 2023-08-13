@@ -88,7 +88,7 @@ jobs:
           echo -e "\n\e[0;32mTesting on Edge Legacy 18..."
           npx mocha tests/edge18.bs.runner.js
           echo -e "\n\e[0;32mTesting on Firefox Legacy 45..."
-          npx mocha tests/firefox45.bs.runner.js
+          npx mocha tests/firefox56.bs.runner.js
           
       - name: Stop BrowserStackLocal
         uses: browserstack/github-actions/setup-local@master
