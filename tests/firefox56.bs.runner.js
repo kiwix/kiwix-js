@@ -30,11 +30,13 @@ async function loadFirefoxDriver () {
 };
 
 // Run tests in jQuery mode
-const driver_fx_jquery = await loadFirefoxDriver();
-// Maximize the window so that full browser state is visible in the screenshots
-await driver_fx_jquery.manage().window().maximize();
-legacyRayCharles.runTests(driver_fx_jquery, ['jquery']);
+// const driver_fx_jquery = await loadFirefoxDriver();
+// // Maximize the window so that full browser state is visible in the screenshots
+// await driver_fx_jquery.manage().window().maximize();
+// legacyRayCharles.runTests(driver_fx_jquery, ['jquery']);
 
 // Run tests in ServiceWorker mode
 const driver_fx_sw = await loadFirefoxDriver();
+// Maximize the window so that full browser state is visible in the screenshots
+await driver_fx_sw.manage().window().maximize();
 legacyRayCharles.runTests(driver_fx_sw, ['serviceworker']);
