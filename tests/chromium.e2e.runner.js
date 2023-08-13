@@ -19,7 +19,4 @@ async function loadChromiumDriver () {
 
 const driver_chrome = await loadChromiumDriver();
 
-// Maximize the window
-await driver_chrome.manage().window().maximize();
-
 legacyRayCharles.runTests(driver_chrome);

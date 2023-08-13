@@ -79,7 +79,7 @@ jobs:
           local-testing: start
           local-identifier: random
 
-      - name: Run BroserStack tests
+      - name: Run BrowserStack tests
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}

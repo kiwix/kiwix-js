@@ -145,9 +145,9 @@ function runTests (driver, modes) {
                     } catch (e) {
                         // Do nothing
                     }
-                    if (serviceWorkerAPI) {
+                    if (mode === 'jquery' || serviceWorkerAPI) {
                         // Wait until the mode has switched
-                        await driver.sleep(800);
+                        await driver.sleep(1000);
                         await driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
                             if (mode === 'serviceworker') {
                                 assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
@@ -177,11 +177,7 @@ function runTests (driver, modes) {
                         // Wait until files have loaded
                         var filesLength;
                         await driver.wait(async function () {
-                            // if (browserName === 'internet explorer' || browserName === 'friefox') {
                             filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
-                            // } else {
-                            //     filesLength = await driver.executeScript('setTimeout(function () {document.getElementById("btnHome").click();}, 500); return document.getElementById("archiveFiles").files.length');
-                            // }
                             return filesLength === 15;
                         }, 5000);
                         // Check that we loaded 15 files
@@ -249,6 +245,7 @@ function runTests (driver, modes) {
                     // await resultElement.click();
                     await driver.switchTo().frame('articleContent');
                     // Wait until the article has loaded and check title
+                    await driver.sleep(750);
                     await driver.wait(async function () {
                         const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
                         // console.log('Article title: ' + articleTitle);
