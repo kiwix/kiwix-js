@@ -213,14 +213,14 @@ function runTests (driver, modes) {
                     // Scroll the element into view and navigate to it
                     await driver.wait(async function () {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
-                        console.log('Element is visible: ' + elementIsVisible);
+                        // console.log('Element is visible: ' + elementIsVisible);
                         return elementIsVisible;
                     }, 10000);
                     // Pause for 1 second to allow aprticle to load
                     await driver.sleep(1000);
                     // Find the mwYw element in JavaScript and get its content
                     const elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
-                    console.log('Element text: ' + elementText);
+                    // console.log('Element text: ' + elementText);
                     // Check that the article title is correct
                     assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
                 });

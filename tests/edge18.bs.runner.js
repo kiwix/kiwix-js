@@ -15,7 +15,8 @@ const capabilities = {
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
-        seleniumVersion: '3.9.1',
+        seleniumVersion: '4.10.0',
+        resolution: '2048x1536',
         edge: {
             enablePopups: true
         }
