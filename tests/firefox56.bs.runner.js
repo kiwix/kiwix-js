@@ -20,7 +20,7 @@ const capabilities = {
     browserName: 'Firefox'
 };
 
-async function loadFireFoxDriver () {
+async function loadFirefoxDriver () {
     const driver = await new Builder()
         // .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
@@ -29,6 +29,12 @@ async function loadFireFoxDriver () {
     return driver;
 };
 
-const driver_fx = await loadFireFoxDriver();
+// Run tests in jQuery mode
+const driver_fx_jquery = await loadFirefoxDriver();
+// Maximize the window so that full browser state is visible in the screenshots
+await driver_fx_jquery.manage().window().maximize();
+legacyRayCharles.runTests(driver_fx_jquery, ['jquery']);
 
-legacyRayCharles.runTests(driver_fx);
+// Run tests in ServiceWorker mode
+const driver_fx_sw = await loadFirefoxDriver();
+legacyRayCharles.runTests(driver_fx_sw, ['serviceworker']);

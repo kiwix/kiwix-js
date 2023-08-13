@@ -85,11 +85,11 @@ jobs:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: |
           npx http-server --silent -p 8099 &
-          # echo -e "\n\e[0;32mTesting on Firefox Legacy 56..."
-          # npx mocha tests/firefox56.bs.runner.js
           echo -e "\n\e[0;32mTesting on Edge Legacy 18..."
           npx mocha tests/edge18.bs.runner.js
-
+          echo -e "\n\e[0;32mTesting on Firefox Legacy 56..."
+          npx mocha tests/firefox56.bs.runner.js
+          
       - name: Stop BrowserStackLocal
         uses: browserstack/github-actions/setup-local@master
         with:
