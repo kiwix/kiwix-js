@@ -34,4 +34,6 @@ const driver_fx = await loadFirefoxDriver();
 // Maximize the window so that full browser state is visible in the screenshots
 await driver_fx.manage().window().maximize();
 
-legacyRayCharles.runTests(driver_fx);
+// Run test in SW mode only
+console.log('Running tests in Service Worker mode only for this browser version');
+legacyRayCharles.runTests(driver_fx, ['serviceworker']);

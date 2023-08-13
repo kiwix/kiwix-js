@@ -29,10 +29,11 @@ async function loadFirefoxDriver () {
     return driver;
 };
 
-// Run tests in jQuery mode only (this browser does not support Service Workers)
 const driver_fx = await loadFirefoxDriver();
 
 // Maximize the window so that full browser state is visible in the screenshots
 await driver_fx.manage().window().maximize();
 
+// Run tests in jQuery mode only (this browser does not support Service Workers)
+console.log('Running tests in jQuery mode only for this browser version');
 legacyRayCharles.runTests(driver_fx, ['jquery']);
