@@ -149,7 +149,7 @@ function runTests (driver, modes) {
                     }
                     if (mode === 'jquery' || serviceWorkerAPI) {
                         // Wait until the mode has switched
-                        await driver.sleep(1000);
+                        await driver.sleep(500);
                         let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                         try {
                             if (mode === 'serviceworker') {
@@ -158,7 +158,12 @@ function runTests (driver, modes) {
                                 assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                             }
                         } catch (e) {
+                            if (!~modes.indexOf('serviceworker')) {
+                                // We can't switch to serviceworker mode if it is not being tested, so we should fail the test
+                                throw e;
+                            }
                             // We failed to switch modes, so let's try switching back and switching to this mode again
+                            console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
                             const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
                             // Click the other mode selector
                             await otherModeSelector.click();
