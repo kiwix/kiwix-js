@@ -231,6 +231,7 @@ function runTests (driver, modes) {
                     const prefix = await driver.findElement(By.id('prefix'));
                     await prefix.sendKeys('Ray');
                     // Wait for at least four results to appear
+                    await driver.sleep(500);
                     await driver.findElement(By.css('.list-group-item:nth-child(4)'));
                     // Check the contents of the result and Add the hover attribute to it so we can select it with the keyboard
                     await driver.wait(async function () {
