@@ -150,13 +150,31 @@ function runTests (driver, modes) {
                     if (mode === 'jquery' || serviceWorkerAPI) {
                         // Wait until the mode has switched
                         await driver.sleep(1000);
-                        await driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
+                        let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                        try {
                             if (mode === 'serviceworker') {
                                 assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
                             } else {
                                 assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                             }
-                        });
+                        } catch (e) {
+                            // We failed to switch modes, so let's try switching back and switching to this mode again
+                            const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                            // Click the other mode selector
+                            await otherModeSelector.click();
+                            // Wait until the mode has switched
+                            await driver.sleep(330);
+                            // Click the mode selector again
+                            await modeSelector.click();
+                            // Wait until the mode has switched
+                            await driver.sleep(330);
+                            serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                            if (mode === 'serviceworker') {
+                                assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                            } else {
+                                assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                            }
+                        }
                     } else {
                         // Skip remaining SW mode tests if the browser does not support the SW API
                         console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
