@@ -190,7 +190,7 @@ function runTests (driver, modes) {
                 });
             });
             describe('Navigate to linked article', function () {
-                it('Navigate to "This Littlge Girl of Mine"', async function () {
+                it('Navigate to "This Little Girl of Mine"', async function () {
                     if (!serviceWorkerAPI) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
@@ -229,7 +229,8 @@ function runTests (driver, modes) {
                     }
                     await driver.switchTo().defaultContent();
                     const prefix = await driver.findElement(By.id('prefix'));
-                    await prefix.sendKeys('Ray');
+                    // Search by setting the value of the prefix element using JavaScript
+                    await driver.executeScript('arguments[0].value = "Ray"; document.getElementById("searchArticles").click();', prefix);
                     // Wait for at least four results to appear
                     await driver.sleep(500);
                     await driver.findElement(By.css('.list-group-item:nth-child(4)'));
