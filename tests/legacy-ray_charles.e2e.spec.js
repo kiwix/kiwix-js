@@ -147,6 +147,7 @@ function runTests (driver, modes) {
                     }
                     if (serviceWorkerAPI) {
                         // Wait until the mode has switched
+                        await driver.sleep(800);
                         await driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
                             if (mode === 'serviceworker') {
                                 assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
