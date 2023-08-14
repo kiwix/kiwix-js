@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-import { By, Key, WebDriver } from 'selenium-webdriver';
+import { By, Key, until } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import path from 'path';
@@ -159,9 +159,9 @@ function runTests (driver, modes) {
                     assert.equal(1, filesLength);
                 });
             });
-            describe('Extra button and Language Dropdown', async function () {
+            describe('Extra button and Language Dropdown', function () {
+                const isJqueryMode = mode === 'jquery';
                 it('Sorting books by popularity', async function () {
-                    const isJqueryMode = mode === 'jquery';
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
@@ -173,7 +173,6 @@ function runTests (driver, modes) {
                     assert.equal(firstElementText, 'Poezii');
                 });
                 it('Sorting books by name', async function () {
-                    const isJqueryMode = mode === 'jquery';
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
@@ -185,7 +184,6 @@ function runTests (driver, modes) {
                 });
 
                 it('Change Language', async function () {
-                    const isJqueryMode = mode === 'jquery';
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
@@ -197,6 +195,63 @@ function runTests (driver, modes) {
                     // console.log(languageSelect);
                     assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
                 });
+            });
+            describe('Search and Results', function () {
+                const isJqueryMode = mode === 'jquery';
+                console.log('hello');
+                it('Primary Search', async function () {
+                    await driver.switchTo().defaultContent();
+                    await driver.wait(until.elementLocated(By.xpath('//*[@id="prefix"]')), 10000)
+                    await driver.findElement(By.xpath('//*[@id="prefix"]')).sendKeys('Poezii.35323.html');
+                    const searchListCount = (await driver.findElements(By.id('articleList'))).length;
+                    assert.equal(searchListCount, 1);
+                });
+                it('Secondary search Autocomplete', async function () {
+                    if (isJqueryMode) {
+                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                        return;
+                    }
+                    await driver.switchTo().frame('articleContent');
+                    const filter = await driver.findElement(By.id('author_filter'))
+                    await filter.sendKeys('Mihai Eminescu');
+                    const searchListCount = (await driver.findElements(By.id('ui-id-1'))).length;
+                    assert.equal(searchListCount, 1);
+                });
+                it('Secondary search Results', async function () {
+                    if (isJqueryMode) {
+                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                        return;
+                    }
+                    const filter = await driver.findElement(By.id('author_filter'))
+                    // await filter.sendKeys('Mihai Eminescu');
+                    await filter.sendKeys(Key.ENTER);
+                    const searchListCount = (await driver.findElements(By.xpath('//*[@id="books_table"]/tbody'))).length;
+                    await filter.clear();
+                    await filter.sendKeys(Key.ENTER);
+                    assert.equal(searchListCount, 1);
+                });
+            });
+            describe('Download', function () {
+                const isJqueryMode = mode === 'jquery';
+                it('Download EPUB file', async function () {
+                    if (isJqueryMode) {
+                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                        return;
+                    }
+                    await driver.sleep(1000);
+                    await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i')).click();
+                    // const searchListCount = (await driver.findElements(By.id('articleList'))).length;
+                    // assert.equal(searchListCount, 1);
+                });
+                // it('Secondary search', async function () {
+                //     if (isJqueryMode) {
+                //         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                //         return;
+                //     }
+                //     await driver.findElement(By.id('author_filter')).sendKeys('Mihai Eminescu');
+                //     const searchListCount = (await driver.findElements(By.id('ui-id-1'))).length;
+                //     assert.equal(searchListCount, 1);
+                // });
             });
         });
     });
