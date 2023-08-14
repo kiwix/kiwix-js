@@ -117,34 +117,47 @@ jobs:
 
       - name: Unit tests (Windows)
         run: |
-          $passed = $true
+          $AggregateExitCode = 0
           npm run test-unit-edge
-          if ($LASTEXITCODE > 0) { $passed = $false }
+          $AggregateExitCode += $LastExitCode
           npm run test-unit-firefox
-          if ($LASTEXITCODE > 0) { $passed = $false }
-          if (!$passed) { exit 1 }
+          $AggregateExitCode += $LastExitCode
+          if ($AggregateExitCode -ne 0) {
+            echo " "
+            Write-Error "Number of failed tests: $AggregateExitCode"
+          }
+          exit $AggregateExitCode
 
       - name: End-to-end tests (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
-          $passed = $true
+          $AggregateExitCode = 0
           Write-Verbose "Building the app..." -Verbose
           npm run build-min
-          if ($LASTEXITCODE > 0) { $passed = $false }
+          $AggregateExitCode += $LastExitCode
+          echo " "
+          Write-Verbose "Starting server..." -Verbose
+          npx http-server -p 8080 . &
           echo " "
           Write-Verbose "Testing on Edge Chromium..." -Verbose
-          npm run test-e2e-edge
-          if ($LASTEXITCODE > 0) { $passed = $false }
+          npx mocha ./tests/microsoftEdge.e2e.runner.js
+          $AggregateExitCode += $LastExitCode
           echo " "
           Write-Verbose "Testing on Firefox..." -Verbose
-          npm run test-e2e-firefox
-          if ($LASTEXITCODE > 0) { $passed = $false }
+          npx mocha ./tests/firefox.e2e.runner.js
+          $AggregateExitCode += $LastExitCode
           echo " "
           Write-Verbose "Testing on IE11..." -Verbose
-          npm run test-e2e-iemode
-          if ($LASTEXITCODE > 0) { $passed = $false }
-          if (!$passed) { exit 1 }
+          npx mocha ./tests/ieMode.e2e.runner.js
+          $AggregateExitCode += $LastExitCode
+          echo " "
+          if ($AggregateExitCode -gt 0) {
+            Write-Error "Total number of failed tests: $AggregateExitCode"
+          } else {
+            Write-Host "All e2e tests on Windows passed!"
+          }
+          exit $AggregateExitCode
   
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
