@@ -117,8 +117,12 @@ jobs:
 
       - name: Unit tests (Windows)
         run: |
+          $passed = $true
           npm run test-unit-edge
+          if ($LASTEXITCODE > 0) { $passed = $false }
           npm run test-unit-firefox
+          if ($LASTEXITCODE > 0) { $passed = $false }
+          if (!$passed) { exit 1 }
 
       - name: End-to-end tests (Windows)
         env:
