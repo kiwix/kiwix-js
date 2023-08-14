@@ -34,10 +34,10 @@ commandline, then you'll need, e.g., `npx testcafe chrome ./tests/initTestCafe.j
 End-to-end (e2e) tests are implemented with [Selenium WebDriver](https://www.selenium.dev/documentation/webdriver/), which in turn uses [Mocha](https://mochajs.org/) as the testing
 framework. The tests can be found in the `tests` directory, and are implemented as ES6 modules. Each test consists of a runner for a specified browser (e.g.
 `microsoftEdge.e2e.runner.js`) which in turn imports one or more specification test suites (e.g. `legacy-ray_charles.e2e.spec.js`). The test suites load a specific ZIM archive,
-and undertake tests in both JQuery and ServiceWorker modes. Each ZIM tested should have its own `e2e.spec.js` suite.
+and undertake tests in both JQuery and ServiceWorker modes. Each ZIM tested should have its own `e2e.spec.js` suite. You will also see some runners designed to do remote testing on legacy browsers on BrowserStack. These are named `*.bs.spec.js`.
 
-These tests are run automatically on every push and pull request by the GitHub Actions runner `CI.yml` (in the `.github/workflows` directory). They can also be run locally with the
-following procedure:
+Standard e2e tests on GitHub Actions are run automatically on every push and pull request by the GitHub Actions runner `CI.yml` (in the `.github/workflows` directory). They can also
+be run locally with the following procedure:
 
 * Ensure you have installed the dependencies (`npm install` in the project root);
 * Ensure you have built the app with source code, so you can more easily debug (`npm build-src`);
@@ -47,10 +47,16 @@ following procedure:
 * You can run `npm run test-e2e` to run in all of Firefox, Chrome, Edge and IE Mode at once, but you will need to ensure all three browsers are installed in standard locations,
   and the IE Mode test will only work on Windows (Edge for Linux does not include this mode).
 
+The runners designed for BrowserStack do not work with PRs from forked repositories for security reasons (they cannot have access to the secrets needed to authenticate with
+BrowserStack). However, if you are interested in developing local tests, a maintainer can run a parallel PR to your own that will run these tests to ensure that your code does
+not break them.
+
 The ZIM archive that is tested is also found in `tests`. In the case of `legacy-ray_charles.e2e.spec.js`, this is a legacy split ZIM archive that has XZ compression, so a useful test
 of that type of ZIM. We are looking to expand the tests to run also on a modern small ZIM with ZSTD compression and dynamic content.
 
 If you wish to develop tests for a new archive, be sure to create a new `e2e.spec.js` file that corresponds to that archive. It will be easiest to duplicate the existing legacy
-ray_charles suite and change the name of your copy. To luanch your new tests, you will need to add them to each browser's runner as an import.
+ray_charles suite and change the name of your copy. Be sure that the filename easily allows developers to identify which ZIM it corresponds to. To luanch your new tests, you will
+need to add them to each browser's runner as an import. You will need to load a new instance of the driver (in the respective `*.e2e.spec.js` files) to run your new test suite.
+Tests should run in chronological order of ZIM archives (oldest ZIM archives should be tested first).
 
 Please note that we are currently using **Selenium** WebDriver, *not* WebDriver.io, which is a different (but related) project with subtly different test syntax.
