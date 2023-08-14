@@ -56,7 +56,7 @@ jobs:
       - name: Test a full build of the app
         run: npm run build
 
-      - name: End-to-end tests (Linux)
+      - name: End-to-end tests on GitHub (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
@@ -66,6 +66,40 @@ jobs:
           npm run test-e2e-chrome
           echo -e "\n\e[0;32mTesting on Firefox..."
           npm run test-e2e-firefox
+        
+      - name: BrowserStack environment setup
+        uses: browserstack/github-actions/setup-env@master
+        with:
+          username:  ${{ secrets.BROWSERSTACK_USERNAME }}
+          access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      
+      - name: BrowserStack local tunnel setup
+        uses: browserstack/github-actions/setup-local@master
+        with:
+          local-testing: start
+          local-identifier: random
+
+      - name: Run BrowserStack tests
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: |
+          npx http-server --silent -p 8099 &
+          echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
+          npx mocha tests/edge18.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
+          npx mocha tests/firefox56.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
+          npx mocha tests/firefox61.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
+          npx mocha tests/chrome58.bs.runner.js
+          echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
+          npx mocha tests/safari14.bs.runner.js
+          
+      - name: Stop BrowserStackLocal
+        uses: browserstack/github-actions/setup-local@master
+        with:
+          local-testing: stop
         
   tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
