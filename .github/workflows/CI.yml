@@ -132,15 +132,15 @@ jobs:
           Write-Verbose "Building the app..." -Verbose
           npm run build-min
           if ($LASTEXITCODE > 0) { $passed = $false }
-          echo ""
+          echo " "
           Write-Verbose "Testing on Edge Chromium..." -Verbose
           npm run test-e2e-edge
           if ($LASTEXITCODE > 0) { $passed = $false }
-          echo ""
+          echo " "
           Write-Verbose "Testing on Firefox..." -Verbose
           npm run test-e2e-firefox
           if ($LASTEXITCODE > 0) { $passed = $false }
-          echo ""
+          echo " "
           Write-Verbose "Testing on IE11..." -Verbose
           npm run test-e2e-iemode
           if ($LASTEXITCODE > 0) { $passed = $false }
