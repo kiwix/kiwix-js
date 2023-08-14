@@ -67,7 +67,7 @@ jobs:
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-chrome
-
+        
       # Disabling Edge tests for now, as they are very flaky on Linux, but pass fine on Windows
       # - name: End-to-end tests on Edge (Linux)
       #   env:
@@ -100,7 +100,7 @@ jobs:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx http-server --silent -p 8099 &
-
+          
       - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
@@ -150,7 +150,7 @@ jobs:
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: stop
-
+        
   tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
@@ -182,7 +182,7 @@ jobs:
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js --retries 2'
-
+  
       - name: End-to-end tests on Firefox (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
