@@ -67,14 +67,15 @@ _You must test your code yourself before asking for review, like this_:
 
 * If you did the recommended setup above, you can test source code as you develop. Do this by starting the Vite development server with `npm run serve`. You should see a live view
   in your browser of the rendered source code. If the page looks disordered, and if you turned on the option "Bypass AppCache" as recommended above, then you can simply refresh
-  (Ctrl-R) to re-compose the page (or for a more thorough refresh, open DevTools [F12], and press Ctrl-Shift-R). When you update code and save it in your IDE, this live view will
-  auto-refresh to show the latest version of your code (but only if "Bypass AppCache" is turned on);
+  (Ctrl-R) to re-compose the page (or for a more thorough refresh, open DevTools [F12], and press Ctrl-Shift-R). If you forgot to turn on "Bypass AppCache", you will need to
+  search for it in the disordered display and try to turn it on.
+* When you update code and save it in your IDE, the Vite live view will auto-refresh to show the latest version of your code (but only if "Bypass AppCache" is turned on);
 * Once the source code is working as expected, you will need to build the production code and do full UI tests on that. To do this, you can run `npm run preview`, which will build
   the app and open it in the preview server. Note the address in the browser's address bar, and use this address to test in other browsers you have installed. Note that code built
   this way is not minified (though a minified bundle is also built, but not used). This is because testing minified code is not generally useful. However, if you wish to build and
   test a minified bundle, you can run `npm run build-min`;
 * Manually test your bundle in at least Firefox and Chromium (Edge or Chrome), ideally also in IE11 or in "IE Mode" in Edge. Be sure that you actually load a ZIM and test the code in
-  real-world scenarios;
+  real-world scenarios. You can download ZIMs for testing from https://library.kiwix.org or https://download.kiwix.org/zim/;
 * _You **must** test your fix in both "JQuery" mode and "ServiceWorker" modes_ (under Compatibility settings). You will be astonished the number of times a new contributor tells us
   that their fix is working, but we discover they only applied the fix in one of these two modes. Don't be **that** contributor!
 * Unit tests, which test for regressions with basic app functions, are run automatically with GitHub Actions on each PR and push to a PR. If one of these tests fails, you will want
@@ -82,7 +83,10 @@ _You must test your code yourself before asking for review, like this_:
   identified, see [TESTS](./TESTS.md) so you can debug;
 * End-to-end (e2e) tests are also run on GitHub Actions when you push to your PR. These test typical user actions in a headless browser. Tests are currently enabled for latest
   Firefox, Edge, Chrome in Linux and Windows, and in IE Mode on Windows (this is the equivalent to testing on Internet Explorer 11). You can run these tests yourself in a
-  non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS](./TESTS.md). 
+  non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS](./TESTS.md).
+* E2e tests alos run on BrowserStack, but these cannot be run for PRs from a forked repository for security reasons (no access to the secrets). These tests will only run once a
+  maintainer merges your code, so don't be surprised if an issue is detected even after your code has been accepted and merged. In that case, we may request a remedial PR from you,
+  though in practice this is unlikely. 
 * As an alternative to the Vite server, we also provide [http-server](https://www.npmjs.com/package/http-server), which you can launch by running `npm run web-server` in the root of
   this repository. This does not have Hot Module Replacement, and you will need to refresh the page yourself by doing `Ctrl-Shift-R` with DevTools open. Again, you will only see the
   latest version of your code if you turn on "Bypass AppCache" and turn off the browser's native caching (see above).

@@ -1359,6 +1359,7 @@ function setLocalArchiveFromFileList (files) {
         }
     }
     resetCssCache();
+    selectedArchive = null;
     selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
         // The archive is set : go back to home page to start searching
         document.getElementById('btnHome').click();
