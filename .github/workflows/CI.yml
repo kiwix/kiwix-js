@@ -68,18 +68,21 @@ jobs:
           npm run test-e2e-firefox
         
       - name: BrowserStack environment setup
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-env@master
         with:
           username:  ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       
       - name: BrowserStack local tunnel setup
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: start
           local-identifier: random
 
       - name: Run BrowserStack tests
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -97,6 +100,7 @@ jobs:
           npx mocha tests/safari14.bs.runner.js
           
       - name: Stop BrowserStackLocal
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: stop
