@@ -124,19 +124,19 @@ jobs:
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: |
-          # Use node console to show green text
-          Write-Host ""
+          $passed = $true
           Write-Verbose "Building the app..." -Verbose
           npm run build-min
-          Write-Host ""
           Write-Verbose "Testing on Edge Chromium..." -Verbose
-          npm run test-e2e-edge
-          Write-Host ""
+          $test = npm run test-e2e-edge
+          if ($test > 0) { $passed = $false }
           Write-Verbose "Testing on Firefox..." -Verbose
-          npm run test-e2e-firefox
-          Write-Host ""
+          $test = npm run test-e2e-firefox
+          if ($test > 0) { $passed = $false }
           Write-Verbose "Testing on IE11..." -Verbose
-          npm run test-e2e-iemode
+          $ test = npm run test-e2e-iemode
+          if ($test > 0) { $passed = $false }
+          if (!$passed) { exit 1 }
   
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
