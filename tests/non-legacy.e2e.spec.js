@@ -20,17 +20,15 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-import { By, Key, until } from 'selenium-webdriver';
+import { By, Key, until, WebDriver } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
-import path from 'path';
-
+import paths from './paths.js';
+import fs from 'fs';
 /* eslint-disable camelcase */
 /* global describe, it */
 
 // Set the archives to load
-const nonLegacyZimFilePath = path.resolve('./tests/gutenberg_ro_all_2023-05.zim');
-
 /**
  *  Run the tests
  * @param {WebDriver} driver - Selenium WebDriver object
@@ -88,6 +86,7 @@ function runTests (driver, modes) {
     modes.forEach(function (mode) {
         // SW mode tests will need to be skipped if the browser does not support the SW API
         let serviceWorkerAPI = true;
+        const isJqueryMode = mode === 'jquery';
         describe('Non Legacy ' + (mode === 'jquery' ? '[JQuery mode]' : mode === 'serviceworker' ? '[SW mode]' : ''), async function () {
             this.timeout(60000);
             this.slow(10000);
@@ -147,7 +146,7 @@ function runTests (driver, modes) {
                         return;
                     }
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
-                    await archiveFiles.sendKeys(nonLegacyZimFilePath);
+                    await archiveFiles.sendKeys(paths.nonLegacyZimFilePath);
                     // Wait until files have loaded
                     var filesLength;
                     await driver.wait(async function () {
@@ -159,8 +158,17 @@ function runTests (driver, modes) {
                     assert.equal(1, filesLength);
                 });
             });
+            describe('Active content warning', function () {
+                it('Checking active content warning', async function () {
+                    const activeContentWarning = await driver.findElement(By.id('activeContent'));
+                    if (isJqueryMode) {
+                        assert.equal(true, await activeContentWarning.isDisplayed());
+                    } else {
+                        assert.equal(false, await activeContentWarning.isDisplayed());
+                    }
+                });
+            });
             describe('Extra button and Language Dropdown', function () {
-                const isJqueryMode = mode === 'jquery';
                 it('Sorting books by popularity', async function () {
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
@@ -188,24 +196,33 @@ function runTests (driver, modes) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
-                    // await driver.findElement(By.id('l10nselect'));
-                    // driver.sleep(500);
                     await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[2]')).click();
                     const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
-                    // console.log(languageSelect);
                     assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
                 });
             });
-            describe('Search and Results', function () {
-                const isJqueryMode = mode === 'jquery';
-                console.log('hello');
+            describe('Primary Search and Visit Page', function () {
                 it('Primary Search', async function () {
                     await driver.switchTo().defaultContent();
-                    await driver.wait(until.elementLocated(By.xpath('//*[@id="prefix"]')), 10000)
-                    await driver.findElement(By.xpath('//*[@id="prefix"]')).sendKeys('Poezii.35323.html');
-                    const searchListCount = (await driver.findElements(By.id('articleList'))).length;
+                    const searchBox = await driver.findElement(By.xpath('//*[@id="prefix"]'))
+                    await searchBox.sendKeys('Poezii.35323.html');
+                    await driver.sleep(500);
+                    const searchListCount = (await driver.findElements(By.xpath('//*[@id="articleList"]/a'))).length
+                    await searchBox.clear()
                     assert.equal(searchListCount, 1);
                 });
+                it('Viewing HTML view', async function () {
+                    await driver.switchTo().defaultContent();
+                    const searchBox = await driver.findElement(By.id('prefix'))
+                    await searchBox.sendKeys('Poezii.35323.html');
+                    await searchBox.sendKeys(Key.ENTER);
+                    await searchBox.sendKeys(Key.ENTER);
+                    await driver.sleep(500);
+
+                    // go back to home page
+                });
+            });
+            describe('Secondary search', function () {
                 it('Secondary search Autocomplete', async function () {
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
@@ -232,26 +249,18 @@ function runTests (driver, modes) {
                 });
             });
             describe('Download', function () {
-                const isJqueryMode = mode === 'jquery';
+                const downloadFileName = 'Poezii.35323.epub'
                 it('Download EPUB file', async function () {
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
-                    await driver.sleep(1000);
                     await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i')).click();
-                    // const searchListCount = (await driver.findElements(By.id('articleList'))).length;
-                    // assert.equal(searchListCount, 1);
+                    await driver.sleep(2000);
+                    const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);
+                    if (downloadFileStatus) fs.rmSync(paths.downloadDir + '/' + downloadFileName);
+                    assert.ok(downloadFileStatus);
                 });
-                // it('Secondary search', async function () {
-                //     if (isJqueryMode) {
-                //         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
-                //         return;
-                //     }
-                //     await driver.findElement(By.id('author_filter')).sendKeys('Mihai Eminescu');
-                //     const searchListCount = (await driver.findElements(By.id('ui-id-1'))).length;
-                //     assert.equal(searchListCount, 1);
-                // });
             });
         });
     });
