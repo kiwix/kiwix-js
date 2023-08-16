@@ -74,7 +74,7 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
-params['keyPrefix'] = 'kiwixjs-'
+params['keyPrefix'] = 'kiwixjs-';
 
 /**
  * Apply any override parameters that might be in the querystring.
@@ -156,7 +156,7 @@ if (!/^chrome-extension:/i.test(window.location.protocol)) {
 }
 setContentInjectionMode(params.contentInjectionMode);
 
-function getSetting(name) {
+function getSetting (name) {
     var result;
     if (params.storeType === 'cookie') {
         var regexp = new RegExp('(?:^|;)\\s*' + name + '=([^;]+)(?:;|$)');
@@ -169,7 +169,7 @@ function getSetting(name) {
     return result === null || result === 'undefined' ? null : result === 'true' ? true : result === 'false' ? false : result;
 }
 
-function setSetting(name, val) {
+function setSetting (name, val) {
     if (params.storeType === 'cookie') {
         document.cookie = encodeURIComponent(name) + '=' + encodeURIComponent(val) + ';expires=Fri, 31 Dec 9999 23:59:59 GMT';
     }
@@ -184,7 +184,7 @@ function setSetting(name, val) {
 // DEV: This function is replicated from settingsStore.js because it's not available from init
 // It returns 'cookie' if the always-present contentInjectionMode is still in cookie, which
 // means the store previously used cookies and hasn't upgraded yet: this won't be done till app.js is loaded
-function getBestAvailableStorageAPI() {
+function getBestAvailableStorageAPI () {
     var type = 'none';
     var localStorageTest;
     try {
