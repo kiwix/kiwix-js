@@ -71,46 +71,6 @@ var appstate = {};
  */
 var selectedArchive = null;
 
-/**
- * Set parameters from the Settings Store, together with any defaults
- * Note that the params global object is declared in init.js so that it is available to modules
- * WARNING: Only change these paramaeters if you know what you are doing
- */
-// The current version number of this app
-params['appVersion'] = '3.9.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
-// The PWA server (for use with the browser extensions in ServiceWorker mode)
-params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
-// params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
-// params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
-// A parameter to determine the Settings Store API in use
-params['storeType'] = settingsStore.getBestAvailableStorageAPI();
-params['hideActiveContentWarning'] = settingsStore.getItem('hideActiveContentWarning') === 'true';
-params['showUIAnimations'] = settingsStore.getItem('showUIAnimations') ? settingsStore.getItem('showUIAnimations') === 'true' : true;
-// Maximum number of article titles to return (range is 5 - 50, default 25)
-params['maxSearchResultsSize'] = settingsStore.getItem('maxSearchResultsSize') || 25;
-// Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
-params['assetsCache'] = settingsStore.getItem('assetsCache') !== 'false';
-// Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
-params['appCache'] = settingsStore.getItem('appCache') !== 'false';
-// A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
-// A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
-params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
-// A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
-params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
-// A parameter to disable drag-and-drop
-params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
-// A parameter to access the URL of any extension that this app was launched from
-params['referrerExtensionURL'] = settingsStore.getItem('referrerExtensionURL');
-// A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
-params['defaultModeChangeAlertDisplayed'] = settingsStore.getItem('defaultModeChangeAlertDisplayed');
-// A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
-params['contentInjectionMode'] = settingsStore.getItem('contentInjectionMode') ||
-    // Defaults to serviceworker mode when the API is available
-    (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
-// A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
-// directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
-params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 
 // An object to hold the current search and its state (allows cancellation of search across modules)
 appstate['search'] = {
@@ -122,85 +82,7 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
-/**
- * Apply any override parameters that might be in the querystring.
- * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
- * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
- * problematic settings, by crafting the querystring appropriately.
- */
-(function overrideParams () {
-    var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
-    var matches = regexpUrlParams.exec(window.location.search);
-    while (matches) {
-        if (matches[1] && matches[2]) {
-            var paramKey = decodeURIComponent(matches[1]);
-            var paramVal = decodeURIComponent(matches[2]);
-            if (paramKey !== 'title') {
-                console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
-                // Make values Boolean if 'true'/'false'
-                paramVal = paramVal === 'true' || (paramVal === 'false' ? false : paramVal);
-                settingsStore.setItem(paramKey, paramVal, Infinity);
-                params[paramKey] = paramVal;
-            }
-        }
-        matches = regexpUrlParams.exec(window.location.search);
-    }
-    // If we are in the PWA version launched from an extension, send a 'success' message to the extension
-    if (params.referrerExtensionURL && ~window.location.href.indexOf(params.PWAServer)) {
-        var message = '?PWA_launch=success';
-        // DEV: To test failure of the PWA, you could pause on next line and set message to '?PWA_launch=fail'
-        // Note that, as a failsafe, the PWA_launch key is set to 'fail' (in the extension) before each PWA launch
-        // so we need to send a 'success' message each time the PWA is launched
-        var frame = document.createElement('iframe');
-        frame.id = 'kiwixComm';
-        frame.style.display = 'none';
-        document.body.appendChild(frame);
-        frame.src = params.referrerExtensionURL + '/www/index.html' + message;
-        // Now remove redundant frame. We cannot use onload, because it doesn't give time for the script to run.
-        setTimeout(function () {
-            var kiwixComm = document.getElementById('kiwixComm');
-            // The only browser which does not support .remove() is IE11, but it will never run this code
-            if (kiwixComm) kiwixComm.remove();
-        }, 3000);
-    }
-})();
 
-// Since contentInjectionMode can be overriden when returning from remote PWA to extension (for example), we have to prevent an infinite loop
-// with code that warns the user to turn off the App Cache bypass in jQuery mode. Note that to turn OFF the bypass, we have to set the VALUE to true
-params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCache;
-
-/**
- * Set the State and UI settings associated with parameters defined above
- */
-document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
-document.getElementById('disableDragAndDropCheck').checked = params.disableDragAndDrop;
-document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
-document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
-document.getElementById('titleSearchRangeVal').textContent = params.maxSearchResultsSize;
-document.getElementById('appThemeSelect').value = params.appTheme;
-document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
-document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
-switchHomeKeyToFocusSearchBar();
-document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
-// We check here if we have to warn the user that we switched to ServiceWorkerMode
-// This is only needed if the ServiceWorker mode is available, or we are in an Extension that supports Service Workers
-// outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
-// alerted about the switch to ServiceWorker mode by default
-if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^(moz|chrome)-extension:/i.test(window.location.protocol)) &&
-    params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
-    // Attempt to upgrade user to ServiceWorker mode
-    params.contentInjectionMode = 'serviceworker';
-} else if (params.contentInjectionMode === 'serviceworker') {
-    // User is already in SW mode, so we will never need to display the upgrade alert
-    params.defaultModeChangeAlertDisplayed = true;
-    settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
-}
-if (!/^chrome-extension:/i.test(window.location.protocol)) {
-    document.getElementById('serviceWorkerLocal').style.display = 'none';
-    document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
-}
-setContentInjectionMode(params.contentInjectionMode);
 
 // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
 var globalDropZone = document.getElementById('search-article');
