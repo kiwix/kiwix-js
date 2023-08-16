@@ -198,10 +198,11 @@ function runTests (driver, modes) {
                     }
                     await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[2]')).click();
                     const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[1]')).click()
                     assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
                 });
             });
-            describe('Primary Search and Visit Page', function () {
+            describe('Primary Search and Navigation', function () {
                 it('Primary Search', async function () {
                     await driver.switchTo().defaultContent();
                     const searchBox = await driver.findElement(By.xpath('//*[@id="prefix"]'))
@@ -218,8 +219,21 @@ function runTests (driver, modes) {
                     await searchBox.sendKeys(Key.ENTER);
                     await searchBox.sendKeys(Key.ENTER);
                     await driver.sleep(500);
-
-                    // go back to home page
+                    const authorAndBookName = await driver.wait(async function () {
+                        await driver.switchTo().frame('articleContent');
+                        until.elementLocated(By.id('id00000'));
+                        return await driver.findElement(By.id('id00000')).getText();
+                    })
+                    assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
+                });
+                it('Navigating back', async function () {
+                    await driver.switchTo().defaultContent();
+                    const btnBack = await driver.findElement(By.id('btnBack'))
+                    await btnBack.click();
+                    await btnBack.click(); // I am not sure why i need to click a button two times to go back
+                    await driver.switchTo().frame('articleContent');
+                    const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    assert.equal(mainTitle, 'Project Gutenberg Library');
                 });
             });
             describe('Secondary search', function () {
@@ -228,7 +242,6 @@ function runTests (driver, modes) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
-                    await driver.switchTo().frame('articleContent');
                     const filter = await driver.findElement(By.id('author_filter'))
                     await filter.sendKeys('Mihai Eminescu');
                     const searchListCount = (await driver.findElements(By.id('ui-id-1'))).length;
@@ -239,6 +252,7 @@ function runTests (driver, modes) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
+                    // something is wrong here
                     const filter = await driver.findElement(By.id('author_filter'))
                     // await filter.sendKeys('Mihai Eminescu');
                     await filter.sendKeys(Key.ENTER);
