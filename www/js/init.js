@@ -69,7 +69,7 @@ params['defaultModeChangeAlertDisplayed'] = getSetting('defaultModeChangeAlertDi
 // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
 params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
     // Defaults to serviceworker mode when the API is available
-    (isServiceWorkerAvailable() ? 'serviceworker' : 'jquery');
+    ('serviceWorker' in navigator ? 'serviceworker' : 'jquery');
 // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
@@ -134,27 +134,8 @@ document.getElementById('titleSearchRangeVal').textContent = params.maxSearchRes
 document.getElementById('appThemeSelect').value = params.appTheme;
 document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
 document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
-switchHomeKeyToFocusSearchBar();
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
-// We check here if we have to warn the user that we switched to ServiceWorkerMode
-// This is only needed if the ServiceWorker mode is available, or we are in an Extension that supports Service Workers
-// outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
-// alerted about the switch to ServiceWorker mode by default
-if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^(moz|chrome)-extension:/i.test(window.location.protocol)) &&
-    params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
-    // Attempt to upgrade user to ServiceWorker mode
-    params.contentInjectionMode = 'serviceworker';
-} else if (params.contentInjectionMode === 'serviceworker') {
-    // User is already in SW mode, so we will never need to display the upgrade alert
-    params.defaultModeChangeAlertDisplayed = true;
-    setSetting('defaultModeChangeAlertDisplayed', true);
-}
-if (!/^chrome-extension:/i.test(window.location.protocol)) {
-    document.getElementById('serviceWorkerLocal').style.display = 'none';
-    document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
-}
-setContentInjectionMode(params.contentInjectionMode);
 
 function getSetting (name) {
     var result;

@@ -71,7 +71,6 @@ var appstate = {};
  */
 var selectedArchive = null;
 
-
 // An object to hold the current search and its state (allows cancellation of search across modules)
 appstate['search'] = {
     prefix: '', // A field to hold the original search string
@@ -82,7 +81,26 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
+switchHomeKeyToFocusSearchBar();
 
+// We check here if we have to warn the user that we switched to ServiceWorkerMode
+// This is only needed if the ServiceWorker mode is available, or we are in an Extension that supports Service Workers
+// outside of the extension environment, AND the user's settings are stuck on jQuery mode, AND the user has not already been
+// alerted about the switch to ServiceWorker mode by default
+if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^(moz|chrome)-extension:/i.test(window.location.protocol)) &&
+    params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
+    // Attempt to upgrade user to ServiceWorker mode
+    params.contentInjectionMode = 'serviceworker';
+} else if (params.contentInjectionMode === 'serviceworker') {
+    // User is already in SW mode, so we will never need to display the upgrade alert
+    params.defaultModeChangeAlertDisplayed = true;
+    settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
+}
+if (!/^chrome-extension:/i.test(window.location.protocol)) {
+    document.getElementById('serviceWorkerLocal').style.display = 'none';
+    document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
+}
+setContentInjectionMode(params.contentInjectionMode);
 
 // Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
 var globalDropZone = document.getElementById('search-article');

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This bash script tests whether app.js and service-worker.js have the same value for appVersion and for ASSETS_CACHE.
+# This bash script tests whether init.js and service-worker.js have the same value for appVersion and also whether app.js and service-worker.js have the same value for ASSETS_CACHE.
 
 # Find the repo dir (it's the parent of the dir that contains this script)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -9,7 +9,7 @@ REPO_DIR="$(dirname "$SCRIPT_DIR")"
 # Check values in files
 cd $REPO_DIR
 SW_VERSION="$(grep 'appVersion\s=' service-worker.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
-APP_VERSION="$(grep 'params\[.appVersion' www/js/app.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
+APP_VERSION="$(grep 'params\[.appVersion' www/js/init.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
 echo "service-worker.js : $SW_VERSION"
 echo "init.js            : $APP_VERSION"
 if [ $SW_VERSION == $APP_VERSION ] ; then
