@@ -15,7 +15,7 @@ echo "init.js            : $APP_VERSION"
 if [ $SW_VERSION == $APP_VERSION ] ; then
     echo "Both values of 'appVersion' are identical"
 else
-    echo "ERROR! Please ensure values for 'appVersion' in app.js and service-worker.js are identical!"
+    echo "ERROR! Please ensure values for 'appVersion' in init.js and service-worker.js are identical!"
     exit 1
 fi
 SW_ASSETS_CACHE="$( grep 'ASSETS_CACHE\s=' service-worker.js | sed -E "s/[^']+'([^']+).*/\1/")"
