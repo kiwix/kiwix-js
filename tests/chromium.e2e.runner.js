@@ -1,7 +1,7 @@
 import { Builder, WebDriver } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/chrome.js';
 import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
-import nonLegacyZim from './non-legacy.e2e.spec.js';
+import gutenbergRo from './gutenberg_ro.e2e.spec.js';
 import paths from './paths.js';
 
 /* eslint-disable camelcase */
@@ -20,7 +20,5 @@ async function loadChromiumDriver () {
     return driver;
 };
 
-const driver_chrome = await loadChromiumDriver();
-
-legacyRayCharles.runTests(driver_chrome);
-nonLegacyZim.runTests(driver_chrome);
+legacyRayCharles.runTests(await loadChromiumDriver());
+gutenbergRo.runTests(await loadChromiumDriver());
