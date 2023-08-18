@@ -28,6 +28,8 @@ import fs from 'fs';
 /* eslint-disable camelcase */
 /* global describe, it */
 
+const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+
 // Set the archives to load
 /**
  *  Run the tests
@@ -42,42 +44,42 @@ function runTests (driver, modes) {
         browserVersion = caps.get('browserVersion');
         console.log('\nRunning tests on: ' + browserName + ' ' + browserVersion);
     });
-
-    // Perform app reset before running tests (this is a convenience for local testers)
-    describe('Reset app', function () {
-        this.timeout(60000);
-        this.slow(10000);
-        it('Click the app reset button and accept warning', async function () {
-            await driver.get('http://localhost:8080/dist/www/index.html');
-            // Pause for 1.3 seconds to allow the app to load
-            await driver.sleep(1300);
-            // Accept any alert dialogue box on opening, e.g. for browsers that do not support the ServiceWorker API
-            try {
-                const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                if (activeAlertModal) {
-                    // console.log('Found active alert modal');
-                    const approveButton = await driver.findElement(By.id('approveConfirm'));
-                    await approveButton.click();
+    if (!process.env.CI) {
+        describe('Reset app', function () {
+            this.timeout(60000);
+            this.slow(10000);
+            it('Click the app reset button and accept warning', async function () {
+                await driver.get('http://localhost:' + port + '/dist/www/index.html');
+                // Pause for 1.3 seconds to allow the app to load
+                await driver.sleep(1300);
+                // Accept any alert dialogue box on opening, e.g. for browsers that do not support the ServiceWorker API
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // console.log('Found active alert modal');
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
+                        await approveButton.click();
+                    }
+                } catch (e) {
+                    // Do nothing
                 }
-            } catch (e) {
-                // Do nothing
-            }
-            const resetButton = await driver.findElement(By.id('btnReset'));
-            await resetButton.click();
-            // Check for and click any approve button in subsequent dialogue box
-            // E.g. on IE11, a "ServiceWorker unsppoerted" alert will appear
-            try {
-                const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                if (activeAlertModal) {
-                    // console.log('Found active alert modal');
-                    const approveButton = await driver.findElement(By.id('approveConfirm'));
-                    await approveButton.click();
+                const resetButton = await driver.findElement(By.id('btnReset'));
+                await resetButton.click();
+                // Check for and click any approve button in subsequent dialogue box
+                // E.g. on IE11, a "ServiceWorker unsppoerted" alert will appear
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // console.log('Found active alert modal');
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
+                        await approveButton.click();
+                    }
+                } catch (e) {
+                    // Do nothing
                 }
-            } catch (e) {
-                // Do nothing
-            }
+            });
         });
-    });
+    }
 
     if (!modes) {
         modes = ['jquery', 'serviceworker'];
@@ -176,19 +178,19 @@ function runTests (driver, modes) {
                     }
                     await driver.switchTo().frame('articleContent');
                     await driver.findElement(By.id('popularity_sort')).click();
-                    driver.sleep(500);
-                    const firstElementText = await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                    assert.equal(firstElementText, 'Poezii');
+                    await driver.sleep(500);
+                    const firstBookName = await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
+                    assert.equal(firstBookName, 'Poezii');
                 });
                 it('Sorting books by name', async function () {
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
-                    await driver.findElement(By.xpath('//*[@id="alpha_sort"]')).click();
+                    await driver.findElement(By.id('alpha_sort')).click();
                     await driver.sleep(500);
-                    const firstElementText = await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                    assert.equal(firstElementText, 'Creierul, O Enigma Descifrata');
+                    const firstBookName = await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
+                    assert.equal(firstBookName, 'Creierul, O Enigma Descifrata');
                 });
 
                 it('Change Language', async function () {
@@ -205,7 +207,7 @@ function runTests (driver, modes) {
             describe('Primary Search and Navigation', function () {
                 it('Primary Search Autocomplete', async function () {
                     await driver.switchTo().defaultContent();
-                    const searchBox = await driver.findElement(By.xpath('//*[@id="prefix"]'))
+                    const searchBox = await driver.findElement(By.id('prefix'))
                     await searchBox.sendKeys('Poezii.35323.html');
                     await driver.sleep(500);
                     const searchListCount = (await driver.findElements(By.xpath('//*[@id="articleList"]/a'))).length
@@ -254,7 +256,6 @@ function runTests (driver, modes) {
                     }
                     // something is wrong here
                     const filter = await driver.findElement(By.id('author_filter'))
-                    // await filter.sendKeys('Mihai Eminescu');
                     await filter.sendKeys(Key.ENTER);
                     const searchListCount = (await driver.findElements(By.xpath('//*[@id="books_table"]/tbody'))).length;
                     await filter.clear();
