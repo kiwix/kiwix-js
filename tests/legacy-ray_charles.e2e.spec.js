@@ -131,16 +131,19 @@ function runTests (driver, modes) {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                         return elementIsVisible;
                     }, 5000);
-                    // Pause for 1.3 seconds to allow app to reload
-                    await driver.sleep(1300);
+                    // Pause for timeout
+                    await driver.sleep(300);
                     // Check for and click any approve button in dialogue box
                     try {
                         const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                         if (activeAlertModal) {
                             // Check if ServiceWorker mode API is supported
-                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
-                            });
+                            if (mode === 'serviceworker') {
+                                serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                                    // console.log('      ' + alertText);
+                                    return !/ServiceWorker\smode\sunsupported/i.test(alertText);
+                                })
+                            }
                         }
                         const approveButton = await driver.findElement(By.id('approveConfirm'));
                         await approveButton.click();
