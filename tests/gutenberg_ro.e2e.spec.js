@@ -276,7 +276,10 @@ function runTests (driver, modes) {
                     return;
                 }
                 // click on the download button of the second result
-                await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i')).click();
+                const downloadButton = await driver.wait(async function () {
+                    return driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i'));
+                }, 5000);
+                await downloadButton.click();
                 await driver.sleep(2000);
                 const downloadFileStatus = driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
