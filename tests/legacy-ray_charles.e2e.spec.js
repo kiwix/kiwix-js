@@ -23,7 +23,6 @@
 import { By, Key } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
-import path from 'path';
 import paths from './paths.js';
 
 /* eslint-disable camelcase, one-var, prefer-const */
