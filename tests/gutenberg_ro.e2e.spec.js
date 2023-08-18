@@ -203,7 +203,7 @@ function runTests (driver, modes) {
                 });
             });
             describe('Primary Search and Navigation', function () {
-                it('Primary Search', async function () {
+                it('Primary Search Autocomplete', async function () {
                     await driver.switchTo().defaultContent();
                     const searchBox = await driver.findElement(By.xpath('//*[@id="prefix"]'))
                     await searchBox.sendKeys('Poezii.35323.html');
@@ -237,7 +237,7 @@ function runTests (driver, modes) {
                 });
             });
             describe('Secondary search', function () {
-                it('Secondary search Autocomplete', async function () {
+                it('Author search Autocomplete', async function () {
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
@@ -247,7 +247,7 @@ function runTests (driver, modes) {
                     const searchListCount = (await driver.findElements(By.id('ui-id-1'))).length;
                     assert.equal(searchListCount, 1);
                 });
-                it('Secondary search Results', async function () {
+                it('Author search Results', async function () {
                     if (isJqueryMode) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
