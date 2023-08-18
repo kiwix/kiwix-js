@@ -179,6 +179,7 @@ function runTests (driver, modes) {
                     await driver.switchTo().frame('articleContent');
                     await driver.findElement(By.id('popularity_sort')).click();
                     await driver.sleep(500);
+                    // get the text of first result and check if it is the same as expected
                     const firstBookName = await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
                     assert.equal(firstBookName, 'Poezii');
                 });
@@ -189,6 +190,7 @@ function runTests (driver, modes) {
                     }
                     await driver.findElement(By.id('alpha_sort')).click();
                     await driver.sleep(500);
+                    // get the text of first result and check if it is the same as expected
                     const firstBookName = await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
                     assert.equal(firstBookName, 'Creierul, O Enigma Descifrata');
                 });
@@ -198,8 +200,10 @@ function runTests (driver, modes) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
+                    // click on the language dropdown and select option French
                     await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[2]')).click();
                     const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    // revert back the language to English
                     await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[1]')).click()
                     assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
                 });
@@ -210,7 +214,9 @@ function runTests (driver, modes) {
                     const searchBox = await driver.findElement(By.id('prefix'))
                     await searchBox.sendKeys('Poezii.35323.html');
                     await driver.sleep(500);
+                    // checks if the autocomplete list is displayed has one element
                     const searchListCount = (await driver.findElements(By.xpath('//*[@id="articleList"]/a'))).length
+                    // revert whatever was typed in the search box
                     await searchBox.clear()
                     assert.equal(searchListCount, 1);
                 });
@@ -218,6 +224,8 @@ function runTests (driver, modes) {
                     await driver.switchTo().defaultContent();
                     const searchBox = await driver.findElement(By.id('prefix'))
                     await searchBox.sendKeys('Poezii.35323.html');
+                    // Press enter 2 time to go and visit the first result of the search
+                    // I was not able to find a better way to do this feel free to change this
                     await searchBox.sendKeys(Key.ENTER);
                     await searchBox.sendKeys(Key.ENTER);
                     await driver.sleep(500);
@@ -229,10 +237,14 @@ function runTests (driver, modes) {
                     assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
                 });
                 it('Navigating back', async function () {
+                    // button lies on main page so we need to switch to default content
                     await driver.switchTo().defaultContent();
                     const btnBack = await driver.findElement(By.id('btnBack'))
+                    // I am not sure why i need to click a button two times to go back
+                    // Maybe since the first click is to focus on the button and the second one is to click it or element is a <a> not <button>
                     await btnBack.click();
-                    await btnBack.click(); // I am not sure why i need to click a button two times to go back
+                    await btnBack.click();
+                    // Title lies in iframe so we need to switch to it
                     await driver.switchTo().frame('articleContent');
                     const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
                     assert.equal(mainTitle, 'Project Gutenberg Library');
@@ -255,9 +267,11 @@ function runTests (driver, modes) {
                         return;
                     }
                     // something is wrong here
+                    // search by author name and press enter to apply the filter
                     const filter = await driver.findElement(By.id('author_filter'))
                     await filter.sendKeys(Key.ENTER);
                     const searchListCount = (await driver.findElements(By.xpath('//*[@id="books_table"]/tbody'))).length;
+                    // revert whatever was typed in the search box and press enter to remove filter
                     await filter.clear();
                     await filter.sendKeys(Key.ENTER);
                     assert.equal(searchListCount, 1);
@@ -270,10 +284,15 @@ function runTests (driver, modes) {
                         console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                         return;
                     }
+                    // click on the download button of the second result
                     await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i')).click();
                     await driver.sleep(2000);
-                    const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);
-                    if (downloadFileStatus) fs.rmSync(paths.downloadDir + '/' + downloadFileName);
+                    const downloadFileStatus = driver.wait(async function () {
+                        // click on the download button of the second result
+                        const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);
+                        if (downloadFileStatus) fs.rmSync(paths.downloadDir + '/' + downloadFileName);
+                        return downloadFileStatus;
+                    });
                     assert.ok(downloadFileStatus);
                 });
             });
