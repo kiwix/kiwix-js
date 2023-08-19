@@ -48,22 +48,22 @@ params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include
 params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
-params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === 'true';
-params['showUIAnimations'] = getSetting('showUIAnimations') ? getSetting('showUIAnimations') === 'true' : true;
+params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
+params['showUIAnimations'] = getSetting('showUIAnimations') !== false;
 // Maximum number of article titles to return (range is 5 - 50, default 25)
 params['maxSearchResultsSize'] = getSetting('maxSearchResultsSize') || 25;
 // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
-params['assetsCache'] = getSetting('assetsCache') !== 'false';
+params['assetsCache'] = getSetting('assetsCache') !== false;
 // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
-params['appCache'] = getSetting('appCache') !== 'false';
+params['appCache'] = getSetting('appCache') !== false;
 // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
 params['appTheme'] = getSetting('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
 // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
-params['useHomeKeyToFocusSearchBar'] = getSetting('useHomeKeyToFocusSearchBar') === 'true';
+params['useHomeKeyToFocusSearchBar'] = getSetting('useHomeKeyToFocusSearchBar') === true;
 // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
-params['openExternalLinksInNewTabs'] = getSetting('openExternalLinksInNewTabs') ? getSetting('openExternalLinksInNewTabs') === 'true' : true;
+params['openExternalLinksInNewTabs'] = getSetting('openExternalLinksInNewTabs') !== false;
 // A parameter to disable drag-and-drop
-params['disableDragAndDrop'] = getSetting('disableDragAndDrop') === 'true';
+params['disableDragAndDrop'] = getSetting('disableDragAndDrop') === true;
 // A parameter to access the URL of any extension that this app was launched from
 params['referrerExtensionURL'] = getSetting('referrerExtensionURL');
 // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
