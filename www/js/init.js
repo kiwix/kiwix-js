@@ -69,7 +69,7 @@ params['defaultModeChangeAlertDisplayed'] = getSetting('defaultModeChangeAlertDi
 // A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
 params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
     // Defaults to serviceworker mode when the API is available
-    ('serviceWorker' in navigator ? 'serviceworker' : 'jquery');
+    (('serviceWorker' in navigator) ? 'serviceworker' : 'jquery');
 // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
@@ -137,6 +137,8 @@ document.getElementById('openExternalLinksInNewTabsCheck').checked = params.open
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 
+var keyPrefix = params.keyPrefix;
+
 function getSetting (name) {
     var result;
     if (params.storeType === 'cookie') {
@@ -145,7 +147,7 @@ function getSetting (name) {
         result = result && result.length > 1 ? decodeURIComponent(result[1]) : null;
     } else if (params.storeType === 'local_storage') {
         // Use localStorage instead
-        result = localStorage.getItem(params.keyPrefix + name);
+        result = localStorage.getItem(keyPrefix + name);
     }
     return result === null || result === 'undefined' ? null : result === 'true' ? true : result === 'false' ? false : result;
 }
@@ -157,7 +159,7 @@ function setSetting (name, val) {
     // Make Boolean value
     val = val === 'false' ? false : val === 'true' ? true : val;
     if (params.storeType === 'local_storage') {
-        localStorage.setItem(params.keyPrefix + name, val);
+        localStorage.setItem(keyPrefix + name, val);
     }
 }
 
@@ -190,9 +192,9 @@ function getBestAvailableStorageAPI () {
 // This is used to prevent a "boot loop" where the app will keep jumping to a failed install of the PWA.
 if (/PWA_launch=/.test(window.location.search)) {
     var match = /PWA_launch=([^&]+)/.exec(window.location.search);
-    localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
+    localStorage.setItem(keyPrefix + 'PWA_launch', match[1]);
     // If we have successfully launched the PWA (even if there was no SW mode available), we prevent future default mode change alerts
-    if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
+    if (match[1] === 'success') localStorage.setItem(keyPrefix + 'defaultModeChangeAlertDisplayed', true);
     console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
 } else {
     // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
