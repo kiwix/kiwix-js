@@ -25,8 +25,8 @@
 /* global Banana */
 
 import '../../../node_modules/banana-i18n/dist/banana-i18n.js';
-import es from '../../../i18n/es.json';
-import en from '../../../i18n/en.json';
+import es from '../../../i18n/es.json' assert { type: 'json' };
+import en from '../../../i18n/en.json' assert { type: 'json' };
 
 const banana = new Banana();
 
