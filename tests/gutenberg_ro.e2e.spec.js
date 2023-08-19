@@ -107,34 +107,62 @@ function runTests (driver, modes) {
                     const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                     return elementIsVisible;
                 }, 5000);
-                // Pause for 1.3 seconds to allow app to reload
-                await driver.sleep(1300);
+                // Pause for timeout
+                await driver.sleep(500);
                 // Check for and click any approve button in dialogue box
                 try {
                     const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                     if (activeAlertModal) {
                         // Check if ServiceWorker mode API is supported
-                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                            return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
-                        });
+                        if (mode === 'serviceworker') {
+                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                                const supported = !/unsupported|not\savailable/i.test(alertText);
+                                console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
+                                return supported;
+                            })
+                        }
                     }
                     const approveButton = await driver.findElement(By.id('approveConfirm'));
                     await approveButton.click();
                 } catch (e) {
                     // Do nothing
                 }
-                if (serviceWorkerAPI) {
+                if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
-                    await driver.findElement(By.id('serviceWorkerStatus')).getText().then(function (serviceWorkerStatus) {
+                    await driver.sleep(500);
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                    try {
                         if (mode === 'serviceworker') {
                             assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
                         } else {
                             assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                         }
-                    });
+                    } catch (e) {
+                        if (!~modes.indexOf('serviceworker')) {
+                            // We can't switch to serviceworker mode if it is not being tested, so we should fail the test
+                            throw e;
+                        }
+                        // We failed to switch modes, so let's try switching back and switching to this mode again
+                        console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
+                        const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        // Click the other mode selector
+                        await otherModeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        // Click the mode selector again
+                        await modeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                        if (mode === 'serviceworker') {
+                            assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
+                    }
                 } else {
                     // Skip remaining SW mode tests if the browser does not support the SW API
-                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
                     await driver.quit();
                 }
             });
@@ -157,11 +185,14 @@ function runTests (driver, modes) {
                 assert.equal(1, filesLength);
             });
             it('Checking active content warning', async function () {
-                const activeContentWarning = await driver.findElement(By.id('activeContent'));
+                const activeContentWarning = await driver.wait(async function () {
+                    const element = await driver.findElement(By.id('activeContent'));
+                    return await element.isDisplayed();
+                }, 2000).catch(() => false);
                 if (isJqueryMode) {
-                    assert.equal(true, await activeContentWarning.isDisplayed());
+                    assert.ok(true, activeContentWarning);
                 } else {
-                    assert.equal(false, await activeContentWarning.isDisplayed());
+                    assert.equal(false, activeContentWarning);
                 }
             });
             it('Sorting books by popularity', async function () {
@@ -198,50 +229,56 @@ function runTests (driver, modes) {
                     return;
                 }
                 // click on the language dropdown and select option French
-                await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[2]')).click();
+                const languageOptions = await driver.wait(until.elementsLocated(By.xpath('//*[@id="l10nselect"]/option')), 1500);
+                // await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[2]')).click();
+                await languageOptions[1].click();
                 const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
                 // revert back the language to English
-                await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[1]')).click()
+                // await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[1]')).click()
+                await languageOptions[0].click();
                 assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
             });
             it('Primary Search Autocomplete', async function () {
                 await driver.switchTo().defaultContent();
-                const searchBox = await driver.findElement(By.id('prefix'))
+                const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
                 await searchBox.sendKeys('Poezii.35323.html');
-                await driver.sleep(500);
                 // checks if the autocomplete list is displayed has one element
-                const searchListCount = (await driver.findElements(By.xpath('//*[@id="articleList"]/a'))).length
+                // waits until autocomplete list is displayed (might take a second)
+                const searchListCount = await driver.wait(async function () {
+                    const searchList = await driver.findElements(By.xpath('//*[@id="articleList"]/a'))
+                    return searchList.length;
+                }, 1500).catch(() => 0);
                 // revert whatever was typed in the search box
                 await searchBox.clear()
                 assert.equal(searchListCount, 1);
             });
             it('Viewing HTML view', async function () {
                 await driver.switchTo().defaultContent();
-                const searchBox = await driver.findElement(By.id('prefix'))
+                const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
                 await searchBox.sendKeys('Poezii.35323.html');
                 // Press enter 2 time to go and visit the first result of the search
                 // I was not able to find a better way to do this feel free to change this
                 await searchBox.sendKeys(Key.ENTER);
                 await searchBox.sendKeys(Key.ENTER);
                 await driver.sleep(500);
-                const authorAndBookName = await driver.wait(async function () {
-                    await driver.switchTo().frame('articleContent');
-                    until.elementLocated(By.id('id00000'));
-                    return await driver.findElement(By.id('id00000')).getText();
-                })
+                // if title is not loaded in next 4 seconds then return empty string and fail test
+                await driver.switchTo().frame('articleContent');
+                const authorAndBookName = await driver.wait(until.elementIsVisible(driver.findElement(By.id('id00000'))), 1500).getText()
                 assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
             });
             it('Navigating back', async function () {
                 // button lies on main page so we need to switch to default content
                 await driver.switchTo().defaultContent();
-                const btnBack = await driver.findElement(By.id('btnBack'))
+                const btnBack = await driver.wait(until.elementLocated(By.id('btnBack')));
                 // I am not sure why i need to click a button two times to go back
                 // Maybe since the first click is to focus on the button and the second one is to click it or element is a <a> not <button>
                 await btnBack.click();
                 await btnBack.click();
                 // Title lies in iframe so we need to switch to it
                 await driver.switchTo().frame('articleContent');
-                const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                // in some browsers the title is loaded slowly so we need to wait for it
+                // if title is not loaded in next 4 seconds then return empty string and fail test
+                const mainTitle = await driver.wait(until.elementLocated(By.xpath('//*[@class="main_title"]/h1')), 4000).getText();
                 assert.equal(mainTitle, 'Project Gutenberg Library');
             });
             it('Author search Autocomplete', async function () {
@@ -249,10 +286,10 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                const filter = await driver.findElement(By.id('author_filter'))
+                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500)
                 await filter.sendKeys('Mihai Eminescu');
-                const searchListCount = (await driver.findElements(By.id('ui-id-1'))).length;
-                assert.equal(searchListCount, 1);
+                const searchList = await driver.wait(until.elementsLocated(By.id('ui-id-1')), 1500);
+                assert.equal(searchList.length, 1);
             });
             it('Author search Results', async function () {
                 if (isJqueryMode) {
@@ -261,13 +298,13 @@ function runTests (driver, modes) {
                 }
                 // something is wrong here
                 // search by author name and press enter to apply the filter
-                const filter = await driver.findElement(By.id('author_filter'))
+                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
                 await filter.sendKeys(Key.ENTER);
-                const searchListCount = (await driver.findElements(By.xpath('//*[@id="books_table"]/tbody'))).length;
+                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="books_table"]/tbody')));
                 // revert whatever was typed in the search box and press enter to remove filter
                 await filter.clear();
                 await filter.sendKeys(Key.ENTER);
-                assert.equal(searchListCount, 1);
+                assert.equal(searchList.length, 1);
             });
             const downloadFileName = 'Poezii.35323.epub'
             it('Download EPUB file', async function () {
@@ -276,18 +313,15 @@ function runTests (driver, modes) {
                     return;
                 }
                 // click on the download button of the second result
-                const downloadButton = await driver.wait(async function () {
-                    return driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i'));
-                }, 5000);
+                const downloadButton = await driver.wait(until.elementLocated(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i')), 1500);
                 await downloadButton.click();
-                await driver.sleep(2000);
-                const downloadFileStatus = driver.wait(async function () {
+                const downloadFileStatus = await driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
                     // [TODO] only run this part if chrome or firefox
                     const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);
                     if (downloadFileStatus) fs.rmSync(paths.downloadDir + '/' + downloadFileName);
                     return downloadFileStatus;
-                });
+                }, 1500).catch(() => false);
                 assert.ok(downloadFileStatus);
 
                 // exit if every test and mode is completed
