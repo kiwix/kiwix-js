@@ -137,8 +137,6 @@ document.getElementById('openExternalLinksInNewTabsCheck').checked = params.open
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 
-var keyPrefix = params.keyPrefix;
-
 function getSetting (name) {
     var result;
     if (params.storeType === 'cookie') {
@@ -147,7 +145,7 @@ function getSetting (name) {
         result = result && result.length > 1 ? decodeURIComponent(result[1]) : null;
     } else if (params.storeType === 'local_storage') {
         // Use localStorage instead
-        result = localStorage.getItem(keyPrefix + name);
+        result = localStorage.getItem(params.keyPrefix + name);
     }
     return result === null || result === 'undefined' ? null : result === 'true' ? true : result === 'false' ? false : result;
 }
@@ -159,7 +157,7 @@ function setSetting (name, val) {
     // Make Boolean value
     val = val === 'false' ? false : val === 'true' ? true : val;
     if (params.storeType === 'local_storage') {
-        localStorage.setItem(keyPrefix + name, val);
+        localStorage.setItem(params.keyPrefix + name, val);
     }
 }
 
@@ -192,9 +190,9 @@ function getBestAvailableStorageAPI () {
 // This is used to prevent a "boot loop" where the app will keep jumping to a failed install of the PWA.
 if (/PWA_launch=/.test(window.location.search)) {
     var match = /PWA_launch=([^&]+)/.exec(window.location.search);
-    localStorage.setItem(keyPrefix + 'PWA_launch', match[1]);
+    localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
     // If we have successfully launched the PWA (even if there was no SW mode available), we prevent future default mode change alerts
-    if (match[1] === 'success') localStorage.setItem(keyPrefix + 'defaultModeChangeAlertDisplayed', true);
+    if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
     console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
 } else {
     // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.

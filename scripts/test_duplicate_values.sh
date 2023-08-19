@@ -11,7 +11,7 @@ cd $REPO_DIR
 SW_VERSION="$(grep 'appVersion\s=' service-worker.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
 APP_VERSION="$(grep 'params\[.appVersion' www/js/init.js | sed -E "s/[^[:digit:]]+([^\"']+).*/\1/")"
 echo "service-worker.js : $SW_VERSION"
-echo "init.js            : $APP_VERSION"
+echo "init.js           : $APP_VERSION"
 if [ $SW_VERSION == $APP_VERSION ] ; then
     echo "Both values of 'appVersion' are identical"
 else
