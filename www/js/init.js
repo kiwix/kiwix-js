@@ -46,6 +46,8 @@ params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include
 // params['PWAServer'] = 'http://localhost:8080/'; // DEV: Uncomment this line (and adjust) for local testing
 // A parameter to determine the Settings Store API in use
 params['storeType'] = getBestAvailableStorageAPI();
+// The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
+params['keyPrefix'] = 'kiwixjs-';
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === 'true';
 params['showUIAnimations'] = getSetting('showUIAnimations') ? getSetting('showUIAnimations') === 'true' : true;
 // Maximum number of article titles to return (range is 5 - 50, default 25)
@@ -73,8 +75,6 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
-// The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
-params['keyPrefix'] = 'kiwixjs-';
 
 /**
  * Apply any override parameters that might be in the querystring.
