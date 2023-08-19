@@ -137,6 +137,7 @@ document.getElementById('openExternalLinksInNewTabsCheck').checked = params.open
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 
+// This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {
     var result;
     if (params.storeType === 'cookie') {
@@ -150,6 +151,7 @@ function getSetting (name) {
     return result === null || result === 'undefined' ? null : result === 'true' ? true : result === 'false' ? false : result;
 }
 
+// This is a simplified version of code in settingsStore, because that module is not available in init.js
 function setSetting (name, val) {
     if (params.storeType === 'cookie') {
         document.cookie = encodeURIComponent(name) + '=' + encodeURIComponent(val) + ';expires=Fri, 31 Dec 9999 23:59:59 GMT';
