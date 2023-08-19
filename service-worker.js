@@ -132,6 +132,7 @@ const precacheFiles = [
     'www/js/lib/zimArchiveLoader.js',
     'www/js/lib/zimDirEntry.js',
     'www/js/lib/zimfile.js',
+    'node_modules/banana-i18n/dist/banana-i18n.js',
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
     'node_modules/bootstrap/dist/css/bootstrap.min.css',
