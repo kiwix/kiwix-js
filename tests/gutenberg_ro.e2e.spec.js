@@ -244,26 +244,28 @@ function runTests (driver, modes) {
                 await searchBox.sendKeys('Poezii.35323.html');
                 // checks if the autocomplete list is displayed has one element
                 // waits until autocomplete list is displayed (might take a second)
-                const searchListCount = await driver.wait(async function () {
-                    const searchList = await driver.findElements(By.xpath('//*[@id="articleList"]/a'))
-                    return searchList.length;
-                }, 1500).catch(() => 0);
+                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 1500);
                 // revert whatever was typed in the search box
                 await searchBox.clear()
-                assert.equal(searchListCount, 1);
+                assert.equal(searchList.length, 1);
             });
             it('Viewing HTML view', async function () {
                 await driver.switchTo().defaultContent();
                 const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
-                await searchBox.sendKeys('Poezii.35323.html');
+                await searchBox.sendKeys('Poezii.35323.ht');
                 // Press enter 2 time to go and visit the first result of the search
                 // I was not able to find a better way to do this feel free to change this
+                // const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 1500);
+                await driver.sleep(1000);
                 await searchBox.sendKeys(Key.ENTER);
+                await driver.sleep(1000);
                 await searchBox.sendKeys(Key.ENTER);
+
                 await driver.sleep(500);
                 // if title is not loaded in next 4 seconds then return empty string and fail test
+                await searchBox.clear()
                 await driver.switchTo().frame('articleContent');
-                const authorAndBookName = await driver.wait(until.elementIsVisible(driver.findElement(By.id('id00000'))), 1500).getText()
+                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 1500).getText()
                 assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
             });
             it('Navigating back', async function () {
@@ -272,6 +274,7 @@ function runTests (driver, modes) {
                 const btnBack = await driver.wait(until.elementLocated(By.id('btnBack')));
                 // I am not sure why i need to click a button two times to go back
                 // Maybe since the first click is to focus on the button and the second one is to click it or element is a <a> not <button>
+                await btnBack.click();
                 await btnBack.click();
                 await btnBack.click();
                 // Title lies in iframe so we need to switch to it
@@ -308,12 +311,21 @@ function runTests (driver, modes) {
             });
             const downloadFileName = 'Poezii.35323.epub'
             it('Download EPUB file', async function () {
-                if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
-                    return;
-                }
-                // click on the download button of the second result
-                const downloadButton = await driver.wait(until.elementLocated(By.xpath('//*[@id="books_table"]/tbody/tr[3]/td[2]/a[2]/i')), 1500);
+                await driver.switchTo().defaultContent();
+                const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
+                await searchBox.clear(1000);
+                await searchBox.sendKeys('Poezii_cover.35323.html');
+                await driver.sleep(1000);
+                // Go and visit the first result of the search
+                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 1500);
+                await searchList[0].click();
+                // await searchBox.clear();
+                // if title is not loaded in next 4 seconds then return empty string and fail test
+                await driver.switchTo().frame('articleContent');
+
+                // click on the download button
+                await driver.wait(until.elementLocated(By.xpath('//*[@id="content"]/div/div[2]/div[5]/a[2]')), 1500);
+                const downloadButton = await driver.wait(until.elementIsEnabled(driver.findElement(By.xpath('//*[@id="content"]/div/div[2]/div[5]/a[2]'))), 1500);
                 await downloadButton.click();
                 const downloadFileStatus = await driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
@@ -321,7 +333,7 @@ function runTests (driver, modes) {
                     const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);
                     if (downloadFileStatus) fs.rmSync(paths.downloadDir + '/' + downloadFileName);
                     return downloadFileStatus;
-                }, 1500).catch(() => false);
+                }, 5000).catch(() => false);
                 assert.ok(downloadFileStatus);
 
                 // exit if every test and mode is completed

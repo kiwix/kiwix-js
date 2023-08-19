@@ -11,6 +11,7 @@ async function loadChromiumDriver () {
     // Run it headless if the environment variable GITHUB_ACTIONS is set
     if (process.env.GITHUB_ACTIONS) {
         options.addArguments('--headless=new');
+        options.addArguments('start-maximized');
     }
     options.setUserPreferences({ 'download.default_directory': paths.downloadDir })
     const driver = await new Builder(options)
