@@ -132,7 +132,7 @@ function runTests (driver, modes) {
                         return elementIsVisible;
                     }, 5000);
                     // Pause for timeout
-                    await driver.sleep(300);
+                    await driver.sleep(500);
                     // Check for and click any approve button in dialogue box
                     try {
                         const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
@@ -140,8 +140,9 @@ function runTests (driver, modes) {
                             // Check if ServiceWorker mode API is supported
                             if (mode === 'serviceworker') {
                                 serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                    // console.log('      ' + alertText);
-                                    return !/ServiceWorker\smode\sunsupported/i.test(alertText);
+                                    const supported = !/ServiceWorker\smode\sunsupported/i.test(alertText);
+                                    console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
+                                    return supported;
                                 })
                             }
                         }
@@ -185,7 +186,7 @@ function runTests (driver, modes) {
                         }
                     } else {
                         // Skip remaining SW mode tests if the browser does not support the SW API
-                        console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                        console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
                         await driver.quit();
                     }
                 });
