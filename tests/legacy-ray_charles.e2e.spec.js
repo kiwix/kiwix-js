@@ -140,7 +140,7 @@ function runTests (driver, modes) {
                             // Check if ServiceWorker mode API is supported
                             if (mode === 'serviceworker') {
                                 serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                    const supported = !/ServiceWorker\smode\sunsupported/i.test(alertText);
+                                    const supported = !/unsupported|not\savailable/i.test(alertText);
                                     console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
                                     return supported;
                                 })
