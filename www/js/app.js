@@ -34,6 +34,7 @@ import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
+import translateUI from './lib/translateUI.js';
 
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
@@ -247,7 +248,10 @@ function resizeIFrame () {
         }, 100);
     }
 }
-document.addEventListener('DOMContentLoaded', resizeIFrame);
+document.addEventListener('DOMContentLoaded', function () {
+    translateUI.translateApp();
+    resizeIFrame();
+});
 window.addEventListener('resize', resizeIFrame);
 
 // Define behavior of HTML elements

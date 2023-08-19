@@ -1,0 +1,27 @@
+{
+    "@metadata": {
+        "authors": [
+            "jaifroid"
+        ],
+        "last-updated": "2023-08-19",
+        "locale": "en",
+        "message-documentation": "qqq"
+    },
+    "title": "Kiwix",
+    "sub-title": "Offline Browser",
+    "home": "Home",
+    "home-search": "Search",
+    "home-welcome-text": "You can search the content of your ZIM archive by typing in the above search field.<br />It will suggest articles starting with the letters you type.",
+    "home-btn-random-tip": "Select a random article to display",
+    "home-btn-random": "Random",
+    "home-btn-back": "Back",
+    "home-btn-forward": "Forward",
+    "home-btn-top": "Top",
+    "configure": "Configure",
+    "configure-title": "Configuration",
+    "configure-download-instructions": "This application needs a ZIM archive to work. For download instructions, please see the About section",
+    "configure-download-instructions-line2": "Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in case of a split ZIM file)",
+    "about": "About",
+    "header-introduction": "Introduction",
+    "usage": "Usage"
+}

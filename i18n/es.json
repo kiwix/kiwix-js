@@ -1,0 +1,27 @@
+{
+    "@metadata": {
+        "authors": [
+            "jaifroid"
+        ],
+        "last-updated": "2023-08-19",
+        "locale": "es",
+        "message-documentation": "qqq"
+    },
+    "title": "Kiwix",
+    "sub-title": "Navegador de contenido offline",
+    "home": "Inicio",
+    "home-search": "Buscar",
+    "home-welcome-text": "Puede buscar en el contenido de su archivo ZIM escribiendo en el campo de búsqueda arriba.<br />Le sugerirá artículos que empiecen por las letras que escriba.",
+    "home-btn-random-tip": "Mostrar un artículo al azar",
+    "home-btn-random": "Aleatorio",
+    "home-btn-back": "Atrás",
+    "home-btn-forward": "Adelante",
+    "home-btn-top": "Arriba",
+    "configure": "Configurar",
+    "configure-title": "Configuración",
+    "configure-download-instructions": "Esta aplicación necesita un archivo ZIM para funcionar. Para instrucciones de descarga, por favor vea la sección 'Acerca de Kiwix'",
+    "configure-download-instructions-line2": "Por favor seleccione o arrastre y suelte el archivo .zim (o todos los .zimaa, .zimab etc en caso de un archivo ZIM dividido)",
+    "about": "Información",
+    "header-introduction": "Bienvenido a Kiwix",
+    "usage": "Uso"
+}
