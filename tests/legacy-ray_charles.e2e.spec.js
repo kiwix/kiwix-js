@@ -131,16 +131,20 @@ function runTests (driver, modes) {
                         const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                         return elementIsVisible;
                     }, 5000);
-                    // Pause for 1.3 seconds to allow app to reload
-                    await driver.sleep(1300);
+                    // Pause for timeout
+                    await driver.sleep(500);
                     // Check for and click any approve button in dialogue box
                     try {
                         const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                         if (activeAlertModal) {
                             // Check if ServiceWorker mode API is supported
-                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
-                            });
+                            if (mode === 'serviceworker') {
+                                serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                                    const supported = !/unsupported|not\savailable/i.test(alertText);
+                                    console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
+                                    return supported;
+                                })
+                            }
                         }
                         const approveButton = await driver.findElement(By.id('approveConfirm'));
                         await approveButton.click();
@@ -182,7 +186,7 @@ function runTests (driver, modes) {
                         }
                     } else {
                         // Skip remaining SW mode tests if the browser does not support the SW API
-                        console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                        console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
                         await driver.quit();
                     }
                 });
