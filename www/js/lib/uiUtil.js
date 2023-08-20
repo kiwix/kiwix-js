@@ -714,6 +714,12 @@ function closestAnchorEnclosingElement (element) {
     }
 }
 
+/**
+ * Get Promise for a JSON object from a given URL
+ *
+ * @param {string} url The URL from which to get the JSON object
+ * @returns {Promise<Object>} A Promise that will be resolved with the JSON object, or rejected with the error message
+ **/
 function getJSONObject (url) {
     return new Promise(function (resolve, reject) {
         const xhr = new XMLHttpRequest();
@@ -721,11 +727,7 @@ function getJSONObject (url) {
         xhr.responseType = 'json';
         xhr.onload = function () {
             if (xhr.status === 200) {
-                var response = xhr.response;
-                // console.log('response', response);
-                // var responseJSON = JSON.parse(response);
-                // console.log('responseJSON', responseJSON);
-                resolve(response);
+                resolve(xhr.response);
             } else {
                 reject(xhr.statusText);
             }
