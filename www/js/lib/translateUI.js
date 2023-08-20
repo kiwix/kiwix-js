@@ -22,22 +22,17 @@
 
 'use strict';
 
-/* global Banana */
-
-import '../../../node_modules/banana-i18n/dist/banana-i18n.js';
-// In the future you may be able to do it like this. Currently, it only works in Chromium.
-// import es from '../../../i18n/es.json' assert { type: 'json' };
-// import en from '../../../i18n/en.json' assert { type: 'json' };
+import i18next from '../../../node_modules/i18next/dist/esm/i18next.js';
 import uiUtil from './uiUtil.js';
-
-const banana = new Banana();
 
 // Load the translation strings as a JSON object for a given language code
 function loadTranslationStrings (langCode) {
     return uiUtil.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
-        banana.load(translations, langCode);
-        // Set the locale to the language code
-        banana.setLocale(langCode);
+        i18next.init({
+            lng: langCode, // if you're using a language detector, do not define the lng option
+            debug: true,
+            resources: translations
+        });
     }).catch(function (err) {
         console.error('Error loading translation strings for language code ' + langCode, err);
     });
@@ -48,7 +43,7 @@ function translateApp (languageCode) {
     // Load the translation strings for the given language code
     return loadTranslationStrings(languageCode).then(function () {
         document.querySelectorAll('[data-i18n]').forEach((element) => {
-            element.innerHTML = banana.i18n(element.dataset.i18n);
+            element.innerHTML = i18next.t(element.dataset.i18n);
         });
     }).catch(function (err) {
         console.error('Error translating the UI', err);

@@ -4,7 +4,7 @@
     "serve": "vite",
     "preview": "del-cli dist && npm run build-src && vite preview",
     "prebuild": "del-cli dist",
-    "build":  "rollup --config --file dist/www/js/bundle.js && rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
+    "build": "rollup --config --file dist/www/js/bundle.js && rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
     "prebuild-min": "del-cli dist",
     "build-min": "rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
     "prebuild-src": "del-cli dist",
@@ -29,9 +29,9 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "5.9.0",
     "@types/fs-extra": "^9.0.11",
-    "banana-i18n": "^2.3.3",
     "bootstrap": "^4.6.2",
     "core-js": "3.30.2",
+    "i18next": "^23.4.4",
     "jquery": "^3.7.0"
   },
   "devDependencies": {
