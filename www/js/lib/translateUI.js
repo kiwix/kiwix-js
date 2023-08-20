@@ -34,7 +34,7 @@ const banana = new Banana();
 
 // Load the translation strings as a JSON object for a given language code
 function loadTranslationStrings (langCode) {
-    return uiUtil.getJSONObject('/i18n/' + langCode + '.json').then(function (translations) {
+    return uiUtil.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
         banana.load(translations, langCode);
         // Set the locale to the language code
         banana.setLocale(langCode);
