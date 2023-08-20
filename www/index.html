@@ -498,75 +498,74 @@
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label title="Enables quick access to search, no matter where you are in an article.">
+                                    <label data-i18n-tip="configure-display-homekeyfocus-tip" title="Enables quick access to search, no matter where you are in an article.">
                                         <input type="checkbox" name="useHomeKeyToFocusSearchBar"
                                                id="useHomeKeyToFocusSearchBarCheck">
                                         <span data-i18n="configure-display-homekeyfocus"><strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)</span>
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label title="Opens the external links outside kiwix-js (avoids some side-effects affecting kiwix-js UI).">
+                                    <label data-i18n-tip="configure-display-openexternallinks-tip" title="Opens the external links outside kiwix-js (avoids some side-effects affecting kiwix-js UI).">
                                         <input type="checkbox" name="openExternalLinksInNewTabs"
                                                id="openExternalLinksInNewTabsCheck" checked>
-                                        <strong>Open external links in new tabs</strong>. Disabling this might break kiwix-js UI in some specific cases
+                                               <span data-i18n="configure-display-openexternallinks"><strong>Open external links in new tabs</strong>. Disabling this might break kiwix-js UI in some specific cases
                                     </label>
                                 </div>
                                 <div class="form-group">
-                                    <label title="Allows selection of themes either for the app only, or for the app and the loaded content.">
-                                        <b>Select app theme</b> (content inversion is experimental):
+                                    <label data-i18n-tip="configure-display-selectapptheme-tip" title="Allows selection of themes either for the app only, or for the app and the loaded content.">
+                                        <span data-i18n="configure-display-selectapptheme"><b>Select app theme</b> (content inversion is experimental):</span>
                                     </label>
                                     <select class="form-control" id="appThemeSelect">
-                                        <option value="light">Light</option>
-                                        <option value="dark">Dark (app only)</option>
-                                        <option value="dark_invert">Dark (generic invert)</option>
-                                        <option value="dark_mwInvert">Dark (wikimedia invert)*</option>
-                                        <option class="auto" value="auto">Auto (app only)</option>
-                                        <option class="auto" value="auto_invert">Auto (generic invert)</option>
-                                        <option class="auto" value="auto_mwInvert">Auto (wikimedia invert)*</option>
+                                        <option data-i18n="configure-display-themeoption-light" value="light">Light</option>
+                                        <option data-i18n="configure-display-themeoption-dark-apponly" value="dark">Dark (app only)</option>
+                                        <option data-i18n="configure-display-themeoption-dark-invert" value="dark_invert">Dark (generic invert)</option>
+                                        <option data-i18n="configure-display-themeoption-dark-mwinvert" value="dark_mwInvert">Dark (wikimedia invert)*</option>
+                                        <option data-i18n="configure-display-themeoption-auto-apponly" class="auto" value="auto">Auto (app only)</option>
+                                        <option data-i18n="configure-display-themeoption-auto-invert" class="auto" value="auto_invert">Auto (generic invert)</option>
+                                        <option data-i18n="configure-display-themeoption-auto-mwinvert" class="auto" value="auto_mwInvert">Auto (wikimedia invert)*</option>
                                     </select>
-                                    <p class="text-muted" id="kiwix-auto-description" style="margin-bottom: 0;">&emsp;(Auto themes match the dark/light mode of your device.)</p>
-                                    <p id="mwInvert-help" class="appThemeInfo form-text text-muted">* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.</p>
-                                    <a id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with applied theme&nbsp;]</a>
+                                    <p data-i18n="configure-display-apptheme-auto-description" class="text-muted" id="kiwix-auto-description" style="margin-bottom: 0;">&emsp;(Auto themes match the dark/light mode of your device.)</p>
+                                    <p data-i18n="configure-display-apptheme-mwinvert-description" id="mwInvert-help" class="appThemeInfo form-text text-muted">* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.</p>
+                                    <a data-i18n="configure-display-apptheme-info" id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with applied theme&nbsp;]</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <br />
                     <div class="container">
-                        <h3>Performance settings</h3>
+                        <h3 data-i18n="configure-performance-settings-title">Performance settings</h3>
                         <div class="card card-warning" id="performanceSettingsDiv">
-                            <div class="card-header">Speed up archive access</div>
+                            <div data-i18n="configure-performance-panel-header" class="card-header">Speed up archive access</div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-sm-6">
                                         <div class="radio">
-                                            <p>Kiwix JS can speed up the display of articles by caching assets:</p>
-                                            <label title="The cache provides high-speed access to ZIM assets such as stylesheets and scripts, which will improve article load times.">
+                                            <p data-i18n="configure-performance-cacheassets-description">Kiwix JS can speed up the display of articles by caching assets:</p>
+                                            <label data-i18n-tip="configure-performance-cacheassets-true-tip" title="The cache provides high-speed access to ZIM assets such as stylesheets and scripts, which will improve article load times.">
                                                 <input type="radio" name="cachedAssetsMode" value="true"
                                                     id="cachedAssetsModeRadioTrue" checked>
-                                                <strong>Cache assets</strong> (recommended)
+                                                <span data-i18n="configure-performance-cacheassets-true"><strong>Cache assets</strong> (recommended)</span>
                                             </label>
                                         </div>
                                         <div class="radio">
-                                            <label title="For low-memory devices, caching assets may cause app instability. This option allows you to disable the cache.">
+                                            <label data-i18n-tip="configure-performance-cacheassets-false-tip" title="For low-memory devices, caching assets may cause app instability. This option allows you to disable the cache.">
                                                 <input type="radio" name="cachedAssetsMode" value="false"
                                                     id="cachedAssetsModeRadioFalse">
-                                                <strong>Do not cache assets</strong> (empties caches: for low-memory
-                                                devices)
+                                                    <span data-i18n="configure-performance-cacheassets-false"><strong>Do not cache assets</strong> (empties caches: for low-memory devices)</span>
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-sm-6">
                                         <div id="cacheStatusPanel" class="card card-footer" style="overflow: hidden">
                                             <div>
-                                                <p><b>Cache status:</b></p>
+                                                <p><b data-i18n="configure-performance-cachestatuspanel-label">Cache status:</b></p>
                                             </div>
                                             <div class="row">
                                                 <div class="col-7">
-                                                    <p>Cache used: <b id="cacheUsed"></b></p>
+                                                    <p><span data-i18n="configure-performance-cachestatuspanel-cacheused">Cache used</span>: <b id="cacheUsed"></b></p>
                                                 </div>
                                                 <div class="col-5">
-                                                    <p>Assets: <b id="assetsCount"></b></p>
+                                                    <p><span data-i18n="configure-performance-cachestatuspanel-assets">Assets</span>: <b id="assetsCount"></b></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -575,13 +574,13 @@
                                 <br />
                                 <div class="row">
                                     <div class="col-sm-4">
-                                        <p>Select max number of search results:</p>
+                                        <p data-i18n="configure-performance-searchrange-label">Select max number of search results:</p>
                                     </div>
                                     <div class="col-sm-8">
                                         <div class="range">
                                             <label>
                                                 <input type="range" class="form-control-range" min="5" max="100" id="titleSearchRange" value="25">
-                                                <span>Value: <span id="titleSearchRangeVal"></span> (<i>default 25, higher values increase search time</i>)</span>
+                                                <span data-i18n="configure-performance-searchrange-valuetext">Value</span>: <span id="titleSearchRangeVal"></span> (<i data-i18n="configure-performance-searchrange-help">default 25, higher values increase search time</i>)
                                             </label>
                                         </div>
                                     </div>
