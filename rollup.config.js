@@ -20,12 +20,12 @@ const config = {
             exclude: 'node_modules/**',
             babelHelpers: 'bundled'
         }),
+        // Needed to get rid of residual "requires" left in the code by Babel...
+        commonjs(),
         // Resolves references to node_modules packages
         resolve({
             browser: true
         }),
-        // Needed to get rid of residual "requires" left in the code by Babel...
-        commonjs(),
         // styles({
         //     // mode: 'extract',
         //     modules: true
@@ -41,10 +41,11 @@ const config = {
         copy({
             targets: [{
                 src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*',
-                    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.*', 'node_modules/jquery/dist/jquery.slim.min.*', 'node_modules/banana-i18n/dist/banana-i18n.js', '!www/js/lib/libzim-wasm.dev*'],
+                    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.*', 'node_modules/jquery/dist/jquery.slim.min.*', '!www/js/lib/libzim-wasm.dev*'],
                 dest: 'dist/www/js'
             },
             { src: ['node_modules/bootstrap/dist/css/bootstrap.min.*'], dest: 'dist/www/css' },
+            { src: ['i18n/*'], dest: 'dist/i18n' },
             { src: ['archives', 'backgroundscript.js', 'index.html', 'manifest.json', 'manifest.v2.json', 'manifest.webapp', 'package.json', 'LICENSE-GPLv3.txt', 'CHANGELOG.md', 'README.md', '*.pfx', '*.cjs'], dest: 'dist' }
             ],
             flatten: true
