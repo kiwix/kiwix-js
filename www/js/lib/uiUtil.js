@@ -727,7 +727,12 @@ function getJSONObject (url) {
         xhr.responseType = 'json';
         xhr.onload = function () {
             if (xhr.status === 200) {
-                resolve(xhr.response);
+                var response = xhr.response;
+                // IE11 does not support responseType = 'json', so we need to parse the response manually
+                if (typeof response === 'string') {
+                    response = JSON.parse(response);
+                }
+                resolve(response);
             } else {
                 reject(xhr.statusText);
             }
