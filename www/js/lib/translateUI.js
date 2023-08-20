@@ -22,7 +22,7 @@
 
 'use strict';
 
-import i18next from '../../../node_modules/i18next/dist/esm/i18next.js';
+import i18next from '../../../node_modules/i18next/dist/es/i18next.js';
 import uiUtil from './uiUtil.js';
 
 // Load the translation strings as a JSON object for a given language code
