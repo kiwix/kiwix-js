@@ -590,30 +590,30 @@
                     </div>
                     <br />
                     <div class="container">
-                        <h3>Compatibility settings</h3>
+                        <h3 data-i18n="configure-compatibility-settings-title">Compatibility settings</h3>
                         <div class="card card-warning" id="contentInjectionModeDiv">
-                            <div class="card-header">Content injection mode</div>
+                            <div data-i18n="configure-compatibility-panel-header" class="card-header">Content injection mode</div>
                             <div class="card-body">
-                                <p>See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
+                                <p data-i18n="configure-compatibility-help">See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
                                 <div class="radio">
-                                    <label title="This mode requires that the browser or framework be capable of installing a Service Worker. It enables dynamic ZIM content and running JavaScript (including inline JS). It works by intercepting the browser's Fetch calls and supplying the requested content from the ZIM.">
+                                    <label data-i18n-tip="configure-compatibility-option-serviceworker-tip" title="This mode requires that the browser or framework be capable of installing a Service Worker. It enables dynamic ZIM content and running JavaScript (including inline JS). It works by intercepting the browser's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
                                             id="serviceworkerModeRadio">
-                                        <strong>ServiceWorker</strong> (<i>recommended</i>, supports dynamic content and inline JavaScript)
+                                        <span data-i18n="configure-compatibility-option-serviceworker"><strong>ServiceWorker</strong> (<i>recommended</i>, supports dynamic content and inline JavaScript)</span>
                                     </label>
                                 </div>
                                 <div id="serviceWorkerLocal" class="radio">
-                                    <label title="[For Chromium extensions only:] This mode runs the Service Worker in a secure local sandbox, and does not need one-time access to our PWA server. However, due to the strong security restrictions in the API, it is not capable of running inline JavaScript, so dynamic ZIM content may fail.">
+                                    <label data-i18n-tip="configure-compatibility-option-serviceworkerlocal-tip" title="[For Chromium extensions only:] This mode runs the Service Worker in a secure local sandbox, and does not need one-time access to our PWA server. However, due to the strong security restrictions in the API, it is not capable of running inline JavaScript, so dynamic ZIM content may fail.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworkerlocal"
                                             id="serviceworkerLocalModeRadio">
-                                        <strong>ServiceWorkerLocal</strong> (secure local Service Worker, but <i>no inline JavaScript</i>)
+                                        <span data-i18n="configure-compatibility-option-serviceworkerlocal"><strong>ServiceWorkerLocal</strong> (secure local Service Worker, but <i>no inline JavaScript</i>)</span>
                                     </label>
                                 </div>
                                 <div class="radio">
-                                    <label title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
+                                    <label data-i18n-tip="configure-compatibility-option-jquery-tip" title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jqueryModeRadio" checked>
-                                        <strong>JQuery</strong> (<i>deprecated</i>: no dynamic content, compatible with older browsers)
+                                        <span data-i18n="configure-compatibility-option-jquery"><strong>JQuery</strong> (<i>deprecated</i>: no dynamic content, compatible with older browsers)</span>
                                     </label>
                                 </div>
                             </div>
