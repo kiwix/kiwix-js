@@ -45,6 +45,9 @@ function translateApp (languageCode) {
         document.querySelectorAll('[data-i18n]').forEach((element) => {
             element.innerHTML = i18next.t(element.dataset.i18n);
         });
+        document.querySelectorAll('[data-i18n-tip]').forEach((element) => {
+            element.title = i18next.t(element.dataset.i18nTip);
+        });
     }).catch(function (err) {
         console.error('Error translating the UI', err);
     });
