@@ -249,7 +249,7 @@ function resizeIFrame () {
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
-    translateUI.translateApp();
+    translateUI.translateApp('es');
     resizeIFrame();
 });
 window.addEventListener('resize', resizeIFrame);

@@ -5,7 +5,6 @@ import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import terser from '@rollup/plugin-terser';
-import json from '@rollup/plugin-json';
 // import styles from "@ironkinoko/rollup-plugin-styles";
 
 const config = {
@@ -49,8 +48,7 @@ const config = {
             { src: ['archives', 'backgroundscript.js', 'index.html', 'manifest.json', 'manifest.v2.json', 'manifest.webapp', 'package.json', 'LICENSE-GPLv3.txt', 'CHANGELOG.md', 'README.md', '*.pfx', '*.cjs'], dest: 'dist' }
             ],
             flatten: true
-        }),
-        json()
+        })
     ]
 };
 if (process.env.BUILD === 'production') {

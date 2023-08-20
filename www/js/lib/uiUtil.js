@@ -714,6 +714,29 @@ function closestAnchorEnclosingElement (element) {
     }
 }
 
+function getJSONObject (url) {
+    return new Promise(function (resolve, reject) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.responseType = 'json';
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var response = xhr.response;
+                // console.log('response', response);
+                // var responseJSON = JSON.parse(response);
+                // console.log('responseJSON', responseJSON);
+                resolve(response);
+            } else {
+                reject(xhr.statusText);
+            }
+        };
+        xhr.onerror = function () {
+            reject(xhr.statusText);
+        };
+        xhr.send();
+    });
+}
+
 /**
  * Functions and classes exposed by this module
  */
@@ -736,5 +759,6 @@ export default {
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
-    closestAnchorEnclosingElement: closestAnchorEnclosingElement
+    closestAnchorEnclosingElement: closestAnchorEnclosingElement,
+    getJSONObject: getJSONObject
 };
