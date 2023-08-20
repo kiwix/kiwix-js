@@ -453,26 +453,26 @@
 
                 <div id="configuration" style="display: none;">
                     <div class="container">
-                        <h2>Configuration</h2>
+                        <h2 data-i18n="configure-title">Configuration</h2>
                         <!-- Bootstrap alert box -->
                         <div id="updateAlert" class="alert alert-warning alert-dismissible" style="display: none;">
                             <button type="button" class="close" data-hide="alert">&times;</button>
                             <span id="persistentMessage"></span>
                         </div>
-                        <p id="downloadInstruction">This application needs a ZIM archive to work. For download
-                            instructions, please see the About section</p>
+                        <p id="downloadInstruction" data-i18n="configure-download-instructions">This application needs a ZIM archive to work. For download
+                            instructions, please see the About section.</p>
                         <div id="selectorsDisplay" style="display: none;">
-                            <p>Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
+                            <p  data-i18n="configure-selectordisplay">Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
                                     file selectors</a></p>
                         </div>
                         <div id="openLocalFiles" style="display: none;">
-                            <p>Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
-                                case of a split ZIM file)</p>
+                            <p data-i18n="configure-select-instructions">Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
+                                case of a split ZIM file).</p>
                             <input type="file" id="archiveFiles" multiple class="btn"
                                 accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
-                            <strong>Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
-                                some video-based ZIMs (e.g. TEDx) have been tested</strong>.
-                            Dynamic content is not currently supported in jQuery mode.<br />
+                            <strong data-i18n="configure-supportedarchives">Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
+                                some video-based ZIMs (e.g. TEDx) have been fully tested</strong>.
+                            <span data-i18n="configure-dynamic-content">Dynamic content is not currently supported in jQuery mode.</span><br />
                         </div>
                         <div id="scanningForArchives" style="display: none;">
                             <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
@@ -486,22 +486,22 @@
                     </div>
                     <br />
                     <div class="container">
-                        <h3>Display settings</h3>
+                        <h3 data-i18n="configure-display-settings-title">Display settings</h3>
                         <div class="card card-info" id="displaySettingsDiv">
-                            <div class="card-header">Display options:</div>
+                            <div class="card-header" data-i18n="configure-display-panel-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label title="The animation is on by default and can be disabled by unchecking this option." >
+                                    <label data-i18n-tip="configure-display-uianimations-tip" title="The animation is on by default and can be disabled by unchecking this option." >
                                         <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
                                             checked>
-                                        <strong>Animate transition between app pages</strong>
+                                        <strong data-i18n="configure-display-uianimations">Animate transition between app pages</strong>
                                     </label>
                                 </div>
                                 <div class="checkbox">
                                     <label title="Enables quick access to search, no matter where you are in an article.">
                                         <input type="checkbox" name="useHomeKeyToFocusSearchBar"
                                                id="useHomeKeyToFocusSearchBarCheck">
-                                        <strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)
+                                        <span data-i18n="configure-display-homekeyfocus"><strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)</span>
                                     </label>
                                 </div>
                                 <div class="checkbox">
