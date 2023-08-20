@@ -34,9 +34,9 @@ const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 // Set the archives to load
 /**
  *  Run the tests
- * @param {WebDriver} driver - Selenium WebDriver object
- * @param {array} modes - Array of modes to run the tests in
- * @returns {undefined}
+ * @param {WebDriver} driver Selenium WebDriver object
+ * @param {Array} modes Array of modes to run the tests in
+ * @returns {void}
 */
 function runTests (driver, modes) {
     let browserName, browserVersion;
@@ -45,6 +45,11 @@ function runTests (driver, modes) {
         browserVersion = caps.get('browserVersion');
         console.log('\nRunning tests on: ' + browserName + ' ' + browserVersion);
     });
+
+    // Set the implicit wait to 3 seconds
+    driver.manage().setTimeouts({ implicit: 3000 });
+
+    // Perform app reset before running tests if we are not running CI (this is a convenience for local testers)
     if (!process.env.CI) {
         describe('Reset app', function () {
             this.timeout(60000);
@@ -82,6 +87,7 @@ function runTests (driver, modes) {
         });
     }
 
+    // Run in both jquery and serviceworker modes by default
     if (!modes) {
         modes = ['jquery', 'serviceworker'];
     }
@@ -90,7 +96,7 @@ function runTests (driver, modes) {
         // SW mode tests will need to be skipped if the browser does not support the SW API
         let serviceWorkerAPI = true;
         const isJqueryMode = mode === 'jquery';
-        describe('Non Legacy ' + (mode === 'jquery' ? '[JQuery mode]' : mode === 'serviceworker' ? '[SW mode]' : ''), async function () {
+        describe('Gutenberg_ro test [ZSTD compression] ' + (mode === 'jquery' ? '[JQuery mode]' : mode === 'serviceworker' ? '[SW mode]' : ''), async function () {
             this.timeout(60000);
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
@@ -173,7 +179,7 @@ function runTests (driver, modes) {
                     return;
                 }
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
-                await archiveFiles.sendKeys(paths.nonLegacyZimFilePath);
+                await archiveFiles.sendKeys(paths.gutenbergRoBaseFile);
                 // Wait until files have loaded
                 var filesLength;
                 await driver.wait(async function () {
@@ -218,7 +224,7 @@ function runTests (driver, modes) {
                 await driver.sleep(500);
                 const firstBookName = await driver.wait(async function () {
                     return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                }, 3000)
+                }, 3000);
                 // get the text of first result and check if it is the same as expected
                 assert.equal(firstBookName, 'Creierul, O Enigma Descifrata');
             });
@@ -263,9 +269,9 @@ function runTests (driver, modes) {
 
                 await driver.sleep(500);
                 // if title is not loaded in next 4 seconds then return empty string and fail test
-                await searchBox.clear()
+                await searchBox.clear();
                 await driver.switchTo().frame('articleContent');
-                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 1500).getText()
+                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 1500).getText();
                 assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
             });
             it('Navigating back', async function () {
@@ -289,9 +295,9 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500)
+                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
                 await filter.sendKeys('Mihai Eminescu');
-                const searchList = await driver.wait(until.elementsLocated(By.id('ui-id-1')), 1500);
+                const searchList = await driver.wait(until.elementsLocated(By.className('ui-menu-item')), 1500);
                 assert.equal(searchList.length, 1);
             });
             it('Author search Results', async function () {
@@ -329,7 +335,10 @@ function runTests (driver, modes) {
                 await downloadButton.click();
                 const downloadFileStatus = await driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
-                    // [TODO] only run this part if chrome or firefox
+                    if (!['firefox', 'chrome'].includes(browserName)) {
+                        // will skip if any other browser and pass test
+                        return true;
+                    }
                     const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);
                     if (downloadFileStatus) fs.rmSync(paths.downloadDir + '/' + downloadFileName);
                     return downloadFileStatus;
@@ -338,7 +347,7 @@ function runTests (driver, modes) {
 
                 // exit if every test and mode is completed
                 if (mode === modes[modes.length - 1]) {
-                    await driver.quit();
+                    return await driver.quit();
                 }
             });
         });
