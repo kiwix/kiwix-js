@@ -23,11 +23,16 @@
 'use strict';
 
 import i18next from '../../../node_modules/i18next/dist/es/i18next.js';
-import uiUtil from './uiUtil.js';
+import util from './util.js';
+
+// Fallbacks come from the HTML, which is in English by default
+var fallback = true;
+// DEV: Uncomment line below to force placeholder (useful when writing new translations)
+fallback = false;
 
 // Load the translation strings as a JSON object for a given language code
 function loadTranslationStrings (langCode) {
-    return uiUtil.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
+    return util.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
         i18next.init({
             lng: langCode, // if you're using a language detector, do not define the lng option
             debug: true,
@@ -38,15 +43,26 @@ function loadTranslationStrings (langCode) {
     });
 }
 
+// Translate a single string
+function translateString (string) {
+    return (!fallback || i18next.exists(string)) ? i18next.t(string) : '';
+}
+
 // Translate the UI
 function translateApp (languageCode) {
     // Load the translation strings for the given language code
     return loadTranslationStrings(languageCode).then(function () {
-        document.querySelectorAll('[data-i18n]').forEach((element) => {
-            element.innerHTML = i18next.t(element.dataset.i18n);
+        document.querySelectorAll('[data-i18n]').forEach(function (element) {
+            var key = element.dataset.i18n;
+            if (!fallback || i18next.exists(key)) {
+                element.innerHTML = i18next.t(key);
+            }
         });
-        document.querySelectorAll('[data-i18n-tip]').forEach((element) => {
-            element.title = i18next.t(element.dataset.i18nTip);
+        document.querySelectorAll('[data-i18n-tip]').forEach(function (element) {
+            var key = element.dataset.i18nTip;
+            if (!fallback || i18next.exists(key)) {
+                element.title = i18next.t(key);
+            }
         });
     }).catch(function (err) {
         console.error('Error translating the UI', err);
@@ -54,5 +70,6 @@ function translateApp (languageCode) {
 }
 
 export default {
+    translateString: translateString,
     translateApp: translateApp
 };
