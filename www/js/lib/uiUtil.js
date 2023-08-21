@@ -22,11 +22,12 @@
 
 'use strict';
 
-/* eslint-disable no-global-assign */
+/* eslint-disable indent */
 /* global $, webpMachine, webpHero, params */
 
 import util from './util.js';
 import settingsStore from './settingsStore.js';
+import translateUI from './translateUI.js';
 
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
@@ -643,9 +644,10 @@ function showReturnLink () {
 function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMachineType) {
     console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
     params.decompressorAPI.assemblerMachineType = assemblerMachineType;
-    params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
+    params.decompressorAPI.errorStatus = (translateUI.translateString('api-decompressor-error-loading-part1') || 'Error loading') + ' ' + decoderType + ' ' +
+        (translateUI.translateString('api-decompressor-error-loading-part2') || 'decompressor!');
     var decompAPI = document.getElementById('decompressorAPIStatus');
-    decompAPI.textContent = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
+    decompAPI.textContent = (translateUI.translateString('api-decompressor-label') || 'Decompressor API:') + ' ' + params.decompressorAPI.errorStatus;
     decompAPI.className = 'apiBroken';
     document.getElementById('apiStatusDiv').className = 'card card-danger';
 }
@@ -654,8 +656,10 @@ function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMach
 function reportSearchProviderToAPIStatusPanel (provider) {
     var providerAPI = document.getElementById('searchProviderStatus');
     if (providerAPI) { // NB we need this so that tests don't fail
-        providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']'
-            : /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
+        providerAPI.textContent = (translateUI.translateString('api-searchprovider-label') || 'Search Provider:') + ' ' + (/^fulltext/.test(provider)
+            ? (translateUI.translateString('api-searchprovider-title') || 'Title') + ' + Xapian [' + provider + ']'
+            : /^title/.test(provider) ? (translateUI.translateString('api-searchprovider-titleonly') || 'Title only') + ' [' + provider + ']'
+            : (translateUI.translateString('api-error-uninitialized_masculine') || 'Not initialized'));
         providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
     }
 }
@@ -715,33 +719,24 @@ function closestAnchorEnclosingElement (element) {
 }
 
 /**
- * Get Promise for a JSON object from a given URL
+ * Get the base language code that has been set in the browser
+ * If the browser language is unavailable, the default language is set to British English
  *
- * @param {string} url The URL from which to get the JSON object
- * @returns {Promise<Object>} A Promise that will be resolved with the JSON object, or rejected with the error message
- **/
-function getJSONObject (url) {
-    return new Promise(function (resolve, reject) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.responseType = 'json';
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                var response = xhr.response;
-                // IE11 does not support responseType = 'json', so we need to parse the response manually
-                if (typeof response === 'string') {
-                    response = JSON.parse(response);
-                }
-                resolve(response);
-            } else {
-                reject(xhr.statusText);
-            }
-        };
-        xhr.onerror = function () {
-            reject(xhr.statusText);
-        };
-        xhr.send();
-    });
+ * @returns {Object} A language object consisting of a base language code and a locale
+ */
+
+function getBrowserLanguage () {
+    // This defines the default language to return if user hasn't selected one
+    var language = {
+        base: 'en',
+        locale: 'GB'
+    }
+    var fullLanguage = params.overrideBrowserLanguage || navigator.language || navigator.userLanguage;
+    if (fullLanguage) {
+        language.base = fullLanguage.replace(/-.+$/, '').toLowerCase();
+        language.locale = fullLanguage.replace(/^[^-]+-/, '').toUpperCase();
+    }
+    return language;
 }
 
 /**
@@ -767,5 +762,5 @@ export default {
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
-    getJSONObject: getJSONObject
+    getBrowserLanguage: getBrowserLanguage
 };
