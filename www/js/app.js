@@ -35,6 +35,7 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
+import i18next from 'i18next/dist/es/i18next.js';
 
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
@@ -99,6 +100,8 @@ params['appTheme'] = settingsStore.getItem('appTheme') || 'light'; // Currently 
 params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusSearchBar') === 'true';
 // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
 params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
+// A global language override
+params['overrideBrowserLanguage'] = settingsStore.getItem('languageOverride') || 'es-419';
 // A parameter to disable drag-and-drop
 params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
 // A parameter to access the URL of any extension that this app was launched from
@@ -249,7 +252,9 @@ function resizeIFrame () {
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
-    translateUI.translateApp('es');
+    var browserLanguage = uiUtil.getBrowserLanguage();
+    console.log('Browser language is: ' + browserLanguage);
+    translateUI.translateApp(browserLanguage.base);
     resizeIFrame();
 });
 window.addEventListener('resize', resizeIFrame);
@@ -671,69 +676,72 @@ function checkAndDisplayInjectionModeChangeAlert () {
  * Displays or refreshes the API status shown to the user
  */
 function refreshAPIStatus () {
-    var apiStatusPanel = document.getElementById('apiStatusDiv');
-    apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
-    var apiPanelClass = 'card-success';
-    var messageChannelStatus = document.getElementById('messageChannelStatus');
-    var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
-    if (isMessageChannelAvailable()) {
-        messageChannelStatus.textContent = 'MessageChannel API available';
-        messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
-        messageChannelStatus.classList.add('apiAvailable');
-    } else {
-        apiPanelClass = 'card-warning';
-        messageChannelStatus.textContent = 'MessageChannel API unavailable';
-        messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
-        messageChannelStatus.classList.add('apiUnavailable');
-    }
-    if (isServiceWorkerAvailable()) {
-        if (isServiceWorkerReady()) {
-            serviceWorkerStatus.textContent = 'ServiceWorker API available, and registered';
-            serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
-            serviceWorkerStatus.classList.add('apiAvailable');
+    // We have to delay refreshing the API status until the translation service has been initialized
+    setTimeout(function () {
+        var apiStatusPanel = document.getElementById('apiStatusDiv');
+        apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
+        var apiPanelClass = 'card-success';
+        var messageChannelStatus = document.getElementById('messageChannelStatus');
+        var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
+        if (isMessageChannelAvailable()) {
+            messageChannelStatus.textContent = translateUI.translateString('api-messagechannel-available') || 'MessageChannel API available';
+            messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
+            messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            serviceWorkerStatus.textContent = 'ServiceWorker API available, but not registered';
+            messageChannelStatus.textContent = translateUI.translateString('api-messagechannel-unavailable') || 'MessageChannel API unavailable';
+            messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
+            messageChannelStatus.classList.add('apiUnavailable');
+        }
+        if (isServiceWorkerAvailable()) {
+            if (isServiceWorkerReady()) {
+                serviceWorkerStatus.textContent = translateUI.translateString('api-serviceworker-available-registered') || 'ServiceWorker API available, and registered';
+                serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
+                serviceWorkerStatus.classList.add('apiAvailable');
+            } else {
+                apiPanelClass = 'card-warning';
+                serviceWorkerStatus.textContent = translateUI.translateString('api-serviceworker-available-unregistered') || 'ServiceWorker API available, but not registered';
+                serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
+                serviceWorkerStatus.classList.add('apiUnavailable');
+            }
+        } else {
+            apiPanelClass = 'card-warning';
+            serviceWorkerStatus.textContent = translateUI.translateString('api-serviceworker-unavailable') || 'ServiceWorker API unavailable';
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
         }
-    } else {
-        apiPanelClass = 'card-warning';
-        serviceWorkerStatus.textContent = 'ServiceWorker API unavailable';
-        serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
-        serviceWorkerStatus.classList.add('apiUnavailable');
-    }
-    // Update Settings Store section of API panel with API name
-    var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
-    var apiName = params.storeType === 'cookie' ? 'Cookie' : params.storeType === 'local_storage' ? 'Local Storage' : 'None';
-    settingsStoreStatusDiv.textContent = 'Settings Storage API in use: ' + apiName;
-    settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
-    settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
-    apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
-    // Update Decompressor API section of panel
-    var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
-    apiName = params.decompressorAPI.assemblerMachineType;
-    apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
-    decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
-    // Add the last used decompressor, if known, to the apiName
-    if (apiName && params.decompressorAPI.decompressorLastUsed) {
-        apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
-    }
-    apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
-    // innerHTML is used here because the API name may contain HTML entities like &nbsp;
-    decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
-    // Update Search Provider
-    uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
-    // Update PWA origin
-    var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
-    pwaOriginStatusDiv.className = 'apiAvailable';
-    pwaOriginStatusDiv.innerHTML = 'PWA Origin: ' + window.location.origin;
-    // Add a warning colour to the API Status Panel if any of the above tests failed
-    apiStatusPanel.classList.add(apiPanelClass);
-    // Set visibility of UI elements according to mode
-    document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
-    // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
-    if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
+        // Update Settings Store section of API panel with API name
+        var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
+        var apiName = params.storeType === 'cookie' ? (translateUI.translateString('api-cookie') || 'Cookie') : params.storeType === 'local_storage' ? (translateUI.translateString('api-localstorage') || 'Local Storage') : (translateUI.translateString('api-none') || 'None');
+        settingsStoreStatusDiv.textContent = (translateUI.translateString('api-storage-used-label') || 'Settings Storage API in use:') + ' ' + apiName;
+        settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
+        settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
+        apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
+        // Update Decompressor API section of panel
+        var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
+        apiName = params.decompressorAPI.assemblerMachineType;
+        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
+        decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
+        // Add the last used decompressor, if known, to the apiName
+        if (apiName && params.decompressorAPI.decompressorLastUsed) {
+            apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
+        }
+        apiName = params.decompressorAPI.errorStatus || apiName || (translateUI.translateString('api-error-uninitialized_feminine') || 'Not initialized');
+        // innerHTML is used here because the API name may contain HTML entities like &nbsp;
+        decompAPIStatusDiv.innerHTML = (translateUI.translateString('api-decompressor-label') || 'Decompressor API:') + ' ' + apiName;
+        // Update Search Provider
+        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+        // Update PWA origin
+        var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
+        pwaOriginStatusDiv.className = 'apiAvailable';
+        pwaOriginStatusDiv.innerHTML = (translateUI.translateString('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
+        // Add a warning colour to the API Status Panel if any of the above tests failed
+        apiStatusPanel.classList.add(apiPanelClass);
+        // Set visibility of UI elements according to mode
+        document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+        // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
+        if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
+    }, 250);
 }
 
 /**
