@@ -146,7 +146,10 @@ function runTests (driver, modes) {
                             // Check if ServiceWorker mode API is supported
                             if (mode === 'serviceworker') {
                                 serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                    const supported = !/unsupported|not\savailable/i.test(alertText);
+                                    // DEV: Although I have tried to make this generic in the hope that the alert will contain the word
+                                    // "ServiceWorker" or "Service Worker" in all languages, we may need to add some failure code to the dialogue box
+                                    // to make this more robust, as translators may not be aware of the need to include this word in Roman script
+                                    const supported = !/Service\s*Worker/i.test(alertText);
                                     console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
                                     return supported;
                                 })
@@ -160,12 +163,12 @@ function runTests (driver, modes) {
                     if (mode === 'jquery' || serviceWorkerAPI) {
                         // Wait until the mode has switched
                         await driver.sleep(500);
-                        let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                        let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getAttribute('class');
                         try {
                             if (mode === 'serviceworker') {
-                                assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                                assert.equal(true, /apiAvailable/i.test(serviceWorkerStatus));
                             } else {
-                                assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                                assert.equal(true, /apiUnavailable/i.test(serviceWorkerStatus));
                             }
                         } catch (e) {
                             if (!~modes.indexOf('serviceworker')) {
@@ -183,11 +186,11 @@ function runTests (driver, modes) {
                             await modeSelector.click();
                             // Wait until the mode has switched
                             await driver.sleep(330);
-                            serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                            serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getAttribute('class');
                             if (mode === 'serviceworker') {
-                                assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                                assert.equal(true, /apiAvailable/i.test(serviceWorkerStatus));
                             } else {
-                                assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                                assert.equal(true, /apiUnavailable/i.test(serviceWorkerStatus));
                             }
                         }
                     } else {
