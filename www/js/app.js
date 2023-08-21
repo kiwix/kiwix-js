@@ -100,7 +100,7 @@ params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusS
 // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
 params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
 // A global language override
-params['overrideBrowserLanguage'] = settingsStore.getItem('languageOverride') || 'es-419';
+params['overrideBrowserLanguage'] = settingsStore.getItem('languageOverride') || 'en-GB';
 // A parameter to disable drag-and-drop
 params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
 // A parameter to access the URL of any extension that this app was launched from
@@ -873,8 +873,8 @@ function setContentInjectionMode (value) {
         }
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
-            message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
-            'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
+            message = translateUI.translateString('dialog-launchlocal-message') || 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
+                'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
             var launchLocal = function () {
                 settingsStore.setItem('allowInternetAccess', false, Infinity);
                 var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
@@ -883,7 +883,7 @@ function setContentInjectionMode (value) {
                 window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                 console.log('Beam me down, Scotty!');
             };
-            uiUtil.systemAlert(message, 'Warning!', true).then(function (response) {
+            uiUtil.systemAlert(message, (translateUI.translateString('dialog-launchlocal-title') || 'Warning!'), true).then(function (response) {
                 if (response) {
                     launchLocal();
                 } else {
@@ -919,12 +919,12 @@ function setContentInjectionMode (value) {
             launchBrowserExtensionServiceWorker();
         } else {
             if (!isServiceWorkerAvailable()) {
-                message =
+                message = translateUI.translateString('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
                     '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
-                uiUtil.systemAlert(message, 'ServiceWorker API not available', true, 'Cancel', 'Use JQuery mode').then(function (response) {
+                uiUtil.systemAlert(message, (translateUI.translateString('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, 'Cancel', 'Use JQuery mode').then(function (response) {
                     if (params.referrerExtensionURL && response) {
                         var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                         window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
@@ -935,7 +935,8 @@ function setContentInjectionMode (value) {
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                uiUtil.systemAlert('The MessageChannel API is not available on your device. Falling back to JQuery mode', 'MessageChannel API not available').then(function () {
+                uiUtil.systemAlert((translateUI.translateString('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to JQuery mode...'),
+                    (translateUI.translateString('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
                     setContentInjectionMode('jquery');
                 });
                 return;
