@@ -331,8 +331,9 @@ function runTests (driver, modes) {
 
                 // click on the download button
                 await driver.wait(until.elementLocated(By.xpath('//*[@id="content"]/div/div[2]/div[5]/a[2]')), 1500);
-                const downloadButton = await driver.wait(until.elementIsEnabled(driver.findElement(By.xpath('//*[@id="content"]/div/div[2]/div[5]/a[2]'))), 1500);
-                await downloadButton.click();
+                await driver.executeScript('document.querySelector("#content > div > div.pure-u-1.pure-u-md-1-2.bibrec.sidedimg > div.cover-detail.icons-footer > a:nth-child(2)").click()');
+                // const downloadButton = await driver.wait(until.elementIsEnabled(driver.findElement(By.xpath('//*[@id="content"]/div/div[2]/div[5]/a[2]'))), 1500);
+                // await downloadButton.click();
                 const downloadFileStatus = await driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
                     if (!['firefox', 'chrome'].includes(browserName)) {
