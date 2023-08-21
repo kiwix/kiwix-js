@@ -1065,13 +1065,14 @@ function launchBrowserExtensionServiceWorker () {
     var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
     var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
     var message = params.defaultModeChangeAlertDisplayed
-        ? '<p>To enable the Service Worker, we '
-        : ('<p>We shall attempt to switch you to ServiceWorker mode (this is now the default). ' +
-        'It supports more types of ZIM archives and is much more robust.</p><p>We ');
-    message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
+        ? (translateUI.t('dialog-allow-internetaccess-message1') || '<p>To enable the Service Worker, we') + ' '
+        : ((translateUI.t('dialog-allow-internetaccess-message2') || '<p>We shall attempt to switch you to ServiceWorker mode (this is now the default).') + ' ' +
+        (translateUI.t('dialog-allow-internetaccess-message3') || 'It supports more types of ZIM archives and is much more robust.</p><p>We') + ' ');
+    message += (translateUI.t('dialog-allow-internetaccess-message4') ||
+        'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
         'If available, the PWA will work offline, but will auto-update periodically when online as per the ' +
         'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
-        '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
+        '<p>WARNING: This will attempt to access the following server:<br/>') + params.PWAServer + '</p>';
     var launchPWA = function () {
         uiUtil.spinnerDisplay(false);
         var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
@@ -1092,12 +1093,12 @@ function launchBrowserExtensionServiceWorker () {
         console.log('Beam me up, Scotty!');
     };
     var checkPWAIsOnline = function () {
-        uiUtil.spinnerDisplay(true, 'Checking server access...');
+        uiUtil.spinnerDisplay(true, (translateUI.t('dialog-serveraccess-check') || 'Checking server access...'));
         uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
             uiUtil.spinnerDisplay(false);
-            uiUtil.systemAlert('The server is not currently accessible! ' +
+            uiUtil.systemAlert((translateUI.t('dialog-serveraccess-check-failed') || 'The server is not currently accessible! ' +
                 '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
-                '<br/>Please try again when you have a stable Internet connection.', 'Error!').then(function () {
+                '<br/>Please try again when you have a stable Internet connection.'), (translateUI.t('dialog-error-title') || 'Error!')).then(function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     setContentInjectionMode(params.oldInjectionMode || 'jquery');
                 });
@@ -1107,7 +1108,8 @@ function launchBrowserExtensionServiceWorker () {
         if (PWASuccessfullyLaunched) {
             launchPWA();
         } else {
-            uiUtil.systemAlert('The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?', 'Confirmation to try again PWA', true).then(function (response) {
+            uiUtil.systemAlert((translateUI.t('dialog-launchpwa-fail-message') || 'The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?'),
+                (translateUI.t('dialog-launchpwa-fail-title') || 'Confirmation to retry PWA launch'), true).then(function (response) {
                 if (response) {
                     checkPWAIsOnline();
                 } else {
@@ -1117,7 +1119,7 @@ function launchBrowserExtensionServiceWorker () {
             })
         }
     } else {
-        uiUtil.systemAlert(message, 'Allow Internet access', true).then(function (response) {
+        uiUtil.systemAlert(message, (translateUI.t('dialog-allow-internetaccess-title') || 'Allow Internet access'), true).then(function (response) {
             if (response) {
                 checkPWAIsOnline();
             } else {
@@ -1220,7 +1222,9 @@ function populateDropDownListOfArchives (archiveDirectories) {
     for (var i = 0; i < archiveDirectories.length; i++) {
         var archiveDirectory = archiveDirectories[i];
         if (archiveDirectory === '/') {
-            uiUtil.systemAlert('It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory', 'Error: invalid archive files location');
+            uiUtil.systemAlert((translateUI.t('dialog-invalid-archivelocation-message') ||
+                'It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them to a subdirectory'),
+                (translateUI.t('dialog-invalid-archivelocation-title') || 'Error: invalid archive files location'));
         } else {
             comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
         }
@@ -1239,8 +1243,8 @@ function populateDropDownListOfArchives (archiveDirectories) {
         // Set the localArchive as the last selected (or the first one if it has never been selected)
         setLocalArchiveFromArchiveList();
     } else {
-        uiUtil.systemAlert('Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)', 'Welcome')
-        .then(function () {
+        uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
+        (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
             document.getElementById('btnAbout').click();
             var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
             if (isAndroid) {
@@ -1271,7 +1275,7 @@ function setLocalArchiveFromArchiveList () {
                 }
             }
             if (selectedStorage === null) {
-                uiUtil.systemAlert('Unable to find which device storage corresponds to directory ' + archiveDirectory, 'Error: no matching storage');
+                uiUtil.systemAlert((translateUI.t('dialog-devicestorage-error-message') || 'Unable to find which device storage corresponds to directory') + ' ' + archiveDirectory, 'Error: no matching storage');
             }
         } else {
             // This happens when the archiveDirectory is not prefixed by the name of the storage
@@ -1280,9 +1284,9 @@ function setLocalArchiveFromArchiveList () {
             if (storages.length === 1) {
                 selectedStorage = storages[0];
             } else {
-                uiUtil.systemAlert('Something weird happened with the DeviceStorage API : found a directory without prefix : ' +
-                archiveDirectory + ', but there were ' + storages.length +
-                ' storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
+                uiUtil.systemAlert('Something weird happened with the DeviceStorage API: found a directory without prefix:' + ' ' +
+                archiveDirectory + ', ' + 'but there were' + ' ' + storages.length +
+                ' ' + 'storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
             }
         }
         resetCssCache();
@@ -1372,7 +1376,8 @@ function setLocalArchiveFromFileList (files) {
     for (var i = files.length; i--;) {
         // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
         if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
-            uiUtil.systemAlert('One or more files does not appear to be a ZIM file!', 'Invalid File Format');
+            uiUtil.systemAlert((translateUI.t('dialog-invalid-zim-message') || 'One or more files does not appear to be a ZIM file!'),
+            (translateUI.t('dialog-invalid-zim-title') || 'Invalid file format'));
             return;
         }
     }
@@ -1479,7 +1484,8 @@ function searchDirEntriesFromPrefix (prefix) {
         // We have to remove the focus from the search field,
         // so that the keyboard does not stay above the message
         document.getElementById('searchArticles').focus();
-        uiUtil.systemAlert('Archive not set : please select an archive', 'No archive selected').then(function () {
+        uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive',
+            translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
             document.getElementById('btnConfigure').click();
         });
     }
@@ -1825,10 +1831,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
         var iframeContentDocument = iframeArticleContent.contentDocument;
         if (!iframeContentDocument && window.location.protocol === 'file:') {
-            uiUtil.systemAlert('You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.' +
-                                '<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store).' +
-                                '<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)' +
-                                "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+            uiUtil.systemAlert(translateUI.t('dialog-blocked-fileprotocol') ||
+            '<p>You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.</p>' +
+            '<p>The easiest way to run it is to download and run it as a browser extension (available for free from the vendor store).</p>' +
+            '<p>Or else you can open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you will need a secure connection, e.g.: https://webserver/...)</p>' +
+            "<p>Another option is to force your browser to accept that (but you'll open a security breach): on Chrome/Edge, you can start it with --allow-file-access-from-files command-line argument;" +
+            'on Firefox, you can set privacy.file_unique_origin to false in about:config</p>');
             return;
         }
 
@@ -1842,10 +1850,10 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         if (docBody) {
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS) {
-htmlCSS.forEach(function (cl) {
+                htmlCSS.forEach(function (cl) {
                 docBody.classList.add(cl);
             });
-}
+        }
             // Deflect drag-and-drop of ZIM file on the iframe to Config
             docBody.addEventListener('dragover', handleIframeDragover);
             docBody.addEventListener('drop', handleIframeDrop);
@@ -2212,7 +2220,8 @@ function goToRandomArticle () {
         });
     } else {
         // Showing the relevant error message and redirecting to config page for adding the ZIM file
-        uiUtil.systemAlert('Archive not set: please select an archive', 'No archive selected').then(function () {
+        uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive', 
+            translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
             document.getElementById('btnConfigure').click();
         });
     }
