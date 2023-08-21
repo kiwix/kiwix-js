@@ -70,6 +70,6 @@ function translateApp (languageCode) {
 }
 
 export default {
-    translateString: translateString,
+    t: translateString,
     translateApp: translateApp
 };

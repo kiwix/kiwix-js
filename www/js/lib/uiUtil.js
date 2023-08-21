@@ -41,9 +41,9 @@ import translateUI from './translateUI.js';
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
 function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
-    declineConfirmLabel = declineConfirmLabel || (translateUI.translateString('dialog-cancel') || 'Cancel');
-    approveConfirmLabel = approveConfirmLabel || (translateUI.translateString('dialog-confirm') || 'Confirm');
-    closeMessageLabel = closeMessageLabel || (translateUI.translateString('dialog-ok') || 'Okay');
+    declineConfirmLabel = declineConfirmLabel || (translateUI.t('dialog-cancel') || 'Cancel');
+    approveConfirmLabel = approveConfirmLabel || (translateUI.t('dialog-confirm') || 'Confirm');
+    closeMessageLabel = closeMessageLabel || (translateUI.t('dialog-ok') || 'Okay');
     label = label || (isConfirm ? 'Confirmation' : 'Message');
     return util.PromiseQueue.enqueue(function () {
         return new Promise(function (resolve, reject) {
@@ -644,10 +644,10 @@ function showReturnLink () {
 function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMachineType) {
     console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
     params.decompressorAPI.assemblerMachineType = assemblerMachineType;
-    params.decompressorAPI.errorStatus = (translateUI.translateString('api-decompressor-error-loading-part1') || 'Error loading') + ' ' + decoderType + ' ' +
-        (translateUI.translateString('api-decompressor-error-loading-part2') || 'decompressor!');
+    params.decompressorAPI.errorStatus = (translateUI.t('api-decompressor-error-loading-part1') || 'Error loading') + ' ' + decoderType + ' ' +
+        (translateUI.t('api-decompressor-error-loading-part2') || 'decompressor!');
     var decompAPI = document.getElementById('decompressorAPIStatus');
-    decompAPI.textContent = (translateUI.translateString('api-decompressor-label') || 'Decompressor API:') + ' ' + params.decompressorAPI.errorStatus;
+    decompAPI.textContent = (translateUI.t('api-decompressor-label') || 'Decompressor API:') + ' ' + params.decompressorAPI.errorStatus;
     decompAPI.className = 'apiBroken';
     document.getElementById('apiStatusDiv').className = 'card card-danger';
 }
@@ -656,10 +656,10 @@ function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMach
 function reportSearchProviderToAPIStatusPanel (provider) {
     var providerAPI = document.getElementById('searchProviderStatus');
     if (providerAPI) { // NB we need this so that tests don't fail
-        providerAPI.textContent = (translateUI.translateString('api-searchprovider-label') || 'Search Provider:') + ' ' + (/^fulltext/.test(provider)
-            ? (translateUI.translateString('api-searchprovider-title') || 'Title') + ' + Xapian [' + provider + ']'
-            : /^title/.test(provider) ? (translateUI.translateString('api-searchprovider-titleonly') || 'Title only') + ' [' + provider + ']'
-            : (translateUI.translateString('api-error-uninitialized_masculine') || 'Not initialized'));
+        providerAPI.textContent = (translateUI.t('api-searchprovider-label') || 'Search Provider:') + ' ' + (/^fulltext/.test(provider)
+            ? (translateUI.t('api-searchprovider-title') || 'Title') + ' + Xapian [' + provider + ']'
+            : /^title/.test(provider) ? (translateUI.t('api-searchprovider-titleonly') || 'Title only') + ' [' + provider + ']'
+            : (translateUI.t('api-error-uninitialized_masculine') || 'Not initialized'));
         providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
     }
 }

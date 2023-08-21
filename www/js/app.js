@@ -497,8 +497,8 @@ document.getElementById('useCanvasElementsCheck').addEventListener('change', fun
     }
 });
 document.getElementById('btnReset').addEventListener('click', function () {
-    uiUtil.systemAlert((translateUI.translateString('dialog-reset-warning-message') || 'This will reset the app to a freshly installed state, deleting all app caches and settings!'),
-    (translateUI.translateString('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
+    uiUtil.systemAlert((translateUI.t('dialog-reset-warning-message') || 'This will reset the app to a freshly installed state, deleting all app caches and settings!'),
+    (translateUI.t('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
         if (response) {
             settingsStore.reset();
         }
@@ -506,7 +506,7 @@ document.getElementById('btnReset').addEventListener('click', function () {
 });
 document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
     if (params.contentInjectionMode !== 'serviceworker') {
-        uiUtil.systemAlert(translateUI.translateString('dialog-bypassappcachecheck-message') || 'This setting can only be used in ServiceWorker mode!');
+        uiUtil.systemAlert(translateUI.t('dialog-bypassappcachecheck-message') || 'This setting can only be used in ServiceWorker mode!');
         this.checked = false;
     } else {
         params.appCache = !this.checked;
@@ -519,8 +519,8 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
     params.disableDragAndDrop = !!this.checked;
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
-    uiUtil.systemAlert((translateUI.translateString('dialog-disabledragdrop-message') || '<p>We will now attempt to reload the app to apply the new setting.</p>' +
-        '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>'), (translateUI.translateString('dialog-disabledragdrop-title') || 'Reload app'), true).then(function (result) {
+    uiUtil.systemAlert((translateUI.t('dialog-disabledragdrop-message') || '<p>We will now attempt to reload the app to apply the new setting.</p>' +
+        '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>'), (translateUI.t('dialog-disabledragdrop-title') || 'Reload app'), true).then(function (result) {
         if (result) {
             window.location.reload();
         }
@@ -647,23 +647,23 @@ function switchHomeKeyToFocusSearchBar () {
 function checkAndDisplayInjectionModeChangeAlert () {
     var message;
     if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
-        message = [(translateUI.translateString('dialog-serviceworker-defaultmodechange-message') ||
+        message = [(translateUI.t('dialog-serviceworker-defaultmodechange-message') ||
             '<p>We have switched you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p>' +
             '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
             'In that case, please report the problems you experienced to us (see About section).</p>'),
-            (translateUI.translateString('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
+            (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
             settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
         });
     } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
-        message = [(translateUI.translateString('dialog-serviceworker-unsupported-message') ||
+        message = [(translateUI.t('dialog-serviceworker-unsupported-message') ||
             '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
             '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
             '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
-            (translateUI.translateString('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
-        uiUtil.systemAlert(message[0], message[1], true, null, (translateUI.translateString('dialog-ok') || 'Okay')).then(function (result) {
+            (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
+        uiUtil.systemAlert(message[0], message[1], true, null, (translateUI.t('dialog-ok') || 'Okay')).then(function (result) {
             if (result) {
                 // If user selected OK, then do not display again ever
                 settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
@@ -686,36 +686,36 @@ function refreshAPIStatus () {
         var messageChannelStatus = document.getElementById('messageChannelStatus');
         var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
         if (isMessageChannelAvailable()) {
-            messageChannelStatus.textContent = translateUI.translateString('api-messagechannel-available') || 'MessageChannel API available';
+            messageChannelStatus.textContent = translateUI.t('api-messagechannel-available') || 'MessageChannel API available';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            messageChannelStatus.textContent = translateUI.translateString('api-messagechannel-unavailable') || 'MessageChannel API unavailable';
+            messageChannelStatus.textContent = translateUI.t('api-messagechannel-unavailable') || 'MessageChannel API unavailable';
             messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
             messageChannelStatus.classList.add('apiUnavailable');
         }
         if (isServiceWorkerAvailable()) {
             if (isServiceWorkerReady()) {
-                serviceWorkerStatus.textContent = translateUI.translateString('api-serviceworker-available-registered') || 'ServiceWorker API available, and registered';
+                serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-available-registered') || 'ServiceWorker API available, and registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiAvailable');
             } else {
                 apiPanelClass = 'card-warning';
-                serviceWorkerStatus.textContent = translateUI.translateString('api-serviceworker-available-unregistered') || 'ServiceWorker API available, but not registered';
+                serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-available-unregistered') || 'ServiceWorker API available, but not registered';
                 serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
                 serviceWorkerStatus.classList.add('apiUnavailable');
             }
         } else {
             apiPanelClass = 'card-warning';
-            serviceWorkerStatus.textContent = translateUI.translateString('api-serviceworker-unavailable') || 'ServiceWorker API unavailable';
+            serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-unavailable') || 'ServiceWorker API unavailable';
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
         }
         // Update Settings Store section of API panel with API name
         var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
-        var apiName = params.storeType === 'cookie' ? (translateUI.translateString('api-cookie') || 'Cookie') : params.storeType === 'local_storage' ? (translateUI.translateString('api-localstorage') || 'Local Storage') : (translateUI.translateString('api-none') || 'None');
-        settingsStoreStatusDiv.textContent = (translateUI.translateString('api-storage-used-label') || 'Settings Storage API in use:') + ' ' + apiName;
+        var apiName = params.storeType === 'cookie' ? (translateUI.t('api-cookie') || 'Cookie') : params.storeType === 'local_storage' ? (translateUI.t('api-localstorage') || 'Local Storage') : (translateUI.t('api-none') || 'None');
+        settingsStoreStatusDiv.textContent = (translateUI.t('api-storage-used-label') || 'Settings Storage API in use:') + ' ' + apiName;
         settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
         settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
         apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
@@ -728,15 +728,15 @@ function refreshAPIStatus () {
         if (apiName && params.decompressorAPI.decompressorLastUsed) {
             apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
         }
-        apiName = params.decompressorAPI.errorStatus || apiName || (translateUI.translateString('api-error-uninitialized_feminine') || 'Not initialized');
+        apiName = params.decompressorAPI.errorStatus || apiName || (translateUI.t('api-error-uninitialized_feminine') || 'Not initialized');
         // innerHTML is used here because the API name may contain HTML entities like &nbsp;
-        decompAPIStatusDiv.innerHTML = (translateUI.translateString('api-decompressor-label') || 'Decompressor API:') + ' ' + apiName;
+        decompAPIStatusDiv.innerHTML = (translateUI.t('api-decompressor-label') || 'Decompressor API:') + ' ' + apiName;
         // Update Search Provider
         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
         // Update PWA origin
         var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
         pwaOriginStatusDiv.className = 'apiAvailable';
-        pwaOriginStatusDiv.innerHTML = (translateUI.translateString('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
+        pwaOriginStatusDiv.innerHTML = (translateUI.t('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
         // Set visibility of UI elements according to mode
@@ -865,15 +865,15 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert((translateUI.translateString('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
-            (translateUI.translateString('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
+            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
+            (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
             return;
         }
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
-            message = translateUI.translateString('dialog-launchlocal-message') || 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
+            message = translateUI.t('dialog-launchlocal-message') || 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
             var launchLocal = function () {
                 settingsStore.setItem('allowInternetAccess', false, Infinity);
@@ -883,7 +883,7 @@ function setContentInjectionMode (value) {
                 window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                 console.log('Beam me down, Scotty!');
             };
-            uiUtil.systemAlert(message, (translateUI.translateString('dialog-launchlocal-title') || 'Warning!'), true).then(function (response) {
+            uiUtil.systemAlert(message, (translateUI.t('dialog-launchlocal-title') || 'Warning!'), true).then(function (response) {
                 if (response) {
                     launchLocal();
                 } else {
@@ -919,13 +919,13 @@ function setContentInjectionMode (value) {
             launchBrowserExtensionServiceWorker();
         } else {
             if (!isServiceWorkerAvailable()) {
-                message = translateUI.translateString('dialog-launchpwa-unsupported-message') ||
+                message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
                     '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
-                uiUtil.systemAlert(message, (translateUI.translateString('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
-                    (translateUI.translateString('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
+                uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
+                    (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
                     if (params.referrerExtensionURL && response) {
                         var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                         window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
@@ -936,8 +936,8 @@ function setContentInjectionMode (value) {
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                uiUtil.systemAlert((translateUI.translateString('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to JQuery mode...'),
-                    (translateUI.translateString('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
+                uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to JQuery mode...'),
+                    (translateUI.t('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
                     setContentInjectionMode('jquery');
                 });
                 return;
@@ -988,11 +988,12 @@ function setContentInjectionMode (value) {
                         } else {
                             console.error('Error while registering serviceWorker', err);
                             refreshAPIStatus();
-                            var message = 'The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : ' + err;
+                            var message = (translateUI.t('dialog-serviceworker-registration-failure-message') || 'The Service Worker could not be properly registered. Switching back to JQuery mode... Error message:') + ' ' + err;
                             if (protocol === 'file:') {
-                                message += '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)';
+                                message += (translateUI.t('dialog-serviceworker-registration-failure-fileprotocol') ||
+                                '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
                             }
-                            uiUtil.systemAlert(message, 'Failed to register ServiceWorker').then(function () {
+                            uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
                                 setContentInjectionMode('jquery');
                                 // We need to wait for the previous dialogue box to unload fully before attempting to display another
                                 setTimeout(function () {
