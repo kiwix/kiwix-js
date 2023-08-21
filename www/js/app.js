@@ -35,7 +35,6 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
-import i18next from 'i18next/dist/es/i18next.js';
 
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
