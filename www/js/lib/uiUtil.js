@@ -41,9 +41,9 @@ import translateUI from './translateUI.js';
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
 function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
-    declineConfirmLabel = declineConfirmLabel || 'Cancel';
-    approveConfirmLabel = approveConfirmLabel || 'Confirm';
-    closeMessageLabel = closeMessageLabel || 'Okay';
+    declineConfirmLabel = declineConfirmLabel || (translateUI.translateString('dialog-cancel') || 'Cancel');
+    approveConfirmLabel = approveConfirmLabel || (translateUI.translateString('dialog-confirm') || 'Confirm');
+    closeMessageLabel = closeMessageLabel || (translateUI.translateString('dialog-ok') || 'Okay');
     label = label || (isConfirm ? 'Confirmation' : 'Message');
     return util.PromiseQueue.enqueue(function () {
         return new Promise(function (resolve, reject) {

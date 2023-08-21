@@ -497,7 +497,8 @@ document.getElementById('useCanvasElementsCheck').addEventListener('change', fun
     }
 });
 document.getElementById('btnReset').addEventListener('click', function () {
-    uiUtil.systemAlert('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', 'Warning!', true).then(function (response) {
+    uiUtil.systemAlert((translateUI.translateString('dialog-reset-warning-message') || 'This will reset the app to a freshly installed state, deleting all app caches and settings!'),
+    (translateUI.translateString('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
         if (response) {
             settingsStore.reset();
         }
@@ -505,7 +506,7 @@ document.getElementById('btnReset').addEventListener('click', function () {
 });
 document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
     if (params.contentInjectionMode !== 'serviceworker') {
-        uiUtil.systemAlert('This setting can only be used in ServiceWorker mode!');
+        uiUtil.systemAlert(translateUI.translateString('dialog-bypassappcachecheck-message') || 'This setting can only be used in ServiceWorker mode!');
         this.checked = false;
     } else {
         params.appCache = !this.checked;
@@ -518,8 +519,8 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
     params.disableDragAndDrop = !!this.checked;
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
-    uiUtil.systemAlert('<p>We will now attempt to reload the app to apply the new setting.</p>' +
-        '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>', 'Reload app', true).then(function (result) {
+    uiUtil.systemAlert((translateUI.translateString('dialog-disabledragdrop-message') || '<p>We will now attempt to reload the app to apply the new setting.</p>' +
+        '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>'), (translateUI.translateString('dialog-disabledragdrop-title') || 'Reload app'), true).then(function (result) {
         if (result) {
             window.location.reload();
         }
@@ -646,21 +647,23 @@ function switchHomeKeyToFocusSearchBar () {
 function checkAndDisplayInjectionModeChangeAlert () {
     var message;
     if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
-        message = ['<p>We have switched you to ServiceWorker mode (this is now the default). ' +
+        message = [(translateUI.translateString('dialog-serviceworker-defaultmodechange-message') ||
+            '<p>We have switched you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p>' +
             '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
-            'In that case, please report the problems you experienced to us (see About section).</p>',
-            'Change of default content injection mode'];
+            'In that case, please report the problems you experienced to us (see About section).</p>'),
+            (translateUI.translateString('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
             settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
         });
     } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
-        message = ['<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
+        message = [(translateUI.translateString('dialog-serviceworker-unsupported-message') ||
+            '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
             '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
-            '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>',
-            'ServiceWorker mode unsupported'];
-        uiUtil.systemAlert(message[0], message[1], true, 'Cancel', 'Okay').then(function (result) {
+            '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
+            (translateUI.translateString('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
+        uiUtil.systemAlert(message[0], message[1], true, null, (translateUI.translateString('dialog-ok') || 'Okay')).then(function (result) {
             if (result) {
                 // If user selected OK, then do not display again ever
                 settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
@@ -862,7 +865,8 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!', 'Deselect "Bypass AppCache"').then(function () {
+            uiUtil.systemAlert((translateUI.translateString('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
+            (translateUI.translateString('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
             return;
