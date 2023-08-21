@@ -594,7 +594,7 @@
                         <div class="card card-warning" id="contentInjectionModeDiv">
                             <div data-i18n="configure-compatibility-panel-header" class="card-header">Content injection mode</div>
                             <div class="card-body">
-                                <p data-i18n="configure-compatibility-help">See <a href="#modes" id="modesLink">About (Technical Information)</a> for an explanation of the difference between these modes:</p>
+                                <p><span  data-i18n="configure-compatibility-see">See</span> <a href="#modes" data-i18n="configure-compatibility-modeslink" id="modesLink">About (Technical Information)</a> <span data-i18n="configure-compatibility-helpstub">for an explanation of the difference between these modes:</span></p>
                                 <div class="radio">
                                     <label data-i18n-tip="configure-compatibility-option-serviceworker-tip" title="This mode requires that the browser or framework be capable of installing a Service Worker. It enables dynamic ZIM content and running JavaScript (including inline JS). It works by intercepting the browser's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
@@ -638,36 +638,36 @@
                     </div>
                     <br />
                     <div class="container">
-                        <h3>Expert settings</h3>
+                        <h3 data-i18n="configure-expert-settings-title">Expert settings</h3>
                         <div class="card card-danger" id="expertSettingsDiv">
-                            <div class="card-header">Troubleshooting and development</div>
+                            <div data-i18n="configure-expert-panel-header" class="card-header">Troubleshooting and development</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning." >
+                                    <label data-i18n-tip="configure-expert-hideactivecontentwarning-tip" title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning.">
                                         <input type="checkbox" name="hideActiveContentWarning"
                                             id="hideActiveContentWarningCheck">
-                                        <strong>Permanently hide active content warning</strong> (for
-                                        experienced users)
+                                        <span data-i18n="configure-expert-hideactivecontentwarning"><strong>Permanently hide active content warning</strong> (for
+                                        experienced users)</span>
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label title="In some browsers on some platforms, drag-and-drop may malfunction and make it difficult to select text, and other operations. Disable it here if it is causing issues." >
+                                    <label data-i18n-tip="configure-expert-disabledragdrop-tip" title="In some browsers on some platforms, drag-and-drop may malfunction and make it difficult to select text, and other operations. Disable it here if it is causing issues." >
                                         <input type="checkbox" name="disableDragAndDrop"
                                             id="disableDragAndDropCheck">
-                                        <strong>Disable drag-and-drop</strong> (in case it is causing anomalies)
+                                        <span data-i18n="configure-expert-disabledragdrop"><strong>Disable drag-and-drop</strong> (in case it is causing anomalies)</span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="bypassAppCacheDiv">
-                                    <label
+                                    <label data-i18n-tip="configure-expert-bypassappcache-tip"
                                         title="WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.">
                                         <input type="checkbox" name="bypassAppCache" id="bypassAppCacheCheck">
-                                        <b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)
+                                        <span data-i18n="configure-expert-bypassappcache"><b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)</span>
                                     </label>
                                 </div>
-                                <p class="pt-2">Reset the app to default settings and erase all caches:</p>
+                                <p data-i18n="configure-expert-resetapp-description" class="pt-2">Reset the app to default settings and erase all caches:</p>
                                 <div class="button">
-                                    <label title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
-                                        <button type="button" class="btn btn-danger" id="btnReset">Reset App</button>
+                                    <label data-i18n-tip="configure-expert-resetapp-tip" title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
+                                        <button data-i18n="configure-expert-resetapp" type="button" class="btn btn-danger" id="btnReset">Reset App</button>
                                     </label>
                                 </div>
                             </div>
@@ -676,7 +676,7 @@
                     <br />
                     <div class="container">
                         <div class="card card-warning" id="apiStatusDiv">
-                            <div class="card-header">API Status</div>
+                            <div data-i18n="configure-api-panel-header" class="card-header">API Status</div>
                             <div class="card-body">
                                 <div id="serviceWorkerStatus"></div>
                                 <div id="messageChannelStatus"></div>
