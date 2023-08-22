@@ -141,15 +141,15 @@ jobs:
           npx http-server -p 8080 . &
           echo " "
           Write-Verbose "Testing on Edge Chromium..." -Verbose
-          npx mocha ./tests/microsoftEdge.e2e.runner.js
+          npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js
           $AggregateExitCode += $LastExitCode
           echo " "
           Write-Verbose "Testing on Firefox..." -Verbose
-          npx mocha ./tests/firefox.e2e.runner.js
+          npx mocha ./tests/e2e/runners/firefox/firefox.e2e.runner.js
           $AggregateExitCode += $LastExitCode
           echo " "
           Write-Verbose "Testing on IE11..." -Verbose
-          npx mocha ./tests/ieMode.e2e.runner.js
+          npx mocha ./tests/e2e/runners/edge/ieMode.e2e.runner.js
           $AggregateExitCode += $LastExitCode
           echo " "
           if ($AggregateExitCode -gt 0) {
