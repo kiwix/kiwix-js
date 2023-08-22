@@ -321,18 +321,18 @@
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
-                    <h4 id="modes">ServiceWorker and JQuery Modes</h4>
+                    <h4 id="modes" data-i18n="about-contentinjection-modes">ServiceWorker and JQuery modes</h4>
                     <p>
-                        Depending on your browser or framework, this app may be capable of running in different modes, which we call "ServiceWorker Mode" and "JQuery Mode" for short.
-                        There is a toggle under Compatibility Settings in Configuration that allows you to select between these. Here is a technical explanation of what these modes do:
+                        <span data-i18n="about-contentinjection-para1">Depending on your browser or framework, this app may be capable of running in different modes, which we call "ServiceWorker Mode" and "JQuery Mode" for short.
+                        There is a toggle under Compatibility Settings in Configuration that allows you to select between these. Here is a technical explanation of what these modes do:</span>
                         <ul>
-                            <li>
+                            <li data-i18n="about-contentinjection-para2">
                                 <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the browser or framework
                                 be capable of installing a Service Worker, which is usually the case in modern browsers. It works by intercepting
                                 the browser or framework's Fetch calls (network requests) and supplying the requested content from the ZIM. In this
                                 mode, the content is read and supplied as-is from the archive to the browser. Dynamic content (e.g. JavaScript) and
                                 proprietary UIs are fully supported in this mode. However, Zimit archives are <b>not</b> currently supported due to
-                                a conflict between the Kiwix JS Service Worker and the WARC Service Worker. This mode can feel initially a little
+                                a conflict between the Kiwix JS Service Worker and the WARC Service Worker (but you can use the PWA for experimental support, see above). This mode can feel initially a little
                                 slower than JQuery mode until commonly used assets are cached, but it soon equals JQuery mode in speed, at least in
                                 modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the app must be running
                                 in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser extensions). While this mode is
@@ -340,7 +340,7 @@
                                 the extension as a Progressive Web App (PWA). Note that this mode cannot run with the <code>file:</code> protocol
                                 (but only IE11 and old Edge allow the app to run by launching <code>index.html</code> from the file system).
                             </li>
-                            <li id="serviceWorkerLocalDescription">
+                            <li id="serviceWorkerLocalDescription" data-i18n="about-contentinjection-para3">
                                 <b>ServiceWorkerLocal Mode</b>: This is only available in Chromium extensions. It is the same as above, but due to
                                 very tight security restrictions in these extensions, no inline JavaScript or eval statements can run. Unfortunately,
                                 modern ZIMs may have such dynamic content, and so functionality may be restricted in this mode. Nevertheless, it is
