@@ -40,6 +40,8 @@ function loadTranslationStrings (langCode) {
         });
     }).catch(function (err) {
         console.error('Error loading translation strings for language code ' + langCode, err);
+        console.warn('Falling back to English');
+        return loadTranslationStrings('en');
     });
 }
 
@@ -64,6 +66,8 @@ function translateApp (languageCode) {
                 element.title = i18next.t(key);
             }
         });
+        document.getElementById('prefix').setAttribute('placeholder',
+            translateString('home-prefix-placeholder') || 'Search...');
     }).catch(function (err) {
         console.error('Error translating the UI', err);
     });

@@ -100,7 +100,7 @@ params['useHomeKeyToFocusSearchBar'] = settingsStore.getItem('useHomeKeyToFocusS
 // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
 params['openExternalLinksInNewTabs'] = settingsStore.getItem('openExternalLinksInNewTabs') ? settingsStore.getItem('openExternalLinksInNewTabs') === 'true' : true;
 // A global language override
-params['overrideBrowserLanguage'] = settingsStore.getItem('languageOverride') || 'en-GB';
+params['overrideBrowserLanguage'] = settingsStore.getItem('languageOverride');
 // A parameter to disable drag-and-drop
 params['disableDragAndDrop'] = settingsStore.getItem('disableDragAndDrop') === 'true';
 // A parameter to access the URL of any extension that this app was launched from
@@ -183,6 +183,7 @@ document.getElementById('titleSearchRangeVal').textContent = params.maxSearchRes
 document.getElementById('appThemeSelect').value = params.appTheme;
 document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
 document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
+document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
 switchHomeKeyToFocusSearchBar();
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
@@ -251,9 +252,7 @@ function resizeIFrame () {
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
-    var browserLanguage = uiUtil.getBrowserLanguage();
-    console.log('Browser language is: ' + browserLanguage);
-    translateUI.translateApp(browserLanguage.base);
+    getDefaultLanguageAndTranslateApp();
     resizeIFrame();
 });
 window.addEventListener('resize', resizeIFrame);
@@ -282,6 +281,40 @@ searchArticle.addEventListener('mousedown', function () {
 });
 document.getElementById('formArticleSearch').addEventListener('submit', function () {
     document.getElementById('searchArticles').click();
+});
+
+function getDefaultLanguageAndTranslateApp () {
+    var defaultBrowserLanguage = uiUtil.getBrowserLanguage();
+    // DEV: Be sure to add supported language codes here
+    // TODO: Add a supported languages object elsewhere and use it here
+    if (!params.overrideBrowserLanguage) {
+        if (/^en|es|fr$/.test(defaultBrowserLanguage.base)) {
+            console.log('Supported default browser language is: ' + defaultBrowserLanguage.base + ' (' + defaultBrowserLanguage.locale + ')');
+        } else {
+            console.warn('Unsupported browser language! ' + defaultBrowserLanguage.base + ' (' + defaultBrowserLanguage.locale + ')');
+            console.warn('Reverting to English');
+            defaultBrowserLanguage.base = 'en';
+            defaultBrowserLanguage.name = 'GB';
+            params.overrideBrowserLanguage = 'en';
+        }
+    } else {
+        console.log('User-selected language is: ' + params.overrideBrowserLanguage);
+    }
+    // Use the override language if set, or else use the browser default
+    translateUI.translateApp(params.overrideBrowserLanguage || defaultBrowserLanguage.base);
+}
+
+// Add a listener for the language selection dropdown which will change the language of the app
+document.getElementById('languageSelector').addEventListener('change', function (e) {
+    var language = e.target.value;
+    if (language === 'default') {
+        params.overrideBrowserLanguage = null;
+        settingsStore.removeItem('languageOverride');
+    } else {
+        params.overrideBrowserLanguage = language;
+        settingsStore.setItem('languageOverride', language, Infinity);
+    }
+    getDefaultLanguageAndTranslateApp();
 });
 
 const prefixElement = document.getElementById('prefix');

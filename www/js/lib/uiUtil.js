@@ -731,7 +731,7 @@ function getBrowserLanguage () {
         base: 'en',
         locale: 'GB'
     }
-    var fullLanguage = params.overrideBrowserLanguage || navigator.language || navigator.userLanguage;
+    var fullLanguage = navigator.language || navigator.userLanguage;
     if (fullLanguage) {
         language.base = fullLanguage.replace(/-.+$/, '').toLowerCase();
         language.locale = fullLanguage.replace(/^[^-]+-/, '').toUpperCase();

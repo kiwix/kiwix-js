@@ -459,6 +459,14 @@
                             <button type="button" class="close" data-hide="alert">&times;</button>
                             <span id="persistentMessage"></span>
                         </div>
+                        <div class="dropdown" style="float:right">
+                            <select class="form-control" id="languageSelector" name="languageSelector" aria-labelledby="languageSelector">
+                                <option data-i18n="configure-language-selector-default" selected class="dropdown-item" href="#" value="default">Language</a>
+                                <option class="dropdown-item" href="#" value="en">English</a>
+                                <option class="dropdown-item" href="#" value="fr">Français</a>
+                                <option class="dropdown-item" href="#" value="es">Español</a>
+                            </select>
+                        </div>
                         <p id="downloadInstruction" data-i18n="configure-download-instructions">This application needs a ZIM archive to work. For download
                             instructions, please see the About section.</p>
                         <div id="selectorsDisplay" style="display: none;">
@@ -689,7 +697,7 @@
                     </div>
                     <br />
                 </div>
-                <div id="welcomeText" class="container">
+                <div data-i18n="home-welcome-text" id="welcomeText" class="container">
                     You can search the content of your ZIM archive by typing in the above search field.
                     <br />It will suggest articles starting with the letters you type.
                 </div>
