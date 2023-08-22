@@ -675,12 +675,12 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
     event.stopPropagation();
     if (!clickedAnchor) clickedAnchor = event.target;
     var target = clickedAnchor.target;
-    var message = '<p>Do you want to open this external link?';
+    var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';
     if (!target || target === '_blank') {
-        message += ' (in a new tab)';
+        message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
     message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
-    systemAlert(message, 'Opening external link', true).then(function (response) {
+    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true).then(function (response) {
         if (response) {
             if (!target) {
                 target = '_blank';

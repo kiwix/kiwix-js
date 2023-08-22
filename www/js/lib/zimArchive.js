@@ -127,7 +127,6 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         params.searchProvider += ': no_sharedArrayBuffer';
                     }
                     uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
-                    // uiUtil.systemAlert(message);
                 }
             });
             // Set the archive file type ('open' or 'zimit')

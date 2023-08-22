@@ -1575,7 +1575,8 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
             readArticle(dirEntry);
         }
     } else {
-        uiUtil.systemAlert('Data files not set', 'Archive not ready');
+        uiUtil.systemAlert(translateUI.t('dialog-file-notset-message') || 'Data files not set',
+            translateUI.t('dialog-file-notset-title') || 'Archive not ready');
     }
 }
 
@@ -2179,7 +2180,8 @@ function goToArticle (path, download, contentType) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
             document.getElementById('searchingArticles').style.display = 'none';
-            uiUtil.systemAlert('Article with url ' + path + ' not found in the archive', 'Error: article not found');
+            uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
+                translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
             download = true;
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
@@ -2191,7 +2193,10 @@ function goToArticle (path, download, contentType) {
             if (activeContent) activeContent.style.display = 'none';
             readArticle(dirEntry);
         }
-    }).catch(function (e) { uiUtil.systemAlert('Error reading article with url ' + path + ' : ' + e, 'Error while reading article'); });
+    }).catch(function (e) {
+        uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
+        translateUI.t('dialog-article-readerror-title') || 'Error reading article');
+    });
 }
 
 function goToRandomArticle () {
@@ -2200,7 +2205,8 @@ function goToRandomArticle () {
         selectedArchive.getRandomDirEntry(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
-                uiUtil.systemAlert('Error finding random article', 'Error finding article');
+                uiUtil.systemAlert(translateUI.t('dialog-randomarticle-error-message') || 'Error finding random article',
+                translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
@@ -2220,7 +2226,7 @@ function goToRandomArticle () {
         });
     } else {
         // Showing the relevant error message and redirecting to config page for adding the ZIM file
-        uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive', 
+        uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive',
             translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
             document.getElementById('btnConfigure').click();
         });
