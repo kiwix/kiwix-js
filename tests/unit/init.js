@@ -46,7 +46,7 @@ var webpMachine = false;
         webpScript.onload = function () {
             webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
         }
-        webpScript.src = '../www/js/webpHeroBundle_0.0.2.js';
+        webpScript.src = '../../www/js/webpHeroBundle_0.0.2.js';
         document.head.appendChild(webpScript);
     }
 });

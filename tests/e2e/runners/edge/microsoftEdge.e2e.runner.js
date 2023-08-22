@@ -1,7 +1,8 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/edge.js';
-import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
-import gutenbergRo from './gutenberg_ro.e2e.spec.js';
+import legacyRayCharles from '../../specs/legacy-ray_charles.e2e.spec.js';
+import gutenbergRo from '../../specs/gutenberg_ro.e2e.spec.js';
+
 /* eslint-disable camelcase */
 
 async function loadMSEdgeDriver () {
