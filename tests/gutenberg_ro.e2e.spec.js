@@ -1,7 +1,7 @@
 /**
  * legacy-ray_charles.e2e.spec.js : End-to-end tests implemented with Selenium WebDriver and Mocha
  *
- * Copyright 2023 Jaifroid and contributors
+ * Copyright 2023 Jaifroid, RG7279805 and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.
@@ -22,21 +22,20 @@
 
 // eslint-disable-next-line no-unused-vars
 import { By, Key, until, WebDriver } from 'selenium-webdriver';
-// import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import paths from './paths.js';
 import fs from 'fs';
+
 /* eslint-disable camelcase */
 /* global describe, it */
 
 const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 
-// Set the archives to load
 /**
  *  Run the tests
  * @param {WebDriver} driver Selenium WebDriver object
  * @param {Array} modes Array of modes to run the tests in
- * @returns {void}
+ * @returns {Promise<void>}  A Promise for the completion of the tests
 */
 function runTests (driver, modes) {
     let browserName, browserVersion;
@@ -105,6 +104,7 @@ function runTests (driver, modes) {
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
+
             // Switch to the requested contentInjectionMode
             it('Switch to ' + mode + ' mode', async function () {
                 const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
@@ -169,10 +169,11 @@ function runTests (driver, modes) {
                 } else {
                     // Skip remaining SW mode tests if the browser does not support the SW API
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
-                    await driver.quit();
+                    return driver.quit();
                 }
             });
 
+            // Loads the ZIM archive for the mode if the mode is not skipped
             it('Load Modern zim file', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
@@ -190,6 +191,8 @@ function runTests (driver, modes) {
                 // Check that we loaded 1 file
                 assert.equal(1, filesLength);
             });
+
+            // In JQuery mode, the app warns the user that there is active content it cannot run, so we test for this and dismiss
             it('Checking active content warning', async function () {
                 const activeContentWarning = await driver.wait(async function () {
                     const element = await driver.findElement(By.id('activeContent'));
@@ -201,6 +204,7 @@ function runTests (driver, modes) {
                     assert.equal(false, activeContentWarning);
                 }
             });
+
             it('Sorting books by popularity', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
@@ -215,6 +219,7 @@ function runTests (driver, modes) {
                 })
                 assert.equal(firstBookName, 'Poezii');
             });
+
             it('Sorting books by name', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
@@ -236,14 +241,13 @@ function runTests (driver, modes) {
                 }
                 // click on the language dropdown and select option French
                 const languageOptions = await driver.wait(until.elementsLocated(By.xpath('//*[@id="l10nselect"]/option')), 1500);
-                // await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[2]')).click();
                 await languageOptions[1].click();
                 const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
                 // revert back the language to English
-                // await driver.findElement(By.xpath('//*[@id="l10nselect"]/option[1]')).click()
                 await languageOptions[0].click();
                 assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
             });
+
             it('Primary Search Autocomplete', async function () {
                 await driver.switchTo().defaultContent();
                 const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
@@ -255,18 +259,18 @@ function runTests (driver, modes) {
                 await searchBox.clear()
                 assert.equal(searchList.length, 1);
             });
+
+            // Loads the universal HTML view of the selected book
             it('Viewing HTML view', async function () {
                 await driver.switchTo().defaultContent();
                 const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
                 await searchBox.sendKeys('Poezii.35323.ht');
                 // Press enter 2 time to go and visit the first result of the search
-                // I was not able to find a better way to do this feel free to change this
-                // const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 1500);
+                // [DEV] I was not able to find a better way to do this feel free to change this
                 await driver.sleep(1000);
                 await searchBox.sendKeys(Key.ENTER);
                 await driver.sleep(1000);
                 await searchBox.sendKeys(Key.ENTER);
-
                 await driver.sleep(500);
                 // if title is not loaded in next 4 seconds then return empty string and fail test
                 await searchBox.clear();
@@ -274,12 +278,12 @@ function runTests (driver, modes) {
                 const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 1500).getText();
                 assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
             });
+
             it('Navigating back', async function () {
                 // button lies on main page so we need to switch to default content
                 await driver.switchTo().defaultContent();
                 const btnBack = await driver.wait(until.elementLocated(By.id('btnBack')));
-                // I am not sure why i need to click a button two times to go back
-                // Maybe since the first click is to focus on the button and the second one is to click it or element is a <a> not <button>
+                // [DEV] I am not sure why i need to click a button three times to go back
                 await btnBack.click();
                 await btnBack.click();
                 await btnBack.click();
@@ -290,6 +294,7 @@ function runTests (driver, modes) {
                 const mainTitle = await driver.wait(until.elementLocated(By.xpath('//*[@class="main_title"]/h1')), 4000).getText();
                 assert.equal(mainTitle, 'Project Gutenberg Library');
             });
+
             it('Author search Autocomplete', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
@@ -300,12 +305,12 @@ function runTests (driver, modes) {
                 const searchList = await driver.wait(until.elementsLocated(By.className('ui-menu-item')), 1500);
                 assert.equal(searchList.length, 1);
             });
+
             it('Author search Results', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                // something is wrong here
                 // search by author name and press enter to apply the filter
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
                 await filter.sendKeys(Key.ENTER);
@@ -315,8 +320,10 @@ function runTests (driver, modes) {
                 await filter.sendKeys(Key.ENTER);
                 assert.equal(searchList.length, 1);
             });
-            const downloadFileName = 'Poezii.35323.epub'
+
+            // Modern browsers can download an EPUB version of a book and save it to the FS, so we test for this
             it('Download EPUB file', async function () {
+                const downloadFileName = 'Poezii.35323.epub'
                 await driver.switchTo().defaultContent();
                 const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
                 await searchBox.clear(1000);
@@ -328,7 +335,6 @@ function runTests (driver, modes) {
                 // await searchBox.clear();
                 // if title is not loaded in next 4 seconds then return empty string and fail test
                 await driver.switchTo().frame('articleContent');
-
                 // click on the download button
                 await driver.wait(until.elementLocated(By.xpath('//*[@id="content"]/div/div[2]/div[5]/a[2]')), 1500);
                 await driver.executeScript('document.querySelector("#content > div > div.pure-u-1.pure-u-md-1-2.bibrec.sidedimg > div.cover-detail.icons-footer > a:nth-child(2)").click()');
@@ -348,7 +354,7 @@ function runTests (driver, modes) {
 
                 // exit if every test and mode is completed
                 if (mode === modes[modes.length - 1]) {
-                    return await driver.quit();
+                    return driver.quit();
                 }
             });
         });

@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-
-import { By, Key } from 'selenium-webdriver';
+// eslint-disable-next-line no-unused-vars
+import { By, Key, WebDriver } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import paths from './paths.js';
@@ -58,7 +58,7 @@ console.log('\nLoading archive:\n' + rayCharlesAllParts + '\n');
  *  Run the tests
  * @param {WebDriver} driver Selenium WebDriver object
  * @param {array} modes Array of modes to run the tests in
- * @returns {void}
+ * @returns {Promise<void>}  A Promise for the completion of the tests
 */
 function runTests (driver, modes) {
     let browserName, browserVersion;
@@ -193,7 +193,7 @@ function runTests (driver, modes) {
                     } else {
                         // Skip remaining SW mode tests if the browser does not support the SW API
                         console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
-                        await driver.quit();
+                        return driver.quit();
                     }
                 });
             });
@@ -308,7 +308,7 @@ function runTests (driver, modes) {
                     assert.equal('Ray Charles', title);
                     // If we have reached the last mode, quit the driver
                     if (mode === modes[modes.length - 1]) {
-                        await driver.quit();
+                        return driver.quit();
                     }
                 });
             });
