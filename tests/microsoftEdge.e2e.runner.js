@@ -1,7 +1,7 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/edge.js';
 import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
-
+import gutenbergRo from './gutenberg_ro.e2e.spec.js';
 /* eslint-disable camelcase */
 
 async function loadMSEdgeDriver () {
@@ -17,6 +17,5 @@ async function loadMSEdgeDriver () {
     return driver;
 };
 
-const driver_edge = await loadMSEdgeDriver();
-
-legacyRayCharles.runTests(driver_edge);
+legacyRayCharles.runTests(await loadMSEdgeDriver());
+gutenbergRo.runTests(await loadMSEdgeDriver());
