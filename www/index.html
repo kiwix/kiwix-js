@@ -300,22 +300,22 @@
                         <b>However, there is <i>experimental</i> support for Zimit archives in our PWA at <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></b>.
                     </p>
 
-                    <h4 id="FAT">Downloading and storing large archives</h4>
-                    <p>
-                        Full version of Wikipedia can be enormous: French, German and Spanish Wikipedia with images are each >25GB; full English Wikipedia with images
+                    <h4 id="FAT" data-i18n="about-fat-fs">Downloading and storing large archives</h4>
+                    <p data-i18n="about-large-archives-para1">
+                        Full versions of Wikipedia can be enormous: French, German and Spanish Wikipedia with images are each >25GB; full English Wikipedia with images
                         is >90GB. For these very large archives you can find convenient BitTorrent links provided by <a href="https://library.kiwix.org">
                         library.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a>, which may be more reliable than attempting to use your browser. You can use an
                         open-source BitTorrent client such as <a href="https://www.qbittorrent.org/" target="_blank">QBittorrent&nbsp;<img src="img/Icon_External_Link.png" /></a>
                         with these links (install the software before clicking on the torrent link).
                     </p>
-                    <p>
+                    <p data-i18n="about-large-archives-para2">
                         If you need to store a large ZIM archive on an older filesystem formatted as FAT16 or FAT32, you need to be aware of the file size limits of those systems
                         (FAT16 &lt; 2GiB; FAT32 &lt; 4GiB). Most modern microSD cards, thumb drives or hard drives are formatted as exFAT or another modern FS such as NTFS, which do not
                         have this issue. If your ZIM archive is larger than the FS limit, it is possible to split the archive into several 2GiB-1 or 4GiB-1 files (or smaller).
                         You will need to give a file extension to each chunk in the right order following this pattern: <code>*.zimaa</code>, <code>*.zimab</code>, <code>*.zimac</code>,
                         <code>...</code>, etc.). When you pick this archive in the app, be sure to pick <b>all</b> the chunks, or drag-and-drop them all into the app.
                     </p>
-                    <p>
+                    <p data-i18n="about-large-archives-para3">
                         For some information on how to split archves, see <a href="https://github.com/kiwix/kiwix-js-windows/tree/main/AppPackages#download-a-zim-archive-all-platforms" target="_blank">
                         Download a ZIM archive&nbsp;<img src="img/Icon_External_Link.png" /></a>.
                     </p>
