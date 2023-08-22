@@ -134,7 +134,7 @@
                             <ul>
                                 <li><a href="#format" data-i18n="about-zim-format">ZIM Archive Format</a></li>
                                 <li><a href="#FAT" data-i18n="about-fat-fs">Downloading and Storing Large Archives</a></li>
-                                <li><a href="#modes" data-i18n="about-contentinjectionmodes">JQuery and ServiceWorker Modes</a></li>
+                                <li><a href="#modes" data-i18n="about-contentinjection-modes">JQuery and ServiceWorker Modes</a></li>
                             </ul>
                         </li>
                         <li><a href="#feedback" data-i18n="about-feedback">Feedback/Helping/Contributing</a></li>
@@ -347,7 +347,7 @@
                                 more secure: the content is sandboxed and no one-time server access is required to enable the Service Worker. You
                                 are protected from inline code execution at the cost of loss of some features in dynamic ZIMs.
                             </li>
-                            <li>
+                            <li data-i18n="about-contentinjection-para4">
                                 <b>JQuery Mode</b>: This mode is now deprecated (and does not in fact require JQuery). It is retained for
                                 compatibility with older browsers or frameworks that cannot run Service Workers. The mode has limitations which
                                 mean that only static content can be displayed, such as that found in Wikipedia / WikiMedia archives and (for now)
@@ -363,30 +363,38 @@
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
-                    <h3 id="feedback">Feedback / helping / contributing</h3>
-                    <p>We welcome constructive feedback and suggestions for improvement. We will consider feature requests, but it is even better if you
-                        can contribute to improving the app! The source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">GitHub&nbsp;<img
-                            src="img/Icon_External_Link.png" /></a>, and we welcome Pull Requests (but open an issue and discuss your proposal first).
+                    <h3 id="feedback" data-i18n="about-feedback">Feedback / helping / contributing</h3>
+                    <p data-i18n="about-feedback-para1">
+                        We welcome constructive feedback and suggestions for improvement. We will consider feature requests, but it is even better if you
+                        can contribute to improving the app! The source code is on <a href="https://github.com/kiwix/kiwix-js" target="_blank">GitHub&nbsp;
+                        <img src="img/Icon_External_Link.png" /></a>, and we welcome Pull Requests (but open an issue and discuss your proposal first).
                     </p>
-                    <p>
+                    <p data-i18n="about-feedback-para2">
                         The <a href="https://github.com/kiwix/kiwix-js/issues" target="_blank">bug and issue tracker&nbsp;<img src="img/Icon_External_Link.png" /></a>
                         is on GitHub too. We use it as our roadmap. Alternatively, you can send your feedback <a href="mailto:egk10@cam.ac.uk?subject=%5BKiwix%5D%20Feedback%20about%20Kiwix%20JS">by email</a>.
                         In all cases, if you are reporting a bug, please give as much detail as you can: which device you are using, which version of Kiwix, which archive,
                         which articles etc.
                     </p>
                     <p>
-                        If you like the Kiwix project and use it, please consider giving donations:
+                        <span data-i18n="about-feedback-para3">If you like the Kiwix project and use it, please consider giving donations:</span>
                         <ul>
-                            <li>to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">
-                                donation page&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
-                            <li>to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in  the <a href="https://www.kiwix.org">home page of
-                                kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
+                            <li data-i18n="about-feedback-para4">to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">
+                                donation page&nbsp;<img src="img/Icon_External_Link.png" /></a>;
+                            </li>
+                            <li data-i18n="about-feedback-para5">
+                                to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in  the <a href="https://www.kiwix.org">home page of
+                                kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a>.
+                            </li>
                         </ul>
-                        You can also help by:
+                        <span data-i18n="about-feedback-other-help">You can also help by:</span>
                         <ul>
-                            <li>Adding articles to Wikipedia or improving the existing ones, by <a href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing
-                                articles&nbsp;<img src="img/Icon_External_Link.png" /></a></li>
-                            <li><a href="https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate" target="_blank">Participating&nbsp;<img src="img/Icon_External_Link.png" /></a> in the Kiwix project</li>
+                            <li data-i18n="about-feedback-other-para1">
+                                Adding articles to Wikipedia or improving the existing ones, by <a href="https://en.wikipedia.org/wiki/Wikipedia:Introduction" target="_blank">editing
+                                articles&nbsp;<img src="img/Icon_External_Link.png" /></a>;
+                            </li>
+                            <li data-i18n="about-feedback-other-para2">
+                                <a href="https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate" target="_blank">Participating&nbsp;<img src="img/Icon_External_Link.png" /></a> in the Kiwix project.
+                            </li>
                         </ul>
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
