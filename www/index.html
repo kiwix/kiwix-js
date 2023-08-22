@@ -220,25 +220,25 @@
                     <h4 data-i18n="about-step4">Step 4: Enjoy your offline content!</h4>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
 
-                    <h3 id="searchSyntax">Title and full-text search usage</h3>
-                    <p>
+                    <h3 id="searchSyntax" data-i18n="about-search-title">Title and full-text search usage</h3>
+                    <p data-i18n="about-search-para1">
                         There are three types of search: title and alphabetical search (these are both universally available), and full-text search (only available in some ZIM
                         archives and enabled in <i>modern</i> desktop browsers).
                     </p>
-                    <p>
+                    <p data-i18n="about-search-para2">
                         <b>Title search</b> matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
                         'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited: e.g. if you
                         search for 'unesco world heritiage', it will try 'Unesco world heritage', 'UNESCO world heritage', 'unesco World heritage', 'Unesco WORLD heritage'
                         (etc.), but it won't try 'uNesCO' and other non-obvious case combinations. If you want to search for 'uNesCO', then you must type it exactly like that.
                         If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration.
                     </p>
-                    <p>
+                    <p data-i18n="about-search-para3">
                         <b>Alphabetical search:</b> If you type a letter of the alphabet in the title search box (upper case may be most useful), it will show an alphabetical
                         list of articles starting with that letter (up to the maximum number of search results you selected in Configuration). This is useful for ZIM archives
                         that have descriptive rather than semantic titles (e.g. TED Talks), expecially in <a href="#modes">JQuery mode</a>. You can also display a list of all
                         titles simply by clicking the search button without typing anything (up to the limit set in Configuration).
                     </p>
-                    <p>
+                    <p data-i18n="about-search-para4">
                         <b>Full-text search:</b> With the help of the openzim/javascript-libzim WASM project, we now support full-text search in certain contexts. Full-text search is
                         launched in parallel with title search for those ZIMs and browsers where it is supported, but it is slower than title search, and you may notice a delay
                         before full-text search results are added to the title search results. You do not need to do anything to initiate a full-text search: it will be performed
@@ -249,48 +249,55 @@
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
-                    <h3 id="imageDownload">Image Download</h3>
-                    <p>
+                    <h3 id="imageDownload" data-i18n="about-image-download">Image Download</h3>
+                    <p data-i18n="about-image-download-para1">
                         Unfortunately it is not possible to download an image (from an article in a ZIM archive) using the standard method in most browsers (usually right-click
                         -> "Save image as..."). See <a href="https://github.com/kiwix/kiwix-js/issues/694" target="_blank">issue 694&nbsp;<img src="img/Icon_External_Link.png" /></a>.
                     </p>
-                    <p>
+                    <p data-i18n="about-image-download-para2">
                         One workaround (at least in browser extensions) is to choose "Copy Image" in the context menu (after right-click or long-press), then paste it in any
                         suitable software (Paint, Gimp etc, or even a Word processor), then save it.
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
-                    <h3 id="privacy">Privacy policy</h3>
+                    <h3 id="privacy" data-i18n="about-privacy-policy">Privacy policy</h3>
 
-                    <h4>Short version:</h4>
-                    <p>
+                    <h4 data-i18n="about-privacy-short-title">Short version:</h4>
+                    <p data-i18n="about-privacy-short-para1">
                         Kiwix JS works offline, and does not collect or record any of your personal data. It only remembers your browsing history for the duration of a session
                         (for the purpose of returning to previously viewed pages). This history is lost on exiting the app and is not recorded in any way.
                     </p>
                     
-                    <h4>Longer version:</h4>
-                    <p>
+                    <h4 data-i18n="about-privacy-long-title">Longer version:</h4>
+                    <p data-i18n="about-privacy-long-para1">
                         This application only reads the archive files that you explicitly select on your device together with files in its own package. Some ZIM archives contain
                         active content (scripts) which may, in rare circumstances, attempt to contact external servers for incidental files such as fonts. We have a Content Security
                         Policy which attempts to prevent this, but it is not possible to guarantee that all such requests will be blocked, for example if a ZIM were to contain
                         intentionally malicious code that can break the sandbox. Please note that scripts will only run if you enable <a href="#modes">ServiceWorker Mode</a>
                         (the default) in Configuration. Nevertheless, if you believe your Internet access is insecure, or is being observed or censored, we recommend that you
-                        completely shut down your Internet (Data or WiFi) access before using the application.</p>
-                    <p>
+                        completely shut down your Internet (Data or WiFi) access before using the application.
+                    </p>
+                    <p data-i18n="about-privacy-long-para2">
                         Additionally, if you obtained this app from a vendor Store (including extensions), then the Store operator may track your usage of the app (e.g. download,
                         install, uninstall, date and number of sessions) for the purpose of providing anonymous, aggregate usage statistics to developers. If this concerns you,
                         you should check the relevant Store Privacy Policy for further information.
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
-                    <h3 id="technical">Technical information</h3>
+                    <h3 id="technical" data-i18n="about-technical-information">Technical information</h3>
 
-                    <h4 id="format">ZIM archive format</h4>
-                    <p>
+                    <h4 id="format" data-i18n="about-zim-format">ZIM archive format</h4>
+                    <p data-i18n="about-zim-format-para1">
                         Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
                         but note that this app has only been tested extensively on Wikipedia, WikiMedia, Gutenberg, Stackexchage and TED Talks archives. Video content is
                         supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
                         (<a href="#modes">see below</a>).
+                    </p>
+                    <p data-i18n="about-zim-format-para2">
+                        This application is not currently compatible with archives that are created by <b>Zimit</b> (<a href="https://youzim.it" target="_blank">https://youzim.it&nbsp;<img src="img/Icon_External_Link.png" /></a>)
+                        using the Web Archive (WARC) format. We have plans to enable this format, but there are considerable technical challenges to overcome in order to display
+                        these archives with the fidelity that you expect from Kiwix -- see <a href="https://github.com/kiwix/kiwix-js/issues/1009" target="_blank">issue #1009&nbsp;<img src="img/Icon_External_Link.png" /></a>.
+                        <b>However, there is <i>experimental</i> support for Zimit archives in our PWA at <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></b>.
                     </p>
 
                     <h4 id="FAT">Downloading and storing large archives</h4>
