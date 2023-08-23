@@ -23,7 +23,7 @@
 // eslint-disable-next-line no-unused-vars
 import { By, Key, until, WebDriver } from 'selenium-webdriver';
 import assert from 'assert';
-import paths from './paths.js';
+import paths from '../paths.js';
 import fs from 'fs';
 
 /* eslint-disable camelcase */
