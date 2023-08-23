@@ -235,7 +235,7 @@ function runTests (driver, modes) {
                     }
                     // console.log('FilesLength outer: ' + filesLength);
                     // Wait until the index has loaded
-                    await driver.sleep(1000);
+                    await driver.sleep(3000);
                     const contentAvailable = await driver.executeScript('return /little\\sgirl/i.test(document.getElementById("articleContent").contentDocument.documentElement.innerHTML)');
                     assert.equal(contentAvailable, true);
                     // Switch to iframe and check that the index contains the specified article
