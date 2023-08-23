@@ -148,7 +148,7 @@
       "dialog-reset-warning-message": "This will reset the app to a freshly installed state, deleting all app caches and settings!",
       "dialog-server-access-check": "Checking server access...",
       "dialog-server-access-check-failed": "The server is not currently accessible!<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).<br/>Please try again when you have a stable Internet connection.",
-      "dialog-service-worker-registration-failure-title": "Failed to register Service Worker",
+      "dialog-serviceworker-registration-failure-title": "Failed to register Service Worker",
       "dialog-serviceworker-registration-failure-message": "The Service Worker could not be properly registered. Switching back to JQuery mode... Error message:",
       "dialog-serviceworker-registration-failure-fileprotocol": "<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection, e.g.: https://webserver.org/...)",
       "dialog-serviceworker-unsupported-title": "ServiceWorker mode unsupported",

@@ -148,7 +148,7 @@
       "dialog-reset-warning-message": "Cela réinitialisera l'application à l'état d'installation originale. Tous les caches et paramètres seront effacés !",
       "dialog-server-access-check": "Vérification de l'accès au serveur...",
       "dialog-server-access-check-failed": "Le serveur n'est pas accessible actuellement !<br/><br/>(Kiwix a besoin d'accéder une fois au serveur pour mettre en cache la PWA).<br/>Veuillez réessayer lorsque vous aurez une connexion Internet stable.",
-      "dialog-service-worker-registration-failure-title": "Échec de l'enregistrement du Service Worker",
+      "dialog-serviceworker-registration-failure-title": "Échec de l'enregistrement du Service Worker",
       "dialog-serviceworker-registration-failure-message": "Le Service Worker n'a pas pu être enregistré correctement. Redémarrage en mode JQuery... Message d'erreur :",
       "dialog-serviceworker-registration-failure-fileprotocol": "<br/><br/>Il semble que vous ouvrez kiwix-js avec le protocole file://. Vous devez l'ouvrir avec un serveur Web : soit un serveur local (http://localhost/...) ou un serveur distant (mais vous aurez besoin d'une connexion sécurisée dans ce cas, p. ex. : https://webserver.org/...)",
       "dialog-serviceworker-unsupported-title": "Mode ServiceWorker non disponible",
