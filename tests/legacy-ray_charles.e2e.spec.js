@@ -235,10 +235,9 @@ function runTests (driver, modes) {
                     }
                     // console.log('FilesLength outer: ' + filesLength);
                     // Wait until the index has loaded
-                    await driver.wait(async function () {
-                        const contentAvailable = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mw-content-text");');
-                        return contentAvailable;
-                    }, 7000);
+                    await driver.sleep(1000);
+                    const contentAvailable = await driver.executeScript('return /little\\sgirl/i.test(document.getElementById("articleContent").contentDocument.documentElement.innerHTML)');
+                    assert.equal(contentAvailable, true);
                     // Switch to iframe and check that the index contains the specified article
                     await driver.switchTo().frame('articleContent');
                     const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
@@ -250,8 +249,8 @@ function runTests (driver, modes) {
                         // console.log('Element is visible: ' + elementIsVisible);
                         return elementIsVisible;
                     }, 10000);
-                    // Pause for 1.5 second to allow article to load
-                    await driver.sleep(1500);
+                    // Pause for 1.3 second to allow article to load
+                    await driver.sleep(1300);
                     let elementText = '';
                     try {
                         // Find the mwYw element in JavaScript and get its content
