@@ -162,7 +162,7 @@
       "about-contentinjection-modes": "JQuery and ServiceWorker modes",
       "about-feedback": "Feedback / helping / contributing",
       "about-credits": "Credits",
-      "about-licence": "Licence",
+      "about-licence": "Licence information",
       "about-other-platforms": "Other platforms/versions",
       "about-download-archives": "Download ZIM archives (content):",
       "about-download-language": "Download by language",
@@ -211,6 +211,11 @@
       "about-feedback-other-help": "You can also help by:",
       "about-feedback-other-para1": "Adding articles to Wikipedia or improving the existing ones, by <a href=\"https://en.wikipedia.org/wiki/Wikipedia:Introduction\" target=\"_blank\">editing articles&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>;",
       "about-feedback-other-para2": "<a href=\"https://wiki.kiwix.org/wiki/Special:MyLanguage/Participate\" target=\"_blank\">Participating&nbsp;<img src=\"img/Icon_External_Link.png\" /></a> in the Kiwix project.",
+      "about-credits-gratitude": "We owe a big debt of gratitude to:<ul><li>Kelson and all the Kiwix community for welcoming us to this project;</li><li>Wikipedia teams and contributors for helping to make knowledge available to everybody;</li><li>All the developers of libraries and tools we used, for releasing them as Free software (see libraries and tools paragraph).</li></ul>",
+      "about-licence-text": "<p>Copyright 2013-2023 Mossroy, Peter-x, Jaifroid and other contributors.</p><p>This application is licensed under the GPL v3 Licence:</p><em><p>Kiwix is free software: you can redistribute it and/or modify it under the terms of the GNU General Public Licence as published by the Free Software Foundation, either version 3 of the Licence, or (at your option) any later version.</p><p>Kiwix is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public Licence for more details.</p><p>You should have received a copy of the GNU General Public Licence along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <a href=\"https://www.gnu.org/licenses/\">https://www.gnu.org/licenses/</a>.</p></em>",
+      "about-libraries": "Main libraries and resources used:",
+      "about-other-clients": "Other Kiwix clients exist on various platforms such as desktop and mobile apps for Linux, Windows, Android and iOS. We also have an offline-first, fully featured PWA based on the code in Kiwix JS: <a href=\"https://pwa.kiwix.org\" target=\"_blank\">https://pwa.kiwix.org&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>.",
+      "about-official-download": "See the official download site: <a href=\"https://www.kiwix.org/applications/\" target=\"_blank\">https://www.kiwix.org/applications/&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>.",
       "about-back-contents": "↑ Back to Contents"
     }
   }

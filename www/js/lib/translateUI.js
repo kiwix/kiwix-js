@@ -28,7 +28,7 @@ import util from './util.js';
 // Fallbacks come from the HTML, which is in English by default
 var fallback = true;
 // DEV: Uncomment line below to force placeholder (useful when writing new translations)
-fallback = false;
+// fallback = false;
 
 // Load the translation strings as a JSON object for a given language code
 function loadTranslationStrings (langCode) {
