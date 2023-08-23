@@ -136,12 +136,12 @@ function runTests (driver, modes) {
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
                     await driver.sleep(500);
-                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getAttribute('class');
                     try {
                         if (mode === 'serviceworker') {
-                            assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                            assert.equal(true, /apiAvailable/i.test(serviceWorkerStatus));
                         } else {
-                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                            assert.equal(true, /apiUnavailable/i.test(serviceWorkerStatus));
                         }
                     } catch (e) {
                         if (!~modes.indexOf('serviceworker')) {

@@ -300,6 +300,36 @@ var PromiseQueue = {
     }
 };
 
+/**
+ * Get Promise for a JSON object from a given URL
+ *
+ * @param {string} url The URL from which to get the JSON object
+ * @returns {Promise<Object>} A Promise that will be resolved with the JSON object, or rejected with the error message
+ **/
+function getJSONObject (url) {
+    return new Promise(function (resolve, reject) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.responseType = 'json';
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var response = xhr.response;
+                // IE11 does not support responseType = 'json', so we need to parse the response manually
+                if (typeof response === 'string') {
+                    response = JSON.parse(response);
+                }
+                resolve(response);
+            } else {
+                reject(xhr.statusText);
+            }
+        };
+        xhr.onerror = function () {
+            reject(xhr.statusText);
+        };
+        xhr.send();
+    });
+}
+
 export default {
     allCaseFirstLetters: allCaseFirstLetters,
     removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
@@ -309,5 +339,6 @@ export default {
     readFileSlice: readFileSlice,
     binarySearch: binarySearch,
     leftShift: leftShift,
-    PromiseQueue: PromiseQueue
+    PromiseQueue: PromiseQueue,
+    getJSONObject: getJSONObject
 };
