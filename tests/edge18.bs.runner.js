@@ -37,4 +37,4 @@ const driver_edge_legacy = await loadEdgeLegacyDriver();
 // Maximize the window so that full browser state is visible in the screenshots
 await driver_edge_legacy.manage().window().maximize();
 
-legacyRayCharles.runTests(driver_edge_legacy, ['jquery']);
+legacyRayCharles.runTests(driver_edge_legacy);
