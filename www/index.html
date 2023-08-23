@@ -17,7 +17,7 @@
         Peter-x - https://github.com/peter-x
         Jaifroid - https://github.com/Jaifroid
 
-        Copyright 2013-2018 Mossroy, Peter-x, Jaifroid, sharun-s and contributors
+        Copyright 2013-2023 Mossroy, Peter-x, Jaifroid, sharun-s and contributors
         License GPL v3:
 
         This file is part of Kiwix.
@@ -646,15 +646,15 @@
                         <br />
                         <div id="imgHandlingModeDiv">
                             <div class="card card-warning">
-                                <div class="card-header">Image handling</div>
+                                <div data-i18n="configure-compatibility-images-title" class="card-header">Image handling</div>
                                 <div class="card-body">
-                                    <p>Work around anti-fingerprinting measures by substituting WebP images with canvas elements
+                                    <p data-i18n="configure-compatibility-images-label">Work around anti-fingerprinting measures by substituting WebP images with canvas elements
                                         (setting determined automatically, can be disabled):
                                     </p>
                                     <div class="checkbox">
-                                        <label title="For browsers that do not have native WebP support and that implement anti-fingerprinting measures, we cannot extract the image data from the canvas elements produced by the polyfill, so we use the canvas as substitute for the image. If not needed, disabling this may improve performance." >
+                                        <label data-i18n-tip="configure-compatibility-images-tip" title="For browsers that do not have native WebP support and that implement anti-fingerprinting measures, we cannot extract the image data from the canvas elements produced by the polyfill, so we use the canvas as substitute for the image. If not needed, disabling this may improve performance." >
                                             <input type="checkbox" name="useCanvasElements" id="useCanvasElementsCheck">
-                                            <strong>Use WebP workaround if needed</strong>
+                                            <strong data-i18n="configure-compatibility-images-control">Use WebP workaround if needed</strong>
                                         </label>
                                     </div>
                                 </div>

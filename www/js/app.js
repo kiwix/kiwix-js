@@ -1281,7 +1281,8 @@ function populateDropDownListOfArchives (archiveDirectories) {
             document.getElementById('btnAbout').click();
             var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
             if (isAndroid) {
-                uiUtil.systemAlert("You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", 'Warning');
+                uiUtil.systemAlert(translateUI.t('dialog-old-android') || "You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.",
+                    translateUI.t('dialog-launchlocal-title') || 'Warning!');
             }
         });
     }
