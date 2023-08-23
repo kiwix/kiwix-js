@@ -487,14 +487,18 @@
                         <p id="downloadInstruction" data-i18n="configure-download-instructions">This application needs a ZIM archive to work. For download
                             instructions, please see the About section.</p>
                         <div id="selectorsDisplay" style="display: none;">
-                            <p  data-i18n="configure-selectordisplay">Drag and drop a new ZIM file, or <a href="#" id="selectorsDisplayLink">display
-                                    file selectors</a></p>
+                            <p><span data-i18n="configure-selectordisplay">Drag and drop a new ZIM file, or</span>
+                                <a href="#" id="selectorsDisplayLink" data-i18n="configure-selectordisplay-link">display file selectors</a>.</p>
                         </div>
                         <div id="openLocalFiles" style="display: none;">
                             <p data-i18n="configure-select-instructions">Please select or drag and drop the .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file).</p>
-                            <input type="file" id="archiveFiles" multiple class="btn"
-                                accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" /><br />
+                            <label class="custom-file-upload">
+                                <input type="file" id="archiveFiles" multiple class="btn"
+                                    accept=".zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
+                                <span data-i18n="home-btn-fileselect">Select ZIM file(s)</span>
+                            </label>
+                            <br />
                             <strong data-i18n="configure-supportedarchives">Only Mediawiki-based (wiki*.zim* files, like wikipedia), StackExchange and
                                 some video-based ZIMs (e.g. TEDx) have been fully tested</strong>.
                             <span data-i18n="configure-dynamic-content">Dynamic content is not currently supported in jQuery mode.</span><br />

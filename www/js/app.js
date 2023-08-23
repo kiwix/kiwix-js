@@ -2277,12 +2277,12 @@ function goToMainArticle () {
         } else {
             // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
             if (selectedArchive._file.zimType === 'zimit') {
-                uiUtil.systemAlert('<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
+                uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
                     '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
                     '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
                     '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
-                    'Kiwix Serve is included with <a href="https://www.kiwix.org/en/download/" target="_blank">Kiwix Desktop</a>.</p>',
-                    'Unsupported archive type!'
+                    'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
+                    translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!'
                 );
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('welcomeText').style.display = '';
