@@ -307,7 +307,13 @@ function getDefaultLanguageAndTranslateApp () {
 // Add a listener for the language selection dropdown which will change the language of the app
 document.getElementById('languageSelector').addEventListener('change', function (e) {
     var language = e.target.value;
-    if (language === 'default') {
+    if (language === 'other') {
+        uiUtil.systemAlert((translateUI.t('dialog-other-language-message') ||
+            'We are working hard to bring you more languages! If you are interested in helping to translate the interface to your language, please create an issue on our GitHub. Thank you!'),
+            (translateUI.t('configure-language-selector-other') || 'More soon...')).then(function () {
+                document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
+        });
+    } else if (language === 'default') {
         params.overrideBrowserLanguage = null;
         settingsStore.removeItem('languageOverride');
     } else {
