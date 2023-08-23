@@ -26,11 +26,9 @@
 /* global webpHero */
 
 // Define global params needed for tests to run on existing app code
-// eslint-disable-next-line no-unused-vars
 var params = {};
 
 // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
-// eslint-disable-next-line no-unused-vars
 var webpMachine = false;
 
 // We use a self-invoking function here to avoid defining unnecessary global functions and variables
@@ -48,7 +46,7 @@ var webpMachine = false;
         webpScript.onload = function () {
             webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
         }
-        webpScript.src = '../../www/js/webpHeroBundle_0.0.2.js';
+        webpScript.src = '../www/js/webpHeroBundle_0.0.2.js';
         document.head.appendChild(webpScript);
     }
 });

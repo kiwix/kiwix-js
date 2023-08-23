@@ -3,7 +3,7 @@
 import { Selector } from 'testcafe'; // first import testcafe selectors
 
 fixture`Start QUnit tests`// declare the fixture
-    .page`http://localhost:8080/tests/unit/`; // specify the start page
+    .page`http://localhost:8080/tests/`; // specify the start page
 
 // then create a test and place your code within it
 test('Check for success', async t => {

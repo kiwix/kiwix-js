@@ -1,5 +1,5 @@
 import { Builder } from 'selenium-webdriver';
-import legacyRayCharles from '../../specs/legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 

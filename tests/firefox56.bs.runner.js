@@ -1,5 +1,5 @@
 import { Builder } from 'selenium-webdriver';
-import legacyRayCharles from '../../specs/legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -8,22 +8,19 @@ const capabilities = {
     'bstack:options': {
         os: 'Windows',
         osVersion: '10',
-        browserVersion: '18.0',
+        browserVersion: '56.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Edge Legacy',
+        buildName: 'BStack Build Name: Firefox Legacy 56',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
-        seleniumVersion: '4.10.0',
-        edge: {
-            enablePopups: true
-        }
+        seleniumVersion: '3.141.59'
     },
-    browserName: 'Edge'
+    browserName: 'Firefox'
 };
 
-async function loadEdgeLegacyDriver () {
+async function loadFirefoxDriver () {
     const driver = await new Builder()
         // .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
@@ -32,9 +29,11 @@ async function loadEdgeLegacyDriver () {
     return driver;
 };
 
-const driver_edge_legacy = await loadEdgeLegacyDriver();
+const driver_fx = await loadFirefoxDriver();
 
 // Maximize the window so that full browser state is visible in the screenshots
-await driver_edge_legacy.manage().window().maximize();
+await driver_fx.manage().window().maximize();
 
-legacyRayCharles.runTests(driver_edge_legacy);
+// Run tests in jQuery mode only (this browser does not support Service Workers)
+console.log('Running tests in jQuery mode only for this browser version');
+legacyRayCharles.runTests(driver_fx, ['jquery']);

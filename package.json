@@ -7,18 +7,18 @@
     "build-min": "rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
     "build-src": "rollup --config --file dist/www/js/bundle.js",
     "del-dist": "del-cli dist",
-    "test": "testcafe all ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-browsers": "testcafe firefox:headless,chrome:headless,edge:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-firefox": "testcafe firefox:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-chrome": "testcafe chrome:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-edge": "testcafe edge:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-mac": "testcafe safari ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test": "testcafe all ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-browsers": "testcafe firefox:headless,chrome:headless,edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-firefox": "testcafe firefox:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-chrome": "testcafe chrome:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-edge": "testcafe edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-mac": "testcafe safari ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "web-server": "http-server -p 8080 .",
     "test-e2e": "npm run test-e2e-firefox && npm run test-e2e-chrome && npm run test-e2e-edge && npm run test-e2e-iemode",
-    "test-e2e-firefox": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/firefox/firefox.e2e.runner.js'",
-    "test-e2e-chrome": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/chrome/chromium.e2e.runner.js'",
-    "test-e2e-edge": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js'",
-    "test-e2e-iemode": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/ieMode.e2e.runner.js'"
+    "test-e2e-firefox": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/firefox.e2e.runner.js'",
+    "test-e2e-chrome": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/chromium.e2e.runner.js'",
+    "test-e2e-edge": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/microsoftEdge.e2e.runner.js'",
+    "test-e2e-iemode": "npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/ieMode.e2e.runner.js'"
   },
   "engines": {
     "node": ">=10"

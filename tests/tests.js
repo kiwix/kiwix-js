@@ -26,11 +26,11 @@
 // import '../www/js/lib/arrayFromPolyfill.js';
 import './init.js';
 // import '../www/js/app.js';
-import zimArchive from '../../www/js/lib/zimArchive.js';
-import zimDirEntry from '../../www/js/lib/zimDirEntry.js';
-import util from '../../www/js/lib/util.js';
-import uiUtil from '../../www/js/lib/uiUtil.js';
-import utf8 from '../../www/js/lib/utf8.js';
+import zimArchive from '../www/js/lib/zimArchive.js';
+import zimDirEntry from '../www/js/lib/zimDirEntry.js';
+import util from '../www/js/lib/util.js';
+import uiUtil from '../www/js/lib/uiUtil.js';
+import utf8 from '../www/js/lib/utf8.js';
 
 var localZimArchive;
 
@@ -77,7 +77,7 @@ var zimArchiveFiles = [];
 
 var splitBlobs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o'].map(function (c) {
     var filename = 'wikipedia_en_ray_charles_2015-06.zima' + c;
-    return makeBlobRequest('tests/zims/legacy-ray-charles/' + filename, filename);
+    return makeBlobRequest('tests/' + filename, filename);
 });
 Promise.all(splitBlobs)
     .then(function (values) {
