@@ -134,9 +134,9 @@ function runTests (driver, modes) {
                     const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
                     // Scroll the element into view so that it can be clicked
                     await driver.wait(async function () {
-                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
+                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 250); return el.offsetParent;', modeSelector);
                         return elementIsVisible;
-                    }, 5000);
+                    }, 6000);
                     // Pause for timeout
                     await driver.sleep(500);
                     // Check for and click any approve button in dialogue box
@@ -181,11 +181,11 @@ function runTests (driver, modes) {
                             // Click the other mode selector
                             await otherModeSelector.click();
                             // Wait until the mode has switched
-                            await driver.sleep(330);
+                            await driver.sleep(400);
                             // Click the mode selector again
                             await modeSelector.click();
                             // Wait until the mode has switched
-                            await driver.sleep(330);
+                            await driver.sleep(400);
                             serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getAttribute('class');
                             if (mode === 'serviceworker') {
                                 assert.equal(true, /apiAvailable/i.test(serviceWorkerStatus));
@@ -234,24 +234,24 @@ function runTests (driver, modes) {
                         return;
                     }
                     // console.log('FilesLength outer: ' + filesLength);
-                    // Switch to iframe and check that the index contains the specified article
-                    await driver.switchTo().frame('articleContent');
                     // Wait until the index has loaded
                     await driver.wait(async function () {
-                        const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
+                        const contentAvailable = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mw-content-text");');
                         return contentAvailable;
-                    }, 5000);
+                    }, 7000);
+                    // Switch to iframe and check that the index contains the specified article
+                    await driver.switchTo().frame('articleContent');
                     const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
                     // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
                     assert.equal('This Little Girl of Mine', await articleLink.getText());
                     // Scroll the element into view and navigate to it
                     await driver.wait(async function () {
-                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
+                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 150); return el.offsetParent;', articleLink);
                         // console.log('Element is visible: ' + elementIsVisible);
                         return elementIsVisible;
                     }, 10000);
-                    // Pause for 1 second to allow article to load
-                    await driver.sleep(1300);
+                    // Pause for 1.5 second to allow article to load
+                    await driver.sleep(1500);
                     let elementText = '';
                     try {
                         // Find the mwYw element in JavaScript and get its content
