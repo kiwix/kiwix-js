@@ -22,11 +22,12 @@
 
 'use strict';
 
-/* eslint-disable no-global-assign */
+/* eslint-disable indent */
 /* global $, webpMachine, webpHero, params */
 
 import util from './util.js';
 import settingsStore from './settingsStore.js';
+import translateUI from './translateUI.js';
 
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
@@ -40,9 +41,9 @@ import settingsStore from './settingsStore.js';
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
 function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
-    declineConfirmLabel = declineConfirmLabel || 'Cancel';
-    approveConfirmLabel = approveConfirmLabel || 'Confirm';
-    closeMessageLabel = closeMessageLabel || 'Okay';
+    declineConfirmLabel = declineConfirmLabel || (translateUI.t('dialog-cancel') || 'Cancel');
+    approveConfirmLabel = approveConfirmLabel || (translateUI.t('dialog-confirm') || 'Confirm');
+    closeMessageLabel = closeMessageLabel || (translateUI.t('dialog-ok') || 'Okay');
     label = label || (isConfirm ? 'Confirmation' : 'Message');
     return util.PromiseQueue.enqueue(function () {
         return new Promise(function (resolve, reject) {
@@ -643,9 +644,10 @@ function showReturnLink () {
 function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMachineType) {
     console.error('Could not instantiate any ' + decoderType + ' decoder!', error);
     params.decompressorAPI.assemblerMachineType = assemblerMachineType;
-    params.decompressorAPI.errorStatus = 'Error loading ' + decoderType + ' decompressor!';
+    params.decompressorAPI.errorStatus = (translateUI.t('api-decompressor-error-loading-part1') || 'Error loading') + ' ' + decoderType + ' ' +
+        (translateUI.t('api-decompressor-error-loading-part2') || 'decompressor!');
     var decompAPI = document.getElementById('decompressorAPIStatus');
-    decompAPI.textContent = 'Decompressor API: ' + params.decompressorAPI.errorStatus;
+    decompAPI.textContent = (translateUI.t('api-decompressor-label') || 'Decompressor API:') + ' ' + params.decompressorAPI.errorStatus;
     decompAPI.className = 'apiBroken';
     document.getElementById('apiStatusDiv').className = 'card card-danger';
 }
@@ -654,8 +656,10 @@ function reportAssemblerErrorToAPIStatusPanel (decoderType, error, assemblerMach
 function reportSearchProviderToAPIStatusPanel (provider) {
     var providerAPI = document.getElementById('searchProviderStatus');
     if (providerAPI) { // NB we need this so that tests don't fail
-        providerAPI.textContent = 'Search Provider: ' + (/^fulltext/.test(provider) ? 'Title + Xapian [' + provider + ']'
-            : /^title/.test(provider) ? 'Title only [' + provider + ']' : 'Not initialized');
+        providerAPI.textContent = (translateUI.t('api-searchprovider-label') || 'Search Provider:') + ' ' + (/^fulltext/.test(provider)
+            ? (translateUI.t('api-searchprovider-title') || 'Title') + ' + Xapian [' + provider + ']'
+            : /^title/.test(provider) ? (translateUI.t('api-searchprovider-titleonly') || 'Title only') + ' [' + provider + ']'
+            : (translateUI.t('api-error-uninitialized_masculine') || 'Not initialized'));
         providerAPI.className = /^fulltext/.test(provider) ? 'apiAvailable' : !/ERROR/.test(provider) ? 'apiUnavailable' : 'apiBroken';
     }
 }
@@ -671,12 +675,12 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
     event.stopPropagation();
     if (!clickedAnchor) clickedAnchor = event.target;
     var target = clickedAnchor.target;
-    var message = '<p>Do you want to open this external link?';
+    var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';
     if (!target || target === '_blank') {
-        message += ' (in a new tab)';
+        message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
     message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
-    systemAlert(message, 'Opening external link', true).then(function (response) {
+    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true).then(function (response) {
         if (response) {
             if (!target) {
                 target = '_blank';
@@ -715,6 +719,27 @@ function closestAnchorEnclosingElement (element) {
 }
 
 /**
+ * Get the base language code that has been set in the browser
+ * If the browser language is unavailable, the default language is set to British English
+ *
+ * @returns {Object} A language object consisting of a base language code and a locale
+ */
+
+function getBrowserLanguage () {
+    // This defines the default language to return if user hasn't selected one
+    var language = {
+        base: 'en',
+        locale: 'GB'
+    }
+    var fullLanguage = navigator.language || navigator.userLanguage;
+    if (fullLanguage) {
+        language.base = fullLanguage.replace(/-.+$/, '').toLowerCase();
+        language.locale = fullLanguage.replace(/^[^-]+-/, '').toUpperCase();
+    }
+    return language;
+}
+
+/**
  * Functions and classes exposed by this module
  */
 export default {
@@ -736,5 +761,6 @@ export default {
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
-    closestAnchorEnclosingElement: closestAnchorEnclosingElement
+    closestAnchorEnclosingElement: closestAnchorEnclosingElement,
+    getBrowserLanguage: getBrowserLanguage
 };

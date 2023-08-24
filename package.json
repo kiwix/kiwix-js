@@ -3,8 +3,11 @@
   "scripts": {
     "serve": "vite",
     "preview": "del-cli dist && npm run build-src && vite preview",
-    "build": "del-cli dist && npm run build-src && npm run build-min",
+    "prebuild": "del-cli dist",
+    "build": "rollup --config --file dist/www/js/bundle.js && rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
+    "prebuild-min": "del-cli dist",
     "build-min": "rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
+    "prebuild-src": "del-cli dist",
     "build-src": "rollup --config --file dist/www/js/bundle.js",
     "del-dist": "del-cli dist",
     "test": "testcafe all ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
@@ -28,6 +31,7 @@
     "@types/fs-extra": "^9.0.11",
     "bootstrap": "^4.6.2",
     "core-js": "3.30.2",
+    "i18next": "14.0.0",
     "jquery": "^3.7.0"
   },
   "devDependencies": {
