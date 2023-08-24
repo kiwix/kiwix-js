@@ -26,15 +26,15 @@ To update the patch, you will need the help of software, because the format of a
 1. On your PR branch make sure your working tree is clean (that you have committed other irrelevant changes);
 2. Then run the exising patch with `git apply ./scripts/gitignore.patch`. Do NOT commit these changes, but do save them;
 3. Add your your dependency as well to `.gitignore`, putting it in alphabetical order into the existing block of changes, e.g.:
-```
+   ```
    !/node_modules/i18next
    /node_modules/i18next/*
    !/node_modules/i18next/dist
    /node_modules/i18next/dist/*
    !/node_modules/i18next/dist/es
    !/node_modules/i18next/dist/es/*
-```
-   This unwieldy syntax is necessary to exclude all the contents of each folder other than the file(s) you wish to include.
+   ```
+   This unwieldy syntax is necessary to exclude all the contents of each folder other than the file(s) you wish to include;
 4. Save the file (but don't commit it);
 5. Run something like `git diff > mypatch.patch`;
 6. Take the code in `mypatch.patch` and overwrite the code (but not the comment) in the current `./scripts/gitignore.patch`;
