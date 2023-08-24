@@ -31,6 +31,13 @@ index 69d180f..45218ed 100644
 +!/node_modules/bootstrap/dist/js
 +/node_modules/bootstrap/dist/js/*
 +!/node_modules/bootstrap/dist/js/bootstrap.bundle.min.*
++!/node_modules/i18next
++/node_modules/i18next/*
++!/node_modules/i18next/dist
++/node_modules/i18next/dist/*
++!/node_modules/i18next/dist/es
++!/node_modules/i18next/dist/es/*
++!/node_modules/i18next/dist/es/i18next.js
 +!/node_modules/jquery
 +/node_modules/jquery/*
 +!/node_modules/jquery/dist
