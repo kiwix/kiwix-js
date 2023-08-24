@@ -55,6 +55,10 @@ To contribute code, please follow these guidelines carefully:
 * _Before asking for review, thoroughly **test** (see below) both the **source code** and the **production (bundled) code** on at least Chrome/Edge and Firefox, and_
   _**test that your code works as an add-on/extension** in both of these browsers. **If you have not tested your code yourself, do not expect us to test it and review it for you!**_
 
+## Adding runtime dependencies via NPM
+
+If your PR adds a runtime dependency with `npm install xxx` (as opposed to a development dependency with `npm install xxx --save-dev`), then you will need to ensure that your dependency files are available both in the unbundled and the bundled versions of the app, without simply committing them to `main`. You can find more details on how to do this in [ADDING_DEPENDENCIES_NODE_MODULES](./ADDING_DEPENDENCIES_NODE_MODULES.md). 
+
 ## Testing
 
 Please note that the app caches its own code so that it can run as an offline-first Progressive Web App. This can complicate development, because you may not see your changes,

@@ -34,6 +34,7 @@ import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
+import translateUI from './lib/translateUI.js';
 
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
@@ -147,7 +148,10 @@ function resizeIFrame () {
         }, 100);
     }
 }
-document.addEventListener('DOMContentLoaded', resizeIFrame);
+document.addEventListener('DOMContentLoaded', function () {
+    getDefaultLanguageAndTranslateApp();
+    resizeIFrame();
+});
 window.addEventListener('resize', resizeIFrame);
 
 // Define behavior of HTML elements
@@ -174,6 +178,46 @@ searchArticle.addEventListener('mousedown', function () {
 });
 document.getElementById('formArticleSearch').addEventListener('submit', function () {
     document.getElementById('searchArticles').click();
+});
+
+function getDefaultLanguageAndTranslateApp () {
+    var defaultBrowserLanguage = uiUtil.getBrowserLanguage();
+    // DEV: Be sure to add supported language codes here
+    // TODO: Add a supported languages object elsewhere and use it here
+    if (!params.overrideBrowserLanguage) {
+        if (/^en|es|fr$/.test(defaultBrowserLanguage.base)) {
+            console.log('Supported default browser language is: ' + defaultBrowserLanguage.base + ' (' + defaultBrowserLanguage.locale + ')');
+        } else {
+            console.warn('Unsupported browser language! ' + defaultBrowserLanguage.base + ' (' + defaultBrowserLanguage.locale + ')');
+            console.warn('Reverting to English');
+            defaultBrowserLanguage.base = 'en';
+            defaultBrowserLanguage.name = 'GB';
+            params.overrideBrowserLanguage = 'en';
+        }
+    } else {
+        console.log('User-selected language is: ' + params.overrideBrowserLanguage);
+    }
+    // Use the override language if set, or else use the browser default
+    translateUI.translateApp(params.overrideBrowserLanguage || defaultBrowserLanguage.base);
+}
+
+// Add a listener for the language selection dropdown which will change the language of the app
+document.getElementById('languageSelector').addEventListener('change', function (e) {
+    var language = e.target.value;
+    if (language === 'other') {
+        uiUtil.systemAlert((translateUI.t('dialog-other-language-message') ||
+            'We are working hard to bring you more languages! If you are interested in helping to translate the interface to your language, please create an issue on our GitHub. Thank you!'),
+            (translateUI.t('configure-language-selector-other') || 'More soon...')).then(function () {
+                document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
+        });
+    } else if (language === 'default') {
+        params.overrideBrowserLanguage = null;
+        settingsStore.removeItem('languageOverride');
+    } else {
+        params.overrideBrowserLanguage = language;
+        settingsStore.setItem('languageOverride', language, Infinity);
+    }
+    getDefaultLanguageAndTranslateApp();
 });
 
 const prefixElement = document.getElementById('prefix');
@@ -389,7 +433,8 @@ document.getElementById('useCanvasElementsCheck').addEventListener('change', fun
     }
 });
 document.getElementById('btnReset').addEventListener('click', function () {
-    uiUtil.systemAlert('WARNING: This will reset the app to a freshly installed state, deleting all app caches and settings!', 'Warning!', true).then(function (response) {
+    uiUtil.systemAlert((translateUI.t('dialog-reset-warning-message') || 'This will reset the app to a freshly installed state, deleting all app caches and settings!'),
+    (translateUI.t('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
         if (response) {
             settingsStore.reset();
         }
@@ -397,7 +442,7 @@ document.getElementById('btnReset').addEventListener('click', function () {
 });
 document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
     if (params.contentInjectionMode !== 'serviceworker') {
-        uiUtil.systemAlert('This setting can only be used in ServiceWorker mode!');
+        uiUtil.systemAlert(translateUI.t('dialog-bypassappcachecheck-message') || 'This setting can only be used in ServiceWorker mode!');
         this.checked = false;
     } else {
         params.appCache = !this.checked;
@@ -410,8 +455,8 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
     params.disableDragAndDrop = !!this.checked;
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
-    uiUtil.systemAlert('<p>We will now attempt to reload the app to apply the new setting.</p>' +
-        '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>', 'Reload app', true).then(function (result) {
+    uiUtil.systemAlert((translateUI.t('dialog-disabledragdrop-message') || '<p>We will now attempt to reload the app to apply the new setting.</p>' +
+        '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>'), (translateUI.t('dialog-disabledragdrop-title') || 'Reload app'), true).then(function (result) {
         if (result) {
             window.location.reload();
         }
@@ -483,11 +528,11 @@ document.getElementById('modesLink').addEventListener('click', function () {
         document.getElementById('modes').scrollIntoView();
     }, 600);
 });
-// Do update checks 10s after startup
+// Do update checks 7s after startup
 setTimeout(function () {
     console.log('Checking for updates to the PWA...');
     uiUtil.checkUpdateStatus(appstate);
-}, 10000);
+}, 7000);
 
 // Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
 // Returning false prevents their dragging (which can cause some unexpected behavior)
@@ -538,21 +583,23 @@ function switchHomeKeyToFocusSearchBar () {
 function checkAndDisplayInjectionModeChangeAlert () {
     var message;
     if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
-        message = ['<p>We have switched you to ServiceWorker mode (this is now the default). ' +
+        message = [(translateUI.t('dialog-serviceworker-defaultmodechange-message') ||
+            '<p>We have switched you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p>' +
             '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
-            'In that case, please report the problems you experienced to us (see About section).</p>',
-            'Change of default content injection mode'];
+            'In that case, please report the problems you experienced to us (see About section).</p>'),
+            (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
             settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
         });
     } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
-        message = ['<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
+        message = [(translateUI.t('dialog-serviceworker-unsupported-message') ||
+            '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
             '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
-            '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>',
-            'ServiceWorker mode unsupported'];
-        uiUtil.systemAlert(message[0], message[1], true, 'Cancel', 'Okay').then(function (result) {
+            '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
+            (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
+        uiUtil.systemAlert(message[0], message[1], true, null, (translateUI.t('dialog-ok') || 'Okay')).then(function (result) {
             if (result) {
                 // If user selected OK, then do not display again ever
                 settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
@@ -567,69 +614,72 @@ function checkAndDisplayInjectionModeChangeAlert () {
  * Displays or refreshes the API status shown to the user
  */
 function refreshAPIStatus () {
-    var apiStatusPanel = document.getElementById('apiStatusDiv');
-    apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
-    var apiPanelClass = 'card-success';
-    var messageChannelStatus = document.getElementById('messageChannelStatus');
-    var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
-    if (isMessageChannelAvailable()) {
-        messageChannelStatus.textContent = 'MessageChannel API available';
-        messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
-        messageChannelStatus.classList.add('apiAvailable');
-    } else {
-        apiPanelClass = 'card-warning';
-        messageChannelStatus.textContent = 'MessageChannel API unavailable';
-        messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
-        messageChannelStatus.classList.add('apiUnavailable');
-    }
-    if (isServiceWorkerAvailable()) {
-        if (isServiceWorkerReady()) {
-            serviceWorkerStatus.textContent = 'ServiceWorker API available, and registered';
-            serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
-            serviceWorkerStatus.classList.add('apiAvailable');
+    // We have to delay refreshing the API status until the translation service has been initialized
+    setTimeout(function () {
+        var apiStatusPanel = document.getElementById('apiStatusDiv');
+        apiStatusPanel.classList.remove('card-success', 'card-warning', 'card-danger');
+        var apiPanelClass = 'card-success';
+        var messageChannelStatus = document.getElementById('messageChannelStatus');
+        var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
+        if (isMessageChannelAvailable()) {
+            messageChannelStatus.textContent = translateUI.t('api-messagechannel-available') || 'MessageChannel API available';
+            messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
+            messageChannelStatus.classList.add('apiAvailable');
         } else {
             apiPanelClass = 'card-warning';
-            serviceWorkerStatus.textContent = 'ServiceWorker API available, but not registered';
+            messageChannelStatus.textContent = translateUI.t('api-messagechannel-unavailable') || 'MessageChannel API unavailable';
+            messageChannelStatus.classList.remove('apiAvailable', 'apiUnavailable');
+            messageChannelStatus.classList.add('apiUnavailable');
+        }
+        if (isServiceWorkerAvailable()) {
+            if (isServiceWorkerReady()) {
+                serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-available-registered') || 'ServiceWorker API available, and registered';
+                serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
+                serviceWorkerStatus.classList.add('apiAvailable');
+            } else {
+                apiPanelClass = 'card-warning';
+                serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-available-unregistered') || 'ServiceWorker API available, but not registered';
+                serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
+                serviceWorkerStatus.classList.add('apiUnavailable');
+            }
+        } else {
+            apiPanelClass = 'card-warning';
+            serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-unavailable') || 'ServiceWorker API unavailable';
             serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
             serviceWorkerStatus.classList.add('apiUnavailable');
         }
-    } else {
-        apiPanelClass = 'card-warning';
-        serviceWorkerStatus.textContent = 'ServiceWorker API unavailable';
-        serviceWorkerStatus.classList.remove('apiAvailable', 'apiUnavailable');
-        serviceWorkerStatus.classList.add('apiUnavailable');
-    }
-    // Update Settings Store section of API panel with API name
-    var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
-    var apiName = params.storeType === 'cookie' ? 'Cookie' : params.storeType === 'local_storage' ? 'Local Storage' : 'None';
-    settingsStoreStatusDiv.textContent = 'Settings Storage API in use: ' + apiName;
-    settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
-    settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
-    apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
-    // Update Decompressor API section of panel
-    var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
-    apiName = params.decompressorAPI.assemblerMachineType;
-    apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
-    decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
-    // Add the last used decompressor, if known, to the apiName
-    if (apiName && params.decompressorAPI.decompressorLastUsed) {
-        apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
-    }
-    apiName = params.decompressorAPI.errorStatus || apiName || 'Not initialized';
-    // innerHTML is used here because the API name may contain HTML entities like &nbsp;
-    decompAPIStatusDiv.innerHTML = 'Decompressor API: ' + apiName;
-    // Update Search Provider
-    uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
-    // Update PWA origin
-    var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
-    pwaOriginStatusDiv.className = 'apiAvailable';
-    pwaOriginStatusDiv.innerHTML = 'PWA Origin: ' + window.location.origin;
-    // Add a warning colour to the API Status Panel if any of the above tests failed
-    apiStatusPanel.classList.add(apiPanelClass);
-    // Set visibility of UI elements according to mode
-    document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
-    // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
-    if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
+        // Update Settings Store section of API panel with API name
+        var settingsStoreStatusDiv = document.getElementById('settingsStoreStatus');
+        var apiName = params.storeType === 'cookie' ? (translateUI.t('api-cookie') || 'Cookie') : params.storeType === 'local_storage' ? (translateUI.t('api-localstorage') || 'Local Storage') : (translateUI.t('api-none') || 'None');
+        settingsStoreStatusDiv.textContent = (translateUI.t('api-storage-used-label') || 'Settings Storage API in use:') + ' ' + apiName;
+        settingsStoreStatusDiv.classList.remove('apiAvailable', 'apiUnavailable');
+        settingsStoreStatusDiv.classList.add(params.storeType === 'none' ? 'apiUnavailable' : 'apiAvailable');
+        apiPanelClass = params.storeType === 'none' ? 'card-warning' : apiPanelClass;
+        // Update Decompressor API section of panel
+        var decompAPIStatusDiv = document.getElementById('decompressorAPIStatus');
+        apiName = params.decompressorAPI.assemblerMachineType;
+        apiPanelClass = params.decompressorAPI.errorStatus ? 'card-danger' : apiName === 'WASM' ? apiPanelClass : 'card-warning';
+        decompAPIStatusDiv.className = apiName ? params.decompressorAPI.errorStatus ? 'apiBroken' : apiName === 'WASM' ? 'apiAvailable' : 'apiSuboptimal' : 'apiUnavailable';
+        // Add the last used decompressor, if known, to the apiName
+        if (apiName && params.decompressorAPI.decompressorLastUsed) {
+            apiName += ' [&nbsp;' + params.decompressorAPI.decompressorLastUsed + '&nbsp;]';
+        }
+        apiName = params.decompressorAPI.errorStatus || apiName || (translateUI.t('api-error-uninitialized_feminine') || 'Not initialized');
+        // innerHTML is used here because the API name may contain HTML entities like &nbsp;
+        decompAPIStatusDiv.innerHTML = (translateUI.t('api-decompressor-label') || 'Decompressor API:') + ' ' + apiName;
+        // Update Search Provider
+        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+        // Update PWA origin
+        var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
+        pwaOriginStatusDiv.className = 'apiAvailable';
+        pwaOriginStatusDiv.innerHTML = (translateUI.t('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
+        // Add a warning colour to the API Status Panel if any of the above tests failed
+        apiStatusPanel.classList.add(apiPanelClass);
+        // Set visibility of UI elements according to mode
+        document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+        // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
+        if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
+    }, 250);
 }
 
 /**
@@ -751,15 +801,16 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert('You must deselect the "Bypass AppCache" option before switching to JQuery mode!', 'Deselect "Bypass AppCache"').then(function () {
+            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
+            (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
             return;
         }
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
-            message = 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
-            'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
+            message = translateUI.t('dialog-launchlocal-message') || 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
+                'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
             var launchLocal = function () {
                 settingsStore.setItem('allowInternetAccess', false, Infinity);
                 var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
@@ -768,7 +819,7 @@ function setContentInjectionMode (value) {
                 window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                 console.log('Beam me down, Scotty!');
             };
-            uiUtil.systemAlert(message, 'Warning!', true).then(function (response) {
+            uiUtil.systemAlert(message, (translateUI.t('dialog-launchlocal-title') || 'Warning!'), true).then(function (response) {
                 if (response) {
                     launchLocal();
                 } else {
@@ -804,12 +855,13 @@ function setContentInjectionMode (value) {
             launchBrowserExtensionServiceWorker();
         } else {
             if (!isServiceWorkerAvailable()) {
-                message =
+                message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
                     '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
-                uiUtil.systemAlert(message, 'ServiceWorker API not available', true, 'Cancel', 'Use JQuery mode').then(function (response) {
+                uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
+                    (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
                     if (params.referrerExtensionURL && response) {
                         var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                         window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
@@ -820,7 +872,8 @@ function setContentInjectionMode (value) {
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                uiUtil.systemAlert('The MessageChannel API is not available on your device. Falling back to JQuery mode', 'MessageChannel API not available').then(function () {
+                uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to JQuery mode...'),
+                    (translateUI.t('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
                     setContentInjectionMode('jquery');
                 });
                 return;
@@ -871,11 +924,12 @@ function setContentInjectionMode (value) {
                         } else {
                             console.error('Error while registering serviceWorker', err);
                             refreshAPIStatus();
-                            var message = 'The ServiceWorker could not be properly registered. Switching back to jQuery mode. Error message : ' + err;
+                            var message = (translateUI.t('dialog-serviceworker-registration-failure-message') || 'The Service Worker could not be properly registered. Switching back to JQuery mode... Error message:') + ' ' + err;
                             if (protocol === 'file:') {
-                                message += '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)';
+                                message += (translateUI.t('dialog-serviceworker-registration-failure-fileprotocol') ||
+                                '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
                             }
-                            uiUtil.systemAlert(message, 'Failed to register ServiceWorker').then(function () {
+                            uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
                                 setContentInjectionMode('jquery');
                                 // We need to wait for the previous dialogue box to unload fully before attempting to display another
                                 setTimeout(function () {
@@ -947,13 +1001,14 @@ function launchBrowserExtensionServiceWorker () {
     var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
     var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
     var message = params.defaultModeChangeAlertDisplayed
-        ? '<p>To enable the Service Worker, we '
-        : ('<p>We shall attempt to switch you to ServiceWorker mode (this is now the default). ' +
-        'It supports more types of ZIM archives and is much more robust.</p><p>We ');
-    message += 'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
+        ? (translateUI.t('dialog-allow-internetaccess-message1') || '<p>To enable the Service Worker, we') + ' '
+        : ((translateUI.t('dialog-allow-internetaccess-message2') || '<p>We shall attempt to switch you to ServiceWorker mode (this is now the default).') + ' ' +
+        (translateUI.t('dialog-allow-internetaccess-message3') || 'It supports more types of ZIM archives and is much more robust.</p><p>We') + ' ');
+    message += (translateUI.t('dialog-allow-internetaccess-message4') ||
+        'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
         'If available, the PWA will work offline, but will auto-update periodically when online as per the ' +
         'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
-        '<p>WARNING: This will attempt to access the following server:<br/>' + params.PWAServer + '</p>';
+        '<p>WARNING: This will attempt to access the following server:<br/>') + params.PWAServer + '</p>';
     var launchPWA = function () {
         uiUtil.spinnerDisplay(false);
         var uriParams = '?contentInjectionMode=serviceworker&allowInternetAccess=true';
@@ -974,12 +1029,12 @@ function launchBrowserExtensionServiceWorker () {
         console.log('Beam me up, Scotty!');
     };
     var checkPWAIsOnline = function () {
-        uiUtil.spinnerDisplay(true, 'Checking server access...');
+        uiUtil.spinnerDisplay(true, (translateUI.t('dialog-serveraccess-check') || 'Checking server access...'));
         uiUtil.checkServerIsAccessible(params.PWAServer + 'www/img/icons/kiwix-32.png', launchPWA, function () {
             uiUtil.spinnerDisplay(false);
-            uiUtil.systemAlert('The server is not currently accessible! ' +
+            uiUtil.systemAlert((translateUI.t('dialog-serveraccess-check-failed') || 'The server is not currently accessible! ' +
                 '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
-                '<br/>Please try again when you have a stable Internet connection.', 'Error!').then(function () {
+                '<br/>Please try again when you have a stable Internet connection.'), (translateUI.t('dialog-error-title') || 'Error!')).then(function () {
                     settingsStore.setItem('allowInternetAccess', false, Infinity);
                     setContentInjectionMode(params.oldInjectionMode || 'jquery');
                 });
@@ -989,7 +1044,8 @@ function launchBrowserExtensionServiceWorker () {
         if (PWASuccessfullyLaunched) {
             launchPWA();
         } else {
-            uiUtil.systemAlert('The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?', 'Confirmation to try again PWA', true).then(function (response) {
+            uiUtil.systemAlert((translateUI.t('dialog-launchpwa-fail-message') || 'The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?'),
+                (translateUI.t('dialog-launchpwa-fail-title') || 'Confirmation to retry PWA launch'), true).then(function (response) {
                 if (response) {
                     checkPWAIsOnline();
                 } else {
@@ -999,7 +1055,7 @@ function launchBrowserExtensionServiceWorker () {
             })
         }
     } else {
-        uiUtil.systemAlert(message, 'Allow Internet access', true).then(function (response) {
+        uiUtil.systemAlert(message, (translateUI.t('dialog-allow-internetaccess-title') || 'Allow Internet access'), true).then(function (response) {
             if (response) {
                 checkPWAIsOnline();
             } else {
@@ -1102,7 +1158,9 @@ function populateDropDownListOfArchives (archiveDirectories) {
     for (var i = 0; i < archiveDirectories.length; i++) {
         var archiveDirectory = archiveDirectories[i];
         if (archiveDirectory === '/') {
-            uiUtil.systemAlert('It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them in a subdirectory', 'Error: invalid archive files location');
+            uiUtil.systemAlert((translateUI.t('dialog-invalid-archivelocation-message') ||
+                'It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them to a subdirectory'),
+                (translateUI.t('dialog-invalid-archivelocation-title') || 'Error: invalid archive files location'));
         } else {
             comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
         }
@@ -1121,12 +1179,13 @@ function populateDropDownListOfArchives (archiveDirectories) {
         // Set the localArchive as the last selected (or the first one if it has never been selected)
         setLocalArchiveFromArchiveList();
     } else {
-        uiUtil.systemAlert('Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)', 'Welcome')
-        .then(function () {
+        uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
+        (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
             document.getElementById('btnAbout').click();
             var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
             if (isAndroid) {
-                uiUtil.systemAlert("You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.", 'Warning');
+                uiUtil.systemAlert(translateUI.t('dialog-old-android') || "You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.",
+                    translateUI.t('dialog-launchlocal-title') || 'Warning!');
             }
         });
     }
@@ -1153,7 +1212,7 @@ function setLocalArchiveFromArchiveList () {
                 }
             }
             if (selectedStorage === null) {
-                uiUtil.systemAlert('Unable to find which device storage corresponds to directory ' + archiveDirectory, 'Error: no matching storage');
+                uiUtil.systemAlert((translateUI.t('dialog-devicestorage-error-message') || 'Unable to find which device storage corresponds to directory') + ' ' + archiveDirectory, 'Error: no matching storage');
             }
         } else {
             // This happens when the archiveDirectory is not prefixed by the name of the storage
@@ -1162,9 +1221,9 @@ function setLocalArchiveFromArchiveList () {
             if (storages.length === 1) {
                 selectedStorage = storages[0];
             } else {
-                uiUtil.systemAlert('Something weird happened with the DeviceStorage API : found a directory without prefix : ' +
-                archiveDirectory + ', but there were ' + storages.length +
-                ' storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
+                uiUtil.systemAlert('Something weird happened with the DeviceStorage API: found a directory without prefix:' + ' ' +
+                archiveDirectory + ', ' + 'but there were' + ' ' + storages.length +
+                ' ' + 'storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
             }
         }
         resetCssCache();
@@ -1254,7 +1313,8 @@ function setLocalArchiveFromFileList (files) {
     for (var i = files.length; i--;) {
         // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
         if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
-            uiUtil.systemAlert('One or more files does not appear to be a ZIM file!', 'Invalid File Format');
+            uiUtil.systemAlert((translateUI.t('dialog-invalid-zim-message') || 'One or more files does not appear to be a ZIM file!'),
+            (translateUI.t('dialog-invalid-zim-title') || 'Invalid file format'));
             return;
         }
     }
@@ -1361,7 +1421,8 @@ function searchDirEntriesFromPrefix (prefix) {
         // We have to remove the focus from the search field,
         // so that the keyboard does not stay above the message
         document.getElementById('searchArticles').focus();
-        uiUtil.systemAlert('Archive not set : please select an archive', 'No archive selected').then(function () {
+        uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive',
+            translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
             document.getElementById('btnConfigure').click();
         });
     }
@@ -1451,7 +1512,8 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
             readArticle(dirEntry);
         }
     } else {
-        uiUtil.systemAlert('Data files not set', 'Archive not ready');
+        uiUtil.systemAlert(translateUI.t('dialog-file-notset-message') || 'Data files not set',
+            translateUI.t('dialog-file-notset-title') || 'Archive not ready');
     }
 }
 
@@ -1707,10 +1769,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
         var iframeContentDocument = iframeArticleContent.contentDocument;
         if (!iframeContentDocument && window.location.protocol === 'file:') {
-            uiUtil.systemAlert('You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.' +
-                                '<br/><br/>The easiest way to run it is to download and run it as a browser extension (from the vendor store).' +
-                                '<br/><br/>Else you can open it through a web server : either through a local one (http://localhost/...) or through a remote one (but you need SSL : https://webserver/...)' +
-                                "<br/><br/>Another option is to force your browser to accept that (but you'll open a security breach) : on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config");
+            uiUtil.systemAlert(translateUI.t('dialog-blocked-fileprotocol') ||
+            '<p>You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.</p>' +
+            '<p>The easiest way to run it is to download and run it as a browser extension (available for free from the vendor store).</p>' +
+            '<p>Or else you can open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you will need a secure connection, e.g.: https://webserver/...)</p>' +
+            "<p>Another option is to force your browser to accept that (but you'll open a security breach): on Chrome/Edge, you can start it with --allow-file-access-from-files command-line argument;" +
+            'on Firefox, you can set privacy.file_unique_origin to false in about:config</p>');
             return;
         }
 
@@ -1724,10 +1788,10 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         if (docBody) {
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS) {
-htmlCSS.forEach(function (cl) {
+                htmlCSS.forEach(function (cl) {
                 docBody.classList.add(cl);
             });
-}
+        }
             // Deflect drag-and-drop of ZIM file on the iframe to Config
             docBody.addEventListener('dragover', handleIframeDragover);
             docBody.addEventListener('drop', handleIframeDrop);
@@ -2053,7 +2117,8 @@ function goToArticle (path, download, contentType) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
             document.getElementById('searchingArticles').style.display = 'none';
-            uiUtil.systemAlert('Article with url ' + path + ' not found in the archive', 'Error: article not found');
+            uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
+                translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
             download = true;
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
@@ -2065,7 +2130,10 @@ function goToArticle (path, download, contentType) {
             if (activeContent) activeContent.style.display = 'none';
             readArticle(dirEntry);
         }
-    }).catch(function (e) { uiUtil.systemAlert('Error reading article with url ' + path + ' : ' + e, 'Error while reading article'); });
+    }).catch(function (e) {
+        uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
+        translateUI.t('dialog-article-readerror-title') || 'Error reading article');
+    });
 }
 
 function goToRandomArticle () {
@@ -2074,7 +2142,8 @@ function goToRandomArticle () {
         selectedArchive.getRandomDirEntry(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
-                uiUtil.systemAlert('Error finding random article', 'Error finding article');
+                uiUtil.systemAlert(translateUI.t('dialog-randomarticle-error-message') || 'Error finding random article',
+                translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
@@ -2094,7 +2163,8 @@ function goToRandomArticle () {
         });
     } else {
         // Showing the relevant error message and redirecting to config page for adding the ZIM file
-        uiUtil.systemAlert('Archive not set: please select an archive', 'No archive selected').then(function () {
+        uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive',
+            translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
             document.getElementById('btnConfigure').click();
         });
     }
@@ -2110,12 +2180,12 @@ function goToMainArticle () {
         } else {
             // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
             if (selectedArchive._file.zimType === 'zimit') {
-                uiUtil.systemAlert('<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
+                uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
                     '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
                     '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
                     '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
-                    'Kiwix Serve is included with <a href="https://www.kiwix.org/en/download/" target="_blank">Kiwix Desktop</a>.</p>',
-                    'Unsupported archive type!'
+                    'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
+                    translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!'
                 );
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('welcomeText').style.display = '';

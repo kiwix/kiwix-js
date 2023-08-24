@@ -94,6 +94,24 @@
     margin: 0 1rem;
 }
 
+/* Custom file input */
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    border: 2px solid darkgray;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.dark .custom-file-upload {
+    border: 2px solid darkslategray;
+}
+
+
 /* App theme: dark */
 
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,

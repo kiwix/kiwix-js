@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Kiwix",
-    "version": "3.9.1",
+    "version": "3.9.3",
 
     "description": "Kiwix Offline Browser",
     
