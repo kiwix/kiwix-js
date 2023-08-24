@@ -136,6 +136,7 @@ document.getElementById('titleSearchRangeVal').textContent = params.maxSearchRes
 document.getElementById('appThemeSelect').value = params.appTheme;
 document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useHomeKeyToFocusSearchBar;
 document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
+document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 
