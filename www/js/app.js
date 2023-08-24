@@ -631,11 +631,11 @@ document.getElementById('modesLink').addEventListener('click', function () {
         document.getElementById('modes').scrollIntoView();
     }, 600);
 });
-// Do update checks 10s after startup
+// Do update checks 7s after startup
 setTimeout(function () {
     console.log('Checking for updates to the PWA...');
     uiUtil.checkUpdateStatus(appstate);
-}, 10000);
+}, 7000);
 
 // Adds an event listener to kiwix logo and bottom navigation bar which gets triggered when these elements are dragged.
 // Returning false prevents their dragging (which can cause some unexpected behavior)
