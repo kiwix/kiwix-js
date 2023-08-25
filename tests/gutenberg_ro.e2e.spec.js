@@ -113,22 +113,18 @@ function runTests (driver, modes) {
                     const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                     return elementIsVisible;
                 }, 5000);
-                // Pause for timeout
-                await driver.sleep(500);
+                // Pause for 1.3 seconds to allow app to reload
+                await driver.sleep(1300);
                 // Check for and click any approve button in dialogue box
                 try {
                     const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                     if (activeAlertModal) {
                         // Check if ServiceWorker mode API is supported
-                        if (mode === 'serviceworker') {
-                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                const supported = !/unsupported|not\savailable/i.test(alertText);
-                                console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
-                                return supported;
-                            })
-                        }
+                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                            return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
+                        });
                     }
-                    const approveButton = await driver.findElement(By.id('approveConfirm'));
+                    const approveButton = await driver.wait(until.elementLocated(By.id('approveConfirm')));
                     await approveButton.click();
                 } catch (e) {
                     // Do nothing
@@ -136,12 +132,12 @@ function runTests (driver, modes) {
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
                     await driver.sleep(500);
-                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getAttribute('class');
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
                         if (mode === 'serviceworker') {
-                            assert.equal(true, /apiAvailable/i.test(serviceWorkerStatus));
+                            assert.ok(true, /and\sregistered/i.test(serviceWorkerStatus));
                         } else {
-                            assert.equal(true, /apiUnavailable/i.test(serviceWorkerStatus));
+                            assert.ok(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                         }
                     } catch (e) {
                         if (!~modes.indexOf('serviceworker')) {
@@ -168,8 +164,8 @@ function runTests (driver, modes) {
                     }
                 } else {
                     // Skip remaining SW mode tests if the browser does not support the SW API
-                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
-                    return driver.quit();
+                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                    await driver.quit();
                 }
             });
 
