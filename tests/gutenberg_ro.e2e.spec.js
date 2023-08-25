@@ -107,7 +107,7 @@ function runTests (driver, modes) {
 
             // Switch to the requested contentInjectionMode
             it('Switch to ' + mode + ' mode', async function () {
-                const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
+                const modeSelector = await driver.wait(until.elementLocated(By.id(mode + 'ModeRadio')));
                 // Scroll the element into view so that it can be clicked
                 await driver.wait(async function () {
                     const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
@@ -268,14 +268,13 @@ function runTests (driver, modes) {
                 // Press enter 2 time to go and visit the first result of the search
                 // [DEV] I was not able to find a better way to do this feel free to change this
                 await driver.sleep(1000);
-                await searchBox.sendKeys(Key.ENTER);
-                await driver.sleep(1000);
-                await searchBox.sendKeys(Key.ENTER);
-                await driver.sleep(500);
+                const searchListFirstElement = await driver.wait(until.elementLocated(By.xpath('//*[@id="articleList"]/a[1]')), 1500);
+                await searchListFirstElement.click();
+                await driver.sleep(2000);
                 // if title is not loaded in next 4 seconds then return empty string and fail test
                 await searchBox.clear();
                 await driver.switchTo().frame('articleContent');
-                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 1500).getText();
+                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 5000).getText().catch(() => '');
                 assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
             });
 

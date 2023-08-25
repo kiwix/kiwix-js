@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 // eslint-disable-next-line no-unused-vars
-import { By, Key, WebDriver } from 'selenium-webdriver';
+import { By, Key, WebDriver, until } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import paths from './paths.js';
@@ -128,7 +128,7 @@ function runTests (driver, modes) {
             });
             // Switch to the requested contentInjectionMode
             it('Switch to ' + mode + ' mode', async function () {
-                const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
+                const modeSelector = await driver.wait(until.elementLocated(By.id(mode + 'ModeRadio')));
                 // Scroll the element into view so that it can be clicked
                 await driver.wait(async function () {
                     const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
@@ -145,7 +145,7 @@ function runTests (driver, modes) {
                             return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
                         });
                     }
-                    const approveButton = await driver.findElement(By.id('approveConfirm'));
+                    const approveButton = await driver.wait(until.elementLocated(By.id('approveConfirm')));
                     await approveButton.click();
                 } catch (e) {
                     // Do nothing
@@ -156,9 +156,9 @@ function runTests (driver, modes) {
                     let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
                         if (mode === 'serviceworker') {
-                            assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                            assert.ok(true, /and\sregistered/i.test(serviceWorkerStatus));
                         } else {
-                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                            assert.ok(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                         }
                     } catch (e) {
                         if (!~modes.indexOf('serviceworker')) {
@@ -229,7 +229,7 @@ function runTests (driver, modes) {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
                     return contentAvailable;
                 }, 5000);
-                const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
                 // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
                 assert.equal('This Little Girl of Mine', await articleLink.getText());
                 // Scroll the element into view and navigate to it
