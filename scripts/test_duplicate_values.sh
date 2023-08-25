@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This bash script tests the variables appVersion and ASSETS_CACHE to enrure they are correctly set in app.js, init.js and/or service-worker.js
+# This bash script tests the variables appVersion and ASSETS_CACHE to ensure they are correctly set in app.js, init.js and/or service-worker.js
 
 # Find the repo dir (it's the parent of the dir that contains this script)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
