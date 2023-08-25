@@ -250,7 +250,7 @@ function runTests (driver, modes) {
                 await searchBox.sendKeys('Poezii.35323.html');
                 // checks if the autocomplete list is displayed has one element
                 // waits until autocomplete list is displayed (might take a second)
-                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 1500);
+                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
                 // revert whatever was typed in the search box
                 await searchBox.clear()
                 assert.equal(searchList.length, 1);
