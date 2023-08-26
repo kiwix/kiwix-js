@@ -207,7 +207,7 @@ function runTests (driver, modes) {
                     return;
                 }
                 await driver.switchTo().frame('articleContent');
-                await driver.findElement(By.id('popularity_sort')).click();
+                await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
                 await driver.sleep(500);
                 // get the text of first result and check if it is the same as expected
                 const firstBookName = await driver.wait(async function () {
@@ -221,7 +221,7 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                await driver.findElement(By.id('alpha_sort')).click();
+                await driver.wait(until.elementIsVisible(driver.findElement(By.id('alpha_sort')))).click();
                 await driver.sleep(1500);
                 const firstBookName = await driver.wait(async function () {
                     return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
@@ -257,7 +257,7 @@ function runTests (driver, modes) {
                 } catch (error) {
                     // retry test one more time if search doesnt find any results
                     // it might be that the search is too fast and the autocomplete list is not displayed (rare)
-                    searchBox.clear();
+                    await searchBox.clear();
                     await searchBox.sendKeys('Poezii.35323.html');
                     await driver.sleep(1000);
                     const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
