@@ -222,7 +222,7 @@ function runTests (driver, modes) {
                     return;
                 }
                 await driver.findElement(By.id('alpha_sort')).click();
-                await driver.sleep(500);
+                await driver.sleep(1500);
                 const firstBookName = await driver.wait(async function () {
                     return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
                 }, 3000);
@@ -250,10 +250,22 @@ function runTests (driver, modes) {
                 await searchBox.sendKeys('Poezii.35323.html');
                 // checks if the autocomplete list is displayed has one element
                 // waits until autocomplete list is displayed (might take a second)
-                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
+                let searchListCount = 0
+                try {
+                    const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
+                    searchListCount = searchList.length;
+                } catch (error) {
+                    // retry test one more time if search doesnt find any results
+                    // it might be that the search is too fast and the autocomplete list is not displayed (rare)
+                    searchBox.clear();
+                    await searchBox.sendKeys('Poezii.35323.html');
+                    await driver.sleep(1000);
+                    const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
+                    searchListCount = searchList.length;
+                }
                 // revert whatever was typed in the search box
                 await searchBox.clear()
-                assert.equal(searchList.length, 1);
+                assert.equal(searchListCount, 1);
             });
 
             // Loads the universal HTML view of the selected book

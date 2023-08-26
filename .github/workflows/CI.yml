@@ -34,6 +34,7 @@ jobs:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-20.04
+    timeout-minutes: 15
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v3
@@ -113,6 +114,7 @@ jobs:
   tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
+    timeout-minutes: 15
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v3
