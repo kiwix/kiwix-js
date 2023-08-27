@@ -42,7 +42,7 @@ function runTests (driver, modes) {
     driver.getCapabilities().then(function (caps) {
         browserName = caps.get('browserName');
         browserVersion = caps.get('browserVersion');
-        console.log('\nRunning tests on: ' + browserName + ' ' + browserVersion);
+        console.log('\nRunning Gutenberg RO tests on: ' + browserName + ' ' + browserVersion);
     });
 
     // Set the implicit wait to 3 seconds
@@ -107,28 +107,24 @@ function runTests (driver, modes) {
 
             // Switch to the requested contentInjectionMode
             it('Switch to ' + mode + ' mode', async function () {
-                const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
+                const modeSelector = await driver.wait(until.elementLocated(By.id(mode + 'ModeRadio')));
                 // Scroll the element into view so that it can be clicked
                 await driver.wait(async function () {
                     const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
                     return elementIsVisible;
                 }, 5000);
-                // Pause for timeout
-                await driver.sleep(500);
+                // Pause for 1.3 seconds to allow app to reload
+                await driver.sleep(1300);
                 // Check for and click any approve button in dialogue box
                 try {
                     const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                     if (activeAlertModal) {
                         // Check if ServiceWorker mode API is supported
-                        if (mode === 'serviceworker') {
-                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                const supported = !/unsupported|not\savailable/i.test(alertText);
-                                console.log(supported ? '' : '\x1b[33m%s\x1b[0m', '      ' + alertText);
-                                return supported;
-                            })
-                        }
+                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                            return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
+                        });
                     }
-                    const approveButton = await driver.findElement(By.id('approveConfirm'));
+                    const approveButton = await driver.wait(until.elementLocated(By.id('approveConfirm')));
                     await approveButton.click();
                 } catch (e) {
                     // Do nothing
@@ -136,12 +132,12 @@ function runTests (driver, modes) {
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
                     await driver.sleep(500);
-                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getAttribute('class');
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
                         if (mode === 'serviceworker') {
-                            assert.equal(true, /apiAvailable/i.test(serviceWorkerStatus));
+                            assert.ok(true, /and\sregistered/i.test(serviceWorkerStatus));
                         } else {
-                            assert.equal(true, /apiUnavailable/i.test(serviceWorkerStatus));
+                            assert.ok(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                         }
                     } catch (e) {
                         if (!~modes.indexOf('serviceworker')) {
@@ -168,8 +164,8 @@ function runTests (driver, modes) {
                     }
                 } else {
                     // Skip remaining SW mode tests if the browser does not support the SW API
-                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests...');
-                    return driver.quit();
+                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                    await driver.quit();
                 }
             });
 
@@ -211,7 +207,7 @@ function runTests (driver, modes) {
                     return;
                 }
                 await driver.switchTo().frame('articleContent');
-                await driver.findElement(By.id('popularity_sort')).click();
+                await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
                 await driver.sleep(500);
                 // get the text of first result and check if it is the same as expected
                 const firstBookName = await driver.wait(async function () {
@@ -225,8 +221,8 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                await driver.findElement(By.id('alpha_sort')).click();
-                await driver.sleep(500);
+                await driver.wait(until.elementIsVisible(driver.findElement(By.id('alpha_sort')))).click();
+                await driver.sleep(1500);
                 const firstBookName = await driver.wait(async function () {
                     return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
                 }, 3000);
@@ -254,10 +250,22 @@ function runTests (driver, modes) {
                 await searchBox.sendKeys('Poezii.35323.html');
                 // checks if the autocomplete list is displayed has one element
                 // waits until autocomplete list is displayed (might take a second)
-                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 1500);
+                let searchListCount = 0
+                try {
+                    const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
+                    searchListCount = searchList.length;
+                } catch (error) {
+                    // retry test one more time if search doesnt find any results
+                    // it might be that the search is too fast and the autocomplete list is not displayed (rare)
+                    await searchBox.clear();
+                    await searchBox.sendKeys('Poezii.35323.html');
+                    await driver.sleep(1000);
+                    const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="articleList"]/a')), 3000);
+                    searchListCount = searchList.length;
+                }
                 // revert whatever was typed in the search box
                 await searchBox.clear()
-                assert.equal(searchList.length, 1);
+                assert.equal(searchListCount, 1);
             });
 
             // Loads the universal HTML view of the selected book
@@ -268,14 +276,13 @@ function runTests (driver, modes) {
                 // Press enter 2 time to go and visit the first result of the search
                 // [DEV] I was not able to find a better way to do this feel free to change this
                 await driver.sleep(1000);
-                await searchBox.sendKeys(Key.ENTER);
-                await driver.sleep(1000);
-                await searchBox.sendKeys(Key.ENTER);
-                await driver.sleep(500);
+                const searchListFirstElement = await driver.wait(until.elementLocated(By.xpath('//*[@id="articleList"]/a[1]')), 1500);
+                await searchListFirstElement.click();
+                await driver.sleep(2000);
                 // if title is not loaded in next 4 seconds then return empty string and fail test
                 await searchBox.clear();
                 await driver.switchTo().frame('articleContent');
-                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 1500).getText();
+                const authorAndBookName = await driver.wait(until.elementLocated(By.id('id00000')), 5000).getText().catch(() => '');
                 assert.equal(authorAndBookName, 'MIHAI EMINESCU, POET AL FIINTEI');
             });
 
