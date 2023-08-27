@@ -42,7 +42,7 @@ function runTests (driver, modes) {
     driver.getCapabilities().then(function (caps) {
         browserName = caps.get('browserName');
         browserVersion = caps.get('browserVersion');
-        console.log('\nRunning tests on: ' + browserName + ' ' + browserVersion);
+        console.log('\nRunning Gutenberg RO tests on: ' + browserName + ' ' + browserVersion);
     });
 
     // Set the implicit wait to 3 seconds
