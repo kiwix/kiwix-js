@@ -34,6 +34,7 @@ jobs:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-20.04
+    timeout-minutes: 30
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v3
@@ -56,16 +57,21 @@ jobs:
       - name: Test a full build of the app
         run: npm run build
 
-      - name: End-to-end tests on GitHub (Linux)
+      - name: End-to-end tests on Chrome (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: |
-          echo -e "\n\e[0;32mTesting on Edge Chromium..."
-          npm run test-e2e-edge
-          echo -e "\n\e[0;32mTesting on Chrome..."
-          npm run test-e2e-chrome
-          echo -e "\n\e[0;32mTesting on Firefox..."
-          npm run test-e2e-firefox
+        run: npm run test-e2e-chrome
+
+      - name: End-to-end tests on Edge (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-edge
+
+      - name: End-to-end tests on Firefox (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-firefox
+
         
       - name: BrowserStack environment setup
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
@@ -108,6 +114,7 @@ jobs:
   tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v3
@@ -115,28 +122,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build App
+        run: npm run build-min
+
       - name: Unit tests (Windows)
         run: |
+          $AggregateExitCode = 0
           npm run test-unit-edge
+          $AggregateExitCode += $LastExitCode
           npm run test-unit-firefox
+          $AggregateExitCode += $LastExitCode
+          if ($AggregateExitCode -ne 0) {
+            echo " "
+            Write-Error "Number of failed tests: $AggregateExitCode"
+          }
+          exit $AggregateExitCode
 
-      - name: End-to-end tests (Windows)
+      - name: End-to-end tests on Chrome(Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: |
-          # Use node console to show green text
-          Write-Host ""
-          Write-Verbose "Building the app..." -Verbose
-          npm run build-min
-          Write-Host ""
-          Write-Verbose "Testing on Edge Chromium..." -Verbose
-          npm run test-e2e-edge
-          Write-Host ""
-          Write-Verbose "Testing on Firefox..." -Verbose
-          npm run test-e2e-firefox
-          Write-Host ""
-          Write-Verbose "Testing on IE11..." -Verbose
-          npm run test-e2e-iemode
+        run: npm run test-e2e-chrome
+
+      - name: End-to-end tests on Edge(Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-edge
+
+      - name: End-to-end tests on Firefox(Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-firefox
   
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository

@@ -1,6 +1,7 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/ie.js';
 import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
+import gutenbergRo from './gutenberg_ro.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -15,6 +16,5 @@ async function loadIEModeDriver () {
     return driver;
 };
 
-const driver_ie = await loadIEModeDriver();
-
-legacyRayCharles.runTests(driver_ie);
+legacyRayCharles.runTests(await loadIEModeDriver());
+gutenbergRo.runTests(await loadIEModeDriver(), ['jquery']);

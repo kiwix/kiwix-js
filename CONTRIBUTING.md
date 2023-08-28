@@ -1,7 +1,7 @@
 # Kiwix JS Contribution Guide
 
-If you have some development experience with HTML and JavaScript, we welcome Pull Requests on existing issues. If you are thinking of contributing, we would ask you
-to please read this guide very carefually **all the way through**. We often have potential contributors asking us to guide them on issues that are fully explained here!
+If you have some development experience with HTML and JavaScript, we welcome Pull Requests on existing issues. If you are thinking of contributing, we would kindly ask
+you to read this guide very carefually **all the way through**. We often have potential contributors asking us to guide them on issues that are fully explained here!
 
 If you are looking for an issue to work on, please look at this repository's Issue tracker, in particular those marked "good first issue". Ask to be assigned first before
 starting work in case someoene else is already working on an issue, and also to check that the issue is still wanted/current.
@@ -15,7 +15,7 @@ If you intend to contribute code rather than, say, documentation, then you will 
 
 ## Build system and setup
 
-Kiwix JS prides itself on supporting old frameworks and browsers, while not compromosing on the performance in modern browsers. Therefore we use a modern bundling
+Kiwix JS prides itself on supporting old frameworks and browsers, while not compromosing on performance in modern browsers. Therefore we use a modern bundling
 system, with [Rollup](https://rollupjs.org/), which transpiles code to [ECMAScript 5](https://caniuse.com/es5). Although you can run and test your code in a modern
 browser without transpiling, you will need to transpile in order to test your code thoroughly. We also use some development tools that are very useful:
 a [Vite server](https://vitejs.dev/) with Hot Module Replacement (this means real-time update of what you see in the browser while you develop), and
@@ -48,12 +48,16 @@ To contribute code, please follow these guidelines carefully:
 * Follow the coding style of the area you are editing, including indentation, and be consistent with quotation marks and spacing. We use an ESLint configuration, so if your IDE
   supports this, it will advise you on the expected coding style;
 * We use Rollup, Babel and core-js to bundle modules and transpile code to IE11+. The coding target has historically been [ECMAScript 5](https://caniuse.com/es5). If you use EM6
-  features, be sure that they will transpile correctly. Arrow functions should be OK, but you should avoid `async` functions and use Promise functions instead. If working on small
-  parts of existing functions, don't change the function style unnecessarily;
+  features, be sure that they will transpile correctly. Arrow functions should be OK, but you should avoid `async` functions and use `Promise` functions instead (a Promise polyfill
+  is included). If you are working on small parts of existing functions, don't change the function style unnecessarily;
 * Do not prettify code you are not working on -- we often have to ask contributors to revert commits because they have committed huge stylistic changes to a whole file, and we can't
   see the specific code they're working on;
 * _Before asking for review, thoroughly **test** (see below) both the **source code** and the **production (bundled) code** on at least Chrome/Edge and Firefox, and_
-  _**test that your code works as an add-on/extension** in both of these browsers. **If you have not tested your code yourself, do not expect us test it and review it for you!**_
+  _**test that your code works as an add-on/extension** in both of these browsers. **If you have not tested your code yourself, do not expect us to test it and review it for you!**_
+
+## Adding runtime dependencies via NPM
+
+If your PR adds a runtime dependency with `npm install xxx` (as opposed to a development dependency with `npm install xxx --save-dev`), then you will need to ensure that your dependency files are available both in the unbundled and the bundled versions of the app, without simply committing them to `main`. You can find more details on how to do this in [ADDING_DEPENDENCIES_NODE_MODULES](./ADDING_DEPENDENCIES_NODE_MODULES.md). 
 
 ## Testing
 
@@ -84,7 +88,7 @@ _You must test your code yourself before asking for review, like this_:
 * End-to-end (e2e) tests are also run on GitHub Actions when you push to your PR. These test typical user actions in a headless browser. Tests are currently enabled for latest
   Firefox, Edge, Chrome in Linux and Windows, and in IE Mode on Windows (this is the equivalent to testing on Internet Explorer 11). You can run these tests yourself in a
   non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS](./TESTS.md).
-* E2e tests alos run on BrowserStack, but these cannot be run for PRs from a forked repository for security reasons (no access to the secrets). These tests will only run once a
+* E2e tests also run on BrowserStack, but these cannot be run for PRs from a forked repository for security reasons (no access to the secrets). These tests will only run once a
   maintainer merges your code, so don't be surprised if an issue is detected even after your code has been accepted and merged. In that case, we may request a remedial PR from you,
   though in practice this is unlikely. 
 * As an alternative to the Vite server, we also provide [http-server](https://www.npmjs.com/package/http-server), which you can launch by running `npm run web-server` in the root of

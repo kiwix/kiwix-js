@@ -19,11 +19,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-
-import { By, Key } from 'selenium-webdriver';
+// eslint-disable-next-line no-unused-vars
+import { By, Key, WebDriver, until } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
-import path from 'path';
+import paths from './paths.js';
 
 /* eslint-disable camelcase, one-var, prefer-const */
 /* global describe, it */
@@ -37,7 +37,7 @@ const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
 
 // Set the archives to load
-let rayCharlesBaseFile = path.resolve('./tests/wikipedia_en_ray_charles_2015-06.zimaa');
+let rayCharlesBaseFile = paths.rayCharlesBaseFile;
 // For BrowserStack, we have to construct the file blops with XHR instead
 if (BROWSERSTACK) {
     rayCharlesBaseFile = '/tests/wikipedia_en_ray_charles_2015-06.zimaa';
@@ -54,12 +54,18 @@ for (let i = 0; i < 15; i++) {
 }
 console.log('\nLoading archive:\n' + rayCharlesAllParts + '\n');
 
+/**
+ *  Run the tests
+ * @param {WebDriver} driver Selenium WebDriver object
+ * @param {array} modes Array of modes to run the tests in
+ * @returns {Promise<void>}  A Promise for the completion of the tests
+*/
 function runTests (driver, modes) {
     let browserName, browserVersion;
     driver.getCapabilities().then(function (caps) {
         browserName = caps.get('browserName');
         browserVersion = caps.get('browserVersion');
-        console.log('\nRunning tests on: ' + browserName + ' ' + browserVersion);
+        console.log('\nRunning Legacy Ray Charles tests on: ' + browserName + ' ' + browserVersion);
     });
     // Set the implicit wait to 3 seconds
     driver.manage().setTimeouts({ implicit: 3000 });
@@ -115,192 +121,185 @@ function runTests (driver, modes) {
             this.timeout(60000);
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
-            describe('Load app', function () {
-                it('Load Kiwix JS and check title', async function () {
-                    await driver.get('http://localhost:' + port + '/dist/www/index.html');
-                    const title = await driver.getTitle();
-                    assert.equal('Kiwix', title);
-                });
+            it('Load Kiwix JS and check title', async function () {
+                await driver.get('http://localhost:' + port + '/dist/www/index.html');
+                const title = await driver.getTitle();
+                assert.equal('Kiwix', title);
             });
             // Switch to the requested contentInjectionMode
-            describe('Switch to ' + mode + ' mode', function () {
-                it('Switch to ' + mode + ' mode', async function () {
-                    const modeSelector = await driver.findElement(By.id(mode + 'ModeRadio'));
-                    // Scroll the element into view so that it can be clicked
-                    await driver.wait(async function () {
-                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
-                        return elementIsVisible;
-                    }, 5000);
-                    // Pause for 1.3 seconds to allow app to reload
-                    await driver.sleep(1300);
-                    // Check for and click any approve button in dialogue box
-                    try {
-                        const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                        if (activeAlertModal) {
-                            // Check if ServiceWorker mode API is supported
-                            serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                                return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
-                            });
-                        }
-                        const approveButton = await driver.findElement(By.id('approveConfirm'));
-                        await approveButton.click();
-                    } catch (e) {
-                        // Do nothing
+            it('Switch to ' + mode + ' mode', async function () {
+                const modeSelector = await driver.wait(until.elementLocated(By.id(mode + 'ModeRadio')));
+                // Scroll the element into view so that it can be clicked
+                await driver.wait(async function () {
+                    const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', modeSelector);
+                    return elementIsVisible;
+                }, 5000);
+                // Pause for 1.3 seconds to allow app to reload
+                await driver.sleep(1300);
+                // Check for and click any approve button in dialogue box
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // Check if ServiceWorker mode API is supported
+                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                            return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
+                        });
                     }
-                    if (mode === 'jquery' || serviceWorkerAPI) {
-                        // Wait until the mode has switched
-                        await driver.sleep(500);
-                        let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
-                        try {
-                            if (mode === 'serviceworker') {
-                                assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
-                            } else {
-                                assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
-                            }
-                        } catch (e) {
-                            if (!~modes.indexOf('serviceworker')) {
-                                // We can't switch to serviceworker mode if it is not being tested, so we should fail the test
-                                throw e;
-                            }
-                            // We failed to switch modes, so let's try switching back and switching to this mode again
-                            console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
-                            const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
-                            // Click the other mode selector
-                            await otherModeSelector.click();
-                            // Wait until the mode has switched
-                            await driver.sleep(330);
-                            // Click the mode selector again
-                            await modeSelector.click();
-                            // Wait until the mode has switched
-                            await driver.sleep(330);
-                            serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
-                            if (mode === 'serviceworker') {
-                                assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
-                            } else {
-                                assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
-                            }
-                        }
-                    } else {
-                        // Skip remaining SW mode tests if the browser does not support the SW API
-                        console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
-                        await driver.quit();
-                    }
-                });
-            });
-            describe('Load archive', function () {
-                it('Load legacy Ray Charles and check index contains specified article', async function () {
-                    if (!serviceWorkerAPI) {
-                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
-                        return;
-                    }
-                    const archiveFiles = await driver.findElement(By.id('archiveFiles'));
-                    // Unhide the element using JavaScript in case it is hidden
-                    await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
-                    if (!BROWSERSTACK) {
-                        // We are running tests locally or on GitHub Actions
-                        await archiveFiles.sendKeys(rayCharlesAllParts);
-                        // Wait until files have loaded
-                        var filesLength;
-                        await driver.wait(async function () {
-                            filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
-                            return filesLength === 15;
-                        }, 5000);
-                        // Check that we loaded 15 files
-                        assert.equal(15, filesLength);
-                    } else {
-                        // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
-                        await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', rayCharlesFileArray);
-                        await driver.sleep('1300');
-                    }
-                });
-            });
-            describe('Navigate to linked article', function () {
-                it('Navigate to "This Little Girl of Mine"', async function () {
-                    if (!serviceWorkerAPI) {
-                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
-                        return;
-                    }
-                    // console.log('FilesLength outer: ' + filesLength);
-                    // Switch to iframe and check that the index contains the specified article
-                    await driver.switchTo().frame('articleContent');
-                    // Wait until the index has loaded
-                    await driver.wait(async function () {
-                        const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
-                        return contentAvailable;
-                    }, 5000);
-                    const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
-                    // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
-                    assert.equal('This Little Girl of Mine', await articleLink.getText());
-                    // Scroll the element into view and navigate to it
-                    await driver.wait(async function () {
-                        const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
-                        // console.log('Element is visible: ' + elementIsVisible);
-                        return elementIsVisible;
-                    }, 10000);
-                    // Pause for 1 second to allow article to load
-                    await driver.sleep(1300);
-                    let elementText = '';
-                    try {
-                        // Find the mwYw element in JavaScript and get its content
-                        elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
-                    } catch (e) {
-                        // We probably got a NoSuchFrameError on Safari, so try selecting it with a different method
-                        await driver.switchTo().defaultContent();
-                        elementText = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mwYw").textContent;');
-                    }
-                    // console.log('Element text: ' + elementText);
-                    // Check that the article title is correct
-                    assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
-                });
-            });
-            describe('Initiate search and navigate', function () {
-                it('Search for Ray Charles in title index and go to article', async function () {
-                    if (!serviceWorkerAPI) {
-                        console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
-                        return;
-                    }
-                    await driver.switchTo().defaultContent();
-                    const prefix = await driver.findElement(By.id('prefix'));
-                    // Search by setting the value of the prefix element using JavaScript
-                    await driver.executeScript('arguments[0].value = "Ray"; document.getElementById("searchArticles").click();', prefix);
-                    // Wait for at least four results to appear
+                    const approveButton = await driver.wait(until.elementLocated(By.id('approveConfirm')));
+                    await approveButton.click();
+                } catch (e) {
+                    // Do nothing
+                }
+                if (mode === 'jquery' || serviceWorkerAPI) {
+                    // Wait until the mode has switched
                     await driver.sleep(500);
-                    await driver.findElement(By.css('.list-group-item:nth-child(4)'));
-                    // Check the contents of the result and Add the hover attribute to it so we can select it with the keyboard
-                    await driver.wait(async function () {
-                        // NB dispatchEvent for keydown does not work in IE, so we do this later using WebDriver methods
-                        // const found = await driver.executeScript('return new Promise(function (resolve) { setTimeout(function () { var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); document.getElementById("prefix").dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter"})); resolve(found); }, 1000); });');
-                        const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); return found;');
-                        assert.equal(true, found);
-                        return found;
-                    }, 3000);
-                    // Now select the result by sending the enter key
-                    await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
-                    // Check if that worked, and if search result still visible, try with a click instead
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
-                        const resultElement = await driver.findElement(By.css('.list-group-item:nth-child(4)'));
-                        if (resultElement) {
-                            await resultElement.click();
+                        if (mode === 'serviceworker') {
+                            assert.ok(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.ok(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
                         }
                     } catch (e) {
-                        // Do nothing
+                        if (!~modes.indexOf('serviceworker')) {
+                            // We can't switch to serviceworker mode if it is not being tested, so we should fail the test
+                            throw e;
+                        }
+                        // We failed to switch modes, so let's try switching back and switching to this mode again
+                        console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
+                        const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        // Click the other mode selector
+                        await otherModeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        // Click the mode selector again
+                        await modeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                        if (mode === 'serviceworker') {
+                            assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
                     }
-                    await driver.switchTo().frame('articleContent');
-                    // Wait until the article has loaded and check title
-                    await driver.sleep(750);
+                } else {
+                    // Skip remaining SW mode tests if the browser does not support the SW API
+                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                    await driver.quit();
+                }
+            });
+
+            it('Load legacy Ray Charles and check index contains specified article', async function () {
+                if (!serviceWorkerAPI) {
+                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    return;
+                }
+                const archiveFiles = await driver.findElement(By.id('archiveFiles'));
+                // Unhide the element using JavaScript in case it is hidden
+                await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
+                if (!BROWSERSTACK) {
+                    // We are running tests locally or on GitHub Actions
+                    await archiveFiles.sendKeys(rayCharlesAllParts);
+                    // Wait until files have loaded
+                    var filesLength;
                     await driver.wait(async function () {
-                        const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
-                        // console.log('Article title: ' + articleTitle);
-                        return articleTitle === 'Ray Charles';
+                        filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+                        return filesLength === 15;
                     }, 5000);
-                    // Check that the article title is correct
-                    const title = await driver.findElement(By.id('titleHeading')).getText();
-                    assert.equal('Ray Charles', title);
-                    // If we have reached the last mode, quit the driver
-                    if (mode === modes[modes.length - 1]) {
-                        await driver.quit();
+                    // Check that we loaded 15 files
+                    assert.equal(15, filesLength);
+                } else {
+                    // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
+                    await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', rayCharlesFileArray);
+                    await driver.sleep('1300');
+                }
+            });
+
+            it('Navigate to "This Little Girl of Mine"', async function () {
+                if (!serviceWorkerAPI) {
+                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    return;
+                }
+                // console.log('FilesLength outer: ' + filesLength);
+                // Switch to iframe and check that the index contains the specified article
+                await driver.switchTo().frame('articleContent');
+                // Wait until the index has loaded
+                await driver.wait(async function () {
+                    const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
+                    return contentAvailable;
+                }, 5000);
+                const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
+                // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
+                assert.equal('This Little Girl of Mine', await articleLink.getText());
+                // Scroll the element into view and navigate to it
+                await driver.wait(async function () {
+                    const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
+                    // console.log('Element is visible: ' + elementIsVisible);
+                    return elementIsVisible;
+                }, 10000);
+                // Pause for 1 second to allow article to load
+                await driver.sleep(1300);
+                let elementText = '';
+                try {
+                    // Find the mwYw element in JavaScript and get its content
+                    elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
+                } catch (e) {
+                    // We probably got a NoSuchFrameError on Safari, so try selecting it with a different method
+                    await driver.switchTo().defaultContent();
+                    elementText = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mwYw").textContent;');
+                }
+                // console.log('Element text: ' + elementText);
+                // Check that the article title is correct
+                assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
+            });
+
+            it('Search for Ray Charles in title index and go to article', async function () {
+                if (!serviceWorkerAPI) {
+                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    return;
+                }
+                await driver.switchTo().defaultContent();
+                const prefix = await driver.findElement(By.id('prefix'));
+                // Search by setting the value of the prefix element using JavaScript
+                await driver.executeScript('arguments[0].value = "Ray"; document.getElementById("searchArticles").click();', prefix);
+                // Wait for at least four results to appear
+                await driver.sleep(500);
+                await driver.findElement(By.css('.list-group-item:nth-child(4)'));
+                // Check the contents of the result and Add the hover attribute to it so we can select it with the keyboard
+                await driver.wait(async function () {
+                    // NB dispatchEvent for keydown does not work in IE, so we do this later using WebDriver methods
+                    // const found = await driver.executeScript('return new Promise(function (resolve) { setTimeout(function () { var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); document.getElementById("prefix").dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter"})); resolve(found); }, 1000); });');
+                    const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); return found;');
+                    assert.equal(true, found);
+                    return found;
+                }, 3000);
+                // Now select the result by sending the enter key
+                await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
+                // Check if that worked, and if search result still visible, try with a click instead
+                try {
+                    const resultElement = await driver.findElement(By.css('.list-group-item:nth-child(4)'));
+                    if (resultElement) {
+                        await resultElement.click();
                     }
-                });
+                } catch (e) {
+                    // Do nothing
+                }
+                await driver.switchTo().frame('articleContent');
+                // Wait until the article has loaded and check title
+                await driver.sleep(750);
+                await driver.wait(async function () {
+                    const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
+                    // console.log('Article title: ' + articleTitle);
+                    return articleTitle === 'Ray Charles';
+                }, 5000);
+                // Check that the article title is correct
+                const title = await driver.findElement(By.id('titleHeading')).getText();
+                assert.equal('Ray Charles', title);
+                // If we have reached the last mode, quit the driver
+                if (mode === modes[modes.length - 1]) {
+                    await driver.quit();
+                }
             });
         });
     });
