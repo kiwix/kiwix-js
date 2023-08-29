@@ -11,7 +11,7 @@
     "build-src": "rollup --config --file dist/www/js/bundle.js",
     "del-dist": "del-cli dist",
     "test": "testcafe all ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
-    "test-unit-browsers": "testcafe firefox:headless,chrome:headless,edge:headless ./tests/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
+    "test-unit-browsers": "testcafe firefox:headless,chrome:headless,edge:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "test-unit-firefox": "testcafe firefox:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "test-unit-chrome": "testcafe chrome:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
     "test-unit-edge": "testcafe edge:headless ./tests/unit/initTestCafe.js --app \"http-server --silent -p 8080 .\"",
