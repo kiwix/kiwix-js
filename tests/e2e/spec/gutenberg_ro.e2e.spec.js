@@ -23,7 +23,7 @@
 // eslint-disable-next-line no-unused-vars
 import { By, Key, until, WebDriver } from 'selenium-webdriver';
 import assert from 'assert';
-import paths from './paths.js';
+import paths from '../paths.js';
 import fs from 'fs';
 
 /* eslint-disable camelcase */
@@ -294,6 +294,7 @@ function runTests (driver, modes) {
                 await btnBack.click();
                 await btnBack.click();
                 await btnBack.click();
+                if (browserName === 'internet explorer') await btnBack.click();
                 // Title lies in iframe so we need to switch to it
                 await driver.switchTo().frame('articleContent');
                 // in some browsers the title is loaded slowly so we need to wait for it
