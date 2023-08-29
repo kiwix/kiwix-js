@@ -211,30 +211,24 @@
 
                     <h3 id="searchSyntax" data-i18n="about-search-title">Title and full-text search usage</h3>
                     <p data-i18n="about-search-para1">
-                        There are three types of search: title and alphabetical search (these are both universally available), and full-text search (only available in some ZIM
-                        archives and enabled in <i>modern</i> desktop browsers).
+                        There are three types of search:
                     </p>
                     <p data-i18n="about-search-para2">
                         <b>Title search</b> matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
-                        'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited: e.g. if you
-                        search for 'unesco world heritiage', it will try 'Unesco world heritage', 'UNESCO world heritage', 'unesco World heritage', 'Unesco WORLD heritage'
-                        (etc.), but it won't try 'uNesCO' and other non-obvious case combinations. If you want to search for 'uNesCO', then you must type it exactly like that.
+                        'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited.
                         If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration.
                     </p>
                     <p data-i18n="about-search-para3">
-                        <b>Alphabetical search:</b> If you type a letter of the alphabet in the title search box (upper case may be most useful), it will show an alphabetical
-                        list of articles starting with that letter (up to the maximum number of search results you selected in Configuration). This is useful for ZIM archives
-                        that have descriptive rather than semantic titles (e.g. TED Talks), expecially in <a href="#modes">JQuery mode</a>. You can also display a list of all
-                        titles simply by clicking the search button without typing anything (up to the limit set in Configuration).
+                        <b>Alphabetical search:</b> If you type a letter of the alphabet in the search box (upper case may be most useful), it will show an alphabetical list of
+                        articles starting with that letter. This is useful for ZIM archives that have descriptive rather than semantic titles (e.g. TED Talks). You can also
+                        display a list of all titles (up to the limit set in Configuration) simply by clicking the search button without typing anything.
                     </p>
                     <p data-i18n="about-search-para4">
-                        <b>Full-text search:</b> With the help of the openzim/javascript-libzim WASM project, we now support full-text search in certain contexts. Full-text search is
-                        launched in parallel with title search for those ZIMs and browsers where it is supported, but it is slower than title search, and you may notice a delay
-                        before full-text search results are added to the title search results. You do not need to do anything to initiate a full-text search: it will be performed
-                        automatically if it is supported. Please note that this type of search is only availalbe in relatively recent desktop browsers. It is not supported in mobile
-                        contexts, in Internet Explorer or Edge Legacy, or older versions of Chrome or Firefox. Additionally, you must be using a ZIM that contains an embedded full-text
-                        index and is not split into various chunks. To see information on the ZIM and the browser, look in the API panel at the bottom of the Configuration page after
-                        you have loaded a ZIM. If it says "Xapian [fulltext]" then full-text search should be automatically enabled for that ZIM.
+                        <b>Full-text search:</b> This type of search is only availalbe in relatively recent desktop browsers, and if the archive contains a full-text index.
+                        If it is supported, it will be used automatically, but it is slower than title search, and you may notice a delay before results are added to the
+                        title-search results. Additionally, full-text search cannot be used if your archive is split into various chunks. To see whether it is
+                        available, look in the API panel at the bottom of the Configuration page after you have loaded a ZIM. If it says "Xapian [fulltext]" then
+                        it should be automatically enabled for that ZIM.
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
