@@ -10,18 +10,18 @@ jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
   # Also runs end-to-end tests on Windows (taking advantage of the build)
-  # tests-files-windows:
-  #   # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-  #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
+  tests-files-windows:
+    # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
 
-  #     - name: Install dependencies
-  #       run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-  #     - name: Test the list of offline files in Service Worker
-  #       run: ./scripts/Check-OfflineFilesList.ps1
+      - name: Test the list of offline files in Service Worker
+        run: ./scripts/Check-OfflineFilesList.ps1
 
   # This job runs always, including for remote pull requests, and
   # has external dependencies or special permission needs, besides a
@@ -32,7 +32,7 @@ jobs:
 
   tests-linux:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-20.04
     timeout-minutes: 30
     steps:
@@ -51,26 +51,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Unit tests (Linux)
-      #   run: npm run test-unit-browsers
+      - name: Unit tests (Linux)
+        run: npm run test-unit-browsers
 
       - name: Test a full build of the app
         run: npm run build
 
-      # - name: End-to-end tests on Chrome (Linux)
-      #   env:
-      #     GITHUB_ACTION: ${{ github.event_name }}
-      #   run: npm run test-e2e-chrome
+      - name: End-to-end tests on Chrome (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-chrome
 
-      # - name: End-to-end tests on Edge (Linux)
-      #   env:
-      #     GITHUB_ACTION: ${{ github.event_name }}
-      #   run: npm run test-e2e-edge
+      - name: End-to-end tests on Edge (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-edge
 
-      # - name: End-to-end tests on Firefox (Linux)
-      #   env:
-      #     GITHUB_ACTION: ${{ github.event_name }}
-      #   run: npm run test-e2e-firefox
+      - name: End-to-end tests on Firefox (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-firefox
 
         
       - name: BrowserStack environment setup
@@ -81,49 +81,49 @@ jobs:
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       
       - name: BrowserStack local tunnel setup
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: start
           local-identifier: random
 
       - name: Run App locally in background
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx http-server --silent -p 8099 &
 
       - name: Run BrowserStack tests on Edge Legacy 18 / Win10
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha tests/e2e/runners/edge/edge18.bs.runner.js
 
       - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
 
       - name: Run BrowserStack tests on Firefox 61 / Win10
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha tests/e2e/runners/firefox/firefox61.bs.runner.js
 
       - name: Run BrowserStack tests on Chrome 58 / Mojave
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
 
       - name: Run BrowserStack tests on Safari 14 / Big Sur
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -134,48 +134,48 @@ jobs:
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: stop
-        
-  # tests-windows:
-  #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-  #   runs-on: windows-latest
-  #   timeout-minutes: 30
-  #   steps:
-  #     # Clone the repo and checkout the commit for which the workflow was triggered
-  #     - uses: actions/checkout@v3
 
-  #     - name: Install dependencies
-  #       run: npm ci
+  tests-windows:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      # Clone the repo and checkout the commit for which the workflow was triggered
+      - uses: actions/checkout@v3
 
-  #     - name: Build App
-  #       run: npm run build-min
+      - name: Install dependencies
+        run: npm ci
 
-  #     - name: Unit tests (Windows)
-  #       run: |
-  #         $AggregateExitCode = 0
-  #         npm run test-unit-edge
-  #         $AggregateExitCode += $LastExitCode
-  #         npm run test-unit-firefox
-  #         $AggregateExitCode += $LastExitCode
-  #         if ($AggregateExitCode -ne 0) {
-  #           echo " "
-  #           Write-Error "Number of failed tests: $AggregateExitCode"
-  #         }
-  #         exit $AggregateExitCode
+      - name: Build App
+        run: npm run build-min
 
-  #     - name: End-to-end tests on Chrome(Windows)
-  #       env:
-  #         GITHUB_ACTION: ${{ github.event_name }}
-  #       run: npm run test-e2e-chrome
+      - name: Unit tests (Windows)
+        run: |
+          $AggregateExitCode = 0
+          npm run test-unit-edge
+          $AggregateExitCode += $LastExitCode
+          npm run test-unit-firefox
+          $AggregateExitCode += $LastExitCode
+          if ($AggregateExitCode -ne 0) {
+            echo " "
+            Write-Error "Number of failed tests: $AggregateExitCode"
+          }
+          exit $AggregateExitCode
 
-  #     - name: End-to-end tests on Edge(Windows)
-  #       env:
-  #         GITHUB_ACTION: ${{ github.event_name }}
-  #       run: npm run test-e2e-edge
+      - name: End-to-end tests on Chrome(Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-chrome
 
-  #     - name: End-to-end tests on Firefox(Windows)
-  #       env:
-  #         GITHUB_ACTION: ${{ github.event_name }}
-  #       run: npm run test-e2e-firefox
+      - name: End-to-end tests on Edge(Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-edge
+
+      - name: End-to-end tests on Firefox(Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-firefox
   
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
