@@ -101,7 +101,7 @@ jobs:
           echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
           npx mocha tests/e2e/runners/firefox/firefox61.bs.runner.js
           echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
-          npx mocha tests/e2e/runners/chome/chrome58.bs.runner.js
+          npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
           echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
           npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
           
