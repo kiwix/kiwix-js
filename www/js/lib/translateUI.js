@@ -60,6 +60,7 @@ function loadTranslationStrings (langCode) {
             console.warn('Falling back to no translation');
             currentLanguage = {};
             tried = false;
+            throw err;
         }
     });
 }
@@ -94,6 +95,7 @@ function translateApp (languageCode) {
             translateString('home-prefix-placeholder') || 'Search...');
     }).catch(function (err) {
         console.error('Error translating the UI', err);
+        throw err;
     });
 }
 

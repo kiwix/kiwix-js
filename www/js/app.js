@@ -198,7 +198,18 @@ function getDefaultLanguageAndTranslateApp () {
         console.log('User-selected language is: ' + params.overrideBrowserLanguage);
     }
     // Use the override language if set, or else use the browser default
-    translateUI.translateApp(params.overrideBrowserLanguage || defaultBrowserLanguage.base);
+    var languageCode = params.overrideBrowserLanguage || defaultBrowserLanguage.base;
+    translateUI.translateApp(languageCode)
+    .catch(function (err) {
+        if (languageCode !== 'en') {
+            var message = '<p>We cannot load the translation strings for language code <code>' + languageCode + '</code>';
+            if (/^file:\/\//.test(window.location.href)) {
+                message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
+            }
+            message += '.</p><p>The error message is: ' + err + '</p>';
+            uiUtil.systemAlert(message);
+        }
+    });
 }
 
 // Add a listener for the language selection dropdown which will change the language of the app
