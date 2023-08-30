@@ -54,8 +54,8 @@ jobs:
       # - name: Unit tests (Linux)
       #   run: npm run test-unit-browsers
 
-      # - name: Test a full build of the app
-      #   run: npm run build
+      - name: Test a full build of the app
+        run: npm run build
 
       # - name: End-to-end tests on Chrome (Linux)
       #   env:
