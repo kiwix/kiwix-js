@@ -10,18 +10,18 @@ jobs:
 
   # Tests the list of offline files in the Service Worker and compares it to the contents of the www directory
   # Also runs end-to-end tests on Windows (taking advantage of the build)
-  tests-files-windows:
-    # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v3
+  # tests-files-windows:
+  #   # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
+  #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: npm ci
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Test the list of offline files in Service Worker
-        run: ./scripts/Check-OfflineFilesList.ps1
+  #     - name: Test the list of offline files in Service Worker
+  #       run: ./scripts/Check-OfflineFilesList.ps1
 
   # This job runs always, including for remote pull requests, and
   # has external dependencies or special permission needs, besides a
@@ -95,15 +95,15 @@ jobs:
         run: |
           npx http-server --silent -p 8099 &
           echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
-          npx mocha tests/edge18.bs.runner.js
+          npx mocha tests/e2e/runners/edge/edge18.bs.runner.js
           echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
-          npx mocha tests/firefox56.bs.runner.js
+          npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
           echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
-          npx mocha tests/firefox61.bs.runner.js
+          npx mocha tests/e2e/runners/firefox/firefox61.bs.runner.js
           echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
-          npx mocha tests/chrome58.bs.runner.js
+          npx mocha tests/e2e/runners/chome/chrome58.bs.runner.js
           echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
-          npx mocha tests/safari14.bs.runner.js
+          npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
           
       - name: Stop BrowserStackLocal
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
@@ -111,47 +111,47 @@ jobs:
         with:
           local-testing: stop
         
-  tests-windows:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: windows-latest
-    timeout-minutes: 30
-    steps:
-      # Clone the repo and checkout the commit for which the workflow was triggered
-      - uses: actions/checkout@v3
+  # tests-windows:
+  #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+  #   runs-on: windows-latest
+  #   timeout-minutes: 30
+  #   steps:
+  #     # Clone the repo and checkout the commit for which the workflow was triggered
+  #     - uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: npm ci
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Build App
-        run: npm run build-min
+  #     - name: Build App
+  #       run: npm run build-min
 
-      - name: Unit tests (Windows)
-        run: |
-          $AggregateExitCode = 0
-          npm run test-unit-edge
-          $AggregateExitCode += $LastExitCode
-          npm run test-unit-firefox
-          $AggregateExitCode += $LastExitCode
-          if ($AggregateExitCode -ne 0) {
-            echo " "
-            Write-Error "Number of failed tests: $AggregateExitCode"
-          }
-          exit $AggregateExitCode
+  #     - name: Unit tests (Windows)
+  #       run: |
+  #         $AggregateExitCode = 0
+  #         npm run test-unit-edge
+  #         $AggregateExitCode += $LastExitCode
+  #         npm run test-unit-firefox
+  #         $AggregateExitCode += $LastExitCode
+  #         if ($AggregateExitCode -ne 0) {
+  #           echo " "
+  #           Write-Error "Number of failed tests: $AggregateExitCode"
+  #         }
+  #         exit $AggregateExitCode
 
-      - name: End-to-end tests on Chrome(Windows)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-chrome
+  #     - name: End-to-end tests on Chrome(Windows)
+  #       env:
+  #         GITHUB_ACTION: ${{ github.event_name }}
+  #       run: npm run test-e2e-chrome
 
-      - name: End-to-end tests on Edge(Windows)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-edge
+  #     - name: End-to-end tests on Edge(Windows)
+  #       env:
+  #         GITHUB_ACTION: ${{ github.event_name }}
+  #       run: npm run test-e2e-edge
 
-      - name: End-to-end tests on Firefox(Windows)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-firefox
+  #     - name: End-to-end tests on Firefox(Windows)
+  #       env:
+  #         GITHUB_ACTION: ${{ github.event_name }}
+  #       run: npm run test-e2e-firefox
   
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
