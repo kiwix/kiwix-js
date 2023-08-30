@@ -12,7 +12,7 @@ jobs:
   # Also runs end-to-end tests on Windows (taking advantage of the build)
   tests-files-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -74,7 +74,7 @@ jobs:
 
         
       - name: BrowserStack environment setup
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-env@master
         with:
           username:  ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -106,13 +106,13 @@ jobs:
           npx mocha tests/safari14.bs.runner.js
           
       - name: Stop BrowserStackLocal
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: stop
         
   tests-windows:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
