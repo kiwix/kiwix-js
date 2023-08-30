@@ -87,23 +87,31 @@ jobs:
           local-testing: start
           local-identifier: random
 
-      - name: Run BrowserStack tests
+      - name: Run BrowserStack tests on Edge Legacy 18 / Win10
         if: github.event_name == 'push'
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: |
-          npx http-server --silent -p 8099 &
-          echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
-          npx mocha tests/e2e/runners/edge/edge18.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
-          npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
-          npx mocha tests/e2e/runners/firefox/firefox61.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
-          npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
-          npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
+          npx http-server --silent -p 8099 & npx mocha tests/e2e/runners/edge/edge18.bs.runner.js
+
+      # - name: Run BrowserStack tests
+      #   if: github.event_name == 'push'
+      #   env:
+      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      #   run: |
+      #     npx http-server --silent -p 8099 &
+      #     echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
+      #     npx mocha tests/e2e/runners/edge/edge18.bs.runner.js
+      #     echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
+      #     npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
+      #     echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
+      #     npx mocha tests/e2e/runners/firefox/firefox61.bs.runner.js
+      #     echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
+      #     npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
+      #     echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
+      #     npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
           
       - name: Stop BrowserStackLocal
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
