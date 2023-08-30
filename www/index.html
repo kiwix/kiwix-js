@@ -168,44 +168,44 @@
                     
                     <h3 id="usage" data-i18n="about-usage-title">Usage</h3>
 
-                    <h4 data-i18n="about-usage-step1">Step 1: Download or obtain some content</h4>
+                    <h4 data-i18n="about-usage-step1">Step 1: Choose your content</h4>
                     <p data-i18n="about-step1-para1">
                         Go to <a href="https://library.kiwix.org" target="_blank">https://library.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a>
                         (easy-to-use graphical interface, archive previews) or <a href="https://download.kiwix.org/zim/" target="_blank">
-                        https://download.kiwix.org/zim/&nbsp;<img src="img/Icon_External_Link.png" /></a> (traditional file list), and download an archive that interests you.
-                        If you don't have Internet access, you can also access/share content from a USB stick.
+                        https://download.kiwix.org/zim/&nbsp;<img src="img/Icon_External_Link.png" /></a> (traditional file list), and select the archives
+                        that interest you in your favourite language(s). If you don't have Internet access, you can also access/share content from a USB stick.
                     </p>
                     <p data-i18n="about-step1-para2">
-                        For a quick test, you can start with a small archive containing all the <a href="https://download.kiwix.org/zim/wikipedia_en_climate_change_maxi.zim" target="_blank">
-                        Wikipedia articles about climate change&nbsp;<img src="img/Icon_External_Link.png" /></a> in English.
+                        For a quick test, we recommend you start with a small archive containing all the <a href="https://download.kiwix.org/zim/wikipedia_en_climate_change_maxi.zim"
+                        target="_blank">Wikipedia articles about climate change&nbsp;<img src="img/Icon_External_Link.png" /></a> in English.
                     </p>
                     <p data-i18n="about-step1-para3">
-                        After that, download your chosen content in your favourite language(s). Check the size before you download archives as many file sizes are very
-                        large (several Gigabytes). Themed versions such as WikiMed, or versions without images, are much smaller than full Wikipedia archives and can
-                        be readily downloaded in your browser.
-                    </p>
-                    <p data-i18n="about-step1-para4">
                         Wikipedia archives with "<b>mini</b>" in the filename are the smallest, since they only contain the introduction of each article; "<b>nopic</b>" means no pictures;
                         "<b>maxi</b>" means everything except video and audio. The largest files without any of these qualifiers are complete. Note that you can only see the filenames
                         easily in the <a href="https://download.kiwix.org/zim/" target="_blank">traditional file list&nbsp;<img src="img/Icon_External_Link.png" /></a>.
                     </p>
-                    <p data-i18n="about-step1-para5"> 
-                        See <a href="#FAT">Downloading large archives</a> below for details of how to download very large files.
+                    <p data-i18n="about-step1-para4">
+                        <b>Before downloading non-Wiki ZIM types, check if your browser supports ZIM archives with dynamic content</b>: look at the bottom of the Configuration
+                        page, in the API panel, and if you see "ServiceWorker API available and registered" in green, then the app can read all ZIM types (except Zimit:
+                        see <a href="#format">ZIM archive format</a> for more details). Otherwise you should mostly stick to MediaWiki (Wikipedia, Wikivoyage, Wiktionary...)
+                        and Stack Exchange archives (see <a href="#modes">modes</a> below for an explanation).
                     </p>
-                    
-                    <h4 data-i18n="about-step2">Step 2: Copy the content onto your device</h4>
+                    <h4 data-i18n="about-step2">Step 2: Download or copy the content onto your device</h4>
                     <p data-i18n="about-step2-para1">
-                        If you have enough space, you can put several archives on your device! If you don't have enough internal storage, consider using a modern
-                        microSD card or thumb drive. For larger archives (greater than 2GB) on older devices, it is possible that an archive might not be supported
-                        if your storage is formatted using a FAT filesystem (NB exFAT is fine). See <a href="#FAT">technical information</a> below for a solution.
+                        Download your chosen content and/or copy it into a dedicated ZIM folder on your device's storage. Check the size before you download archives as many
+                        file sizes are very large (several Gigabytes). Themed versions such as WikiMed, or versions without images, are much smaller than full Wikipedia archives
+                        and can be readily downloaded in your browser.
+                    </p>                    
+                    <p data-i18n="about-step2-para2">
+                        If you don't have enough internal storage, consider using a modern microSD card, an external hard drive, or thumb drive. For larger archives (greater than 2GB) on older devices,
+                        it is possible that an archive might not be supported if your storage is formatted using a FAT filesystem (NB exFAT is fine). See
+                        <a href="#FAT">Downloading large archives</a> below for a solution.
                     </p>
-                    
                     <h4 data-i18n="about-step3">Step 3: Drag and drop the file into the app</h4>
                     <p data-i18n="about-step3-para1">
                         You can drag and drop the archive file into the the open app (if you have a split file, be sure to drag all parts), or else you can go to the
                         "Configure" menu and select your ZIM file.
                     </p>
-                    
                     <h4 data-i18n="about-step4">Step 4: Enjoy your offline content!</h4>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
 
@@ -357,16 +357,8 @@
                         which articles etc.
                     </p>
                     <p>
-                        <span data-i18n="about-feedback-para3">If you like the Kiwix project and use it, please consider giving donations:</span>
-                        <ul>
-                            <li data-i18n="about-feedback-para4">to the Wikimedia foundation, to help maintaining their servers and article contents. See the <a href="https://donate.wikimedia.org/" target="_blank">
-                                donation page&nbsp;<img src="img/Icon_External_Link.png" /></a>;
-                            </li>
-                            <li data-i18n="about-feedback-para5">
-                                to Kiwix, to help maintaining the ZIM files and applications. There is a donation button in  the <a href="https://www.kiwix.org">home page of
-                                kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a>.
-                            </li>
-                        </ul>
+                        <span data-i18n="about-feedback-para3">If you like the Kiwix project and use it, please consider giving a donation at <a href="https://support.kiwix.org" target="_blank">
+                        https://support.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a> to help maintain our servers, ZIM files and applications.</span>
                         <span data-i18n="about-feedback-other-help">You can also help by:</span>
                         <ul>
                             <li data-i18n="about-feedback-other-para1">
