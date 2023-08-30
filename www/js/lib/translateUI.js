@@ -38,10 +38,12 @@ var fallback = true;
 // DEV: Uncomment line below to force placeholder (useful when writing new translations)
 // fallback = false;
 
+var tried = false;
 // Load the translation strings as a JSON object for a given language code
 function loadTranslationStrings (langCode) {
     return util.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
         currentLanguage = translations[langCode]['translation'];
+        tried = false;
         // i18next.init({
         //     lng: langCode, // if you're using a language detector, do not define the lng option
         //     debug: true,
@@ -49,8 +51,16 @@ function loadTranslationStrings (langCode) {
         // });
     }).catch(function (err) {
         console.error('Error loading translation strings for language code ' + langCode, err);
-        console.warn('Falling back to English');
-        return loadTranslationStrings('en');
+        if (!tried) {
+            console.warn('Falling back to English');
+            tried = true;
+            return loadTranslationStrings('en');
+        } else {
+            console.error('Failed to load English translation strings');
+            console.warn('Falling back to no translation');
+            currentLanguage = {};
+            tried = false;
+        }
     });
 }
 
