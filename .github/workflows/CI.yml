@@ -12,7 +12,7 @@ jobs:
   # Also runs end-to-end tests on Windows (taking advantage of the build)
   tests-files-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event_name == 'push'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
 
   tests-linux:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     timeout-minutes: 30
     steps:
@@ -74,21 +74,21 @@ jobs:
 
         
       - name: BrowserStack environment setup
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name == 'push'
         uses: browserstack/github-actions/setup-env@master
         with:
           username:  ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       
       - name: BrowserStack local tunnel setup
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name == 'push'
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: start
           local-identifier: random
 
       - name: Run BrowserStack tests
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name == 'push'
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -106,13 +106,13 @@ jobs:
           npx mocha tests/safari14.bs.runner.js
           
       - name: Stop BrowserStackLocal
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: github.event_name == 'push'
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: stop
         
   tests-windows:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event_name == 'push'
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
