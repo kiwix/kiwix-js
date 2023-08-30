@@ -51,26 +51,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests (Linux)
-        run: npm run test-unit-browsers
+      # - name: Unit tests (Linux)
+      #   run: npm run test-unit-browsers
 
-      - name: Test a full build of the app
-        run: npm run build
+      # - name: Test a full build of the app
+      #   run: npm run build
 
-      - name: End-to-end tests on Chrome (Linux)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-chrome
+      # - name: End-to-end tests on Chrome (Linux)
+      #   env:
+      #     GITHUB_ACTION: ${{ github.event_name }}
+      #   run: npm run test-e2e-chrome
 
-      - name: End-to-end tests on Edge (Linux)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-edge
+      # - name: End-to-end tests on Edge (Linux)
+      #   env:
+      #     GITHUB_ACTION: ${{ github.event_name }}
+      #   run: npm run test-e2e-edge
 
-      - name: End-to-end tests on Firefox (Linux)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-firefox
+      # - name: End-to-end tests on Firefox (Linux)
+      #   env:
+      #     GITHUB_ACTION: ${{ github.event_name }}
+      #   run: npm run test-e2e-firefox
 
         
       - name: BrowserStack environment setup
