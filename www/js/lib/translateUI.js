@@ -22,8 +22,16 @@
 
 'use strict';
 
-import i18next from '../../../node_modules/i18next/dist/es/i18next.js';
+// DEV: We are currently not using any features of i18next that cannot be provided simply by loading the translation strings
+// and looking up the key in the object. If you need more features, you can switch to using i18next by installing it, importing
+// it here, and using the commented-out code below. Instead of currentLanguage[string], use i18next.t(string). You will also need
+// to add a dependency on i18next in /scripts/gitignore.patch. To support IE11 and older browsers, you should use a version of
+// i18next that is no higher than 14.0.
+
+// import i18next from '../../../node_modules/i18next/dist/es/i18next.js';
 import util from './util.js';
+
+var currentLanguage = {};
 
 // Fallbacks come from the HTML, which is in English by default
 var fallback = true;
@@ -33,11 +41,12 @@ var fallback = true;
 // Load the translation strings as a JSON object for a given language code
 function loadTranslationStrings (langCode) {
     return util.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
-        i18next.init({
-            lng: langCode, // if you're using a language detector, do not define the lng option
-            debug: true,
-            resources: translations
-        });
+        currentLanguage = translations[langCode]['translation'];
+        // i18next.init({
+        //     lng: langCode, // if you're using a language detector, do not define the lng option
+        //     debug: true,
+        //     resources: translations
+        // });
     }).catch(function (err) {
         console.error('Error loading translation strings for language code ' + langCode, err);
         console.warn('Falling back to English');
@@ -45,9 +54,14 @@ function loadTranslationStrings (langCode) {
     });
 }
 
+// Check if a translation exists for a given key
+function exists (key) {
+    return currentLanguage[key] !== undefined;
+};
+
 // Translate a single string
 function translateString (string) {
-    return (!fallback || i18next.exists(string)) ? i18next.t(string) : '';
+    return (!fallback || exists(string)) ? currentLanguage[string] : '';
 }
 
 // Translate the UI
@@ -56,14 +70,14 @@ function translateApp (languageCode) {
     return loadTranslationStrings(languageCode).then(function () {
         document.querySelectorAll('[data-i18n]').forEach(function (element) {
             var key = element.dataset.i18n;
-            if (!fallback || i18next.exists(key)) {
-                element.innerHTML = i18next.t(key);
+            if (!fallback || exists(key)) {
+                element.innerHTML = currentLanguage[key];
             }
         });
         document.querySelectorAll('[data-i18n-tip]').forEach(function (element) {
             var key = element.dataset.i18nTip;
-            if (!fallback || i18next.exists(key)) {
-                element.title = i18next.t(key);
+            if (!fallback || exists(key)) {
+                element.title = currentLanguage[key];
             }
         });
         document.getElementById('prefix').setAttribute('placeholder',
