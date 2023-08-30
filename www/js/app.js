@@ -206,7 +206,8 @@ function getDefaultLanguageAndTranslateApp () {
             if (/^file:\/\//.test(window.location.href)) {
                 message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
             }
-            message += '.</p><p>The error message is: ' + err + '</p>';
+            message += '.</p>';
+            if (err) message += '<p>The error message is: ' + err + '</p>';
             uiUtil.systemAlert(message);
         }
     });
