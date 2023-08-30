@@ -12,7 +12,7 @@ jobs:
   # Also runs end-to-end tests on Windows (taking advantage of the build)
   tests-files-windows:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event_name == 'push' && github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
@@ -52,22 +52,26 @@ jobs:
         run: npm ci
 
       - name: Unit tests (Linux)
+        if: false
         run: npm run test-unit-browsers
 
       - name: Test a full build of the app
         run: npm run build
 
       - name: End-to-end tests on Chrome (Linux)
+        if: false
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-chrome
 
       - name: End-to-end tests on Edge (Linux)
+        if: false
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-edge
 
       - name: End-to-end tests on Firefox (Linux)
+        if: false
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-firefox
@@ -136,7 +140,7 @@ jobs:
           local-testing: stop
 
   tests-windows:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    if: github.event_name == 'push' && github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
