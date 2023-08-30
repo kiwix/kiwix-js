@@ -258,9 +258,9 @@
                         completely shut down your Internet (Data or WiFi) access before using the application.
                     </p>
                     <p data-i18n="about-privacy-long-para2">
-                        Additionally, if you obtained this app from a vendor Store (including extensions), then the Store operator may track your usage of the app (e.g. download,
-                        install, uninstall, date and number of sessions) for the purpose of providing anonymous, aggregate usage statistics to developers. If this concerns you,
-                        you should check the relevant Store Privacy Policy for further information.
+                        Additionally, if you obtained this app from a third-party site (including a browser extension store), then the site operator may track your usage of the app
+                        (e.g. download, install, uninstall, date and number of sessions) for the purpose of providing anonymous, aggregate usage statistics to developers. If this
+                        concerns you, you should check the relevant site's Privacy Policy for further information.
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
@@ -269,15 +269,15 @@
                     <h4 id="format" data-i18n="about-zim-format">ZIM archive format</h4>
                     <p data-i18n="about-zim-format-para1">
                         Offline archives use the <a href="https://www.openzim.org//wiki/OpenZIM" target="_blank">OpenZIM format&nbsp;<img src="img/Icon_External_Link.png" /></a>,
-                        but note that this app has only been tested extensively on Wikipedia, WikiMedia, Gutenberg, Stackexchage and TED Talks archives. Video content is
-                        supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic UI which is only supported in ServiceWorker Mode
-                        (<a href="#modes">see below</a>).
+                        but note that this app has only been tested extensively on MediaWiki (Wikipedia, Wikivoyage, etc.), Gutenberg, Stackexchage and TED Talks archives.
+                        Video content is supported if your device, browser or OS understands the format. Some ZIMs use a proprietary dynamic UI which is only supported in
+                        ServiceWorker Mode (<a href="#modes">see below</a>).
                     </p>
                     <p data-i18n="about-zim-format-para2">
                         This application is not currently compatible with archives that are created by <b>Zimit</b> (<a href="https://youzim.it" target="_blank">https://youzim.it&nbsp;<img src="img/Icon_External_Link.png" /></a>)
                         using the Web Archive (WARC) format. We have plans to enable this format, but there are considerable technical challenges to overcome in order to display
                         these archives with the fidelity that you expect from Kiwix -- see <a href="https://github.com/kiwix/kiwix-js/issues/1009" target="_blank">issue #1009&nbsp;<img src="img/Icon_External_Link.png" /></a>.
-                        <b>However, there is <i>experimental</i> support for Zimit archives in our PWA at <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></b>.
+                        <b>However, there is <i>experimental</i> support for Zimit archives in our Progressive Web App (PWA) available from <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></b>.
                     </p>
 
                     <h4 id="FAT" data-i18n="about-fat-fs">Downloading and storing large archives</h4>
@@ -303,8 +303,9 @@
                     
                     <h4 id="modes" data-i18n="about-contentinjection-modes">ServiceWorker and JQuery modes</h4>
                     <p>
-                        <span data-i18n="about-contentinjection-para1">Depending on your browser or framework, this app may be capable of running in different modes, which we call "ServiceWorker Mode" and "JQuery Mode" for short.
-                        There is a toggle under Compatibility Settings in Configuration that allows you to select between these. Here is a technical explanation of what these modes do:</span>
+                        <span data-i18n="about-contentinjection-para1">Depending on your browser or framework, this app may be capable of running in
+                        different modes, which we call "ServiceWorker Mode" and "JQuery Mode". There is a toggle under Compatibility Settings in
+                        Configuration that allows you to select between these. Here is a technical explanation of what these modes do:</span>
                         <ul>
                             <li data-i18n="about-contentinjection-para2">
                                 <b>ServiceWorker Mode</b>: This is the default mode. As its name implies, it requires that the browser or framework
