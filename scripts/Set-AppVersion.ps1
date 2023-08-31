@@ -9,7 +9,7 @@ if ($customversion) {
     "`nUser set custom input version: $customversion"
     $INPUT_VERSION = $customversion
 } else {
-    $init_params = Get-Content -Raw "$PSScriptRoot\..\www\js\app.js"
+    $init_params = Get-Content -Raw "$PSScriptRoot\..\www\js\init.js"
     $file_tag = ''
     if ($init_params -match 'params\[[''"]appVersion[''"]]\s*=\s*[''"]([^''"]+)') {
         $file_tag = 'v' + $matches[1] 
@@ -39,9 +39,9 @@ if ($INPUT_VERSION) {
 
 if ($VERSION -match '^v?[\d.]') {
     $VERSION = $VERSION -replace '^v', ''
-    "`nSetting App Version to $VERSION in service-worker.js and app.js ..."
+    "`nSetting App Version to $VERSION in service-worker.js and init.js ..."
     (Get-Content ./service-worker.js) -replace '(appVersion\s*=\s*["''])[^"'']+', "`${1}$VERSION" | Set-Content ./service-worker.js
-    (Get-Content ./www/js/app.js) -replace '(appVersion..\s*=\s*["''])[^"'']+', "`${1}$VERSION" | Set-Content ./www/js/app.js
+    (Get-Content ./www/js/init.js) -replace '(appVersion..\s*=\s*["''])[^"'']+', "`${1}$VERSION" | Set-Content ./www/js/init.js
     $FileList = './manifest.json', 'manifest.v2.json', './manifest.webapp', './ubuntu_touch/manifest.json'
     ForEach ($File in $FileList) {
         $FileContent = Get-Content -Raw $File
