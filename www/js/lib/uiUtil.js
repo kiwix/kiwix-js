@@ -436,7 +436,7 @@ function spinnerDisplay (show, message) {
         spinnerMessage.textContent = message;
         spinnerMessage.style.display = 'block';
     } else {
-        spinnerMessage.textContent = 'Caching assets...';
+        spinnerMessage.textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
         spinnerMessage.style.display = 'none';
     }
 }

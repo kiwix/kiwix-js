@@ -235,7 +235,9 @@
       "alert-activecontentwarning-part4": "Ocultar permanentemente",
       "alert-update-version": "Versión",
       "alert-update-available": "está lista para instalar. (Vuelva a iniciar la aplicación para instalarla.)",
-      "alert-download-message": "<strong>Descargar</strong> Si no se inicia la descarga, pulse el siguiente enlace:"
+      "alert-download-message": "<strong>Descargar</strong> Si no se inicia la descarga, pulse el siguiente enlace:",
+      "spinner-caching": "Almacenando",
+      "spinner-caching-assets": "Almacenando activos..."
     }
   }
 }

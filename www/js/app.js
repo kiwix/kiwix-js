@@ -1569,7 +1569,7 @@ function readArticle (dirEntry) {
         var iframeArticleContent = document.getElementById('articleContent');
         iframeArticleContent.onload = function () {
             // The content is fully loaded by the browser : we can hide the spinner
-            document.getElementById('cachingAssets').textContent = 'Caching assets...';
+            document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
             document.getElementById('cachingAssets').style.display = 'none';
             document.getElementById('searchingArticles').style.display = 'none';
             // Set the requested appTheme
@@ -2007,7 +2007,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // until all CSS content is available [kiwix-js #381]
         function renderIfCSSFulfilled (title) {
             if (cssFulfilled >= cssCount) {
-                document.getElementById('cachingAssets').textContent = 'Caching assets...';
+                document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('articleContent').style.display = '';
@@ -2083,9 +2083,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 function updateCacheStatus (title) {
     if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
         var cacheBlock = document.getElementById('cachingAssets');
-        cacheBlock.style.display = 'block';
+        cacheBlock.style.display = '';
         title = title.replace(/[^/]+\//g, '').substring(0, 18);
-        cacheBlock.textContent = 'Caching ' + title + '...';
+        cacheBlock.textContent = (translateUI.t('spinner-caching') || 'Caching') + ' ' + title + '...';
     }
 }
 
