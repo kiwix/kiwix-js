@@ -24,7 +24,6 @@ index 69d180f..45218ed 100644
 +/node_modules/bootstrap/*
 +!/node_modules/bootstrap/dist
 +/node_modules/bootstrap/dist/*
-+!/node_modules/bootstrap/dist/css
 +/node_modules/bootstrap/dist/css/*
 +!/node_modules/bootstrap/dist/css/bootstrap.min.*
 +!/node_modules/bootstrap/dist/js
