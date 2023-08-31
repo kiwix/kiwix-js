@@ -4,10 +4,10 @@
 #
 # >>>>>>>>>>>>>>>>>>>>>>>>>> Add any edied patch below this line <<<<<<<<<<<<<<<<<<
 diff --git a/.gitignore b/.gitignore
-index 69d180f..d93e57d 100644
+index 69d180f..45218ed 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -43,7 +43,35 @@ build/config/buildinfo.properties
+@@ -43,7 +43,29 @@ build/config/buildinfo.properties
  
  www-built
  www-ghdeploy
@@ -30,12 +30,6 @@ index 69d180f..d93e57d 100644
 +!/node_modules/bootstrap/dist/js
 +/node_modules/bootstrap/dist/js/*
 +!/node_modules/bootstrap/dist/js/bootstrap.bundle.min.*
-# +!/node_modules/i18next
-# +/node_modules/i18next/*
-# +!/node_modules/i18next/dist
-# +/node_modules/i18next/dist/*
-# +!/node_modules/i18next/dist/es
-# +!/node_modules/i18next/dist/es/*
 +!/node_modules/jquery
 +/node_modules/jquery/*
 +!/node_modules/jquery/dist
