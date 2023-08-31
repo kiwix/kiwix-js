@@ -140,7 +140,7 @@
       "dialog-messagechannel-unsupported-title": "API MessageChannel non disponible",
       "dialog-messagechannel-unsupported-message": "L'API MessageChannel n'est pas disponible sur votre appareil. Redémarrage en mode JQuery...",
       "dialog-old-android": "Il paraît que vous utilisez un appareil Android avec l'API DeviceStorage. Il doit s'agir d'une version assez ancienne de Firefox, car cette API a été supprimée en 2016. Veuillez noter qu'il y avait un bogue dans Firefox qui empêchait de trouver les fichiers de Wikipédia sur une carte SD (du moins sur certains appareils). Veuillez donc placer le fichier dans le stockage interne si l'application ne peut pas le trouver.",
-      "dialog-open-externalurl.message": "<p>Voulez-vous ouvrir ce lien externe ?</p>",
+      "dialog-open-externalurl-message": "<p>Voulez-vous ouvrir ce lien externe ?</p>",
       "dialog-open-externalurl-newtab": "(dans un nouvel onglet)",
       "dialog-open-externalurl-title": "Ouverture d'un lien externe",
       "dialog-other-language-message": "Nous travaillons dur pour vous apporter plus de langues ! Si vous souhaitez aider à traduire l'interface dans votre langue, veuillez créer un sujet à propos sur notre GitHub. Merci !",
