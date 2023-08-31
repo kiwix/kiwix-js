@@ -229,12 +229,13 @@
       "about-official-download": "See the official download site: <a href=\"https://www.kiwix.org/applications/\" target=\"_blank\">https://www.kiwix.org/applications/&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>.",
       "about-back-contents": "↑ Back to Contents",
       "alert-activecontentwarning-title": "Unable to display active content:",
-      "alert-activecontentwarning-part1": "ZIM is not fully supported in JQuery mode.<br />Content may be available by clicking search button above (or type a letter of the alphabet), or else",
+      "alert-activecontentwarning-part1": "This ZIM is not fully supported in JQuery mode.<br />Content may be available by clicking search button above (or type a letter of the alphabet), or else",
       "alert-activecontentwarning-part2": "switch to ServiceWorker mode",
       "alert-activecontentwarning-part3": "if your platform supports it.",
       "alert-activecontentwarning-part4": "Permanently hide",
       "alert-update-version": "Version",
-      "alert-update-available": "is ready to install. (Re-launch app to install.)"
+      "alert-update-available": "is ready to install. (Re-launch app to install.)",
+      "alert-download-message": "<strong>Download</strong> If the download does not begin, please tap the following link:"
     }
   }
 }

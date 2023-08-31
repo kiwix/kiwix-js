@@ -357,7 +357,7 @@ function displayFileDownloadAlert (title, download, contentType, content) {
     a.textContent = filename;
     var alertMessage = document.getElementById('alertMessage');
     // innerHTML required as it has HTML tags
-    alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
+    alertMessage.innerHTML = (translateUI.t('alert-download-message') || '<strong>Download</strong> If the download does not begin, please tap the following link:') + ' ';
     // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
     alertMessage.appendChild(a);
     try {
