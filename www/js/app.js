@@ -531,14 +531,18 @@ document.getElementById('titleSearchRange').addEventListener('change', function 
 document.getElementById('titleSearchRange').addEventListener('input', function (e) {
     titleSearchRangeVal.textContent = e.target.value;
 });
-document.getElementById('modesLink').addEventListener('click', function () {
-    document.getElementById('btnAbout').click();
-    // We have to use a timeout or the scroll is cancelled by the slide transtion animation
-    // @TODO This is a workaround. The regression should be fixed as it affects the Active content warning
-    // links as well.
-    setTimeout(function () {
-        document.getElementById('modes').scrollIntoView();
-    }, 600);
+// Add event listeners to the About links in Configuration, so that they jump to the linked sections
+document.querySelectorAll('.aboutLinks').forEach(function (link) {
+    link.addEventListener('click', function () {
+        var anchor = link.getAttribute('href');
+        document.getElementById('btnAbout').click();
+        // We have to use a timeout or the scroll is cancelled by the slide transtion animation
+        // @TODO This is a workaround. The regression should be fixed as it affects the Active content warning
+        // links as well.
+        setTimeout(function () {
+            document.querySelector(anchor).scrollIntoView();
+        }, 600);
+    });
 });
 // Do update checks 7s after startup
 setTimeout(function () {
@@ -742,6 +746,8 @@ function refreshCacheStatus () {
     } else {
         document.documentElement.style.background = /^dark/.test(document.documentElement.dataset.theme) ? '#300000' : 'mistyrose';
     }
+    // Hide or show the jqueryCompatibility info
+    document.getElementById('jqueryCompatibility').style.display = params.contentInjectionMode === 'jquery' ? '' : 'none';
     // Get cache attributes, then update the UI with the obtained data
     getAssetsCacheAttributes().then(function (cache) {
         if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {

@@ -52,7 +52,8 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('approveConfirm').textContent = approveConfirmLabel;
             document.getElementById('declineConfirm').textContent = declineConfirmLabel;
             document.getElementById('closeMessage').textContent = closeMessageLabel;
-            document.getElementById('modalLabel').textContent = label;
+            // Some titles need &nbsp; or other HTML, so we have to use innerHTML
+            document.getElementById('modalLabel').innerHTML = label;
             // Using innerHTML to set the message to allow HTML formatting
             document.getElementById('modalText').innerHTML = message;
             // Display buttons acc to the type of alert

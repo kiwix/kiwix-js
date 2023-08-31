@@ -458,8 +458,8 @@
                                 <option data-i18n="configure-language-selector-other" class="dropdown-item" href="#" value="other">More coming soon...!</a>
                             </select>
                         </div>
-                        <p id="downloadInstruction" data-i18n="configure-download-instructions">This application needs a ZIM archive to work. For download
-                            instructions, please see the About section.</p>
+                        <p id="downloadInstruction"><span data-i18n="configure-download-instructions">This application needs a ZIM archive to work.<br />
+                            For full instructions, please see the section</span> <strong><a href="#configuration" data-i18n="about" class="aboutLinks">About</a></strong>.</p>
                         <div id="selectorsDisplay" style="display: none;">
                             <p><span data-i18n="configure-selectordisplay">Drag and drop a new ZIM file, or</span>
                                 <a href="#" id="selectorsDisplayLink" data-i18n="configure-selectordisplay-link">display file selectors</a>.</p>
@@ -473,9 +473,8 @@
                                 <span data-i18n="home-btn-fileselect">Select ZIM file(s)</span>
                             </label>
                             <br />
-                            <strong data-i18n="configure-supportedarchives">Only MediaWiki-based (wiki*.zim* files, like wikipedia), StackExchange and
-                                some video-based ZIMs (e.g. TEDx) have been fully tested</strong>.
-                            <span data-i18n="configure-dynamic-content">Dynamic content is not currently supported in jQuery mode.</span><br />
+                            <strong id="jqueryCompatibility" data-i18n="configure-static-content">Only ZIMs with static content (e.g. Wiki-style) are supported in JQuery mode.<br /></strong>
+                            <span data-i18n="configure-supportedarchives">For information on ZIM compatibility, see</span> <a href="#usage" data-i18n="configure-about-usage-link" class="aboutLinks">About (Usage)</a>.<br />
                         </div>
                         <div id="scanningForArchives" style="display: none;">
                             <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
@@ -597,7 +596,7 @@
                         <div class="card card-warning" id="contentInjectionModeDiv">
                             <div data-i18n="configure-compatibility-panel-header" class="card-header">Content injection mode</div>
                             <div class="card-body">
-                                <p><span  data-i18n="configure-compatibility-see">See</span> <a href="#modes" data-i18n="configure-compatibility-modeslink" id="modesLink">About (Technical Information)</a> <span data-i18n="configure-compatibility-helpstub">for an explanation of the difference between these modes:</span></p>
+                                <p><span  data-i18n="configure-compatibility-see">See</span> <a href="#modes" data-i18n="configure-compatibility-modeslink" class="aboutLinks">About (Technical Information)</a> <span data-i18n="configure-compatibility-helpstub">for an explanation of the difference between these modes:</span></p>
                                 <div class="radio">
                                     <label data-i18n-tip="configure-compatibility-option-serviceworker-tip" title="This mode requires that the browser or framework be capable of installing a Service Worker. It enables dynamic ZIM content and running JavaScript (including inline JS). It works by intercepting the browser's Fetch calls and supplying the requested content from the ZIM.">
                                         <input type="radio" name="contentInjectionMode" value="serviceworker"
