@@ -227,7 +227,14 @@
       "about-libraries": "Principales bibliotecas y herramientas utilizadas:",
       "about-other-clients": "Otros clientes de Kiwix existen en varias plataformas como aplicaciones de escritorio y móviles para Linux, Windows, Android e iOS. También tenemos una PWA con muchas funciones adicionales, y que funciona sin necesidad de conexión a Internet, basada en el código de Kiwix JS: <a href=\"https://pwa.kiwix.org\" target=\"_blank\">https://pwa.kiwix.org&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>.",
       "about-official-download": "Vea el sitio oficial de descargas: <a href=\"https://www.kiwix.org/applications/\" target=\"_blank\">https://www.kiwix.org/applications/&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>.",
-      "about-back-contents": "↑ Volver al Índice"
+      "about-back-contents": "↑ Volver al Índice",
+      "alert-activecontentwarning-title": "No se puede mostrar contenido activo:",
+      "alert-activecontentwarning-part1": "ZIM no es totalmente compatible con el modo JQuery.<br />El contenido puede estar disponible haciendo clic en el botón de búsqueda arriba (o escribiendo una letra del alfabeto), o bien",	
+      "alert-activecontentwarning-part2": "cambiando al modo ServiceWorker",
+      "alert-activecontentwarning-part3": "si su plataforma lo soporta.",
+      "alert-activecontentwarning-part4": "Ocultar permanentemente",
+      "alert-update-version": "Versión",
+      "alert-update-available": "está lista para instalar. (Vuelva a iniciar la aplicación para instalarla.)"
     }
   }
 }

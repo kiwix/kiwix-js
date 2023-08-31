@@ -395,8 +395,8 @@ function checkUpdateStatus (appstate) {
                         // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
                         appstate.pwaUpdateNeeded = true;
                         updateAlert.style.display = 'block';
-                        document.getElementById('persistentMessage').textContent = 'Version ' + key.replace(cachePrefix, '') +
-                            ' is ready to install. (Re-launch app to install.)';
+                        document.getElementById('persistentMessage').textContent = (translateUI.t('alert-update-version') || 'Version') + ' ' + key.replace(cachePrefix, '') + ' ' +
+                            (translateUI.t('alert-update-available') || 'is ready to install. (Re-launch app to install.)');
                     });
                 });
             }
