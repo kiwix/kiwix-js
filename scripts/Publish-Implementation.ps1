@@ -1,6 +1,6 @@
 # This is a utility script which helps developers choose sensible values for publishing the implementation of this app
 # to GitHub Pages, or to the docker container. It is useful for testing and developing code in a specific branch. It checks
-# app.js and service-worker.js for consistency, and checks that the underlying branch of a PR has been checked out
+# init.js and service-worker.js for consistency, and checks that the underlying branch of a PR has been checked out
 # (rather than the PR itself). It then calls the GitHub REST API for dispatching the workflow using the provided values.
 #
 # IMPORTANT: Ensure that your personal github token is in your local copy of the '/scripts' directory, saved as 'github_token'.
@@ -21,7 +21,7 @@ param (
 # Provide parameters
 $release_uri = 'https://api.github.com/repos/kiwix/kiwix-js/actions/workflows/publish-extension.yaml/dispatches'
 
-$app_params = Select-String 'appVersion' "$PSScriptRoot\..\www\js\app.js" -List
+$app_params = Select-String 'appVersion' "$PSScriptRoot\..\www\js\init.js" -List
 $serviceworker = Select-String 'appVersion' "$PSScriptRoot\..\service-worker.js" -List
 $suggested_build = ''
 $app_tag = ''
@@ -29,18 +29,18 @@ if ($app_params -match 'params\[[''"]appVersion[''"]]\s*=\s*[''"]([^''"]+)') {
   $app_tag = $matches[1]
   $suggested_build = 'dev-' + $app_tag
 } else {
-  "*** WARNING: App version is incorrectly set in app.js.`nPlease correct before continuing.`n"
+  "*** WARNING: App version is incorrectly set in init.js.`nPlease correct before continuing.`n"
   exit
 }
 $sw_tag = ''
 if ($serviceworker -match 'appVersion\s*=\s*[''"]([^''"]+)') {
   $sw_tag = $matches[1]
   if ($sw_tag -ne $app_tag) {
-    "*** WARNING: The version in app.js [$app_tag] does not match the version in service-worker.js [$sw_tag]! ***"
+    "*** WARNING: The version in init.js [$app_tag] does not match the version in service-worker.js [$sw_tag]! ***"
     "Please correct before continuing.`n"
     exit
   } else {
-    "`nVersion in app.js: $app_tag"
+    "`nVersion in init.js: $app_tag"
     "Version in service-worker.js: $sw_tag`n"
   }
 } else {
