@@ -384,18 +384,28 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     uiUtil.removeAnimationClasses();
-    if (params.showUIAnimations) {
-        uiUtil.applyAnimationToSection('config');
-    } else {
-        document.getElementById('about').style.display = 'none';
-        document.getElementById('configuration').style.display = '';
-        document.getElementById('articleContent').style.display = 'none';
+    if(document.getElementById('configuration').style.display == 'none'){
+        if (params.showUIAnimations) {
+            uiUtil.applyAnimationToSection('config');
+        } else {
+            document.getElementById('about').style.display = 'none';
+            document.getElementById('configuration').style.display = '';
+            document.getElementById('articleContent').style.display = 'none';
+        }
+        document.getElementById('navigationButtons').style.display = 'none';
+        document.getElementById('formArticleSearch').style.display = 'none';
+        document.getElementById('welcomeText').style.display = 'none';
+        document.getElementById('searchingArticles').style.display = 'none';
+        document.querySelector('.kiwix-alert').style.display = 'none';
     }
-    document.getElementById('navigationButtons').style.display = 'none';
-    document.getElementById('formArticleSearch').style.display = 'none';
-    document.getElementById('welcomeText').style.display = 'none';
-    document.getElementById('searchingArticles').style.display = 'none';
-    document.querySelector('.kiwix-alert').style.display = 'none';
+    else{
+        document.getElementById('about').style.display = 'none';
+        document.getElementById('configuration').style.display = 'none';
+        document.getElementById('articleContent').style.display = '';
+
+        document.getElementById('navigationButtons').style.display = '';
+        document.getElementById('formArticleSearch').style.display = '';
+    }
     refreshAPIStatus();
     refreshCacheStatus();
     uiUtil.checkUpdateStatus(appstate);
@@ -411,19 +421,29 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     uiUtil.removeAnimationClasses();
-    if (params.showUIAnimations) {
-        uiUtil.applyAnimationToSection('about');
-    } else {
-        document.getElementById('about').style.display = '';
-        document.getElementById('configuration').style.display = 'none';
-        document.getElementById('articleContent').style.display = 'none';
+    if(document.getElementById('about').style.display == 'none'){
+        if (params.showUIAnimations) {
+            uiUtil.applyAnimationToSection('about');
+        } else {
+            document.getElementById('about').style.display = '';
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('articleContent').style.display = 'none';
+        }
+        document.getElementById('navigationButtons').style.display = 'none';
+        document.getElementById('formArticleSearch').style.display = 'none';
+        document.getElementById('welcomeText').style.display = 'none';
+        document.getElementById('articleListWithHeader').style.display = 'none';
+        document.getElementById('searchingArticles').style.display = 'none';
+        document.querySelector('.kiwix-alert').style.display = 'none';
     }
-    document.getElementById('navigationButtons').style.display = 'none';
-    document.getElementById('formArticleSearch').style.display = 'none';
-    document.getElementById('welcomeText').style.display = 'none';
-    document.getElementById('articleListWithHeader').style.display = 'none';
-    document.getElementById('searchingArticles').style.display = 'none';
-    document.querySelector('.kiwix-alert').style.display = 'none';
+    else{
+        document.getElementById('about').style.display = 'none';
+        document.getElementById('configuration').style.display = 'none';
+        document.getElementById('articleContent').style.display = '';
+
+        document.getElementById('navigationButtons').style.display = '';
+        document.getElementById('formArticleSearch').style.display = '';
+    }
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
