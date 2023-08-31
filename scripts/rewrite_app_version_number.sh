@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # [Script run by publish-extension workflow]
-# Replaces the version numbers in app.js and service-worker.js with the following priority:
+# Replaces the version numbers in init.js and service-worker.js with the following priority:
 #
 # 1. use the override value set in the workflow dispatch;
 # 2. use the tag pattern (if no override value was set)
@@ -27,7 +27,7 @@ else
 fi
 # If Version matches a release pattern, then set the appVersion in the files to be published
 if [[ $VERSION =~ ^[0-9.]+ ]]; then
-  echo "Rewriting appVersion in service-worker.js and app.js to $VERSION ..."
+  echo "Rewriting appVersion in service-worker.js and init.js to $VERSION ..."
   sed -i -E "s/appVersion\s*=\s*[^;]+/appVersion = '$VERSION'/" ./service-worker.js
-  sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/app.js
+  sed -i -E "s/params..appVersion[^=]+?=\s*[^;]+/params['appVersion'] = '$VERSION'/" ./www/js/init.js
 fi

@@ -44,7 +44,7 @@ jobs:
           # Check that values of assetsCache and appVersion are correctly duplicated
           chmod +x ./scripts/test_duplicate_values.sh
           ./scripts/test_duplicate_values.sh
-          # Check that PWAServer is correctly set in app.js
+          # Check that PWAServer is correctly set in init.js
           chmod +x ./scripts/test_pwa_server.sh
           ./scripts/test_pwa_server.sh
 
