@@ -52,7 +52,8 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('approveConfirm').textContent = approveConfirmLabel;
             document.getElementById('declineConfirm').textContent = declineConfirmLabel;
             document.getElementById('closeMessage').textContent = closeMessageLabel;
-            document.getElementById('modalLabel').textContent = label;
+            // Some titles need &nbsp; or other HTML, so we have to use innerHTML
+            document.getElementById('modalLabel').innerHTML = label;
             // Using innerHTML to set the message to allow HTML formatting
             document.getElementById('modalText').innerHTML = message;
             // Display buttons acc to the type of alert
@@ -313,7 +314,13 @@ function displayActiveContentWarning () {
                         thisLabel.style.borderStyle = '';
                     });
                 });
+                var anchor = this.getAttribute('href');
                 document.getElementById('btnConfigure').click();
+                // We have to use a timeout or the scroll is cancelled by the slide transtion animation
+                // @TODO This is a workaround. The regression should be fixed as it affects the aboutLinks as well
+                setTimeout(function () {
+                    document.querySelector(anchor).scrollIntoView();
+                }, 600);
             });
         });
     }
@@ -357,7 +364,7 @@ function displayFileDownloadAlert (title, download, contentType, content) {
     a.textContent = filename;
     var alertMessage = document.getElementById('alertMessage');
     // innerHTML required as it has HTML tags
-    alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
+    alertMessage.innerHTML = (translateUI.t('alert-download-message') || '<strong>Download</strong> If the download does not begin, please tap the following link:') + ' ';
     // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
     alertMessage.appendChild(a);
     try {
@@ -395,8 +402,8 @@ function checkUpdateStatus (appstate) {
                         // If we get here, then there is a cache key that does not match our version, i.e. a PWA-in-waiting
                         appstate.pwaUpdateNeeded = true;
                         updateAlert.style.display = 'block';
-                        document.getElementById('persistentMessage').textContent = 'Version ' + key.replace(cachePrefix, '') +
-                            ' is ready to install. (Re-launch app to install.)';
+                        document.getElementById('persistentMessage').textContent = (translateUI.t('alert-update-version') || 'Version') + ' ' + key.replace(cachePrefix, '') + ' ' +
+                            (translateUI.t('alert-update-available') || 'is ready to install. (Re-launch app to install.)');
                     });
                 });
             }
@@ -436,7 +443,7 @@ function spinnerDisplay (show, message) {
         spinnerMessage.textContent = message;
         spinnerMessage.style.display = 'block';
     } else {
-        spinnerMessage.textContent = 'Caching assets...';
+        spinnerMessage.textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
         spinnerMessage.style.display = 'none';
     }
 }

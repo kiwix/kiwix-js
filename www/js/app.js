@@ -198,7 +198,19 @@ function getDefaultLanguageAndTranslateApp () {
         console.log('User-selected language is: ' + params.overrideBrowserLanguage);
     }
     // Use the override language if set, or else use the browser default
-    translateUI.translateApp(params.overrideBrowserLanguage || defaultBrowserLanguage.base);
+    var languageCode = params.overrideBrowserLanguage || defaultBrowserLanguage.base;
+    translateUI.translateApp(languageCode)
+    .catch(function (err) {
+        if (languageCode !== 'en') {
+            var message = '<p>We cannot load the translation strings for language code <code>' + languageCode + '</code>';
+            if (/^file:\/\//.test(window.location.href)) {
+                message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
+            }
+            message += '.</p>';
+            if (err) message += '<p>The error message is: ' + err + '</p>';
+            uiUtil.systemAlert(message);
+        }
+    });
 }
 
 // Add a listener for the language selection dropdown which will change the language of the app
@@ -519,14 +531,18 @@ document.getElementById('titleSearchRange').addEventListener('change', function 
 document.getElementById('titleSearchRange').addEventListener('input', function (e) {
     titleSearchRangeVal.textContent = e.target.value;
 });
-document.getElementById('modesLink').addEventListener('click', function () {
-    document.getElementById('btnAbout').click();
-    // We have to use a timeout or the scroll is cancelled by the slide transtion animation
-    // @TODO This is a workaround. The regression should be fixed as it affects the Active content warning
-    // links as well.
-    setTimeout(function () {
-        document.getElementById('modes').scrollIntoView();
-    }, 600);
+// Add event listeners to the About links in Configuration, so that they jump to the linked sections
+document.querySelectorAll('.aboutLinks').forEach(function (link) {
+    link.addEventListener('click', function () {
+        var anchor = link.getAttribute('href');
+        document.getElementById('btnAbout').click();
+        // We have to use a timeout or the scroll is cancelled by the slide transtion animation
+        // @TODO This is a workaround. The regression should be fixed as it affects the Active content warning
+        // links as well.
+        setTimeout(function () {
+            document.querySelector(anchor).scrollIntoView();
+        }, 600);
+    });
 });
 // Do update checks 7s after startup
 setTimeout(function () {
@@ -730,6 +746,8 @@ function refreshCacheStatus () {
     } else {
         document.documentElement.style.background = /^dark/.test(document.documentElement.dataset.theme) ? '#300000' : 'mistyrose';
     }
+    // Hide or show the jqueryCompatibility info
+    document.getElementById('jqueryCompatibility').style.display = params.contentInjectionMode === 'jquery' ? '' : 'none';
     // Get cache attributes, then update the UI with the obtained data
     getAssetsCacheAttributes().then(function (cache) {
         if (cache.type === 'cacheAPI' && ASSETS_CACHE !== cache.name) {
@@ -1557,7 +1575,7 @@ function readArticle (dirEntry) {
         var iframeArticleContent = document.getElementById('articleContent');
         iframeArticleContent.onload = function () {
             // The content is fully loaded by the browser : we can hide the spinner
-            document.getElementById('cachingAssets').textContent = 'Caching assets...';
+            document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
             document.getElementById('cachingAssets').style.display = 'none';
             document.getElementById('searchingArticles').style.display = 'none';
             // Set the requested appTheme
@@ -1995,7 +2013,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // until all CSS content is available [kiwix-js #381]
         function renderIfCSSFulfilled (title) {
             if (cssFulfilled >= cssCount) {
-                document.getElementById('cachingAssets').textContent = 'Caching assets...';
+                document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('articleContent').style.display = '';
@@ -2071,9 +2089,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 function updateCacheStatus (title) {
     if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
         var cacheBlock = document.getElementById('cachingAssets');
-        cacheBlock.style.display = 'block';
+        cacheBlock.style.display = '';
         title = title.replace(/[^/]+\//g, '').substring(0, 18);
-        cacheBlock.textContent = 'Caching ' + title + '...';
+        cacheBlock.textContent = (translateUI.t('spinner-caching') || 'Caching') + ' ' + title + '...';
     }
 }
 
