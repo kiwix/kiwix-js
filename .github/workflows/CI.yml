@@ -57,6 +57,12 @@ jobs:
       - name: Test a full build of the app
         run: npm run build
 
+      - name: Test integrity of gitignore.patch
+        run: |
+          # Check that the /scripts/gitignore patch is still valid (it will be needed for the gh-pages implementation used for unbundled testing)
+          echo "DEV: If the gitignore patch fails, follow instructions in ADDING_DEPENDENCIES_NODE_MODULES.md to correct it."
+          git apply ./scripts/gitignore.patch
+
       - name: End-to-end tests on Chrome (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
