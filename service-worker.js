@@ -26,7 +26,7 @@
 /* global chrome */
 
 /**
- * App version number - ENSURE IT MATCHES VALUE IN app.js
+ * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
@@ -106,6 +106,7 @@ const precacheFiles = [
     'service-worker.js',
     'i18n/en.json',
     'i18n/es.json',
+    'i18n/fr.json',
     'www/css/app.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
