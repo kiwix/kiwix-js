@@ -314,7 +314,13 @@ function displayActiveContentWarning () {
                         thisLabel.style.borderStyle = '';
                     });
                 });
+                var anchor = this.getAttribute('href');
                 document.getElementById('btnConfigure').click();
+                // We have to use a timeout or the scroll is cancelled by the slide transtion animation
+                // @TODO This is a workaround. The regression should be fixed as it affects the aboutLinks as well
+                setTimeout(function () {
+                    document.querySelector(anchor).scrollIntoView();
+                }, 600);
             });
         });
     }
