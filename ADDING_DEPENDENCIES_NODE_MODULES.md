@@ -38,6 +38,6 @@ To update the patch, you will need the help of the git software to generate the 
 4. Save the file (but don't commit it);
 5. Run something like `git diff > mypatch.patch`;
 6. Take the code in `mypatch.patch` and overwrite the code (but not the comment) in the current `./scripts/gitignore.patch`;
-7. Save the chnages to `gitignore.patch`, and discard all other irrelevant changes (e.g., `.gitignore`, `mypatch.patch` and any unignored `node_module` files);
+7. Save the chnages to `gitignore.patch`, and discard the changes to `.gitignore` and `mypatch.patch` (when you discard `.gitignore`, the unignored `node_modules` dependencies should no longer appear as unsstaged changes in your PR);
 8. Test your patch works with `git apply ./scripts/gitignore.patch`;
-9. If it works, discard all unneeded changes escept `gitignore.patch` again, and you can finally push (just) the `gitignore.patch` to your PR.
+9. If it works, discard the changed `.gitignore` again, and you can finally push (just) the edited `gitignore.patch` to your PR.

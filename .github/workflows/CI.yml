@@ -59,8 +59,7 @@ jobs:
 
       - name: Test integrity of gitignore.patch
         run: |
-          # Check that the /scripts/gitignore patch is still valid (it's not actually needed for the dist build, but it will be needed
-          # when the gh-pages and docker container implementations are updated for unbundled testing)
+          # Check that the /scripts/gitignore patch is still valid (it will be needed for the gh-pages implementation used for unbundled testing)
           echo "DEV: If the gitignore patch fails, follow instructions in ADDING_DEPENDENCIES_NODE_MODULES.md to correct it."
           git apply ./scripts/gitignore.patch
 
