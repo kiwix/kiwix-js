@@ -34,8 +34,10 @@ $RepoRoot = $PSScriptRoot -replace '[\\/]scripts'
 # List all files recursively in the /www directory, and process the FullName to remove the path up to 'www'
 # and to replace any (back)slashes with forward slashes
 $ListOfFSFiles = ls -r $RepoRoot/www/*.* | % { $_.FullName -replace '^.+?[\\/](?=www)', '' -replace '[\\/]', '/' }
-# Select lines matching "www/.+" in service-worker.js and process the output to replace whitespace, quotation marks and commas 
-$ListOfSWFiles = (sls '[''"]www/.+[''"]' $RepoRoot/service-worker.js) | % { $_.Line -replace '\s*[''"],?', '' }
+# Add the files in the i18n directory
+$ListOfFSFiles += ls -r $RepoRoot/i18n/*.* | % { $_.FullName -replace '^.+?[\\/](?=i18n)', '' -replace '[\\/]', '/' }
+# Select lines matching "www/.+" or "i18n/.+" in service-worker.js and process the output to replace whitespace, quotation marks and commas 
+$ListOfSWFiles = (sls '[''"](?:www|i18n)/.+[''"]' $RepoRoot/service-worker.js) | % { $_.Line -replace '\s*[''"],?', '' }
 # Flag to track any missing files
 $MissingFiles = $false
 Write-Output ""
@@ -51,6 +53,6 @@ if ($MissingFiles) {
   Write-Host "`n** Please add the missing file(s) listed above to service-worker.js **`n" -ForegroundColor Red
   exit 1
 } else {
-  Write-Host "All non-exempt files in /www are listed in $SWFile`n" -ForegroundColor Green 
+  Write-Host "All non-exempt files in /www and /i18n are listed in $SWFile`n" -ForegroundColor Green 
   exit 0
 }

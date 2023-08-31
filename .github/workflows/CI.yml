@@ -44,7 +44,7 @@ jobs:
           # Check that values of assetsCache and appVersion are correctly duplicated
           chmod +x ./scripts/test_duplicate_values.sh
           ./scripts/test_duplicate_values.sh
-          # Check that PWAServer is correctly set in app.js
+          # Check that PWAServer is correctly set in init.js
           chmod +x ./scripts/test_pwa_server.sh
           ./scripts/test_pwa_server.sh
 
@@ -56,6 +56,12 @@ jobs:
 
       - name: Test a full build of the app
         run: npm run build
+
+      - name: Test integrity of gitignore.patch
+        run: |
+          # Check that the /scripts/gitignore patch is still valid (it will be needed for the gh-pages implementation used for unbundled testing)
+          echo "DEV: If the gitignore patch fails, follow instructions in ADDING_DEPENDENCIES_NODE_MODULES.md to correct it."
+          git apply ./scripts/gitignore.patch
 
       - name: End-to-end tests on Chrome (Linux)
         env:
