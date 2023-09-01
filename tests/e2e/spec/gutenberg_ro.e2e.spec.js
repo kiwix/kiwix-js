@@ -362,8 +362,8 @@ function runTests (driver, modes) {
                 // await downloadButton.click();
                 const downloadFileStatus = await driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
-                    if (!['firefox', 'chrome'].includes(browserName)) {
-                        // will skip if any other browser and pass test
+                    if (!['firefox', 'chrome'].includes(browserName) || BROWSERSTACK) {
+                        // will skip if any other browser or Running in browserstack and pass test
                         return true;
                     }
                     const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);

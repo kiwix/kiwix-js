@@ -1,5 +1,8 @@
 import { Builder } from 'selenium-webdriver';
+import { Options } from 'selenium-webdriver/chrome.js';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
+import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
+import paths from '../../paths.js';
 
 /* eslint-disable camelcase */
 
@@ -8,7 +11,7 @@ const capabilities = {
     'bstack:options': {
         os: 'OS X',
         osVersion: 'Mojave',
-        browserVersion: '58.0',
+        browserVersion: '60.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
         buildName: 'BStack Build Name: Chrome 58 on Mojave',
         local: true,
@@ -21,6 +24,9 @@ const capabilities = {
 };
 
 async function loadChromeDriver() {
+    const options = new Options()
+    options.setUserPreferences({ 'download.default_directory': paths.downloadDir });
+
     const driver = await new Builder()
         // .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
@@ -33,4 +39,4 @@ async function loadChromeDriver() {
 // await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
 
 // make sure to use await running tests or we are charged unnecessarily on Browserstack
-await legacyRayCharles.runTests(await loadChromeDriver());
+await gutenbergRo.runTests(await loadChromeDriver());
