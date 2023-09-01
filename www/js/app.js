@@ -399,10 +399,13 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
         document.querySelector('.kiwix-alert').style.display = 'none';
     }
     else{
-        document.getElementById('about').style.display = 'none';
-        document.getElementById('configuration').style.display = 'none';
-        document.getElementById('articleContent').style.display = '';
-
+        if (params.showUIAnimations) {
+            uiUtil.applyAnimationToSection('home');
+        }else{
+            document.getElementById('about').style.display = 'none';
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('articleContent').style.display = '';
+        }
         document.getElementById('navigationButtons').style.display = '';
         document.getElementById('formArticleSearch').style.display = '';
     }
@@ -414,14 +417,16 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
 });
 document.getElementById('btnAbout').addEventListener('click', function (event) {
     event.preventDefault();
-    // Highlight the selected section in the navbar
-    document.getElementById('liHomeNav').setAttribute('class', '');
-    document.getElementById('liConfigureNav').setAttribute('class', '');
-    document.getElementById('liAboutNav').setAttribute('class', 'active');
+    
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     uiUtil.removeAnimationClasses();
     if(document.getElementById('about').style.display == 'none'){
+        // Highlight the selected section in the navbar
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', '');
+        document.getElementById('liAboutNav').setAttribute('class', 'active');
+        
         if (params.showUIAnimations) {
             uiUtil.applyAnimationToSection('about');
         } else {
@@ -437,10 +442,14 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
         document.querySelector('.kiwix-alert').style.display = 'none';
     }
     else{
-        document.getElementById('about').style.display = 'none';
-        document.getElementById('configuration').style.display = 'none';
-        document.getElementById('articleContent').style.display = '';
-
+        document.getElementById('liAboutNav').setAttribute('class', '');
+        if (params.showUIAnimations) {
+            uiUtil.applyAnimationToSection('home');
+        }else{
+            document.getElementById('about').style.display = 'none';
+            document.getElementById('configuration').style.display = 'none';
+            document.getElementById('articleContent').style.display = '';
+        }
         document.getElementById('navigationButtons').style.display = '';
         document.getElementById('formArticleSearch').style.display = '';
     }
