@@ -29,7 +29,13 @@ import fs from 'fs';
 /* eslint-disable camelcase */
 /* global describe, it */
 
+// Get the BrowserStack environment variable
+const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+// DEV: For local testing, use line below instead
+// const BROWSERSTACK = true;
+
 const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+const gutenbergRoBaseFile = BROWSERSTACK ? '/tests/zims/gutenberg-ro/gutenberg_ro_all_2023-08.zim' : paths.gutenbergRoBaseFile
 
 /**
  *  Run the tests
@@ -100,7 +106,7 @@ function runTests (driver, modes) {
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
             it('Load Kiwix JS and check title', async function () {
-                await driver.get('http://localhost:8080/dist/www/index.html');
+                await driver.get('http://localhost:' + port + '/dist/www/index.html');
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
@@ -175,17 +181,23 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                const archiveFiles = await driver.findElement(By.id('archiveFiles'));
-                await archiveFiles.sendKeys(paths.gutenbergRoBaseFile);
                 // Wait until files have loaded
                 var filesLength;
-                await driver.wait(async function () {
+                const isFileLoaded = await driver.wait(async function () {
                     // check if file has been loaded
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     return filesLength === 1;
-                }, 5000);
-                // Check that we loaded 1 file
-                assert.equal(1, filesLength);
+                }, 5000).catch(() => false);
+                if (!BROWSERSTACK) {
+                    const archiveFiles = await driver.findElement(By.id('archiveFiles'));
+                    if (!isFileLoaded) await archiveFiles.sendKeys(gutenbergRoBaseFile);
+                    // Check that we loaded 1 file
+                    assert.equal(1, filesLength);
+                } else {
+                    // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
+                    if (!isFileLoaded) await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', [gutenbergRoBaseFile]);
+                    await driver.sleep('1300');
+                }
             });
 
             // In JQuery mode, the app warns the user that there is active content it cannot run, so we test for this and dismiss
