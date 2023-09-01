@@ -144,21 +144,21 @@ jobs:
           }
           exit $AggregateExitCode
 
-      - name: End-to-end tests on Chrome(Windows)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-chrome
-
-      - name: End-to-end tests on Edge(Windows)
+      - name: End-to-end tests on Edge Chromium (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-edge
 
-      - name: End-to-end tests on Firefox(Windows)
+      - name: End-to-end tests on Firefox (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-firefox
   
+      - name: End-to-end tests in IE11 Mode (Windows)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-iemode      
+
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
   #   runs-on: macos-latest
