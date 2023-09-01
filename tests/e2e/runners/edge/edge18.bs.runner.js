@@ -34,9 +34,9 @@ async function loadEdgeLegacyDriver () {
 };
 
 // Maximize the window so that full browser state is visible in the screenshots
-const driver_edge_legacy = await loadEdgeLegacyDriver();
-await driver_edge_legacy.manage().window().maximize();
-await legacyRayCharles.runTests(driver_edge_legacy);
+// const driver_edge_legacy = await loadEdgeLegacyDriver();
+// await driver_edge_legacy.manage().window().maximize();
+// await legacyRayCharles.runTests(driver_edge_legacy);
 
 // Maximize the window so that full browser state is visible in the screenshots
 const driver_edge_gutenberg = await loadEdgeLegacyDriver();

@@ -191,6 +191,7 @@ function runTests (driver, modes) {
                 if (!BROWSERSTACK) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     if (!isFileLoaded) await archiveFiles.sendKeys(gutenbergRoBaseFile);
+                    filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     // Check that we loaded 1 file
                     assert.equal(1, filesLength);
                 } else {
@@ -222,9 +223,8 @@ function runTests (driver, modes) {
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
                 await driver.sleep(500);
                 // get the text of first result and check if it is the same as expected
-                const firstBookName = await driver.wait(async function () {
-                    return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                })
+                const firstBookName = await driver.wait(until.elementLocated(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')), 4000).getText();
+
                 assert.equal(firstBookName, 'Poezii');
             });
 
@@ -235,9 +235,7 @@ function runTests (driver, modes) {
                 }
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('alpha_sort')))).click();
                 await driver.sleep(1500);
-                const firstBookName = await driver.wait(async function () {
-                    return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                }, 3000);
+                const firstBookName = await driver.wait(until.elementLocated(By.xpath('/html/body/div[4]/div/table/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')), 4000).getText();
                 // get the text of first result and check if it is the same as expected
                 assert.equal(firstBookName, 'Creierul, O Enigma Descifrata');
             });
