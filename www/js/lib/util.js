@@ -311,6 +311,7 @@ function getJSONPObject (url) {
         var script = document.createElement('script');
         script.onload = function () {
             resolve(document.localeJson);
+            // Remove the objects from the DOM to avoid memory leaks
             delete document.localeJson;
             document.body.removeChild(script);
         };
@@ -320,26 +321,6 @@ function getJSONPObject (url) {
         };
         script.src = url;
         document.body.appendChild(script);
-    // Below is the the XMLHttpRequest method (use with pure .json files), but it is slower and incompatible with browsers running from a file:// URL
-        // const xhr = new XMLHttpRequest();
-        // xhr.open('GET', url);
-        // xhr.responseType = 'json';
-        // xhr.onload = function () {
-        //     if (xhr.status === 200) {
-        //         var response = xhr.response;
-        //         // IE11 does not support responseType = 'json', so we need to parse the response manually
-        //         if (typeof response === 'string') {
-        //             response = JSON.parse(response);
-        //         }
-        //         resolve(response);
-        //     } else {
-        //         reject(xhr.statusText);
-        //     }
-        // };
-        // xhr.onerror = function () {
-        //     reject(xhr.statusText);
-        // };
-        // xhr.send();
     });
 }
 
