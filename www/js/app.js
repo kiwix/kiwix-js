@@ -206,9 +206,11 @@ function getDefaultLanguageAndTranslateApp () {
             if (/^file:\/\//.test(window.location.href)) {
                 message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
             }
-            message += '.</p>';
+            message += '.</p><p>Falling back to English...</p>';
             if (err) message += '<p>The error message is: ' + err + '</p>';
             uiUtil.systemAlert(message);
+            document.getElementById('languageSelector').value = 'en';
+            return translateUI.translateApp('en');
         }
     });
 }
