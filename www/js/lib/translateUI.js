@@ -40,6 +40,11 @@ var fallback = true;
 
 // Load the translation strings as a JSONP object for a given language code
 function loadTranslationStrings (langCode) {
+    // Ensure the language code is safe to use as part of a URL
+    langCode = encodeURI(langCode);
+    if (!/^[a-zA-Z]{2,4}$/.test(langCode)) {
+        return Promise.reject(new Error('Invalid language code: ' + langCode));
+    }
     return util.getJSONPObject('../i18n/' + langCode + '.jsonp').then(function (translations) {
         currentLanguage = translations[langCode]['translation'];
         // i18next.init({

@@ -314,8 +314,8 @@ function getJSONPObject (url) {
             delete document.localeJson;
             document.body.removeChild(script);
         };
-        script.onerror = function (err) {
-            reject(err);
+        script.onerror = function () {
+            reject(new Error('Cannot load translation strings from ' + url));
             document.body.removeChild(script);
         };
         script.src = url;
