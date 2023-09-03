@@ -60,7 +60,7 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 - <img src="images/safari-color.svg" width="20" /> Safari >=11.3 on macOS or iOS: no extension available, but use https://browser-extension.kiwix.org and install to Home screen; for a more fully featured PWA, use https://pwa.kiwix.org
 - <img src="images/electron-color.svg" width="27" /> Electron >=1.8.0 and NWJS >=0.14.7 (as an application): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
 - <img src="images/microsoftwindows-color.svg" width="20" /> Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
-- <img src="images/ubuntu-color.svg" width="20" /> Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
+- <img src="images/ubuntu-color.png" width="20" /> Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
