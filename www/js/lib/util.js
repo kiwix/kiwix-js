@@ -7,7 +7,7 @@
  * This file is part of Kiwix.
  *
  * Kiwix is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
+ * it under the terms of the GNU General Public Licence as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
@@ -301,32 +301,26 @@ var PromiseQueue = {
 };
 
 /**
- * Get Promise for a JSON object from a given URL
+ * Get Promise for a JSON object from a given JSONP URL (a JSON-formatted script with a function that returns the JSON object)
  *
- * @param {string} url The URL from which to get the JSON object
- * @returns {Promise<Object>} A Promise that will be resolved with the JSON object, or rejected with the error message
- **/
-function getJSONObject (url) {
+ * @param {string} url The URL (JSONP file) from which to get the JSON object
+ * @returns {Promise<Object>} A Promise that will be resolved when the JSON object has been loaded, or rejected with the error message
+ */
+function getJSONPObject (url) {
     return new Promise(function (resolve, reject) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.responseType = 'json';
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                var response = xhr.response;
-                // IE11 does not support responseType = 'json', so we need to parse the response manually
-                if (typeof response === 'string') {
-                    response = JSON.parse(response);
-                }
-                resolve(response);
-            } else {
-                reject(xhr.statusText);
-            }
+        var script = document.createElement('script');
+        script.onload = function () {
+            resolve(document.localeJson);
+            // Remove the objects from the DOM to avoid memory leaks
+            delete document.localeJson;
+            document.body.removeChild(script);
         };
-        xhr.onerror = function () {
-            reject(xhr.statusText);
+        script.onerror = function () {
+            reject(new Error('Cannot load translation strings from ' + url));
+            document.body.removeChild(script);
         };
-        xhr.send();
+        script.src = url;
+        document.body.appendChild(script);
     });
 }
 
@@ -340,5 +334,5 @@ export default {
     binarySearch: binarySearch,
     leftShift: leftShift,
     PromiseQueue: PromiseQueue,
-    getJSONObject: getJSONObject
+    getJSONPObject: getJSONPObject
 };

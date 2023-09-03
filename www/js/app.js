@@ -203,12 +203,14 @@ function getDefaultLanguageAndTranslateApp () {
     .catch(function (err) {
         if (languageCode !== 'en') {
             var message = '<p>We cannot load the translation strings for language code <code>' + languageCode + '</code>';
-            if (/^file:\/\//.test(window.location.href)) {
-                message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
-            }
-            message += '.</p>';
-            if (err) message += '<p>The error message is: ' + err + '</p>';
+            // if (/^file:\/\//.test(window.location.href)) {
+            //     message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
+            // }
+            message += '.</p><p>Falling back to English...</p>';
+            if (err) message += '<p>The error message was:</p><code>' + err + '</code>';
             uiUtil.systemAlert(message);
+            document.getElementById('languageSelector').value = 'en';
+            return translateUI.translateApp('en');
         }
     });
 }

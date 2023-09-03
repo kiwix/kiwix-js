@@ -1,6 +1,7 @@
-{
+/* eslint-disable quote-props, quotes, indent */
+document.localeJson = {
   "es": {
-    "translation": {    
+    "translation": {
       "title": "Kiwix",
       "sub-title": "Navegador de contenido offline",
       "home": "Inicio",
@@ -17,8 +18,8 @@
       "configure": "Configurar",
       "configure-title": "Configuración",
       "configure-about-usage-link": "Información (Uso)",
-      "configure-download-instructions": "Esta aplicación necesita un archivo ZIM para funcionar.<br />Para instrucciones completas, por favor vea la sección",
-      "configure-select-instructions": "Por favor seleccione o arrastre y suelte un archivo .zim (o todos los .zimaa, .zimab etc en caso de un archivo ZIM dividido):",
+      "configure-download-instructions": "Esta aplicación necesita un archivo ZIM para funcionar.<br />Para instrucciones completas, vea la sección",
+      "configure-select-instructions": "Seleccione o arrastre y suelte un archivo .zim (o todos los .zimaa, .zimab etc en caso de un archivo dividido):",
       "configure-selectordisplay": "Arrastre y suelte un nuevo archivo ZIM, o",
       "configure-selectordisplay-link": "mostrar selector de archivos",
       "configure-static-content": "Sólo funcionan bien los ZIM con contenido estático (tipo Wiki) en el modo JQuery.<br />",
@@ -85,7 +86,7 @@
       "configure-expert-resetapp": "Restablecer aplicación",
       "configure-expert-resetapp-tip": "Esto devolverá la aplicación a su configuración original al iniciarla, y vaciará todas las cachés y configuraciones y cancelará el registro de los Service Workers. La aplicación se volverá a cargar.",
       "configure-api-panel-header": "Estado de las API",
-      "api-messagechannel-available": "API MessageChannel: disponible",   
+      "api-messagechannel-available": "API MessageChannel: disponible",
       "api-messagechannel-unavailable": "API MessageChannel: no disponible",
       "api-serviceworker-available-registered": "API ServiceWorker: disponible, servicio registrado",
       "api-serviceworker-available-unregistered": "API ServiceWorker: disponible, servicio no registrado",
@@ -97,7 +98,7 @@
       "api-error-uninitialized_masculine": "No definido",
       "api-error-uninitialized_feminine": "No definida",
       "api-decompressor-error-loading-part1": "¡Error al cargar descompresor",
-      "api-decompressor-error-loading-part2": "!", 
+      "api-decompressor-error-loading-part2": "!",
       "api-decompressor-label": "API de descompresión:",
       "api-pwa-origin-label": "Origen PWA:",
       "api-searchprovider-label": "Proveedor de búsqueda:",
@@ -230,7 +231,7 @@
       "about-official-download": "Vea el sitio oficial de descargas: <a href=\"https://www.kiwix.org/applications/\" target=\"_blank\">https://www.kiwix.org/applications/&nbsp;<img src=\"img/Icon_External_Link.png\" /></a>.",
       "about-back-contents": "↑ Volver al Índice",
       "alert-activecontentwarning-title": "No se puede mostrar contenido activo:",
-      "alert-activecontentwarning-part1": "Este ZIM no es totalmente compatible con el modo JQuery.<br />El contenido puede estar disponible haciendo clic en el botón de búsqueda arriba (o escribiendo una letra del alfabeto), o bien",	
+      "alert-activecontentwarning-part1": "Este ZIM no es totalmente compatible con el modo JQuery.<br />El contenido puede estar disponible haciendo clic en el botón de búsqueda arriba (o escribiendo una letra del alfabeto), o bien",
       "alert-activecontentwarning-part2": "cambiando al modo ServiceWorker",
       "alert-activecontentwarning-part3": "si su plataforma lo soporta.",
       "alert-activecontentwarning-part4": "Ocultar permanentemente",

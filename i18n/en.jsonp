@@ -1,6 +1,7 @@
-{
+/* eslint-disable quote-props, quotes, indent */
+document.localeJson = {
   "en": {
-    "translation": {    
+    "translation": {
       "title": "Kiwix",
       "sub-title": "Offline Browser",
       "home": "Home",
@@ -97,7 +98,7 @@
       "api-error-uninitialized_masculine": "Not initialized",
       "api-error-uninitialized_feminine": "Not initialized",
       "api-decompressor-error-loading-part1": "Error loading",
-      "api-decompressor-error-loading-part2": "decompressor!", 
+      "api-decompressor-error-loading-part2": "decompressor!",
       "api-decompressor-label": "Decompressor API",
       "api-pwa-origin-label": "PWA Origin:",
       "api-searchprovider-label": "Search Provider:",

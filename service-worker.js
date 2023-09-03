@@ -104,9 +104,9 @@ const precacheFiles = [
     '.', // This caches the redirect to www/index.html, in case a user launches the app from its root directory
     'manifest.json',
     'service-worker.js',
-    'i18n/en.json',
-    'i18n/es.json',
-    'i18n/fr.json',
+    'i18n/en.jsonp',
+    'i18n/es.jsonp',
+    'i18n/fr.jsonp',
     'www/css/app.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',

@@ -38,12 +38,15 @@ var fallback = true;
 // DEV: Uncomment line below to force placeholder (useful when writing new translations)
 // fallback = false;
 
-var tried = false;
-// Load the translation strings as a JSON object for a given language code
+// Load the translation strings as a JSONP object for a given language code
 function loadTranslationStrings (langCode) {
-    return util.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
+    // Ensure the language code is safe to use as part of a URL
+    langCode = encodeURI(langCode);
+    if (!/^[a-zA-Z]{2,4}$/.test(langCode)) {
+        return Promise.reject(new Error('Invalid language code: ' + langCode));
+    }
+    return util.getJSONPObject('../i18n/' + langCode + '.jsonp').then(function (translations) {
         currentLanguage = translations[langCode]['translation'];
-        tried = false;
         // i18next.init({
         //     lng: langCode, // if you're using a language detector, do not define the lng option
         //     debug: true,
@@ -51,17 +54,7 @@ function loadTranslationStrings (langCode) {
         // });
     }).catch(function (err) {
         console.error('Error loading translation strings for language code ' + langCode, err);
-        if (!tried) {
-            console.warn('Falling back to English');
-            tried = true;
-            return loadTranslationStrings('en');
-        } else {
-            console.error('Failed to load English translation strings');
-            console.warn('Falling back to no translation');
-            currentLanguage = {};
-            tried = false;
-            throw err;
-        }
+        throw err;
     });
 }
 
