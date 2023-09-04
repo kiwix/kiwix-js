@@ -30,9 +30,9 @@ import fs from 'fs';
 /* global describe, it */
 
 // Get the BrowserStack environment variable
-// const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // DEV: For local testing, use line below instead
-const BROWSERSTACK = true;
+// const BROWSERSTACK = true;
 
 const port = BROWSERSTACK ? '8099' : '8080';
 const gutenbergRoBaseFile = BROWSERSTACK ? '/tests/zims/gutenberg-ro/gutenberg_ro_all_2023-08.zim' : paths.gutenbergRoBaseFile
