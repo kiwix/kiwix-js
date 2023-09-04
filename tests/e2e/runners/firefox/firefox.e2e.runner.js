@@ -1,8 +1,8 @@
 import { Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
-import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
-import gutenbergRo from './gutenberg_ro.e2e.spec.js';
-import paths from './paths.js';
+import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
+import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
+import paths from '../../paths.js';
 
 /* eslint-disable camelcase */
 
