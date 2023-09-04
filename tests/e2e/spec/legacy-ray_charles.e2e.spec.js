@@ -34,7 +34,7 @@ const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // const BROWSERSTACK = true;
 
 // Select the correct port according to the environment
-const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+const port = BROWSERSTACK ? '8099' : '8080';
 
 // Set the archives to load
 let rayCharlesBaseFile = paths.rayCharlesBaseFile;

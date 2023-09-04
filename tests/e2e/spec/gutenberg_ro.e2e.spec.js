@@ -34,7 +34,7 @@ const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // DEV: For local testing, use line below instead
 // const BROWSERSTACK = true;
 
-const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+const port = BROWSERSTACK ? '8099' : '8080';
 const gutenbergRoBaseFile = BROWSERSTACK ? '/tests/zims/gutenberg-ro/gutenberg_ro_all_2023-08.zim' : paths.gutenbergRoBaseFile
 
 /**
@@ -187,7 +187,7 @@ function runTests (driver, modes) {
                     // check if file has been loaded
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     return filesLength === 1;
-                }, 5000).catch(() => false);
+                }, 2000).catch(() => false);
                 if (!BROWSERSTACK) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     if (!isFileLoaded) await archiveFiles.sendKeys(gutenbergRoBaseFile);
@@ -196,7 +196,7 @@ function runTests (driver, modes) {
                     assert.equal(1, filesLength);
                 } else {
                     // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
-                    if (!isFileLoaded) await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', [gutenbergRoBaseFile]);
+                    await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', [gutenbergRoBaseFile]);
                     await driver.sleep('1300');
                 }
             });
