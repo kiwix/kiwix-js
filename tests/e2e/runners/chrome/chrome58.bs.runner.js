@@ -20,7 +20,7 @@ const capabilities = {
     browserName: 'Chrome'
 };
 
-async function loadChromeDriver() {
+async function loadChromeDriver () {
     const driver = await new Builder()
         // .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')

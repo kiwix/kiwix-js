@@ -1,6 +1,5 @@
 import { Builder } from 'selenium-webdriver';
 import { Options } from 'selenium-webdriver/chrome.js';
-import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import paths from '../../paths.js';
 
@@ -23,7 +22,7 @@ const capabilities = {
     browserName: 'Chrome'
 };
 
-async function loadChromeDriver() {
+async function loadChromeDriver () {
     const options = new Options()
     options.setUserPreferences({ 'download.default_directory': paths.downloadDir });
 

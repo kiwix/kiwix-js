@@ -19,7 +19,7 @@ const capabilities = {
     browserName: 'Firefox'
 };
 
-async function loadFirefoxDriver() {
+async function loadFirefoxDriver () {
     const driver = await new Builder()
         // .forBrowser('edge')
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
