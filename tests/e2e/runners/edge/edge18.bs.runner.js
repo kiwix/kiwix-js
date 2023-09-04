@@ -30,15 +30,13 @@ async function loadEdgeLegacyDriver () {
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();
+    // Maximize the window so that full browser state is visible in the screenshots
+    await driver.manage().window().maximize();
     return driver;
 };
 
-// Maximize the window so that full browser state is visible in the screenshots
 // const driver_edge_legacy = await loadEdgeLegacyDriver();
-// await driver_edge_legacy.manage().window().maximize();
 // await legacyRayCharles.runTests(driver_edge_legacy);
 
-// Maximize the window so that full browser state is visible in the screenshots
 const driver_edge_gutenberg = await loadEdgeLegacyDriver();
-await driver_edge_gutenberg.manage().window().maximize();
 await gutenbergRo.runTests(driver_edge_gutenberg);

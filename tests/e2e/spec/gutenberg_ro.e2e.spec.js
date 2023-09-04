@@ -30,9 +30,9 @@ import fs from 'fs';
 /* global describe, it */
 
 // Get the BrowserStack environment variable
-const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+// const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // DEV: For local testing, use line below instead
-// const BROWSERSTACK = true;
+const BROWSERSTACK = true;
 
 const port = BROWSERSTACK ? '8099' : '8080';
 const gutenbergRoBaseFile = BROWSERSTACK ? '/tests/zims/gutenberg-ro/gutenberg_ro_all_2023-08.zim' : paths.gutenbergRoBaseFile
@@ -233,9 +233,16 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
+                // We switch to default Content and back to Iframe because the If we are retrying the test
+                // It will make sure reset the iframe
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
+                let firstBookName = '';
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('alpha_sort')))).click();
-                await driver.sleep(1500);
-                const firstBookName = await driver.wait(until.elementLocated(By.xpath('/html/body/div[4]/div/table/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')), 4000).getText();
+                await driver.sleep(4000);
+
+                const bookList = await driver.wait(until.elementsLocated(By.className('table-title')), 1500)
+                firstBookName = await bookList[0].getText();
                 // get the text of first result and check if it is the same as expected
                 assert.equal(firstBookName, 'Creierul, O Enigma Descifrata');
             });
