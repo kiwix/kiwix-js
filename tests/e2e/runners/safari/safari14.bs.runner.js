@@ -1,5 +1,6 @@
 import { Builder } from 'selenium-webdriver';
-import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
+import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -26,13 +27,16 @@ async function loadSafariDriver () {
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();
+    // Maximize the window so that full browser state is visible in the screenshots
+    await driver.manage().window().maximize();
     return driver;
 };
 
-const driver_safari = await loadSafariDriver();
+const driver_legacy_safari = await loadSafariDriver();
 
-// Maximize the window so that full browser state is visible in the screenshots
-await driver_safari.manage().window().maximize();
 // Browserstack Safari does not support Service Workers
 console.log('Running tests in jQuery mode only for this browser version')
-legacyRayCharles.runTests(driver_safari, ['jquery']);
+await legacyRayCharles.runTests(driver_legacy_safari, ['jquery']);
+
+const driver_gutenberg_safari = await loadSafariDriver();
+await gutenbergRo.runTests(driver_gutenberg_safari, ['jquery']);
