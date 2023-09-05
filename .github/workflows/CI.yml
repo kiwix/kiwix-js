@@ -180,17 +180,17 @@ jobs:
       - name: End-to-end tests on Edge Chromium (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-edge
+        run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js --retries 2'
 
       - name: End-to-end tests on Firefox (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-firefox
+        run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/firefox/firefox.e2e.runner.js --retries 2'
   
       - name: End-to-end tests in IE11 Mode (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-iemode      
+        run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/ieMode.e2e.runner.js --retries 2'
 
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
