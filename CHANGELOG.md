@@ -4,6 +4,24 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Kiwix JS v3.10.0
+
+Released on *TODO*
+
+* FEATURE: Full internationalization of the app in Spanish and French (more languages to follow)
+* ~~ENHANCEMENT: Re-display currently loaded article on "unclicking" Configuration or About~~
+* UPDATE: Improved availability of non-store Chromium extension files and installation instructions 
+* UPDATE: Supported platform infromation in README
+* UPDATE: Documentation updates throughout app
+* FIX: File picking in latest Chromium browsers for Android
+* FIX: Instabilities in End-to-End tests
+* DEV: Added End-to-End tests with Selenium and Mocha on GitHub Actions and BrowserStack
+* DEV: Updated Unit tests to use TestCafé
+* DEV: Move to modern ES6 bundling system with rollup.js and Vite development server
+* DEV: Conversion of JQuery `.on` events to vanilla JS
+* DEV: Add documentation for TESTS and adding dependencies for the bundling system
+* DEV: Moved app's configuration code to top-level `init.js` outside of bundlig system
+
 ## Kiwix JS v3.9.0
 
 Released on *2023-06-16*
