@@ -746,6 +746,18 @@ function getBrowserLanguage () {
     return language;
 }
 
+function viewArticles(){
+    if (params.showUIAnimations) {
+        applyAnimationToSection('home');
+    }else{
+        document.getElementById('about').style.display = 'none';
+        document.getElementById('configuration').style.display = 'none';
+        document.getElementById('articleContent').style.display = '';
+    }
+    document.getElementById('navigationButtons').style.display = 'inline-flex';
+    document.getElementById('formArticleSearch').style.display = 'block';
+}
+
 /**
  * Functions and classes exposed by this module
  */
@@ -769,5 +781,6 @@ export default {
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
-    getBrowserLanguage: getBrowserLanguage
+    getBrowserLanguage: getBrowserLanguage,
+    viewArticles : viewArticles
 };

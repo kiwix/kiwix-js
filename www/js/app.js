@@ -399,15 +399,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
         document.querySelector('.kiwix-alert').style.display = 'none';
     }
     else{
-        if (params.showUIAnimations) {
-            uiUtil.applyAnimationToSection('home');
-        }else{
-            document.getElementById('about').style.display = 'none';
-            document.getElementById('configuration').style.display = 'none';
-            document.getElementById('articleContent').style.display = '';
-        }
-        document.getElementById('navigationButtons').style.display = '';
-        document.getElementById('formArticleSearch').style.display = '';
+        uiUtil.viewArticles();
     }
     refreshAPIStatus();
     refreshCacheStatus();
@@ -443,15 +435,7 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     }
     else{
         document.getElementById('liAboutNav').setAttribute('class', '');
-        if (params.showUIAnimations) {
-            uiUtil.applyAnimationToSection('home');
-        }else{
-            document.getElementById('about').style.display = 'none';
-            document.getElementById('configuration').style.display = 'none';
-            document.getElementById('articleContent').style.display = '';
-        }
-        document.getElementById('navigationButtons').style.display = '';
-        document.getElementById('formArticleSearch').style.display = '';
+        uiUtil.viewArticles();
     }
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
