@@ -1,5 +1,5 @@
 import { Builder } from 'selenium-webdriver';
-import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -29,9 +29,8 @@ async function loadChromeDriver () {
     return driver;
 };
 
-const driver_chrome = await loadChromeDriver();
-
 // Maximize the window so that full browser state is visible in the screenshots
 // await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
 
-legacyRayCharles.runTests(driver_chrome);
+// make sure to use await running tests or we are charged unnecessarily on Browserstack
+await legacyRayCharles.runTests(await loadChromeDriver());

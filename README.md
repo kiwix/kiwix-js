@@ -20,7 +20,7 @@ content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Guten
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![CodeFactor](https://www.codefactor.io/repository/github/kiwix/kiwix-js/badge)](https://www.codefactor.io/repository/github/kiwix/kiwix-js)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Licence: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 [![Kiwix for Firefox](https://img.shields.io/amo/v/kiwix-offline?label=Kiwix%20for%20Firefox&logo=firefoxbrowser&logoColor=whitesmoke)](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
 [![Kiwix for Chrome](https://img.shields.io/chrome-web-store/v/donaljnlmapmngakoipdmehbfcioahhk?label=Kiwix%20for%20Chrome&logo=googlechrome&logoColor=whitesmoke)](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
@@ -51,16 +51,16 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 
 ### Officially supported platforms
 
-- Mozilla Firefox >=56 (as an extension): <img src="images/firefoxbrowser-color.svg" width="20" /> [Mozilla Add-ons Store](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
+- <img src="images/firefoxbrowser-color.svg" width="20" /> Mozilla Firefox >=56 (as an extension): [Mozilla Add-ons Store](https://addons.mozilla.org/fr/firefox/addon/kiwix-offline/)
     + Firefox 52-56 and ESR version 58: Limited support (jQuery mode only)
 - Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
-    + Google Chrome >=88: <img src="images/googlechrome-color.svg" width="20" /> [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
-    + Microsoft Edge >=88: <img src="images/microsoftedge-color.svg" width="20" /> [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
+    + <img src="images/googlechrome-color.svg" width="20" /> Google Chrome >=88: [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
+    + <img src="images/microsoftedge-color.svg" width="20" /> Microsoft Edge >=88: [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
 - Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use the MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-signed-or-unsigned-extension-files-in-chromium)
-- Safari >=11.3 on macOS or iOS:  <img src="images/safari-color.svg" width="20" /> no extension available, but use https://browser-extension.kiwix.org and install to Home screen; for a more fully featured PWA, use https://pwa.kiwix.org
-- Electron >=1.8.0 and NWJS >=0.14.7 (as an application): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
-- Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
-- Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
+- <img src="images/safari-color.svg" width="20" /> Safari >=11.3 on macOS or iOS: no extension available, but use https://browser-extension.kiwix.org and install to Home screen; for a more fully featured PWA, use https://pwa.kiwix.org
+- <img src="images/electron-color.svg" width="27" /> Electron >=1.8.0 and NWJS >=0.14.7 (as an application for Linux and Windows): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
+- <img src="images/microsoftwindows-color.svg" width="20" /> Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
+- <img src="images/ubuntu-color.png" width="20" /> Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
 
 ### Deprecated platforms
 
@@ -120,7 +120,7 @@ which do have the capability of remembering the chosen archive between app launc
 The app has fast title search, and slower full-text search for ZIM archives that have a full-text index, thanks to the
 [openzim/javascript-libzim](https://github.com/openzim/javascript-libzim) project. Currently, full-text searching only works in browsers
 that support [Atomic Operations](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics), which means
-recent desktop versions of Chromium and Firefox.
+recent desktop versions of Chromium and Firefox. There is also support in Safari on iOS 15+.
 
 ## Licence
 

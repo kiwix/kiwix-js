@@ -93,30 +93,63 @@ jobs:
           local-testing: start
           local-identifier: random
 
-      - name: Run BrowserStack tests
+      - name: Run App locally in background
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-        run: |
-          npx http-server --silent -p 8099 &
-          echo -e "\n\e[0;32mTesting on Edge Legacy 18 / Win10..."
-          npx mocha tests/edge18.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Firefox Legacy 56 / Win10..."
-          npx mocha tests/firefox56.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Firefox 61 / Win10..."
-          npx mocha tests/firefox61.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Chrome 58 / Mojave..."
-          npx mocha tests/chrome58.bs.runner.js
-          echo -e "\n\e[0;32mTesting on Safari 14 / Big Sur..."
-          npx mocha tests/safari14.bs.runner.js
+        run: npx http-server --silent -p 8099 &
+
+      - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
+
+      - name: Run BrowserStack tests on  Firefox 70 / Win10 [Gutenberg]
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/firefox/firefox70.bs.runner.js
+
+      - name: Run BrowserStack tests on Chrome 58 / Mojave
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
+      
+      - name: Run BrowserStack tests on Chrome 60 / Mojave
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/chrome/chrome60.bs.runner.js
+
+      - name: Run BrowserStack tests on Safari 14 / Big Sur
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
+
+      # [DEV] Test on Edge18 are bit flaky, so we are retrying 2 times
+      - name: Run BrowserStack tests on Edge Legacy 18 / Win10
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/edge/edge18.bs.runner.js --retries 2
+
           
       - name: Stop BrowserStackLocal
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         uses: browserstack/github-actions/setup-local@master
         with:
           local-testing: stop
-        
+
   tests-windows:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
@@ -147,17 +180,17 @@ jobs:
       - name: End-to-end tests on Edge Chromium (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-edge
+        run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js --retries 2'
 
       - name: End-to-end tests on Firefox (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-firefox
+        run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/firefox/firefox.e2e.runner.js --retries 2'
   
       - name: End-to-end tests in IE11 Mode (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-iemode      
+        run: npx start-server-and-test 'http-server --silent' 8080 'npx mocha ./tests/e2e/runners/edge/ieMode.e2e.runner.js --retries 2'
 
   # tests-unit-mac:
   #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository

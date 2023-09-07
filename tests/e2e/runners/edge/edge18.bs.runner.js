@@ -1,5 +1,6 @@
 import { Builder } from 'selenium-webdriver';
-import legacyRayCharles from './legacy-ray_charles.e2e.spec.js';
+import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
+import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -29,12 +30,13 @@ async function loadEdgeLegacyDriver () {
         .usingServer('https://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();
+    // Maximize the window so that full browser state is visible in the screenshots
+    await driver.manage().window().maximize();
     return driver;
 };
 
 const driver_edge_legacy = await loadEdgeLegacyDriver();
+await legacyRayCharles.runTests(driver_edge_legacy);
 
-// Maximize the window so that full browser state is visible in the screenshots
-await driver_edge_legacy.manage().window().maximize();
-
-legacyRayCharles.runTests(driver_edge_legacy);
+const driver_edge_gutenberg = await loadEdgeLegacyDriver();
+await gutenbergRo.runTests(driver_edge_gutenberg);

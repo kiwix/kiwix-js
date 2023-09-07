@@ -2,21 +2,21 @@
  * translateUi.js : Translation of the user interface
  *
  * Copyright 2023 Jaifroid and contributors
- * License GPL v3:
+ * Licence GPL v3:
  *
  * This file is part of Kiwix.
  *
  * Kiwix is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * it under the terms of the GNU General Public Licence as published by
+ * the Free Software Foundation, either version 3 of the Licence, or
  * (at your option) any later version.
  *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public Licence for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General Public Licence
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
@@ -38,12 +38,15 @@ var fallback = true;
 // DEV: Uncomment line below to force placeholder (useful when writing new translations)
 // fallback = false;
 
-var tried = false;
-// Load the translation strings as a JSON object for a given language code
+// Load the translation strings as a JSONP object for a given language code
 function loadTranslationStrings (langCode) {
-    return util.getJSONObject('../i18n/' + langCode + '.json').then(function (translations) {
+    // Ensure the language code is safe to use as part of a URL
+    langCode = encodeURI(langCode);
+    if (!/^[a-zA-Z]{2,4}$/.test(langCode)) {
+        return Promise.reject(new Error('Invalid language code: ' + langCode));
+    }
+    return util.getJSONPObject('../i18n/' + langCode + '.jsonp').then(function (translations) {
         currentLanguage = translations[langCode]['translation'];
-        tried = false;
         // i18next.init({
         //     lng: langCode, // if you're using a language detector, do not define the lng option
         //     debug: true,
@@ -51,17 +54,7 @@ function loadTranslationStrings (langCode) {
         // });
     }).catch(function (err) {
         console.error('Error loading translation strings for language code ' + langCode, err);
-        if (!tried) {
-            console.warn('Falling back to English');
-            tried = true;
-            return loadTranslationStrings('en');
-        } else {
-            console.error('Failed to load English translation strings');
-            console.warn('Falling back to no translation');
-            currentLanguage = {};
-            tried = false;
-            throw err;
-        }
+        throw err;
     });
 }
 

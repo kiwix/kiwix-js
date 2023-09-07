@@ -1,6 +1,7 @@
-{
+/* eslint-disable quote-props, quotes, indent */
+document.localeJson = {
   "fr": {
-    "translation": {    
+    "translation": {
       "title": "Kiwix",
       "sub-title": "Navigateur de contenu hors-ligne",
       "home": "Accueil",
@@ -85,7 +86,7 @@
       "configure-expert-resetapp": "Réinitialiser l'application",
       "configure-expert-resetapp-tip": "Cela réinitialisera l'application à sa configuration d'origine au démarrage, videra tous les caches et les paramètres et annulera l'enregistrement des Service Workers. L'application sera rechargée.",
       "configure-api-panel-header": "État des API",
-      "api-messagechannel-available": "API MessageChannel : disponible",  
+      "api-messagechannel-available": "API MessageChannel : disponible",
       "api-messagechannel-unavailable": "API MessageChannel : non disponible",
       "api-serviceworker-available-registered": "API ServiceWorker : disponible, service enregistré",
       "api-serviceworker-available-unregistered": "API ServiceWorker : disponible, service non enregistré",
@@ -97,7 +98,7 @@
       "api-error-uninitialized_masculine": "Pas défini",
       "api-error-uninitialized_feminine": "Pas définie",
       "api-decompressor-error-loading-part1": "Erreur lors du chargement du décompresseur",
-      "api-decompressor-error-loading-part2": "!", 
+      "api-decompressor-error-loading-part2": "!",
       "api-decompressor-label": "API de décompression :",
       "api-pwa-origin-label": "Origine PWA :",
       "api-searchprovider-label": "Moteur de recherche :",
