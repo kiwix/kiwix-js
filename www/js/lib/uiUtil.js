@@ -481,64 +481,71 @@ function removeAnimationClasses () {
     document.getElementById('articleContent').classList.remove('slideOut_L');
 }
 
+function slideToLeft(sectionToShow, sectionToHide) {
+    sectionToShow.classList.add('slideIn_L');
+    setTimeout(function () {
+        sectionToShow.style.display = '';
+        // sectionToShow.classList.remove('slideIn_L');
+    }, 300);
+
+    sectionToHide.classList.add('slideOut_L');
+    setTimeout(function () {
+        sectionToHide.style.display = 'none';
+        // sectionToHide.classList.remove('slideOut_L');
+    }, 300);
+}
+
 /**
  * Adds the slide animation between different sections
  *
- * @param {String} section It takes the name of the section to which the animation is to be added
+ * @param {HTMLElement} sectionToShow It takes the name of the section to which the animation is to be added
+ * @param {HTMLElement} sectionToHide It takes the name of the section to which the animation is to be added
  *
  */
-function applyAnimationToSection (section) {
-    if (section === 'home') {
-        if (!$('#configuration').is(':hidden')) {
-            document.getElementById('configuration').classList.add('slideOut_R');
-            setTimeout(function () {
-                document.getElementById('configuration').style.display = 'none';
-            }, 300);
-        }
-        if (!$('#about').is(':hidden')) {
-            document.getElementById('about').classList.add('slideOut_R');
-            setTimeout(function () {
-                document.getElementById('about').style.display = 'none';
-            }, 300);
-        }
-        $('#articleContent').addClass('slideIn_R');
-        setTimeout(function () {
-            document.getElementById('articleContent').style.display = '';
-        }, 300);
-    } else if (section === 'config') {
-        if (!$('#about').is(':hidden')) {
-            $('#about').addClass('slideOut_R');
-            $('#configuration').addClass('slideIn_R');
-            setTimeout(function () {
-                document.getElementById('about').style.display = 'none';
-            }, 300);
-        } else if (!$('#articleContent').is(':hidden')) {
-            document.getElementById('configuration').classList.add('slideIn_L');
-            document.getElementById('articleContent').classList.add('slideOut_L');
-            setTimeout(function () {
-                document.getElementById('articleContent').style.display = 'none';
-            }, 300);
-        }
-        setTimeout(function () {
-            document.getElementById('configuration').style.display = '';
-        }, 300);
-    } else if (section === 'about') {
-        if (!$('#configuration').is(':hidden')) {
-            document.getElementById('configuration').classList.add('slideOut_L');
-            setTimeout(function () {
-                document.getElementById('configuration').style.display = 'none';
-            }, 300);
-        }
-        if (!$('#articleContent').is(':hidden')) {
-            document.getElementById('articleContent').classList.add('slideOut_L');
-            setTimeout(function () {
-                document.getElementById('articleContent').style.display = 'none';
-            }, 300);
-        }
-        document.getElementById('about').classList.add('slideIn_L');
-        setTimeout(function () {
-            document.getElementById('about').style.display = '';
-        }, 300);
+function slideToRight(sectionToShow, sectionToHide) {
+    sectionToHide.classList.add('slideOut_R');
+    setTimeout(function () {
+        sectionToHide.style.display = 'none';
+        // sectionToHide.classList.remove('slideOut_R');
+    }, 300);
+
+    sectionToShow.classList.add('slideIn_R');
+    setTimeout(function () {
+        sectionToShow.style.display = '';
+        // sectionToShow.classList.remove('slideIn_R');
+    }, 300);
+}
+function fromSection() {
+    const isConfigPageVisible = !$('#configuration').is(':hidden');
+    const isAboutPageVisible = !$('#about').is(':hidden');
+    const isArticlePageVisible = !$('#articleContent').is(':hidden');
+
+    if (isConfigPageVisible) return 'config';
+    else if (isAboutPageVisible) return 'about';
+    else if (isArticlePageVisible) return 'home';
+}
+/**
+ * Adds the slide animation between different sections
+ *
+ * @param {String} toSection It takes the name of the section to which the animation is to be added
+ *
+ */
+function applyAnimationToSection(toSection) {
+    removeAnimationClasses();
+    const config = document.getElementById('configuration');
+    const about = document.getElementById('about');
+    const home = document.getElementById('articleContent');
+
+    const from = fromSection();
+    if (toSection === 'home') {
+        if (from === 'config') slideToRight(home, config);
+        if (from === 'about') slideToRight(home, about);
+    } else if (toSection === 'config') {
+        if (from === 'about') slideToRight(config, about);
+        if (from === 'home') slideToLeft(config, home);
+    } else if (toSection === 'about') {
+        if (from === 'home') slideToLeft(about, home);
+        if (from === 'config') slideToLeft(about, config);
     }
 }
 

@@ -346,7 +346,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-    uiUtil.removeAnimationClasses();
+    // uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
        uiUtil.applyAnimationToSection('home');
     } else {
@@ -385,7 +385,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-    uiUtil.removeAnimationClasses();
+    // uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
         uiUtil.applyAnimationToSection('config');
     } else {
@@ -412,7 +412,7 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-    uiUtil.removeAnimationClasses();
+    // uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
         uiUtil.applyAnimationToSection('about');
     } else {
