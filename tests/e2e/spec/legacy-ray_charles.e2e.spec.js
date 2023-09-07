@@ -23,7 +23,7 @@
 import { By, Key, WebDriver, until } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
-import paths from './paths.js';
+import paths from '../paths.js';
 
 /* eslint-disable camelcase, one-var, prefer-const */
 /* global describe, it */
@@ -34,13 +34,13 @@ const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 // const BROWSERSTACK = true;
 
 // Select the correct port according to the environment
-const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+const port = BROWSERSTACK ? '8099' : '8080';
 
 // Set the archives to load
 let rayCharlesBaseFile = paths.rayCharlesBaseFile;
 // For BrowserStack, we have to construct the file blops with XHR instead
 if (BROWSERSTACK) {
-    rayCharlesBaseFile = '/tests/wikipedia_en_ray_charles_2015-06.zimaa';
+    rayCharlesBaseFile = '/tests/zims/legacy-ray-charles/wikipedia_en_ray_charles_2015-06.zimaa';
 }
 let rayCharlesAllParts = '', rayCharlesFileArray = [];
 for (let i = 0; i < 15; i++) {

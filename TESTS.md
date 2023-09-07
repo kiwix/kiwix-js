@@ -52,10 +52,9 @@ BrowserStack). However, if you are interested in developing local tests, a maint
 not break them.
 
 The ZIM archive that is tested is also found in `tests`. In the case of `legacy-ray_charles.e2e.spec.js`, this is a legacy split ZIM archive that has XZ compression, so a useful test
-of that type of ZIM. We are looking to expand the tests to run also on a modern small ZIM with ZSTD compression and dynamic content.
+of that type of ZIM. Another test suite, `gutenberg_ro.e2e.spec.js`, for a modern Gutenberg ZIM with ZSTD compression and dynamic content, also runs in compatible browsers.
 
-If you wish to develop tests for a new archive, be sure to create a new `e2e.spec.js` file that corresponds to that archive. It will be easiest to duplicate the existing legacy
-ray_charles suite and change the name of your copy. Be sure that the filename easily allows developers to identify which ZIM it corresponds to. To luanch your new tests, you will
+If you wish to develop tests for a new archive, be sure to create a new `e2e.spec.js` file that corresponds to that archive. It will be easiest to duplicate one of the existing test suites and change the name of your copy. Be sure that the filename easily allows developers to identify which ZIM it corresponds to. To luanch your new tests, you will
 need to add them to each browser's runner as an import. You will need to load a new instance of the driver (in the respective `*.e2e.spec.js` files) to run your new test suite.
 Tests should run in chronological order of ZIM archives (oldest ZIM archives should be tested first).
 

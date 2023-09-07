@@ -23,13 +23,19 @@
 // eslint-disable-next-line no-unused-vars
 import { By, Key, until, WebDriver } from 'selenium-webdriver';
 import assert from 'assert';
-import paths from './paths.js';
+import paths from '../paths.js';
 import fs from 'fs';
 
 /* eslint-disable camelcase */
 /* global describe, it */
 
-const port = process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? '8099' : '8080';
+// Get the BrowserStack environment variable
+const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
+// DEV: For local testing, use line below instead
+// const BROWSERSTACK = true;
+
+const port = BROWSERSTACK ? '8099' : '8080';
+const gutenbergRoBaseFile = BROWSERSTACK ? '/tests/zims/gutenberg-ro/gutenberg_ro_all_2023-08.zim' : paths.gutenbergRoBaseFile
 
 /**
  *  Run the tests
@@ -100,7 +106,7 @@ function runTests (driver, modes) {
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
             it('Load Kiwix JS and check title', async function () {
-                await driver.get('http://localhost:8080/dist/www/index.html');
+                await driver.get('http://localhost:' + port + '/dist/www/index.html');
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
@@ -175,17 +181,24 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
-                const archiveFiles = await driver.findElement(By.id('archiveFiles'));
-                await archiveFiles.sendKeys(paths.gutenbergRoBaseFile);
                 // Wait until files have loaded
                 var filesLength;
-                await driver.wait(async function () {
+                const isFileLoaded = await driver.wait(async function () {
                     // check if file has been loaded
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     return filesLength === 1;
-                }, 5000);
-                // Check that we loaded 1 file
-                assert.equal(1, filesLength);
+                }, 2000).catch(() => false);
+                if (!BROWSERSTACK) {
+                    const archiveFiles = await driver.findElement(By.id('archiveFiles'));
+                    if (!isFileLoaded) await archiveFiles.sendKeys(gutenbergRoBaseFile);
+                    filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+                    // Check that we loaded 1 file
+                    assert.equal(1, filesLength);
+                } else {
+                    // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
+                    await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', [gutenbergRoBaseFile]);
+                    await driver.sleep('1300');
+                }
             });
 
             // In JQuery mode, the app warns the user that there is active content it cannot run, so we test for this and dismiss
@@ -210,9 +223,8 @@ function runTests (driver, modes) {
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
                 await driver.sleep(500);
                 // get the text of first result and check if it is the same as expected
-                const firstBookName = await driver.wait(async function () {
-                    return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                })
+                const firstBookName = await driver.wait(until.elementLocated(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')), 4000).getText();
+
                 assert.equal(firstBookName, 'Poezii');
             });
 
@@ -221,11 +233,16 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
                     return;
                 }
+                // We switch to default Content and back to Iframe because the If we are retrying the test
+                // It will make sure reset the iframe
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
+                let firstBookName = '';
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('alpha_sort')))).click();
-                await driver.sleep(1500);
-                const firstBookName = await driver.wait(async function () {
-                    return await driver.findElement(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')).getText();
-                }, 3000);
+                await driver.sleep(4000);
+
+                const bookList = await driver.wait(until.elementsLocated(By.className('table-title')), 1500)
+                firstBookName = await bookList[0].getText();
                 // get the text of first result and check if it is the same as expected
                 assert.equal(firstBookName, 'Creierul, O Enigma Descifrata');
             });
@@ -294,6 +311,7 @@ function runTests (driver, modes) {
                 await btnBack.click();
                 await btnBack.click();
                 await btnBack.click();
+                if (browserName === 'internet explorer') await btnBack.click();
                 // Title lies in iframe so we need to switch to it
                 await driver.switchTo().frame('articleContent');
                 // in some browsers the title is loaded slowly so we need to wait for it
@@ -349,8 +367,8 @@ function runTests (driver, modes) {
                 // await downloadButton.click();
                 const downloadFileStatus = await driver.wait(async function () {
                     // We can only check if the file exist in firefox and chrome (IE and Edge not supported)
-                    if (!['firefox', 'chrome'].includes(browserName)) {
-                        // will skip if any other browser and pass test
+                    if (!['firefox', 'chrome'].includes(browserName) || BROWSERSTACK) {
+                        // will skip if any other browser or Running in browserstack and pass test
                         return true;
                     }
                     const downloadFileStatus = fs.readdirSync(paths.downloadDir).includes(downloadFileName);

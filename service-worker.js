@@ -4,21 +4,21 @@
  * corresponding content, coming from the archive
  *
  * Copyright 2022 Mossroy, Jaifroid and contributors
- * License GPL v3:
+ * Licence GPL v3:
  *
  * This file is part of Kiwix.
  *
  * Kiwix is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ * it under the terms of the GNU General Public Licence as published by
+ * the Free Software Foundation, either version 3 of the Licence, or
  * (at your option) any later version.
  *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General Public Licence for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU General Public Licence
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 'use strict';
@@ -104,9 +104,9 @@ const precacheFiles = [
     '.', // This caches the redirect to www/index.html, in case a user launches the app from its root directory
     'manifest.json',
     'service-worker.js',
-    'i18n/en.json',
-    'i18n/es.json',
-    'i18n/fr.json',
+    'i18n/en.jsonp',
+    'i18n/es.jsonp',
+    'i18n/fr.jsonp',
     'www/css/app.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
