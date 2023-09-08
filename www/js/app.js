@@ -401,7 +401,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
         document.querySelector('.kiwix-alert').style.display = 'none';
     }
     else{
-        uiUtil.viewArticles();
+        uiUtil.viewArticle();
     }
     refreshAPIStatus();
     refreshCacheStatus();
@@ -436,8 +436,7 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
         document.querySelector('.kiwix-alert').style.display = 'none';
     }
     else{
-        document.getElementById('liAboutNav').setAttribute('class', '');
-        uiUtil.viewArticles();
+        uiUtil.viewArticle();
     }
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);

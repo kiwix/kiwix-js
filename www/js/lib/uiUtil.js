@@ -627,22 +627,13 @@ function applyAppTheme (theme) {
 
 // Displays the return link and handles click event. Called by applyAppTheme()
 function showReturnLink () {
-    var viewArticle = document.getElementById('viewArticle');
-    viewArticle.style.display = 'block';
-    viewArticle.addEventListener('click', function (e) {
+    document.getElementById('viewArticle').style.display = 'block';
+    document.getElementById('viewArticle').addEventListener('click', function (e) {
         e.preventDefault();
         document.getElementById('liConfigureNav').classList.remove('active');
         document.getElementById('liHomeNav').classList.add('active');
-        removeAnimationClasses();
-        if (params.showUIAnimations) {
-            applyAnimationToSection('home');
-        } else {
-            document.getElementById('configuration').style.display = 'none';
-            document.getElementById('articleContent').style.display = 'block';
-        }
-        document.getElementById('navigationButtons').style.display = 'inline-flex';
-        document.getElementById('formArticleSearch').style.display = 'block';
-        viewArticle.style.display = 'none';
+        viewArticle();
+        document.getElementById('viewArticle').style.display = 'none';
     });
 }
 
@@ -746,7 +737,9 @@ function getBrowserLanguage () {
     return language;
 }
 
-function viewArticles(){
+// Display The Recently Loaded Article. Called By showReturnLink().
+function viewArticle(){
+    removeAnimationClasses();
     if (params.showUIAnimations) {
         applyAnimationToSection('home');
     }else{
@@ -782,5 +775,5 @@ export default {
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
     getBrowserLanguage: getBrowserLanguage,
-    viewArticles : viewArticles
+    viewArticle : viewArticle
 };
