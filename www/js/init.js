@@ -39,7 +39,7 @@ var params = {};
  * WARNING: Only change these parameters if you know what you are doing
  */
 // The current version number of this app
-params['appVersion'] = '3.9.3'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+params['appVersion'] = '3.10.0'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
 // The PWA server (for use with the browser extensions in ServiceWorker mode)
 params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
 // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages

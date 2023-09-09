@@ -95,11 +95,13 @@ _You must test your code yourself before asking for review, like this_:
   this repository. This does not have Hot Module Replacement, and you will need to refresh the page yourself by doing `Ctrl-Shift-R` with DevTools open. Again, you will only see the
   latest version of your code if you turn on "Bypass AppCache" and turn off the browser's native caching (see above).
 
-If all the tests are working fine in your browsers, you **must finally test the extension versions**. Please note that we are using Manifest V3 for the Chromium extensions,
+If all the tests are working fine in your browsers, you **must finally test the extension versions with production code**. Please note that we are using Manifest V3 for the Chromium extensions,
 and Manifest V2 for the Firefox extension, so there are different instructions for the two browser families:
 
-* In Chromium, you can install the extension by loading the root folder with Extensions -> Load Unpacked (with Developer Mode turned ON) -> select the root folder of the repository;
-* In Firefox, you need to rename manifest.json to manifest.v3.json, and then rename manifest.v2.json to manifest.json. Then you can load the extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, and then pick any file in the repository. Be sure to revert the file renaming before committing further code.
+* Build the production code by running `npm run build-min`;
+* In Chromium, you can install the extension by loading the distribution folder with Extensions -> Load Unpacked (with Developer Mode turned ON) -> navigate to and enter the `dist` directory of the repository -> Select Folder;
+* In Firefox, you need to rename `manifest.json` in the `dist` folder to `manifest.v3.json`, and then rename `manifest.v2.json` to `manifest.json`. Then you can load the extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, navigate to and enter the `dist` directory, and then pick any file in that directory;
+* You only need to revert manifest changes if you want to do further testing with MV3. The `dist` folder is erased next time the app is built.
 
 If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review. If you do not state what testing you have done, we reserve
 the right not to review your code until you have completed these manual tests!
