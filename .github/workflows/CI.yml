@@ -178,19 +178,23 @@ jobs:
           exit $AggregateExitCode
 
       - name: Start Web server locally in background
+        shell: pwsh
         run: npx http-server --silent -p 8080 &
       
       - name: End-to-end tests on Edge Chromium (Windows)
+        shell: pwsh
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js --retries 2
 
       - name: End-to-end tests on Firefox (Windows)
+        shell: pwsh
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npx mocha ./tests/e2e/runners/firefox/firefox.e2e.runner.js --retries 2
   
       - name: End-to-end tests in IE11 Mode (Windows)
+        shell: pwsh
         env:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npx mocha ./tests/e2e/runners/edge/ieMode.e2e.runner.js --retries 2
