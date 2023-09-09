@@ -332,6 +332,13 @@ function fetchUrlFromZIM (urlObject, range) {
 
         var titleWithNameSpace = nameSpace + '/' + title;
 
+        // Prevent loading of WebP polyfill from ZIM because we already have a WebP decoder in the reader
+        if (/webp(?:handler|hero).*\.js$/i.test(titleWithNameSpace)) {
+            console.warn('[SW] Prevented redundant load of WebP polyfill from ZIM');
+            resolve(new Response(''));
+            return;
+        }
+
         // Let's instantiate a new messageChannel, to allow app.js to give us the content
         var messageChannel = new MessageChannel();
         messageChannel.port1.onmessage = function (msgPortEvent) {
