@@ -2,7 +2,6 @@ FROM nginx:latest
 
 EXPOSE 80
 
-RUN echo "application/javascript jsonp;" >> /etc/nginx/mime.types
 RUN mkdir /usr/share/nginx/html/current/
 COPY ./docker/index.nginx.html /usr/share/nginx/html/index.html
 COPY ./dist/manifest.json /usr/share/nginx/html/current/
