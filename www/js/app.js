@@ -351,17 +351,8 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-    // uiUtil.removeAnimationClasses();
-    if (params.showUIAnimations) {
-       uiUtil.applyAnimationToSection('home');
-    } else {
-        document.getElementById('articleContent').style.display = '';
-        document.getElementById('about').style.display = 'none';
-        document.getElementById('configuration').style.display = 'none';
-    }
-    document.getElementById('navigationButtons').style.display = '';
-    document.getElementById('formArticleSearch').style.display = '';
-    document.getElementById('welcomeText').style.display = '';
+    uiUtil.tabTransitionToSection('home', params.showUIAnimations);
+
     // Give the focus to the search field, and clean up the page contents
     document.getElementById('prefix').value = '';
     document.getElementById('prefix').focus();
@@ -391,18 +382,9 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     // uiUtil.removeAnimationClasses();
-    if (params.showUIAnimations) {
-        uiUtil.applyAnimationToSection('config');
-    } else {
-        document.getElementById('about').style.display = 'none';
-        document.getElementById('configuration').style.display = '';
-        document.getElementById('articleContent').style.display = 'none';
-    }
-    document.getElementById('navigationButtons').style.display = 'none';
-    document.getElementById('formArticleSearch').style.display = 'none';
-    document.getElementById('welcomeText').style.display = 'none';
-    document.getElementById('searchingArticles').style.display = 'none';
-    document.querySelector('.kiwix-alert').style.display = 'none';
+
+    uiUtil.tabTransitionToSection('config', params.showUIAnimations);
+
     refreshAPIStatus();
     refreshCacheStatus();
     uiUtil.checkUpdateStatus(appstate);
@@ -419,7 +401,7 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     // Show the selected content in the page
     // uiUtil.removeAnimationClasses();
     if (params.showUIAnimations) {
-        uiUtil.applyAnimationToSection('about');
+        uiUtil.tabTransitionToSection('about');
     } else {
         document.getElementById('about').style.display = '';
         document.getElementById('configuration').style.display = 'none';

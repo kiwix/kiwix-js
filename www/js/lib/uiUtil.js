@@ -465,20 +465,37 @@ function isElementInView (el, fully) {
         return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
     }
 }
+/**
+ * Show elements in bulk
+ *
+ * @param {Array<HTMLElement>} elements It takes the name of the section to which the animation is to be added
+ * @example showElements(element1, element2, element3)
+ */
+function showElements(...elements) {
+    for (const element of elements) {
+        element.style.display = '';
+    }
+}
 
 /**
- * Removes the animation effect between various sections
+ * Show elements in bulk
+ *
+ * @param {Array<HTMLElement>} elements It takes the name of the section to which the animation is to be added
+ * @example showElements(element1, element2, element3)
  */
-function removeAnimationClasses () {
-    var configuration = document.getElementById('configuration');
-    configuration.classList.remove('slideIn_L');
-    configuration.classList.remove('slideIn_R');
-    configuration.classList.remove('slideOut_L');
-    configuration.classList.remove('slideOut_R');
-    document.getElementById('about').classList.remove('slideIn_L');
-    document.getElementById('about').classList.remove('slideOut_R');
-    document.getElementById('articleContent').classList.remove('slideIn_R');
-    document.getElementById('articleContent').classList.remove('slideOut_L');
+function hideElements(...elements) {
+    for (const element of elements) {
+        element.style.display = '';
+    }
+}
+
+function removeAnimationClasses() {
+    const config = document.getElementById('configuration');
+    const about = document.getElementById('about');
+    const home = document.getElementById('articleContent');
+
+    const tabs = [config, about, home]
+    tabs.forEach(tab => tab.classList.remove('slideIn_L', 'slideIn_R', 'slideOut_L', 'slideOut_R'));
 }
 
 function slideToLeft(sectionToShow, sectionToHide) {
@@ -528,24 +545,52 @@ function fromSection() {
  * Adds the slide animation between different sections
  *
  * @param {String} toSection It takes the name of the section to which the animation is to be added
+ * @param {Boolean} isAnimationRequired To enable or disable the animation
  *
  */
-function applyAnimationToSection(toSection) {
-    removeAnimationClasses();
+function tabTransitionToSection(toSection, isAnimationRequired = false) {
+    // all the references of the sections/tabs
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
     const home = document.getElementById('articleContent');
 
+    // references of extra elements that are in UI but not tabs
+    // prefix with extra to avoid confusion and easy identification
+    const extraNavBtns = document.getElementById('navigationButtons');
+    const extraArticleSearch = document.getElementById('formArticleSearch');
+    const extraWelcomeText = document.getElementById('welcomeText');
+    const extraSearchingArticles = document.getElementById('searchingArticles');
+    const extraKiwixAlert = document.getElementById('kiwix-alert');
+
+    // removing any classes that have been added by previous transition
+    removeAnimationClasses()
     const from = fromSection();
-    if (toSection === 'home') {
-        if (from === 'config') slideToRight(home, config);
-        if (from === 'about') slideToRight(home, about);
-    } else if (toSection === 'config') {
-        if (from === 'about') slideToRight(config, about);
-        if (from === 'home') slideToLeft(config, home);
-    } else if (toSection === 'about') {
-        if (from === 'home') slideToLeft(about, home);
-        if (from === 'config') slideToLeft(about, config);
+
+    if (isAnimationRequired) {
+        if (toSection === 'home') {
+            if (from === 'config') slideToRight(home, config);
+            if (from === 'about') slideToRight(home, about);
+        } else if (toSection === 'config') {
+            if (from === 'about') slideToRight(config, about);
+            if (from === 'home') slideToLeft(config, home);
+        } else if (toSection === 'about') {
+            if (from === 'home') slideToLeft(about, home);
+            if (from === 'config') slideToLeft(about, config);
+        }
+    } else {
+        if (toSection === 'home') {
+            hideElements(config, about);
+            showElements(home, extraNavBtns, extraArticleSearch, extraWelcomeText);
+        }
+        if (toSection === 'config') {
+            hideElements(about, home, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+            showElements(config);
+        }
+        if (toSection === 'about') {
+            hideElements(config, home);
+            showElements(about);
+        }
+        // const config = document.getElementById('configuration');
     }
 }
 
@@ -642,7 +687,7 @@ function showReturnLink () {
         document.getElementById('liHomeNav').classList.add('active');
         removeAnimationClasses();
         if (params.showUIAnimations) {
-            applyAnimationToSection('home');
+            tabTransitionToSection('home');
         } else {
             document.getElementById('configuration').style.display = 'none';
             document.getElementById('articleContent').style.display = 'block';
@@ -770,7 +815,7 @@ export default {
     spinnerDisplay: spinnerDisplay,
     isElementInView: isElementInView,
     removeAnimationClasses: removeAnimationClasses,
-    applyAnimationToSection: applyAnimationToSection,
+    tabTransitionToSection: tabTransitionToSection,
     applyAppTheme: applyAppTheme,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
