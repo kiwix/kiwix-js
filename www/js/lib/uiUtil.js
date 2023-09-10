@@ -466,11 +466,12 @@ function isElementInView (el, fully) {
     }
 }
 /**
- * Show elements in bulk
+ * Show elements in bulk (using display: '')
  *
  * @param {Array<HTMLElement>} elements It takes the name of the section to which the animation is to be added
  * @example showElements(element1, element2, element3)
- */
+ * @returns {void}
+*/
 function showElements(...elements) {
     for (const element of elements) {
         if (element) element.style.display = '';
@@ -478,17 +479,22 @@ function showElements(...elements) {
 }
 
 /**
- * Show elements in bulk
+ * Hide elements in bulk (using display: none)
  *
- * @param {Array<HTMLElement>} elements It takes the name of the section to which the animation is to be added
- * @example showElements(element1, element2, element3)
- */
+ * @param {Array<HTMLElement>} elements Any element that you want to be hidden
+ * @example hideElements(element1, element2, element3)
+ * @returns {void}
+*/
 function hideElements(...elements) {
     for (const element of elements) {
         if (element) element.style.display = 'none';
     }
 }
 
+/**
+ * Removes the animation classes that are added by the slide animation in previous transition
+ * @returns {void}
+ */
 function removeAnimationClasses() {
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
@@ -498,6 +504,13 @@ function removeAnimationClasses() {
     tabs.forEach(tab => tab.classList.remove('slideIn_L', 'slideIn_R', 'slideOut_L', 'slideOut_R'));
 }
 
+/**
+ * Adds the slide animation between different sections
+ *
+ * @param {HTMLElement} sectionToShow Element which is gonna be slide in from left (show)
+ * @param {HTMLElement} sectionToHide Element which is gonna be slide to the left (hide)
+ * @returns {void}
+ */
 function slideToLeft(sectionToShow, sectionToHide) {
     sectionToShow.classList.add('slideIn_L');
     setTimeout(function () {
@@ -515,9 +528,9 @@ function slideToLeft(sectionToShow, sectionToHide) {
 /**
  * Adds the slide animation between different sections
  *
- * @param {HTMLElement} sectionToShow It takes the name of the section to which the animation is to be added
- * @param {HTMLElement} sectionToHide It takes the name of the section to which the animation is to be added
- *
+ * @param {HTMLElement} sectionToShow Element which is gonna be slide in from right (show)
+ * @param {HTMLElement} sectionToHide Element which is gonna be slide to the right (hide)
+ * @returns {void}
  */
 function slideToRight(sectionToShow, sectionToHide) {
     sectionToHide.classList.add('slideOut_R');
@@ -532,6 +545,11 @@ function slideToRight(sectionToShow, sectionToHide) {
         // sectionToShow.classList.remove('slideIn_R');
     }, 300);
 }
+
+/**
+ * Returns the name of the section which is currently visible
+ * @returns {String} The name of the section which is currently visible
+ */
 function fromSection() {
     const isConfigPageVisible = !$('#configuration').is(':hidden');
     const isAboutPageVisible = !$('#about').is(':hidden');
@@ -546,7 +564,7 @@ function fromSection() {
  *
  * @param {String} toSection It takes the name of the section to which the animation is to be added
  * @param {Boolean} isAnimationRequired To enable or disable the animation
- *
+ * @returns {void}
  */
 function tabTransitionToSection(toSection, isAnimationRequired = false) {
     // all the references of the sections/tabs
