@@ -12,6 +12,6 @@ while getopts tdv: option; do
 done
 
 echo "Packaging unsigned Firefox OS application, version $VERSION"
-zip -r ../build/kiwix-firefoxos-$VERSION.zip www manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md
+zip -r ../build/kiwix-firefoxos-$VERSION.zip www i18n manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md
 
 # NB : The Firefox Marketplace (that distributes signed Firefox OS applications) does not allow new submissions any more
