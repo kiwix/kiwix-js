@@ -472,7 +472,7 @@ function isElementInView (el, fully) {
  * @example showElements(element1, element2, element3)
  * @returns {void}
 */
-function showElements(...elements) {
+function showElements (...elements) {
     for (const element of elements) {
         if (element) element.style.display = '';
     }
@@ -485,7 +485,7 @@ function showElements(...elements) {
  * @example hideElements(element1, element2, element3)
  * @returns {void}
 */
-function hideElements(...elements) {
+function hideElements (...elements) {
     for (const element of elements) {
         if (element) element.style.display = 'none';
     }
@@ -495,7 +495,7 @@ function hideElements(...elements) {
  * Removes the animation classes that are added by the slide animation in previous transition
  * @returns {void}
  */
-function removeAnimationClasses() {
+function removeAnimationClasses () {
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
     const home = document.getElementById('articleContent');
@@ -511,7 +511,7 @@ function removeAnimationClasses() {
  * @param {HTMLElement} sectionToHide Element which is gonna be slide to the left (hide)
  * @returns {void}
  */
-function slideToLeft(sectionToShow, sectionToHide) {
+function slideToLeft (sectionToShow, sectionToHide) {
     sectionToShow.classList.add('slideIn_L');
     setTimeout(function () {
         sectionToShow.style.display = '';
@@ -532,7 +532,7 @@ function slideToLeft(sectionToShow, sectionToHide) {
  * @param {HTMLElement} sectionToHide Element which is gonna be slide to the right (hide)
  * @returns {void}
  */
-function slideToRight(sectionToShow, sectionToHide) {
+function slideToRight (sectionToShow, sectionToHide) {
     sectionToHide.classList.add('slideOut_R');
     setTimeout(function () {
         sectionToHide.style.display = 'none';
@@ -550,7 +550,7 @@ function slideToRight(sectionToShow, sectionToHide) {
  * Returns the name of the section which is currently visible
  * @returns {String} The name of the section which is currently visible
  */
-function fromSection() {
+function fromSection () {
     const isConfigPageVisible = !$('#configuration').is(':hidden');
     const isAboutPageVisible = !$('#about').is(':hidden');
     const isArticlePageVisible = !$('#articleContent').is(':hidden');
@@ -566,7 +566,7 @@ function fromSection() {
  * @param {Boolean} isAnimationRequired To enable or disable the animation
  * @returns {void}
  */
-function tabTransitionToSection(toSection, isAnimationRequired = false) {
+function tabTransitionToSection (toSection, isAnimationRequired = false) {
     // all the references of the sections/tabs
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
