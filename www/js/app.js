@@ -400,19 +400,8 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
     // uiUtil.removeAnimationClasses();
-    if (params.showUIAnimations) {
-        uiUtil.tabTransitionToSection('about');
-    } else {
-        document.getElementById('about').style.display = '';
-        document.getElementById('configuration').style.display = 'none';
-        document.getElementById('articleContent').style.display = 'none';
-    }
-    document.getElementById('navigationButtons').style.display = 'none';
-    document.getElementById('formArticleSearch').style.display = 'none';
-    document.getElementById('welcomeText').style.display = 'none';
-    document.getElementById('articleListWithHeader').style.display = 'none';
-    document.getElementById('searchingArticles').style.display = 'none';
-    document.querySelector('.kiwix-alert').style.display = 'none';
+    uiUtil.tabTransitionToSection('about', params.showUIAnimations);
+
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });

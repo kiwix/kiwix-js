@@ -473,7 +473,7 @@ function isElementInView (el, fully) {
  */
 function showElements(...elements) {
     for (const element of elements) {
-        element.style.display = '';
+        if (element) element.style.display = '';
     }
 }
 
@@ -485,7 +485,7 @@ function showElements(...elements) {
  */
 function hideElements(...elements) {
     for (const element of elements) {
-        element.style.display = '';
+        if (element) element.style.display = 'none';
     }
 }
 
@@ -570,12 +570,15 @@ function tabTransitionToSection(toSection, isAnimationRequired = false) {
         if (toSection === 'home') {
             if (from === 'config') slideToRight(home, config);
             if (from === 'about') slideToRight(home, about);
+            showElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         } else if (toSection === 'config') {
             if (from === 'about') slideToRight(config, about);
             if (from === 'home') slideToLeft(config, home);
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         } else if (toSection === 'about') {
             if (from === 'home') slideToLeft(about, home);
             if (from === 'config') slideToLeft(about, config);
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         }
     } else {
         if (toSection === 'home') {
@@ -590,7 +593,6 @@ function tabTransitionToSection(toSection, isAnimationRequired = false) {
             hideElements(config, home);
             showElements(about);
         }
-        // const config = document.getElementById('configuration');
     }
 }
 
