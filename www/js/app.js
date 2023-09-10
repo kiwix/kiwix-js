@@ -36,6 +36,11 @@ import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 
+if (params.abort) {
+    // If the app was loaded only to pass a message from the remote code, then we exit immediately
+    throw new Error('Managed error: exiting local extension code.')
+}
+
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
  * by the browser, and keeps the MessageChannel to communicate with the application)

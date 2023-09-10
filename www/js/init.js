@@ -198,7 +198,9 @@ if (/PWA_launch=/.test(window.location.search)) {
     localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
     // If we have successfully launched the PWA (even if there was no SW mode available), we prevent future default mode change alerts
     if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
-    console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
+    console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension.');
+    // Set a flag to prevent further processing in app.js
+    params.abort = true;
 } else {
     // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
     var webpMachine = false;
