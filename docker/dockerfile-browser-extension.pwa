@@ -10,3 +10,4 @@ COPY ./dist/index.html /usr/share/nginx/html/current/
 COPY ./dist/CHANGELOG.md /usr/share/nginx/html/current/
 COPY ./dist/LICENSE-GPLv3.txt /usr/share/nginx/html/current/
 COPY ./dist/www /usr/share/nginx/html/current/www/
+COPY ./dist/i18n /usr/share/nginx/html/current/i18n/
