@@ -6,7 +6,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v3.10.0
 
-Released on *TODO*
+Released on *2023-09-10*
 
 * FEATURE: Full internationalization of the app in Spanish and French (more languages to follow)
 * UPDATE: Improved availability of non-store Chromium extension files and installation instructions 
