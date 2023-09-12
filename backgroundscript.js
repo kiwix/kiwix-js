@@ -33,7 +33,7 @@ if (typeof browser !== 'undefined') {
     genericBrowser = chrome;
 }
 
-genericBrowser.browserAction.onClicked.addListener(function () {
+genericBrowser.action.onClicked.addListener(function () {
     var newURL = chrome.runtime.getURL('www/index.html');
     chrome.tabs.create({ url: newURL });
 });
