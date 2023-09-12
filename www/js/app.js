@@ -36,6 +36,11 @@ import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 
+if (params.abort) {
+    // If the app was loaded only to pass a message from the remote code, then we exit immediately
+    throw new Error('Managed error: exiting local extension code.')
+}
+
 /**
  * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
  * by the browser, and keeps the MessageChannel to communicate with the application)
@@ -1718,7 +1723,7 @@ var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\
 // "importScript()", "toggleOpenSection" or an "articleId" assignment (these strings are used widely in our fully supported wikimedia ZIMs,
 // so they are excluded); 3) the script block is not of type "math" (these are MathJax markup scripts used extensively in Stackexchange
 // ZIMs). Note that the regex will match ReactJS <script type="text/html"> markup, which is common in unsupported packaged UIs, e.g. PhET ZIMs.
-var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]+src\b=["'][^"']*?\b(?:app|init|l1[08]9)\.js))(?![^<]+(?:importScript\(\)|toggleOpenSection|articleId\s?=\s?['"]|window.NREUM))(?![^>]+type\s*=\s*["'](?:math\/|[^"']*?math))/i;
+var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]+src\b=["'][^"']*?\b(?:app|init|l1[08]9|catalog)\.js))(?![^<]+(?:importScript\(\)|toggleOpenSection|articleId\s?=\s?['"]|window.NREUM))(?![^>]+type\s*=\s*["'](?:math\/|[^"']*?math))/i;
 // DEV: The regex below matches ZIM links (anchor hrefs) that should have the html5 "donwnload" attribute added to
 // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
 // to support to this regex. The "zip" has been added here as an example of how to support further filetypes

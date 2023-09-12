@@ -31,7 +31,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.9.3';
+const appVersion = '3.10.2';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -104,9 +104,9 @@ const precacheFiles = [
     '.', // This caches the redirect to www/index.html, in case a user launches the app from its root directory
     'manifest.json',
     'service-worker.js',
-    'i18n/en.jsonp',
-    'i18n/es.jsonp',
-    'i18n/fr.jsonp',
+    'i18n/en.jsonp.js',
+    'i18n/es.jsonp.js',
+    'i18n/fr.jsonp.js',
     'www/css/app.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
