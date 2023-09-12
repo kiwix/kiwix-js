@@ -39,7 +39,7 @@ var params = {};
  * WARNING: Only change these parameters if you know what you are doing
  */
 // The current version number of this app
-params['appVersion'] = '3.9.3'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+params['appVersion'] = '3.10.2'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
 // The PWA server (for use with the browser extensions in ServiceWorker mode)
 params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
 // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
@@ -198,7 +198,9 @@ if (/PWA_launch=/.test(window.location.search)) {
     localStorage.setItem(params.keyPrefix + 'PWA_launch', match[1]);
     // If we have successfully launched the PWA (even if there was no SW mode available), we prevent future default mode change alerts
     if (match[1] === 'success') localStorage.setItem(params.keyPrefix + 'defaultModeChangeAlertDisplayed', true);
-    console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension. Exiting local code.');
+    console.warn('Launch of PWA has been registered as "' + match[1] + '" by the extension.');
+    // Set a flag to prevent further processing in app.js
+    params.abort = true;
 } else {
     // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
     var webpMachine = false;
