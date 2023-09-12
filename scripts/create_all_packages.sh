@@ -59,7 +59,7 @@ fi
 # Copy only the necessary files in a temporary directory
 mkdir -p tmp
 rm -rf tmp/*
-cp -r www manifest.json manifest.v2.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
+cp -r www i18n manifest.json manifest.v2.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
 # Remove unwanted files (this line should not be necessary if building from dist/)
 rm -f tmp/www/js/lib/libzim-*dev.*
 

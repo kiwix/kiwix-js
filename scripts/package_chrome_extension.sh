@@ -21,12 +21,12 @@ if [ $MV -eq 2 ]; then
     echo "Packing MV2 extension"
     pwd & ls -l
     cat manifest.json
-    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www backgroundscript.js manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www i18n backgroundscript.js manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 else
     echo "Packing MV3 extension"
     pwd & ls -l
     cat manifest.json
-    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www manifest.json LICENSE-GPLv3.txt service-worker.js README.md
+    zip -r ../build/kiwix-chrome-unsigned-extension-$VERSION.zip www i18n manifest.json LICENSE-GPLv3.txt service-worker.js README.md
 fi
 cd ..
 ls -l build/kiwix-chrome-unsigned-extension-$VERSION.zip
