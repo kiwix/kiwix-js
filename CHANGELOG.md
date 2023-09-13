@@ -4,7 +4,10 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Kiwix JS v3.10.0
+## Kiwix JS v3.10.1 (3.10.0)
+
+Note: this release was originally numbered 3.10.0, but due to a publishing issue with the Mozilla extension
+store, it had to be re-issued as 3.10.1.
 
 Released on *2023-09-10*
 
