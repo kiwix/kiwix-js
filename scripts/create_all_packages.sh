@@ -59,20 +59,14 @@ fi
 # Copy only the necessary files in a temporary directory
 mkdir -p tmp
 rm -rf tmp/*
-cp -r www i18n manifest.json manifest.v2.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
+cp -r www i18n manifest.json manifest.webapp LICENSE-GPLv3.txt service-worker.js README.md tmp/
 # Remove unwanted files (this line should not be necessary if building from dist/)
 rm -f tmp/www/js/lib/libzim-*dev.*
 
 # Replace the version number everywhere
 # But Chrome would only accept a numeric version number : if it's not, we only use the prefix in manifest.json
 regexpNumericVersion='^[0-9\.]+$'
-if [[ $VERSION =~ $regexpNumericVersion ]] ; then
-   sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
-   sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.v2.json
-else
-   sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
-   sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.v2.json
-fi
+sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.webapp
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/service-worker.js
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/www/js/init.js
@@ -85,8 +79,8 @@ rm -rf build/*
 scripts/package_chrome_extension.sh -m 3 $DRYRUN $TAG -v $VERSION
 # Package for Chromium/Chrome with Manifest V2
 cp backgroundscript.js tmp/
-rm tmp/manifest.json
-mv tmp/manifest.v2.json tmp/manifest.json
+cp manifest.v2.json tmp/manifest.json
+sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
 scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
 echo "The following extensions have been built so far:"
 pwd & ls -l build
@@ -96,12 +90,22 @@ pwd & ls -l build
 # So we take the original manifest v2 again, and replace the version inside it again
 cp manifest.v2.json tmp/manifest.json
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
-echo "Manifest version for Firefox extension:"
+echo "Manifest version for Firefox MV2 extension:"
 cat tmp/manifest.json
-echo -e "\nPacking for Firefox..."
-scripts/package_firefox_extension.sh $DRYRUN $TAG -v $VERSION
+echo -e "\nPacking for Firefox MV2..."
+scripts/package_firefox_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
+# Package for Firefox MV3
+cp manifest.fx.v3.json tmp/manifest.json
+# Note that MV3 requires a numeric version number
+sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
+echo "Manifest version for Firefox MV3 extension:"
+cat tmp/manifest.json
+echo -e "\nPacking for Firefox MV3..."
+scripts/package_firefox_extension.sh -m 3 $DRYRUN $TAG -v $VERSION
 echo "The following extensions have been built so far:"
 pwd & ls -l build
+
+# Package for Firefox OS
 echo -e "\nPacking for Firefox OS..."
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 cp -f ubuntu_touch/* tmp/

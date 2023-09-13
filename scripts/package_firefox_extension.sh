@@ -6,11 +6,16 @@ pwd
 # Reading arguments
 while getopts tdv: option; do
     case "${option}" in
+        m) MV=$OPTARG;; # Optionally indicates the manifest version we're using (2 or 3); if present, the version will be added to filename
         t) TAG="-t";; # Indicates that we're releasing a public version from a tag
         d) DRYRUN="-d";; # Indicates a dryrun test, that does not modify anything on the network
         v) VERSION=${OPTARG};;
     esac
 done
+if [ -n $MV ]; then
+    echo -e "\nManifest version requested: $MV"
+    VERSION="mv$MV-$VERSION"
+fi
 
 # Install web-ext if it's not already installed (and if we're not doing a dryrun test)
 if [ ! -f node_modules/web-ext/bin/web-ext ] && [ "${DRYRUN}zz" == "zz" ]; then
