@@ -1620,6 +1620,16 @@ function readArticle (dirEntry) {
                                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                                 event.preventDefault();
                                 window.open(clickedAnchor.href, '_blank');
+                            } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+                                // Show the spinner if it's a ZIM link, but not an anchor
+                                if (!~href.indexOf('#')) {
+                                    var searchingArticles = document.getElementById('searchingArticles');
+                                    searchingArticles.style.display = '';
+                                    // In case of false positive, ensure spinner is eventually hidden
+                                    setTimeout(function () {
+                                        searchingArticles.style.display = 'none';
+                                    }, 4000);
+                                }
                             }
                         }
                     });
