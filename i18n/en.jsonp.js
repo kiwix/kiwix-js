@@ -239,7 +239,8 @@ document.localeJson = {
       "alert-update-available": "is ready to install. (Re-launch app to install.)",
       "alert-download-message": "<strong>Download</strong> If the download does not begin, please tap the following link:",
       "spinner-caching": "Caching",
-      "spinner-caching-assets": "Caching assets..."
+      "spinner-caching-assets": "Caching assets...",
+      "spinner-loading": "Loading"
     }
   }
 }

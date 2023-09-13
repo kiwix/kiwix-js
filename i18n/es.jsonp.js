@@ -239,7 +239,8 @@ document.localeJson = {
       "alert-update-available": "está lista para instalar. (Vuelva a iniciar la aplicación para instalarla.)",
       "alert-download-message": "<strong>Descargar</strong> Si no se inicia la descarga, pulse el siguiente enlace:",
       "spinner-caching": "Almacenando",
-      "spinner-caching-assets": "Almacenando activos..."
+      "spinner-caching-assets": "Almacenando activos...",
+      "spinner-loading": "Cargando"
     }
   }
 }

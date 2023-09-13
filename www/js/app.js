@@ -1623,11 +1623,12 @@ function readArticle (dirEntry) {
                             } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
                                 // Show the spinner if it's a ZIM link, but not an anchor
                                 if (!~href.indexOf('#')) {
-                                    var searchingArticles = document.getElementById('searchingArticles');
-                                    searchingArticles.style.display = '';
+                                    var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+                                    message = message ? message[1] + '...' : '...';
+                                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
                                     // In case of false positive, ensure spinner is eventually hidden
                                     setTimeout(function () {
-                                        searchingArticles.style.display = 'none';
+                                        uiUtil.spinnerDisplay(false);
                                     }, 4000);
                                 }
                             }
