@@ -4,7 +4,7 @@ cd "$BASEDIR"
 pwd
 
 # Reading arguments
-while getopts tdv: option; do
+while getopts m:tdv: option; do
     case "${option}" in
         m) MV=$OPTARG;; # Optionally indicates the manifest version we're using (2 or 3); if present, the version will be added to filename
         t) TAG="-t";; # Indicates that we're releasing a public version from a tag

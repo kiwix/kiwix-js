@@ -85,7 +85,7 @@ scripts/package_chrome_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
 echo "The following extensions have been built so far:"
 pwd & ls -l build
 
-# Package for Firefox and Firefox OS
+# Package for Firefox MV2
 # We have to put a unique version string inside the manifest.json (which Chrome might not have accepted)
 # So we take the original manifest v2 again, and replace the version inside it again
 cp manifest.v2.json tmp/manifest.json
@@ -94,8 +94,11 @@ echo "Manifest version for Firefox MV2 extension:"
 cat tmp/manifest.json
 echo -e "\nPacking for Firefox MV2..."
 scripts/package_firefox_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
+
 # Package for Firefox MV3
 cp manifest.fx.v3.json tmp/manifest.json
+# Replace the browserAction key which is no longer supported in MV3
+sed -i -E "s/browserAction/action/" tmp/backgroundscript.js
 # Note that MV3 requires a numeric version number
 sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
 echo "Manifest version for Firefox MV3 extension:"
