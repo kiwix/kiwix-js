@@ -32,8 +32,8 @@ if (typeof browser !== 'undefined') {
     // Chromium/Chrome
     genericBrowser = chrome;
 }
-
-genericBrowser.action.onClicked.addListener(function () {
+// DEV: For a Mozilla MV3 extension, we have to change the event below to 'action'
+genericBrowser.browserAction.onClicked.addListener(function () {
     var newURL = chrome.runtime.getURL('www/index.html');
     chrome.tabs.create({ url: newURL });
 });
