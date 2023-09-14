@@ -2148,7 +2148,9 @@ function pushBrowserHistoryState (title, titleSearch) {
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
 function goToArticle (path, download, contentType) {
-    document.getElementById('searchingArticles').style.display = '';
+    var message = path.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+    message = message ? message[1] + '...' : '...';
+    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
