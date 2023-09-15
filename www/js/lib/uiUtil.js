@@ -501,7 +501,12 @@ function removeAnimationClasses () {
     const home = document.getElementById('articleContent');
 
     const tabs = [config, about, home]
-    tabs.forEach(tab => tab.classList.remove('slideIn_L', 'slideIn_R', 'slideOut_L', 'slideOut_R'));
+    tabs.forEach(tab => {
+        tab.classList.remove('slideIn_L');
+        tab.classList.remove('slideIn_R');
+        tab.classList.remove('slideOut_L');
+        tab.classList.remove('slideOut_R');
+    });
 }
 
 /**

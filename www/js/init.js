@@ -49,7 +49,7 @@ params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
-params['showUIAnimations'] = getSetting('showUIAnimations') !== true;
+params['showUIAnimations'] = getSetting('showUIAnimations') === true;
 // Maximum number of article titles to return (range is 5 - 50, default 25)
 params['maxSearchResultsSize'] = getSetting('maxSearchResultsSize') || 25;
 // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
