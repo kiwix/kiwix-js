@@ -1569,6 +1569,10 @@ function readArticle (dirEntry) {
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
     if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+    // Show the spinner with a loading message
+    var message = dirEntry.url.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+    message = message ? message[1] + '...' : '...';
+    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
 
     if (params.contentInjectionMode === 'serviceworker') {
         // In ServiceWorker mode, we simply set the iframe src.
@@ -1620,6 +1624,17 @@ function readArticle (dirEntry) {
                                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                                 event.preventDefault();
                                 window.open(clickedAnchor.href, '_blank');
+                            } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+                                // Show the spinner if it's a ZIM link, but not an anchor
+                                if (!~href.indexOf('#')) {
+                                    var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+                                    message = message ? message[1] + '...' : '...';
+                                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
+                                    // In case of false positive, ensure spinner is eventually hidden
+                                    setTimeout(function () {
+                                        uiUtil.spinnerDisplay(false);
+                                    }, 4000);
+                                }
                             }
                         }
                     });
@@ -2137,11 +2152,11 @@ function pushBrowserHistoryState (title, titleSearch) {
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
 function goToArticle (path, download, contentType) {
-    document.getElementById('searchingArticles').style.display = '';
+    uiUtil.spinnerDisplay(true);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
-            document.getElementById('searchingArticles').style.display = 'none';
+            uiUtil.spinnerDisplay(false);
             uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
                 translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {

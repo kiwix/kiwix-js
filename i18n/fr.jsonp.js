@@ -239,7 +239,8 @@ document.localeJson = {
       "alert-update-available": "est prête à être installée. (Relancez l'application pour installer.)",
       "alert-download-message": "<strong>Télécharger</strong> Si le téléchargement ne démarre pas, veuillez cliquer sur le lien suivant&nbsp;:",
       "spinner-caching": "Mise en cache :",
-      "spinner-caching-assets": "Mise en cache..."
+      "spinner-caching-assets": "Mise en cache...",
+      "spinner-loading": "Chargement"
     }
   }
 }
