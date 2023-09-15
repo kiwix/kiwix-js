@@ -2152,10 +2152,11 @@ function pushBrowserHistoryState (title, titleSearch) {
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
 function goToArticle (path, download, contentType) {
+    uiUtil.spinnerDisplay(true);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
-            document.getElementById('searchingArticles').style.display = 'none';
+            uiUtil.spinnerDisplay(false);
             uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
                 translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
