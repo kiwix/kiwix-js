@@ -1569,6 +1569,10 @@ function readArticle (dirEntry) {
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
     if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+    // Show the spinner with a loading message
+    var message = dirEntry.url.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+    message = message ? message[1] + '...' : '...';
+    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
 
     if (params.contentInjectionMode === 'serviceworker') {
         // In ServiceWorker mode, we simply set the iframe src.
