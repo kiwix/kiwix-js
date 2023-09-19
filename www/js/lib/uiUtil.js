@@ -577,8 +577,6 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
     const about = document.getElementById('about');
     const home = document.getElementById('articleContent');
 
-    const isZimLoaded = true // get from settings or something
-
     // references of extra elements that are in UI but not tabs
     // prefix with extra to avoid confusion and easy identification
     const extraNavBtns = document.getElementById('navigationButtons');
@@ -595,7 +593,7 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
         if (toSection === 'home') {
             if (from === 'config') slideToRight(home, config);
             if (from === 'about') slideToRight(home, about);
-            showElements(extraNavBtns, extraArticleSearch, isZimLoaded ? null : extraWelcomeText, extraKiwixAlert);
+            showElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraKiwixAlert);
         } else if (toSection === 'config') {
             if (from === 'about') slideToRight(config, about);
             if (from === 'home') slideToLeft(config, home);
@@ -713,7 +711,8 @@ function showReturnLink () {
         document.getElementById('liConfigureNav').classList.remove('active');
         document.getElementById('liHomeNav').classList.add('active');
         tabTransitionToSection('home', params.showUIAnimations);
-
+        const welcomeText = document.getElementById('welcomeText');
+        welcomeText.style.display = 'none';
         viewArticle.style.display = 'none';
     });
 }
