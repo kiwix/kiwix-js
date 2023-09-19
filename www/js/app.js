@@ -381,7 +381,6 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-    // uiUtil.removeAnimationClasses();
 
     uiUtil.tabTransitionToSection('config', params.showUIAnimations);
 
@@ -398,8 +397,8 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
+
     // Show the selected content in the page
-    // uiUtil.removeAnimationClasses();
     uiUtil.tabTransitionToSection('about', params.showUIAnimations);
 
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms

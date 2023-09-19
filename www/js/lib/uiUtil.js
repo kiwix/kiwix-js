@@ -465,6 +465,7 @@ function isElementInView (el, fully) {
         return rect.top < window.innerHeight && rect.bottom > 0 && rect.left < window.innerWidth && rect.right > 0;
     }
 }
+
 /**
  * Show elements in bulk (using display: '')
  *
@@ -559,11 +560,11 @@ function fromSection () {
     const isConfigPageVisible = !$('#configuration').is(':hidden');
     const isAboutPageVisible = !$('#about').is(':hidden');
     const isArticlePageVisible = !$('#articleContent').is(':hidden');
-
     if (isConfigPageVisible) return 'config';
     else if (isAboutPageVisible) return 'about';
     else if (isArticlePageVisible) return 'home';
 }
+
 /**
  * Adds the slide animation between different sections
  *
