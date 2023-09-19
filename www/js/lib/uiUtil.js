@@ -467,78 +467,156 @@ function isElementInView (el, fully) {
 }
 
 /**
- * Removes the animation effect between various sections
+ * Show elements in bulk (using display: '')
+ *
+ * @param {Array<HTMLElement>} elements It takes the name of the section to which the animation is to be added
+ * @example showElements(element1, element2, element3)
+ * @returns {void}
+*/
+function showElements (...elements) {
+    for (const element of elements) {
+        if (element) element.style.display = '';
+    }
+}
+
+/**
+ * Hide elements in bulk (using display: none)
+ *
+ * @param {Array<HTMLElement>} elements Any element that you want to be hidden
+ * @example hideElements(element1, element2, element3)
+ * @returns {void}
+*/
+function hideElements (...elements) {
+    for (const element of elements) {
+        if (element) element.style.display = 'none';
+    }
+}
+
+/**
+ * Removes the animation classes that are added by the slide animation in previous transition
+ * @returns {void}
  */
 function removeAnimationClasses () {
-    var configuration = document.getElementById('configuration');
-    configuration.classList.remove('slideIn_L');
-    configuration.classList.remove('slideIn_R');
-    configuration.classList.remove('slideOut_L');
-    configuration.classList.remove('slideOut_R');
-    document.getElementById('about').classList.remove('slideIn_L');
-    document.getElementById('about').classList.remove('slideOut_R');
-    document.getElementById('articleContent').classList.remove('slideIn_R');
-    document.getElementById('articleContent').classList.remove('slideOut_L');
+    const config = document.getElementById('configuration');
+    const about = document.getElementById('about');
+    const home = document.getElementById('articleContent');
+
+    const tabs = [config, about, home]
+    tabs.forEach(tab => {
+        tab.classList.remove('slideIn_L');
+        tab.classList.remove('slideIn_R');
+        tab.classList.remove('slideOut_L');
+        tab.classList.remove('slideOut_R');
+    });
 }
 
 /**
  * Adds the slide animation between different sections
  *
- * @param {String} section It takes the name of the section to which the animation is to be added
- *
+ * @param {HTMLElement} sectionToShow Element which is gonna be slide in from left (show)
+ * @param {HTMLElement} sectionToHide Element which is gonna be slide to the left (hide)
+ * @returns {void}
  */
-function applyAnimationToSection (section) {
-    if (section === 'home') {
-        if (!$('#configuration').is(':hidden')) {
-            document.getElementById('configuration').classList.add('slideOut_R');
-            setTimeout(function () {
-                document.getElementById('configuration').style.display = 'none';
-            }, 300);
+function slideToLeft (sectionToShow, sectionToHide) {
+    sectionToShow.classList.add('slideIn_L');
+    setTimeout(function () {
+        sectionToShow.style.display = '';
+        // sectionToShow.classList.remove('slideIn_L');
+    }, 300);
+
+    sectionToHide.classList.add('slideOut_L');
+    setTimeout(function () {
+        sectionToHide.style.display = 'none';
+        // sectionToHide.classList.remove('slideOut_L');
+    }, 300);
+}
+
+/**
+ * Adds the slide animation between different sections
+ *
+ * @param {HTMLElement} sectionToShow Element which is gonna be slide in from right (show)
+ * @param {HTMLElement} sectionToHide Element which is gonna be slide to the right (hide)
+ * @returns {void}
+ */
+function slideToRight (sectionToShow, sectionToHide) {
+    sectionToHide.classList.add('slideOut_R');
+    setTimeout(function () {
+        sectionToHide.style.display = 'none';
+        // sectionToHide.classList.remove('slideOut_R');
+    }, 300);
+
+    sectionToShow.classList.add('slideIn_R');
+    setTimeout(function () {
+        sectionToShow.style.display = '';
+        // sectionToShow.classList.remove('slideIn_R');
+    }, 300);
+}
+
+/**
+ * Returns the name of the section which is currently visible
+ * @returns {String} The name of the section which is currently visible
+ */
+function fromSection () {
+    const isConfigPageVisible = !$('#configuration').is(':hidden');
+    const isAboutPageVisible = !$('#about').is(':hidden');
+    const isArticlePageVisible = !$('#articleContent').is(':hidden');
+    if (isConfigPageVisible) return 'config';
+    else if (isAboutPageVisible) return 'about';
+    else if (isArticlePageVisible) return 'home';
+}
+
+/**
+ * Adds the slide animation between different sections
+ *
+ * @param {String} toSection It takes the name of the section to which the animation is to be added
+ * @param {Boolean} isAnimationRequired To enable or disable the animation
+ * @returns {void}
+ */
+function tabTransitionToSection (toSection, isAnimationRequired = false) {
+    // all the references of the sections/tabs
+    const config = document.getElementById('configuration');
+    const about = document.getElementById('about');
+    const home = document.getElementById('articleContent');
+
+    // references of extra elements that are in UI but not tabs
+    // prefix with extra to avoid confusion and easy identification
+    const extraNavBtns = document.getElementById('navigationButtons');
+    const extraArticleSearch = document.getElementById('formArticleSearch');
+    const extraWelcomeText = document.getElementById('welcomeText');
+    const extraSearchingArticles = document.getElementById('searchingArticles');
+    const extraKiwixAlert = document.getElementById('kiwix-alert');
+
+    // removing any classes that have been added by previous transition
+    removeAnimationClasses()
+    const from = fromSection();
+
+    if (isAnimationRequired) {
+        if (toSection === 'home') {
+            if (from === 'config') slideToRight(home, config);
+            if (from === 'about') slideToRight(home, about);
+            showElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraKiwixAlert);
+        } else if (toSection === 'config') {
+            if (from === 'about') slideToRight(config, about);
+            if (from === 'home') slideToLeft(config, home);
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+        } else if (toSection === 'about') {
+            if (from === 'home') slideToLeft(about, home);
+            if (from === 'config') slideToLeft(about, config);
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         }
-        if (!$('#about').is(':hidden')) {
-            document.getElementById('about').classList.add('slideOut_R');
-            setTimeout(function () {
-                document.getElementById('about').style.display = 'none';
-            }, 300);
+    } else {
+        if (toSection === 'home') {
+            hideElements(config, about);
+            showElements(home, extraNavBtns, extraArticleSearch, extraWelcomeText);
         }
-        $('#articleContent').addClass('slideIn_R');
-        setTimeout(function () {
-            document.getElementById('articleContent').style.display = '';
-        }, 300);
-    } else if (section === 'config') {
-        if (!$('#about').is(':hidden')) {
-            $('#about').addClass('slideOut_R');
-            $('#configuration').addClass('slideIn_R');
-            setTimeout(function () {
-                document.getElementById('about').style.display = 'none';
-            }, 300);
-        } else if (!$('#articleContent').is(':hidden')) {
-            document.getElementById('configuration').classList.add('slideIn_L');
-            document.getElementById('articleContent').classList.add('slideOut_L');
-            setTimeout(function () {
-                document.getElementById('articleContent').style.display = 'none';
-            }, 300);
+        if (toSection === 'config') {
+            hideElements(about, home, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+            showElements(config);
         }
-        setTimeout(function () {
-            document.getElementById('configuration').style.display = '';
-        }, 300);
-    } else if (section === 'about') {
-        if (!$('#configuration').is(':hidden')) {
-            document.getElementById('configuration').classList.add('slideOut_L');
-            setTimeout(function () {
-                document.getElementById('configuration').style.display = 'none';
-            }, 300);
+        if (toSection === 'about') {
+            hideElements(config, home);
+            showElements(about);
         }
-        if (!$('#articleContent').is(':hidden')) {
-            document.getElementById('articleContent').classList.add('slideOut_L');
-            setTimeout(function () {
-                document.getElementById('articleContent').style.display = 'none';
-            }, 300);
-        }
-        document.getElementById('about').classList.add('slideIn_L');
-        setTimeout(function () {
-            document.getElementById('about').style.display = '';
-        }, 300);
     }
 }
 
@@ -633,15 +711,9 @@ function showReturnLink () {
         e.preventDefault();
         document.getElementById('liConfigureNav').classList.remove('active');
         document.getElementById('liHomeNav').classList.add('active');
-        removeAnimationClasses();
-        if (params.showUIAnimations) {
-            applyAnimationToSection('home');
-        } else {
-            document.getElementById('configuration').style.display = 'none';
-            document.getElementById('articleContent').style.display = 'block';
-        }
-        document.getElementById('navigationButtons').style.display = 'inline-flex';
-        document.getElementById('formArticleSearch').style.display = 'block';
+        tabTransitionToSection('home', params.showUIAnimations);
+        const welcomeText = document.getElementById('welcomeText');
+        welcomeText.style.display = 'none';
         viewArticle.style.display = 'none';
     });
 }
@@ -763,7 +835,7 @@ export default {
     spinnerDisplay: spinnerDisplay,
     isElementInView: isElementInView,
     removeAnimationClasses: removeAnimationClasses,
-    applyAnimationToSection: applyAnimationToSection,
+    tabTransitionToSection: tabTransitionToSection,
     applyAppTheme: applyAppTheme,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
