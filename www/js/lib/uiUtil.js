@@ -560,7 +560,9 @@ function fromSection () {
     const isConfigPageVisible = !$('#configuration').is(':hidden');
     const isAboutPageVisible = !$('#about').is(':hidden');
     const isArticlePageVisible = !$('#articleContent').is(':hidden');
+    const isLibraryPageVisible = !$('#library').is(':hidden');
     if (isConfigPageVisible) return 'config';
+    if (isLibraryPageVisible) return 'library';
     else if (isAboutPageVisible) return 'about';
     else if (isArticlePageVisible) return 'home';
 }
@@ -576,6 +578,7 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
     // all the references of the sections/tabs
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
+    const library = document.getElementById('library');
     const home = document.getElementById('articleContent');
 
     // references of extra elements that are in UI but not tabs
@@ -594,14 +597,24 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
         if (toSection === 'home') {
             if (from === 'config') slideToRight(home, config);
             if (from === 'about') slideToRight(home, about);
+            if (from === 'library') slideToRight(home, library);
+
             showElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraKiwixAlert);
         } else if (toSection === 'config') {
             if (from === 'about') slideToRight(config, about);
+            if (from === 'library') slideToRight(config, library);
             if (from === 'home') slideToLeft(config, home);
+
             hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         } else if (toSection === 'about') {
+            if (from === 'library') slideToRight(about, library);
             if (from === 'home') slideToLeft(about, home);
             if (from === 'config') slideToLeft(about, config);
+
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+        } else if (toSection === 'library') {
+            // it will be always coming from config page
+            slideToLeft(library, config);
             hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         }
     } else {

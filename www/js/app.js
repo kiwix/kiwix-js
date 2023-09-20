@@ -1296,6 +1296,12 @@ function handleFileDrop (packet) {
     document.getElementById('archiveFiles').value = null;
 }
 
+document.getElementById('libraryBtn').addEventListener('click', function (e) {
+    console.log('libraryBtn clicked');
+    e.preventDefault();
+    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+});
+
 // Add event listener to link which allows user to show file selectors
 document.getElementById('selectorsDisplayLink').addEventListener('click', function (e) {
     e.preventDefault();
