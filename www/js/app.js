@@ -153,11 +153,25 @@ function resizeIFrame () {
         }, 100);
     }
 }
+
+/**
+ * Resize the IFrame height, so that it fills the whole available height in the window
+ */
+function resizeLibrary () {
+    var headerStyles = getComputedStyle(document.getElementById('top'));
+    var iframe = document.getElementById('libraryIframe');
+
+    iframe.style.height = window.innerHeight + 'px';
+    var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 10;
+    iframe.style.height = window.innerHeight - headerHeight + 'px';
+}
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
+    resizeLibrary();
 });
 window.addEventListener('resize', resizeIFrame);
+window.addEventListener('resize', resizeLibrary);
 
 // Define behavior of HTML elements
 var searchArticlesFocused = false;
