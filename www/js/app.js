@@ -1311,7 +1311,6 @@ function handleFileDrop (packet) {
 }
 
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
-    console.log('libraryBtn clicked');
     e.preventDefault();
     uiUtil.tabTransitionToSection('library', params.showUIAnimations);
 });
