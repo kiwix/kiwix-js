@@ -11,6 +11,7 @@ document.localeJson = {
       "home-btn-random": "Aléatoire",
       "home-btn-back": "Retour",
       "home-btn-fileselect": "Sélectionner fichier(s) ZIM",
+      "home-btn-library": "Bibliothèque ZIM",
       "home-btn-forward": "Suivant",
       "home-btn-top": "Haut",
       "home-prefix-placeholder": "Chercher...",
