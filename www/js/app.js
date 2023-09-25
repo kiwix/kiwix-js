@@ -161,9 +161,18 @@ function resizeLibrary () {
     var headerStyles = getComputedStyle(document.getElementById('top'));
     var iframe = document.getElementById('libraryIframe');
 
-    iframe.style.height = window.innerHeight + 'px';
-    var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 10;
-    iframe.style.height = window.innerHeight - headerHeight + 'px';
+    if (iframe.style.display === 'none') {
+        iframe.style.height = window.innerHeight + 'px';
+        var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 10;
+        iframe.style.height = window.innerHeight - headerHeight + 'px';
+    } else {
+        // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
+        setTimeout(function () {
+            iframe.style.height = window.innerHeight + 'px';
+            var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 10;
+            iframe.style.height = window.innerHeight - headerHeight + 'px';
+        }, 100);
+    }
 }
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
@@ -172,6 +181,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 window.addEventListener('resize', resizeIFrame);
 window.addEventListener('resize', resizeLibrary);
+document.getElementById('libraryIframe')
+
+document.getElementById('libraryIframe').setAttribute('src', params.libraryUrl);
 
 // Define behavior of HTML elements
 var searchArticlesFocused = false;
