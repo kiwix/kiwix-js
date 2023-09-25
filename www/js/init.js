@@ -49,7 +49,16 @@
  * @property {string} contentInjectionMode - A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app.
  * @property {boolean} useCanvasElementsForWebpTranscoding - A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images directly with the canvas elements produced by the WebP polyfill.
  * @property {string} libraryUrl - The URL of the Kiwix library or Download page.
+ * @property {DecompressorAPI} decompressorAPI - The URL of the Kiwix library.
+ */
 
+/**
+ * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
+ * This is populated in the Emscripten wrappers
+ * @typedef {Object} DecompressorAPI
+ * @property {String} assemblerMachineType The assembler machine type supported and/or loaded by this app: 'ASM' or 'WASM'
+ * @property {String} decompressorLastUsed The decompressor that was last used to decode a compressed cluster (currently 'XZ' or 'ZSTD')
+ * @property {String} errorStatus A description of any detected error in loading a decompressor
  */
 
 /**
@@ -103,7 +112,6 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
 
-
 /**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
@@ -149,6 +157,7 @@ params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will
     // old browsers dont support syntax for optional catch binding (https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding)
     // this makes library.kiwix.org not load up properly making us fallback on download.kiwix.org for the iframe
     try {
+        // eslint-disable-next-line no-eval
         eval('try {} catch {}');
     } catch (error) {
         params['libraryUrl'] = 'https://download.kiwix.org/zim/';

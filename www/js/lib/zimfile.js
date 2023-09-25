@@ -54,14 +54,6 @@ if (!String.prototype.startsWith) {
     });
 }
 
-/**
- * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
- * This is populated in the Emscripten wrappers
- * @type {Object}
- * @property {String} assemblerMachineType The assembler machine type supported and/or loaded by this app: 'ASM' or 'WASM'
- * @property {String} decompressorLastUsed The decompressor that was last used to decode a compressed cluster (currently 'XZ' or 'ZSTD')
- * @property {String} errorStatus A description of any detected error in loading a decompressor
- */
 params.decompressorAPI = {
     assemblerMachineType: null,
     decompressorLastUsed: null,
