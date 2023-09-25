@@ -29,7 +29,31 @@
  * A global parameter object for storing variables that need to be remembered between page loads,
  * or across different functions and modules
  *
- * @type Object
+ * @typedef {Object} AppParams
+ * @property {string} appVersion - The version number of the application.
+ * @property {string} PWAServer - The URL of the PWA server for use with the browser extensions in ServiceWorker mode.
+ * @property {string} storeType - A parameter to determine the Settings Store API in use.
+ * @property {string} keyPrefix - The key prefix used by the settingsStore.js.
+ * @property {boolean} hideActiveContentWarning - A boolean indicating whether to hide the active content warning.
+ * @property {boolean} showUIAnimations - A boolean indicating whether to show UI animations.
+ * @property {number} maxSearchResultsSize - The maximum number of article titles to return.
+ * @property {boolean} assetsCache - A boolean indicating whether to cache assets.
+ * @property {boolean} appCache - A boolean indicating whether to cache the PWA's code.
+ * @property {string} appTheme - A parameter to set the app theme and, if necessary, the CSS theme for article content.
+ * @property {boolean} useHomeKeyToFocusSearchBar - A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar.
+ * @property {boolean} openExternalLinksInNewTabs - A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode).
+ * @property {string} overrideBrowserLanguage - A global language override.
+ * @property {boolean} disableDragAndDrop - A parameter to disable drag-and-drop.
+ * @property {string} referrerExtensionURL - A parameter to access the URL of any extension that this app was launched from.
+ * @property {boolean} defaultModeChangeAlertDisplayed - A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default.
+ * @property {string} contentInjectionMode - A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app.
+ * @property {boolean} useCanvasElementsForWebpTranscoding - A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images directly with the canvas elements produced by the WebP polyfill.
+ * @property {string} libraryUrl - The URL of the Kiwix library.
+
+ */
+
+/**
+ * @type {AppParams}
  */
 var params = {};
 
@@ -77,6 +101,7 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
+params['libraryUrl'] = 'MSBlobBuilder' in window ? 'https://download.kiwix.org/zim/' : 'https://library.kiwix.org/'; // If browser doesnt support the library then it fallbacks to the download url
 
 /**
  * Apply any override parameters that might be in the querystring.
