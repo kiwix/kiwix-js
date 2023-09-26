@@ -136,54 +136,35 @@ darkPreference.onchange = function () {
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
 function resizeIFrame () {
-    var headerStyles = getComputedStyle(document.getElementById('top'));
-    var iframe = document.getElementById('articleContent');
-    var region = document.getElementById('search-article');
-    if (iframe.style.display === 'none') {
-        // We are in About or Configuration, so we only set the region height
-        region.style.height = window.innerHeight + 'px';
-    } else {
-        // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-        setTimeout(function () {
-            // Get  header height *including* its bottom margin
-            var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-            iframe.style.height = window.innerHeight - headerHeight + 'px';
-            // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
-            region.style.height = window.innerHeight + 10 + 'px';
-        }, 100);
+    const headerStyles = getComputedStyle(document.getElementById('top'));
+    const articleIframe = document.getElementById('articleContent');
+    const libraryIframe = document.getElementById('libraryContent');
+    const frames = [articleIframe, libraryIframe]
+    const region = document.getElementById('search-article');
+
+    for (let i = 0; i < frames.length; i++) {
+        const iframe = frames[i];
+        if (iframe.style.display === 'none') {
+            // We are in About or Configuration, so we only set the region height
+            region.style.height = window.innerHeight + 'px';
+        } else {
+            // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
+            setTimeout(function () {
+                // Get  header height *including* its bottom margin
+                const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+                iframe.style.height = window.innerHeight - headerHeight + 'px';
+                // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
+                region.style.height = window.innerHeight + 10 + 'px';
+            }, 100);
+        }
     }
 }
 
-/**
- * Resize the IFrame height, so that it fills the whole available height in the window
- */
-function resizeLibrary () {
-    var headerStyles = getComputedStyle(document.getElementById('top'));
-    var iframe = document.getElementById('libraryIframe');
-
-    if (iframe.style.display === 'none') {
-        iframe.style.height = window.innerHeight + 'px';
-        var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 10;
-        iframe.style.height = window.innerHeight - headerHeight + 'px';
-    } else {
-        // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-        setTimeout(function () {
-            iframe.style.height = window.innerHeight + 'px';
-            var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 10;
-            iframe.style.height = window.innerHeight - headerHeight + 'px';
-        }, 100);
-    }
-}
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
-    resizeLibrary();
 });
 window.addEventListener('resize', resizeIFrame);
-window.addEventListener('resize', resizeLibrary);
-document.getElementById('libraryIframe')
-
-document.getElementById('libraryIframe').setAttribute('src', params.libraryUrl);
 
 // Define behavior of HTML elements
 var searchArticlesFocused = false;
@@ -1325,6 +1306,17 @@ function handleFileDrop (packet) {
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
     e.preventDefault();
     uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+    const library = document.getElementById('libraryContent')
+
+    // old browsers dont support syntax for optional catch binding (https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding)
+    // this makes library.kiwix.org not load up properly making us fallback on download.kiwix.org for the iframe
+    try {
+        // eslint-disable-next-line no-eval
+        eval('try {} catch {}');
+        library.setAttribute('src', params.libraryUrl);
+    } catch (error) {
+        library.setAttribute('src', params.altLibraryUrl);
+    }
 });
 
 // Add event listener to link which allows user to show file selectors

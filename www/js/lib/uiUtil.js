@@ -660,7 +660,7 @@ function applyAppTheme (theme) {
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
     var iframe = document.getElementById('articleContent');
-    const library = document.getElementById('libraryIframe');
+    const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
     var oldAppTheme = oldTheme.replace(/_.*$/, '');

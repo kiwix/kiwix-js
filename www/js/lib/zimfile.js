@@ -54,6 +54,7 @@ if (!String.prototype.startsWith) {
     });
 }
 
+// to learn more read init.js:57 or search DecompressorAPI in init.js
 params.decompressorAPI = {
     assemblerMachineType: null,
     decompressorLastUsed: null,

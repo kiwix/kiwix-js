@@ -48,12 +48,12 @@
  * @property {boolean} defaultModeChangeAlertDisplayed - A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default.
  * @property {string} contentInjectionMode - A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app.
  * @property {boolean} useCanvasElementsForWebpTranscoding - A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images directly with the canvas elements produced by the WebP polyfill.
- * @property {string} libraryUrl - The URL of the Kiwix library or Download page.
- * @property {DecompressorAPI} decompressorAPI - The URL of the Kiwix library.
- */
+ * @property {string} libraryUrl - The URL of the Kiwix library.
+ * @property {string} altLibraryUrl - The alternative URL of the Kiwix library in non-supported browsers.
+ * @property {DecompressorAPI} decompressorAPI
 
 /**
- * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
+ * A property of the global params object to track the assembler machine type and the last used decompressor (for reporting to the API panel)
  * This is populated in the Emscripten wrappers
  * @typedef {Object} DecompressorAPI
  * @property {String} assemblerMachineType The assembler machine type supported and/or loaded by this app: 'ASM' or 'WASM'
@@ -111,6 +111,7 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
+params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Url for iframe that will be loaded to download new zim files
 
 /**
  * Apply any override parameters that might be in the querystring.
@@ -152,15 +153,6 @@ params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will
             // The only browser which does not support .remove() is IE11, but it will never run this code
             if (kiwixComm) kiwixComm.remove();
         }, 3000);
-    }
-
-    // old browsers dont support syntax for optional catch binding (https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding)
-    // this makes library.kiwix.org not load up properly making us fallback on download.kiwix.org for the iframe
-    try {
-        // eslint-disable-next-line no-eval
-        eval('try {} catch {}');
-    } catch (error) {
-        params['libraryUrl'] = 'https://download.kiwix.org/zim/';
     }
 })();
 
