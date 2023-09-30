@@ -710,9 +710,7 @@ function showReturnLink () {
         e.preventDefault();
         document.getElementById('liConfigureNav').classList.remove('active');
         document.getElementById('liHomeNav').classList.add('active');
-        tabTransitionToSection('home', params.showUIAnimations);
-        const welcomeText = document.getElementById('welcomeText');
-        welcomeText.style.display = 'none';
+        viewArticle();
         viewArticle.style.display = 'none';
     });
 }
@@ -818,17 +816,11 @@ function getBrowserLanguage () {
 }
 
 // Display The Recently Loaded Article. Called By showReturnLink().
-function viewArticle(){
+function viewArticle () {
     removeAnimationClasses();
-    if (params.showUIAnimations) {
-        applyAnimationToSection('home');
-    }else{
-        document.getElementById('about').style.display = 'none';
-        document.getElementById('configuration').style.display = 'none';
-        document.getElementById('articleContent').style.display = '';
-    }
-    document.getElementById('navigationButtons').style.display = 'inline-flex';
-    document.getElementById('formArticleSearch').style.display = 'block';
+    tabTransitionToSection('home', params.showUIAnimations);
+    const welcomeText = document.getElementById('welcomeText');
+    welcomeText.style.display = 'none';
 }
 
 /**
@@ -855,5 +847,5 @@ export default {
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
     getBrowserLanguage: getBrowserLanguage,
-    viewArticle : viewArticle
+    viewArticle: viewArticle
 };

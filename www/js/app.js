@@ -380,9 +380,13 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
-    // Show the selected content in the page
-
-    uiUtil.tabTransitionToSection('config', params.showUIAnimations);
+    if (document.getElementById('configuration').style.display == 'none') {
+        // Show the selected content in the page
+        uiUtil.tabTransitionToSection('config', params.showUIAnimations);
+    }
+    else{
+        uiUtil.viewArticle();
+    }
 
     refreshAPIStatus();
     refreshCacheStatus();
@@ -397,9 +401,14 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
-
-    // Show the selected content in the page
-    uiUtil.tabTransitionToSection('about', params.showUIAnimations);
+    
+    if (document.getElementById('about').style.display == 'none') {
+        // Show the selected content in the page
+        uiUtil.tabTransitionToSection('about', params.showUIAnimations);
+    }
+    else{
+        uiUtil.viewArticle();
+    }
 
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
