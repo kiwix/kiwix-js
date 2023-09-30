@@ -100,6 +100,10 @@ input[type="file"] {
     display: none;
 }
 
+iframe {
+    border: 0;
+}
+
 .custom-file-upload {
     border: 2px solid darkgray;
     display: inline-block;
