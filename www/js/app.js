@@ -1306,17 +1306,21 @@ function handleFileDrop (packet) {
     document.getElementById('archiveFiles').value = null;
 }
 
+window.addEventListener('message', (event) => {
+    console.log('EVAL output', event.data);
+});
+
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
     e.preventDefault();
     uiUtil.tabTransitionToSection('library', params.showUIAnimations);
     const library = document.getElementById('libraryContent')
     const nestedFrame = library.contentWindow.document.getElementById('libraryIframe')
-
+    library.contentWindow.postMessage('10 + 20', '*');
     // old browsers dont support syntax for optional catch binding (https://caniuse.com/mdn-javascript_statements_try_catch_optional_catch_binding)
     // this makes library.kiwix.org not load up properly making us fallback on download.kiwix.org for the iframe
     try {
         // eslint-disable-next-line no-eval
-        eval('try {} catch {}');
+        // eval('try {} catch {}');
         nestedFrame.setAttribute('src', params.libraryUrl);
     } catch (error) {
         nestedFrame.setAttribute('src', params.altLibraryUrl);

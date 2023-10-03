@@ -40,7 +40,7 @@ const config = {
         }),
         copy({
             targets: [{
-                src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*',
+                src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/library.js', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*',
                     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.*', 'node_modules/jquery/dist/jquery.slim.min.*', '!www/js/lib/libzim-wasm.dev*'],
                 dest: 'dist/www/js'
             },
