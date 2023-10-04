@@ -34,7 +34,6 @@ const config = {
             // Prevent a fatal error in IE11 (bug with the URL constructor polyfill)
             'document.baseURI': "document.location.href.replace(/[^/]*$/, '')",
             // Redirect the libzim Worker loader to the new location
-            'js/lib/libzim': 'js/libzim',
             'js/lib/darkreader.min.js': 'js/darkreader.min.js',
             preventAssignment: true
         }),
@@ -98,6 +97,11 @@ if (process.env.BUILD === 'production') {
                         .replace(/(<script\s.*src=").*jquery.slim.min.js/, '$1js/jquery.slim.min.js')
                         .replace(/(<script\s.*src=").*bootstrap.bundle.min.js/, '$1js/bootstrap.bundle.min.js')
                         .replace(/(<link\s.*href=").*bootstrap.min.css/, '$1css/bootstrap.min.css')
+                },
+                {
+                    src: 'www/library.html',
+                    dest: 'dist/www',
+                    transform: (contents, filename) => contents.toString().replace('./js/lib/library.js', './js/library.js')
                 }
             ],
             flatten: false
@@ -147,6 +151,11 @@ if (process.env.BUILD === 'production') {
                         .replace(/(<script\s.*src=").*jquery.slim.min.js/, '$1js/jquery.slim.min.js')
                         .replace(/(<script\s.*src=").*bootstrap.bundle.min.js/, '$1js/bootstrap.bundle.min.js')
                         .replace(/(<link\s.*href=").*bootstrap.min.css/, '$1css/bootstrap.min.css')
+                },
+                {
+                    src: 'www/library.html',
+                    dest: 'dist/www',
+                    transform: (contents, filename) => contents.toString().replace('./js/lib/library.js', './js/library.js')
                 }
             ],
             flatten: false

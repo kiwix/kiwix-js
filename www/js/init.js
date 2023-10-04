@@ -113,6 +113,7 @@ params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in 
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
 params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Url for iframe that will be loaded to download new zim files
 
+
 /**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
@@ -174,6 +175,9 @@ document.getElementById('openExternalLinksInNewTabsCheck').checked = params.open
 document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
+
+// Send the required config to the iframe
+document.getElementById('libraryContent').contentWindow.postMessage({ event: 'setIframeUrl', data: { libraryUrl: params.libraryUrl, altLibraryUrl: params.altLibraryUrl } }, '*');
 
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {

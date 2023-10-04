@@ -33,11 +33,15 @@
 
     "content_security_policy": {
         "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
-        "sandbox": "sandbox allow-scripts allow-downloads allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self';"
+        "sandbox": "sandbox allow-scripts allow-downloads allow-forms allow-popups allow-modals; script-src 'self' 'unsafe-inline' 'unsafe-eval'; child-src 'self'; frame-src library.kiwix.org"
     },
-
+    "sandbox": {
+        "pages": [
+          "www/library.html"
+        ]
+      },
     "web_accessible_resources": [{
-        "resources": ["www/index.html", "www/article.html"],
+        "resources": ["www/index.html", "www/article.html", "www/library.html"],
         "matches": ["https://*.kiwix.org/*"]
     }],
 
