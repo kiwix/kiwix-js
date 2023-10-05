@@ -113,7 +113,6 @@ params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in 
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
 params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Url for iframe that will be loaded to download new zim files
 
-
 /**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
