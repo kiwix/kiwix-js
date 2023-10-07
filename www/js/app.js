@@ -1310,6 +1310,7 @@ function handleFileDrop (packet) {
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
     e.preventDefault();
     uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+    window.open('https://download.kiwix.org/zim/gutenberg/gutenberg_af_all_2023-05.zim', '_blank')
 });
 
 // Add event listener to link which allows user to show file selectors
