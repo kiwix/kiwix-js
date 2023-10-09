@@ -175,9 +175,6 @@ document.getElementById('languageSelector').value = params.overrideBrowserLangua
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 
-// Send the required config to the iframe
-document.getElementById('libraryContent').contentWindow.postMessage({ event: 'setIframeUrl', data: { libraryUrl: params.libraryUrl, altLibraryUrl: params.altLibraryUrl } }, '*');
-
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {
     var result;
