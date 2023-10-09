@@ -1318,7 +1318,10 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
         Function('try{}catch{}')();
         iframe.setAttribute('src', params.libraryUrl);
     } catch (error) {
-        window.open(params.altLibraryUrl, '_blank');
+        const fakeElement = document.createElement('a')
+        fakeElement.setAttribute('href', params.altLibraryUrl)
+        uiUtil.warnAndOpenExternalLinkInNewTab(e, fakeElement)
+        // window.open(params.altLibraryUrl, '_blank');
     }
 });
 

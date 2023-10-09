@@ -39,7 +39,7 @@ const config = {
         }),
         copy({
             targets: [{
-                src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/library.js', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*',
+                src: ['www/js/lib/*dec-wasm.wasm', 'www/js/lib/libzim-asm.js', 'www/js/lib/libzim-wasm.*', 'www/js/lib/webpHeroBundle*',
                     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.*', 'node_modules/jquery/dist/jquery.slim.min.*', '!www/js/lib/libzim-wasm.dev*'],
                 dest: 'dist/www/js'
             },
@@ -97,11 +97,6 @@ if (process.env.BUILD === 'production') {
                         .replace(/(<script\s.*src=").*jquery.slim.min.js/, '$1js/jquery.slim.min.js')
                         .replace(/(<script\s.*src=").*bootstrap.bundle.min.js/, '$1js/bootstrap.bundle.min.js')
                         .replace(/(<link\s.*href=").*bootstrap.min.css/, '$1css/bootstrap.min.css')
-                },
-                {
-                    src: 'www/library.html',
-                    dest: 'dist/www',
-                    transform: (contents, filename) => contents.toString().replace('./js/lib/library.js', './js/library.js')
                 }
             ],
             flatten: false
@@ -151,11 +146,6 @@ if (process.env.BUILD === 'production') {
                         .replace(/(<script\s.*src=").*jquery.slim.min.js/, '$1js/jquery.slim.min.js')
                         .replace(/(<script\s.*src=").*bootstrap.bundle.min.js/, '$1js/bootstrap.bundle.min.js')
                         .replace(/(<link\s.*href=").*bootstrap.min.css/, '$1css/bootstrap.min.css')
-                },
-                {
-                    src: 'www/library.html',
-                    dest: 'dist/www',
-                    transform: (contents, filename) => contents.toString().replace('./js/lib/library.js', './js/library.js')
                 }
             ],
             flatten: false
