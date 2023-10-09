@@ -34,6 +34,7 @@ const config = {
             // Prevent a fatal error in IE11 (bug with the URL constructor polyfill)
             'document.baseURI': "document.location.href.replace(/[^/]*$/, '')",
             // Redirect the libzim Worker loader to the new location
+            'js/lib/libzim': 'js/libzim',
             'js/lib/darkreader.min.js': 'js/darkreader.min.js',
             preventAssignment: true
         }),

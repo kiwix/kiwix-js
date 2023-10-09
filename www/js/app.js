@@ -139,9 +139,9 @@ function resizeIFrame () {
     const headerStyles = getComputedStyle(document.getElementById('top'));
     const articleContent = document.getElementById('articleContent');
     const libraryContent = document.getElementById('libraryContent');
-    const frames = [articleContent, libraryContent]
+    const frames = [articleContent, libraryContent];
     const region = document.getElementById('search-article');
-    const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe')
+    const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
     // window.postMessage(window.innerHeight, '*');
 
     for (let i = 0; i < frames.length; i++) {
@@ -1318,10 +1318,9 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
         Function('try{}catch{}')();
         iframe.setAttribute('src', params.libraryUrl);
     } catch (error) {
-        const fakeElement = document.createElement('a')
-        fakeElement.setAttribute('href', params.altLibraryUrl)
-        uiUtil.warnAndOpenExternalLinkInNewTab(e, fakeElement)
-        // window.open(params.altLibraryUrl, '_blank');
+        const fakeElement = document.createElement('a');
+        fakeElement.setAttribute('href', params.altLibraryUrl);
+        uiUtil.warnAndOpenExternalLinkInNewTab(e, fakeElement);
     }
 });
 
