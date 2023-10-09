@@ -142,7 +142,6 @@ function resizeIFrame () {
     const frames = [articleContent, libraryContent];
     const region = document.getElementById('search-article');
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    // window.postMessage(window.innerHeight, '*');
 
     for (let i = 0; i < frames.length; i++) {
         const iframe = frames[i];
