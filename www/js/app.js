@@ -1308,7 +1308,6 @@ function handleFileDrop (packet) {
 
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
     e.preventDefault();
-    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
 
     const libraryContent = document.getElementById('libraryContent');
     const iframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
@@ -1316,10 +1315,9 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
         // eslint-disable-next-line no-new-func
         Function('try{}catch{}')();
         iframe.setAttribute('src', params.libraryUrl);
+        uiUtil.tabTransitionToSection('library', params.showUIAnimations);
     } catch (error) {
-        const fakeElement = document.createElement('a');
-        fakeElement.setAttribute('href', params.altLibraryUrl);
-        uiUtil.warnAndOpenExternalLinkInNewTab(e, fakeElement);
+        window.open(params.altLibraryUrl, '_blank')
     }
 });
 

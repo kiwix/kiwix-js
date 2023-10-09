@@ -111,7 +111,7 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
-params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Url for iframe that will be loaded to download new zim files
+params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Alternative Url for iframe (for use with unsupported browsers) that will be loaded to download new zim files
 
 /**
  * Apply any override parameters that might be in the querystring.
