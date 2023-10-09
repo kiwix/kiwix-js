@@ -500,8 +500,9 @@ function removeAnimationClasses () {
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
     const home = document.getElementById('articleContent');
+    const library = document.getElementById('library');
 
-    const tabs = [config, about, home]
+    const tabs = [config, about, home, library]
     tabs.forEach(tab => {
         tab.classList.remove('slideIn_L');
         tab.classList.remove('slideIn_R');
@@ -560,7 +561,9 @@ function fromSection () {
     const isConfigPageVisible = !$('#configuration').is(':hidden');
     const isAboutPageVisible = !$('#about').is(':hidden');
     const isArticlePageVisible = !$('#articleContent').is(':hidden');
+    const isLibraryPageVisible = !$('#library').is(':hidden');
     if (isConfigPageVisible) return 'config';
+    if (isLibraryPageVisible) return 'library';
     else if (isAboutPageVisible) return 'about';
     else if (isArticlePageVisible) return 'home';
 }
@@ -576,6 +579,7 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
     // all the references of the sections/tabs
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
+    const library = document.getElementById('library');
     const home = document.getElementById('articleContent');
 
     // references of extra elements that are in UI but not tabs
@@ -594,28 +598,42 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
         if (toSection === 'home') {
             if (from === 'config') slideToRight(home, config);
             if (from === 'about') slideToRight(home, about);
+            if (from === 'library') slideToRight(home, library);
+
             showElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraKiwixAlert);
         } else if (toSection === 'config') {
             if (from === 'about') slideToRight(config, about);
+            if (from === 'library') slideToRight(config, library);
             if (from === 'home') slideToLeft(config, home);
+
             hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         } else if (toSection === 'about') {
+            if (from === 'library') slideToRight(about, library);
             if (from === 'home') slideToLeft(about, home);
             if (from === 'config') slideToLeft(about, config);
+
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+        } else if (toSection === 'library') {
+            // it will be always coming from config page
+            slideToLeft(library, config);
             hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         }
     } else {
         if (toSection === 'home') {
-            hideElements(config, about);
+            hideElements(config, about, library);
             showElements(home, extraNavBtns, extraArticleSearch, extraWelcomeText);
         }
         if (toSection === 'config') {
-            hideElements(about, home, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+            hideElements(about, home, library, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
             showElements(config);
         }
         if (toSection === 'about') {
-            hideElements(config, home);
+            hideElements(config, home, library);
             showElements(about);
+        }
+        if (toSection === 'library') {
+            hideElements(config, about, home, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+            showElements(library);
         }
     }
 }
@@ -642,6 +660,7 @@ function applyAppTheme (theme) {
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
     var iframe = document.getElementById('articleContent');
+    const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
     var oldAppTheme = oldTheme.replace(/_.*$/, '');
@@ -674,6 +693,7 @@ function applyAppTheme (theme) {
     // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
     if (oldContentTheme && oldContentTheme !== contentTheme) {
         iframe.classList.remove(oldContentTheme);
+        library.classList.remove(oldContentTheme);
         if (kiwixJSSheet) {
             kiwixJSSheet.disabled = true;
             kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
@@ -682,6 +702,7 @@ function applyAppTheme (theme) {
     // Apply the requested ContentTheme (if not already attached)
     if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
         iframe.classList.add(contentTheme);
+        library.classList.add(contentTheme);
         // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
         // subdirectory, then relative links injected into the article will not work as expected)
         // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string

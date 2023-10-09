@@ -136,23 +136,33 @@ darkPreference.onchange = function () {
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
 function resizeIFrame () {
-    var headerStyles = getComputedStyle(document.getElementById('top'));
-    var iframe = document.getElementById('articleContent');
-    var region = document.getElementById('search-article');
-    if (iframe.style.display === 'none') {
-        // We are in About or Configuration, so we only set the region height
-        region.style.height = window.innerHeight + 'px';
-    } else {
-        // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-        setTimeout(function () {
-            // Get  header height *including* its bottom margin
-            var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-            iframe.style.height = window.innerHeight - headerHeight + 'px';
-            // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
-            region.style.height = window.innerHeight + 10 + 'px';
-        }, 100);
+    const headerStyles = getComputedStyle(document.getElementById('top'));
+    const articleContent = document.getElementById('articleContent');
+    const libraryContent = document.getElementById('libraryContent');
+    const frames = [articleContent, libraryContent];
+    const region = document.getElementById('search-article');
+    const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
+
+    for (let i = 0; i < frames.length; i++) {
+        const iframe = frames[i];
+        if (iframe.style.display === 'none') {
+            // We are in About or Configuration, so we only set the region height
+            region.style.height = window.innerHeight + 'px';
+            nestedFrame.style.height = window.innerHeight - 110 + 'px';
+        } else {
+            // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
+            setTimeout(function () {
+                // Get  header height *including* its bottom margin
+                const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+                iframe.style.height = window.innerHeight - headerHeight + 'px';
+                // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
+                region.style.height = window.innerHeight + 10 + 'px';
+                nestedFrame.style.height = window.innerHeight - 110 + 'px';
+            }, 100);
+        }
     }
 }
+
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
@@ -1295,6 +1305,21 @@ function handleFileDrop (packet) {
     // This clears the display of any previously picked archive in the file selector
     document.getElementById('archiveFiles').value = null;
 }
+
+document.getElementById('libraryBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+
+    const libraryContent = document.getElementById('libraryContent');
+    const iframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
+    try {
+        // eslint-disable-next-line no-new-func
+        Function('try{}catch{}')();
+        iframe.setAttribute('src', params.libraryUrl);
+        uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+    } catch (error) {
+        window.open(params.altLibraryUrl, '_blank')
+    }
+});
 
 // Add event listener to link which allows user to show file selectors
 document.getElementById('selectorsDisplayLink').addEventListener('click', function (e) {

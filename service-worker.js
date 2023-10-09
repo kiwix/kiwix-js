@@ -118,6 +118,7 @@ const precacheFiles = [
     'www/img/Icon_External_Link.png',
     'www/index.html',
     'www/article.html',
+    'www/library.html',
     'www/main.html',
     'www/js/app.js',
     'www/js/init.js',

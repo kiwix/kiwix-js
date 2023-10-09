@@ -18,6 +18,7 @@ document.localeJson = {
       "configure": "Configurar",
       "configure-title": "Configuración",
       "configure-about-usage-link": "Información (Uso)",
+      "configure-btn-library": "Biblioteca ZIM",
       "configure-download-instructions": "Esta aplicación necesita un archivo ZIM para funcionar.<br />Para instrucciones completas, vea la sección",
       "configure-select-instructions": "Seleccione o arrastre y suelte un archivo .zim (o todos los .zimaa, .zimab etc en caso de un archivo dividido):",
       "configure-selectordisplay": "Arrastre y suelte un nuevo archivo ZIM, o",
