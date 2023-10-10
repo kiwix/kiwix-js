@@ -1270,7 +1270,18 @@ function displayFileSelect () {
         globalDropZone.addEventListener('drop', handleFileDrop);
     }
     // This handles use of the file picker
-    document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
+    if (typeof window.showOpenFilePicker === 'function') {
+        document.getElementById('archiveFiles').addEventListener('click', function (e) {
+            e.preventDefault();
+            window.showOpenFilePicker({ multiple: true }).then(function (fileHandle) {
+                fileHandle[0].getFile().then(function (file) {
+                    setLocalArchiveFromFileList([file]);
+                });
+            });
+        })
+    } else {
+        document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
+    }
 }
 
 function handleGlobalDragover (e) {
