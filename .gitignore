@@ -58,3 +58,4 @@ www-ghdeploy
 /.vs/
 /.vscode/
 scripts/github_token
+.prettierrc
