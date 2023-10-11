@@ -35,6 +35,7 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
+import cache from './lib/cache.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -166,6 +167,7 @@ function resizeIFrame () {
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
+    loadPreviousZimFile();
 });
 window.addEventListener('resize', resizeIFrame);
 
@@ -1250,6 +1252,26 @@ function resetCssCache () {
     }
 }
 
+async function loadPreviousZimFile () {
+    const openFile = await uiUtil.systemAlert('Do you want to load the previously selected zim file?', 'Load previous zim file', true, 'No', 'Yes', 'No')
+    // .then(function (response) {
+    // })
+    if (!openFile) return
+    // If a old zim file is already selected, we set it as the localArchive
+    cache.idxDB('files', async function (filesHandlers) {
+        // console.log("FILE HANDLE", a);
+        // refer to this article ; https://developer.chrome.com/articles/file-system-access/
+        const files = [];
+        for (let index = 0; index < filesHandlers.length; index++) {
+            const fileHandler = filesHandlers[index];
+            await fileHandler.requestPermission();
+            files.push(await fileHandler.getFile())
+        }
+        console.log(files);
+        setLocalArchiveFromFileList(files);
+    })
+}
+
 /**
  * Displays the zone to select files from the archive
  */
@@ -1276,6 +1298,10 @@ function displayFileSelect () {
             window.showOpenFilePicker({ multiple: true }).then(function (fileHandle) {
                 fileHandle[0].getFile().then(function (file) {
                     setLocalArchiveFromFileList([file]);
+
+                    cache.idxDB('files', fileHandle, function (a) {
+                        // console.log(a);
+                    })
                 });
             });
         })
