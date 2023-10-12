@@ -1257,21 +1257,28 @@ function resetCssCache () {
  */
 function loadPreviousZimFile () {
     if (typeof window.showOpenFilePicker === 'function') {
-        cache.idxDB('zimFile', async function (fileHandler) {
+        cache.idxDB('zimFiles', async function (fileHandlers) {
             // console.log(fileHandler);
-            if (!fileHandler) return console.info('There is no previous zim file in DB')
+            if (!fileHandlers || fileHandlers.length === 0) return console.info('There is no previous zim file in DB')
 
-            const openFile = await uiUtil.systemAlert('Do you want to load the previously selected zim file?', 'Load previous zim file', true, 'No', 'Yes', 'No')
-            if (!openFile) {
-                cache.idxDB('zimFile', undefined, function () {
-                    // reset all zim files in DB
-                })
-                return console.log('User Dont want to load previous zim file')
-            }
+            let options = ''
+            fileHandlers.forEach(fileHandler => {
+                options += `<option value="${fileHandler.name}">${fileHandler.name}</option>`
+            })
+            document.getElementById('zimSelect').innerHTML = options
+            document.getElementById('zimSelect').value = ''
+            // console.log(fileHandler);
+            // const isGranted = await fileHandler.requestPermission();
+            // if (isGranted === 'granted') setLocalArchiveFromFileList([await fileHandler.getFile()]);
+            // const openFile = await uiUtil.systemAlert('Do you want to load the previously selected zim file?', 'Load previous zim file', true, 'No', 'Yes', 'No')
+            // if (!openFile) {
+            //     cache.idxDB('zimFile', undefined, function () {
+            //         // reset all zim files in DB
+            //     })
+            //     return console.log('User Dont want to load previous zim file')
+            // }
 
             // refer to this article for easy explanation https://developer.chrome.com/articles/file-system-access/
-            const isGranted = await fileHandler.requestPermission();
-            if (isGranted === 'granted') setLocalArchiveFromFileList([await fileHandler.getFile()]);
         })
     }
 }
@@ -1295,6 +1302,20 @@ function displayFileSelect () {
         });
         globalDropZone.addEventListener('drop', handleFileDrop);
     }
+
+    document.getElementById('zimSelect').addEventListener('change', function (e) {
+        console.log(e.target.value);
+        cache.idxDB('zimFiles', async function (fileHandlers) {
+            const selectedFile = fileHandlers.find(fileHandler => fileHandler.name === e.target.value)
+            await selectedFile.requestPermission()
+            console.log(selectedFile);
+            selectedFile.getFile().then(function (file) {
+                setLocalArchiveFromFileList([file]);
+                console.log(file);
+            })
+        })
+    });
+
     // This handles use of the file picker
     if (typeof window.showOpenFilePicker === 'function') {
         document.getElementById('archiveFiles').addEventListener('click', function (e) {
@@ -1303,7 +1324,7 @@ function displayFileSelect () {
                 const selectedFile = fileHandle[0]
                 selectedFile.getFile().then(function (file) {
                     setLocalArchiveFromFileList([file]);
-                    cache.idxDB('zimFile', selectedFile, function () {
+                    cache.idxDB('zimFiles', [selectedFile], function () {
                         // file saved in DB
                     })
                 });
