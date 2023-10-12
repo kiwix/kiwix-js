@@ -1252,24 +1252,28 @@ function resetCssCache () {
     }
 }
 
-async function loadPreviousZimFile () {
-    const openFile = await uiUtil.systemAlert('Do you want to load the previously selected zim file?', 'Load previous zim file', true, 'No', 'Yes', 'No')
-    // .then(function (response) {
-    // })
-    if (!openFile) return
-    // If a old zim file is already selected, we set it as the localArchive
-    cache.idxDB('files', async function (filesHandlers) {
-        // console.log("FILE HANDLE", a);
-        // refer to this article ; https://developer.chrome.com/articles/file-system-access/
-        const files = [];
-        for (let index = 0; index < filesHandlers.length; index++) {
-            const fileHandler = filesHandlers[index];
-            await fileHandler.requestPermission();
-            files.push(await fileHandler.getFile())
-        }
-        console.log(files);
-        setLocalArchiveFromFileList(files);
-    })
+/**
+ * Loads the Previously selected zim file via IndexedDB
+ */
+function loadPreviousZimFile () {
+    if (typeof window.showOpenFilePicker === 'function') {
+        cache.idxDB('zimFile', async function (fileHandler) {
+            // console.log(fileHandler);
+            if (!fileHandler) return console.info('There is no previous zim file in DB')
+
+            const openFile = await uiUtil.systemAlert('Do you want to load the previously selected zim file?', 'Load previous zim file', true, 'No', 'Yes', 'No')
+            if (!openFile) {
+                cache.idxDB('zimFile', undefined, function () {
+                    // reset all zim files in DB
+                })
+                return console.log('User Dont want to load previous zim file')
+            }
+
+            // refer to this article for easy explanation https://developer.chrome.com/articles/file-system-access/
+            const isGranted = await fileHandler.requestPermission();
+            if (isGranted === 'granted') setLocalArchiveFromFileList([await fileHandler.getFile()]);
+        })
+    }
 }
 
 /**
@@ -1295,12 +1299,12 @@ function displayFileSelect () {
     if (typeof window.showOpenFilePicker === 'function') {
         document.getElementById('archiveFiles').addEventListener('click', function (e) {
             e.preventDefault();
-            window.showOpenFilePicker({ multiple: true }).then(function (fileHandle) {
-                fileHandle[0].getFile().then(function (file) {
+            window.showOpenFilePicker({ multiple: false }).then(function (fileHandle) {
+                const selectedFile = fileHandle[0]
+                selectedFile.getFile().then(function (file) {
                     setLocalArchiveFromFileList([file]);
-
-                    cache.idxDB('files', fileHandle, function (a) {
-                        // console.log(a);
+                    cache.idxDB('zimFile', selectedFile, function () {
+                        // file saved in DB
                     })
                 });
             });
@@ -1327,7 +1331,7 @@ function handleIframeDrop (e) {
     e.preventDefault();
 }
 
-function handleFileDrop (packet) {
+async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
     configDropZone.style.border = '';
@@ -1338,6 +1342,21 @@ function handleFileDrop (packet) {
     setLocalArchiveFromFileList(files);
     // This clears the display of any previously picked archive in the file selector
     document.getElementById('archiveFiles').value = null;
+
+    if (typeof window.showOpenFilePicker === 'function') {
+        // Only runs when browser support File System API
+        const fileInfo = await packet.dataTransfer.items[0]
+        if (fileInfo.kind === 'file') {
+            const fileHandle = await fileInfo.getAsFileSystemHandle();
+            cache.idxDB('zimFile', fileHandle, function () {
+                // save file in DB
+            });
+        }
+    }
+    // will be later on used
+    // if (fileInfo.kind === 'directory'){
+    //     const dirHandle = fileInfo.getAsFileSystemHandle();
+    // }
 }
 
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
