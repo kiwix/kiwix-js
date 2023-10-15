@@ -36,6 +36,7 @@ import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 import cache from './lib/cache.js';
+import fileSystem from './lib/fileSystem.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -167,7 +168,7 @@ function resizeIFrame () {
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
-    loadPreviousZimFile();
+    fileSystem.loadPreviousZimFile();
 });
 window.addEventListener('resize', resizeIFrame);
 
@@ -1253,52 +1254,12 @@ function resetCssCache () {
 }
 
 /**
- * @typedef {Object} FileSystemHandlers
- * @property {Array<string>} files All the File names to be shown in the dropdown
- * @property {Object} fileOrDirHandle The FileSystemHandle of the selected file or directory
- */
-/**
- * @param {FileSystemHandlers} files
- */
-async function updateZimDropdownOptions (files, selectedFile) {
-    let options = ''
-    files.files.forEach(fileName => {
-        options += `<option value="${fileName}">${fileName}</option>`
-    });
-    document.getElementById('zimSelectDropdown').innerHTML = options
-    document.getElementById('zimSelectDropdown').value = selectedFile
-
-    // if (files.fileOrDirHandle.kind === 'directory') {
-    //     // const files = await fileOrDirHandle()
-    //     // const files = await fileOrDirHandle.values()
-    //     // await files.fileOrDirHandle.requestPermission()
-    //     // console.log(files.fileOrDirHandle);
-    //     // for await (const entry of files.fileOrDirHandle.values()) {
-    //     //     console.log(entry.kind, entry.name);
-    //     // }
-    // } else {
-    //     const fileName = files.fileOrDirHandle.name
-    // }
-}
-
-/**
- * Loads the Previously selected zim file via IndexedDB
- */
-function loadPreviousZimFile () {
-    if (typeof window.showOpenFilePicker === 'function') {
-        cache.idxDB('zimFiles', async function (FSHandler) {
-            if (!FSHandler) return console.info('There is no previous zim file in DB')
-            updateZimDropdownOptions(FSHandler, '')
-            // refer to this article for easy explanation https://developer.chrome.com/articles/file-system-access/
-        })
-    }
-}
-
-/**
  * Displays the zone to select files from the archive
  */
 function displayFileSelect () {
     document.getElementById('openLocalFiles').style.display = 'block';
+    if (typeof window.showOpenFilePicker === 'function') document.getElementById('zimSelectDropdown').style.display = '';
+    if (typeof window.showDirectoryPicker === 'function') document.getElementById('folderSelect').style.display = '';
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
         configDropZone.addEventListener('dragover', handleGlobalDragover);
@@ -1314,41 +1275,16 @@ function displayFileSelect () {
         globalDropZone.addEventListener('drop', handleFileDrop);
     }
 
-    document.getElementById('zimSelectDropdown').addEventListener('change', function (e) {
+    document.getElementById('zimSelectDropdown').addEventListener('change', async function (e) {
         console.log(e.target.value);
-        cache.idxDB('zimFiles', async function (FSHandler) {
-            // const selectedFile = FSHandler.fileOrDirHandle
-            console.log(await FSHandler.fileOrDirHandle.queryPermission());
-            if (await FSHandler.fileOrDirHandle.queryPermission() !== 'granted') await FSHandler.fileOrDirHandle.requestPermission()
-            let file = null
-            if (FSHandler.fileOrDirHandle.kind === 'directory') {
-                file = await (await FSHandler.fileOrDirHandle.getFileHandle(e.target.value)).getFile()
-            } else {
-                file = await FSHandler.fileOrDirHandle.getFile();
-            }
-            setLocalArchiveFromFileList([file]);
-            console.log(file);
-        })
+        const file = await fileSystem.changeSelectedZim(e.target.value)
+        setLocalArchiveFromFileList([file]);
     });
 
     if (typeof window.showDirectoryPicker === 'function') {
         document.getElementById('folderSelect').addEventListener('click', async function (e) {
             e.preventDefault();
-            const handle = await window.showDirectoryPicker();
-            const fileNames = []
-            for await (const entry of handle.values()) {
-                fileNames.push(entry.name)
-            }
-
-            /** @type FileSystemHandlers */
-            const FSHandler = {
-                fileOrDirHandle: handle,
-                files: fileNames
-            }
-            updateZimDropdownOptions(FSHandler, '')
-            cache.idxDB('zimFiles', FSHandler, function () {
-                // save file in DB
-            });
+            fileSystem.selectDirectoryFromPicker()
         })
     }
 
@@ -1356,22 +1292,9 @@ function displayFileSelect () {
     if (typeof window.showOpenFilePicker === 'function') {
         document.getElementById('archiveFiles').addEventListener('click', async function (e) {
             e.preventDefault();
-            const fileHandles = await window.showOpenFilePicker({ multiple: false })
-            const [selectedFile] = fileHandles
-            const file = await selectedFile.getFile();
-
-            // updateZimDropdownOptions(fileHandles, selectedFile.name)
-            setLocalArchiveFromFileList([file]);
-
-            /** @type FileSystemHandlers */
-            const FSHandler = {
-                fileOrDirHandle: selectedFile,
-                files: [selectedFile.name]
-            }
-            cache.idxDB('zimFiles', FSHandler, function () {
-                // file saved in DB
-            })
-        })
+            const files = await fileSystem.selectFileFromPicker(e)
+            setLocalArchiveFromFileList(files);
+        });
     } else {
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
     }
@@ -1402,24 +1325,11 @@ async function handleFileDrop (packet) {
     document.getElementById('openLocalFiles').style.display = 'none';
     document.getElementById('downloadInstruction').style.display = 'none';
     document.getElementById('selectorsDisplay').style.display = 'inline';
-    setLocalArchiveFromFileList(files);
     // This clears the display of any previously picked archive in the file selector
     document.getElementById('archiveFiles').value = null;
-
-    if (typeof window.showOpenFilePicker === 'function') {
-        // Only runs when browser support File System API
-        const fileInfo = await packet.dataTransfer.items[0]
-        if (fileInfo.kind === 'file') {
-            const fileHandle = await fileInfo.getAsFileSystemHandle();
-            cache.idxDB('zimFile', fileHandle, function () {
-                // save file in DB
-            });
-        }
-    }
-    // will be later on used
-    // if (fileInfo.kind === 'directory'){
-    //     const dirHandle = fileInfo.getAsFileSystemHandle();
-    // }
+    let isDirectory = false;
+    isDirectory = fileSystem.onFileOrFolderDrop(packet)
+    if (!isDirectory) setLocalArchiveFromFileList(files);
 }
 
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
