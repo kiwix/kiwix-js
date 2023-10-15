@@ -1253,31 +1253,42 @@ function resetCssCache () {
 }
 
 /**
+ * @typedef {Object} FileSystemHandlers
+ * @property {Array<string>} files All the File names to be shown in the dropdown
+ * @property {Object} fileOrDirHandle The FileSystemHandle of the selected file or directory
+ */
+/**
+ * @param {FileSystemHandlers} files
+ */
+async function updateZimDropdownOptions (files, selectedFile) {
+    let options = ''
+    files.files.forEach(fileName => {
+        options += `<option value="${fileName}">${fileName}</option>`
+    });
+    document.getElementById('zimSelectDropdown').innerHTML = options
+    document.getElementById('zimSelectDropdown').value = selectedFile
+
+    // if (files.fileOrDirHandle.kind === 'directory') {
+    //     // const files = await fileOrDirHandle()
+    //     // const files = await fileOrDirHandle.values()
+    //     // await files.fileOrDirHandle.requestPermission()
+    //     // console.log(files.fileOrDirHandle);
+    //     // for await (const entry of files.fileOrDirHandle.values()) {
+    //     //     console.log(entry.kind, entry.name);
+    //     // }
+    // } else {
+    //     const fileName = files.fileOrDirHandle.name
+    // }
+}
+
+/**
  * Loads the Previously selected zim file via IndexedDB
  */
 function loadPreviousZimFile () {
     if (typeof window.showOpenFilePicker === 'function') {
-        cache.idxDB('zimFiles', async function (fileHandlers) {
-            // console.log(fileHandler);
-            if (!fileHandlers || fileHandlers.length === 0) return console.info('There is no previous zim file in DB')
-
-            let options = ''
-            fileHandlers.forEach(fileHandler => {
-                options += `<option value="${fileHandler.name}">${fileHandler.name}</option>`
-            })
-            document.getElementById('zimSelect').innerHTML = options
-            document.getElementById('zimSelect').value = ''
-            // console.log(fileHandler);
-            // const isGranted = await fileHandler.requestPermission();
-            // if (isGranted === 'granted') setLocalArchiveFromFileList([await fileHandler.getFile()]);
-            // const openFile = await uiUtil.systemAlert('Do you want to load the previously selected zim file?', 'Load previous zim file', true, 'No', 'Yes', 'No')
-            // if (!openFile) {
-            //     cache.idxDB('zimFile', undefined, function () {
-            //         // reset all zim files in DB
-            //     })
-            //     return console.log('User Dont want to load previous zim file')
-            // }
-
+        cache.idxDB('zimFiles', async function (FSHandler) {
+            if (!FSHandler) return console.info('There is no previous zim file in DB')
+            updateZimDropdownOptions(FSHandler, '')
             // refer to this article for easy explanation https://developer.chrome.com/articles/file-system-access/
         })
     }
@@ -1303,32 +1314,63 @@ function displayFileSelect () {
         globalDropZone.addEventListener('drop', handleFileDrop);
     }
 
-    document.getElementById('zimSelect').addEventListener('change', function (e) {
+    document.getElementById('zimSelectDropdown').addEventListener('change', function (e) {
         console.log(e.target.value);
-        cache.idxDB('zimFiles', async function (fileHandlers) {
-            const selectedFile = fileHandlers.find(fileHandler => fileHandler.name === e.target.value)
-            await selectedFile.requestPermission()
-            console.log(selectedFile);
-            selectedFile.getFile().then(function (file) {
-                setLocalArchiveFromFileList([file]);
-                console.log(file);
-            })
+        cache.idxDB('zimFiles', async function (FSHandler) {
+            // const selectedFile = FSHandler.fileOrDirHandle
+            console.log(await FSHandler.fileOrDirHandle.queryPermission());
+            if (await FSHandler.fileOrDirHandle.queryPermission() !== 'granted') await FSHandler.fileOrDirHandle.requestPermission()
+            let file = null
+            if (FSHandler.fileOrDirHandle.kind === 'directory') {
+                file = await (await FSHandler.fileOrDirHandle.getFileHandle(e.target.value)).getFile()
+            } else {
+                file = await FSHandler.fileOrDirHandle.getFile();
+            }
+            setLocalArchiveFromFileList([file]);
+            console.log(file);
         })
     });
 
+    if (typeof window.showDirectoryPicker === 'function') {
+        document.getElementById('folderSelect').addEventListener('click', async function (e) {
+            e.preventDefault();
+            const handle = await window.showDirectoryPicker();
+            const fileNames = []
+            for await (const entry of handle.values()) {
+                fileNames.push(entry.name)
+            }
+
+            /** @type FileSystemHandlers */
+            const FSHandler = {
+                fileOrDirHandle: handle,
+                files: fileNames
+            }
+            updateZimDropdownOptions(FSHandler, '')
+            cache.idxDB('zimFiles', FSHandler, function () {
+                // save file in DB
+            });
+        })
+    }
+
     // This handles use of the file picker
     if (typeof window.showOpenFilePicker === 'function') {
-        document.getElementById('archiveFiles').addEventListener('click', function (e) {
+        document.getElementById('archiveFiles').addEventListener('click', async function (e) {
             e.preventDefault();
-            window.showOpenFilePicker({ multiple: false }).then(function (fileHandle) {
-                const selectedFile = fileHandle[0]
-                selectedFile.getFile().then(function (file) {
-                    setLocalArchiveFromFileList([file]);
-                    cache.idxDB('zimFiles', [selectedFile], function () {
-                        // file saved in DB
-                    })
-                });
-            });
+            const fileHandles = await window.showOpenFilePicker({ multiple: false })
+            const [selectedFile] = fileHandles
+            const file = await selectedFile.getFile();
+
+            // updateZimDropdownOptions(fileHandles, selectedFile.name)
+            setLocalArchiveFromFileList([file]);
+
+            /** @type FileSystemHandlers */
+            const FSHandler = {
+                fileOrDirHandle: selectedFile,
+                files: [selectedFile.name]
+            }
+            cache.idxDB('zimFiles', FSHandler, function () {
+                // file saved in DB
+            })
         })
     } else {
         document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
