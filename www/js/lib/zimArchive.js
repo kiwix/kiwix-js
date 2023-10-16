@@ -1,7 +1,7 @@
 /**
  * zimArchive.js: Support for archives in ZIM format.
  *
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2015-2023 Mossroy, Jaifroid and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.
@@ -125,17 +125,28 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         params.searchProvider += ': no_atomics'; // message += 'this browser does not support Atomic operations.';
                     } else if (/Android/.test(params.appType)) {
                         params.searchProvider += ': no_sharedArrayBuffer';
+                    } else if (params.debugLibzimASM === 'disable') {
+                        params.searchProvider += ': disabled';
+                    } else {
+                        params.searchProvider += ': unknown';
                     }
                     uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                 }
+                // Set the archive file type ('open' or 'zimit')
+                params.zimType = that.setZimType();
+                // Add any metadata from the M/ namespace that you need access to here
+                Promise.all([
+                    that.addMetadataToZIMFile('Creator'),
+                    that.addMetadataToZIMFile('Name')
+                ]).then(function () {
+                    // If the arhchive name doesn't end in `.zim`, we add it to the metadata
+                    that._file.name = that._file.name.replace(/\.zim\s*$/i, '') + '.zim';
+                    // All listings should be loaded, so we can now call the callback
+                    callbackReady(that);
+                });
+            }).catch(function (err) {
+                console.warn('Error setting archive listings: ', err);
             });
-            // Set the archive file type ('open' or 'zimit')
-            params.zimType = that.setZimType();
-            // DEV: Currently, extended listings are only used for title (=article) listings when the user searches
-            // for an article or uses the Random button, by which time the listings will have been extracted.
-            // If, in the future, listings are used in a more time-critical manner, consider forcing a wait before
-            // declaring the archive to be ready, by chaining the following callback in a .then() function of setListings.
-            callbackReady(that);
         });
     };
     if (storage && !path) {
@@ -579,6 +590,23 @@ ZIMArchive.prototype.getMetadata = function (key, callback) {
     }).catch(function (e) {
         console.warn('Metadata with key ' + key + ' not found in the archive', e);
         callback();
+    });
+};
+
+/**
+ * Add Metadata to the ZIM file
+ * @param {String} key The key of the metadata to add to the ZIM file
+ * @returns {Promise<String>} A Promise that resolves with the metadata string, if it exists
+ */
+ZIMArchive.prototype.addMetadataToZIMFile = function (key) {
+    var that = this;
+    var lcaseKey = key.toLocaleLowerCase();
+    return new Promise(function (resolve, reject) {
+        that.getMetadata(key, function (data) {
+            data = data || '';
+            that._file[lcaseKey] = data;
+            resolve(data);
+        });
     });
 };
 
