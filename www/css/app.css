@@ -94,6 +94,13 @@
     margin: 0 1rem;
 }
 
+#zimSelectDropdown {
+    width: 100%;
+    font-size: large;
+    height: 2em;
+    
+}
+
 /* Custom file input */
 
 input[type="file"] {

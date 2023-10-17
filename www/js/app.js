@@ -1284,7 +1284,7 @@ function displayFileSelect () {
     if (typeof window.showDirectoryPicker === 'function') {
         document.getElementById('folderSelect').addEventListener('click', async function (e) {
             e.preventDefault();
-            fileSystem.selectDirectoryFromPicker()
+            await fileSystem.selectDirectoryFromPicker()
         })
     }
 
@@ -1322,14 +1322,15 @@ async function handleFileDrop (packet) {
     packet.preventDefault();
     configDropZone.style.border = '';
     var files = packet.dataTransfer.files;
-    document.getElementById('openLocalFiles').style.display = 'none';
+    document.getElementById('selectInstructions').style.display = 'none';
+    document.getElementById('fileSelectionButtonContainer').style.display = 'none';
     document.getElementById('downloadInstruction').style.display = 'none';
     document.getElementById('selectorsDisplay').style.display = 'inline';
-    // This clears the display of any previously picked archive in the file selector
     document.getElementById('archiveFiles').value = null;
-    let isDirectory = false;
-    isDirectory = fileSystem.onFileOrFolderDrop(packet)
-    if (!isDirectory) setLocalArchiveFromFileList(files);
+
+    let loadZim = false;
+    loadZim = await fileSystem.onFileOrFolderDrop(packet)
+    if (loadZim) setLocalArchiveFromFileList(files);
 }
 
 document.getElementById('libraryBtn').addEventListener('click', function (e) {
@@ -1350,7 +1351,9 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
 // Add event listener to link which allows user to show file selectors
 document.getElementById('selectorsDisplayLink').addEventListener('click', function (e) {
     e.preventDefault();
-    document.getElementById('openLocalFiles').style.display = 'block';
+    document.getElementById('selectInstructions').style.display = 'block';
+    document.getElementById('downloadInstruction').style.display = 'block';
+    document.getElementById('fileSelectionButtonContainer').style.display = 'block';
     document.getElementById('selectorsDisplay').style.display = 'none';
 });
 

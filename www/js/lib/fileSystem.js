@@ -11,7 +11,7 @@ import cache from './cache.js';
  */
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     const select = document.getElementById('zimSelectDropdown')
-    let options = ''
+    let options = '<option value="" disabled selected>Select a file...</option>'
     fileSystemHandler.files.forEach(fileName => {
         options += `<option value="${fileName}">${fileName}</option>`
     });
@@ -79,23 +79,31 @@ function loadPreviousZimFile () {
     if (typeof window.showOpenFilePicker === 'function') {
         cache.idxDB('zimFiles', async function (FSHandler) {
             if (!FSHandler) return console.info('There is no previous zim file in DB')
+            console.log('Loading this handler from old time', FSHandler);
             updateZimDropdownOptions(FSHandler, '')
             // refer to this article for easy explanation https://developer.chrome.com/articles/file-system-access/
         })
     }
 }
 
-async function onFileOrFolderDrop (packet) {
-    if (typeof window.showOpenFilePicker !== 'function') return false
+async function onFileOrFolderDrop (packet, callback) {
+    if (typeof window.showOpenFilePicker !== 'function') return true
 
     // Only runs when browser support File System API
     const fileInfo = await packet.dataTransfer.items[0]
     const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
+    console.log(fileOrDirHandle, fileInfo);
     if (fileOrDirHandle.kind === 'file') {
-        cache.idxDB('zimFile', fileOrDirHandle, function () {
+        /** @type FileSystemHandlers */
+        const FSHandler = {
+            fileOrDirHandle: fileOrDirHandle,
+            files: [fileOrDirHandle.name]
+        }
+        cache.idxDB('zimFiles', FSHandler, function () {
             // save file in DB
+            updateZimDropdownOptions(FSHandler, fileOrDirHandle.name)
         });
-        return false
+        return true
     }
     // will be later on used
     if (fileOrDirHandle.kind === 'directory') {
@@ -110,8 +118,10 @@ async function onFileOrFolderDrop (packet) {
             files: fileNames
         }
         updateZimDropdownOptions(FSHandler, '')
-        console.log(FSHandler, fileNames);
-        return true
+        cache.idxDB('zimFiles', FSHandler, function () {
+            // save file in DB
+        });
+        return false
     }
 }
 
