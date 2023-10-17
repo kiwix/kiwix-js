@@ -1232,11 +1232,8 @@ function setLocalArchiveFromArchiveList () {
             }
         }
         resetCssCache();
-        selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
-            settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
-            // The archive is set : go back to home page to start searching
-            document.getElementById('btnHome').click();
-        }, function (message, label) {
+        settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
+        zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, archiveReadyCallback, function (message, label) {
             // callbackError which is called in case of an error
             uiUtil.systemAlert(message, label);
         });
@@ -1339,15 +1336,22 @@ function setLocalArchiveFromFileList (files) {
         }
     }
     resetCssCache();
-    selectedArchive = null;
-    selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
-        // The archive is set : go back to home page to start searching
-        document.getElementById('btnHome').click();
-        document.getElementById('downloadInstruction').style.display = 'none';
-    }, function (message, label) {
+    zimArchiveLoader.loadArchiveFromFiles(files, archiveReadyCallback, function (message, label) {
         // callbackError which is called in case of an error
         uiUtil.systemAlert(message, label);
     });
+}
+
+/**
+ * Functions to be run immediately after the archive is loaded
+ *
+ * @param {ZIMArchive} archive The ZIM archive
+ */
+function archiveReadyCallback (archive) {
+    selectedArchive = archive;
+    // The archive is set: go back to home page to start searching
+    document.getElementById('btnHome').click();
+    document.getElementById('downloadInstruction').style.display = 'none';
 }
 
 /**
