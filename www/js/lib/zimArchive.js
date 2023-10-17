@@ -34,10 +34,15 @@ import utf8 from './utf8.js';
  * ZIM Archive
  *
  * @typedef ZIMArchive
- * @property {ZIMFile} file The ZIM file (instance of ZIMFile, that might physically be split into several actual files)
+ * @property {ZIMFile} file The ZIM file (instance of ZIMFile, that might physically be split into several actual _files)
+ * @property {String} counter Counter of various types of content in the archive
  * @property {String} creator Creator of the content
+ * @property {String} date Date of the creation of the archive
+ * @property {String} description Description of the content
  * @property {String} language Language of the content
  * @property {String} name Name of the archive
+ * @property {String} publisher Publisher of the content
+ * @property {String} title Title of the content
  * @property {String} zimType Extended property: currently either 'open' for OpenZIM file type, or 'zimit' for the warc2zim file type used by Zimit
  */
 
@@ -135,16 +140,32 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 }
                 // Set the archive file type ('open' or 'zimit')
                 that.setZimType();
-                // Add any metadata from the M/ namespace that you need access to here
+                // Add time-critical metadata from the M/ namespace that you need early access to here
+                // Note that adding metadata here delays the reporting of the ZIM archive as ready
+                // Further metadata are added in the background below, and can be accessed later
                 Promise.all([
                     that.addMetadataToZIMFile('Creator'),
-                    that.addMetadataToZIMFile('Language'),
-                    that.addMetadataToZIMFile('Name')
+                    that.addMetadataToZIMFile('Language')
                 ]).then(function () {
-                    console.debug('ZIMArchive ready:', that);
+                    console.debug('ZIMArchive ready');
                     // All listings should be loaded, so we can now call the callback
                     callbackReady(that);
                 });
+                // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
+                // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the
+                // illustration metadata as icons for the loaded ZIM, you should simply use the ZIMArdhive.getMetadata() function as needed
+                setTimeout(function () {
+                    Promise.all([
+                        that.addMetadataToZIMFile('Counter'),
+                        that.addMetadataToZIMFile('Date'),
+                        that.addMetadataToZIMFile('Description'),
+                        that.addMetadataToZIMFile('Name'),
+                        that.addMetadataToZIMFile('Publisher'),
+                        that.addMetadataToZIMFile('Title')
+                    ]).then(function () {
+                        console.debug('ZIMArchive metadata loaded:', that);
+                    });
+                }, 1500);
             }).catch(function (err) {
                 console.warn('Error setting archive listings: ', err);
             });
