@@ -147,13 +147,13 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     that.addMetadataToZIMFile('Creator'),
                     that.addMetadataToZIMFile('Language')
                 ]).then(function () {
-                    console.debug('ZIMArchive ready');
+                    console.debug('ZIMArchive ready, metadata will be added in the background');
                     // All listings should be loaded, so we can now call the callback
                     callbackReady(that);
                 });
                 // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
-                // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the
-                // illustration metadata as icons for the loaded ZIM, you should simply use the ZIMArdhive.getMetadata() function as needed
+                // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the illustration
+                // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArdhive.getMetadata() function when needed
                 setTimeout(function () {
                     Promise.all([
                         that.addMetadataToZIMFile('Counter'),
