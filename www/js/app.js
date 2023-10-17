@@ -1253,13 +1253,21 @@ function resetCssCache () {
     }
 }
 
+let webKitFileList = null
 /**
  * Displays the zone to select files from the archive
  */
 function displayFileSelect () {
+    const isFileSystemAPISupported = typeof window.showOpenFilePicker === 'function'
+    const isWebkitSupported = 'webkitdirectory' in document.createElement('input')
+
+    console.log('[DEBUG]: File system api supported', isFileSystemAPISupported);
     document.getElementById('openLocalFiles').style.display = 'block';
-    if (typeof window.showOpenFilePicker === 'function') document.getElementById('zimSelectDropdown').style.display = '';
-    if (typeof window.showDirectoryPicker === 'function') document.getElementById('folderSelect').style.display = '';
+    if (isFileSystemAPISupported || isWebkitSupported) {
+        document.getElementById('zimSelectDropdown').style.display = '';
+        document.getElementById('folderSelect').style.display = '';
+    }
+
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
         configDropZone.addEventListener('dragover', handleGlobalDragover);
@@ -1276,20 +1284,43 @@ function displayFileSelect () {
     }
 
     document.getElementById('zimSelectDropdown').addEventListener('change', async function (e) {
+        // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
         console.log(e.target.value);
-        const file = await fileSystem.changeSelectedZim(e.target.value)
-        setLocalArchiveFromFileList([file]);
+        if (isFileSystemAPISupported) {
+            const file = await fileSystem.changeSelectedZim(e.target.value)
+            setLocalArchiveFromFileList([file]);
+        } else {
+            for (const file of webKitFileList) {
+                if (file.name === e.target.value) {
+                    setLocalArchiveFromFileList([file]);
+                    break
+                }
+            }
+        }
     });
 
     if (typeof window.showDirectoryPicker === 'function') {
+        // Handles Folder selection when showDirectoryPicker is supported
         document.getElementById('folderSelect').addEventListener('click', async function (e) {
             e.preventDefault();
             await fileSystem.selectDirectoryFromPicker()
         })
     }
-
+    if (isWebkitSupported && !isFileSystemAPISupported) {
+        // Handles Folder selection when webkitdirectory is supported but showDirectoryPicker is not
+        document.getElementById('folderSelect').addEventListener('change', async function (e) {
+            e.preventDefault();
+            const filenames = []
+            for (const file of e.target.files) {
+                filenames.push(file.name)
+            }
+            webKitFileList = e.target.files
+            await fileSystem.updateZimDropdownOptions({ fileOrDirHandle: null, files: filenames }, '')
+            // setLocalArchiveFromFileList(e.target.files);
+        })
+    }
     // This handles use of the file picker
-    if (typeof window.showOpenFilePicker === 'function') {
+    if (isFileSystemAPISupported) {
         document.getElementById('archiveFiles').addEventListener('click', async function (e) {
             e.preventDefault();
             const files = await fileSystem.selectFileFromPicker(e)
