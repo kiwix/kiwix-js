@@ -54,7 +54,7 @@ async function selectFileFromPicker () {
     return [file];
 }
 
-function changeSelectedZim (selectedFilename) {
+function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, reject) => {
         cache.idxDB('zimFiles', async function (FSHandler) {
             // const selectedFile = FSHandler.fileOrDirHandle
@@ -70,6 +70,19 @@ function changeSelectedZim (selectedFilename) {
             }
         })
     })
+}
+
+function getSelectedZimFromWebkitList (webKitFileList, filename) {
+    const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '')
+
+    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+    const files = []
+    for (const file of webKitFileList) {
+        if (regex.test(file.name) || file.name === filename) {
+            files.push(file)
+        }
+    }
+    return files
 }
 
 /**
@@ -174,8 +187,9 @@ export default {
     updateZimDropdownOptions,
     selectDirectoryFromPicker,
     selectFileFromPicker,
-    changeSelectedZim,
+    getSelectedZimFromCache,
     loadPreviousZimFile,
     handleFolderDropViaWebkit,
-    handleFolderDropViaFSAPI
+    handleFolderDropViaFSAPI,
+    getSelectedZimFromWebkitList
 }

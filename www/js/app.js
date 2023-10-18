@@ -1289,15 +1289,12 @@ function displayFileSelect () {
         // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
         console.log(e.target.value);
         if (isFileSystemAPISupported) {
-            const file = await fileSystem.changeSelectedZim(e.target.value)
+            const file = await fileSystem.getSelectedZimFromCache(e.target.value)
             setLocalArchiveFromFileList([file]);
         } else {
-            for (const file of webKitFileList) {
-                if (file.name === e.target.value) {
-                    setLocalArchiveFromFileList([file]);
-                    break
-                }
-            }
+            const files = fileSystem.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
+            console.log(files);
+            setLocalArchiveFromFileList(files);
         }
     });
 
