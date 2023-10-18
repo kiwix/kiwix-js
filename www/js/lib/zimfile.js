@@ -54,7 +54,14 @@ if (!String.prototype.startsWith) {
     });
 }
 
-// to learn more read init.js:57 or search DecompressorAPI in init.js
+/**
+ * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
+ * This is populated in the Emscripten wrappers
+ * @type {Object}
+ * @property {String} assemblerMachineType The assembler machine type supported and/or loaded by this app: 'ASM' or 'WASM'
+ * @property {String} decompressorLastUsed The decompressor that was last used to decode a compressed cluster (currently 'XZ' or 'ZSTD')
+ * @property {String} errorStatus A description of any detected error in loading a decompressor
+ */
 params.decompressorAPI = {
     assemblerMachineType: null,
     decompressorLastUsed: null,
@@ -398,7 +405,7 @@ ZIMFile.prototype.setListings = function (listings) {
             // Get the next Listing
             return listingAccessor(listings.pop());
         }).catch(function (err) {
-            console.error('There was an error accessing a Directory Listing', err);
+            console.warn('There was an error accessing a Directory Listing', err);
         });
     };
     return listingAccessor(listings.pop());
