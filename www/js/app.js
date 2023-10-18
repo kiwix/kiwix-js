@@ -1262,6 +1262,8 @@ function displayFileSelect () {
     const isWebkitSupported = 'webkitdirectory' in document.createElement('input')
 
     console.log('[DEBUG]: File system api supported', isFileSystemAPISupported);
+    console.log('[DEBUG]: Webkit supported', isWebkitSupported);
+
     document.getElementById('openLocalFiles').style.display = 'block';
     if (isFileSystemAPISupported || isWebkitSupported) {
         document.getElementById('zimSelectDropdown').style.display = '';
@@ -1359,8 +1361,17 @@ async function handleFileDrop (packet) {
     document.getElementById('selectorsDisplay').style.display = 'inline';
     document.getElementById('archiveFiles').value = null;
 
+    const isFSAPIsupported = typeof window.showOpenFilePicker === 'function'
+    const isWebkitSupported = 'webkitdirectory' in document.createElement('input')
+
     let loadZim = false;
-    loadZim = await fileSystem.onFileOrFolderDrop(packet)
+    if (isFSAPIsupported) loadZim = await fileSystem.handleFolderDropViaFSAPI(packet)
+    if (isWebkitSupported) {
+        const ret = await fileSystem.handleFolderDropViaWebkit(packet)
+        loadZim = ret.loadZim
+        webKitFileList = ret.files
+    }
+
     if (loadZim) setLocalArchiveFromFileList(files);
 }
 

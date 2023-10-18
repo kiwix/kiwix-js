@@ -86,8 +86,9 @@ function loadPreviousZimFile () {
     }
 }
 
-async function onFileOrFolderDrop (packet, callback) {
-    if (typeof window.showOpenFilePicker !== 'function') return true
+async function handleFolderDropViaFSAPI (packet) {
+    const isFSAPIsupported = typeof window.showOpenFilePicker === 'function'
+    if (!isFSAPIsupported) return true
 
     // Only runs when browser support File System API
     const fileInfo = await packet.dataTransfer.items[0]
@@ -117,12 +118,56 @@ async function onFileOrFolderDrop (packet, callback) {
             fileOrDirHandle: fileOrDirHandle,
             files: fileNames
         }
-        updateZimDropdownOptions(FSHandler, '')
         cache.idxDB('zimFiles', FSHandler, function () {
+            updateZimDropdownOptions(FSHandler, '')
             // save file in DB
         });
         return false
     }
+}
+
+async function handleFolderDropViaWebkit (event) {
+    var dt = event.dataTransfer;
+
+    var entry = dt.items[0].webkitGetAsEntry();
+    if (entry.isFile) {
+        // do whatever you want
+
+        return { loadZim: true, files: [entry.file] }
+    } else if (entry.isDirectory) {
+        // do whatever you want
+        var reader = entry.createReader();
+        const files = await getFilesFromReader(reader);
+        console.log('[DEBUG] After files', files);
+        const fileNames = []
+        files.forEach(file => fileNames.push(file.name));
+        await updateZimDropdownOptions({ files: fileNames }, '')
+        return { loadZim: false, files: files }
+    }
+}
+
+async function getFilesFromReader (reader) {
+    const files = []
+    const promise = new Promise(function (resolve, reject) {
+        reader.readEntries(function (entries) {
+            resolve(entries)
+        })
+    })
+    const entries = await promise
+
+    for (let index = 0; index < entries.length; index++) {
+        const fileOrDir = entries[index];
+        if (fileOrDir.isFile) {
+            const filePromise = await new Promise(function (resolve, reject) {
+                fileOrDir.file(function (file) {
+                    // console.log(file);
+                    resolve(file)
+                })
+            });
+            files.push(filePromise)
+        }
+    }
+    return files
 }
 
 export default {
@@ -131,5 +176,6 @@ export default {
     selectFileFromPicker,
     changeSelectedZim,
     loadPreviousZimFile,
-    onFileOrFolderDrop
+    handleFolderDropViaWebkit,
+    handleFolderDropViaFSAPI
 }
