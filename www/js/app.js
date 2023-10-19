@@ -1326,7 +1326,14 @@ function displayFileSelect () {
             setLocalArchiveFromFileList(files);
         });
     } else {
-        document.getElementById('archiveFiles').addEventListener('change', setLocalArchiveFromFileSelect);
+        document.getElementById('archiveFiles').addEventListener('change', async function (e) {
+            if (isWebkitSupported || isFileSystemAPISupported) {
+                const activeFilename = e.target.files[0].name
+                await fileSystem.updateZimDropdownOptions({ files: [activeFilename] }, activeFilename)
+            }
+
+            setLocalArchiveFromFileSelect();
+        });
     }
 }
 
