@@ -140,7 +140,6 @@ async function handleFolderDropViaFileSystemAPI (packet) {
     // Only runs when browser support File System API
     const fileInfo = packet.dataTransfer.items[0]
     const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
-    console.log(fileOrDirHandle, fileInfo);
     if (fileOrDirHandle.kind === 'file') {
         /** @type FileSystemHandlers */
         const FSHandler = {

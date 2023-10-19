@@ -64,6 +64,7 @@ function test (callback) {
         if (typeof Storage !== 'undefined') {
             try {
                 // If localStorage is really supported, this won't produce an error
+                // eslint-disable-next-line no-unused-vars
                 var item = window.localStorage.length;
                 assetsCache.capability = assetsCache.capability + '|localStorage';
             } catch (err) {
@@ -199,6 +200,7 @@ function idxDB (keyOrCommand, valueOrCallback, callback) {
     // Create the schema
     open.onupgradeneeded = function () {
         var db = open.result;
+        // eslint-disable-next-line no-unused-vars
         var store = db.createObjectStore(objStore);
     };
 
@@ -955,7 +957,7 @@ export default {
     CACHEAPI: CACHEAPI,
     test: test,
     count: count,
-    idxDB: idxDB,
+    idxDB: idxDB, // only this is used in fileSystem.js
     cacheAPI: cacheAPI,
     setArticle: setArticle,
     getArticle: getArticle,
