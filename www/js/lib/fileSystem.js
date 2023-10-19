@@ -14,13 +14,14 @@ import cache from './cache.js';
  */
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     const select = document.getElementById('zimSelectDropdown')
-    let options = '<option value="" disabled selected>Select a file...</option>'
+    let options = ''
 
     fileSystemHandler.files.forEach(fileName => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) options += `<option value="${fileName}">${fileName}</option>`
     });
     select.innerHTML = options
     document.getElementById('zimSelectDropdown').value = selectedFile
+    document.getElementById('numberOfFilesDisplay').innerText = fileSystemHandler.files.length
 }
 
 /**
