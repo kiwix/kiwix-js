@@ -12,8 +12,9 @@ import cache from './cache.js';
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     const select = document.getElementById('zimSelectDropdown')
     let options = '<option value="" disabled selected>Select a file...</option>'
+
     fileSystemHandler.files.forEach(fileName => {
-        options += `<option value="${fileName}">${fileName}</option>`
+        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) options += `<option value="${fileName}">${fileName}</option>`
     });
     select.innerHTML = options
     document.getElementById('zimSelectDropdown').value = selectedFile
@@ -58,15 +59,23 @@ function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, reject) => {
         cache.idxDB('zimFiles', async function (FSHandler) {
             // const selectedFile = FSHandler.fileOrDirHandle
-            console.log(await FSHandler.fileOrDirHandle.queryPermission());
             if (await FSHandler.fileOrDirHandle.queryPermission() !== 'granted') await FSHandler.fileOrDirHandle.requestPermission()
-            let file = null
+
             if (FSHandler.fileOrDirHandle.kind === 'directory') {
-                file = await (await FSHandler.fileOrDirHandle.getFileHandle(selectedFilename)).getFile()
-                resolve(file)
+                const files = []
+                for await (const entry of FSHandler.fileOrDirHandle.values()) {
+                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w\w$/i, '')
+                    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+                    if (regex.test(entry.name) || entry.name === selectedFilename) {
+                        files.push(await entry.getFile())
+                    }
+                }
+                // files = await (await FSHandler.fileOrDirHandle.getFileHandle(selectedFilename)).getFile()
+                console.log(files);
+                resolve(files)
             } else {
-                file = await FSHandler.fileOrDirHandle.getFile();
-                resolve(file)
+                const file = await FSHandler.fileOrDirHandle.getFile();
+                resolve([file])
             }
         })
     })
