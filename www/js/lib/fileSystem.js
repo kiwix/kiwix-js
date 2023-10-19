@@ -1,3 +1,5 @@
+// refer to this article for easy explanation of File System API https://developer.chrome.com/articles/file-system-access/
+
 /**
  * @typedef {Object} FileSystemHandlers
  * @property {Array<string>} files All the File names to be shown in the dropdown
@@ -7,7 +9,8 @@
 import cache from './cache.js';
 
 /**
- * @param {FileSystemHandlers} fileSystemHandler
+ * @param {FileSystemHandlers} fileSystemHandler The FileSystemHandlers object containing filenames and File/Directory handle
+ * @param {string} selectedFile The name of the file to be selected in the dropdown
  */
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     const select = document.getElementById('zimSelectDropdown')
@@ -20,7 +23,10 @@ async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     document.getElementById('zimSelectDropdown').value = selectedFile
 }
 
-async function selectDirectoryFromPicker () {
+/**
+ * Opens the File System API to select a directory
+ */
+async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
     const fileNames = []
     for await (const entry of handle.values()) {
@@ -38,7 +44,11 @@ async function selectDirectoryFromPicker () {
     });
 }
 
-async function selectFileFromPicker () {
+/**
+ * Opens the File System API to select a file
+ * @returns {Promise<Array<File>>} The selected file from picker
+ */
+async function selectFileFromPickerViaFileSystemApi () {
     const fileHandles = await window.showOpenFilePicker({ multiple: false })
     const [selectedFile] = fileHandles
     const file = await selectedFile.getFile();
@@ -55,10 +65,14 @@ async function selectFileFromPicker () {
     return [file];
 }
 
+/**
+ * Gets the selected zim file from the IndexedDB
+ * @param {string} selectedFilename The name of the file to get back from DB
+ * @returns {Promise<Array<File>>} The selected File Object from cache
+ */
 function getSelectedZimFromCache (selectedFilename) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         cache.idxDB('zimFiles', async function (FSHandler) {
-            // const selectedFile = FSHandler.fileOrDirHandle
             if (await FSHandler.fileOrDirHandle.queryPermission() !== 'granted') await FSHandler.fileOrDirHandle.requestPermission()
 
             if (FSHandler.fileOrDirHandle.kind === 'directory') {
@@ -70,8 +84,6 @@ function getSelectedZimFromCache (selectedFilename) {
                         files.push(await entry.getFile())
                     }
                 }
-                // files = await (await FSHandler.fileOrDirHandle.getFileHandle(selectedFilename)).getFile()
-                console.log(files);
                 resolve(files)
             } else {
                 const file = await FSHandler.fileOrDirHandle.getFile();
@@ -81,6 +93,16 @@ function getSelectedZimFromCache (selectedFilename) {
     })
 }
 
+/**
+ * @typedef {Object.<number, File>} WebkitFileList
+ */
+
+/**
+ * Gets the selected zim file from the WebkitFileList
+ * @param {WebkitFileList} webKitFileList The WebkitFileList to get the selected file from
+ * @param {string} filename The name of the file to get back from webkitFileList
+ * @returns {Array<File>} The selected Files Object from webkitFileList
+ */
 function getSelectedZimFromWebkitList (webKitFileList, filename) {
     const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '')
 
@@ -101,19 +123,22 @@ function loadPreviousZimFile () {
     if (typeof window.showOpenFilePicker === 'function') {
         cache.idxDB('zimFiles', async function (FSHandler) {
             if (!FSHandler) return console.info('There is no previous zim file in DB')
-            console.log('Loading this handler from old time', FSHandler);
             updateZimDropdownOptions(FSHandler, '')
-            // refer to this article for easy explanation https://developer.chrome.com/articles/file-system-access/
         })
     }
 }
 
-async function handleFolderDropViaFSAPI (packet) {
+/**
+ * Handles the folder drop event via File System API
+ * @param {DragEvent} packet The DragEvent packet
+ * @returns {Promise<boolean>} Whether the dropped item is a file or directory
+ */
+async function handleFolderDropViaFileSystemAPI (packet) {
     const isFSAPIsupported = typeof window.showOpenFilePicker === 'function'
     if (!isFSAPIsupported) return true
 
     // Only runs when browser support File System API
-    const fileInfo = await packet.dataTransfer.items[0]
+    const fileInfo = packet.dataTransfer.items[0]
     const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
     console.log(fileOrDirHandle, fileInfo);
     if (fileOrDirHandle.kind === 'file') {
@@ -128,9 +153,7 @@ async function handleFolderDropViaFSAPI (packet) {
         });
         return true
     }
-    // will be later on used
     if (fileOrDirHandle.kind === 'directory') {
-        // const dirHandle = fileInfo.getAsFileSystemHandle();
         const fileNames = []
         for await (const entry of fileOrDirHandle.values()) {
             fileNames.push(entry.name)
@@ -148,19 +171,20 @@ async function handleFolderDropViaFSAPI (packet) {
     }
 }
 
+/**
+ * Handles the folder drop event via WebkitGetAsEntry
+ * @param {DragEvent} event The DragEvent packet
+ * @returns {Promise<{loadZim: boolean, files: Array<File>} | void>} Whether the dropped item is a file or directory and FileList
+ */
 async function handleFolderDropViaWebkit (event) {
     var dt = event.dataTransfer;
 
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
-        // do whatever you want
-
         return { loadZim: true, files: [entry.file] }
     } else if (entry.isDirectory) {
-        // do whatever you want
         var reader = entry.createReader();
         const files = await getFilesFromReader(reader);
-        console.log('[DEBUG] After files', files);
         const fileNames = []
         files.forEach(file => fileNames.push(file.name));
         await updateZimDropdownOptions({ files: fileNames }, '')
@@ -168,9 +192,14 @@ async function handleFolderDropViaWebkit (event) {
     }
 }
 
+/**
+ * Gets the files from the FileSystemReader
+ * @param {FileSystemDirectoryReader} reader The FileSystemReader to get files from
+ * @returns {Promise<Array<File>>} The files from the reader
+ */
 async function getFilesFromReader (reader) {
     const files = []
-    const promise = new Promise(function (resolve, reject) {
+    const promise = new Promise(function (resolve, _reject) {
         reader.readEntries(function (entries) {
             resolve(entries)
         })
@@ -180,9 +209,8 @@ async function getFilesFromReader (reader) {
     for (let index = 0; index < entries.length; index++) {
         const fileOrDir = entries[index];
         if (fileOrDir.isFile) {
-            const filePromise = await new Promise(function (resolve, reject) {
+            const filePromise = await new Promise(function (resolve, _reject) {
                 fileOrDir.file(function (file) {
-                    // console.log(file);
                     resolve(file)
                 })
             });
@@ -194,11 +222,11 @@ async function getFilesFromReader (reader) {
 
 export default {
     updateZimDropdownOptions,
-    selectDirectoryFromPicker,
-    selectFileFromPicker,
+    selectDirectoryFromPickerViaFileSystemApi,
+    selectFileFromPickerViaFileSystemApi,
     getSelectedZimFromCache,
     loadPreviousZimFile,
     handleFolderDropViaWebkit,
-    handleFolderDropViaFSAPI,
+    handleFolderDropViaFileSystemAPI,
     getSelectedZimFromWebkitList
 }
