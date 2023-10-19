@@ -1438,6 +1438,7 @@ function archiveReadyCallback (archive) {
 function setLocalArchiveFromFileSelect () {
     setLocalArchiveFromFileList(document.getElementById('archiveFiles').files);
 }
+window.setLocalArchiveFromFileSelect = setLocalArchiveFromFileSelect;
 
 /**
  * Reads a remote archive with given URL, and returns the response in a Promise.

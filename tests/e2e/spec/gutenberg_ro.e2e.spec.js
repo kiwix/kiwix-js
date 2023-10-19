@@ -192,6 +192,10 @@ function runTests (driver, modes) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     if (!isFileLoaded) await archiveFiles.sendKeys(gutenbergRoBaseFile);
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+
+                    // In new browsers Files are loaded using the FileSystem API, so we have to set the local archives using JavaScript
+                    // which were selected using the file input
+                    await driver.executeScript('window.setLocalArchiveFromFileSelect();');
                     // Check that we loaded 1 file
                     assert.equal(1, filesLength);
                 } else {
