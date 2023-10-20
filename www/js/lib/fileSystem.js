@@ -18,7 +18,7 @@ async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     let options = '';
     if (fileSystemHandler.files.length !== 0) options += '<option value="">Select an archive..</option>';
 
-    fileSystemHandler.files.forEach(fileName => {
+    fileSystemHandler.files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) options += `<option value="${fileName}">${fileName}</option>`;
     });
     select.innerHTML = options;
@@ -31,17 +31,17 @@ async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
  */
 async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
-    const fileNames = []
+    const fileNames = [];
     for await (const entry of handle.values()) {
-        fileNames.push(entry.name)
+        fileNames.push(entry.name);
     }
 
     /** @type FileSystemHandlers */
     const FSHandler = {
         fileOrDirHandle: handle,
         files: fileNames
-    }
-    updateZimDropdownOptions(FSHandler, '')
+    };
+    updateZimDropdownOptions(FSHandler, '');
     cache.idxDB('zimFiles', FSHandler, function () {
         // save file in DB
     });
@@ -52,19 +52,19 @@ async function selectDirectoryFromPickerViaFileSystemApi () {
  * @returns {Promise<Array<File>>} The selected file from picker
  */
 async function selectFileFromPickerViaFileSystemApi () {
-    const fileHandles = await window.showOpenFilePicker({ multiple: false })
-    const [selectedFile] = fileHandles
+    const fileHandles = await window.showOpenFilePicker({ multiple: false });
+    const [selectedFile] = fileHandles;
     const file = await selectedFile.getFile();
 
     /** @type FileSystemHandlers */
     const FSHandler = {
         fileOrDirHandle: selectedFile,
         files: [selectedFile.name]
-    }
+    };
     cache.idxDB('zimFiles', FSHandler, function () {
         // file saved in DB
-    })
-    updateZimDropdownOptions(FSHandler, selectedFile.name)
+    });
+    updateZimDropdownOptions(FSHandler, selectedFile.name);
     return [file];
 }
 
@@ -76,24 +76,24 @@ async function selectFileFromPickerViaFileSystemApi () {
 function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, _reject) => {
         cache.idxDB('zimFiles', async function (FSHandler) {
-            if (await FSHandler.fileOrDirHandle.queryPermission() !== 'granted') await FSHandler.fileOrDirHandle.requestPermission()
+            if ((await FSHandler.fileOrDirHandle.queryPermission()) !== 'granted') await FSHandler.fileOrDirHandle.requestPermission();
 
             if (FSHandler.fileOrDirHandle.kind === 'directory') {
-                const files = []
+                const files = [];
                 for await (const entry of FSHandler.fileOrDirHandle.values()) {
-                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w\w$/i, '')
+                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w\w$/i, '');
                     const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
                     if (regex.test(entry.name) || entry.name === selectedFilename) {
-                        files.push(await entry.getFile())
+                        files.push(await entry.getFile());
                     }
                 }
-                resolve(files)
+                resolve(files);
             } else {
                 const file = await FSHandler.fileOrDirHandle.getFile();
-                resolve([file])
+                resolve([file]);
             }
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -107,16 +107,16 @@ function getSelectedZimFromCache (selectedFilename) {
  * @returns {Array<File>} The selected Files Object from webkitFileList
  */
 function getSelectedZimFromWebkitList (webKitFileList, filename) {
-    const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '')
+    const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '');
 
     const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
-    const files = []
+    const files = [];
     for (const file of webKitFileList) {
         if (regex.test(file.name) || file.name === filename) {
-            files.push(file)
+            files.push(file);
         }
     }
-    return files
+    return files;
 }
 
 /**
@@ -125,9 +125,9 @@ function getSelectedZimFromWebkitList (webKitFileList, filename) {
 function loadPreviousZimFile () {
     if (typeof window.showOpenFilePicker === 'function') {
         cache.idxDB('zimFiles', async function (FSHandler) {
-            if (!FSHandler) return console.info('There is no previous zim file in DB')
-            updateZimDropdownOptions(FSHandler, '')
-        })
+            if (!FSHandler) return console.info('There is no previous zim file in DB');
+            updateZimDropdownOptions(FSHandler, '');
+        });
     }
 }
 
@@ -137,39 +137,39 @@ function loadPreviousZimFile () {
  * @returns {Promise<boolean>} Whether the dropped item is a file or directory
  */
 async function handleFolderDropViaFileSystemAPI (packet) {
-    const isFSAPIsupported = typeof window.showOpenFilePicker === 'function'
-    if (!isFSAPIsupported) return true
+    const isFSAPIsupported = typeof window.showOpenFilePicker === 'function';
+    if (!isFSAPIsupported) return true;
 
     // Only runs when browser support File System API
-    const fileInfo = packet.dataTransfer.items[0]
+    const fileInfo = packet.dataTransfer.items[0];
     const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
     if (fileOrDirHandle.kind === 'file') {
         /** @type FileSystemHandlers */
         const FSHandler = {
             fileOrDirHandle: fileOrDirHandle,
             files: [fileOrDirHandle.name]
-        }
+        };
         cache.idxDB('zimFiles', FSHandler, function () {
             // save file in DB
-            updateZimDropdownOptions(FSHandler, fileOrDirHandle.name)
+            updateZimDropdownOptions(FSHandler, fileOrDirHandle.name);
         });
-        return true
+        return true;
     }
     if (fileOrDirHandle.kind === 'directory') {
-        const fileNames = []
+        const fileNames = [];
         for await (const entry of fileOrDirHandle.values()) {
-            fileNames.push(entry.name)
+            fileNames.push(entry.name);
         }
         /** @type FileSystemHandlers */
         const FSHandler = {
             fileOrDirHandle: fileOrDirHandle,
             files: fileNames
-        }
+        };
         cache.idxDB('zimFiles', FSHandler, function () {
-            updateZimDropdownOptions(FSHandler, '')
+            updateZimDropdownOptions(FSHandler, '');
             // save file in DB
         });
-        return false
+        return false;
     }
 }
 
@@ -183,14 +183,14 @@ async function handleFolderDropViaWebkit (event) {
 
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
-        return { loadZim: true, files: [entry.file] }
+        return { loadZim: true, files: [entry.file] };
     } else if (entry.isDirectory) {
         var reader = entry.createReader();
         const files = await getFilesFromReader(reader);
-        const fileNames = []
-        files.forEach(file => fileNames.push(file.name));
-        await updateZimDropdownOptions({ files: fileNames }, '')
-        return { loadZim: false, files: files }
+        const fileNames = [];
+        files.forEach((file) => fileNames.push(file.name));
+        await updateZimDropdownOptions({ files: fileNames }, '');
+        return { loadZim: false, files: files };
     }
 }
 
@@ -200,26 +200,26 @@ async function handleFolderDropViaWebkit (event) {
  * @returns {Promise<Array<File>>} The files from the reader
  */
 async function getFilesFromReader (reader) {
-    const files = []
+    const files = [];
     const promise = new Promise(function (resolve, _reject) {
         reader.readEntries(function (entries) {
-            resolve(entries)
-        })
-    })
-    const entries = await promise
+            resolve(entries);
+        });
+    });
+    const entries = await promise;
 
     for (let index = 0; index < entries.length; index++) {
         const fileOrDir = entries[index];
         if (fileOrDir.isFile) {
             const filePromise = await new Promise(function (resolve, _reject) {
                 fileOrDir.file(function (file) {
-                    resolve(file)
-                })
+                    resolve(file);
+                });
             });
-            files.push(filePromise)
+            files.push(filePromise);
         }
     }
-    return files
+    return files;
 }
 
 export default {
@@ -231,4 +231,4 @@ export default {
     handleFolderDropViaWebkit,
     handleFolderDropViaFileSystemAPI,
     getSelectedZimFromWebkitList
-}
+};
