@@ -1883,12 +1883,12 @@ window.setLocalArchiveFromFileSelect = setLocalArchiveFromFileSelect;
             }
             // Add the correct prefixes so that the wabac Service Worker can recognize and transform the iframe document when loaded
             var zimitPrefix = '';
-            if (selectedArchive._file.zimType === 'zimit' && /[CA]/.test(dirEntry.namespace)) {
+            if (selectedArchive.zimType === 'zimit' && /[CA]/.test(dirEntry.namespace)) {
                 zimitPrefix = 'mp_/';
                 encodedUrl = 'https://' + encodeURI(dirEntry.url);
             }
             // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-            iframeArticleContent.src = '../' + selectedArchive._file.name + '/' + dirEntry.namespace + '/' + zimitPrefix + encodedUrl;
+            iframeArticleContent.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + zimitPrefix + encodedUrl;
             // Wombat = new window._WBWombat(iframeArticleContent.contentWindow, {});
             // Wombat.initIframeWombat(iframeArticleContent);
         } else {
