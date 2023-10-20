@@ -11,17 +11,19 @@ import cache from './cache.js';
 /**
  * @param {FileSystemHandlers} fileSystemHandler The FileSystemHandlers object containing filenames and File/Directory handle
  * @param {string} selectedFile The name of the file to be selected in the dropdown
+ * @returns {Promise<Array<string>>} Array of unique filenames (if a split zim is considered a single file)
  */
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
-    const select = document.getElementById('zimSelectDropdown')
-    let options = ''
+    const select = document.getElementById('zimSelectDropdown');
+    let options = '';
+    if (fileSystemHandler.files.length !== 0) options += '<option value="">Select an archive..</option>';
 
     fileSystemHandler.files.forEach(fileName => {
-        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) options += `<option value="${fileName}">${fileName}</option>`
+        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) options += `<option value="${fileName}">${fileName}</option>`;
     });
-    select.innerHTML = options
-    document.getElementById('zimSelectDropdown').value = selectedFile
-    document.getElementById('numberOfFilesDisplay').innerText = fileSystemHandler.files.length
+    select.innerHTML = options;
+    document.getElementById('zimSelectDropdown').value = selectedFile;
+    document.getElementById('numberOfFilesDisplay').innerText = fileSystemHandler.files.length;
 }
 
 /**

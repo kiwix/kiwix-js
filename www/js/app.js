@@ -1307,27 +1307,27 @@ function displayFileSelect () {
         // Handles Folder selection when webkitdirectory is supported but showDirectoryPicker is not
         document.getElementById('folderSelect').addEventListener('change', async function (e) {
             e.preventDefault();
-            const filenames = []
+            const filenames = [];
             for (const file of e.target.files) {
-                filenames.push(file.name)
+                filenames.push(file.name);
             }
-            webKitFileList = e.target.files
-            await fileSystem.updateZimDropdownOptions({ fileOrDirHandle: null, files: filenames }, '')
+            webKitFileList = e.target.files;
+            await fileSystem.updateZimDropdownOptions({ fileOrDirHandle: null, files: filenames }, '');
         })
     }
     if (isFileSystemAPISupported) {
         // Handles File selection when showOpenFilePicker is supported and uses the filesystem api
         document.getElementById('archiveFiles').addEventListener('click', async function (e) {
             e.preventDefault();
-            const files = await fileSystem.selectFileFromPickerViaFileSystemApi(e)
+            const files = await fileSystem.selectFileFromPickerViaFileSystemApi(e);
             setLocalArchiveFromFileList(files);
         });
     } else {
         // Fallbacks to simple file input with multi file selection
         document.getElementById('archiveFiles').addEventListener('change', async function (e) {
             if (isWebkitSupported || isFileSystemAPISupported) {
-                const activeFilename = e.target.files[0].name
-                await fileSystem.updateZimDropdownOptions({ files: [activeFilename] }, activeFilename)
+                const activeFilename = e.target.files[0].name;
+                await fileSystem.updateZimDropdownOptions({ files: [activeFilename] }, activeFilename);
             }
 
             setLocalArchiveFromFileSelect();
@@ -1368,7 +1368,7 @@ async function handleFileDrop (packet) {
 
     // value will be set to true if a folder is dropped then there will be no need to
     // call the `setLocalArchiveFromFileList`
-    let loadZim = false;
+    let loadZim = true;
 
     if (isFSAPIsupported) loadZim = await fileSystem.handleFolderDropViaFileSystemAPI(packet)
     if (isWebkitSupported) {
