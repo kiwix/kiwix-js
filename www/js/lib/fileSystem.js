@@ -16,14 +16,18 @@ import cache from './cache.js';
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
     const select = document.getElementById('zimSelectDropdown');
     let options = '';
+    let count = 0;
     if (fileSystemHandler.files.length !== 0) options += '<option value="">Select an archive..</option>';
 
     fileSystemHandler.files.forEach((fileName) => {
-        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) options += `<option value="${fileName}">${fileName}</option>`;
+        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
+            options += `<option value="${fileName}">${fileName}</option>`;
+            count++;
+        }
     });
     select.innerHTML = options;
     document.getElementById('zimSelectDropdown').value = selectedFile;
-    document.getElementById('numberOfFilesDisplay').innerText = fileSystemHandler.files.length;
+    document.getElementById('numberOfFilesDisplay').innerText = count;
 }
 
 /**
