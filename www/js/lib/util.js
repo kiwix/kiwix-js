@@ -38,7 +38,7 @@ function allCaseFirstLetters (string, caseMatchType) {
         var comboArray = [];
         // Split string into parts beginning with first word letters
         var strParts = string.match(regExpFindStringParts);
-        // Prevent a full search if we have more than 5 string parts
+        // Prevent a full search if we have more than 6 string parts
         if (strParts.length > 6) caseMatchType = 'basic';
         // Set the base (binary or ternary) according to the complexity of the search
         var base = caseMatchType === 'full' ? 3 : 2;
