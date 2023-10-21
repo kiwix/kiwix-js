@@ -311,6 +311,8 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
     startArray.push(prefix.replace(/^./, function (m) {
         return m.toLocaleUpperCase();
     }));
+    // Add pure lowercase string (rarer)
+    startArray.push(prefix);
     // Get the full array of combinations to check number of combinations
     var fullCombos = util.removeDuplicateStringsInSmallArray(util.allCaseFirstLetters(prefix, 'full'));
     // Put cap on exponential number of combinations (five words = 3^5 = 243 combinations)
