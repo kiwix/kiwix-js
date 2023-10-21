@@ -1,7 +1,7 @@
 /**
  * util.js : Utility functions
  *
- * Copyright 2013-2014 Mossroy and contributors
+ * Copyright 2013-2023 Mossroy, Jaifroid and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.
@@ -38,6 +38,8 @@ function allCaseFirstLetters (string, caseMatchType) {
         var comboArray = [];
         // Split string into parts beginning with first word letters
         var strParts = string.match(regExpFindStringParts);
+        // Prevent a full search if we have more than 5 string parts
+        if (strParts.length > 6) caseMatchType = 'basic';
         // Set the base (binary or ternary) according to the complexity of the search
         var base = caseMatchType === 'full' ? 3 : 2;
         // If n = strParts.length, then the number of possible case combinations (numCombos) is base ^ n
@@ -45,6 +47,8 @@ function allCaseFirstLetters (string, caseMatchType) {
         // For *full* case calculation: think of numCombos as a tertiary base number, e.g. 000, 111, 222,
         // with each bit representing all-lowercase (0), First-Letter-Uppercase (1) or ALL-UPPERCASE (2)
         var numCombos = Math.pow(base, strParts.length);
+        // Prevent more than 1024 combinations (2^10) being calculated
+        if (numCombos > 1024) numCombos = 1024;
         var typeCase, mixedTypeCaseStr, bitmask, caseBit;
         // Iterate through every possible combination, starting with (base ^ n) - 1 and decreasing; we go from high to low,
         // because title case (e.g. binary 1111) is more common than all lowercase (0000) so will be found first
