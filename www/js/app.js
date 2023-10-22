@@ -1314,7 +1314,7 @@ function displayFileSelect () {
             }
             webKitFileList = e.target.files;
             // populateDropDownListOfArchives(filenames);
-            await fileSystem.updateZimDropdownOptions({ fileOrDirHandle: null, files: filenames }, '');
+            await fileSystem.updateZimDropdownOptions(filenames, '');
         })
     }
     if (isFileSystemAPISupported) {
@@ -1329,7 +1329,7 @@ function displayFileSelect () {
         document.getElementById('archiveFiles').addEventListener('change', async function (e) {
             if (isWebkitSupported || isFileSystemAPISupported) {
                 const activeFilename = e.target.files[0].name;
-                await fileSystem.updateZimDropdownOptions({ files: [activeFilename] }, activeFilename);
+                await fileSystem.updateZimDropdownOptions([activeFilename], activeFilename);
             }
 
             setLocalArchiveFromFileSelect();
