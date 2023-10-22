@@ -1161,6 +1161,7 @@ window.onpopstate = function (event) {
 function populateDropDownListOfArchives (archiveDirectories) {
     document.getElementById('scanningForArchives').style.display = 'none';
     document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
+    document.getElementById('rescanButtonAndText').style.display = '';
     var comboArchiveList = document.getElementById('archiveList');
     comboArchiveList.options.length = 0;
     for (var i = 0; i < archiveDirectories.length; i++) {
@@ -1266,7 +1267,7 @@ function displayFileSelect () {
 
     document.getElementById('openLocalFiles').style.display = 'block';
     if (isFileSystemAPISupported || isWebkitSupported) {
-        document.getElementById('zimSelectDropdown').style.display = '';
+        document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
         document.getElementById('folderSelect').style.display = '';
     }
 
@@ -1285,7 +1286,7 @@ function displayFileSelect () {
         globalDropZone.addEventListener('drop', handleFileDrop);
     }
 
-    document.getElementById('zimSelectDropdown').addEventListener('change', async function (e) {
+    document.getElementById('archiveList').addEventListener('change', async function (e) {
         // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
         if (isFileSystemAPISupported) {
             const files = await fileSystem.getSelectedZimFromCache(e.target.value)
@@ -1312,6 +1313,7 @@ function displayFileSelect () {
                 filenames.push(file.name);
             }
             webKitFileList = e.target.files;
+            // populateDropDownListOfArchives(filenames);
             await fileSystem.updateZimDropdownOptions({ fileOrDirHandle: null, files: filenames }, '');
         })
     }

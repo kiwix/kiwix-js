@@ -467,12 +467,6 @@
                                 <a href="#" id="selectorsDisplayLink" data-i18n="configure-selectordisplay-link">display file selectors</a>.</p>
                         </div>
                         <div id="openLocalFiles" style="display: none; display: flex;flex-direction: row;">
-                            <div style="display: flex;flex-direction: row;">
-                                <p id="numberOfFilesDisplay">0</p>
-                                <span>&nbsp;archives found in selected location:</span>
-                            </div>
-                            <select id="zimSelectDropdown" style="display: none;">
-                            </select>
                             <p data-i18n="configure-select-instructions" id="selectInstructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file):</p>
                             <span id="fileSelectionButtonContainer">
@@ -497,10 +491,18 @@
                             <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
                         </div>
                         <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                            <br /> Please select the archive you want to use : <select id="archiveList"
+                            <div style="float: left;display: none;" id="fileCountDisplay">
+                                <p id="numberOfFilesDisplay" style="float: left;">0</p>
+                                <span>&nbsp;archives found in selected location.&nbsp;</span>
+                            </div>
+
+                            Please select the archive you want to use : <select id="archiveList"
                                 class="form-control"></select>
-                            <br /><button type="button" class="btn btn-light" id="btnRescanDeviceStorage">Rescan</button>
-                            Rescans your SD Cards and internal memory
+                            <br />
+                            <span id="rescanButtonAndText" style="display: none;">
+                                <button type="button" class="btn btn-light" id="btnRescanDeviceStorage">Rescan</button>
+                                Rescans your SD Cards and internal memory
+                            </span>
                         </div>
                     </div>
                     <br />

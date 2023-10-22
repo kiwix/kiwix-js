@@ -14,7 +14,7 @@ import cache from './cache.js';
  * @returns {Promise<Array<string>>} Array of unique filenames (if a split zim is considered a single file)
  */
 async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
-    const select = document.getElementById('zimSelectDropdown');
+    const select = document.getElementById('archiveList');
     let options = '';
     let count = 0;
     if (fileSystemHandler.files.length !== 0) options += '<option value="">Select an archive..</option>';
@@ -26,8 +26,9 @@ async function updateZimDropdownOptions (fileSystemHandler, selectedFile) {
         }
     });
     select.innerHTML = options;
-    document.getElementById('zimSelectDropdown').value = selectedFile;
+    document.getElementById('archiveList').value = selectedFile;
     document.getElementById('numberOfFilesDisplay').innerText = count;
+    document.getElementById('fileCountDisplay').style.display = '';
 }
 
 /**
