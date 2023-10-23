@@ -98,17 +98,17 @@ StorageFirefoxOS.prototype.enumerate = function (path) {
  */
 async function updateZimDropdownOptions (files, selectedFile) {
     const select = document.getElementById('archiveList');
-    let options = '';
+    const options = [];
     let count = 0;
-    if (files.length !== 0) options += '<option value="">Select an archive..</option>';
+    if (files.length !== 0) options.push(Option('Select an archive..', ''));
 
     files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
-            options += `<option value="${fileName}">${fileName}</option>`;
+            options.push(new Option(`${fileName}`, fileName));
             count++;
         }
     });
-    select.innerHTML = options;
+    select.replaceChildren(...options);
     document.getElementById('archiveList').value = selectedFile;
     document.getElementById('numberOfFilesDisplay').innerText = count;
     document.getElementById('fileCountDisplay').style.display = '';
@@ -124,7 +124,7 @@ async function selectDirectoryFromPickerViaFileSystemApi () {
         fileNames.push(entry.name);
     }
 
-    localStorage.setItem('zimFilenames', fileNames.join('|'))
+    localStorage.setItem('zimFilenames', fileNames.join('|'));
     updateZimDropdownOptions(fileNames, '');
     cache.idxDB('zimFiles', handle, function () {
         // save file in DB
@@ -233,7 +233,7 @@ async function handleFolderDropViaFileSystemAPI (packet) {
         for await (const entry of fileOrDirHandle.values()) {
             fileNames.push(entry.name);
         }
-        localStorage.setItem('zimFilenames', fileNames.join('|'))
+        localStorage.setItem('zimFilenames', fileNames.join('|'));
         cache.idxDB('zimFiles', fileOrDirHandle, function () {
             updateZimDropdownOptions(fileNames, '');
             // save file in DB
