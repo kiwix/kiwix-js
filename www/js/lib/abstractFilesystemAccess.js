@@ -100,7 +100,7 @@ async function updateZimDropdownOptions (files, selectedFile) {
     const select = document.getElementById('archiveList');
     const options = [];
     let count = 0;
-    if (files.length !== 0) options.push(Option('Select an archive..', ''));
+    if (files.length !== 0) options.push(new Option('Select an archive..', ''));
 
     files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {

@@ -112,6 +112,8 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
 params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Alternative Url for iframe (for use with unsupported browsers) that will be loaded to download new zim files
+params['cacheAPI'] = 'kiwix-js'; // Sets the database name for the IndexedDB cache
+params['cacheIDB'] = 'kiwix-zim'; // Not sure what this does
 
 /**
  * Apply any override parameters that might be in the querystring.
