@@ -35,8 +35,6 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
-import cache from './lib/cache.js';
-import fileSystem from './lib/fileSystem.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -168,7 +166,7 @@ function resizeIFrame () {
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
-    fileSystem.loadPreviousZimFile();
+    abstractFilesystemAccess.loadPreviousZimFile();
 });
 window.addEventListener('resize', resizeIFrame);
 
@@ -1262,8 +1260,8 @@ function displayFileSelect () {
     const isFileSystemAPISupported = typeof window.showOpenFilePicker === 'function'
     const isWebkitSupported = 'webkitdirectory' in document.createElement('input')
 
-    console.debug('[DEBUG]: File system api supported', isFileSystemAPISupported);
-    console.debug('[DEBUG]: Webkit supported', isWebkitSupported);
+    console.debug('File system api supported', isFileSystemAPISupported);
+    console.debug('Webkit supported', isWebkitSupported);
 
     document.getElementById('openLocalFiles').style.display = 'block';
     if (isFileSystemAPISupported || isWebkitSupported) {
@@ -1289,10 +1287,10 @@ function displayFileSelect () {
     document.getElementById('archiveList').addEventListener('change', async function (e) {
         // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
         if (isFileSystemAPISupported) {
-            const files = await fileSystem.getSelectedZimFromCache(e.target.value)
+            const files = await abstractFilesystemAccess.getSelectedZimFromCache(e.target.value)
             setLocalArchiveFromFileList(files);
         } else {
-            const files = fileSystem.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
+            const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
             setLocalArchiveFromFileList(files);
         }
     });
@@ -1301,7 +1299,7 @@ function displayFileSelect () {
         // Handles Folder selection when showDirectoryPicker is supported
         document.getElementById('folderSelect').addEventListener('click', async function (e) {
             e.preventDefault();
-            await fileSystem.selectDirectoryFromPickerViaFileSystemApi()
+            await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
         })
     }
     if (isWebkitSupported && !isFileSystemAPISupported) {
@@ -1314,14 +1312,14 @@ function displayFileSelect () {
             }
             webKitFileList = e.target.files;
             // populateDropDownListOfArchives(filenames);
-            await fileSystem.updateZimDropdownOptions(filenames, '');
+            await abstractFilesystemAccess.updateZimDropdownOptions(filenames, '');
         })
     }
     if (isFileSystemAPISupported) {
         // Handles File selection when showOpenFilePicker is supported and uses the filesystem api
         document.getElementById('archiveFiles').addEventListener('click', async function (e) {
             e.preventDefault();
-            const files = await fileSystem.selectFileFromPickerViaFileSystemApi(e);
+            const files = await abstractFilesystemAccess.selectFileFromPickerViaFileSystemApi(e);
             setLocalArchiveFromFileList(files);
         });
     } else {
@@ -1329,7 +1327,7 @@ function displayFileSelect () {
         document.getElementById('archiveFiles').addEventListener('change', async function (e) {
             if (isWebkitSupported || isFileSystemAPISupported) {
                 const activeFilename = e.target.files[0].name;
-                await fileSystem.updateZimDropdownOptions([activeFilename], activeFilename);
+                await abstractFilesystemAccess.updateZimDropdownOptions([activeFilename], activeFilename);
             }
 
             setLocalArchiveFromFileSelect();
@@ -1372,9 +1370,9 @@ async function handleFileDrop (packet) {
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    if (isFSAPIsupported) loadZim = await fileSystem.handleFolderDropViaFileSystemAPI(packet)
+    if (isFSAPIsupported) loadZim = await abstractFilesystemAccess.handleFolderDropViaFileSystemAPI(packet)
     if (isWebkitSupported) {
-        const ret = await fileSystem.handleFolderDropViaWebkit(packet)
+        const ret = await abstractFilesystemAccess.handleFolderDropViaWebkit(packet)
         loadZim = ret.loadZim
         webKitFileList = ret.files
     }
