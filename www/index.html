@@ -491,11 +491,13 @@
                             <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
                         </div>
                         <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                            <div style="float: left;display: none;" id="fileCountDisplay">
-                                <p id="numberOfFilesDisplay" style="float: left;">0</p>
-                                <span style="float: left;">&nbsp;archives found in selected location.&nbsp;</span>
+                            <div id="filesSelectionInfoAndCount">
+                                <p id="fileCountDisplay" style="display: none;">
+                                    <span id="numberOfFilesDisplay">0</span>
+                                    archives found in selected location.&nbsp;
+                                </p>
+                                <p>Please select the archive you want to use : </p>
                             </div>
-                            <p style="float: left;">Please select the archive you want to use : </p>
                             <select id="archiveList" class="form-control"></select>
                             <br />
                             <span id="rescanButtonAndText" style="display: none;">

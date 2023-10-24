@@ -94,10 +94,8 @@
     margin: 0 1rem;
 }
 
-#zimSelectDropdown {
-    width: 60%;
-    font-size: large;
-    height: 2em;
+#filesSelectionInfoAndCount p{
+    display: inline;
 }
 
 /* Custom file input */

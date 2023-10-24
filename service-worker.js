@@ -126,7 +126,6 @@ const precacheFiles = [
     'www/js/lib/arrayFromPolyfill.js',
     'www/js/lib/filecache.js',
     'www/js/lib/cache.js',
-    'www/js/lib/fileSystem.js',
     'www/js/lib/promisePolyfill.js',
     'www/js/lib/settingsStore.js',
     'www/js/lib/translateUI.js',
