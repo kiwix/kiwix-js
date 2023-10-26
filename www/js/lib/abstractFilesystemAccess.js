@@ -155,7 +155,6 @@ async function selectFileFromPickerViaFileSystemApi () {
 function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, _reject) => {
         cache.idxDB('zimFiles', async function (fileOrDirHandle) {
-            console.log('[DEBUG] current file/dir permission status', await fileOrDirHandle.queryPermission(), fileOrDirHandle);
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
 
             if (fileOrDirHandle.kind === 'directory') {
@@ -200,10 +199,10 @@ function getSelectedZimFromWebkitList (webKitFileList, filename) {
 }
 
 /**
- * Loads the Previously selected zim file via IndexedDB
+ * Loads the Previously loaded zim filename(s) via local storage
  */
 function loadPreviousZimFile () {
-    if (typeof window.showOpenFilePicker === 'function') {
+    if (window.params.isFileSystemApiSupported) {
         const filenames = localStorage.getItem('zimFilenames');
         if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
     }
@@ -215,8 +214,7 @@ function loadPreviousZimFile () {
  * @returns {Promise<boolean>} Whether the dropped item is a file or directory
  */
 async function handleFolderDropViaFileSystemAPI (packet) {
-    const isFSAPIsupported = typeof window.showOpenFilePicker === 'function';
-    if (!isFSAPIsupported) return true;
+    if (!window.params.isFileSystemApiSupported) return true;
 
     // Only runs when browser support File System API
     const fileInfo = packet.dataTransfer.items[0];

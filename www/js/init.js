@@ -50,6 +50,10 @@
  * @property {boolean} useCanvasElementsForWebpTranscoding - A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images directly with the canvas elements produced by the WebP polyfill.
  * @property {string} libraryUrl - The URL of the Kiwix library.
  * @property {string} altLibraryUrl - The alternative URL of the Kiwix library in non-supported browsers.
+ * @property {string} cacheAPI - Database name for the IndexedDB cache
+ * @property {string} cacheIDB - Not sure what this does
+ * @property {boolean} isFileSystemApiSupported - A boolean indicating whether the FileSystem API is supported.
+ * @property {boolean} isWebkitDirApiSupported - A boolean indicating whether the Webkit Directory API is supported.
  * @property {DecompressorAPI} decompressorAPI
 
 /**
@@ -114,6 +118,8 @@ params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will
 params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Alternative Url for iframe (for use with unsupported browsers) that will be loaded to download new zim files
 params['cacheAPI'] = 'kiwix-js'; // Sets the database name for the IndexedDB cache
 params['cacheIDB'] = 'kiwix-zim'; // Not sure what this does
+params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Not sure what this does
+params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Not sure what this does
 
 /**
  * Apply any override parameters that might be in the querystring.
