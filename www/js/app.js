@@ -90,9 +90,7 @@ appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service 
 // Placeholders for the article container and the article window
 const articleContainer = document.getElementById('articleContent');
 const articleWindow = articleContainer.contentWindow;
-const articleDocument = articleContainer.contentDocument;
 const region = document.getElementById('search-article');
-let throttle = false;
 let oldScrollY = 0;
 let newScrollY = 0;
 const header = document.getElementById('top');
@@ -107,9 +105,9 @@ footer.style.transition = 'transform 500ms';
 function slideAway () {
     newScrollY = articleWindow.pageYOffset;
     const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
     const footerStyles = getComputedStyle(footer);
-    const footerDim = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop);
+    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
     // Hide the toolbars if user has scrolled and search elements are not selected
     if (newScrollY - oldScrollY > 0 && document.activeElement !== document.getElementById('prefix')) {
         // If the header and/or footer have not already been hidden
@@ -119,15 +117,15 @@ function slideAway () {
                 articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
                 var iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
                 articleContainer.style.height = iframeHeight + headerHeight + 'px';
-                footer.style.transform = 'translateY(' + footerDim + 'px)';
+                footer.style.transform = 'translateY(' + footerHeight + 'px)';
                 region.style.height = window.innerHeight + headerHeight + 10 + 'px';
             }
         }
+        throttle = false;
     } else if (newScrollY - oldScrollY < 0) {
         restoreUIElements();
     }
     oldScrollY = newScrollY;
-    throttle = false;
 };
 
 // Restores slide-away UI elements
@@ -141,15 +139,21 @@ function restoreUIElements () {
         const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
         articleContainer.style.height = window.innerHeight - headerHeight + 'px';
         region.style.height = window.innerHeight + 10 + 'px';
+        throttle = false;
     }, 200);
 }
+
+let throttle = false;
 
 // Throttles the slide-away function
 function scroller () {
     if (throttle) return;
+    // If the user has scrolled to the bottom of the article, stop processing
+    // const articleDocument = articleWindow.document.documentElement;
+    // if (articleDocument.scrollTop === (articleDocument.scrollHeight - articleDocument.clientHeight)) return;
     throttle = true;
     clearTimeout(slideAway);
-    setTimeout(slideAway, 200);
+    setTimeout(slideAway, 250);
 };
 
 switchHomeKeyToFocusSearchBar();
