@@ -103,8 +103,8 @@ articleContainer.style.transition = 'transform 500ms';
 articleContainer.style.zIndex = 0;
 footer.style.transition = 'transform 500ms';
 
-// Add an event listener to the article window to slide away UI elements when the user scrolls up or down
-var slideAway = function () {
+// Slides away or restores the header and footer
+function slideAway () {
     newScrollY = articleWindow.pageYOffset;
     const headerStyles = getComputedStyle(header);
     const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
@@ -124,19 +124,28 @@ var slideAway = function () {
             }
         }
     } else if (newScrollY - oldScrollY < 0) {
-        header.style.zIndex = 1;
-        header.style.transform = 'translateY(0)';
-        // Needed for Windows Mobile to prevent header disappearing beneath iframe
-        articleContainer.style.transform = 'translateY(-1px)';
-        footer.style.transform = 'translateY(0)';
-        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
-        region.style.height = window.innerHeight + 10 + 'px';
+        restoreUIElements();
     }
     oldScrollY = newScrollY;
     throttle = false;
 };
 
-var scroller = function () {
+// Restores slide-away UI elements
+function restoreUIElements () {
+    header.style.transform = 'translateY(0)';
+    // Needed for Windows Mobile to prevent header disappearing beneath iframe
+    articleContainer.style.transform = 'translateY(-1px)';
+    footer.style.transform = 'translateY(0)';
+    setTimeout(function () {
+        const headerStyles = getComputedStyle(document.getElementById('top'));
+        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+        region.style.height = window.innerHeight + 10 + 'px';
+    }, 200);
+}
+
+// Throttles the slide-away function
+function scroller () {
     if (throttle) return;
     throttle = true;
     clearTimeout(slideAway);
@@ -196,7 +205,7 @@ function resizeIFrame () {
     const libraryContent = document.getElementById('libraryContent');
     const frames = [articleContainer, libraryContent];
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
-
+    restoreUIElements();
     for (let i = 0; i < frames.length; i++) {
         const iframe = frames[i];
         if (iframe.style.display === 'none') {
@@ -1690,6 +1699,7 @@ function readArticle (dirEntry) {
                                     setTimeout(function () {
                                         uiUtil.spinnerDisplay(false);
                                     }, 4000);
+                                    restoreUIElements();
                                 }
                             }
                         }
