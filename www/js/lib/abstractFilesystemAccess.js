@@ -139,11 +139,12 @@ async function selectFileFromPickerViaFileSystemApi () {
     const fileHandles = await window.showOpenFilePicker({ multiple: false });
     const [selectedFile] = fileHandles;
     const file = await selectedFile.getFile();
-
+    const filenameList = [selectedFile.name];
+    localStorage.setItem('zimFilenames', filenameList.join('|'));
     cache.idxDB('zimFiles', selectedFile, function () {
         // file saved in DB
+        updateZimDropdownOptions(filenameList, selectedFile.name);
     });
-    updateZimDropdownOptions([selectedFile.name], selectedFile.name);
     return [file];
 }
 
@@ -155,6 +156,8 @@ async function selectFileFromPickerViaFileSystemApi () {
 function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, _reject) => {
         cache.idxDB('zimFiles', async function (fileOrDirHandle) {
+            // Left it here for debugging purposes as its sometimes asking for permission even when its granted
+            console.debug('FileHandle and Permission', fileOrDirHandle, fileOrDirHandle.queryPermission())
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
 
             if (fileOrDirHandle.kind === 'directory') {
@@ -220,6 +223,7 @@ async function handleFolderDropViaFileSystemAPI (packet) {
     const fileInfo = packet.dataTransfer.items[0];
     const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
     if (fileOrDirHandle.kind === 'file') {
+        localStorage.setItem([fileOrDirHandle.name], [fileOrDirHandle.name].join('|'));
         cache.idxDB('zimFiles', fileOrDirHandle, function () {
             // save file in DB
             updateZimDropdownOptions([fileOrDirHandle.name], fileOrDirHandle.name);
