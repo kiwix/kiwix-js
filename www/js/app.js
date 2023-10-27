@@ -87,6 +87,62 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
+// Placeholders for the article container and the article window
+const articleContainer = document.getElementById('articleContent');
+const articleWindow = articleContainer.contentWindow;
+const articleDocument = articleContainer.contentDocument;
+const region = document.getElementById('search-article');
+let throttle = false;
+let oldScrollY = 0;
+let newScrollY = 0;
+const header = document.getElementById('top');
+const footer = document.getElementById('footer');
+const navbarDim = header.getBoundingClientRect();
+header.style.transition = 'transform 500ms';
+articleContainer.style.transition = 'transform 500ms';
+articleContainer.style.zIndex = 0;
+footer.style.transition = 'transform 500ms';
+
+// Add an event listener to the article window to slide away UI elements when the user scrolls up or down
+var slideAway = function () {
+    newScrollY = articleWindow.pageYOffset;
+    const headerStyles = getComputedStyle(header);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+    const footerStyles = getComputedStyle(footer);
+    const footerDim = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop);
+    // Hide the toolbars if user has scrolled and search elements are not selected
+    if (newScrollY - oldScrollY > 0 && document.activeElement !== document.getElementById('prefix')) {
+        // If the header and/or footer have not already been hidden
+        if (/\(0p?x?\)/.test(header.style.transform)) {
+            if (newScrollY > navbarDim.height) {
+                header.style.transform = 'translateY(-' + headerHeight + 'px)';
+                articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
+                var iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
+                articleContainer.style.height = iframeHeight + headerHeight + 'px';
+                footer.style.transform = 'translateY(' + footerDim + 'px)';
+                region.style.height = window.innerHeight + headerHeight + 10 + 'px';
+            }
+        }
+    } else if (newScrollY - oldScrollY < 0) {
+        header.style.zIndex = 1;
+        header.style.transform = 'translateY(0)';
+        // Needed for Windows Mobile to prevent header disappearing beneath iframe
+        articleContainer.style.transform = 'translateY(-1px)';
+        footer.style.transform = 'translateY(0)';
+        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+        region.style.height = window.innerHeight + 10 + 'px';
+    }
+    oldScrollY = newScrollY;
+    throttle = false;
+};
+
+var scroller = function () {
+    if (throttle) return;
+    throttle = true;
+    clearTimeout(slideAway);
+    setTimeout(slideAway, 200);
+};
+
 switchHomeKeyToFocusSearchBar();
 
 // We check here if we have to warn the user that we switched to ServiceWorkerMode
@@ -137,10 +193,8 @@ darkPreference.onchange = function () {
  */
 function resizeIFrame () {
     const headerStyles = getComputedStyle(document.getElementById('top'));
-    const articleContent = document.getElementById('articleContent');
     const libraryContent = document.getElementById('libraryContent');
-    const frames = [articleContent, libraryContent];
-    const region = document.getElementById('search-article');
+    const frames = [articleContainer, libraryContent];
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
 
     for (let i = 0; i < frames.length; i++) {
@@ -161,6 +215,9 @@ function resizeIFrame () {
             }, 100);
         }
     }
+
+    // Add the scroll event listener to the article window
+    articleWindow.onscroll = scroller;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
