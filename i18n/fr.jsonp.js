@@ -32,7 +32,7 @@ document.localeJson = {
       "configure-display-settings-title": "Configurer l'affichage",
       "configure-display-panel-header": "Options de l'affichage",
       "configure-display-slideaway": "<strong>Masquer l'en-tête et le pied de page lors du défilement</strong> (défilez vers le haut pour les afficher à nouveau)",
-      "configure-display-slideaway-tip": "L'en-tête et le pied de page disparaîtront lorsque vous ferez défiler vers le bas, et réapparaîtront lorsque vous ferez défiler vers le haut. L'option est maintenant activée par défaut.",
+      "configure-display-slideaway-tip": "L'en-tête et le pied de page disparaîtront lorsque vous ferez défiler vers le bas d'au moins 50 pixels, et réapparaîtront lorsque vous ferez défiler vers le haut. L'option est maintenant activée par défaut.",
       "configure-display-uianimations": "Animer la transition entre les pages de l'application",
       "configure-display-uianimations-tip": "L'animation est activée par défaut et peut être désactivée en décochant cette option.",
       "configure-display-homekeyfocus": "<strong>Utiliser la touche Accueil pour mettre le focus sur la barre de recherche</strong> (peut avoir des effets secondaires sur les fichiers ZIM qui gèrent la touche Accueil)",

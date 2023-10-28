@@ -32,7 +32,7 @@ document.localeJson = {
       "configure-display-settings-title": "Display settings",
       "configure-display-panel-header": "Display options",
       "configure-display-slideaway": "<strong>Hide header and footer when scrolling down</strong> (scroll up slightly to show again)",
-      "configure-display-slideaway-tip": "Header and footer will slide away when scrolling down, and will slide back when you scroll up. The option is now on by default.",
+      "configure-display-slideaway-tip": "Header and footer will slide away when scrolling down at least 50 pixels, and will slide back when you scroll up. The option is now on by default.",
       "configure-display-uianimations": "Animate transition between app pages",
       "configure-display-uianimations-tip": "The animation is on by default and can be disabled by unchecking this option.",
       "configure-display-homekeyfocus": "<strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)",

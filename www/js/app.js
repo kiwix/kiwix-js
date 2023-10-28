@@ -102,7 +102,7 @@ function slideAway () {
     if (newScrollY === oldScrollY || document.activeElement === document.getElementById('prefix')) return;
     if (newScrollY < oldScrollY) {
         restoreUIElements();
-    } else if (newScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
+    } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
         // Hide the toolbars if user has scrolled and not already hidden
         const headerStyles = getComputedStyle(header);
         const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
