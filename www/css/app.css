@@ -31,6 +31,8 @@
 [role=region] > header {
      margin-bottom: 1rem;
      text-align: center;
+     position: relative;
+     z-index: 1;
 }
 [role=region] > header > h1 {
     margin: 0;
