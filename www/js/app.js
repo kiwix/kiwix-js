@@ -91,13 +91,14 @@ appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service 
 const articleContainer = document.getElementById('articleContent');
 const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
-let oldScrollY = 0;
-let newScrollY = 0;
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
+
+let oldScrollY = 0;
+
 // Slides away or restores the header and footer
 function slideAway () {
-    newScrollY = articleWindow.pageYOffset;
+    const newScrollY = articleWindow.pageYOffset;
     if (newScrollY === oldScrollY || document.activeElement === document.getElementById('prefix')) return;
     if (newScrollY < oldScrollY) {
         restoreUIElements();
@@ -136,12 +137,8 @@ let throttle = false;
 // Throttles the slide-away function
 function scroller () {
     if (throttle) return;
-    // If the user has scrolled to the bottom of the article, stop processing
-    // const articleDocument = articleWindow.document.documentElement;
-    // if (articleDocument.scrollTop === (articleDocument.scrollHeight - articleDocument.clientHeight)) return;
     throttle = true;
-    clearTimeout(slideAway);
-    setTimeout(slideAway, 250);
+    slideAway();
     setTimeout(function () {
         throttle = false;
     }, 300);
