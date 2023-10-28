@@ -31,6 +31,8 @@ document.localeJson = {
       "configure-compatibility-images-control": "Usar solución alternativa WebP si es necesario",
       "configure-display-settings-title": "Configurar página",
       "configure-display-panel-header": "Opciones de página",
+      "configure-display-slideaway": "<strong>Ocultar encabezado y pie de página al desplazarse hacia abajo</strong> (desplácese hacia arriba para mostrarlos de nuevo)",
+      "configure-display-slideaway-tip": "El encabezado y el pie de página se ocultarán al desplazarse hacia abajo, y volverán a aparecer al desplazarse hacia arriba. La opción está activada por defecto.",
       "configure-display-uianimations": "Animar transición entre páginas de la aplicación",
       "configure-display-uianimations-tip": "La animación está activada por defecto y puede ser desactivada desmarcando esta opción.",
       "configure-display-homekeyfocus": "<strong>Usar tecla Inicio para enfocar la barra de búsqueda</strong> (puede tener efectos secundarios en archivos ZIM que manejen la tecla Inicio)",
