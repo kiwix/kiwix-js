@@ -83,7 +83,7 @@ params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
-// A parameter to determine whether to slide away the header and footer when scrolling (feaults to true)
+// A parameter to determine whether to slide away the header and footer when scrolling (defaults to true)
 params['slideAway'] = getSetting('slideAway') !== false;
 params['showUIAnimations'] = getSetting('showUIAnimations') === true;
 // Maximum number of article titles to return (range is 5 - 50, default 25)
@@ -242,6 +242,7 @@ if (/PWA_launch=/.test(window.location.search)) {
     params.abort = true;
 } else {
     // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
+    // eslint-disable-next-line no-unused-vars
     var webpMachine = false;
 
     // We use a self-invoking function here to avoid defining unnecessary global functions and variables
