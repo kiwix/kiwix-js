@@ -93,6 +93,11 @@ const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
+// Edge Legacy requires setting the z-index of the header to prevent it disappearing beneath the iframe
+if ('MSBlobBuilder' in window) {
+    header.style.position = 'relative';
+    header.style.zIndex = 1;
+}
 
 let oldScrollY = 0;
 
@@ -122,7 +127,7 @@ function slideAway () {
 function restoreUIElements () {
     header.style.transform = 'translateY(0)';
     // Needed for Windows Mobile to prevent header disappearing beneath iframe
-    articleContainer.style.transform = 'translateY(-1px)';
+    articleContainer.style.transform = 'translateY(0)';
     footer.style.transform = 'translateY(0)';
     setTimeout(function () {
         const headerStyles = getComputedStyle(document.getElementById('top'));
