@@ -141,7 +141,7 @@ function scroller () {
     slideAway();
     setTimeout(function () {
         throttle = false;
-    }, 300);
+    }, 250);
 };
 
 switchHomeKeyToFocusSearchBar();
