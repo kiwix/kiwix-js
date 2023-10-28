@@ -95,35 +95,24 @@ let oldScrollY = 0;
 let newScrollY = 0;
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
-const navbarDim = header.getBoundingClientRect();
-header.style.transition = 'transform 500ms';
-articleContainer.style.transition = 'transform 500ms';
-articleContainer.style.zIndex = 0;
-footer.style.transition = 'transform 500ms';
-
 // Slides away or restores the header and footer
 function slideAway () {
     newScrollY = articleWindow.pageYOffset;
-    const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
-    const footerStyles = getComputedStyle(footer);
-    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
-    // Hide the toolbars if user has scrolled and search elements are not selected
-    if (newScrollY - oldScrollY > 0 && document.activeElement !== document.getElementById('prefix')) {
-        // If the header and/or footer have not already been hidden
-        if (/\(0p?x?\)/.test(header.style.transform)) {
-            if (newScrollY > navbarDim.height) {
-                header.style.transform = 'translateY(-' + headerHeight + 'px)';
-                articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
-                var iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
-                articleContainer.style.height = iframeHeight + headerHeight + 'px';
-                footer.style.transform = 'translateY(' + footerHeight + 'px)';
-                region.style.height = window.innerHeight + headerHeight + 10 + 'px';
-            }
-        }
-        throttle = false;
-    } else if (newScrollY - oldScrollY < 0) {
+    if (newScrollY === oldScrollY || document.activeElement === document.getElementById('prefix')) return;
+    if (newScrollY < oldScrollY) {
         restoreUIElements();
+    } else if (newScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
+        // Hide the toolbars if user has scrolled and not already hidden
+        const headerStyles = getComputedStyle(header);
+        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+        const footerStyles = getComputedStyle(footer);
+        const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
+        header.style.transform = 'translateY(-' + headerHeight + 'px)';
+        articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
+        const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
+        articleContainer.style.height = iframeHeight + headerHeight + 'px';
+        footer.style.transform = 'translateY(' + footerHeight + 'px)';
+        region.style.height = window.innerHeight + headerHeight + 10 + 'px';
     }
     oldScrollY = newScrollY;
 };
@@ -139,7 +128,6 @@ function restoreUIElements () {
         const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
         articleContainer.style.height = window.innerHeight - headerHeight + 'px';
         region.style.height = window.innerHeight + 10 + 'px';
-        throttle = false;
     }, 200);
 }
 
@@ -154,6 +142,9 @@ function scroller () {
     throttle = true;
     clearTimeout(slideAway);
     setTimeout(slideAway, 250);
+    setTimeout(function () {
+        throttle = false;
+    }, 300);
 };
 
 switchHomeKeyToFocusSearchBar();

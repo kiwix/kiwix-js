@@ -72,6 +72,10 @@
     margin-bottom: 12px !important;
 }
 
+#top, #articleContent, #footer {
+    transition: transform 0.5s ease;
+}
+
 #articleListWithHeader {
     position: absolute;
     top: 0;
