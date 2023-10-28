@@ -35,6 +35,7 @@
  * @property {string} storeType - A parameter to determine the Settings Store API in use.
  * @property {string} keyPrefix - The key prefix used by the settingsStore.js.
  * @property {boolean} hideActiveContentWarning - A boolean indicating whether to hide the active content warning.
+ * @property {boolean} slideAway - A boolean indicating whether to slide away the header and footer when scrolling.
  * @property {boolean} showUIAnimations - A boolean indicating whether to show UI animations.
  * @property {number} maxSearchResultsSize - The maximum number of article titles to return.
  * @property {boolean} assetsCache - A boolean indicating whether to cache assets.
@@ -82,6 +83,8 @@ params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
+// A parameter to determine whether to slide away the header and footer when scrolling (feaults to true)
+params['slideAway'] = getSetting('slideAway') !== false;
 params['showUIAnimations'] = getSetting('showUIAnimations') === true;
 // Maximum number of article titles to return (range is 5 - 50, default 25)
 params['maxSearchResultsSize'] = getSetting('maxSearchResultsSize') || 25;
@@ -165,6 +168,7 @@ params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCa
  */
 document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
 document.getElementById('disableDragAndDropCheck').checked = params.disableDragAndDrop;
+document.getElementById('slideAwayCheck').checked = params.slideAway;
 document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
 document.getElementById('titleSearchRange').value = params.maxSearchResultsSize;
 document.getElementById('titleSearchRangeVal').textContent = params.maxSearchResultsSize;

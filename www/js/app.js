@@ -221,7 +221,7 @@ function resizeIFrame () {
     }
 
     // Add the scroll event listener to the article window
-    articleWindow.onscroll = scroller;
+    if (params.slideAway) articleWindow.onscroll = scroller;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -527,6 +527,15 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
         params.hideActiveContentWarning = !!this.checked;
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     })
+});
+document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
+        params.slideAway = e.target.checked;
+        if (!params.slideAway) {
+            articleWindow.onscroll = null;
+        } else {
+            articleWindow.onscroll = scroller;
+        }
+        settingsStore.setItem('slideAway', params.slideAway, Infinity);
 });
 document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
     element.addEventListener('change', function () {
