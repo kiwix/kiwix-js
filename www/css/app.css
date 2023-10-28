@@ -73,7 +73,7 @@
 }
 
 #top, #articleContent, #footer {
-    transition: transform 0.5s ease;
+    transition: transform 0.3s ease;
 }
 
 #articleListWithHeader {

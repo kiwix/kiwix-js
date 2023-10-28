@@ -127,7 +127,7 @@ function slideAway () {
 function restoreUIElements () {
     header.style.transform = 'translateY(0)';
     // Needed for Windows Mobile to prevent header disappearing beneath iframe
-    articleContainer.style.transform = 'translateY(0)';
+    articleContainer.style.transform = 'translateY(-1px)';
     footer.style.transform = 'translateY(0)';
     setTimeout(function () {
         const headerStyles = getComputedStyle(document.getElementById('top'));
