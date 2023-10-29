@@ -162,6 +162,8 @@ document.localeJson = {
       "dialog-serviceworker-unsupported-fallback": "Utiliser le mode JQuery",
       "dialog-serviceworker-defaultmodechange-title": "Changement du mode d'injection de contenu par défaut",
       "dialog-serviceworker-defaultmodechange-message": "<p>Nous vous avons basculé en mode ServiceWorker (c'est maintenant le mode par défaut). Il prend en charge plus de types de fichiers ZIM et est beaucoup plus robuste.</p><p>Si vous rencontrez des problèmes avec ce mode, vous pouvez revenir au mode JQuery (maintenant obsolète). Dans ce cas, veuillez signaler les problèmes que vous avez rencontrés (voir la page Informations).</p>",
+      "dialog-slideawaycheck-title": "Avertissement",
+      "dialog-slideawaycheck-message": "Ce paramètre peut ne pas fonctionner correctement chez Firefox OS. Si vous constatez que certains liens ZIM deviennent inactifs, veuillez désactiver ce paramètre.",
       "dialog-unsupported-archivetype-message": "<p>Vous essayez d'ouvrir un fichier de style Zimit, qui n'est actuellement pas pris en charge par cette application.</p><p>Il existe une prise en charge expérimentale de ce type de fichier dans la PWA de Kiwix JS. Allez sur&nbsp;: <a href=\"https://pwa.kiwix.org\" target=\"_blank\">https://pwa.kiwix.org</a>.</p><p>Alternativement, vous pouvez utiliser Kiwix Serve pour servir ce fichier à votre navigateur à partir de localhost. Kiwix Serve est inclus dans <a href=\"https://www.kiwix.org/applications/\" target=\"_blank\">Kiwix Desktop</a>.</p>",
       "dialog-unsupported-archivetype-title": "Type de fichier non pris en charge&nbsp;!",
       "dialog-welcome-title": "Bienvenue",

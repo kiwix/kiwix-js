@@ -535,6 +535,11 @@ document.getElementById('slideAwayCheck').addEventListener('change', function (e
         if (!params.slideAway) {
             articleWindow.onscroll = null;
         } else {
+            if (typeof navigator.getDeviceStorages === 'function') {
+                // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
+                uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
+                    'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-slideawaycheck-title') || 'Warning');
+            }
             articleWindow.onscroll = scroller;
         }
         settingsStore.setItem('slideAway', params.slideAway, Infinity);

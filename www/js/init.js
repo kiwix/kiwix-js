@@ -83,8 +83,8 @@ params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
-// A parameter to determine whether to slide away the header and footer when scrolling (defaults to true)
-params['slideAway'] = getSetting('slideAway') !== false;
+// A parameter to determine whether to slide away the header and footer when scrolling (defaults to true except on Firefox OS devices which may be buggy with this setting)
+params['slideAway'] = getSetting('slideAway') === false ? false : typeof navigator.getDeviceStorages !== 'function';
 params['showUIAnimations'] = getSetting('showUIAnimations') === true;
 // Maximum number of article titles to return (range is 5 - 50, default 25)
 params['maxSearchResultsSize'] = getSetting('maxSearchResultsSize') || 25;
