@@ -100,19 +100,58 @@ if ('MSBlobBuilder' in window) {
 }
 
 let oldScrollY = 0;
+let timeoutResetScrollable;
+let windowIsScrollable = false;
 
 // Slides away or restores the header and footer
-function slideAway () {
+function slideAway (e) {
     const newScrollY = articleWindow.pageYOffset;
-    if (newScrollY === oldScrollY) return;
-    if (newScrollY < oldScrollY) {
-        restoreUIElements();
-    } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
-        // Hide the toolbars if user has scrolled and not already hidden
-        hideUIElements();
+    let delta;
+    const visibleState = /\(0p?x?\)/.test(header.style.transform);
+    // If the search field is focused and elements are not showing, do not slide away
+    if (document.activeElement === document.getElementById('prefix')) {
+        if (!visibleState) restoreUIElements();
+    } else if (e.type === 'scroll') {
+        windowIsScrollable = true;
+        if (newScrollY === oldScrollY) return;
+        if (newScrollY < oldScrollY) {
+            restoreUIElements();
+        } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
+            // Hide the toolbars if user has scrolled and not already hidden
+            hideUIElements();
+        }
+        oldScrollY = newScrollY;
+        // Debounces the scroll at end of page
+        const resetScrollable = function () {
+            windowIsScrollable = false;
+        };
+        clearTimeout(timeoutResetScrollable);
+        timeoutResetScrollable = setTimeout(resetScrollable, 3000);
+    } else {
+        let hideOrShow = visibleState ? hideUIElements : restoreUIElements;
+        if (newScrollY === 0 && windowIsScrollable) {
+            // If we are at the top of a scrollable page, always restore the UI elements
+            hideOrShow = restoreUIElements;
+        }
+        if (e.type === 'touchend') {
+            delta = Math.abs(e.changedTouches[0].screenY);
+            if (delta > 50) {
+                hideOrShow();
+            }
+        } else if (e.type === 'wheel') {
+            // Console log showing oldScrollY and newScrollY
+            console.debug('eventType: ' + e.type + ' oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
+            delta = Math.abs(e.deltaY);
+            if (delta > 6) {
+                hideOrShow();
+            }
+        } else if (e.type === 'keydown') {
+            if ((e.ctrlKey || e.metaKey) && /Arrow(Up|Down)/.test(e.key)) {
+                hideOrShow();
+            }
+        }
     }
-    oldScrollY = newScrollY;
-};
+}
 
 // Hides slide-away UI elements
 function hideUIElements () {
@@ -143,14 +182,13 @@ function restoreUIElements () {
     }, 200);
 }
 
-let startScreenY = 0;
-let windowIsScrollable = false;
 let scrollThrottle = false;
-let timeoutResetScrollable;
 
 // Throttles the slide-away function
 function scroller (e) {
     if (scrollThrottle) return;
+    // windowIsScrollable gets set and reset in slideAway()
+    if (windowIsScrollable && e.type === 'wheel') return;
     const newScrollY = articleWindow.pageYOffset;
     // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
     if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
@@ -158,51 +196,15 @@ function scroller (e) {
         return;
     }
     scrollThrottle = true;
+    // Call the main function
+    slideAway(e);
     let timeout = 250;
-    let delta;
-    const visibleState = /\(0p?x?\)/.test(header.style.transform);
-    if (document.activeElement === document.getElementById('prefix')) {
-        // If the search field is focused and elements are not showing, do not slide away
-        if (!visibleState) restoreUIElements();
-    } else if (e.type === 'scroll') {
-        windowIsScrollable = true;
-        slideAway();
-        // Debounces the scroll at end of page
-        const resetScrollable = function () {
-            windowIsScrollable = false;
-        };
-        clearTimeout(timeoutResetScrollable);
-        timeoutResetScrollable = setTimeout(resetScrollable, 3000);
-    } else {
-        let hideOrShow = visibleState ? hideUIElements : restoreUIElements;
-        if (newScrollY === 0 && windowIsScrollable) {
-            // If we are at the top of a scrollable page, always restore the UI elements
-            hideOrShow = restoreUIElements;
-        }
-        if (e.type === 'touchstart') {
-            startScreenY = e.changedTouches[0].screenY;
-            scrollThrottle = false;
-            return;
-        } else if (e.type === 'touchend') {
-            delta = Math.abs(e.changedTouches[0].screenY);
-            if (delta > 50) {
-                hideOrShow();
-            }
-        } else if (e.type === 'wheel') {
-            // Console log showing oldScrollY and newScrollY
-            console.debug('oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
-            delta = Math.abs(e.deltaY);
-            if (delta > 6) {
-                hideOrShow();
-                timeout = 1200;
-            }
-        } else if (e.type === 'keydown') {
-            if ((e.ctrlKey || e.metaKey) && /Arrow(Up|Down)/.test(e.key)) {
-                hideOrShow();
-            }
-        }
+    if (e.type === 'touchstart') {
+        scrollThrottle = false;
+        return;
+    } else if (e.type === 'wheel' && Math.abs(e.deltaY) > 6) {
+        timeout = 1200;
     }
-    console.debug('event: ' + e.type + ' startScreenY: ' + startScreenY + (delta ? (' delta: ' + delta) : ''));
     setTimeout(function () {
         scrollThrottle = false;
     }, timeout);
