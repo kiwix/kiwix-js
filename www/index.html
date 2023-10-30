@@ -500,9 +500,14 @@
                             <div class="card-header" data-i18n="configure-display-panel-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
+                                    <label data-i18n-tip="configure-display-slideaway-tip" title="Header and footer will slide away when scrolling down at least 50 pixels, and will slide back when you scroll up. The option is now on by default." >
+                                        <input type="checkbox" name="slideAway" id="slideAwayCheck" checked>
+                                        <span data-i18n="configure-display-slideaway"><strong>Hide header and footer when scrolling down</strong> (scroll up slightly to show again)</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox">
                                     <label data-i18n-tip="configure-display-uianimations-tip" title="The animation is on by default and can be disabled by unchecking this option." >
-                                        <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
-                                            checked>
+                                        <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck" checked>
                                         <strong data-i18n="configure-display-uianimations">Animate transition between app pages</strong>
                                     </label>
                                 </div>
@@ -722,7 +727,7 @@
                 </div>
                 <iframe id="articleContent" class="articleIFrame" src="article.html" referrerpolicy="no-referrer" sandbox="allow-same-origin allow-scripts allow-modals allow-forms allow-popups allow-downloads"></iframe>
             </article>
-            <footer>
+            <footer id="footer">
                 <!-- Bootstrap alert box -->
                 <div id="alertBoxFooter">
                     <div id="downloadAlert" style="display:none;" class="kiwix-alert alert alert-info alert-dismissible fade show">
