@@ -104,7 +104,7 @@ let oldScrollY = 0;
 // Slides away or restores the header and footer
 function slideAway () {
     const newScrollY = articleWindow.pageYOffset;
-    if (newScrollY === oldScrollY || document.activeElement === document.getElementById('prefix')) return;
+    if (newScrollY === oldScrollY) return;
     if (newScrollY < oldScrollY) {
         restoreUIElements();
     } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
@@ -144,24 +144,41 @@ function restoreUIElements () {
 }
 
 let startScreenY = 0;
+let windowIsScrollable = false;
 let scrollThrottle = false;
+let timeoutResetScrollable;
 
 // Throttles the slide-away function
 function scroller (e) {
     if (scrollThrottle) return;
     const newScrollY = articleWindow.pageYOffset;
     // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
-    if ((/^touch|^wheel/.test(e.type)) && newScrollY !== oldScrollY) {
+    if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
+        oldScrollY = newScrollY;
         return;
     }
     scrollThrottle = true;
     let timeout = 250;
     let delta;
-    if (e.type === 'scroll') {
+    const visibleState = /\(0p?x?\)/.test(header.style.transform);
+    if (document.activeElement === document.getElementById('prefix')) {
+        // If the search field is focused and elements are not showing, do not slide away
+        if (!visibleState) restoreUIElements();
+    } else if (e.type === 'scroll') {
+        windowIsScrollable = true;
         slideAway();
+        // Debounces the scroll at end of page
+        const resetScrollable = function () {
+            windowIsScrollable = false;
+        };
+        clearTimeout(timeoutResetScrollable);
+        timeoutResetScrollable = setTimeout(resetScrollable, 3000);
     } else {
-        const toggleState = /\(0p?x?\)/.test(header.style.transform);
-        const hideOrShow = toggleState ? hideUIElements : restoreUIElements;
+        let hideOrShow = visibleState ? hideUIElements : restoreUIElements;
+        if (newScrollY === 0 && windowIsScrollable) {
+            // If we are at the top of a scrollable page, always restore the UI elements
+            hideOrShow = restoreUIElements;
+        }
         if (e.type === 'touchstart') {
             startScreenY = e.changedTouches[0].screenY;
             scrollThrottle = false;
@@ -173,11 +190,15 @@ function scroller (e) {
             }
         } else if (e.type === 'wheel') {
             // Console log showing oldScrollY and newScrollY
-            console.debug('oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY);
+            console.debug('oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
             delta = Math.abs(e.deltaY);
             if (delta > 6) {
                 hideOrShow();
                 timeout = 1200;
+            }
+        } else if (e.type === 'keydown') {
+            if ((e.ctrlKey || e.metaKey) && /Arrow(Up|Down)/.test(e.key)) {
+                hideOrShow();
             }
         }
     }
@@ -265,11 +286,13 @@ function resizeIFrame () {
     articleWindow.removeEventListener('touchstart', scroller);
     articleWindow.removeEventListener('touchend', scroller);
     articleWindow.removeEventListener('wheel', scroller);
+    articleWindow.removeEventListener('keydown', scroller);
     if (params.slideAway) {
         articleWindow.addEventListener('scroll', scroller);
         articleWindow.addEventListener('touchstart', scroller);
         articleWindow.addEventListener('touchend', scroller);
         articleWindow.addEventListener('wheel', scroller);
+        articleWindow.addEventListener('keydown', scroller);
     }
 }
 
