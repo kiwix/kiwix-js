@@ -143,16 +143,48 @@ function restoreUIElements () {
     }, 200);
 }
 
+let startScreenY = 0;
 let scrollThrottle = false;
 
 // Throttles the slide-away function
-function scroller () {
+function scroller (e) {
     if (scrollThrottle) return;
+    const newScrollY = articleWindow.pageYOffset;
+    // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
+    if ((/^touch|^wheel/.test(e.type)) && newScrollY !== oldScrollY) {
+        return;
+    }
     scrollThrottle = true;
-    slideAway();
+    let timeout = 250;
+    let delta;
+    if (e.type === 'scroll') {
+        slideAway();
+    } else {
+        const toggleState = /\(0p?x?\)/.test(header.style.transform);
+        const hideOrShow = toggleState ? hideUIElements : restoreUIElements;
+        if (e.type === 'touchstart') {
+            startScreenY = e.changedTouches[0].screenY;
+            scrollThrottle = false;
+            return;
+        } else if (e.type === 'touchend') {
+            delta = Math.abs(e.changedTouches[0].screenY);
+            if (delta > 50) {
+                hideOrShow();
+            }
+        } else if (e.type === 'wheel') {
+            // Console log showing oldScrollY and newScrollY
+            console.debug('oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY);
+            delta = Math.abs(e.deltaY);
+            if (delta > 6) {
+                hideOrShow();
+                timeout = 1200;
+            }
+        }
+    }
+    console.debug('event: ' + e.type + ' startScreenY: ' + startScreenY + (delta ? (' delta: ' + delta) : ''));
     setTimeout(function () {
         scrollThrottle = false;
-    }, 250);
+    }, timeout);
 };
 
 switchHomeKeyToFocusSearchBar();
@@ -228,8 +260,17 @@ function resizeIFrame () {
         }
     }
 
-    // Add the scroll event listener to the article window
-    if (params.slideAway) articleWindow.onscroll = scroller;
+    // Remove and Add the scroll event listener to the new article window
+    articleWindow.removeEventListener('scroll', scroller);
+    articleWindow.removeEventListener('touchstart', scroller);
+    articleWindow.removeEventListener('touchend', scroller);
+    articleWindow.removeEventListener('wheel', scroller);
+    if (params.slideAway) {
+        articleWindow.addEventListener('scroll', scroller);
+        articleWindow.addEventListener('touchstart', scroller);
+        articleWindow.addEventListener('touchend', scroller);
+        articleWindow.addEventListener('wheel', scroller);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -538,17 +579,14 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
 });
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
         params.slideAway = e.target.checked;
-        if (!params.slideAway) {
-            articleWindow.onscroll = null;
-        } else {
-            if (typeof navigator.getDeviceStorages === 'function') {
-                // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
-                uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
-                    'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-slideawaycheck-title') || 'Warning');
-            }
-            articleWindow.onscroll = scroller;
+        if (typeof navigator.getDeviceStorages === 'function') {
+            // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
+            uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
+                'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-slideawaycheck-title') || 'Warning');
         }
         settingsStore.setItem('slideAway', params.slideAway, Infinity);
+        // This has methods to add or remove the event listeners needed
+        resizeIFrame();
 });
 document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
     element.addEventListener('change', function () {
