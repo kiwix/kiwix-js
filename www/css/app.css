@@ -53,10 +53,6 @@
     padding: 0;
 }
 
-nav {
-    z-index: 1;
-}
-
 #navigationButtons .restrictedSize {
     max-width: 80%;
     margin-left: auto;
@@ -96,7 +92,6 @@ nav {
 
 #formArticleSearch {
     padding-top: 1rem;
-    z-index: 1;
 }
 
 #configuration {
