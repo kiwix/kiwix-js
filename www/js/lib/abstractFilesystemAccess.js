@@ -97,6 +97,9 @@ StorageFirefoxOS.prototype.enumerate = function (path) {
  * @returns {Promise<Array<string>>} Array of unique filenames (if a split zim is considered a single file)
  */
 async function updateZimDropdownOptions (files, selectedFile) {
+    const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
+    if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
+
     const select = document.getElementById('archiveList');
     const options = [];
     let count = 0;
