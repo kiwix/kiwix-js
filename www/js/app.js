@@ -109,19 +109,25 @@ function slideAway () {
         restoreUIElements();
     } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
         // Hide the toolbars if user has scrolled and not already hidden
-        const headerStyles = getComputedStyle(header);
-        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
-        const footerStyles = getComputedStyle(footer);
-        const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
-        header.style.transform = 'translateY(-' + headerHeight + 'px)';
-        articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
-        const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
-        articleContainer.style.height = iframeHeight + headerHeight + 'px';
-        footer.style.transform = 'translateY(' + footerHeight + 'px)';
-        region.style.height = window.innerHeight + headerHeight + 10 + 'px';
+        hideUIElements();
     }
     oldScrollY = newScrollY;
 };
+
+// Hides slide-away UI elements
+function hideUIElements () {
+    // Hide the toolbars if user has scrolled and not already hidden
+    const headerStyles = getComputedStyle(header);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const footerStyles = getComputedStyle(footer);
+    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
+    header.style.transform = 'translateY(-' + headerHeight + 'px)';
+    articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
+    const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
+    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    footer.style.transform = 'translateY(' + footerHeight + 'px)';
+    region.style.height = window.innerHeight + headerHeight + 10 + 'px';
+}
 
 // Restores slide-away UI elements
 function restoreUIElements () {
@@ -137,15 +143,15 @@ function restoreUIElements () {
     }, 200);
 }
 
-let throttle = false;
+let scrollThrottle = false;
 
 // Throttles the slide-away function
 function scroller () {
-    if (throttle) return;
-    throttle = true;
+    if (scrollThrottle) return;
+    scrollThrottle = true;
     slideAway();
     setTimeout(function () {
-        throttle = false;
+        scrollThrottle = false;
     }, 250);
 };
 
