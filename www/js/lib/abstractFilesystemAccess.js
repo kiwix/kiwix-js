@@ -99,6 +99,8 @@ StorageFirefoxOS.prototype.enumerate = function (path) {
  */
 async function updateZimDropdownOptions (files, selectedFile) {
     const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
+    // This will make sure that there is no race around condition when platform is firefox os
+    // as other function will handle the dropdown UI updates
     if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
 
     const select = document.getElementById('archiveList');
