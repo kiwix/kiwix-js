@@ -87,73 +87,10 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
-// Placeholders for the article container and the article window
+// Placeholders for the article container, the article window, and the search-article area
 const articleContainer = document.getElementById('articleContent');
 const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
-const header = document.getElementById('top');
-const footer = document.getElementById('footer');
-// Edge Legacy requires setting the z-index of the header to prevent it disappearing beneath the iframe
-if ('MSBlobBuilder' in window) {
-    header.style.position = 'relative';
-    header.style.zIndex = 1;
-}
-
-let oldScrollY = 0;
-
-// Slides away or restores the header and footer
-function slideAway () {
-    const newScrollY = articleWindow.pageYOffset;
-    if (newScrollY === oldScrollY || document.activeElement === document.getElementById('prefix')) return;
-    if (newScrollY < oldScrollY) {
-        restoreUIElements();
-    } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
-        // Hide the toolbars if user has scrolled and not already hidden
-        hideUIElements();
-    }
-    oldScrollY = newScrollY;
-};
-
-// Hides slide-away UI elements
-function hideUIElements () {
-    // Hide the toolbars if user has scrolled and not already hidden
-    const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
-    const footerStyles = getComputedStyle(footer);
-    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
-    header.style.transform = 'translateY(-' + headerHeight + 'px)';
-    articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
-    const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
-    articleContainer.style.height = iframeHeight + headerHeight + 'px';
-    footer.style.transform = 'translateY(' + footerHeight + 'px)';
-    region.style.height = window.innerHeight + headerHeight + 10 + 'px';
-}
-
-// Restores slide-away UI elements
-function restoreUIElements () {
-    header.style.transform = 'translateY(0)';
-    // Needed for Windows Mobile to prevent header disappearing beneath iframe
-    articleContainer.style.transform = 'translateY(-1px)';
-    footer.style.transform = 'translateY(0)';
-    setTimeout(function () {
-        const headerStyles = getComputedStyle(document.getElementById('top'));
-        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
-        region.style.height = window.innerHeight + 10 + 'px';
-    }, 200);
-}
-
-let scrollThrottle = false;
-
-// Throttles the slide-away function
-function scroller () {
-    if (scrollThrottle) return;
-    scrollThrottle = true;
-    slideAway();
-    setTimeout(function () {
-        scrollThrottle = false;
-    }, 250);
-};
 
 switchHomeKeyToFocusSearchBar();
 
@@ -208,7 +145,7 @@ function resizeIFrame () {
     const libraryContent = document.getElementById('libraryContent');
     const frames = [articleContainer, libraryContent];
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    restoreUIElements();
+    uiUtil.showSlidingUIElements();
     for (let i = 0; i < frames.length; i++) {
         const iframe = frames[i];
         if (iframe.style.display === 'none') {
@@ -228,8 +165,20 @@ function resizeIFrame () {
         }
     }
 
-    // Add the scroll event listener to the article window
-    if (params.slideAway) articleWindow.onscroll = scroller;
+    // Remove and add the scroll event listener to the new article window
+    // Note that IE11 doesn't support wheel or touch events on the iframe, but it does support keydown and scroll
+    articleWindow.removeEventListener('scroll', uiUtil.scroller);
+    articleWindow.removeEventListener('touchstart', uiUtil.scroller);
+    articleWindow.removeEventListener('touchend', uiUtil.scroller);
+    articleWindow.removeEventListener('wheel', uiUtil.scroller);
+    articleWindow.removeEventListener('keydown', uiUtil.scroller);
+    if (params.slideAway) {
+        articleWindow.addEventListener('scroll', uiUtil.scroller);
+        articleWindow.addEventListener('touchstart', uiUtil.scroller);
+        articleWindow.addEventListener('touchend', uiUtil.scroller);
+        articleWindow.addEventListener('wheel', uiUtil.scroller);
+        articleWindow.addEventListener('keydown', uiUtil.scroller);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -538,17 +487,14 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
 });
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
         params.slideAway = e.target.checked;
-        if (!params.slideAway) {
-            articleWindow.onscroll = null;
-        } else {
-            if (typeof navigator.getDeviceStorages === 'function') {
-                // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
-                uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
-                    'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-slideawaycheck-title') || 'Warning');
-            }
-            articleWindow.onscroll = scroller;
+        if (typeof navigator.getDeviceStorages === 'function') {
+            // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
+            uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
+                'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-slideawaycheck-title') || 'Warning');
         }
         settingsStore.setItem('slideAway', params.slideAway, Infinity);
+        // This has methods to add or remove the event listeners needed
+        resizeIFrame();
 });
 document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
     element.addEventListener('change', function () {
@@ -1716,7 +1662,7 @@ function readArticle (dirEntry) {
                                     setTimeout(function () {
                                         uiUtil.spinnerDisplay(false);
                                     }, 4000);
-                                    restoreUIElements();
+                                    uiUtil.showSlidingUIElements();
                                 }
                             }
                         }
