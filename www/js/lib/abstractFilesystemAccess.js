@@ -301,12 +301,12 @@ async function getFilesFromReader (reader) {
 
 export default {
     StorageFirefoxOS: StorageFirefoxOS,
-    updateZimDropdownOptions,
-    selectDirectoryFromPickerViaFileSystemApi,
-    selectFileFromPickerViaFileSystemApi,
-    getSelectedZimFromCache,
-    loadPreviousZimFile,
-    handleFolderDropViaWebkit,
-    handleFolderDropViaFileSystemAPI,
-    getSelectedZimFromWebkitList
+    updateZimDropdownOptions: updateZimDropdownOptions,
+    selectDirectoryFromPickerViaFileSystemApi: selectDirectoryFromPickerViaFileSystemApi,
+    selectFileFromPickerViaFileSystemApi: selectFileFromPickerViaFileSystemApi,
+    getSelectedZimFromCache: getSelectedZimFromCache,
+    loadPreviousZimFile: loadPreviousZimFile,
+    handleFolderDropViaWebkit: handleFolderDropViaWebkit,
+    handleFolderDropViaFileSystemAPI: handleFolderDropViaFileSystemAPI,
+    getSelectedZimFromWebkitList: getSelectedZimFromWebkitList
 };

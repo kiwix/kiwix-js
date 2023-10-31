@@ -1342,10 +1342,11 @@ let webKitFileList = null
 function displayFileSelect () {
     const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
 
-    console.debug('File system api supported', params.isFileSystemApiSupported);
-    console.debug('Webkit supported', params.isWebkitDirApiSupported);
-    console.debug('Firefox os native file support api', isFireFoxOsNativeFileApiAvailable)
+    console.debug(`File system api is ${params.isFileSystemApiSupported ? '' : 'not '}supported`);
+    console.debug(`Webkit directory api ${params.isWebkitDirApiSupported ? '' : 'not '}supported`);
+    console.debug(`Firefox os native file ${isFireFoxOsNativeFileApiAvailable ? '' : 'not '}support api`)
 
+    document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers').replace('{{numberOfFiles}}', '0');
     document.getElementById('openLocalFiles').style.display = 'block';
     if (params.isFileSystemApiSupported || params.isWebkitDirApiSupported) {
         document.getElementById('chooseArchiveFromLocalStorage').style.display = '';

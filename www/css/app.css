@@ -102,6 +102,14 @@
     display: inline;
 }
 
+#archiveList {
+    width: 60%;
+}
+
+#archiveList {
+    width: 60%;
+    min-width: auto;
+}
 /* Custom file input */
 
 input[type="file"] {
@@ -334,4 +342,10 @@ button {
         padding-bottom: 1px !important;
         font-size: 16px !important;
     }
+
+    #archiveList {
+        width: 100%;
+        min-width: auto;
+    }
+    
 }
