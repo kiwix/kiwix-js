@@ -30,8 +30,6 @@ import settingsStore from './settingsStore.js';
 import translateUI from './translateUI.js';
 
 // Placeholders for the article container and the article window
-const articleContainer = document.getElementById('articleContent');
-const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
@@ -40,7 +38,7 @@ const footer = document.getElementById('footer');
  * Hides slide-away UI elements
  */
 function hideSlidingUIElements () {
-    // Hide the toolbars if user has scrolled and not already hidden
+    const articleContainer = document.getElementById('articleContent');
     const headerStyles = getComputedStyle(header);
     const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
     const footerStyles = getComputedStyle(footer);
@@ -57,6 +55,7 @@ function hideSlidingUIElements () {
  * Restores slide-away UI elements
  */
 function showSlidingUIElements () {
+    const articleContainer = document.getElementById('articleContent');
     header.style.transform = 'translateY(0)';
     // Needed for Windows Mobile to prevent header disappearing beneath iframe
     articleContainer.style.transform = 'translateY(-1px)';
@@ -75,10 +74,11 @@ let scrollThrottle = false;
  * Luuncher for the slide-away function, including a throttle to prevent it being called too often
  */
 function scroller (e) {
+    const articleContainer = document.getElementById('articleContent');
     if (scrollThrottle) return;
     // windowIsScrollable gets set and reset in slideAway()
     if (windowIsScrollable && e.type === 'wheel') return;
-    const newScrollY = articleWindow.pageYOffset;
+    const newScrollY = articleContainer.contentWindow.pageYOffset;
     // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
     if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
         oldScrollY = newScrollY;
@@ -111,7 +111,8 @@ let windowIsScrollable = false;
 
 // Slides away or restores the header and footer
 function slideAway (e) {
-    const newScrollY = articleWindow.pageYOffset;
+    const articleContainer = document.getElementById('articleContent');
+    const newScrollY = articleContainer.contentWindow.pageYOffset;
     let delta;
     const visibleState = /\(0p?x?\)/.test(header.style.transform);
     // If the search field is focused and elements are not showing, do not slide away
