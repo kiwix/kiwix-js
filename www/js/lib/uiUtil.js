@@ -151,7 +151,8 @@ function slideAway (e) {
                 hideOrShow();
             }
         } else if (e.type === 'keydown') {
-            if ((e.ctrlKey || e.metaKey) && /Arrow(Up|Down)/.test(e.key)) {
+            // IE11 produces Up and Down instead of ArrowUp and ArrowDown
+            if ((e.ctrlKey || e.metaKey) && /^(Arrow)?(Up|Down)$/.test(e.key)) {
                 hideOrShow();
             }
         }

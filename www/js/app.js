@@ -165,7 +165,8 @@ function resizeIFrame () {
         }
     }
 
-    // Remove and Add the scroll event listener to the new article window
+    // Remove and add the scroll event listener to the new article window
+    // Note that IE11 doesn't support wheel or touch events on the iframe, but it does support keydown and scroll
     articleWindow.removeEventListener('scroll', uiUtil.scroller);
     articleWindow.removeEventListener('touchstart', uiUtil.scroller);
     articleWindow.removeEventListener('touchend', uiUtil.scroller);
