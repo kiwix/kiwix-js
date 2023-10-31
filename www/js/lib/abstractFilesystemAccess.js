@@ -26,6 +26,7 @@
 'use strict';
 
 import cache from './cache.js';
+import translateUI from './translateUI.js';
 
 function StorageFirefoxOS (storage) {
     this._storage = storage;
@@ -103,7 +104,7 @@ async function updateZimDropdownOptions (files, selectedFile) {
     const select = document.getElementById('archiveList');
     const options = [];
     let count = 0;
-    if (files.length !== 0) options.push(new Option('Select an archive..', ''));
+    if (files.length !== 0) options.push(new Option(translateUI.t('configure-select-file-first-option'), ''));
 
     files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
@@ -113,8 +114,8 @@ async function updateZimDropdownOptions (files, selectedFile) {
     });
     select.replaceChildren(...options);
     document.getElementById('archiveList').value = selectedFile;
-    document.getElementById('numberOfFilesDisplay').innerText = count;
     document.getElementById('fileCountDisplay').style.display = '';
+    document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers').replace('{{numberOfFiles}}', count.toString());
 }
 
 /**

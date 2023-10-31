@@ -475,9 +475,9 @@
                                         accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
                                     <span data-i18n="home-btn-fileselect">Select ZIM File(s)</span>
                                 </label>
-                                <label class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;">
-                                    <input type="file" id="archiveFolders" style="display: none;" webkitdirectory="true" />
-                                    Select Folder
+                                <label class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
+                                    <input type="file" id="archiveFolders" style="display: none;" webkitdirectory="true"/>
+                                    <span data-i18n="configure-btn-folderselect">Select Folder</span>
                                 </label>
                                 <label class="btn btn-light custom-file-upload" id="libraryBtn" data-i18n="configure-btn-library">
                                     Browse ZIM Library
@@ -492,11 +492,10 @@
                         </div>
                         <div id="chooseArchiveFromLocalStorage" style="display: none;">
                             <div id="filesSelectionInfoAndCount">
-                                <p id="fileCountDisplay" style="display: none;">
-                                    <span id="numberOfFilesDisplay">0</span>
-                                    archives found in selected location.&nbsp;
+                                <p id="fileCountDisplay" style="display: none;" data-i18n="configure-select-file-numbers">
+                                    0 archives found in selected location.&nbsp;
                                 </p>
-                                <p>Please select the archive you want to use : </p>
+                                <p data-i18n="configure-select-file-instructions">Please select the archive you want to use : </p>
                             </div>
                             <select id="archiveList" class="form-control"></select>
                             <br />
