@@ -87,128 +87,10 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
-// Placeholders for the article container and the article window
+// Placeholders for the article container, the article window, and the search-article area
 const articleContainer = document.getElementById('articleContent');
 const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
-const header = document.getElementById('top');
-const footer = document.getElementById('footer');
-// Edge Legacy requires setting the z-index of the header to prevent it disappearing beneath the iframe
-if ('MSBlobBuilder' in window) {
-    header.style.position = 'relative';
-    header.style.zIndex = 1;
-}
-
-let oldScrollY = 0;
-let timeoutResetScrollable;
-let windowIsScrollable = false;
-
-// Slides away or restores the header and footer
-function slideAway (e) {
-    const newScrollY = articleWindow.pageYOffset;
-    let delta;
-    const visibleState = /\(0p?x?\)/.test(header.style.transform);
-    // If the search field is focused and elements are not showing, do not slide away
-    if (document.activeElement === document.getElementById('prefix')) {
-        if (!visibleState) restoreUIElements();
-    } else if (e.type === 'scroll') {
-        windowIsScrollable = true;
-        if (newScrollY === oldScrollY) return;
-        if (newScrollY < oldScrollY) {
-            restoreUIElements();
-        } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
-            // Hide the toolbars if user has scrolled and not already hidden
-            hideUIElements();
-        }
-        oldScrollY = newScrollY;
-        // Debounces the scroll at end of page
-        const resetScrollable = function () {
-            windowIsScrollable = false;
-        };
-        clearTimeout(timeoutResetScrollable);
-        timeoutResetScrollable = setTimeout(resetScrollable, 3000);
-    } else {
-        let hideOrShow = visibleState ? hideUIElements : restoreUIElements;
-        if (newScrollY === 0 && windowIsScrollable) {
-            // If we are at the top of a scrollable page, always restore the UI elements
-            hideOrShow = restoreUIElements;
-        }
-        if (e.type === 'touchend') {
-            delta = Math.abs(e.changedTouches[0].screenY);
-            if (delta > 50) {
-                hideOrShow();
-            }
-        } else if (e.type === 'wheel') {
-            // Console log showing oldScrollY and newScrollY
-            console.debug('eventType: ' + e.type + ' oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
-            delta = Math.abs(e.deltaY);
-            if (delta > 6) {
-                hideOrShow();
-            }
-        } else if (e.type === 'keydown') {
-            if ((e.ctrlKey || e.metaKey) && /Arrow(Up|Down)/.test(e.key)) {
-                hideOrShow();
-            }
-        }
-    }
-}
-
-// Hides slide-away UI elements
-function hideUIElements () {
-    // Hide the toolbars if user has scrolled and not already hidden
-    const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
-    const footerStyles = getComputedStyle(footer);
-    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
-    header.style.transform = 'translateY(-' + headerHeight + 'px)';
-    articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
-    const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
-    articleContainer.style.height = iframeHeight + headerHeight + 'px';
-    footer.style.transform = 'translateY(' + footerHeight + 'px)';
-    region.style.height = window.innerHeight + headerHeight + 10 + 'px';
-}
-
-// Restores slide-away UI elements
-function restoreUIElements () {
-    header.style.transform = 'translateY(0)';
-    // Needed for Windows Mobile to prevent header disappearing beneath iframe
-    articleContainer.style.transform = 'translateY(-1px)';
-    footer.style.transform = 'translateY(0)';
-    setTimeout(function () {
-        const headerStyles = getComputedStyle(document.getElementById('top'));
-        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
-        region.style.height = window.innerHeight + 10 + 'px';
-    }, 200);
-}
-
-let scrollThrottle = false;
-
-// Throttles the slide-away function
-function scroller (e) {
-    if (scrollThrottle) return;
-    // windowIsScrollable gets set and reset in slideAway()
-    if (windowIsScrollable && e.type === 'wheel') return;
-    const newScrollY = articleWindow.pageYOffset;
-    // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
-    if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
-        oldScrollY = newScrollY;
-        return;
-    }
-    scrollThrottle = true;
-    // Call the main function
-    slideAway(e);
-    let timeout = 250;
-    if (e.type === 'touchstart') {
-        scrollThrottle = false;
-        return;
-    } else if (e.type === 'wheel' && Math.abs(e.deltaY) > 6) {
-        timeout = 1200;
-    }
-    setTimeout(function () {
-        scrollThrottle = false;
-    }, timeout);
-};
 
 switchHomeKeyToFocusSearchBar();
 
@@ -263,7 +145,7 @@ function resizeIFrame () {
     const libraryContent = document.getElementById('libraryContent');
     const frames = [articleContainer, libraryContent];
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    restoreUIElements();
+    uiUtil.showSlidingUIElements();
     for (let i = 0; i < frames.length; i++) {
         const iframe = frames[i];
         if (iframe.style.display === 'none') {
@@ -284,17 +166,17 @@ function resizeIFrame () {
     }
 
     // Remove and Add the scroll event listener to the new article window
-    articleWindow.removeEventListener('scroll', scroller);
-    articleWindow.removeEventListener('touchstart', scroller);
-    articleWindow.removeEventListener('touchend', scroller);
-    articleWindow.removeEventListener('wheel', scroller);
-    articleWindow.removeEventListener('keydown', scroller);
+    articleWindow.removeEventListener('scroll', uiUtil.scroller);
+    articleWindow.removeEventListener('touchstart', uiUtil.scroller);
+    articleWindow.removeEventListener('touchend', uiUtil.scroller);
+    articleWindow.removeEventListener('wheel', uiUtil.scroller);
+    articleWindow.removeEventListener('keydown', uiUtil.scroller);
     if (params.slideAway) {
-        articleWindow.addEventListener('scroll', scroller);
-        articleWindow.addEventListener('touchstart', scroller);
-        articleWindow.addEventListener('touchend', scroller);
-        articleWindow.addEventListener('wheel', scroller);
-        articleWindow.addEventListener('keydown', scroller);
+        articleWindow.addEventListener('scroll', uiUtil.scroller);
+        articleWindow.addEventListener('touchstart', uiUtil.scroller);
+        articleWindow.addEventListener('touchend', uiUtil.scroller);
+        articleWindow.addEventListener('wheel', uiUtil.scroller);
+        articleWindow.addEventListener('keydown', uiUtil.scroller);
     }
 }
 
@@ -1779,7 +1661,7 @@ function readArticle (dirEntry) {
                                     setTimeout(function () {
                                         uiUtil.spinnerDisplay(false);
                                     }, 4000);
-                                    restoreUIElements();
+                                    uiUtil.showSlidingUIElements();
                                 }
                             }
                         }

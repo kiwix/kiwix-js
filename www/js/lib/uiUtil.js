@@ -29,6 +29,136 @@ import util from './util.js';
 import settingsStore from './settingsStore.js';
 import translateUI from './translateUI.js';
 
+// Placeholders for the article container and the article window
+const articleContainer = document.getElementById('articleContent');
+const articleWindow = articleContainer.contentWindow;
+const region = document.getElementById('search-article');
+const header = document.getElementById('top');
+const footer = document.getElementById('footer');
+
+/**
+ * Hides slide-away UI elements
+ */
+function hideSlidingUIElements () {
+    // Hide the toolbars if user has scrolled and not already hidden
+    const headerStyles = getComputedStyle(header);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const footerStyles = getComputedStyle(footer);
+    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
+    header.style.transform = 'translateY(-' + headerHeight + 'px)';
+    articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
+    const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
+    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    footer.style.transform = 'translateY(' + footerHeight + 'px)';
+    region.style.height = window.innerHeight + headerHeight + 10 + 'px';
+}
+
+/**
+ * Restores slide-away UI elements
+ */
+function showSlidingUIElements () {
+    header.style.transform = 'translateY(0)';
+    // Needed for Windows Mobile to prevent header disappearing beneath iframe
+    articleContainer.style.transform = 'translateY(-1px)';
+    footer.style.transform = 'translateY(0)';
+    setTimeout(function () {
+        const headerStyles = getComputedStyle(document.getElementById('top'));
+        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+        region.style.height = window.innerHeight + 10 + 'px';
+    }, 200);
+}
+
+let scrollThrottle = false;
+
+/**
+ * Luuncher for the slide-away function, including a throttle to prevent it being called too often
+ */
+function scroller (e) {
+    if (scrollThrottle) return;
+    // windowIsScrollable gets set and reset in slideAway()
+    if (windowIsScrollable && e.type === 'wheel') return;
+    const newScrollY = articleWindow.pageYOffset;
+    // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
+    if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
+        oldScrollY = newScrollY;
+        return;
+    }
+    scrollThrottle = true;
+    // Call the main function
+    slideAway(e);
+    let timeout = 250;
+    if (/^touch|^keydown/.test(e.type)) {
+        scrollThrottle = false;
+        return;
+    } else if (e.type === 'wheel' && Math.abs(e.deltaY) > 6) {
+        timeout = 1200;
+    }
+    setTimeout(function () {
+        scrollThrottle = false;
+    }, timeout);
+};
+
+// Edge Legacy requires setting the z-index of the header to prevent it disappearing beneath the iframe
+if ('MSBlobBuilder' in window) {
+    header.style.position = 'relative';
+    header.style.zIndex = 1;
+}
+
+let oldScrollY = 0;
+let timeoutResetScrollable;
+let windowIsScrollable = false;
+
+// Slides away or restores the header and footer
+function slideAway (e) {
+    const newScrollY = articleWindow.pageYOffset;
+    let delta;
+    const visibleState = /\(0p?x?\)/.test(header.style.transform);
+    // If the search field is focused and elements are not showing, do not slide away
+    if (document.activeElement === document.getElementById('prefix')) {
+        if (!visibleState) showSlidingUIElements();
+    } else if (e.type === 'scroll') {
+        windowIsScrollable = true;
+        if (newScrollY === oldScrollY) return;
+        if (newScrollY < oldScrollY) {
+            showSlidingUIElements();
+        } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
+            // Hide the toolbars if user has scrolled and not already hidden
+            hideSlidingUIElements();
+        }
+        oldScrollY = newScrollY;
+        // Debounces the scroll at end of page
+        const resetScrollable = function () {
+            windowIsScrollable = false;
+        };
+        clearTimeout(timeoutResetScrollable);
+        timeoutResetScrollable = setTimeout(resetScrollable, 3000);
+    } else {
+        let hideOrShow = visibleState ? hideSlidingUIElements : showSlidingUIElements;
+        if (newScrollY === 0 && windowIsScrollable) {
+            // If we are at the top of a scrollable page, always restore the UI elements
+            hideOrShow = showSlidingUIElements;
+        }
+        if (e.type === 'touchend') {
+            delta = Math.abs(e.changedTouches[0].screenY);
+            if (delta > 50) {
+                hideOrShow();
+            }
+        } else if (e.type === 'wheel') {
+            delta = Math.abs(e.deltaY);
+            if (delta > 6) {
+                hideOrShow();
+            }
+        } else if (e.type === 'keydown') {
+            if ((e.ctrlKey || e.metaKey) && /Arrow(Up|Down)/.test(e.key)) {
+                hideOrShow();
+            }
+        }
+        // DEBUG for non-scrolling events events
+        console.debug('eventType: ' + e.type + ' oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
+    }
+}
+
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
  *
@@ -843,6 +973,9 @@ function getBrowserLanguage () {
  * Functions and classes exposed by this module
  */
 export default {
+    hideSlidingUIElements: hideSlidingUIElements,
+    showSlidingUIElements: showSlidingUIElements,
+    scroller: scroller,
     systemAlert: systemAlert,
     feedNodeWithDataURI: feedNodeWithDataURI,
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
