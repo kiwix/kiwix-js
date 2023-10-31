@@ -20,6 +20,8 @@ document.localeJson = {
       "configure-about-usage-link": "Informations (Utilisation)",
       "configure-btn-library": "Bibliothèque ZIM",
       "configure-btn-folderselect": "Sélectionner un dossier",
+      "configure-btn-rescan": "Rechercher",
+      "configure-about-rescan-btn": "Réanalyse des cartes SD et de la mémoire interne",
       "configure-select-file-numbers": "{{numberOfFiles}} archives trouvées dans le lieu sélectionné. ",
       "configure-download-instructions": "Cette application a besoin d'un fichier ZIM pour fonctionner.<br />Pour des instructions complètes, veuillez consulter la section",
       "configure-select-instructions": "Veuillez sélectionner ou glisser-déposer un fichier .zim (ou tous les .zimaa, .zimab etc. dans le cas d'un fichier ZIM découpé)&nbsp;:",
