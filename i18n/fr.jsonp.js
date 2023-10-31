@@ -22,7 +22,7 @@ document.localeJson = {
       "configure-btn-folderselect": "Sélectionner un dossier",
       "configure-btn-rescan": "Rechercher",
       "configure-about-rescan-tip": "Réanalyser la carte SD et la mérmoire interne",
-      "configure-select-file-numbers": "{{numberOfFiles}} archive(s) trouvées dans le lieu sélectionné. ",
+      "configure-select-file-numbers": "archive(s) trouvées dans le lieu sélectionné. ",
       "configure-download-instructions": "Cette application a besoin d'un fichier ZIM pour fonctionner.<br />Pour des instructions complètes, veuillez consulter la section",
       "configure-select-instructions": "Veuillez sélectionner ou glisser-déposer un fichier .zim (ou tous les .zimaa, .zimab etc. dans le cas d'un fichier ZIM découpé)&nbsp;:",
       "configure-select-file-instructions": "Veuillez sélectionner l'archive que vous souhaitez utiliser :",

@@ -104,20 +104,23 @@ async function updateZimDropdownOptions (files, selectedFile) {
     if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
 
     const select = document.getElementById('archiveList');
-    const options = [];
+    let options = '';
     let count = 0;
-    if (files.length !== 0) options.push(new Option(translateUI.t('configure-select-file-first-option'), ''));
+    if (files.length !== 0) options += `<option value="">${translateUI.t('configure-select-file-first-option')}</option>`;
 
     files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
-            options.push(new Option(`${fileName}`, fileName));
+            options += `<option value="${fileName}">${fileName}</option>`;
             count++;
         }
     });
-    select.replaceChildren(...options);
+    select.innerHTML = options;
     document.getElementById('archiveList').value = selectedFile;
+    document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
-    document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers').replace('{{numberOfFiles}}', count.toString());
+
+    document.getElementById('numberOfFilesCount').innerText = count.toString();
+    document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
 }
 
 /**
@@ -260,6 +263,8 @@ async function handleFolderDropViaWebkit (event) {
 
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
+        console.log(entry.file);
+        await updateZimDropdownOptions([entry.name], entry.name);
         return { loadZim: true, files: [entry.file] };
     } else if (entry.isDirectory) {
         var reader = entry.createReader();
