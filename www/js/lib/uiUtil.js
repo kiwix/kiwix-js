@@ -30,7 +30,6 @@ import settingsStore from './settingsStore.js';
 import translateUI from './translateUI.js';
 
 // Placeholders for the article container and the article window
-const region = document.getElementById('search-article');
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
 
@@ -48,7 +47,6 @@ function hideSlidingUIElements () {
     const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
     articleContainer.style.height = iframeHeight + headerHeight + 'px';
     footer.style.transform = 'translateY(' + footerHeight + 'px)';
-    region.style.height = window.innerHeight + headerHeight + 10 + 'px';
 }
 
 /**
@@ -64,7 +62,6 @@ function showSlidingUIElements () {
         const headerStyles = getComputedStyle(document.getElementById('top'));
         const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
         articleContainer.style.height = window.innerHeight - headerHeight + 'px';
-        region.style.height = window.innerHeight + 10 + 'px';
     }, 200);
 }
 
@@ -79,14 +76,19 @@ function scroller (e) {
     // windowIsScrollable gets set and reset in slideAway()
     if (windowIsScrollable && e.type === 'wheel') return;
     const newScrollY = articleContainer.contentWindow.pageYOffset;
-    // If it's a wheel event and we're actually scrolling, get out of the way and let the scroll event handle it
+    // If it's a non-scroll event and we're actually scrolling, get out of the way and let the scroll event handle it
     if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
         oldScrollY = newScrollY;
+        return;
+    }
+    if (e.type === 'touchstart') {
+        oldTouchY = e.touches[0].screenY;
         return;
     }
     scrollThrottle = true;
     // Call the main function
     slideAway(e);
+    // Set timeouts for the throttle
     let timeout = 250;
     if (/^touch|^keydown/.test(e.type)) {
         scrollThrottle = false;
@@ -106,6 +108,7 @@ if ('MSBlobBuilder' in window) {
 }
 
 let oldScrollY = 0;
+let oldTouchY = 0;
 let timeoutResetScrollable;
 let windowIsScrollable = false;
 
@@ -141,8 +144,8 @@ function slideAway (e) {
             hideOrShow = showSlidingUIElements;
         }
         if (e.type === 'touchend') {
-            delta = Math.abs(e.changedTouches[0].screenY);
-            if (delta > 50) {
+            delta = Math.abs(oldTouchY - e.changedTouches[0].screenY);
+            if (delta > articleContainer.contentWindow.innerHeight / 1.5) {
                 hideOrShow();
             }
         } else if (e.type === 'wheel') {
