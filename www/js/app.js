@@ -146,9 +146,9 @@ function resizeIFrame () {
     const libraryContent = document.getElementById('libraryContent');
     const liHomeNav = document.getElementById('liHomeNav');
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    uiUtil.showSlidingUIElements();
     // There is a race condition with the slide animations, so we have to wait more than 300ms
     setTimeout(function () {
+        uiUtil.showSlidingUIElements();
         if (library.style.display !== 'none') {
             // We are in Library, so we set the height of the library iframes to the window height minus the header height
             const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);

@@ -72,7 +72,7 @@
     margin-bottom: 12px !important;
 }
 
-#top, #articleContent, #footer {
+#top, #articleContent, #footer, article {
     transition: transform 0.3s ease;
 }
 
