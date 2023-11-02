@@ -38,15 +38,16 @@ const footer = document.getElementById('footer');
  */
 function hideSlidingUIElements () {
     const articleContainer = document.getElementById('articleContent');
-    const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const articleElement = document.querySelector('article');
     const footerStyles = getComputedStyle(footer);
     const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
-    header.style.transform = 'translateY(-' + headerHeight + 'px)';
-    articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
-    const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
-    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    const headerStyles = getComputedStyle(header);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const iframeHeight = parseFloat(articleElement.style.height.replace('px', ''));
     footer.style.transform = 'translateY(' + footerHeight + 'px)';
+    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    header.style.transform = 'translateY(-' + headerHeight + 'px)';
+    articleElement.style.transform = 'translateY(-' + headerHeight + 'px)';
 }
 
 /**
@@ -54,15 +55,15 @@ function hideSlidingUIElements () {
  */
 function showSlidingUIElements () {
     const articleContainer = document.getElementById('articleContent');
+    const articleElement = document.querySelector('article');
+    const headerStyles = getComputedStyle(document.getElementById('top'));
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
     header.style.transform = 'translateY(0)';
     // Needed for Windows Mobile to prevent header disappearing beneath iframe
-    articleContainer.style.transform = 'translateY(-1px)';
+    articleElement.style.transform = 'translateY(-1px)';
     footer.style.transform = 'translateY(0)';
-    setTimeout(function () {
-        const headerStyles = getComputedStyle(document.getElementById('top'));
-        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
-    }, 200);
+    articleElement.style.height = window.innerHeight - headerHeight + 'px';
+    articleContainer.style.height = window.innerHeight - headerHeight + 'px';
 }
 
 let scrollThrottle = false;
