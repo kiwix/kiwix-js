@@ -142,27 +142,30 @@ darkPreference.onchange = function () {
  */
 function resizeIFrame () {
     const headerStyles = getComputedStyle(document.getElementById('top'));
+    const library = document.getElementById('library');
     const libraryContent = document.getElementById('libraryContent');
-    const frames = [articleContainer, libraryContent];
+    const liHomeNav = document.getElementById('liHomeNav');
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
     uiUtil.showSlidingUIElements();
-    for (let i = 0; i < frames.length; i++) {
-        const iframe = frames[i];
-        if (iframe.style.display === 'none') {
-            // We are in About or Configuration, so we only set the region height
-            region.style.height = window.innerHeight + 'px';
-            nestedFrame.style.height = window.innerHeight - 110 + 'px';
-        } else {
-            // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-            setTimeout(function () {
-                // Get  header height *including* its bottom margin
-                const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-                iframe.style.height = window.innerHeight - headerHeight + 'px';
-                // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
-                region.style.height = window.innerHeight + 10 + 'px';
-                nestedFrame.style.height = window.innerHeight - 110 + 'px';
-            }, 100);
-        }
+    if (library.style.display !== 'none') {
+        // We are in Library, so we set the height of the library iframes to the window height minus the header height
+        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+        libraryContent.style.height = window.innerHeight + 'px';
+        nestedFrame.style.height = window.innerHeight - headerHeight + 'px';
+        region.style.overflowY = 'hidden';
+    } else if (!liHomeNav.classList.contains('active')) {
+        // We are not in Home, so we reset the region height
+        region.style.height = window.innerHeight + 'px';
+        region.style.overflowY = 'auto';
+    } else {
+        // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
+        setTimeout(function () {
+            // Get  header height *including* its bottom margin
+            const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+            articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+            // Hide the scrollbar of Configure / About
+            region.style.overflowY = 'hidden';
+        }, 100);
     }
 
     // Remove and add the scroll event listener to the new article window
@@ -409,9 +412,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-
     uiUtil.tabTransitionToSection('config', params.showUIAnimations);
-
     refreshAPIStatus();
     refreshCacheStatus();
     uiUtil.checkUpdateStatus(appstate);
@@ -425,10 +426,8 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
-
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('about', params.showUIAnimations);
-
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
@@ -1342,6 +1341,7 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
         Function('try{}catch{}')();
         iframe.setAttribute('src', params.libraryUrl);
         uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+        resizeIFrame();
     } catch (error) {
         window.open(params.altLibraryUrl, '_blank')
     }
