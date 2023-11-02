@@ -386,7 +386,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
 
     // Give the focus to the search field, and clean up the page contents
     document.getElementById('prefix').value = '';
-    document.getElementById('prefix').focus();
+    if (params.useHomeKeyToFocusSearchBar) document.getElementById('prefix').focus();
     var articleList = document.getElementById('articleList');
     var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
