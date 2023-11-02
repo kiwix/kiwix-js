@@ -4,6 +4,27 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Kiwix JS v3.11.0
+
+Released on *TODO*
+
+* FEATURE: Integration of in-app ZIM Download Library based on library.kiwix.org
+* FEATURE: Fallback to basic ZIM library for browsers that don't support library.kiwix.org
+* [TODO] FEATURE: Remember picked files and folders between app launches with File System Access API
+* FEATURE: Slide away header and footer when scrolling an article, restored when scrolling up
+* FEATURE: On non-scrollable pages, use Ctrl/Cmd + UpArrow/DownArrow, long swipe or mousewheel
+* UPDATE: Turn off auto-focus of search bar on landing pages (option added to Home key setting)
+* UPDATE: Launch spinner as soon as possible and make it more informative
+* FIX: Added sanity checks to prevent runaway case-insensitive title searches
+* FIX: Active content warning now correctly detects new Kolibri-based archives
+* [TODO] FIX: Translated some untranslated UI elements for Firefox OS
+* CLEANUP: Transition animations code cleaned up and animations now off by default
+* DEV: Build both MV2 and MV3 packages for Mozilla extension
+* DEV: Add facility to extract and set ZIM metadata (also displayed in console.debug)
+* DEV: Ensure all built packages contain i18n files
+* DEV: In the extension, completely exit local code when a success message is received from PWA
+* DEV: Dependencies for babel-core updated and other vulnerabilities fixed
+
 ## Kiwix JS v3.10.1 (3.10.0)
 
 Note: this release was originally numbered 3.10.0, but due to a publishing issue with the Mozilla extension
@@ -13,7 +34,7 @@ Released on *2023-09-10*
 
 * FEATURE: Full internationalization of the app in Spanish and French (more languages to follow)
 * UPDATE: Improved availability of non-store Chromium extension files and installation instructions 
-* UPDATE: Supported platform infromation in README
+* UPDATE: Supported platform information in README
 * UPDATE: Documentation updates throughout app
 * FIX: Universal file picking in latest Chromium browsers for Android
 * FIX: Failure to show active content warning for PhET ZIMs
