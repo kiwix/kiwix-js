@@ -1451,9 +1451,9 @@ async function handleFileDrop (packet) {
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderDropViaFileSystemAPI(packet)
-    if (params.isWebkitDirApiSupported) {
-        const ret = await abstractFilesystemAccess.handleFolderDropViaWebkit(packet)
+    if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet)
+    else if (params.isWebkitDirApiSupported) {
+        const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet)
         loadZim = ret.loadZim
         webKitFileList = ret.files
     }

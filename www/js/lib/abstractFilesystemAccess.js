@@ -214,10 +214,14 @@ function getSelectedZimFromWebkitList (webKitFileList, filename) {
  * Loads the Previously loaded zim filename(s) via local storage
  */
 function loadPreviousZimFile () {
-    if (window.params.isFileSystemApiSupported) {
-        const filenames = localStorage.getItem('zimFilenames');
-        if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
-    }
+    // If we call `updateZimDropdownOptions` without any delay it will run before the internationalization is initialized
+    // It's a bit hacky but it works and I am not sure if there is any other way ATM
+    setTimeout(() => {
+        if (window.params.isFileSystemApiSupported) {
+            const filenames = localStorage.getItem('zimFilenames');
+            if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
+        }
+    }, 200);
 }
 
 /**
@@ -225,7 +229,7 @@ function loadPreviousZimFile () {
  * @param {DragEvent} packet The DragEvent packet
  * @returns {Promise<boolean>} Whether the dropped item is a file or directory
  */
-async function handleFolderDropViaFileSystemAPI (packet) {
+async function handleFolderOrFileDropViaFileSystemAPI (packet) {
     if (!window.params.isFileSystemApiSupported) return true;
 
     // Only runs when browser support File System API
@@ -237,6 +241,7 @@ async function handleFolderDropViaFileSystemAPI (packet) {
             // save file in DB
             updateZimDropdownOptions([fileOrDirHandle.name], fileOrDirHandle.name);
         });
+        localStorage.setItem('zimFilenames', [fileOrDirHandle.name].join('|'));
         return true;
     }
     if (fileOrDirHandle.kind === 'directory') {
@@ -258,7 +263,7 @@ async function handleFolderDropViaFileSystemAPI (packet) {
  * @param {DragEvent} event The DragEvent packet
  * @returns {Promise<{loadZim: boolean, files: Array<File>} | void>} Whether the dropped item is a file or directory and FileList
  */
-async function handleFolderDropViaWebkit (event) {
+async function handleFolderOrFileDropViaWebkit (event) {
     var dt = event.dataTransfer;
 
     var entry = dt.items[0].webkitGetAsEntry();
@@ -311,7 +316,7 @@ export default {
     selectFileFromPickerViaFileSystemApi: selectFileFromPickerViaFileSystemApi,
     getSelectedZimFromCache: getSelectedZimFromCache,
     loadPreviousZimFile: loadPreviousZimFile,
-    handleFolderDropViaWebkit: handleFolderDropViaWebkit,
-    handleFolderDropViaFileSystemAPI: handleFolderDropViaFileSystemAPI,
+    handleFolderOrFileDropViaWebkit: handleFolderOrFileDropViaWebkit,
+    handleFolderOrFileDropViaFileSystemAPI: handleFolderOrFileDropViaFileSystemAPI,
     getSelectedZimFromWebkitList: getSelectedZimFromWebkitList
 };
