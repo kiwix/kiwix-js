@@ -1376,7 +1376,9 @@ function displayFileSelect () {
                 setLocalArchiveFromFileList(files);
             } else {
                 if (webKitFileList === null) {
-                    document.getElementById('folderSelect').click();
+                    const element = localStorage.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'folderSelect';
+                    // console.log(localStorage.getItem('zimFilenames').split('|'));
+                    document.getElementById(element).click();
                     return;
                 }
                 const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
@@ -1423,6 +1425,7 @@ function displayFileSelect () {
         document.getElementById('archiveFiles').addEventListener('change', async function (e) {
             if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
                 const activeFilename = e.target.files[0].name;
+                localStorage.setItem('zimFilenames', [activeFilename].join('|'));
                 await abstractFilesystemAccess.updateZimDropdownOptions([activeFilename], activeFilename);
             }
 
