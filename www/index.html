@@ -128,6 +128,7 @@
                         <li><a href="#aboutApp" data-i18n="about-app">About this app</a></li>
                         <li><a href="#usage" data-i18n="about-usage">Usage</a></li>
                         <li><a href="#searchSyntax" data-i18n="about-search-usage">Search usage</a></li>
+                        <li><a href="#removeNavbars" data-i18n="about-remove-navbars">Removing navigation bars</a></li>
                         <li><a href="#imageDownload" data-i18n="about-image-download">Image download</a></li>
                         <li><a href="#privacy" data-i18n="about-privacy-policy">Privacy policy</a></li>
                         <li><a href="#technical" data-i18n="about-technical-information">Technical information</a>
@@ -229,6 +230,15 @@
                         title-search results. Additionally, full-text search cannot be used if your archive is split into various chunks. To see whether it is
                         available, look in the API panel at the bottom of the Configuration page after you have loaded a ZIM. If it says "Xapian [fulltext]" then
                         it should be automatically enabled for that ZIM.
+                    </p>
+                    <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
+                    
+                    <h3 id="removeNavbars" data-i18n="about-remove-navbars">Removing navigation bars</h3>
+                    <p data-i18n="about-remove-navbars-para1">
+                        The default setting is for the top and bottom navigation bars to slide away when you scroll down and slide back when you scroll up. However,
+                        in some ZIM archives, e.g. PhET, it is not possible to scroll, and the navigation bars can obscure some content. In this case, in most browsers
+                        you can swipe decisively up or down on the window (with touch or with the mouse wheel/touchpad) to toggle the display of the navigation bars.
+                        In all browsers, you can also use the <code>Ctrl/Cmd</code> + <code>UpArrow</code>/<code>DownArrow</code> keys.
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
@@ -440,7 +450,9 @@
                     <br/>
                     <br/>
                 </div>
-
+                <div id='library' style="display: none; color: white;">
+                    <iframe width="100%" id="libraryContent" src="./library.html"></iframe>
+                </div>
                 <div id="configuration" style="display: none;">
                     <div class="container">
                         <h2 data-i18n="configure-title">Configuration</h2>
@@ -467,11 +479,16 @@
                         <div id="openLocalFiles" style="display: none;">
                             <p data-i18n="configure-select-instructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file):</p>
-                            <label class="btn btn-light custom-file-upload">
-                                <input type="file" id="archiveFiles" multiple class="btn"
-                                    accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
-                                <span data-i18n="home-btn-fileselect">Select ZIM file(s)</span>
-                            </label>
+                            <span>
+                                <label class="btn btn-light custom-file-upload">
+                                    <input type="file" id="archiveFiles" multiple class="btn"
+                                        accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
+                                    <span data-i18n="home-btn-fileselect">Select ZIM file(s)</span>
+                                </label>
+                                <label class="btn btn-light custom-file-upload" id="libraryBtn" data-i18n="configure-btn-library">
+                                    Browse ZIM Library
+                                </label>
+                            </span>
                             <br />
                             <strong id="jqueryCompatibility" data-i18n="configure-static-content">Only ZIMs with static content (e.g. Wiki-style) are supported in JQuery mode.<br /></strong>
                             <span data-i18n="configure-supportedarchives">For information on ZIM compatibility, see</span> <a href="#usage" data-i18n="configure-about-usage-link" class="aboutLinks">About (Usage)</a>.<br />
@@ -493,17 +510,22 @@
                             <div class="card-header" data-i18n="configure-display-panel-header">Display options:</div>
                             <div class="card-body">
                                 <div class="checkbox">
+                                    <label data-i18n-tip="configure-display-slideaway-tip" title="Header and footer will slide away when scrolling or (on fixed pages, swiping) down at least 50 pixels, and will slide back when you scroll up. On fixed pages, you can also use Ctrl/Command + UpArrow or DownArrow. The option is now on by default." >
+                                        <input type="checkbox" name="slideAway" id="slideAwayCheck" checked>
+                                        <span data-i18n="configure-display-slideaway"><strong>Hide header and footer when scrolling or swiping down</strong> (scroll up slightly to show again)</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox">
                                     <label data-i18n-tip="configure-display-uianimations-tip" title="The animation is on by default and can be disabled by unchecking this option." >
-                                        <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck"
-                                            checked>
+                                        <input type="checkbox" name="showUIAnimations" id="showUIAnimationsCheck" checked>
                                         <strong data-i18n="configure-display-uianimations">Animate transition between app pages</strong>
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label data-i18n-tip="configure-display-homekeyfocus-tip" title="Enables quick access to search, no matter where you are in an article.">
+                                    <label data-i18n-tip="configure-display-homekeyfocus-tip" title="Auto-focuses the search bar when you press the Home key, and also when you click or tap on the Home tab. Enables quick access to search, no matter where you are in an article.">
                                         <input type="checkbox" name="useHomeKeyToFocusSearchBar"
                                                id="useHomeKeyToFocusSearchBarCheck">
-                                        <span data-i18n="configure-display-homekeyfocus"><strong>Use Home key to focus search bar</strong> (may rarely have side effects on ZIM files that handle Home key)</span>
+                                        <span data-i18n="configure-display-homekeyfocus"><strong>Home key and Home tab focus search bar</strong> (may have side effects on ZIMs that handle Home key)</span>
                                     </label>
                                 </div>
                                 <div class="checkbox">
@@ -715,7 +737,7 @@
                 </div>
                 <iframe id="articleContent" class="articleIFrame" src="article.html" referrerpolicy="no-referrer" sandbox="allow-same-origin allow-scripts allow-modals allow-forms allow-popups allow-downloads"></iframe>
             </article>
-            <footer>
+            <footer id="footer">
                 <!-- Bootstrap alert box -->
                 <div id="alertBoxFooter">
                     <div id="downloadAlert" style="display:none;" class="kiwix-alert alert alert-info alert-dismissible fade show">

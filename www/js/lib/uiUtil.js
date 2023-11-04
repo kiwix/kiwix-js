@@ -29,6 +29,142 @@ import util from './util.js';
 import settingsStore from './settingsStore.js';
 import translateUI from './translateUI.js';
 
+// Placeholders for the article container and the article window
+const header = document.getElementById('top');
+const footer = document.getElementById('footer');
+
+/**
+ * Hides slide-away UI elements
+ */
+function hideSlidingUIElements () {
+    const articleContainer = document.getElementById('articleContent');
+    const articleElement = document.querySelector('article');
+    const footerStyles = getComputedStyle(footer);
+    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
+    const headerStyles = getComputedStyle(header);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const iframeHeight = parseFloat(articleElement.style.height.replace('px', ''));
+    footer.style.transform = 'translateY(' + footerHeight + 'px)';
+    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    header.style.transform = 'translateY(-' + headerHeight + 'px)';
+    articleElement.style.transform = 'translateY(-' + headerHeight + 'px)';
+}
+
+/**
+ * Restores slide-away UI elements
+ */
+function showSlidingUIElements () {
+    const articleContainer = document.getElementById('articleContent');
+    const articleElement = document.querySelector('article');
+    const headerStyles = getComputedStyle(document.getElementById('top'));
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+    header.style.transform = 'translateY(0)';
+    // Needed for Windows Mobile to prevent header disappearing beneath iframe
+    articleElement.style.transform = 'translateY(-1px)';
+    footer.style.transform = 'translateY(0)';
+    articleElement.style.height = window.innerHeight - headerHeight + 'px';
+    articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+}
+
+let scrollThrottle = false;
+
+/**
+ * Luuncher for the slide-away function, including a throttle to prevent it being called too often
+ */
+function scroller (e) {
+    const articleContainer = document.getElementById('articleContent');
+    if (scrollThrottle) return;
+    // windowIsScrollable gets set and reset in slideAway()
+    if (windowIsScrollable && e.type === 'wheel') return;
+    const newScrollY = articleContainer.contentWindow.pageYOffset;
+    // If it's a non-scroll event and we're actually scrolling, get out of the way and let the scroll event handle it
+    if ((/^touch|^wheel|^keydown/.test(e.type)) && newScrollY !== oldScrollY) {
+        oldScrollY = newScrollY;
+        return;
+    }
+    if (e.type === 'touchstart') {
+        oldTouchY = e.touches[0].screenY;
+        return;
+    }
+    scrollThrottle = true;
+    // Call the main function
+    slideAway(e);
+    // Set timeouts for the throttle
+    let timeout = 250;
+    if (/^touch|^keydown/.test(e.type)) {
+        scrollThrottle = false;
+        return;
+    } else if (e.type === 'wheel' && Math.abs(e.deltaY) > 6) {
+        timeout = 1200;
+    }
+    setTimeout(function () {
+        scrollThrottle = false;
+    }, timeout);
+};
+
+// Edge Legacy requires setting the z-index of the header to prevent it disappearing beneath the iframe
+if ('MSBlobBuilder' in window) {
+    header.style.position = 'relative';
+    header.style.zIndex = 1;
+}
+
+let oldScrollY = 0;
+let oldTouchY = 0;
+let timeoutResetScrollable;
+let windowIsScrollable = false;
+
+// Slides away or restores the header and footer
+function slideAway (e) {
+    const articleContainer = document.getElementById('articleContent');
+    const newScrollY = articleContainer.contentWindow.pageYOffset;
+    let delta;
+    const visibleState = /\(0p?x?\)/.test(header.style.transform);
+    // If the search field is focused and elements are not showing, do not slide away
+    if (document.activeElement === document.getElementById('prefix')) {
+        if (!visibleState) showSlidingUIElements();
+    } else if (e.type === 'scroll') {
+        windowIsScrollable = true;
+        if (newScrollY === oldScrollY) return;
+        if (newScrollY < oldScrollY) {
+            showSlidingUIElements();
+        } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
+            // Hide the toolbars if user has scrolled and not already hidden
+            hideSlidingUIElements();
+        }
+        oldScrollY = newScrollY;
+        // Debounces the scroll at end of page
+        const resetScrollable = function () {
+            windowIsScrollable = false;
+        };
+        clearTimeout(timeoutResetScrollable);
+        timeoutResetScrollable = setTimeout(resetScrollable, 3000);
+    } else {
+        let hideOrShow = visibleState ? hideSlidingUIElements : showSlidingUIElements;
+        if (newScrollY === 0 && windowIsScrollable) {
+            // If we are at the top of a scrollable page, always restore the UI elements
+            hideOrShow = showSlidingUIElements;
+        }
+        if (e.type === 'touchend') {
+            delta = Math.abs(oldTouchY - e.changedTouches[0].screenY);
+            if (delta > articleContainer.contentWindow.innerHeight / 1.5) {
+                hideOrShow();
+            }
+        } else if (e.type === 'wheel') {
+            delta = Math.abs(e.deltaY);
+            if (delta > 6) {
+                hideOrShow();
+            }
+        } else if (e.type === 'keydown') {
+            // IE11 produces Up and Down instead of ArrowUp and ArrowDown
+            if ((e.ctrlKey || e.metaKey) && /^(Arrow)?(Up|Down)$/.test(e.key)) {
+                hideOrShow();
+            }
+        }
+        // DEBUG for non-scrolling events events
+        // console.debug('eventType: ' + e.type + ' oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
+    }
+}
+
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
  *
@@ -500,8 +636,9 @@ function removeAnimationClasses () {
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
     const home = document.getElementById('articleContent');
+    const library = document.getElementById('library');
 
-    const tabs = [config, about, home]
+    const tabs = [config, about, home, library]
     tabs.forEach(tab => {
         tab.classList.remove('slideIn_L');
         tab.classList.remove('slideIn_R');
@@ -560,7 +697,9 @@ function fromSection () {
     const isConfigPageVisible = !$('#configuration').is(':hidden');
     const isAboutPageVisible = !$('#about').is(':hidden');
     const isArticlePageVisible = !$('#articleContent').is(':hidden');
+    const isLibraryPageVisible = !$('#library').is(':hidden');
     if (isConfigPageVisible) return 'config';
+    if (isLibraryPageVisible) return 'library';
     else if (isAboutPageVisible) return 'about';
     else if (isArticlePageVisible) return 'home';
 }
@@ -576,6 +715,7 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
     // all the references of the sections/tabs
     const config = document.getElementById('configuration');
     const about = document.getElementById('about');
+    const library = document.getElementById('library');
     const home = document.getElementById('articleContent');
 
     // references of extra elements that are in UI but not tabs
@@ -594,28 +734,42 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
         if (toSection === 'home') {
             if (from === 'config') slideToRight(home, config);
             if (from === 'about') slideToRight(home, about);
+            if (from === 'library') slideToRight(home, library);
+
             showElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraKiwixAlert);
         } else if (toSection === 'config') {
             if (from === 'about') slideToRight(config, about);
+            if (from === 'library') slideToRight(config, library);
             if (from === 'home') slideToLeft(config, home);
+
             hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         } else if (toSection === 'about') {
+            if (from === 'library') slideToRight(about, library);
             if (from === 'home') slideToLeft(about, home);
             if (from === 'config') slideToLeft(about, config);
+
+            hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+        } else if (toSection === 'library') {
+            // it will be always coming from config page
+            slideToLeft(library, config);
             hideElements(extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
         }
     } else {
         if (toSection === 'home') {
-            hideElements(config, about);
+            hideElements(config, about, library);
             showElements(home, extraNavBtns, extraArticleSearch, extraWelcomeText);
         }
         if (toSection === 'config') {
-            hideElements(about, home, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+            hideElements(about, home, library, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
             showElements(config);
         }
         if (toSection === 'about') {
-            hideElements(config, home);
+            hideElements(config, home, library);
             showElements(about);
+        }
+        if (toSection === 'library') {
+            hideElements(config, about, home, extraNavBtns, extraArticleSearch, extraWelcomeText, extraSearchingArticles, extraKiwixAlert);
+            showElements(library);
         }
     }
 }
@@ -642,6 +796,7 @@ function applyAppTheme (theme) {
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
     var iframe = document.getElementById('articleContent');
+    const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
     var oldAppTheme = oldTheme.replace(/_.*$/, '');
@@ -674,6 +829,7 @@ function applyAppTheme (theme) {
     // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
     if (oldContentTheme && oldContentTheme !== contentTheme) {
         iframe.classList.remove(oldContentTheme);
+        library.classList.remove(oldContentTheme);
         if (kiwixJSSheet) {
             kiwixJSSheet.disabled = true;
             kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
@@ -682,6 +838,7 @@ function applyAppTheme (theme) {
     // Apply the requested ContentTheme (if not already attached)
     if (contentTheme && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
         iframe.classList.add(contentTheme);
+        library.classList.add(contentTheme);
         // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
         // subdirectory, then relative links injected into the article will not work as expected)
         // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
@@ -822,6 +979,9 @@ function getBrowserLanguage () {
  * Functions and classes exposed by this module
  */
 export default {
+    hideSlidingUIElements: hideSlidingUIElements,
+    showSlidingUIElements: showSlidingUIElements,
+    scroller: scroller,
     systemAlert: systemAlert,
     feedNodeWithDataURI: feedNodeWithDataURI,
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,

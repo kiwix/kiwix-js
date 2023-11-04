@@ -87,6 +87,11 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
+// Placeholders for the article container, the article window, and the search-article area
+const articleContainer = document.getElementById('articleContent');
+const articleWindow = articleContainer.contentWindow;
+const region = document.getElementById('search-article');
+
 switchHomeKeyToFocusSearchBar();
 
 // We check here if we have to warn the user that we switched to ServiceWorkerMode
@@ -136,23 +141,50 @@ darkPreference.onchange = function () {
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
 function resizeIFrame () {
-    var headerStyles = getComputedStyle(document.getElementById('top'));
-    var iframe = document.getElementById('articleContent');
-    var region = document.getElementById('search-article');
-    if (iframe.style.display === 'none') {
-        // We are in About or Configuration, so we only set the region height
-        region.style.height = window.innerHeight + 'px';
-    } else {
-        // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-        setTimeout(function () {
+    const headerStyles = getComputedStyle(document.getElementById('top'));
+    const library = document.getElementById('library');
+    const libraryContent = document.getElementById('libraryContent');
+    const liHomeNav = document.getElementById('liHomeNav');
+    const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
+    // There is a race condition with the slide animations, so we have to wait more than 300ms
+    setTimeout(function () {
+        uiUtil.showSlidingUIElements();
+        if (library.style.display !== 'none') {
+            // We are in Library, so we set the height of the library iframes to the window height minus the header height
+            const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+            libraryContent.style.height = window.innerHeight + 'px';
+            nestedFrame.style.height = window.innerHeight - headerHeight + 'px';
+            region.style.overflowY = 'hidden';
+        } else if (!liHomeNav.classList.contains('active')) {
+            // We are not in Home, so we reset the region height
+            region.style.height = window.innerHeight + 'px';
+            region.style.overflowY = 'auto';
+        } else {
             // Get  header height *including* its bottom margin
-            var headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-            iframe.style.height = window.innerHeight - headerHeight + 'px';
-            // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
-            region.style.height = window.innerHeight + 10 + 'px';
-        }, 100);
+            const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+            articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+            // Hide the scrollbar of Configure / About
+            region.style.overflowY = 'hidden';
+        }
+    // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks even if UI animations are disabled
+    }, params.showUIAnimations ? 400 : 100);
+
+    // Remove and add the scroll event listener to the new article window
+    // Note that IE11 doesn't support wheel or touch events on the iframe, but it does support keydown and scroll
+    articleWindow.removeEventListener('scroll', uiUtil.scroller);
+    articleWindow.removeEventListener('touchstart', uiUtil.scroller);
+    articleWindow.removeEventListener('touchend', uiUtil.scroller);
+    articleWindow.removeEventListener('wheel', uiUtil.scroller);
+    articleWindow.removeEventListener('keydown', uiUtil.scroller);
+    if (params.slideAway) {
+        articleWindow.addEventListener('scroll', uiUtil.scroller);
+        articleWindow.addEventListener('touchstart', uiUtil.scroller);
+        articleWindow.addEventListener('touchend', uiUtil.scroller);
+        articleWindow.addEventListener('wheel', uiUtil.scroller);
+        articleWindow.addEventListener('keydown', uiUtil.scroller);
     }
 }
+
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
@@ -355,7 +387,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
 
     // Give the focus to the search field, and clean up the page contents
     document.getElementById('prefix').value = '';
-    document.getElementById('prefix').focus();
+    if (params.useHomeKeyToFocusSearchBar) document.getElementById('prefix').focus();
     var articleList = document.getElementById('articleList');
     var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
@@ -381,9 +413,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-
     uiUtil.tabTransitionToSection('config', params.showUIAnimations);
-
     refreshAPIStatus();
     refreshCacheStatus();
     uiUtil.checkUpdateStatus(appstate);
@@ -397,10 +427,8 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
-
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('about', params.showUIAnimations);
-
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
@@ -457,19 +485,32 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     })
 });
+document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
+        params.slideAway = e.target.checked;
+        if (typeof navigator.getDeviceStorages === 'function') {
+            // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
+            uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
+                'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-warning') || 'Warning');
+        }
+        settingsStore.setItem('slideAway', params.slideAway, Infinity);
+        // This has methods to add or remove the event listeners needed
+        resizeIFrame();
+});
 document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.showUIAnimations = !!this.checked;
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     })
 });
-document.querySelectorAll('input[type="checkbox"][name=useHomeKeyToFocusSearchBar]').forEach(function (element) {
-    element.addEventListener('change', function () {
-        params.useHomeKeyToFocusSearchBar = !!this.checked;
-        settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
-        switchHomeKeyToFocusSearchBar();
-    })
-})
+document.getElementById('useHomeKeyToFocusSearchBarCheck').addEventListener('change', function (e) {
+    params.useHomeKeyToFocusSearchBar = e.target.checked;
+    settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
+    switchHomeKeyToFocusSearchBar();
+    if (params.useHomeKeyToFocusSearchBar && params.slideAway) {
+        uiUtil.systemAlert(translateUI.t('dialog-focussearchbarcheck-message') || 'Please note that this setting focuses the search bar when you go to a ZIM landing page, disabling sliding away of header and footer on that page (only).',
+            translateUI.t('dialog-warning') || 'Warning');
+    }
+});
 document.querySelectorAll('input[type="checkbox"][name=openExternalLinksInNewTabs]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.openExternalLinksInNewTabs = !!this.checked;
@@ -1222,11 +1263,8 @@ function setLocalArchiveFromArchiveList () {
             }
         }
         resetCssCache();
-        selectedArchive = zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, function () {
-            settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
-            // The archive is set : go back to home page to start searching
-            document.getElementById('btnHome').click();
-        }, function (message, label) {
+        settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
+        zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, archiveReadyCallback, function (message, label) {
             // callbackError which is called in case of an error
             uiUtil.systemAlert(message, label);
         });
@@ -1296,6 +1334,22 @@ function handleFileDrop (packet) {
     document.getElementById('archiveFiles').value = null;
 }
 
+document.getElementById('libraryBtn').addEventListener('click', function (e) {
+    e.preventDefault();
+
+    const libraryContent = document.getElementById('libraryContent');
+    const iframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
+    try {
+        // eslint-disable-next-line no-new-func
+        Function('try{}catch{}')();
+        iframe.setAttribute('src', params.libraryUrl);
+        uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+        resizeIFrame();
+    } catch (error) {
+        window.open(params.altLibraryUrl, '_blank')
+    }
+});
+
 // Add event listener to link which allows user to show file selectors
 document.getElementById('selectorsDisplayLink').addEventListener('click', function (e) {
     e.preventDefault();
@@ -1314,15 +1368,22 @@ function setLocalArchiveFromFileList (files) {
         }
     }
     resetCssCache();
-    selectedArchive = null;
-    selectedArchive = zimArchiveLoader.loadArchiveFromFiles(files, function () {
-        // The archive is set : go back to home page to start searching
-        document.getElementById('btnHome').click();
-        document.getElementById('downloadInstruction').style.display = 'none';
-    }, function (message, label) {
+    zimArchiveLoader.loadArchiveFromFiles(files, archiveReadyCallback, function (message, label) {
         // callbackError which is called in case of an error
         uiUtil.systemAlert(message, label);
     });
+}
+
+/**
+ * Functions to be run immediately after the archive is loaded
+ *
+ * @param {ZIMArchive} archive The ZIM archive
+ */
+function archiveReadyCallback (archive) {
+    selectedArchive = archive;
+    // The archive is set: go back to home page to start searching
+    document.getElementById('btnHome').click();
+    document.getElementById('downloadInstruction').style.display = 'none';
 }
 
 /**
@@ -1604,6 +1665,7 @@ function readArticle (dirEntry) {
                                     setTimeout(function () {
                                         uiUtil.spinnerDisplay(false);
                                     }, 4000);
+                                    uiUtil.showSlidingUIElements();
                                 }
                             }
                         }
@@ -1629,7 +1691,7 @@ function readArticle (dirEntry) {
         }
 
         // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-        iframeArticleContent.src = '../' + selectedArchive._file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
+        iframeArticleContent.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
     } else {
         // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
         if (dirEntry.isRedirect()) {
@@ -1703,12 +1765,13 @@ var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
 // quote marks (') in the URL.
 var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(?=\3|\?|#)/ig;
 // Regex below tests the html of an article for active content [kiwix-js #466]
-// It inspects every <script> block in the html and matches in the following cases: 1) the script loads a UI application called app.js,
-// init.js, or other common scripts found in unsupported ZIMs; 2) the script block has inline content that does not contain
-// "importScript()", "toggleOpenSection" or an "articleId" assignment (these strings are used widely in our fully supported wikimedia ZIMs,
-// so they are excluded); 3) the script block is not of type "math" (these are MathJax markup scripts used extensively in Stackexchange
-// ZIMs). Note that the regex will match ReactJS <script type="text/html"> markup, which is common in unsupported packaged UIs, e.g. PhET ZIMs.
-var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]+src\b=["'][^"']*?\b(?:app|init|l1[08]9|catalog)\.js))(?![^<]+(?:importScript\(\)|toggleOpenSection|articleId\s?=\s?['"]|window.NREUM))(?![^>]+type\s*=\s*["'](?:math\/|[^"']*?math))/i;
+// It inspects every <script> block in the html and matches in the following cases: 1) the script is of type "module"; 2) the script
+// loads a UI application called app.js, init.js, or other common scripts found in unsupported ZIMs; 3) the script block has inline
+// content that does not contain "importScript()", "toggleOpenSection" or an "articleId" assignment (these strings are used widely in our
+// fully supported wikimedia ZIMs, so they are excluded); 4) the script block is not of type "math" (these are MathJax markup scripts used
+// extensively in Stackexchange ZIMs). Note that the regex will match ReactJS <script type="text/html"> markup, which is common in unsupported
+// packaged UIs, e.g. PhET ZIMs.
+var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]*type=["']module["'])|(?=[^>]+src\b=["'][^"']*?\b(?:app|init|l1[08]9)\.js))(?![^<]+(?:importScript\(\)|toggleOpenSection|articleId\s?=\s?['"]|window.NREUM))(?![^>]+type\s*=\s*["'](?:math\/|[^"']*?math))/i;
 // DEV: The regex below matches ZIM links (anchor hrefs) that should have the html5 "donwnload" attribute added to
 // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
 // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
@@ -2158,7 +2221,7 @@ function goToRandomArticle () {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
                 // all dirEntries in an article-only listing must be articles.
-                if (selectedArchive._file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+                if (selectedArchive.file.articlePtrPos || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                     params.isLandingPage = false;
                     var activeContent = document.getElementById('activeContent');
                     if (activeContent) activeContent.style.display = 'none';
@@ -2189,7 +2252,7 @@ function goToMainArticle () {
             document.getElementById('welcomeText').style.display = '';
         } else {
             // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
-            if (selectedArchive._file.zimType === 'zimit') {
+            if (selectedArchive.zimType === 'zimit') {
                 uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
                     '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
                     '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
