@@ -106,7 +106,7 @@ async function updateZimDropdownOptions (files, selectedFile) {
     const select = document.getElementById('archiveList');
     let options = '';
     let count = 0;
-    if (files.length !== 0) options += `<option value="">${translateUI.t('configure-select-file-first-option')}</option>`;
+    if (files.length !== 0) options += `<option value="" disabled>${translateUI.t('configure-select-file-first-option')}</option>`;
 
     files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
@@ -166,7 +166,7 @@ function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, _reject) => {
         cache.idxDB('zimFiles', async function (fileOrDirHandle) {
             // Left it here for debugging purposes as its sometimes asking for permission even when its granted
-            console.debug('FileHandle and Permission', fileOrDirHandle, fileOrDirHandle.queryPermission())
+            console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
 
             if (fileOrDirHandle.kind === 'directory') {
@@ -217,7 +217,7 @@ function loadPreviousZimFile () {
     // If we call `updateZimDropdownOptions` without any delay it will run before the internationalization is initialized
     // It's a bit hacky but it works and I am not sure if there is any other way ATM
     setTimeout(() => {
-        if (window.params.isFileSystemApiSupported) {
+        if (window.params.isFileSystemApiSupported || window.params.isWebkitDirApiSupported) {
             const filenames = localStorage.getItem('zimFilenames');
             if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
         }
@@ -268,7 +268,7 @@ async function handleFolderOrFileDropViaWebkit (event) {
 
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
-        console.log(entry.file);
+        localStorage.setItem('zimFilenames', [entry.name].join('|'));
         await updateZimDropdownOptions([entry.name], entry.name);
         return { loadZim: true, files: [entry.file] };
     } else if (entry.isDirectory) {
@@ -276,6 +276,7 @@ async function handleFolderOrFileDropViaWebkit (event) {
         const files = await getFilesFromReader(reader);
         const fileNames = [];
         files.forEach((file) => fileNames.push(file.name));
+        localStorage.setItem('zimFilenames', fileNames.join('|'));
         await updateZimDropdownOptions(fileNames, '');
         return { loadZim: false, files: files };
     }

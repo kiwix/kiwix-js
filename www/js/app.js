@@ -1370,10 +1370,15 @@ function displayFileSelect () {
     if (!isFireFoxOsNativeFileApiAvailable) {
         document.getElementById('archiveList').addEventListener('change', async function (e) {
             // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
+            localStorage.setItem('previousZimFileName', e.target.value);
             if (params.isFileSystemApiSupported) {
                 const files = await abstractFilesystemAccess.getSelectedZimFromCache(e.target.value)
                 setLocalArchiveFromFileList(files);
             } else {
+                if (webKitFileList === null) {
+                    document.getElementById('folderSelect').click();
+                    return;
+                }
                 const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
                 setLocalArchiveFromFileList(files);
             }
@@ -1391,12 +1396,19 @@ function displayFileSelect () {
         document.getElementById('folderSelect').addEventListener('change', async function (e) {
             e.preventDefault();
             const filenames = [];
+            const previousZimFile = []
+            const lastFilename = localStorage.getItem('previousZimFileName');
+            const filenameWithoutExtension = lastFilename.replace(/\.zim\w\w$/i, '');
+            const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
             for (const file of e.target.files) {
                 filenames.push(file.name);
+                if (regex.test(file.name) || file.name === lastFilename) previousZimFile.push(file);
             }
             webKitFileList = e.target.files;
-            // populateDropDownListOfArchives(filenames);
-            await abstractFilesystemAccess.updateZimDropdownOptions(filenames, '');
+            localStorage.setItem('zimFilenames', filenames.join('|'));
+            // will load the old file if the selected folder contains the same file
+            if (previousZimFile.length !== 0) setLocalArchiveFromFileList(previousZimFile);
+            await abstractFilesystemAccess.updateZimDropdownOptions(filenames, previousZimFile.length !== 0 ? lastFilename : '');
         })
     }
     if (params.isFileSystemApiSupported && !isFireFoxOsNativeFileApiAvailable) {
@@ -1451,13 +1463,13 @@ async function handleFileDrop (packet) {
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet)
+    // no previous file will be loaded in case of FileSystemApi
+    if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet);
     else if (params.isWebkitDirApiSupported) {
-        const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet)
-        loadZim = ret.loadZim
-        webKitFileList = ret.files
+        const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet);
+        loadZim = ret.loadZim;
+        webKitFileList = ret.files;
     }
-
     if (loadZim) setLocalArchiveFromFileList(files);
 }
 
