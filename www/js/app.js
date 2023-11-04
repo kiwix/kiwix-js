@@ -378,6 +378,7 @@ document.getElementById('btnTop').addEventListener('click', function (event) {
 document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
     event.preventDefault();
+    this.blur();
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
@@ -407,6 +408,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
 });
 document.getElementById('btnConfigure').addEventListener('click', function (event) {
     event.preventDefault();
+    this.blur();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
@@ -428,6 +430,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
 });
 document.getElementById('btnAbout').addEventListener('click', function (event) {
     event.preventDefault();
+    this.blur();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', '');
