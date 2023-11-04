@@ -72,6 +72,10 @@
     margin-bottom: 12px !important;
 }
 
+#top, #articleContent, #footer, article {
+    transition: transform 0.3s ease;
+}
+
 #articleListWithHeader {
     position: absolute;
     top: 0;
@@ -98,6 +102,10 @@
 
 input[type="file"] {
     display: none;
+}
+
+iframe {
+    border: 0;
 }
 
 .custom-file-upload {

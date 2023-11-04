@@ -167,7 +167,7 @@ var runTests = function () {
     QUnit.module('zim_direntry_search_and_read');
     QUnit.test("check DirEntry.fromStringId 'A Fool for You'", function (assert) {
         var done = assert.async();
-        var aFoolForYouDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive._file, '5856|7|A|0|2|A_Fool_for_You.html|A Fool for You|false|undefined');
+        var aFoolForYouDirEntry = zimDirEntry.DirEntry.fromStringId(localZimArchive.file, '5856|7|A|0|2|A_Fool_for_You.html|A Fool for You|false|undefined');
 
         assert.expect(2);
         var callbackFunction = function (dirEntry, htmlArticle) {
