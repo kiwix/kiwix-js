@@ -87,73 +87,10 @@ appstate['search'] = {
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
 appstate['pwaUpdateNeeded'] = false; // This will be set to true if the Service Worker has an update waiting
 
-// Placeholders for the article container and the article window
+// Placeholders for the article container, the article window, and the search-article area
 const articleContainer = document.getElementById('articleContent');
 const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
-const header = document.getElementById('top');
-const footer = document.getElementById('footer');
-// Edge Legacy requires setting the z-index of the header to prevent it disappearing beneath the iframe
-if ('MSBlobBuilder' in window) {
-    header.style.position = 'relative';
-    header.style.zIndex = 1;
-}
-
-let oldScrollY = 0;
-
-// Slides away or restores the header and footer
-function slideAway () {
-    const newScrollY = articleWindow.pageYOffset;
-    if (newScrollY === oldScrollY || document.activeElement === document.getElementById('prefix')) return;
-    if (newScrollY < oldScrollY) {
-        restoreUIElements();
-    } else if (newScrollY - oldScrollY > 50 && /\(0p?x?\)/.test(header.style.transform)) {
-        // Hide the toolbars if user has scrolled and not already hidden
-        hideUIElements();
-    }
-    oldScrollY = newScrollY;
-};
-
-// Hides slide-away UI elements
-function hideUIElements () {
-    // Hide the toolbars if user has scrolled and not already hidden
-    const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
-    const footerStyles = getComputedStyle(footer);
-    const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
-    header.style.transform = 'translateY(-' + headerHeight + 'px)';
-    articleContainer.style.transform = 'translateY(-' + headerHeight + 'px)';
-    const iframeHeight = parseFloat(articleContainer.style.height.replace('px', ''));
-    articleContainer.style.height = iframeHeight + headerHeight + 'px';
-    footer.style.transform = 'translateY(' + footerHeight + 'px)';
-    region.style.height = window.innerHeight + headerHeight + 10 + 'px';
-}
-
-// Restores slide-away UI elements
-function restoreUIElements () {
-    header.style.transform = 'translateY(0)';
-    // Needed for Windows Mobile to prevent header disappearing beneath iframe
-    articleContainer.style.transform = 'translateY(-1px)';
-    footer.style.transform = 'translateY(0)';
-    setTimeout(function () {
-        const headerStyles = getComputedStyle(document.getElementById('top'));
-        const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-        articleContainer.style.height = window.innerHeight - headerHeight + 'px';
-        region.style.height = window.innerHeight + 10 + 'px';
-    }, 200);
-}
-
-let scrollThrottle = false;
-
-// Throttles the slide-away function
-function scroller () {
-    if (scrollThrottle) return;
-    scrollThrottle = true;
-    slideAway();
-    setTimeout(function () {
-        scrollThrottle = false;
-    }, 250);
-};
 
 switchHomeKeyToFocusSearchBar();
 
@@ -205,31 +142,47 @@ darkPreference.onchange = function () {
  */
 function resizeIFrame () {
     const headerStyles = getComputedStyle(document.getElementById('top'));
+    const library = document.getElementById('library');
     const libraryContent = document.getElementById('libraryContent');
-    const frames = [articleContainer, libraryContent];
+    const liHomeNav = document.getElementById('liHomeNav');
     const nestedFrame = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    restoreUIElements();
-    for (let i = 0; i < frames.length; i++) {
-        const iframe = frames[i];
-        if (iframe.style.display === 'none') {
-            // We are in About or Configuration, so we only set the region height
+    // There is a race condition with the slide animations, so we have to wait more than 300ms
+    setTimeout(function () {
+        uiUtil.showSlidingUIElements();
+        if (library.style.display !== 'none') {
+            // We are in Library, so we set the height of the library iframes to the window height minus the header height
+            const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+            libraryContent.style.height = window.innerHeight + 'px';
+            nestedFrame.style.height = window.innerHeight - headerHeight + 'px';
+            region.style.overflowY = 'hidden';
+        } else if (!liHomeNav.classList.contains('active')) {
+            // We are not in Home, so we reset the region height
             region.style.height = window.innerHeight + 'px';
-            if (nestedFrame) nestedFrame.style.height = window.innerHeight - 110 + 'px';
+            region.style.overflowY = 'auto';
         } else {
-            // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
-            setTimeout(function () {
-                // Get  header height *including* its bottom margin
-                const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-                iframe.style.height = window.innerHeight - headerHeight + 'px';
-                // We have to allow a minimum safety margin of 10px for 'iframe' and 'header' to fit within 'region'
-                region.style.height = window.innerHeight + 10 + 'px';
-                nestedFrame.style.height = window.innerHeight - 110 + 'px';
-            }, 100);
+            // Get  header height *including* its bottom margin
+            const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+            articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+            // Hide the scrollbar of Configure / About
+            region.style.overflowY = 'hidden';
         }
-    }
+    // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks even if UI animations are disabled
+    }, params.showUIAnimations ? 400 : 100);
 
-    // Add the scroll event listener to the article window
-    if (params.slideAway) articleWindow.onscroll = scroller;
+    // Remove and add the scroll event listener to the new article window
+    // Note that IE11 doesn't support wheel or touch events on the iframe, but it does support keydown and scroll
+    articleWindow.removeEventListener('scroll', uiUtil.scroller);
+    articleWindow.removeEventListener('touchstart', uiUtil.scroller);
+    articleWindow.removeEventListener('touchend', uiUtil.scroller);
+    articleWindow.removeEventListener('wheel', uiUtil.scroller);
+    articleWindow.removeEventListener('keydown', uiUtil.scroller);
+    if (params.slideAway) {
+        articleWindow.addEventListener('scroll', uiUtil.scroller);
+        articleWindow.addEventListener('touchstart', uiUtil.scroller);
+        articleWindow.addEventListener('touchend', uiUtil.scroller);
+        articleWindow.addEventListener('wheel', uiUtil.scroller);
+        articleWindow.addEventListener('keydown', uiUtil.scroller);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -435,7 +388,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
 
     // Give the focus to the search field, and clean up the page contents
     document.getElementById('prefix').value = '';
-    document.getElementById('prefix').focus();
+    if (params.useHomeKeyToFocusSearchBar) document.getElementById('prefix').focus();
     var articleList = document.getElementById('articleList');
     var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
@@ -461,9 +414,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liAboutNav').setAttribute('class', '');
     $('.navbar-collapse').collapse('hide');
     // Show the selected content in the page
-
     uiUtil.tabTransitionToSection('config', params.showUIAnimations);
-
     refreshAPIStatus();
     refreshCacheStatus();
     uiUtil.checkUpdateStatus(appstate);
@@ -477,10 +428,8 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
-
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('about', params.showUIAnimations);
-
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
@@ -539,17 +488,14 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
 });
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
         params.slideAway = e.target.checked;
-        if (!params.slideAway) {
-            articleWindow.onscroll = null;
-        } else {
-            if (typeof navigator.getDeviceStorages === 'function') {
-                // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
-                uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
-                    'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-slideawaycheck-title') || 'Warning');
-            }
-            articleWindow.onscroll = scroller;
+        if (typeof navigator.getDeviceStorages === 'function') {
+            // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
+            uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
+                'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-warning') || 'Warning');
         }
         settingsStore.setItem('slideAway', params.slideAway, Infinity);
+        // This has methods to add or remove the event listeners needed
+        resizeIFrame();
 });
 document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
     element.addEventListener('change', function () {
@@ -557,13 +503,15 @@ document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEa
         settingsStore.setItem('showUIAnimations', params.showUIAnimations, Infinity);
     })
 });
-document.querySelectorAll('input[type="checkbox"][name=useHomeKeyToFocusSearchBar]').forEach(function (element) {
-    element.addEventListener('change', function () {
-        params.useHomeKeyToFocusSearchBar = !!this.checked;
-        settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
-        switchHomeKeyToFocusSearchBar();
-    })
-})
+document.getElementById('useHomeKeyToFocusSearchBarCheck').addEventListener('change', function (e) {
+    params.useHomeKeyToFocusSearchBar = e.target.checked;
+    settingsStore.setItem('useHomeKeyToFocusSearchBar', params.useHomeKeyToFocusSearchBar, Infinity);
+    switchHomeKeyToFocusSearchBar();
+    if (params.useHomeKeyToFocusSearchBar && params.slideAway) {
+        uiUtil.systemAlert(translateUI.t('dialog-focussearchbarcheck-message') || 'Please note that this setting focuses the search bar when you go to a ZIM landing page, disabling sliding away of header and footer on that page (only).',
+            translateUI.t('dialog-warning') || 'Warning');
+    }
+});
 document.querySelectorAll('input[type="checkbox"][name=openExternalLinksInNewTabs]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.openExternalLinksInNewTabs = !!this.checked;
@@ -1492,6 +1440,7 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
         Function('try{}catch{}')();
         iframe.setAttribute('src', params.libraryUrl);
         uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+        resizeIFrame();
     } catch (error) {
         window.open(params.altLibraryUrl, '_blank')
     }
@@ -1815,7 +1764,7 @@ function readArticle (dirEntry) {
                                     setTimeout(function () {
                                         uiUtil.spinnerDisplay(false);
                                     }, 4000);
-                                    restoreUIElements();
+                                    uiUtil.showSlidingUIElements();
                                 }
                             }
                         }
