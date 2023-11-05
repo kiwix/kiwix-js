@@ -130,19 +130,27 @@ async function updateZimDropdownOptions (files, selectedFile) {
 
 /**
  * Opens the File System API to select a directory
+ * @returns {Promise<Array<File>>} Previously selected file if available in selected folder
  */
 async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
     const fileNames = [];
+    const previousZimFile = []
+
+    const lastZimNameWithoutExtension = (localStorage.getItem('previousZimFileName') ?? '').replace(/\.zim\w\w$/i, '');
+    const regex = new RegExp(`\\${lastZimNameWithoutExtension}.zim\\w\\w$`, 'i');
+
     for await (const entry of handle.values()) {
         fileNames.push(entry.name);
+        if (regex.test(entry.name) || entry.name === (localStorage.getItem('previousZimFileName') ?? '')) previousZimFile.push(await entry.getFile());
     }
 
     localStorage.setItem('zimFilenames', fileNames.join('|'));
-    updateZimDropdownOptions(fileNames, '');
+    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? localStorage.getItem('previousZimFileName') : '');
     cache.idxDB('zimFiles', handle, function () {
         // save file in DB
     });
+    return previousZimFile;
 }
 
 /**

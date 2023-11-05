@@ -214,7 +214,7 @@ function resizeIFrame () {
         if (iframe.style.display === 'none') {
             // We are in About or Configuration, so we only set the region height
             region.style.height = window.innerHeight + 'px';
-            nestedFrame.style.height = window.innerHeight - 110 + 'px';
+            if (nestedFrame) nestedFrame.style.height = window.innerHeight - 110 + 'px';
         } else {
             // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks
             setTimeout(function () {
@@ -1348,7 +1348,7 @@ function displayFileSelect () {
     console.debug(`File system api is ${params.isFileSystemApiSupported ? '' : 'not '}supported`);
     console.debug(`Webkit directory api ${params.isWebkitDirApiSupported ? '' : 'not '}supported`);
     console.debug(`Firefox os native file ${isFireFoxOsNativeFileApiAvailable ? '' : 'not '}support api`)
-    console.log('ASSSSS');
+
     document.getElementById('openLocalFiles').style.display = 'block';
     if ((params.isFileSystemApiSupported || params.isWebkitDirApiSupported) && !isPlatformMobilePhone) {
         document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
@@ -1393,7 +1393,8 @@ function displayFileSelect () {
         // Handles Folder selection when showDirectoryPicker is supported
         document.getElementById('folderSelect').addEventListener('click', async function (e) {
             e.preventDefault();
-            await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
+            const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
+            if (previousZimFiles.length !== 0) setLocalArchiveFromFileList(previousZimFiles);
         })
     }
     if (params.isWebkitDirApiSupported && !params.isFileSystemApiSupported && !isFireFoxOsNativeFileApiAvailable) {
