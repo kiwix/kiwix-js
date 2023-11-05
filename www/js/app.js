@@ -1341,13 +1341,16 @@ let webKitFileList = null
  */
 function displayFileSelect () {
     const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
+    let isPlatformMobilePhone = false;
+    if (/Android/i.test(navigator.userAgent)) isPlatformMobilePhone = true;
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent) || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) isPlatformMobilePhone = true;
 
     console.debug(`File system api is ${params.isFileSystemApiSupported ? '' : 'not '}supported`);
     console.debug(`Webkit directory api ${params.isWebkitDirApiSupported ? '' : 'not '}supported`);
     console.debug(`Firefox os native file ${isFireFoxOsNativeFileApiAvailable ? '' : 'not '}support api`)
-
+    console.log('ASSSSS');
     document.getElementById('openLocalFiles').style.display = 'block';
-    if (params.isFileSystemApiSupported || params.isWebkitDirApiSupported) {
+    if ((params.isFileSystemApiSupported || params.isWebkitDirApiSupported) && !isPlatformMobilePhone) {
         document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
         document.getElementById('folderSelect').style.display = '';
     }
@@ -1398,10 +1401,12 @@ function displayFileSelect () {
         document.getElementById('folderSelect').addEventListener('change', async function (e) {
             e.preventDefault();
             const filenames = [];
+
             const previousZimFile = []
-            const lastFilename = localStorage.getItem('previousZimFileName');
+            const lastFilename = localStorage.getItem('previousZimFileName') ?? '';
             const filenameWithoutExtension = lastFilename.replace(/\.zim\w\w$/i, '');
             const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+
             for (const file of e.target.files) {
                 filenames.push(file.name);
                 if (regex.test(file.name) || file.name === lastFilename) previousZimFile.push(file);

@@ -104,17 +104,22 @@ async function updateZimDropdownOptions (files, selectedFile) {
     if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
 
     const select = document.getElementById('archiveList');
-    let options = '';
+    const options = [];
     let count = 0;
-    if (files.length !== 0) options += `<option value="" disabled>${translateUI.t('configure-select-file-first-option')}</option>`;
+    select.innerHTML = '';
+    if (files.length !== 0) {
+        const placeholderOption = new Option(translateUI.t('configure-select-file-first-option'), '');
+        placeholderOption.disabled = true;
+        select.appendChild(placeholderOption);
+    };
 
     files.forEach((fileName) => {
         if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
-            options += `<option value="${fileName}">${fileName}</option>`;
+            options.push(new Option(fileName, fileName));
+            select.appendChild(new Option(fileName, fileName));
             count++;
         }
     });
-    select.innerHTML = options;
     document.getElementById('archiveList').value = selectedFile;
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
