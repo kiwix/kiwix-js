@@ -1331,9 +1331,12 @@ function displayFileSelect () {
             setLocalArchiveFromFileList(files);
         } else {
             if (webKitFileList === null) {
-                const element = localStorage.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'folderSelect';
-                // console.log(localStorage.getItem('zimFilenames').split('|'));
-                document.getElementById(element).click();
+                const element = localStorage.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
+                if ('showPicker' in HTMLInputElement.prototype) {
+                    document.getElementById(element).showPicker();
+                    return;
+                }
+                document.getElementById(element).click()
                 return;
             }
             const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
