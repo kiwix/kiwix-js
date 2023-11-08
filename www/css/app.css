@@ -98,6 +98,21 @@
     margin: 0 1rem;
 }
 
+#filesSelectionInfoAndCount {
+    padding-top: 0.5rem;
+}
+#filesSelectionInfoAndCount p{
+    display: inline;
+}
+
+#archiveList {
+    width: 60%;
+    min-width: auto;
+}
+
+#rescanButtonAndText button {
+    margin-top: 0.5rem;
+}
 /* Custom file input */
 
 input[type="file"] {
@@ -330,4 +345,10 @@ button {
         padding-bottom: 1px !important;
         font-size: 16px !important;
     }
+
+    #archiveList {
+        width: 100%;
+        min-width: auto;
+    }
+    
 }

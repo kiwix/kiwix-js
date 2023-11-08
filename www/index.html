@@ -477,13 +477,17 @@
                                 <a href="#" id="selectorsDisplayLink" data-i18n="configure-selectordisplay-link">display file selectors</a>.</p>
                         </div>
                         <div id="openLocalFiles" style="display: none;">
-                            <p data-i18n="configure-select-instructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
+                            <p data-i18n="configure-select-instructions" id="selectInstructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file):</p>
-                            <span>
+                            <span id="fileSelectionButtonContainer">
                                 <label class="btn btn-light custom-file-upload">
-                                    <input type="file" id="archiveFiles" multiple class="btn"
+                                    <input type="file" id="archiveFiles" multiple class="btn" 
                                         accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
-                                    <span data-i18n="home-btn-fileselect">Select ZIM file(s)</span>
+                                    <span data-i18n="home-btn-fileselect">Select ZIM File(s)</span>
+                                </label>
+                                <label class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
+                                    <input type="file" id="archiveFolders" style="display: none;" webkitdirectory="true"/>
+                                    <span data-i18n="configure-btn-folderselect">Select Folder</span>
                                 </label>
                                 <label class="btn btn-light custom-file-upload" id="libraryBtn" data-i18n="configure-btn-library">
                                     Browse ZIM Library
@@ -497,13 +501,20 @@
                             <br /> Scanning for archives... Please wait <img src="img/spinner.gif" alt="Please wait..." />
                         </div>
                         <div id="chooseArchiveFromLocalStorage" style="display: none;">
-                            <br /> Please select the archive you want to use : <select id="archiveList"
-                                class="form-control"></select>
-                            <br /><button type="button" class="btn btn-light" id="btnRescanDeviceStorage">Rescan</button>
-                            Rescans your SD Cards and internal memory
+                            <div id="filesSelectionInfoAndCount">
+                                <p id="numberOfFilesCount" style="display: none;">0</p>
+                                <p id="fileCountDisplay" style="display: none;" data-i18n="configure-select-file-numbers">
+                                    archive(s) found in selected location.&nbsp;
+                                </p>
+                                <p data-i18n="configure-select-file-instructions">Please select the archive you want to use: </p>
+                            </div>
+                            <select id="archiveList" class="form-control"></select>
+                            <span id="rescanButtonAndText" style="display: none;">
+                                <button type="button" class="btn btn-light" id="btnRescanDeviceStorage" data-i18n="configure-btn-rescan">Rescan</button>
+                                <p data-i18n="configure-about-rescan-tip">Rescans your SD Cards and internal memory</p>
+                            </span>
                         </div>
                     </div>
-                    <br />
                     <div class="container">
                         <h3 data-i18n="configure-display-settings-title">Display settings</h3>
                         <div class="card card-info" id="displaySettingsDiv">
