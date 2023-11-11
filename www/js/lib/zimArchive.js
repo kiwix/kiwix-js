@@ -29,6 +29,7 @@ import zimDirEntry from './zimDirEntry.js';
 import util from './util.js';
 import uiUtil from './uiUtil.js';
 import utf8 from './utf8.js';
+import translateUI from './translateUI.js';
 
 /**
  * ZIM Archive
@@ -183,13 +184,15 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             that._searchArchiveParts(storage, path.slice(0, -2)).then(function (fileArray) {
                 createZimfile(fileArray);
             }).catch(function (error) {
-                callbackError('Error reading files in split archive ' + path + ': ' + error, 'Error reading archive files');
+                callbackError((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + path + ': ' + error,
+                    translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
             });
         } else {
             storage.get(path).then(function (file) {
                 createZimfile([file]);
             }).catch(function (error) {
-                callbackError('Error reading ZIM file ' + path + ' : ' + error, 'Error reading archive file');
+                callbackError((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + path + ' : ' + error,
+                    translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
             });
         }
     }
