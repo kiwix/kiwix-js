@@ -65,7 +65,7 @@
 }
 
 .form-control {
-    margin-top: 2px !important;
+    margin-top: 2px;
 }
 
 #articleList {
@@ -108,6 +108,8 @@
 #archiveList {
     width: 60%;
     min-width: auto;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
 }
 
 #rescanButtonAndText button {
@@ -243,6 +245,15 @@ iframe._invert, iframe._mwInvert {
     animation-duration: 0.1s;
 }
 
+.container {
+    margin-bottom: 1.5em;
+}
+
+.card {
+    margin-top: 1em;
+    margin-bottom: 1.5em;
+}
+
 /* Modify default Bootstrap 4 colours */
 .card-info {
     border-color: #bce8f1;
@@ -349,6 +360,7 @@ button {
     #archiveList {
         width: 100%;
         min-width: auto;
+        margin-bottom: 0.5em;
     }
     
 }
