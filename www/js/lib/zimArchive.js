@@ -184,14 +184,14 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             that._searchArchiveParts(storage, path.slice(0, -2)).then(function (fileArray) {
                 createZimfile(fileArray);
             }).catch(function (error) {
-                callbackError((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + path + ': ' + error,
+                callbackError((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + path + '&nbsp;: ' + error,
                     translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
             });
         } else {
             storage.get(path).then(function (file) {
                 createZimfile([file]);
             }).catch(function (error) {
-                callbackError((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + path + ' : ' + error,
+                callbackError((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + path + '&nbsp;: ' + error,
                     translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
             });
         }
