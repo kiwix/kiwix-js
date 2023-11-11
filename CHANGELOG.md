@@ -12,7 +12,7 @@ Released on *TODO*
 * FEATURE: Fallback to basic ZIM library for browsers that don't support library.kiwix.org
 * FEATURE: Remember picked files and folders between app launches with File System Access API
 * FEATURE: Slide away header and footer when scrolling an article, restored when scrolling up
-* FEATURE: On non-scrollable pages, use Ctrl/Cmd + UpArrow/DownArrow, long swipe or mousewheel
+* FEATURE: On non-scrollable pages use Ctrl/Cmd + UpArrow/DownArrow, long swipe or mousewheel/touchpad scroll to toggle header/footer
 * UPDATE: Turn off auto-focus of search bar on landing pages (option added to Home key setting)
 * UPDATE: Launch spinner as soon as possible and make it more informative
 * FIX: Added sanity checks to prevent runaway case-insensitive title searches
