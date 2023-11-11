@@ -65,7 +65,7 @@
 }
 
 .form-control {
-    margin-top: 2px !important;
+    margin-top: 2px;
 }
 
 #articleList {
@@ -98,6 +98,23 @@
     margin: 0 1rem;
 }
 
+#filesSelectionInfoAndCount {
+    padding-top: 0.5rem;
+}
+#filesSelectionInfoAndCount p{
+    display: inline;
+}
+
+#archiveList {
+    width: 60%;
+    min-width: auto;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+#rescanButtonAndText button {
+    margin-top: 0.5rem;
+}
 /* Custom file input */
 
 input[type="file"] {
@@ -228,6 +245,15 @@ iframe._invert, iframe._mwInvert {
     animation-duration: 0.1s;
 }
 
+.container {
+    margin-bottom: 1.5em;
+}
+
+.card {
+    margin-top: 1em;
+    margin-bottom: 1.5em;
+}
+
 /* Modify default Bootstrap 4 colours */
 .card-info {
     border-color: #bce8f1;
@@ -330,4 +356,11 @@ button {
         padding-bottom: 1px !important;
         font-size: 16px !important;
     }
+
+    #archiveList {
+        width: 100%;
+        min-width: auto;
+        margin-bottom: 0.5em;
+    }
+    
 }
