@@ -19,6 +19,7 @@ document.localeJson = {
       "configure-title": "Configuration",
       "configure-about-usage-link": "About (Usage)",
       "configure-btn-library": "Browse ZIM Library",
+      "configure-btn-library-tip": "This will display a graphical library of ZIM archives for download if your browser can open it. Otherwise, it opens a text-only download library. If you are using the Chromium extension in ServiceWorkerLocal mode, you will only be able to use the text-based library (switch to ServiceWorker mode for the full graphical version).",
       "configure-btn-folderselect": "Select Folder",
       "configure-btn-rescan": "Rescan",
       "configure-about-rescan-tip": "Rescans your SD Cards and internal memory",
