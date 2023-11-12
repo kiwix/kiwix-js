@@ -55,7 +55,7 @@ function runTests (driver, modes) {
     driver.manage().setTimeouts({ implicit: 3000 });
 
     // Perform app reset before running tests if we are not running CI (this is a convenience for local testers)
-    if (!process.env.CI) {
+    // if (!process.env.CI) {
         describe('Reset app', function () {
             this.timeout(60000);
             this.slow(10000);
@@ -90,7 +90,7 @@ function runTests (driver, modes) {
                 }
             });
         });
-    }
+    // }
 
     // Run in both jquery and serviceworker modes by default
     if (!modes) {
