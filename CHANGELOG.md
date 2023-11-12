@@ -6,19 +6,22 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v3.11.0
 
-Released on *TODO*
+Released on *2023-11-12*
 
 * FEATURE: Integration of in-app ZIM Download Library based on library.kiwix.org
 * FEATURE: Fallback to basic ZIM library for browsers that don't support library.kiwix.org
 * FEATURE: Remember picked files and folders between app launches with File System Access API
 * FEATURE: Slide away header and footer when scrolling an article, restored when scrolling up
 * FEATURE: On non-scrollable pages use Ctrl/Cmd + UpArrow/DownArrow, long swipe or mousewheel/touchpad scroll to toggle header/footer
+* ENHANCEMENT: Active content warning now fades out (auto-dismisses) when user starts scrolling
 * UPDATE: Turn off auto-focus of search bar on landing pages (option added to Home key setting)
 * UPDATE: Launch spinner as soon as possible and make it more informative
 * FIX: Added sanity checks to prevent runaway case-insensitive title searches
 * FIX: Active content warning now correctly detects new Kolibri-based archives
 * FIX: Translated some untranslated UI elements for Firefox OS
+* FIX: File/folder and library buttons now work with keyboard (tab to them, and space bar or enter to activate)
 * CLEANUP: Transition animations code cleaned up and animations now off by default
+* REGRESSION: ACtive content warning dismissed on changing tab
 * DEV: Build both MV2 and MV3 packages for Mozilla extension
 * DEV: Add facility to extract and set ZIM metadata (also displayed in console.debug)
 * DEV: Ensure all built packages contain i18n files
