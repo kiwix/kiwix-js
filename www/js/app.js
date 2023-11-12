@@ -1391,7 +1391,8 @@ function displayFileSelect () {
     }
     // Add keyboard activation for folder selection
     folderSelect.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') {
+        // We have to include e.keyCode for IE11
+        if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
             e.preventDefault();
             folderSelect.click();
         }
@@ -1415,7 +1416,7 @@ function useLegacyFilePicker () {
 
 // Add keyboard selection for the archiveFiles input
 document.getElementById('archiveFilesLbl').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
         e.preventDefault();
         archiveFiles.click();
     }
@@ -1482,7 +1483,7 @@ btnLibrary.addEventListener('click', function (e) {
 
 // Add keyboard activation for library button
 btnLibrary.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
         e.preventDefault();
         btnLibrary.click();
     }
