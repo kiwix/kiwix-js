@@ -19,6 +19,7 @@ document.localeJson = {
       "configure-title": "Configuration",
       "configure-about-usage-link": "Informations (Utilisation)",
       "configure-btn-library": "Bibliothèque ZIM",
+      "configure-btn-library-tip": "Cela affiche une bibliothèque graphique d'archives ZIM à télécharger si votre navigateur peut l'ouvrir. Sinon, il affiche une bibliothèque de téléchargement en mode texte. Si vous utilisez l'extension Chromium en mode ServiceWorkerLocal, vous ne pourrez utiliser que la seconde (passez en mode ServiceWorker pour la version graphique complète).",
       "configure-btn-folderselect": "Sélectionner un dossier",
       "configure-btn-rescan": "Réanalyser",
       "configure-about-rescan-tip": "Réanalyser la carte SD et la mémoire interne",
