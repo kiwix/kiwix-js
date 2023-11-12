@@ -21,7 +21,7 @@ document.localeJson = {
       "configure-btn-library": "Biblioteca ZIM",
       "configure-btn-folderselect": "Seleccione carpeta",
       "configure-btn-rescan": "Volver a escanear",
-      "configure-about-rescan-tip": "Vuelve a escanear las tarjetas SD y la memoria interna",
+      "configure-about-rescan-tip": "Volver a escanear las tarjetas SD y la memoria interna",
       "configure-select-file-numbers": "archivo(s) encontrado(s) en la ubicación seleccionada. ",
       "configure-download-instructions": "Esta aplicación necesita un archivo ZIM para funcionar.<br />Para instrucciones completas, vea la sección",
       "configure-select-instructions": "Seleccione o arrastre y suelte un archivo .zim (o todos los .zimaa, .zimab etc en caso de un archivo dividido):",
