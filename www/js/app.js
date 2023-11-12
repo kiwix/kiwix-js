@@ -113,9 +113,11 @@ if (!/^chrome-extension:/i.test(window.location.protocol)) {
 }
 setContentInjectionMode(params.contentInjectionMode);
 
-// Define globalDropZone (universal drop area) and configDropZone (highlighting area on Config page)
-var globalDropZone = document.getElementById('search-article');
-var configDropZone = document.getElementById('configuration');
+// Define frequently used UI elements
+const globalDropZone = document.getElementById('search-article');
+const configDropZone = document.getElementById('configuration');
+const folderSelect = document.getElementById('folderSelect');
+const archiveFiles = document.getElementById('archiveFiles');
 
 // Unique identifier of the article expected to be displayed
 var expectedArticleURLToBeDisplayed = '';
@@ -1149,7 +1151,7 @@ if (storages !== null && storages.length > 0) {
 } else {
     // If DeviceStorage is not available, we display the file select components
     displayFileSelect();
-    if (document.getElementById('archiveFiles').files && document.getElementById('archiveFiles').files.length > 0) {
+    if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Archive files are already selected,
         setLocalArchiveFromFileSelect();
     } else {
@@ -1284,6 +1286,7 @@ function resetCssCache () {
 }
 
 let webKitFileList = null
+
 /**
  * Displays the zone to select files from the archive
  */
@@ -1346,15 +1349,15 @@ function displayFileSelect () {
 
     if (params.isFileSystemApiSupported) {
         // Handles Folder selection when showDirectoryPicker is supported
-        document.getElementById('folderSelect').addEventListener('click', async function (e) {
+        folderSelect.addEventListener('click', async function (e) {
             e.preventDefault();
             const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
             if (previousZimFiles.length !== 0) setLocalArchiveFromFileList(previousZimFiles);
-        })
+        });
     }
     if (params.isWebkitDirApiSupported) {
         // Handles Folder selection when webkitdirectory is supported but showDirectoryPicker is not
-        document.getElementById('folderSelect').addEventListener('change', async function (e) {
+        folderSelect.addEventListener('change', async function (e) {
             e.preventDefault();
             const filenames = [];
 
@@ -1374,9 +1377,10 @@ function displayFileSelect () {
             await abstractFilesystemAccess.updateZimDropdownOptions(filenames, previousZimFile.length !== 0 ? lastFilename : '');
         })
     }
+
     if (params.isFileSystemApiSupported) {
         // Handles File selection when showOpenFilePicker is supported and uses the filesystem api
-        document.getElementById('archiveFiles').addEventListener('click', async function (e) {
+        archiveFiles.addEventListener('click', async function (e) {
             e.preventDefault();
             const files = await abstractFilesystemAccess.selectFileFromPickerViaFileSystemApi(e);
             setLocalArchiveFromFileList(files);
@@ -1385,6 +1389,13 @@ function displayFileSelect () {
         // Fallbacks to simple file input with multi file selection
         useLegacyFilePicker();
     }
+    // Add keyboard activation for folder selection
+    folderSelect.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            folderSelect.click();
+        }
+    });
 }
 
 /**
@@ -1392,7 +1403,7 @@ function displayFileSelect () {
  */
 function useLegacyFilePicker () {
     // Fallbacks to simple file input with multi file selection
-    document.getElementById('archiveFiles').addEventListener('change', async function (e) {
+    archiveFiles.addEventListener('change', async function (e) {
         if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
             const activeFilename = e.target.files[0].name;
             localStorage.setItem('zimFilenames', [activeFilename].join('|'));
@@ -1401,6 +1412,14 @@ function useLegacyFilePicker () {
         setLocalArchiveFromFileSelect();
     });
 }
+
+// Add keyboard selection for the archiveFiles input
+document.getElementById('archiveFilesLbl').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        archiveFiles.click();
+    }
+});
 
 function handleGlobalDragover (e) {
     e.preventDefault();
@@ -1428,7 +1447,7 @@ async function handleFileDrop (packet) {
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
     document.getElementById('downloadInstruction').style.display = 'none';
     document.getElementById('selectorsDisplay').style.display = 'inline';
-    document.getElementById('archiveFiles').value = null;
+    archiveFiles.value = null;
 
     // value will be set to true if a folder is dropped then there will be no need to
     // call the `setLocalArchiveFromFileList`
@@ -1444,7 +1463,8 @@ async function handleFileDrop (packet) {
     if (loadZim) setLocalArchiveFromFileList(files);
 }
 
-document.getElementById('libraryBtn').addEventListener('click', function (e) {
+const btnLibrary = document.getElementById('btnLibrary');
+btnLibrary.addEventListener('click', function (e) {
     e.preventDefault();
 
     const libraryContent = document.getElementById('libraryContent');
@@ -1457,6 +1477,14 @@ document.getElementById('libraryBtn').addEventListener('click', function (e) {
         resizeIFrame();
     } catch (error) {
         window.open(params.altLibraryUrl, '_blank')
+    }
+});
+
+// Add keyboard activation for library button
+btnLibrary.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        btnLibrary.click();
     }
 });
 
@@ -1502,7 +1530,7 @@ function archiveReadyCallback (archive) {
  * Sets the localArchive from the File selects populated by user
  */
 function setLocalArchiveFromFileSelect () {
-    setLocalArchiveFromFileList(document.getElementById('archiveFiles').files);
+    setLocalArchiveFromFileList(archiveFiles.files);
 }
 window.setLocalArchiveFromFileSelect = setLocalArchiveFromFileSelect;
 
