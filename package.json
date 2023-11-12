@@ -1,4 +1,8 @@
 {
+  "name": "kiwix-js",
+  "productName": "Kiwix JS",
+  "version": "3.11.0",
+  "description": "Kiwix JS offline ZIM archive reader",
   "type": "module",
   "scripts": {
     "serve": "vite",

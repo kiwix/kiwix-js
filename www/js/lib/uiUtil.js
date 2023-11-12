@@ -32,6 +32,7 @@ import translateUI from './translateUI.js';
 // Placeholders for the article container and the article window
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
+const activeContent = document.getElementById('activeContent');
 
 /**
  * Hides slide-away UI elements
@@ -48,6 +49,7 @@ function hideSlidingUIElements () {
     articleContainer.style.height = iframeHeight + headerHeight + 'px';
     header.style.transform = 'translateY(-' + headerHeight + 'px)';
     articleElement.style.transform = 'translateY(-' + headerHeight + 'px)';
+    hideActiveContentWarning();
 }
 
 /**
@@ -426,13 +428,12 @@ function deriveZimUrlFromRelativeUrl (url, base) {
  */
 var activeContentWarningSetup = false;
 function displayActiveContentWarning () {
-    var alertActiveContent = document.getElementById('activeContent');
-    alertActiveContent.style.display = '';
+    activeContent.style.display = '';
     if (!activeContentWarningSetup) {
         // We are setting up the active content warning for the first time
         activeContentWarningSetup = true;
-        alertActiveContent.querySelector('button[data-hide]').addEventListener('click', function () {
-            alertActiveContent.style.display = 'none';
+        activeContent.querySelector('button[data-hide]').addEventListener('click', function () {
+            hideActiveContentWarning();
         });
         ['swModeLink', 'stop'].forEach(function (id) {
             // Define event listeners for both hyperlinks in alert box: these take the user to the Config tab and highlight
@@ -460,6 +461,21 @@ function displayActiveContentWarning () {
             });
         });
     }
+}
+
+/**
+ * Hides the active content warning alert box with a fade-out effect
+ */
+function hideActiveContentWarning () {
+    const alertBoxHeader = document.getElementById('alertBoxHeader');
+    if (activeContent.style.display === 'none') return;
+    alertBoxHeader.style.opacity = 0;
+    alertBoxHeader.style.maxHeight = 0;
+    setTimeout(function () {
+        activeContent.style.display = 'none';
+        alertBoxHeader.style.opacity = 1;
+        alertBoxHeader.style.maxHeight = '';
+    }, 500);
 }
 
 /**
@@ -772,6 +788,8 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
             showElements(library);
         }
     }
+    // Remove any active content warning (as we will have slidden away, we don't need to use the fade out effect)
+    activeContent.style.display = 'none';
 }
 
 /**

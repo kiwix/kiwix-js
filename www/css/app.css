@@ -235,6 +235,7 @@ iframe._invert, iframe._mwInvert {
 }
 
 #alertBoxHeader {
+    transition: opacity 0.5s;
     text-align: center;
 }
 

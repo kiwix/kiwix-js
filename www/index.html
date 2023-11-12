@@ -90,9 +90,9 @@
                     <!-- Collect the nav links, forms, and other content for toggling -->
                     <div class="collapse navbar-collapse" id="collapsibleNavbar">
                         <ul class="navbar-nav">
-                            <li id="liHomeNav" class="nav-item"><button type="button" data-i18n="home" class="btn btn-light" id="btnHome">Home</button></li>
-                            <li id="liConfigureNav" class="nav-item"><button type="button" data-i18n="configure" class="btn btn-light" id="btnConfigure">Configure</button></li>
-                            <li id="liAboutNav" class="nav-item"><button type="button" data-i18n="about" class="btn btn-light" id="btnAbout">About</button></li>
+                            <li id="liHomeNav" class="nav-item"><button tabindex="1" type="button" data-i18n="home" class="btn btn-light" id="btnHome">Home</button></li>
+                            <li id="liConfigureNav" class="nav-item"><button tabindex="2" type="button" data-i18n="configure" class="btn btn-light" id="btnConfigure">Configure</button></li>
+                            <li id="liAboutNav" class="nav-item"><button tabindex="3" type="button" data-i18n="about" class="btn btn-light" id="btnAbout">About</button></li>
                         </ul>
                     </div>
 
@@ -462,7 +462,7 @@
                             <span id="persistentMessage"></span>
                         </div>
                         <div class="dropdown" style="float:right">
-                            <select class="form-control" id="languageSelector" name="languageSelector" aria-labelledby="languageSelector">
+                            <select class="form-control" tabindex="4" id="languageSelector" name="languageSelector" aria-labelledby="languageSelector">
                                 <option data-i18n="configure-language-selector-default" selected class="dropdown-item" href="#" value="default">Language</a>
                                 <option class="dropdown-item" href="#" value="en">English</a>
                                 <option class="dropdown-item" href="#" value="fr">Français</a>
@@ -480,16 +480,16 @@
                             <p data-i18n="configure-select-instructions" id="selectInstructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file):</p>
                             <span id="fileSelectionButtonContainer">
-                                <label class="btn btn-light custom-file-upload">
+                                <label tabindex="5" id="archiveFilesLbl" class="btn btn-light custom-file-upload">
                                     <input type="file" id="archiveFiles" multiple class="btn" 
                                         accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
                                     <span data-i18n="home-btn-fileselect">Select ZIM File(s)</span>
                                 </label>
-                                <label class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
+                                <label tabindex="6" class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
                                     <input type="file" id="archiveFolders" style="display: none;" webkitdirectory="true"/>
                                     <span data-i18n="configure-btn-folderselect">Select Folder</span>
                                 </label>
-                                <label class="btn btn-light custom-file-upload" id="libraryBtn" data-i18n="configure-btn-library">
+                                <label tabindex="7" class="btn btn-light custom-file-upload" id="btnLibrary" data-i18n="configure-btn-library">
                                     Browse ZIM Library
                                 </label>
                             </span>
