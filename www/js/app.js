@@ -128,7 +128,7 @@ darkPreference.onchange = function () {
 /**
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
-function resizeIFrame() {
+function resizeIFrame () {
     const headerStyles = getComputedStyle(document.getElementById('top'));
     const library = document.getElementById('library');
     const libraryContent = document.getElementById('libraryContent');
@@ -209,7 +209,7 @@ document.getElementById('formArticleSearch').addEventListener('submit', function
     document.getElementById('searchArticles').click();
 });
 
-function getDefaultLanguageAndTranslateApp() {
+function getDefaultLanguageAndTranslateApp () {
     var defaultBrowserLanguage = uiUtil.getBrowserLanguage();
     // DEV: Be sure to add supported language codes here
     // TODO: Add a supported languages object elsewhere and use it here
@@ -574,7 +574,7 @@ document.getElementById('kiwixLogo').ondragstart = function () { return false; }
 document.getElementById('navigationButtons').ondragstart = function () { return false; }
 
 // focus search bar (#prefix) if Home key is pressed
-function focusPrefixOnHomeKey(event) {
+function focusPrefixOnHomeKey (event) {
     // check if home key is pressed
     if (event.key === 'Home') {
         // wait to prevent interference with scrolling (default action)
@@ -584,7 +584,7 @@ function focusPrefixOnHomeKey(event) {
     }
 }
 // switch on/off the feature to use Home Key to focus search bar
-function switchHomeKeyToFocusSearchBar() {
+function switchHomeKeyToFocusSearchBar () {
     var iframeContentWindow = document.getElementById('articleContent').contentWindow;
     // Test whether iframe is accessible (because if not, we do not want to throw an error at this point, before we can tell the user what is wrong)
     var isIframeAccessible = true;
@@ -613,7 +613,7 @@ function switchHomeKeyToFocusSearchBar() {
 /**
  * Checks whether we need to display an alert that the default Content Injection Mode has now been switched to ServiceWorker Mode
  */
-function checkAndDisplayInjectionModeChangeAlert() {
+function checkAndDisplayInjectionModeChangeAlert () {
     var message;
     if (!params.defaultModeChangeAlertDisplayed && isServiceWorkerAvailable() && isServiceWorkerReady()) {
         message = [(translateUI.t('dialog-serviceworker-defaultmodechange-message') ||
@@ -646,7 +646,7 @@ function checkAndDisplayInjectionModeChangeAlert() {
 /**
  * Displays or refreshes the API status shown to the user
  */
-function refreshAPIStatus() {
+function refreshAPIStatus () {
     // We have to delay refreshing the API status until the translation service has been initialized
     setTimeout(function () {
         var apiStatusPanel = document.getElementById('apiStatusDiv');
@@ -720,7 +720,7 @@ function refreshAPIStatus() {
  * If Service Worker is not available, the attributes of the memory cache are returned instead
  * @returns {Promise<Object>} A Promise for an object with cache attributes 'type', 'description', and 'count'
  */
-function getAssetsCacheAttributes() {
+function getAssetsCacheAttributes () {
     return new Promise(function (resolve, reject) {
         if (params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker && navigator.serviceWorker.controller) {
             // Create a Message Channel
@@ -754,7 +754,7 @@ function getAssetsCacheAttributes() {
 /**
  * Refreshes the UI (Configuration) with the cache attributes obtained from getAssetsCacheAttributes()
  */
-function refreshCacheStatus() {
+function refreshCacheStatus () {
     // Update radio buttons and checkbox
     document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
     // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
@@ -859,7 +859,7 @@ function initServiceWorkerMessaging () {
  *
  * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
  */
-function setContentInjectionMode(value) {
+function setContentInjectionMode (value) {
     console.debug('Setting content injection mode to', value);
     params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
     params.serviceWorkerLocal = false;
@@ -1027,7 +1027,7 @@ function setContentInjectionMode(value) {
  * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
  * @returns {Boolean}
  */
-function isServiceWorkerAvailable() {
+function isServiceWorkerAvailable () {
     return 'serviceWorker' in navigator;
 }
 
@@ -1036,7 +1036,7 @@ function isServiceWorkerAvailable() {
  * https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
  * @returns {Boolean}
  */
-function isMessageChannelAvailable() {
+function isMessageChannelAvailable () {
     try {
         var dummyMessageChannel = new MessageChannel();
         if (dummyMessageChannel) return true;
@@ -1051,12 +1051,12 @@ function isMessageChannelAvailable() {
  * and inject content in articles.
  * @returns {Boolean}
  */
-function isServiceWorkerReady() {
+function isServiceWorkerReady () {
     // Return true if the serviceWorkerRegistration is not null and not undefined
     return serviceWorkerRegistration;
 }
 
-function launchBrowserExtensionServiceWorker() {
+function launchBrowserExtensionServiceWorker () {
     // DEV: See explanation below for why we access localStorage directly here
     var PWASuccessfullyLaunched = localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
     var allowInternetAccess = settingsStore.getItem('allowInternetAccess') === 'true';
@@ -1136,7 +1136,7 @@ function launchBrowserExtensionServiceWorker() {
  * @type Array.<StorageFirefoxOS>
  */
 var storages = [];
-function searchForArchivesInPreferencesOrStorage() {
+function searchForArchivesInPreferencesOrStorage () {
     // First see if the list of archives is stored in the Settings Store
     var listOfArchivesFromSettingsStore = settingsStore.getItem('listOfArchives');
     if (listOfArchivesFromSettingsStore !== null && listOfArchivesFromSettingsStore !== undefined && listOfArchivesFromSettingsStore !== '') {
@@ -1146,7 +1146,7 @@ function searchForArchivesInPreferencesOrStorage() {
         searchForArchivesInStorage();
     }
 }
-function searchForArchivesInStorage() {
+function searchForArchivesInStorage () {
     // If DeviceStorage is available, we look for archives in it
     document.getElementById('btnConfigure').click();
     document.getElementById('scanningForArchives').style.display = '';
@@ -1210,7 +1210,7 @@ window.onpopstate = function (event) {
  * Populate the drop-down list of archives with the given list
  * @param {Array.<String>} archiveDirectories
  */
-function populateDropDownListOfArchives(archiveDirectories) {
+function populateDropDownListOfArchives (archiveDirectories) {
     document.getElementById('scanningForArchives').style.display = 'none';
     document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('rescanButtonAndText').style.display = '';
@@ -1255,7 +1255,7 @@ function populateDropDownListOfArchives(archiveDirectories) {
 /**
  * Sets the localArchive from the selected archive in the drop-down list
  */
-function setLocalArchiveFromArchiveList() {
+function setLocalArchiveFromArchiveList () {
     var archiveDirectory = document.getElementById('archiveList').value;
     if (archiveDirectory && archiveDirectory.length > 0) {
         // Now, try to find which DeviceStorage has been selected by the user
@@ -1298,7 +1298,7 @@ function setLocalArchiveFromArchiveList() {
 /**
  * Resets the CSS Cache (used only in jQuery mode)
  */
-function resetCssCache() {
+function resetCssCache () {
     // Reset the cssCache if an archive is loaded
     if (selectedArchive) selectedArchive.cssCache = new Map();
     }
@@ -1308,7 +1308,7 @@ let webKitFileList = null
 /**
  * Displays the zone to select files from the archive
  */
-function displayFileSelect() {
+function displayFileSelect () {
     const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
     let isPlatformMobilePhone = false;
     if (/Android/i.test(navigator.userAgent)) isPlatformMobilePhone = true;
@@ -1425,7 +1425,7 @@ function displayFileSelect() {
 /**
  * Adds a event listener to the file input to handle file selection (if no other file picker is supported)
  */
-function useLegacyFilePicker() {
+function useLegacyFilePicker () {
     // Fallbacks to simple file input with multi file selection
     archiveFiles.addEventListener('change', async function (e) {
         if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
@@ -1445,24 +1445,24 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
     }
 });
 
-function handleGlobalDragover(e) {
+function handleGlobalDragover (e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'link';
     configDropZone.style.border = '3px dotted red';
 }
 
-function handleIframeDragover(e) {
+function handleIframeDragover (e) {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'link';
     document.getElementById('btnConfigure').click();
 }
 
-function handleIframeDrop(e) {
+function handleIframeDrop (e) {
     e.stopPropagation();
     e.preventDefault();
 }
 
-async function handleFileDrop(packet) {
+async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
     configDropZone.style.border = '';
@@ -1521,7 +1521,7 @@ document.getElementById('selectorsDisplayLink').addEventListener('click', functi
     document.getElementById('selectorsDisplay').style.display = 'none';
 });
 
-function setLocalArchiveFromFileList(files) {
+function setLocalArchiveFromFileList (files) {
     // Check for usable file types
     for (var i = files.length; i--;) {
         // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
@@ -1542,7 +1542,7 @@ function setLocalArchiveFromFileList(files) {
 *
 * @param {ZIMArchive} archive The ZIM archive
 */
-function archiveReadyCallback(archive) {
+function archiveReadyCallback (archive) {
     selectedArchive = archive;
 
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
@@ -1560,7 +1560,7 @@ function archiveReadyCallback(archive) {
 /**
      * Sets the localArchive from the File selects populated by user
      */
-function setLocalArchiveFromFileSelect() {
+function setLocalArchiveFromFileSelect () {
     setLocalArchiveFromFileList(archiveFiles.files);
 }
 window.setLocalArchiveFromFileSelect = setLocalArchiveFromFileSelect;
@@ -1572,7 +1572,7 @@ window.setLocalArchiveFromFileSelect = setLocalArchiveFromFileSelect;
  * @param {String} url The URL of the archive to read
  * @returns {Promise<Blob>} A promise for the requested file (blob)
  */
-function readRemoteArchive(url) {
+function readRemoteArchive (url) {
     return new Promise(function (resolve, reject) {
         var request = new XMLHttpRequest();
         request.open('GET', url);
@@ -1613,7 +1613,7 @@ window.setRemoteArchives = function () {
  * Handle key input in the prefix input zone
  * @param {Event} evt The event data to handle
  */
-function onKeyUpPrefix() {
+function onKeyUpPrefix () {
     // Use a timeout, so that very quick typing does not cause a lot of overhead
     // It is also necessary for the words suggestions to work inside Firefox OS
     if (window.timeoutKeyUpPrefix) {
@@ -1632,7 +1632,7 @@ function onKeyUpPrefix() {
  * with a binary search inside the index file)
  * @param {String} prefix The string that must appear at the start of any title searched for
  */
-function searchDirEntriesFromPrefix(prefix) {
+function searchDirEntriesFromPrefix (prefix) {
     if (selectedArchive !== null && selectedArchive.isReady()) {
         // Cancel the old search (zimArchive search object will receive this change)
         appstate.search.status = 'cancelled';
@@ -1661,7 +1661,7 @@ function searchDirEntriesFromPrefix(prefix) {
  * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
  * @param {Object} reportingSearch The reporting search object
  */
-function populateListOfArticles(dirEntryArray, reportingSearch) {
+function populateListOfArticles (dirEntryArray, reportingSearch) {
     // Do not allow cancelled searches to report
     if (reportingSearch.status === 'cancelled') return;
     var stillSearching = reportingSearch.status === 'interim';
@@ -1716,7 +1716,7 @@ function populateListOfArticles(dirEntryArray, reportingSearch) {
  * @param {Event} event The click event to handle
  * @returns {Boolean} Always returns false for JQuery event handling
  */
-function handleTitleClick(event) {
+function handleTitleClick (event) {
     var dirEntryId = decodeURIComponent(event.target.getAttribute('dirEntryId'));
     findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
     return false;
@@ -1727,7 +1727,7 @@ function handleTitleClick(event) {
  * and call the function to read the corresponding article
  * @param {String} dirEntryId The stringified Directory Entry to parse and launch
  */
-function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
+function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
     if (selectedArchive.isReady()) {
         var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
         // Remove focus from search field to hide keyboard and to allow navigation keys to be used
@@ -1749,7 +1749,7 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId) {
  * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
-function isDirEntryExpectedToBeDisplayed(dirEntry) {
+function isDirEntryExpectedToBeDisplayed (dirEntry) {
     var curArticleURL = dirEntry.namespace + '/' + dirEntry.url;
 
     if (expectedArticleURLToBeDisplayed !== curArticleURL) {
@@ -1771,7 +1771,7 @@ function isDirEntryExpectedToBeDisplayed(dirEntry) {
  * Read the article corresponding to the given dirEntry
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
-function readArticle(dirEntry) {
+function readArticle (dirEntry) {
     if (dirEntry === null || dirEntry === undefined) {
         console.error('The directory entry for the requested article was not found (null or undefined)');
         uiUtil.spinnerDisplay(false);
@@ -1917,7 +1917,7 @@ function readArticle(dirEntry) {
  *
  * @param {Event} event The event object of the message channel
  */
-function handleMessageChannelMessage(event) {
+function handleMessageChannelMessage (event) {
         // We received a message from the ServiceWorker
             // The ServiceWorker asks for some content
             var title = event.data.title;
@@ -1985,7 +1985,7 @@ var anchorParameter;
  * @param {DirEntry} dirEntry
  * @param {String} htmlArticle
  */
-function displayArticleContentInIframe(dirEntry, htmlArticle) {
+function displayArticleContentInIframe (dirEntry, htmlArticle) {
     if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
         return;
     }
@@ -2105,7 +2105,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
     // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
     iframeArticleContent.src = 'article.html';
 
-    function parseAnchorsJQuery() {
+    function parseAnchorsJQuery () {
         var currentProtocol = location.protocol;
         var currentHost = location.host;
         // Percent-encode dirEntry.url and add regex escape character \ to the RegExp special characters - see https://www.regular-expressions.info/characters.html;
@@ -2190,7 +2190,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
         });
     }
 
-    function loadImagesJQuery() {
+    function loadImagesJQuery () {
         // Make an array from the images that need to be processed
         var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
         // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
@@ -2198,7 +2198,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
         // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
         // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
         // DOM, making for a better user experience (because images above the fold are extracted first)
-        (function extractImage() {
+        (function extractImage () {
             if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
             images.busy = true;
             // Extract the image at the top of the images array and remove it from the array
@@ -2228,7 +2228,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
         })();
     }
 
-    function loadNoScriptTags() {
+    function loadNoScriptTags () {
         // For each noscript tag, we replace it with its content, so that the browser interprets it
         $('#articleContent').contents().find('noscript').replaceWith(function () {
             // When javascript is enabled, browsers interpret the content of noscript tags as text
@@ -2238,7 +2238,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
         });
     }
 
-    function loadCSSJQuery() {
+    function loadCSSJQuery () {
         // Ensure all sections are open for clients that lack JavaScript support, or that have some restrictive CSP [kiwix-js #355].
         // This is needed only for some versions of ZIM files generated by mwoffliner (at least in early 2018), where the article sections are closed by default on small screens.
         // These sections can be opened by clicking on them, but this is done with some javascript.
@@ -2289,7 +2289,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
 
         // Some pages are extremely heavy to render, so we prevent rendering by keeping the iframe hidden
         // until all CSS content is available [kiwix-js #381]
-        function renderIfCSSFulfilled(title) {
+        function renderIfCSSFulfilled (title) {
             if (cssFulfilled >= cssCount) {
                 document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
@@ -2330,7 +2330,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
     //     });
     // }
 
-    function insertMediaBlobsJQuery() {
+    function insertMediaBlobsJQuery () {
         var iframe = iframeArticleContent.contentDocument;
         Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function (mediaSource) {
@@ -2364,7 +2364,7 @@ function displayArticleContentInIframe(dirEntry, htmlArticle) {
  * Displays a message to the user that a style or other asset is being cached
  * @param {String} title The title of the file to display in the caching message block
  */
-function updateCacheStatus(title) {
+function updateCacheStatus (title) {
     if (params.assetsCache && /\.css$|\.js$/i.test(title)) {
         var cacheBlock = document.getElementById('cachingAssets');
         cacheBlock.style.display = '';
@@ -2379,7 +2379,7 @@ function updateCacheStatus(title) {
  * @param {String} title
  * @param {String} titleSearch
  */
-function pushBrowserHistoryState(title, titleSearch) {
+function pushBrowserHistoryState (title, titleSearch) {
     var stateObj = {};
     var urlParameters;
     var stateLabel;
@@ -2407,7 +2407,7 @@ function pushBrowserHistoryState(title, titleSearch) {
  *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
-function goToArticle(path, download, contentType) {
+function goToArticle (path, download, contentType) {
     uiUtil.spinnerDisplay(true);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
@@ -2432,7 +2432,7 @@ function goToArticle(path, download, contentType) {
     });
 }
 
-function goToRandomArticle() {
+function goToRandomArticle () {
     if (selectedArchive !== null && selectedArchive.isReady()) {
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getRandomDirEntry(function (dirEntry) {
@@ -2466,7 +2466,7 @@ function goToRandomArticle() {
     }
 }
 
-function goToMainArticle() {
+function goToMainArticle () {
     document.getElementById('searchingArticles').style.display = '';
     selectedArchive.getMainPageDirEntry(function (dirEntry) {
         if (dirEntry === null || dirEntry === undefined) {
