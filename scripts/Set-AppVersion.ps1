@@ -42,7 +42,7 @@ if ($VERSION -match '^v?[\d.]') {
     "`nSetting App Version to $VERSION in service-worker.js and init.js ..."
     (Get-Content ./service-worker.js) -replace '(appVersion\s*=\s*["''])[^"'']+', "`${1}$VERSION" | Set-Content ./service-worker.js
     (Get-Content ./www/js/init.js) -replace '(appVersion..\s*=\s*["''])[^"'']+', "`${1}$VERSION" | Set-Content ./www/js/init.js
-    $FileList = './manifest.json', 'manifest.v2.json', './manifest.webapp', './package.json', './ubuntu_touch/manifest.json'
+    $FileList = 'manifest.json', 'manifest.v2.json', 'manifest.fx.v3.json', 'manifest.webapp', 'package.json', './ubuntu_touch/manifest.json'
     ForEach ($File in $FileList) {
         $FileContent = Get-Content -Raw $File
         "Setting App Version to $VERSION in $File ..."
