@@ -35,6 +35,6 @@ if (typeof browser !== 'undefined') {
 // DEV: For a Mozilla MV3 extension, we have to use 'action' instead of 'browserAction'
 var genericAction = genericBrowser.browserAction || genericBrowser.action;
 genericAction.onClicked.addListener(function () {
-    var newURL = chrome.runtime.getURL('www/index.html');
-    chrome.tabs.create({ url: newURL });
+    var newURL = genericBrowser.runtime.getURL('www/index.html');
+    genericBrowser.tabs.create({ url: newURL });
 });
