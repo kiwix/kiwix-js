@@ -187,7 +187,11 @@ Decompressor.prototype._readLoop = function (offset, length) {
         }
         that._outStreamPos += outPos;
         if (outPos > 0) { xzdec._out_buffer_cleared(that._decHandle); }
-        if (finished || that._outStreamPos >= offset + length) { return that._outBuffer; } else { return that._readLoop(offset, length); }
+        if (finished || that._outStreamPos >= offset + length) {
+            return that._outBuffer;
+        } else {
+            return that._readLoop(offset, length);
+        }
     });
 };
 
