@@ -474,6 +474,11 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
     // This will also send any new values to Service Worker
     refreshCacheStatus();
 });
+
+document.getElementById('libzimWasmModeToggle').addEventListener('change', function () {
+    settingsStore.setItem('libzimWasmMode', this.checked);
+});
+
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
     params.disableDragAndDrop = !!this.checked;
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
