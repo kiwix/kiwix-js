@@ -21,6 +21,8 @@
  */
 'use strict';
 
+/* global self, params */
+
 import uiUtil from './uiUtil.js';
 import XZASM from './xzdec-asm.js';
 import XZWASM from './xzdec-wasm.js';
@@ -64,13 +66,14 @@ if (XZMachineType === 'WASM') {
         params.decompressorAPI.assemblerMachineType = XZMachineType;
         xzdec = instance;
     }).catch(function (err) {
+        console.warn('WASM xz decoder failed to load, falling back to ASM', err);
         XZMachineType = 'ASM';
         loadASM();
-    }); 
+    });
 } else {
     loadASM();
 };
-    
+
 /**
  * Number of milliseconds to wait for the decompressor to be available for another chunk
  * @type Integer
@@ -99,7 +102,7 @@ var busy = false;
  * @param {Integer} chunkSize
  * @returns {Decompressor}
  */
-function Decompressor(reader, chunkSize) {
+function Decompressor (reader, chunkSize) {
     params.decompressorAPI.decompressorLastUsed = 'XZ';
     this._chunkSize = chunkSize || 1024 * 5;
     this._reader = reader;
@@ -111,7 +114,7 @@ function Decompressor(reader, chunkSize) {
  * @param {Integer} offset
  * @param {Integer} length
  */
-Decompressor.prototype.readSlice = function(offset, length) {
+Decompressor.prototype.readSlice = function (offset, length) {
     busy = true;
     var that = this;
     this._inStreamPos = 0;
@@ -119,7 +122,7 @@ Decompressor.prototype.readSlice = function(offset, length) {
     this._decHandle = xzdec._init_decompression(this._chunkSize);
     this._outBuffer = new Int8Array(new ArrayBuffer(length));
     this._outBufferPos = 0;
-    return this._readLoop(offset, length).then(function(data) {
+    return this._readLoop(offset, length).then(function (data) {
         xzdec._release(that._decHandle);
         busy = false;
         return data;
@@ -151,14 +154,14 @@ Decompressor.prototype.readSliceSingleThread = function (offset, length) {
 };
 
 /**
- * 
+ *
  * @param {Integer} offset
  * @param {Integer} length
  * @returns {Array}
  */
-Decompressor.prototype._readLoop = function(offset, length) {
+Decompressor.prototype._readLoop = function (offset, length) {
     var that = this;
-    return this._fillInBufferIfNeeded().then(function() {
+    return this._fillInBufferIfNeeded().then(function () {
         var ret = xzdec._decompress(that._decHandle);
         var finished = false;
         if (ret === 0) {
@@ -172,37 +175,33 @@ Decompressor.prototype._readLoop = function(offset, length) {
         }
 
         var outPos = xzdec._get_out_pos(that._decHandle);
-        if (outPos > 0 && that._outStreamPos + outPos >= offset)
-        {
+        if (outPos > 0 && that._outStreamPos + outPos >= offset) {
             var outBuffer = xzdec._get_out_buffer(that._decHandle);
             var copyStart = offset - that._outStreamPos;
-            if (copyStart < 0)
+            if (copyStart < 0) {
                 copyStart = 0;
-            for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++)
+            }
+            for (var i = copyStart; i < outPos && that._outBufferPos < that._outBuffer.length; i++) {
                 that._outBuffer[that._outBufferPos++] = xzdec.HEAP8[outBuffer + i];
+            }
         }
         that._outStreamPos += outPos;
-        if (outPos > 0)
-            xzdec._out_buffer_cleared(that._decHandle);
-        if (finished || that._outStreamPos >= offset + length)
-            return that._outBuffer;
-        else
-            return that._readLoop(offset, length);
+        if (outPos > 0) { xzdec._out_buffer_cleared(that._decHandle); }
+        if (finished || that._outStreamPos >= offset + length) { return that._outBuffer; } else { return that._readLoop(offset, length); }
     });
 };
 
 /**
- * 
+ *
  * @returns {Promise}
  */
-Decompressor.prototype._fillInBufferIfNeeded = function() {
+Decompressor.prototype._fillInBufferIfNeeded = function () {
     if (!xzdec._input_empty(this._decHandle)) {
         return Promise.resolve(0);
     }
     var that = this;
-    return this._reader(this._inStreamPos, this._chunkSize).then(function(data) {
-        if (data.length > that._chunkSize)
-            data = data.slice(0, that._chunkSize);
+    return this._reader(this._inStreamPos, this._chunkSize).then(function (data) {
+        if (data.length > that._chunkSize) { data = data.slice(0, that._chunkSize); }
         // For some reason, xzdec.writeArrayToMemory does not seem to be available, and is equivalent to xzdec.HEAP8.set
         xzdec.HEAP8.set(data, xzdec._get_in_buffer(that._decHandle));
         that._inStreamPos += data.length;

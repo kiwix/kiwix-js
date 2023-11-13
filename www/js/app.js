@@ -2399,8 +2399,7 @@ function goToMainArticle () {
                     '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
                     '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
                     'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
-                translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!'
-                );
+                translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('welcomeText').style.display = '';
             } else {
