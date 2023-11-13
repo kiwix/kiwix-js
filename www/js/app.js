@@ -1761,10 +1761,10 @@ function isDirEntryExpectedToBeDisplayed (dirEntry) {
 }
 
 // Import the Wombat script
-// var Wombat;
-// var wombatScript = document.createElement('script');
-// wombatScript.type = 'text/javascript';
-// wombatScript.src = document.location.href.replace(/[^/]+$/, '') + 'js/lib/wombat.js';
+var Wombat;
+var wombatScript = document.createElement('script');
+wombatScript.type = 'text/javascript';
+wombatScript.src = document.location.href.replace(/[^/]+$/, '') + 'js/lib/wombat.js';
 // document.head.appendChild(wombatScript);
 
 /**
@@ -1806,10 +1806,10 @@ function readArticle (dirEntry) {
             document.getElementById('searchingArticles').style.display = 'none';
             var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument : null;
             // Insert the Wombat script to rewrite dynamic URLs
-            // doc.head.appendChild(wombatScript);
-            // wombatScript.onload = function () {
-            //     iframeArticleContent.contentWindow._WBWombatInit({});
-            // }
+            doc.head.appendChild(wombatScript);
+            wombatScript.onload = function () {
+                iframeArticleContent.contentWindow._WBWombatInit({});
+            }
             // var innerHtml = iframeArticleContent.contentDocument.documentElement.innerHTML;
             // innerHtml = Wombat.rewriteHtml(innerHtml);
             // iframeArticleContent.contentDocument.documentElement.innerHTML = innerHtml;
