@@ -48,8 +48,9 @@ To contribute code, please follow these guidelines carefully:
 * Follow the coding style of the area you are editing, including indentation, and be consistent with quotation marks and spacing. We use an ESLint configuration, so if your IDE
   supports this, it will advise you on the expected coding style;
 * We use Rollup, Babel and core-js to bundle modules and transpile code to IE11+. The coding target has historically been [ECMAScript 5](https://caniuse.com/es5). If you use EM6
-  features, be sure that they will transpile correctly. Arrow functions should be OK, but you should avoid `async` functions and use `Promise` functions instead (a Promise polyfill
-  is included). If you are working on small parts of existing functions, don't change the function style unnecessarily;
+  features, be sure that they will transpile correctly. Arrow functions are OK, but you should avoid `async/await` unless you are creating your own new asynchronous function (you
+  must not alter a large existing function to `async` style without consulting about it first). `Async/await` are just sugar for Promises, and all `await` can be rewritten as
+  `Promise` functions (a Promise polyfill is included for older browsers). If you are working on small parts of existing functions, don't change the function style unnecessarily;
 * Do not prettify code you are not working on -- we often have to ask contributors to revert commits because they have committed huge stylistic changes to a whole file, and we can't
   see the specific code they're working on;
 * _Before asking for review, thoroughly **test** (see below) both the **source code** and the **production (bundled) code** on at least Chrome/Edge and Firefox, and_
@@ -65,7 +66,8 @@ Please note that the app caches its own code so that it can run as an offline-fi
 even after you refresh the browser. In Configuration, under "Expert settings", you will find a button that allows you to do a full app reset, which will erase the PWA. When
 Service Worker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn this on if you are frequently changing code and refreshing. Remember to
 turn it off for final testing. You can manually delete the App Cache in the browser's DevTools (see Application or Storage tabs) and manually delete/unregister the Service Worker.
-We also recommend you disable the browser's built-in cache, using the checkbox in the DevTools Network tab.
+We also recommend you disable the browser's built-in cache, using the checkbox in the DevTools Network tab. _In extremis_, you can also turn on the setting (in Chromium browsers)
+under Application -> Service Workers to force the Service Worker to update itself on reload, though this can also force an update on each navigation and can give strange results.
 
 _You must test your code yourself before asking for review, like this_:
 
@@ -87,7 +89,8 @@ _You must test your code yourself before asking for review, like this_:
   identified, see [TESTS](./TESTS.md) so you can debug;
 * End-to-end (e2e) tests are also run on GitHub Actions when you push to your PR. These test typical user actions in a headless browser. Tests are currently enabled for latest
   Firefox, Edge, Chrome in Linux and Windows, and in IE Mode on Windows (this is the equivalent to testing on Internet Explorer 11). You can run these tests yourself in a
-  non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS](./TESTS.md).
+  non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS](./TESTS.md). For IE Mode, you will need to have the Edge
+  browser installed in Windows (the Linux version doesn't have IE Mode).
 * E2e tests also run on BrowserStack, but these cannot be run for PRs from a forked repository for security reasons (no access to the secrets). These tests will only run once a
   maintainer merges your code, so don't be surprised if an issue is detected even after your code has been accepted and merged. In that case, we may request a remedial PR from you,
   though in practice this is unlikely. 
@@ -95,12 +98,13 @@ _You must test your code yourself before asking for review, like this_:
   this repository. This does not have Hot Module Replacement, and you will need to refresh the page yourself by doing `Ctrl-Shift-R` with DevTools open. Again, you will only see the
   latest version of your code if you turn on "Bypass AppCache" and turn off the browser's native caching (see above).
 
-If all the tests are working fine in your browsers, you **must finally test the extension versions with production code**. Please note that we are using Manifest V3 for the Chromium extensions,
-and Manifest V2 for the Firefox extension, so there are different instructions for the two browser families:
+If all the tests are working fine in your browsers, you **must finally test the extension versions with production code**. Please note that we are using Manifest V3 for the Chromium
+extensions, and Manifest V2 for the Firefox extension, so there are different instructions for the two browser families:
 
 * Build the production code by running `npm run build-min`;
 * In Chromium, you can install the extension by loading the distribution folder with Extensions -> Load Unpacked (with Developer Mode turned ON) -> navigate to and enter the `dist` directory of the repository -> Select Folder;
 * In Firefox, you need to rename `manifest.json` in the `dist` folder to `manifest.v3.json`, and then rename `manifest.v2.json` to `manifest.json`. Then you can load the extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, navigate to and enter the `dist` directory, and then pick any file in that directory;
+* Optionally, you can also test the MV3 version for Firefox (though we currently only publish the MV2 version in the Mozilla store). To do this, lookd for `manifest.fx.v3.json` and rename this to `manifest.json` as above, and load the temporary extension in the same way (it might be easier if you remove the MV2 extension first);
 * You only need to revert manifest changes if you want to do further testing with MV3. The `dist` folder is erased next time the app is built.
 
 If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review. If you do not state what testing you have done, we reserve
