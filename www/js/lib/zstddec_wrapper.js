@@ -176,7 +176,7 @@ Decompressor.prototype.readSlice = function (offset, length) {
     }
 
     return this._readLoop(offset, length).then(function (data) {
-        // DEV: We are re-using all the allocated w/asm memory, so we do not need to free any of structures assigned wiht _malloc
+        // DEV: We are re-using all the allocated w/asm memory, so we do not need to free any of structures assigned with _malloc
         // However, should you need to free assigned structures use, e.g., zd._free(zd._inBuffer.src);
         // Additionally, freeing zd._decHandle is not needed, and actually increases memory consumption (crashing zstddeclib)
         // Should you need to free the decoder stream handle, use command below, but be sure to create a new stream control object

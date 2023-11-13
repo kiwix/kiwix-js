@@ -25,7 +25,6 @@
 
 // The global parameters object is defined in init.js
 /* global params, webpMachine, $ */
-/* eslint-disable indent */
 
 // import styles from '../css/app.css' assert { type: "css" };
 // import bootstrap from '../css/bootstrap.min.css' assert { type: "css" };
@@ -240,19 +239,19 @@ function getDefaultLanguageAndTranslateApp () {
     // Use the override language if set, or else use the browser default
     var languageCode = params.overrideBrowserLanguage || defaultBrowserLanguage.base;
     translateUI.translateApp(languageCode)
-    .catch(function (err) {
-        if (languageCode !== 'en') {
-            var message = '<p>We cannot load the translation strings for language code <code>' + languageCode + '</code>';
-            // if (/^file:\/\//.test(window.location.href)) {
-            //     message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
-            // }
-            message += '.</p><p>Falling back to English...</p>';
-            if (err) message += '<p>The error message was:</p><code>' + err + '</code>';
-            uiUtil.systemAlert(message);
-            document.getElementById('languageSelector').value = 'en';
-            return translateUI.translateApp('en');
-        }
-    });
+        .catch(function (err) {
+            if (languageCode !== 'en') {
+                var message = '<p>We cannot load the translation strings for language code <code>' + languageCode + '</code>';
+                // if (/^file:\/\//.test(window.location.href)) {
+                //     message += ' because you are accessing Kiwix from the file system. Try using a web server instead';
+                // }
+                message += '.</p><p>Falling back to English...</p>';
+                if (err) message += '<p>The error message was:</p><code>' + err + '</code>';
+                uiUtil.systemAlert(message);
+                document.getElementById('languageSelector').value = 'en';
+                return translateUI.translateApp('en');
+            }
+        });
 }
 
 // Add a listener for the language selection dropdown which will change the language of the app
@@ -261,8 +260,8 @@ document.getElementById('languageSelector').addEventListener('change', function 
     if (language === 'other') {
         uiUtil.systemAlert((translateUI.t('dialog-other-language-message') ||
             'We are working hard to bring you more languages! If you are interested in helping to translate the interface to your language, please create an issue on our GitHub. Thank you!'),
-            (translateUI.t('configure-language-selector-other') || 'More soon...')).then(function () {
-                document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
+        (translateUI.t('configure-language-selector-other') || 'More soon...')).then(function () {
+            document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
         });
     } else if (language === 'default') {
         params.overrideBrowserLanguage = null;
@@ -454,7 +453,7 @@ document.getElementById('useCanvasElementsCheck').addEventListener('change', fun
 });
 document.getElementById('btnReset').addEventListener('click', function () {
     uiUtil.systemAlert((translateUI.t('dialog-reset-warning-message') || 'This will reset the app to a freshly installed state, deleting all app caches and settings!'),
-    (translateUI.t('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
+        (translateUI.t('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
         if (response) {
             settingsStore.reset();
         }
@@ -489,15 +488,15 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
     })
 });
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
-        params.slideAway = e.target.checked;
-        if (typeof navigator.getDeviceStorages === 'function') {
-            // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
-            uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
+    params.slideAway = e.target.checked;
+    if (typeof navigator.getDeviceStorages === 'function') {
+        // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
+        uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
                 'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-warning') || 'Warning');
-        }
-        settingsStore.setItem('slideAway', params.slideAway, Infinity);
-        // This has methods to add or remove the event listeners needed
-        resizeIFrame();
+    }
+    settingsStore.setItem('slideAway', params.slideAway, Infinity);
+    // This has methods to add or remove the event listeners needed
+    resizeIFrame();
 });
 document.querySelectorAll('input[type="checkbox"][name=showUIAnimations]').forEach(function (element) {
     element.addEventListener('change', function () {
@@ -625,7 +624,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
             'It supports more types of ZIM archives and is much more robust.</p>' +
             '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
             'In that case, please report the problems you experienced to us (see About section).</p>'),
-            (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
+        (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
             settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
         });
@@ -635,7 +634,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
             '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
             '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
-            (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
+        (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
         uiUtil.systemAlert(message[0], message[1], true, null, (translateUI.t('dialog-ok') || 'Okay')).then(function (result) {
             if (result) {
                 // If user selected OK, then do not display again ever
@@ -841,7 +840,7 @@ function setContentInjectionMode (value) {
     if (value === 'jquery') {
         if (!params.appCache) {
             uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
-            (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
+                (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
             return;
@@ -1074,9 +1073,9 @@ function launchBrowserExtensionServiceWorker () {
             uiUtil.systemAlert((translateUI.t('dialog-serveraccess-check-failed') || 'The server is not currently accessible! ' +
                 '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
                 '<br/>Please try again when you have a stable Internet connection.'), (translateUI.t('dialog-error-title') || 'Error!')).then(function () {
-                    settingsStore.setItem('allowInternetAccess', false, Infinity);
-                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
-                });
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+                setContentInjectionMode(params.oldInjectionMode || 'jquery');
+            });
         });
     };
     if (settingsStore.getItem('allowInternetAccess') === 'true') {
@@ -1147,7 +1146,7 @@ if (storages !== null && storages.length > 0) {
     // This way, it is only done once at this moment, instead of being done several times in callbacks
     // After that, we can start looking for archives
     storages[0].get('fake-file-to-read').then(searchForArchivesInPreferencesOrStorage,
-                                              searchForArchivesInPreferencesOrStorage);
+        searchForArchivesInPreferencesOrStorage);
 } else {
     // If DeviceStorage is not available, we display the file select components
     displayFileSelect();
@@ -1200,7 +1199,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
         if (archiveDirectory === '/') {
             uiUtil.systemAlert((translateUI.t('dialog-invalid-archivelocation-message') ||
                 'It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them to a subdirectory'),
-                (translateUI.t('dialog-invalid-archivelocation-title') || 'Error: invalid archive files location'));
+            (translateUI.t('dialog-invalid-archivelocation-title') || 'Error: invalid archive files location'));
         } else {
             comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
         }
@@ -1220,7 +1219,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
         setLocalArchiveFromArchiveList();
     } else {
         uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
-        (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
+            (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
             document.getElementById('btnAbout').click();
             var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
             if (isAndroid) {
@@ -1504,7 +1503,7 @@ function setLocalArchiveFromFileList (files) {
         // DEV: you can support other file types by adding (e.g.) '|dat|idx' after 'zim\w{0,2}'
         if (!/\.(?:zim\w{0,2})$/i.test(files[i].name)) {
             uiUtil.systemAlert((translateUI.t('dialog-invalid-zim-message') || 'One or more files does not appear to be a ZIM file!'),
-            (translateUI.t('dialog-invalid-zim-title') || 'Invalid file format'));
+                (translateUI.t('dialog-invalid-zim-title') || 'Invalid file format'));
             return;
         }
     }
@@ -1671,12 +1670,12 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     // and prevents this event from firing; note that touch also triggers mousedown
     document.querySelectorAll('#articleList a').forEach(function (link) {
         link.addEventListener('mousedown', function (e) {
-          // Cancel search immediately
-          appstate.search.status = 'cancelled';
-          handleTitleClick(e);
-          return false;
+            // Cancel search immediately
+            appstate.search.status = 'cancelled';
+            handleTitleClick(e);
+            return false;
         });
-      });
+    });
     if (!stillSearching) document.getElementById('searchingArticles').style.display = 'none';
     document.getElementById('articleListWithHeader').style.display = '';
 }
@@ -2004,9 +2003,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // Add any missing classes stripped from the <html> tag
             if (htmlCSS) {
                 htmlCSS.forEach(function (cl) {
-                docBody.classList.add(cl);
-            });
-        }
+                    docBody.classList.add(cl);
+                });
+            }
             // Deflect drag-and-drop of ZIM file on the iframe to Config
             docBody.addEventListener('dragover', handleIframeDragover);
             docBody.addEventListener('drop', handleIframeDrop);
@@ -2222,7 +2221,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         }
     }
 
-   /**
+    /**
     * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
     * be attached to the DOM. Users who want JS support should switch to ServiceWorker mode if avaialable on
     * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
@@ -2252,30 +2251,30 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     function insertMediaBlobsJQuery () {
         var iframe = iframeArticleContent.contentDocument;
         Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
-        .forEach(function (mediaSource) {
-            var source = mediaSource.getAttribute('src');
-            source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
-            // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
-            source = source || decodeURIComponent(mediaSource.dataset.kiwixurl);
-            if (!source || !regexpZIMUrlWithNamespace.test(source)) {
-                if (source) console.error('No usable media source was found for: ' + source);
-                return;
-            }
-            var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
-            // If the "controls" property is missing, we need to add it to ensure jQuery-only users can operate the video. See kiwix-js #760.
-            if (/audio|video/i.test(mediaElement.tagName) && !mediaElement.hasAttribute('controls')) mediaElement.setAttribute('controls', '');
-            selectedArchive.getDirEntryByPath(source).then(function (dirEntry) {
-                return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
-                    var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
-                    var blob = new Blob([mediaArray], { type: mimeType });
-                    mediaSource.src = URL.createObjectURL(blob);
-                    // In Firefox and Chromium it is necessary to re-register the inserted media source
-                    // but do not reload for text tracks (closed captions / subtitles)
-                    if (/track/i.test(mediaSource.tagName)) return;
-                    mediaElement.load();
+            .forEach(function (mediaSource) {
+                var source = mediaSource.getAttribute('src');
+                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
+                // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
+                source = source || decodeURIComponent(mediaSource.dataset.kiwixurl);
+                if (!source || !regexpZIMUrlWithNamespace.test(source)) {
+                    if (source) console.error('No usable media source was found for: ' + source);
+                    return;
+                }
+                var mediaElement = /audio|video/i.test(mediaSource.tagName) ? mediaSource : mediaSource.parentElement;
+                // If the "controls" property is missing, we need to add it to ensure jQuery-only users can operate the video. See kiwix-js #760.
+                if (/audio|video/i.test(mediaElement.tagName) && !mediaElement.hasAttribute('controls')) mediaElement.setAttribute('controls', '');
+                selectedArchive.getDirEntryByPath(source).then(function (dirEntry) {
+                    return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, mediaArray) {
+                        var mimeType = mediaSource.type ? mediaSource.type : dirEntry.getMimetype();
+                        var blob = new Blob([mediaArray], { type: mimeType });
+                        mediaSource.src = URL.createObjectURL(blob);
+                        // In Firefox and Chromium it is necessary to re-register the inserted media source
+                        // but do not reload for text tracks (closed captions / subtitles)
+                        if (/track/i.test(mediaSource.tagName)) return;
+                        mediaElement.load();
+                    });
                 });
             });
-        });
     }
 }
 
@@ -2347,7 +2346,7 @@ function goToArticle (path, download, contentType) {
         }
     }).catch(function (e) {
         uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
-        translateUI.t('dialog-article-readerror-title') || 'Error reading article');
+            translateUI.t('dialog-article-readerror-title') || 'Error reading article');
     });
 }
 
@@ -2358,7 +2357,7 @@ function goToRandomArticle () {
             if (dirEntry === null || dirEntry === undefined) {
                 document.getElementById('searchingArticles').style.display = 'none';
                 uiUtil.systemAlert(translateUI.t('dialog-randomarticle-error-message') || 'Error finding random article',
-                translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
+                    translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
             } else {
                 // We fall back to the old A namespace to support old ZIM files without a text/html MIME type for articles
                 // DEV: If articlePtrPos is defined in zimFile, then we are using a v1 article-only title listing. By definition,
@@ -2400,8 +2399,7 @@ function goToMainArticle () {
                     '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
                     '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
                     'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
-                    translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!'
-                );
+                translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
                 document.getElementById('searchingArticles').style.display = 'none';
                 document.getElementById('welcomeText').style.display = '';
             } else {
