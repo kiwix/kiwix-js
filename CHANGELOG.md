@@ -4,6 +4,10 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## In-progress changelog for Kiwix JS v3.11.1
+
+* BUGFIX: Restored ability to scroll the search results with touch or mouse
+
 ## Kiwix JS v3.11.0
 
 Released on *2023-11-12*
