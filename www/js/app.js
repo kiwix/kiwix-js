@@ -158,7 +158,7 @@ function resizeIFrame () {
             region.style.overflowY = 'hidden';
         } else if (!liHomeNav.classList.contains('active')) {
             // We are not in Home, so we reset the region height
-            region.style.height = window.innerHeight + 'px';
+            region.style.height = 'auto';
             region.style.overflowY = 'auto';
         } else {
             // Get  header height *including* its bottom margin
@@ -204,6 +204,9 @@ searchArticle.addEventListener('click', function () {
     document.querySelector('.kiwix-alert').style.display = 'none';
     document.getElementById('searchingArticles').style.display = '';
     pushBrowserHistoryState(null, prefix);
+    const footerHeight = document.getElementById('footer').getBoundingClientRect().height;
+    region.style.height = window.innerHeight - footerHeight + 'px';
+    region.style.overflowY = 'auto';
     // Initiate the search
     searchDirEntriesFromPrefix(prefix);
     $('.navbar-collapse').collapse('hide');
@@ -335,12 +338,19 @@ prefixElement.addEventListener('keyup', function (e) {
 });
 // Restore the search results if user goes back into prefix field
 prefixElement.addEventListener('focus', function () {
-    if (document.getElementById('prefix').value !== '') { document.getElementById('articleListWithHeader').style.display = ''; }
+    if (document.getElementById('prefix').value !== '') {
+        region.style.overflowY = 'auto';
+        const footerHeight = document.getElementById('footer').getBoundingClientRect().height;
+        region.style.height = window.innerHeight - footerHeight + 'px';
+        document.getElementById('articleListWithHeader').style.display = '';
+    }
 });
 // Hide the search results if user moves out of prefix field
 prefixElement.addEventListener('blur', function () {
     if (!searchArticlesFocused) {
         appstate.search.status = 'cancelled';
+        region.style.overflowY = 'hidden';
+        region.style.height = 'auto';
         document.getElementById('searchingArticles').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
     }
