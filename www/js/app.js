@@ -41,13 +41,6 @@ if (params.abort) {
 }
 
 /**
- * The delay (in milliseconds) between two "keepalive" messages sent to the ServiceWorker (so that it is not stopped
- * by the browser, and keeps the MessageChannel to communicate with the application)
- * @type Integer
- */
-const DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
-
-/**
  * The name of the Cache API cache to use for caching Service Worker requests and responses for certain asset types
  * We need access to the cache name in app.js in order to complete utility actions when Service Worker is not initialized,
  * so we have to duplicate it here
@@ -55,14 +48,6 @@ const DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER = 30000;
  */
 // DEV: Ensure this matches the name defined in service-worker.js (a check is provided in refreshCacheStatus() below)
 const ASSETS_CACHE = 'kiwixjs-assetsCache';
-
-/**
- * Memory cache for CSS styles contained in ZIM: it significantly speeds up subsequent page display
- * This cache is used by default in jQuery mode, but can be turned off in Configuration for low-memory devices
- * In Service Worker mode, the Cache API will be used instead
- * @type {Map}
- */
-var cssCache = new Map();
 
 /**
  * A global object for storing app state
@@ -758,7 +743,7 @@ function getAssetsCacheAttributes () {
                 type: params.assetsCache ? 'memory' : 'none',
                 name: 'cssCache',
                 description: params.assetsCache ? 'Memory' : 'None',
-                count: cssCache.size
+                count: selectedArchive ? selectedArchive.cssCache.size : 0
             });
         }
     });
@@ -797,37 +782,38 @@ function refreshCacheStatus () {
     });
 }
 
-var keepAliveServiceWorkerHandle;
-var serviceWorkerRegistration;
+var initServiceWorkerHandle = null;
+var serviceWorkerRegistration = null;
 
 /**
- * Send an 'init' message to the ServiceWorker with a new MessageChannel
- * to initialize it, or to keep it alive.
- * This MessageChannel allows a 2-way communication between the ServiceWorker
- * and the application
+ * Sends an 'init' message to the ServiceWorker and inititalizes the onmessage event
+ * When the event is received, it will provide a MessageChannel port to respond to the ServiceWorker
  */
-function initOrKeepAliveServiceWorker () {
-    var delay = DELAY_BETWEEN_KEEPALIVE_SERVICEWORKER;
+function initServiceWorkerMessaging () {
+    // If no ZIM archive is loaded, return (it will be called when one is loaded)
+    if (!selectedArchive) return;
     if (params.contentInjectionMode === 'serviceworker') {
-        // Create a new messageChannel
-        var tmpMessageChannel = new MessageChannel();
-        tmpMessageChannel.port1.onmessage = handleMessageChannelMessage;
-        // Send the init message to the ServiceWorker, with this MessageChannel as a parameter
+        // Create a message listener
+        navigator.serviceWorker.onmessage = function (event) {
+            if (event.data.action === 'askForContent') {
+                handleMessageChannelMessage(event)
+            }
+        };
+        // Send the init message to the ServiceWorker
         if (navigator.serviceWorker.controller) {
             navigator.serviceWorker.controller.postMessage({
                 action: 'init'
-            }, [tmpMessageChannel.port2]);
-        } else if (keepAliveServiceWorkerHandle) {
+            });
+        } else if (initServiceWorkerHandle) {
             console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
+            // Turn off failsafe, as this is a controlled reboot
+            settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
             window.location.reload();
         } else {
             // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
-            delay = 0;
+            console.debug('The Service Worker needs more time to load...');
+            initServiceWorkerHandle = setTimeout(initServiceWorkerMessaging, 0);
         }
-        // Schedule to do it again regularly to keep the 2-way communication alive.
-        // See https://github.com/kiwix/kiwix-js/issues/145 to understand why
-        clearTimeout(keepAliveServiceWorkerHandle);
-        keepAliveServiceWorkerHandle = setTimeout(initOrKeepAliveServiceWorker, delay, false);
     }
 }
 
@@ -878,21 +864,21 @@ function setContentInjectionMode (value) {
         }
         // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
         // but it will no longer be intercepting requests for ZIM assets (only requests for the app's own code)
-        if (isServiceWorkerAvailable()) {
+        if ('serviceWorker' in navigator) {
             serviceWorkerRegistration = null;
         }
-        refreshAPIStatus();
         // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
         // We should empty it and turn it off to prevent unnecessary space usage
         if ('caches' in window && isMessageChannelAvailable()) {
-            var channel = new MessageChannel();
             if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
+                var channel = new MessageChannel();
                 navigator.serviceWorker.controller.postMessage({
                     action: { assetsCache: 'disable' }
                 }, [channel.port2]);
             }
             caches.delete(ASSETS_CACHE);
         }
+        refreshAPIStatus();
     } else if (value === 'serviceworker') {
         var protocol = window.location.protocol;
         // Since Firefox 103, the ServiceWorker API is not available any more in Webextensions. See https://hg.mozilla.org/integration/autoland/rev/3a2907ad88e8 and https://bugzilla.mozilla.org/show_bug.cgi?id=1593931
@@ -935,7 +921,6 @@ function setContentInjectionMode (value) {
                     // Remove any jQuery hooks from a previous jQuery session
                     $('#articleContent').contents().remove();
                     // Create the MessageChannel and send 'init'
-                    initOrKeepAliveServiceWorker();
                     refreshAPIStatus();
                 } else {
                     navigator.serviceWorker.register('../service-worker.js').then(function (reg) {
@@ -948,21 +933,12 @@ function setContentInjectionMode (value) {
                             if (statechangeevent.target.state === 'activated') {
                                 // Remove any jQuery hooks from a previous jQuery session
                                 $('#articleContent').contents().remove();
-                                // Create the MessageChannel and send the 'init' message to the ServiceWorker
-                                initOrKeepAliveServiceWorker();
                                 // We need to refresh cache status here on first activation because SW was inaccessible till now
                                 // We also initialize the ASSETS_CACHE constant in SW here
                                 refreshCacheStatus();
                                 refreshAPIStatus();
                             }
                         });
-                        if (serviceWorker.state === 'activated') {
-                            // Even if the ServiceWorker is already activated,
-                            // We need to re-create the MessageChannel
-                            // and send the 'init' message to the ServiceWorker
-                            // in case it has been stopped and lost its context
-                            initOrKeepAliveServiceWorker();
-                        }
                         refreshCacheStatus();
                         refreshAPIStatus();
                     }).catch(function (err) {
@@ -990,13 +966,11 @@ function setContentInjectionMode (value) {
                     });
                 }
             } else {
-                // We need to reactivate Service Worker
-                initOrKeepAliveServiceWorker();
+                // We need to set this variable earlier else the Service Worker does not get reactivated
+                params.contentInjectionMode = value;
+                // initOrKeepAliveServiceWorker();
             }
         }
-        // User has switched to ServiceWorker mode, so no longer needs the memory cache
-        // We should empty it to ensure good memory management
-        resetCssCache();
     }
     $('input:radio[name=contentInjectionMode]').prop('checked', false);
     var trueMode = params.serviceWorkerLocal ? value + 'local' : value;
@@ -1010,13 +984,22 @@ function setContentInjectionMode (value) {
     setTimeout(uiUtil.determineCanvasElementsWorkaround, 1500);
 }
 
+// At launch, we try to set the last content injection mode (stored in Settings Store)
+setContentInjectionMode(params.contentInjectionMode);
+// var contentInjectionMode = settingsStore.getItem('contentInjectionMode');
+// if (contentInjectionMode) {
+//     setContentInjectionMode(contentInjectionMode);
+// } else {
+//     setContentInjectionMode('jquery');
+// }
+
 /**
  * Detects whether the ServiceWorker API is available
  * https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker
  * @returns {Boolean}
  */
 function isServiceWorkerAvailable () {
-    return ('serviceWorker' in navigator);
+    return 'serviceWorker' in navigator;
 }
 
 /**
@@ -1041,7 +1024,7 @@ function isMessageChannelAvailable () {
  */
 function isServiceWorkerReady () {
     // Return true if the serviceWorkerRegistration is not null and not undefined
-    return (serviceWorkerRegistration);
+    return serviceWorkerRegistration;
 }
 
 function launchBrowserExtensionServiceWorker () {
@@ -1275,7 +1258,6 @@ function setLocalArchiveFromArchiveList () {
                 ' ' + 'storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
             }
         }
-        resetCssCache();
         settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
         zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, archiveReadyCallback, function (message, label) {
             // callbackError which is called in case of an error
@@ -1289,8 +1271,8 @@ function setLocalArchiveFromArchiveList () {
  */
 function resetCssCache () {
     // Reset the cssCache. Must be done when archive changes.
-    if (cssCache) {
-        cssCache = new Map();
+    if (selectedArchive.cssCache) {
+        selectedArchive.cssCache = new Map();
     }
 }
 
@@ -1517,7 +1499,6 @@ function setLocalArchiveFromFileList (files) {
             return;
         }
     }
-    resetCssCache();
     zimArchiveLoader.loadArchiveFromFiles(files, archiveReadyCallback, function (message, label) {
         // callbackError which is called in case of an error
         uiUtil.systemAlert(message, label);
@@ -1531,6 +1512,14 @@ function setLocalArchiveFromFileList (files) {
  */
 function archiveReadyCallback (archive) {
     selectedArchive = archive;
+
+    // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
+    selectedArchive.cssCache = new Map();
+
+    // Initialize the Service Worker
+    if (params.contentInjectionMode === 'serviceworker') {
+        initServiceWorkerMessaging();
+    }
     // The archive is set: go back to home page to start searching
     document.getElementById('btnHome').click();
     document.getElementById('downloadInstruction').style.display = 'none';
@@ -2184,8 +2173,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             cssCount++;
             var linkUrl = link.getAttribute('data-kiwixurl');
             var url = decodeURIComponent(uiUtil.removeUrlParameters(linkUrl));
-            if (cssCache.has(url)) {
-                var nodeContent = cssCache.get(url);
+            if (selectedArchive.cssCache.has(url)) {
+                var nodeContent = selectedArchive.cssCache.get(url);
                 if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
                 else uiUtil.feedNodeWithDataURI(link, 'href', nodeContent, link.type || 'image');
                 cssFulfilled++;
@@ -2193,14 +2182,14 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 if (params.assetsCache) document.getElementById('cachingAssets').style.display = '';
                 selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
                     if (!dirEntry) {
-                        cssCache.set(url, ''); // Prevent repeated lookups of this unfindable asset
+                        selectedArchive.cssCache.set(url, ''); // Prevent repeated lookups of this unfindable asset
                         throw new Error('DirEntry ' + typeof dirEntry);
                     }
                     var mimetype = dirEntry.getMimetype();
                     var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
                     return readFile(dirEntry, function (fileDirEntry, content) {
                         var fullUrl = fileDirEntry.namespace + '/' + fileDirEntry.url;
-                        if (params.assetsCache) cssCache.set(fullUrl, content);
+                        if (params.assetsCache) selectedArchive.cssCache.set(fullUrl, content);
                         if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
                         else uiUtil.feedNodeWithDataURI(link, 'href', content, mimetype);
                         cssFulfilled++;
