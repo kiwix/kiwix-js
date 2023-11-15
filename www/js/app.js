@@ -796,6 +796,19 @@ function initServiceWorkerMessaging () {
         // Create a message listener
         navigator.serviceWorker.onmessage = function (event) {
             if (event.data.action === 'askForContent') {
+                // Check that the zimFileId in the messageChannel event data is the same as the one in the currently open archive
+                // Because the SW broadcasts its request to all open tabs or windows, we need to check that the request is for this instance
+                if (event.data.zimFileName !== selectedArchive.file.name) {
+                    console.warn('SW request does not match this insstance', '[zimFileName:' + event.data.zimFileName + ' !== ' + selectedArchive.file.name + ']');
+                    if (selectedArchive.zimType === 'zimit' && /\/\/youtubei.*player/.test(event.data.title)) {
+                        // DEV: This is a hack to allow YouTube videos to play in Zimit archives:
+                        // Because links are embedded in a nested iframe, the SW cannot identify the top-level window from which to request the ZIM content
+                        // Until we find a way to tell where it is coming from, we allow the request through and try to load the content
+                        console.warn('>>> Allowing passthrough to process YouTube video <<<');
+                    } else {
+                        return;
+                    }
+                }          
                 handleMessageChannelMessage(event)
             }
         };
