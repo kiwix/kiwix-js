@@ -795,6 +795,10 @@ function initServiceWorkerMessaging () {
     if (params.contentInjectionMode === 'serviceworker') {
         // Create a message listener
         navigator.serviceWorker.onmessage = function (event) {
+            if (!selectedArchive) {
+                console.warn('Message from SW received, but no archive is selected!');
+                return;
+            }
             if (event.data.action === 'askForContent') {
                 // Check that the zimFileId in the messageChannel event data is the same as the one in the currently open archive
                 // Because the SW broadcasts its request to all open tabs or windows, we need to check that the request is for this instance
