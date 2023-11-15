@@ -214,6 +214,8 @@ self.addEventListener('activate', function (event) {
                 if (key !== APP_CACHE && key !== ASSETS_CACHE) {
                     console.debug('[SW] App updated to version ' + appVersion + ': deleting old cache');
                     return caches.delete(key);
+                } else {
+                    return Promise.resolve();
                 }
             }));
         })
