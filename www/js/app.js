@@ -2137,9 +2137,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
-                if (selectedArchive.zimitPrefix) {
+                if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
+                    // It's already a full ZIM URL, so we can use it directly
                     zimUrl = href;
                 } else {
+                    // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                 }
                 goToArticle(zimUrl, downloadAttrValue, contentType);
