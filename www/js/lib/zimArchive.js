@@ -540,8 +540,24 @@ ZIMArchive.prototype.resolveRedirect = function (dirEntry, callback) {
  * @param {callbackStringContent} callback
  */
 ZIMArchive.prototype.readUtf8File = function (dirEntry, callback) {
+    var that = this;
     dirEntry.readData().then(function (data) {
-        callback(dirEntry, utf8.parse(data));
+        var html = utf8.parse(data);
+        if (that.zimType === 'zimit' && params.isLandingPage) {
+            // We are dealing with a Zimit ZIM, so we need to extract the redirect from the landing page
+            var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
+            if (redirect && redirect[2] && redirect[3]) {
+                // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
+                var relativeZimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
+                var zimitStartPage = dirEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
+                // Store a full Zimit prefix in the archive object
+                that.zimitPrefix = dirEntry.namespace + '/' + relativeZimitPrefix + '/';
+                // Mark the directory entry as a redirect
+                dirEntry.isredirect = true;
+                dirEntry.zimitRedirect = zimitStartPage;
+            }
+        }
+        callback(dirEntry, html);
     });
 };
 
