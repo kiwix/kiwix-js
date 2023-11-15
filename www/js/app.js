@@ -799,6 +799,10 @@ function initServiceWorkerMessaging () {
                 console.warn('Message from SW received, but no archive is selected!');
                 return;
             }
+            if (event.data.error) {
+                console.error('Error in MessageChannel', event.data.error);
+                throw event.data.error;
+            }
             if (event.data.action === 'askForContent') {
                 // Check that the zimFileId in the messageChannel event data is the same as the one in the currently open archive
                 // Because the SW broadcasts its request to all open tabs or windows, we need to check that the request is for this instance
@@ -812,8 +816,10 @@ function initServiceWorkerMessaging () {
                     } else {
                         return;
                     }
-                }          
+                }
                 handleMessageChannelMessage(event)
+            } else {
+                console.error('Invalid message received', event.data);
             }
         };
         // Send the init message to the ServiceWorker
@@ -1869,45 +1875,36 @@ function readArticle (dirEntry) {
  * @param {Event} event The event object of the message channel
  */
 function handleMessageChannelMessage (event) {
-    if (event.data.error) {
-        console.error('Error in MessageChannel', event.data.error);
-        throw event.data.error;
-    } else {
-        // We received a message from the ServiceWorker
-        if (event.data.action === 'askForContent') {
-            // The ServiceWorker asks for some content
-            var title = event.data.title;
-            var messagePort = event.ports[0];
-            var readFile = function (dirEntry) {
-                if (dirEntry === null) {
-                    console.error('Title ' + title + ' not found in archive.');
-                    messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
-                } else if (dirEntry.isRedirect()) {
-                    selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                        var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
-                        // Ask the ServiceWorker to send an HTTP redirect to the browser.
-                        // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
-                        // Else, if the redirect URL is in a different directory than the original URL,
-                        // the relative links in the HTML content would fail. See #312
-                        messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
-                    });
-                } else {
-                    // Let's read the content in the ZIM file
-                    selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        var mimetype = fileDirEntry.getMimetype();
-                        // Let's send the content to the ServiceWorker
-                        var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
-                        messagePort.postMessage(message, [content.buffer]);
-                    });
-                }
-            };
-            selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-                messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+    // We received a message from the ServiceWorker
+    // The ServiceWorker asks for some content
+    var title = event.data.title;
+    var messagePort = event.ports[0];
+    var readFile = function (dirEntry) {
+        if (dirEntry === null) {
+            console.error('Title ' + title + ' not found in archive.');
+            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+        } else if (dirEntry.isRedirect()) {
+            selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+                var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
+                // Ask the ServiceWorker to send an HTTP redirect to the browser.
+                // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
+                // Else, if the redirect URL is in a different directory than the original URL,
+                // the relative links in the HTML content would fail. See #312
+                messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
             });
         } else {
-            console.error('Invalid message received', event.data);
+            // Let's read the content in the ZIM file
+            selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                var mimetype = fileDirEntry.getMimetype();
+                // Let's send the content to the ServiceWorker
+                var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
+                messagePort.postMessage(message, [content.buffer]);
+            });
         }
-    }
+    };
+    selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
+        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+    });
 }
 
 // Compile some regular expressions needed to modify links
