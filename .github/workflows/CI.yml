@@ -68,10 +68,11 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-chrome
 
-      - name: End-to-end tests on Edge (Linux)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-edge
+      # Disabling Edge tests for now, as they are very flaky on Linux, but pass fine on Windows
+      # - name: End-to-end tests on Edge (Linux)
+      #   env:
+      #     GITHUB_ACTION: ${{ github.event_name }}
+      #   run: npm run test-e2e-edge
 
       - name: End-to-end tests on Firefox (Linux)
         env:
