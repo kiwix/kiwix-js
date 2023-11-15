@@ -543,7 +543,7 @@ ZIMArchive.prototype.readUtf8File = function (dirEntry, callback) {
     var that = this;
     dirEntry.readData().then(function (data) {
         var html = utf8.parse(data);
-        if (that.zimType === 'zimit' && params.isLandingPage) {
+        if (that && that.zimType === 'zimit' && params.isLandingPage) {
             // We are dealing with a Zimit ZIM, so we need to extract the redirect from the landing page
             var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
             if (redirect && redirect[2] && redirect[3]) {
