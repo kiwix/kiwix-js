@@ -290,6 +290,12 @@ self.addEventListener('message', function (event) {
         if (event.data.action === 'init') {
             // On 'init' message, we enable the fetchEventListener
             fetchCaptureEnabled = true;
+            // Acdknowledge the init message to all clients
+            self.clients.matchAll().then(function (clientList) {
+                clientList.forEach(function (client) {
+                    client.postMessage({ action: 'acknowledge' });
+                });
+            });
         } else if (event.data.action === 'disable') {
             // On 'disable' message, we disable the fetchEventListener
             // Note that this code doesn't currently run because the app currently never sends a 'disable' message
