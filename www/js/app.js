@@ -95,7 +95,10 @@ if (!/^chrome-extension:/i.test(window.location.protocol)) {
     document.getElementById('serviceWorkerLocal').style.display = 'none';
     document.getElementById('serviceWorkerLocalDescription').style.display = 'none';
 }
+
+// At launch, we set the correct content injection mode
 setContentInjectionMode(params.contentInjectionMode);
+setTimeout(initServiceWorkerMessaging, 500);
 
 // Define frequently used UI elements
 const globalDropZone = document.getElementById('search-article');
@@ -782,69 +785,71 @@ function refreshCacheStatus () {
     });
 }
 
-var initServiceWorkerHandle = null;
 var serviceWorkerRegistration = null;
 
 /**
  * Sends an 'init' message to the ServiceWorker and inititalizes the onmessage event
- * When the event is received, it will provide a MessageChannel port to respond to the ServiceWorker
+ * It is called when the Service Worker is first activated, and also when a new archive is loaded
+ * When a message is received, it will provide a MessageChannel port to respond to the ServiceWorker
  */
 function initServiceWorkerMessaging () {
     // If no ZIM archive is loaded, return (it will be called when one is loaded)
-    if (!selectedArchive) return;
-    if (params.contentInjectionMode === 'serviceworker') {
-        // Create a message listener
-        navigator.serviceWorker.onmessage = function (event) {
-            if (event.data.error) {
-                console.error('Error in MessageChannel', event.data.error);
-                throw event.data.error;
-            } else if (event.data.action === 'acknowledge') {
-                // The Service Worker is acknowledging receipt of init message
-                console.log('SW acknowledged init message');
-                initServiceWorkerHandle = true;
-            } else if (event.data.action === 'askForContent') {
-                // The Service Worker is asking for content. Check we have a loaded ZIM in this instance.
-                // DEV: This can happen if there are various instances of the app open in different tabs or windows, and no archive has been selected in this instance.
-                if (!selectedArchive) {
-                    console.warn('Message from SW received, but no archive is selected!');
-                    return;
-                }
-                // See below for explanation of this exception
-                const videoException = selectedArchive.zimType === 'zimit' && /\/\/youtubei.*player/.test(event.data.title);
-                // Check that the zimFileId in the messageChannel event data is the same as the one in the currently open archive
-                // Because the SW broadcasts its request to all open tabs or windows, we need to check that the request is for this instance
-                if (event.data.zimFileName !== selectedArchive.file.name && !videoException) {
-                    // Do nothing if the request is not for this instance
-                    // console.debug('SW request does not match this instance', '[zimFileName:' + event.data.zimFileName + ' !== ' + selectedArchive.file.name + ']');
-                } else {
-                    if (videoException) {
-                        // DEV: This is a hack to allow YouTube videos to play in Zimit archives:
-                        // Because links are embedded in a nested iframe, the SW cannot identify the top-level window from which to request the ZIM content
-                        // Until we find a way to tell where it is coming from, we allow the request through on all controlled clients and try to load the content
-                        console.warn('>>> Allowing passthrough of SW request to process Zimit video <<<');
-                    }
-                    handleMessageChannelMessage(event);
-                }
-            } else {
-                console.error('Invalid message received', event.data);
+    if (!params.contentInjectionMode === 'serviceworker') {
+        console.error('Cannot initiate Service Worker messaging, because the app is not in ServiceWorker mode!');
+        return;
+    };
+    // Create a message listener
+    navigator.serviceWorker.onmessage = function (event) {
+        if (event.data.error) {
+            console.error('Error in MessageChannel', event.data.error);
+            throw event.data.error;
+        } else if (event.data.action === 'acknowledge') {
+            // The Service Worker is acknowledging receipt of init message
+            console.log('SW acknowledged init message');
+            serviceWorkerRegistration = true;
+        } else if (event.data.action === 'askForContent') {
+            // The Service Worker is asking for content. Check we have a loaded ZIM in this instance.
+            // DEV: This can happen if there are various instances of the app open in different tabs or windows, and no archive has been selected in this instance.
+            if (!selectedArchive) {
+                console.warn('Message from SW received, but no archive is selected!');
+                return;
             }
-        };
-        // Send the init message to the ServiceWorker
-        if (navigator.serviceWorker.controller) {
-            console.log('Initializing SW messaging...');
-            navigator.serviceWorker.controller.postMessage({
-                action: 'init'
-            });
-        } else if (!initServiceWorkerHandle) {
-            console.error('The Service Worker is active but is not controlling the current page! We have to reload.');
-            // Turn off failsafe, as this is a controlled reboot
-            settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
-            window.location.reload();
+            // See below for explanation of this exception
+            const videoException = selectedArchive.zimType === 'zimit' && /\/\/youtubei.*player/.test(event.data.title);
+            // Check that the zimFileId in the messageChannel event data is the same as the one in the currently open archive
+            // Because the SW broadcasts its request to all open tabs or windows, we need to check that the request is for this instance
+            if (event.data.zimFileName !== selectedArchive.file.name && !videoException) {
+                // Do nothing if the request is not for this instance
+                // console.debug('SW request does not match this instance', '[zimFileName:' + event.data.zimFileName + ' !== ' + selectedArchive.file.name + ']');
+            } else {
+                if (videoException) {
+                    // DEV: This is a hack to allow YouTube videos to play in Zimit archives:
+                    // Because links are embedded in a nested iframe, the SW cannot identify the top-level window from which to request the ZIM content
+                    // Until we find a way to tell where it is coming from, we allow the request through on all controlled clients and try to load the content
+                    console.warn('>>> Allowing passthrough of SW request to process Zimit video <<<');
+                }
+                handleMessageChannelMessage(event);
+            }
         } else {
-            // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
-            console.debug('The Service Worker needs more time to load...');
-            setTimeout(initServiceWorkerMessaging, 0);
+            console.error('Invalid message received', event.data);
         }
+    };
+    // Send the init message to the ServiceWorker
+    if (navigator.serviceWorker.controller) {
+        console.log('Initializing SW messaging...');
+        navigator.serviceWorker.controller.postMessage({
+            action: 'init'
+        });
+    } else if (serviceWorkerRegistration) {
+        // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
+        console.warn('The Service Worker needs more time to load, or else the app was force-refrshed...');
+        serviceWorkerRegistration = null;
+        setTimeout(initServiceWorkerMessaging, 1200);
+    } else {
+        console.error('The Service Worker is not controlling the current page! We have to reload.');
+        // Turn off failsafe, as this is a controlled reboot
+        settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
+        window.location.reload();
     }
 }
 
@@ -856,6 +861,7 @@ function initServiceWorkerMessaging () {
  * @param {String} value The chosen content injection mode : 'jquery' or 'serviceworker'
  */
 function setContentInjectionMode (value) {
+    console.debug('Setting content injection mode to', value);
     params.oldInjectionMode = params.serviceWorkerLocal ? 'serviceworkerlocal' : params.contentInjectionMode;
     params.serviceWorkerLocal = false;
     if (value === 'serviceworkerlocal') {
@@ -895,9 +901,9 @@ function setContentInjectionMode (value) {
         }
         // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
         // but it will no longer be intercepting requests for ZIM assets (only requests for the app's own code)
-        if ('serviceWorker' in navigator) {
-            serviceWorkerRegistration = null;
-        }
+        // if ('serviceWorker' in navigator) {
+        //     serviceWorkerRegistration = null;
+        // }
         // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
         // We should empty it and turn it off to prevent unnecessary space usage
         if ('caches' in window && isMessageChannelAvailable()) {
@@ -1014,15 +1020,6 @@ function setContentInjectionMode (value) {
     // Note we need a timeout because loading the webpHero script in init.js is asynchronous
     setTimeout(uiUtil.determineCanvasElementsWorkaround, 1500);
 }
-
-// At launch, we try to set the last content injection mode (stored in Settings Store)
-setContentInjectionMode(params.contentInjectionMode);
-// var contentInjectionMode = settingsStore.getItem('contentInjectionMode');
-// if (contentInjectionMode) {
-//     setContentInjectionMode(contentInjectionMode);
-// } else {
-//     setContentInjectionMode('jquery');
-// }
 
 /**
  * Detects whether the ServiceWorker API is available
@@ -1346,12 +1343,17 @@ function displayFileSelect () {
         return;
     }
 
-    document.getElementById('archiveList').addEventListener('change', async function (e) {
+    document.getElementById('archiveList').addEventListener('change', function (e) {
         // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
         localStorage.setItem('previousZimFileName', e.target.value);
         if (params.isFileSystemApiSupported) {
-            const files = await abstractFilesystemAccess.getSelectedZimFromCache(e.target.value)
-            setLocalArchiveFromFileList(files);
+            return abstractFilesystemAccess.getSelectedZimFromCache(e.target.value).then(function (files) {
+                setLocalArchiveFromFileList(files);
+            }).catch(function (err) {
+                console.error(err);
+                return uiUtil.systemAlert(translateUI.t('dialog-fielhandle-fail-message') || 'We were unable to retrieve a file handle for the selected archive. Please pick the file or folder again.',
+                    translateUI.t('dialog-fielhandle-fail-title') || 'Error retrieving archive');
+            });
         } else {
             if (webKitFileList === null) {
                 const element = localStorage.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
@@ -1362,7 +1364,7 @@ function displayFileSelect () {
                 document.getElementById(element).click()
                 return;
             }
-            const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value)
+            const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value);
             setLocalArchiveFromFileList(files);
         }
     });
