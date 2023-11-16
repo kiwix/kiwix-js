@@ -33,6 +33,8 @@ async function loadFirefoxDriver () {
 const driver_gutenberg_fx = await loadFirefoxDriver();
 
 // Run test in SW mode only
-console.log('`nRunning Gutenberg tests in ServiceWorker mode only for this browser version`n');
+console.log(' ');
+console.log('Running Gutenberg tests in ServiceWorker mode only for this browser version');
+console.log(' ');
 
 await gutenbergRo.runTests(driver_gutenberg_fx, ['serviceworker']);

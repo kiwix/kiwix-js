@@ -32,7 +32,9 @@ async function loadChromeDriver () {
 // Maximize the window so that full browser state is visible in the screenshots
 // await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
 
-console.log('`nRunning Ray Charles tests only for this browser version`n');
+console.log(' ');
+console.log('Running Ray Charles tests only for this browser version');
+console.log(' ');
 
 // make sure to use await running tests or we are charged unnecessarily on Browserstack
 await legacyRayCharles.runTests(await loadChromeDriver());

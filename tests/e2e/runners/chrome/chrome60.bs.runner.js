@@ -37,7 +37,9 @@ async function loadChromeDriver () {
 // Maximize the window so that full browser state is visible in the screenshots
 // await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
 
-console.log('`nRunning Gutenberg tests only for this browser version`n');
+console.log(' ');
+console.log('Running Gutenberg tests only for this browser version');
+console.log(' ');
 
 // make sure to use await running tests or we are charged unnecessarily on Browserstack
 await gutenbergRo.runTests(await loadChromeDriver());
