@@ -35,5 +35,6 @@ const driver_fx = await loadFirefoxDriver();
 await driver_fx.manage().window().maximize();
 
 // Run tests in jQuery mode only (this browser does not support Service Workers)
-console.log('Running tests in jQuery mode only for this browser version');
-legacyRayCharles.runTests(driver_fx, ['jquery']);
+console.log('`nRunning Ray Charles tests in JQuery mode only for this browser version`n');
+
+await legacyRayCharles.runTests(driver_fx, ['jquery']);

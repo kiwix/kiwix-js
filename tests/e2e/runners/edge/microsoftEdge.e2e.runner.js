@@ -17,5 +17,5 @@ async function loadMSEdgeDriver () {
     return driver;
 };
 
-legacyRayCharles.runTests(await loadMSEdgeDriver());
-gutenbergRo.runTests(await loadMSEdgeDriver());
+await legacyRayCharles.runTests(await loadMSEdgeDriver());
+await gutenbergRo.runTests(await loadMSEdgeDriver());

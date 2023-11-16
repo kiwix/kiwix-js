@@ -20,5 +20,5 @@ async function loadChromiumDriver () {
     return driver;
 };
 
-legacyRayCharles.runTests(await loadChromiumDriver());
-gutenbergRo.runTests(await loadChromiumDriver());
+await legacyRayCharles.runTests(await loadChromiumDriver());
+await gutenbergRo.runTests(await loadChromiumDriver());

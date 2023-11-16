@@ -23,5 +23,5 @@ async function loadFirefoxDriver () {
     return driver;
 };
 
-legacyRayCharles.runTests(await loadFirefoxDriver());
-gutenbergRo.runTests(await loadFirefoxDriver());
+await legacyRayCharles.runTests(await loadFirefoxDriver());
+await gutenbergRo.runTests(await loadFirefoxDriver());
