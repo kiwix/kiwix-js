@@ -807,6 +807,7 @@ function initServiceWorkerMessaging () {
             // The Service Worker is acknowledging receipt of init message
             console.log('SW acknowledged init message');
             serviceWorkerRegistration = true;
+            refreshAPIStatus();
         } else if (event.data.action === 'askForContent') {
             // The Service Worker is asking for content. Check we have a loaded ZIM in this instance.
             // DEV: This can happen if there are various instances of the app open in different tabs or windows, and no archive has been selected in this instance.
@@ -901,9 +902,9 @@ function setContentInjectionMode (value) {
         }
         // Because the Service Worker must still run in a PWA app so that it can work offline, we don't actually disable the SW in this context,
         // but it will no longer be intercepting requests for ZIM assets (only requests for the app's own code)
-        // if ('serviceWorker' in navigator) {
-        //     serviceWorkerRegistration = null;
-        // }
+        if ('serviceWorker' in navigator) {
+            serviceWorkerRegistration = null;
+        }
         // User has switched to jQuery mode, so no longer needs ASSETS_CACHE
         // We should empty it and turn it off to prevent unnecessary space usage
         if ('caches' in window && isMessageChannelAvailable()) {
