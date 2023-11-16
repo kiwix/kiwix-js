@@ -98,7 +98,7 @@ if (!/^chrome-extension:/i.test(window.location.protocol)) {
 
 // At launch, we set the correct content injection mode
 setContentInjectionMode(params.contentInjectionMode);
-setTimeout(initServiceWorkerMessaging, 500);
+setTimeout(initServiceWorkerMessaging, 600);
 
 // Define frequently used UI elements
 const globalDropZone = document.getElementById('search-article');
