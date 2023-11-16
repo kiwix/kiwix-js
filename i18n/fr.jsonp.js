@@ -140,6 +140,8 @@ document.localeJson = {
       "dialog-error-title": "Erreur&nbsp;!",
       "dialog-file-notset-message": "Le fichier n'est pas chargé correctement",
       "dialog-file-notset-title": "Fichier non chargé",
+      "dialog-fielhandle-fail-message": "Nous n'avons pas pu récupérer le fichier pour l'archive sélectionnée. Veuillez sélectionner à nouveau le fichier ou le dossier.",
+      "dialog-fielhandle-fail-title": "Erreur de récupération de fichier",
       "dialog-focussearchbarcheck-message": "Veuillez noter que ce paramètre met le focus sur la barre de recherche lorsque vous allez sur la page d'accueil d'un ZIM, désactivant le glissement de l'en-tête et du pied sur cette page (uniquement).",
       "dialog-invalid-archivelocation-title": "Erreur&nbsp;: emplacement d'archive non valide",
       "dialog-invalid-archivelocation-message": "Il semble que vous ayez placé des fichiers d'archive à la racine de votre carte SD (ou de votre stockage interne). Veuillez les déplacer dans un sous-répertoire",

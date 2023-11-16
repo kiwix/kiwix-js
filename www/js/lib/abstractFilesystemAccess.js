@@ -176,8 +176,11 @@ async function selectFileFromPickerViaFileSystemApi () {
  * @returns {Promise<Array<File>>} The selected File Object from cache
  */
 function getSelectedZimFromCache (selectedFilename) {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
         cache.idxDB('zimFiles', async function (fileOrDirHandle) {
+            if (!fileOrDirHandle) {
+                reject(new Error('No file or directory selected'));
+            }
             // Left it here for debugging purposes as its sometimes asking for permission even when its granted
             console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
