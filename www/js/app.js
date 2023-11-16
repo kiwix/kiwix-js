@@ -178,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
     abstractFilesystemAccess.loadPreviousZimFile();
+    window.setRemoteArchives.apply(null, rayCharlesFileArray);
 });
 window.addEventListener('resize', resizeIFrame);
 
@@ -1608,6 +1609,16 @@ window.setRemoteArchives = function () {
         console.error('Unable to load remote archive(s)', e);
     });
 };
+
+// Load test files for archive
+let rayCharlesBaseFile = '/kiwix-js/tests/zims/legacy-ray-charles/wikipedia_en_ray_charles_2015-06.zimaa';
+let rayCharlesFileArray = [];
+for (let i = 0; i < 15; i++) {
+    let rayCharlesPart = rayCharlesBaseFile.replace(/zimaa$/, `zima${String.fromCharCode(97 + i)}`);
+    console.log('Loading archive: ' + rayCharlesPart + '[' + i + ']');
+    rayCharlesFileArray.push(rayCharlesPart);
+}
+
 
 /**
  * Handle key input in the prefix input zone
