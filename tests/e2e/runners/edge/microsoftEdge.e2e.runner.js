@@ -17,5 +17,10 @@ async function loadMSEdgeDriver () {
     return driver;
 };
 
-await legacyRayCharles.runTests(await loadMSEdgeDriver());
-await gutenbergRo.runTests(await loadMSEdgeDriver());
+// Preserve the order of loading, because when a user runs these on local machine, the second driver will be on top of and cover the first one
+// so we need to use the second one first
+const driver_for_gutenberg = await loadMSEdgeDriver();
+const driver_for_ray_charles = await loadMSEdgeDriver();
+
+await legacyRayCharles.runTests(driver_for_ray_charles);
+await gutenbergRo.runTests(driver_for_gutenberg);
