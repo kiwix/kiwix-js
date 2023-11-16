@@ -9,7 +9,7 @@ const capabilities = {
         osVersion: '10',
         browserVersion: '70.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Firefox 61',
+        buildName: 'BStack Build Name: Firefox 70',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
