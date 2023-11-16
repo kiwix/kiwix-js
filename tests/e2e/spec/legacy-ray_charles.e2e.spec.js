@@ -192,7 +192,7 @@ function runTests (driver, modes) {
 
             it('Load legacy Ray Charles and check index contains specified article', async function () {
                 if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Following test skipped:');
+                    console.log('\x1b[33m%s\x1b[0m', '    X Following test skipped:');
                     return;
                 }
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
@@ -221,7 +221,7 @@ function runTests (driver, modes) {
 
             it('Navigate to "This Little Girl of Mine"', async function () {
                 if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Following test skipped:');
+                    console.log('\x1b[33m%s\x1b[0m', '    X Following test skipped:');
                     return;
                 }
                 // console.log('FilesLength outer: ' + filesLength);
@@ -259,7 +259,7 @@ function runTests (driver, modes) {
 
             it('Search for Ray Charles in title index and go to article', async function () {
                 if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Following test skipped:');
+                    console.log('\x1b[33m%s\x1b[0m', '    X Following test skipped:');
                     return;
                 }
                 await driver.switchTo().defaultContent();
