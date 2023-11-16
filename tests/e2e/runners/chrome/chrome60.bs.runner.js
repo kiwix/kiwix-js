@@ -12,7 +12,7 @@ const capabilities = {
         osVersion: 'Mojave',
         browserVersion: '60.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Chrome 58 on Mojave',
+        buildName: 'BStack Build Name: Chrome 60 on Mojave',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,

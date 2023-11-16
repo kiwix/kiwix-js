@@ -9,7 +9,7 @@ const capabilities = {
         osVersion: '10',
         browserVersion: '70.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Firefox 61',
+        buildName: 'BStack Build Name: Firefox 70',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
@@ -33,5 +33,5 @@ async function loadFirefoxDriver () {
 const driver_gutenberg_fx = await loadFirefoxDriver();
 
 // Run test in SW mode only
-console.log('Running tests in Service Worker mode only for this browser version');
-await gutenbergRo.runTests(driver_gutenberg_fx);
+console.log('Running Gutenberg tests in ServiceWorker mode only for this browser version');
+await gutenbergRo.runTests(driver_gutenberg_fx, ['serviceworker']);
