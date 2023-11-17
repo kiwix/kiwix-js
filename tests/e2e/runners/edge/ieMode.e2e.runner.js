@@ -16,5 +16,5 @@ async function loadIEModeDriver () {
     return driver;
 };
 
-await legacyRayCharles.runTests(await loadIEModeDriver());
+await legacyRayCharles.runTests(await loadIEModeDriver(), ['jquery']);
 await gutenbergRo.runTests(await loadIEModeDriver(), ['jquery']);
