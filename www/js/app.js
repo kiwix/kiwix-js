@@ -1765,6 +1765,11 @@ function isDirEntryExpectedToBeDisplayed (dirEntry) {
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function readArticle (dirEntry) {
+    if (dirEntry === null || dirEntry === undefined) {
+        console.error('The directory entry for the requested article was not found (null or undefined)');
+        uiUtil.spinnerDisplay(false);
+        return;
+    }
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for expectedArticleURLToBeDisplayed.
