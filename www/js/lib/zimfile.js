@@ -466,7 +466,8 @@ export default {
             return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (mapData) {
                 var zf = new ZIMFile(fileArray);
                 // Add an abstract archive name (ignoring split file extensions)
-                zf.name = fileArray[0].name.replace(/(\.zim)\w\w$/i, '$1');
+                // Be careful because some file names may contain a path, e.g. when setting remote files as blobs in testing
+                zf.name = fileArray[0].name.replace(/^.*?([^/]+\.zim)\w?\w?$/i, '$1');
                 // Provide a temporary, per-session numeric ZIM ID used in filecache.js
                 zf.id = fileIDs.get(zf.name);
                 if (zf.id === undefined) {
