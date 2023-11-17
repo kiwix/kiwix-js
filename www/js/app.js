@@ -793,7 +793,6 @@ var serviceWorkerRegistration = null;
  * When a message is received, it will provide a MessageChannel port to respond to the ServiceWorker
  */
 function initServiceWorkerMessaging () {
-    // If no ZIM archive is loaded, return (it will be called when one is loaded)
     if (!params.contentInjectionMode === 'serviceworker') {
         console.error('Cannot initiate Service Worker messaging, because the app is not in ServiceWorker mode!');
         return;
