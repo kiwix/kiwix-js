@@ -36,7 +36,7 @@ await driver_fx.manage().window().maximize();
 
 // Run tests in jQuery mode only (this browser does not support Service Workers)
 console.log(' ');
-console.log('Running Ray Charles tests in JQuery mode only for this browser version');
+console.log('\x1b[33m%s\x1b[0m', 'Running Ray Charles tests in JQuery mode only for this browser version');
 console.log(' ');
 
 await legacyRayCharles.runTests(driver_fx, ['jquery']);

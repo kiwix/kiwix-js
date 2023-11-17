@@ -34,7 +34,7 @@ async function loadSafariDriver () {
 
 // Browserstack Safari does not support Service Workers
 console.log(' ');
-console.log('Running tests in JQuery mode only for this browser version')
+console.log('\x1b[33m%s\x1b[0m', 'Running tests in JQuery mode only for this browser version')
 console.log(' ');
 
 const driver_legacy_safari = await loadSafariDriver();

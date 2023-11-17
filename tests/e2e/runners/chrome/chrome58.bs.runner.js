@@ -33,7 +33,7 @@ async function loadChromeDriver () {
 // await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
 
 console.log(' ');
-console.log('Running Ray Charles tests only for this browser version');
+console.log('\x1b[33m%s\x1b[0m', 'Running Ray Charles tests only for this browser version');
 console.log(' ');
 
 // make sure to use await running tests or we are charged unnecessarily on Browserstack
