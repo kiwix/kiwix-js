@@ -140,6 +140,8 @@ document.localeJson = {
       "dialog-error-title": "Error!",
       "dialog-file-notset-message": "Data files not set",
       "dialog-file-notset-title": "Archive not ready",
+      "dialog-fielhandle-fail-message": "We were unable to retrieve a file handle for the selected archive. Please pick the file or folder again.",
+      "dialog-fielhandle-fail-title": "Error retrieving archive",
       "dialog-focussearchbarcheck-message": "Please note that this setting focuses the search bar when you go to a ZIM landing page, disabling sliding away of header and footer on that page (only).",
       "dialog-invalid-archivelocation-title": "Error: invalid archive files location",
       "dialog-invalid-archivelocation-message": "It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them to a subdirectory",

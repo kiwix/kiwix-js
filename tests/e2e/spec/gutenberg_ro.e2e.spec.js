@@ -178,7 +178,7 @@ function runTests (driver, modes) {
             // Loads the ZIM archive for the mode if the mode is not skipped
             it('Load Modern zim file', async function () {
                 if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // Wait until files have loaded
@@ -219,7 +219,7 @@ function runTests (driver, modes) {
 
             it('Sorting books by popularity', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 await driver.switchTo().frame('articleContent');
@@ -233,7 +233,7 @@ function runTests (driver, modes) {
 
             it('Sorting books by name', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // We switch to default Content and back to Iframe because the If we are retrying the test
@@ -252,7 +252,7 @@ function runTests (driver, modes) {
 
             it('Change Language', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // click on the language dropdown and select option French
@@ -325,7 +325,7 @@ function runTests (driver, modes) {
 
             it('Author search Autocomplete', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
@@ -336,7 +336,7 @@ function runTests (driver, modes) {
 
             it('Author search Results', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // search by author name and press enter to apply the filter

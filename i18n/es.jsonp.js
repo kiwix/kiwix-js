@@ -140,6 +140,8 @@ document.localeJson = {
       "dialog-error-title": "¡Error!",
       "dialog-file-notset-message": "El archivo no está cargado correctamente",
       "dialog-file-notset-title": "Archivo no listo",
+      "dialog-fielhandle-fail-message": "No pudimos recuperar un identificador para el archivo seleccionado. Por favor, seleccione el archivo o la carpeta de nuevo.",
+      "dialog-fielhandle-fail-title": "Error al recuperar el archivo",
       "dialog-focussearchbarcheck-message": "Tenga en cuenta que esta configuración enfoca la barra de búsqueda cuando abre la página de inicio de un archivo, y por eso desactiva el deslizamiento del encabezado y pie en esta página (únicamente).",
       "dialog-invalid-archivelocation-title": "Error: ubicación de archivos no válida",
       "dialog-invalid-archivelocation-message": "Parece que ha puesto algunos archivos de archivo en la raíz de su tarjeta SD (o almacenamiento interno). Por favor, muévalos a un subdirectorio",
