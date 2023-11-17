@@ -94,7 +94,7 @@ jobs:
           local-testing: start
           local-identifier: random
 
-      - name: Run App locally in background
+      - name: Start server locally in background
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
