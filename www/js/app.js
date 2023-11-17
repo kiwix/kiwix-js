@@ -98,7 +98,6 @@ if (!/^chrome-extension:/i.test(window.location.protocol)) {
 
 // At launch, we set the correct content injection mode
 setContentInjectionMode(params.contentInjectionMode);
-setTimeout(initServiceWorkerMessaging, 600);
 
 // Define frequently used UI elements
 const globalDropZone = document.getElementById('search-article');
@@ -793,8 +792,8 @@ var serviceWorkerRegistration = null;
  * When a message is received, it will provide a MessageChannel port to respond to the ServiceWorker
  */
 function initServiceWorkerMessaging () {
-    if (params.contentInjectionMode !== 'serviceworker') {
-        console.warn('Cannot initiate Service Worker messaging, because the app is not in ServiceWorker mode!');
+    if (isServiceWorkerAvailable() && isMessageChannelAvailable()) {
+        console.warn('Cannot initiate ServiceWorker messaging, because one or more API is unavailable!');
         return;
     };
     // Create a message listener
@@ -1016,6 +1015,8 @@ function setContentInjectionMode (value) {
     settingsStore.setItem('contentInjectionMode', trueMode, Infinity);
     refreshCacheStatus();
     refreshAPIStatus();
+    // Even in JQuery mode, the PWA needs to be able to serve the app in offline mode
+    setTimeout(initServiceWorkerMessaging, 600);
     // Set the visibility of WebP workaround after change of content injection mode
     // Note we need a timeout because loading the webpHero script in init.js is asynchronous
     setTimeout(uiUtil.determineCanvasElementsWorkaround, 1500);
