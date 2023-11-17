@@ -792,7 +792,7 @@ var serviceWorkerRegistration = null;
  * When a message is received, it will provide a MessageChannel port to respond to the ServiceWorker
  */
 function initServiceWorkerMessaging () {
-    if (isServiceWorkerAvailable() && isMessageChannelAvailable()) {
+    if (!(isServiceWorkerAvailable() && isMessageChannelAvailable())) {
         console.warn('Cannot initiate ServiceWorker messaging, because one or more API is unavailable!');
         return;
     };
