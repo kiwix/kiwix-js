@@ -1765,6 +1765,11 @@ function isDirEntryExpectedToBeDisplayed (dirEntry) {
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function readArticle (dirEntry) {
+    if (dirEntry === null || dirEntry === undefined) {
+        console.error('The directory entry for the requested article was not found (null or undefined)');
+        uiUtil.spinnerDisplay(false);
+        return;
+    }
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for expectedArticleURLToBeDisplayed.
@@ -1872,7 +1877,14 @@ function readArticle (dirEntry) {
             // Line below was inserted to prevent the spinner being hidden, possibly by an async function, when pressing the Random button in quick succession
             // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
             document.getElementById('searchingArticles').style.display = '';
-            selectedArchive.readUtf8File(dirEntry, displayArticleContentInIframe);
+            selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, content) {
+                // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect
+                if (fileDirEntry.zimitRedirect) {
+                    return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
+                } else {
+                    displayArticleContentInIframe(fileDirEntry, content);
+                }
+            });
         }
     }
 }
@@ -1955,7 +1967,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         return;
     }
     // Display Bootstrap warning alert if the landing page contains active content
-    if (!params.hideActiveContentWarning && params.isLandingPage) {
+    if (!params.hideActiveContentWarning && !selectedArchive.zimType === 'zimit' && params.isLandingPage) {
         if (regexpActiveContent.test(htmlArticle)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
@@ -1971,6 +1983,10 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
     // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
     htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl) {
+        if (selectedArchive.zimitPrefix && baseUrl === selectedArchive.zimitPrefix) {
+            // We are at the root of a Zimit archive, so we shouldn't allow any navigation higher than root
+            relAssetUrl = relAssetUrl.replace(/^[./]+/, '');
+        }
         var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
         // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
         // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
@@ -2089,44 +2105,65 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             var anchorTarget = href.match(regexpLocalAnchorHref);
             if (href.length === 0) {
                 // It's a link with an empty href, pointing to the current page: do nothing.
-            } else if (anchorTarget) {
+                return;
+            }
+            if (anchorTarget) {
                 // It's a local anchor link : remove escapedUrl if any (see above)
                 anchor.setAttribute('href', '#' + anchorTarget[1]);
-            } else if ((anchor.protocol !== currentProtocol ||
-                anchor.host !== currentHost) && params.openExternalLinksInNewTabs) {
-                // It's an external URL : we should open it in a new tab
-                anchor.addEventListener('click', function (event) {
-                    // Find the closest enclosing A tag
-                    var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
-                    uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                });
-            } else {
-                // It's a link to an article or file in the ZIM
-                var uriComponent = uiUtil.removeUrlParameters(href);
-                var contentType;
-                var downloadAttrValue;
-                // Some file types need to be downloaded rather than displayed (e.g. *.epub)
-                // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
-                // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
-                // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
-                // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
-                var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
-                if (isDownloadableLink) {
-                    downloadAttrValue = anchor.getAttribute('download');
-                    // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
-                    downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
-                    contentType = anchor.getAttribute('type');
-                }
-                // Add an onclick event to extract this article or file from the ZIM
-                // instead of following the link
-                anchor.addEventListener('click', function (e) {
-                    anchorParameter = href.match(/#([^#;]+)$/);
-                    anchorParameter = anchorParameter ? anchorParameter[1] : '';
-                    var zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
-                    goToArticle(zimUrl, downloadAttrValue, contentType);
-                    e.preventDefault();
-                });
+                return;
             }
+            if ((anchor.protocol !== currentProtocol ||
+              anchor.host !== currentHost) && params.openExternalLinksInNewTabs) {
+                var newHref = href;
+                if (selectedArchive.zimType === 'zimit') {
+                    // We need to check that the link isn't from a domain contained in the Zimit archive
+                    var zimitDomain = selectedArchive.zimitPrefix.replace(/^[CA/]+([^/]+).*/, '$1');
+                    newHref = href.replace(anchor.protocol + '//' + zimitDomain + '/', '');
+                }
+                if (newHref === href) {
+                    // It's an external URL : we should open it in a new tab
+                    anchor.addEventListener('click', function (event) {
+                        // Find the closest enclosing A tag
+                        var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                    });
+                    return;
+                } else {
+                    href = selectedArchive.zimitPrefix + newHref;
+                }
+            }
+            // It's a link to an article or file in the ZIM
+            var uriComponent = uiUtil.removeUrlParameters(href);
+            var contentType;
+            var downloadAttrValue;
+            // Some file types need to be downloaded rather than displayed (e.g. *.epub)
+            // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
+            // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
+            // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
+            // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
+            var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
+            if (isDownloadableLink) {
+                downloadAttrValue = anchor.getAttribute('download');
+                // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
+                downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
+                contentType = anchor.getAttribute('type');
+            }
+            // Add an onclick event to extract this article or file from the ZIM
+            // instead of following the link
+            anchor.addEventListener('click', function (e) {
+                anchorParameter = href.match(/#([^#;]+)$/);
+                anchorParameter = anchorParameter ? anchorParameter[1] : '';
+                var zimUrl;
+                if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
+                    // It's already a full ZIM URL, so we can use it directly
+                    zimUrl = href;
+                } else {
+                    // It's a relative URL, so we need to calculate the full ZIM URL
+                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+                }
+                goToArticle(zimUrl, downloadAttrValue, contentType);
+                e.preventDefault();
+            });
         });
     }
 
@@ -2417,23 +2454,30 @@ function goToMainArticle () {
             // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
             if (selectedArchive.zimType === 'zimit') {
                 uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
-                    '<p>There is experimental support for this kind of archive in the Kiwix JS PWA. Go to: ' +
+                    '<p>A basic view of some static content is shown, but JavaScript and many hyperlinks are non-functional. ' +
+                    'There is more complete support for this kind of archive in the Kiwix JS PWA. Go to: ' +
                     '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
                     '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
                     'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
                 translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
                 document.getElementById('searchingArticles').style.display = 'none';
-                document.getElementById('welcomeText').style.display = '';
+                // document.getElementById('welcomeText').style.display = '';
+                // Some basic support for displaying Zimit content is available if we set the contentInjectionMode to jquery, storing the original value
+                params.originalContentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
+                params.contentInjectionMode = 'jquery';
             } else {
-                // DEV: see comment above under goToRandomArticle()
-                if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
-                    params.isLandingPage = true;
-                    readArticle(dirEntry);
-                } else {
-                    console.error('The main page of this archive does not seem to be an article');
-                    document.getElementById('searchingArticles').style.display = 'none';
-                    document.getElementById('welcomeText').style.display = '';
-                }
+                // Restore the contentInjectionMode to its original value if it was changed above
+                params.contentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
+                params.originalContentInjectionMode = null;
+            }
+            // DEV: see comment above under goToRandomArticle()
+            if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+                params.isLandingPage = true;
+                readArticle(dirEntry);
+            } else {
+                console.error('The main page of this archive does not seem to be an article');
+                document.getElementById('searchingArticles').style.display = 'none';
+                document.getElementById('welcomeText').style.display = '';
             }
         }
     });
