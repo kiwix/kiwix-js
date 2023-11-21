@@ -55,7 +55,7 @@
  * @property {string} cacheIDB - Name of the Indexed DB database
  * @property {boolean} isFileSystemApiSupported - A boolean indicating whether the FileSystem API is supported.
  * @property {boolean} isWebkitDirApiSupported - A boolean indicating whether the Webkit Directory API is supported.
- * @property {boolean} libzimWasmMode - A boolean indicating whether the Libzim wasm mode is turned on.
+ * @property {"wasm-dev" | "wasm" | "asm" | "asm-dev" | "default"} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
 /**
@@ -124,7 +124,7 @@ params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
-params['libzimWasmMode'] = getSetting('libzimWasmMode'); // Sets a boolean indicating whether the libzim WASM mode is turned on
+params['libzimMode'] = getSetting('libzimMode') ?? 'default'; // Sets a value indicating which libzim mode is selected
 
 /**
  * Apply any override parameters that might be in the querystring.
@@ -187,7 +187,7 @@ document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useH
 document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
 document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
-document.getElementById('libzimWasmModeToggle').checked = params.libzimWasmMode;
+document.getElementById('libzimModeSelect').value = params.libzimMode;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 
 // This is a simplified version of code in settingsStore, because that module is not available in init.js

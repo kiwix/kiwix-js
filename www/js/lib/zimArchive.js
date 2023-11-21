@@ -501,6 +501,16 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
     });
 };
 
+ZIMArchive.prototype.getEntryDirByWasm = async function (path) {
+    // this.file.mainPage
+    // const cns = this.getContentNamespace()
+    // path = cns + '/' + path;
+    const ret = await this.callLibzimWorker({ action: 'getEntryByPath', path: path });
+    // const r = await this.getDirEntryByPath(path)
+    // console.log(path, ret, r);
+    return ret;
+}
+
 /**
  * Calls the libzim Web Worker with the given parameters, and returns a Promise with its response
  *

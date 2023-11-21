@@ -34,6 +34,7 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
+import { type } from 'jquery';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -57,7 +58,7 @@ const ASSETS_CACHE = 'kiwixjs-assetsCache';
 var appstate = {};
 
 /**
- * @type ZIMArchive
+ * @type ZIMArchive | null
  */
 var selectedArchive = null;
 
@@ -475,8 +476,20 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
     refreshCacheStatus();
 });
 
-document.getElementById('libzimWasmModeToggle').addEventListener('change', function () {
-    settingsStore.setItem('libzimWasmMode', this.checked);
+document.getElementById('libzimModeSelect').addEventListener('change', function (e) {
+    // console.log(settingsStore.getItem('libzimMode'));
+    settingsStore.setItem('libzimMode', e.target.value);
+});
+
+document.getElementById('testButtonToBeRemoved').addEventListener('click', function (e) {
+    console.log('clicked on libzimModeSelect', selectedArchive);
+    if (selectedArchive !== null) {
+        console.log('calling function getDirEntryByPath', selectedArchive.isReady());
+        // selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: 'Di' })
+        selectedArchive.getEntryByPath('Home.html') // ✅
+        // selectedArchive.search2('Di')
+        // selectedArchive.getDirEntryByPath('/')
+    }
 });
 
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
@@ -846,7 +859,8 @@ function initServiceWorkerMessaging () {
                     // Until we find a way to tell where it is coming from, we allow the request through on all controlled clients and try to load the content
                     console.warn('>>> Allowing passthrough of SW request to process Zimit video <<<');
                 }
-                handleMessageChannelMessage(event);
+                // handleMessageChannelMessage(event);
+                handleMessageChannelByWasm(event);
             }
         } else if (event.data.msg_type) {
             // Messages received from the ReplayWorker
@@ -889,6 +903,57 @@ function initServiceWorkerMessaging () {
             });
         }
     }
+}
+
+/**
+ * Function that handles a message of the messageChannel.
+ * It tries to read the content in the backend, and sends it back to the ServiceWorker
+ *
+ * @param {Event} event The event object of the message channel
+ */
+async function handleMessageChannelByWasm (event) {
+    // We received a message from the ServiceWorker
+    // The ServiceWorker asks for some content
+    const title = event.data.title;
+    const messagePort = event.ports[0];
+    const ret = await selectedArchive.getEntryDirByWasm(title);
+    if (ret === null) {
+        console.error('Title ' + title + ' not found in archive.');
+        messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+        return
+    }
+
+    // // Let's send the content to the ServiceWorker
+    var message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+    // messagePort.postMessage(message, [ret.content]);
+    messagePort.postMessage(message);
+
+    // var readFile = function (dirEntry) {
+    //     if (dirEntry === null) {
+    //         console.error('Title ' + title + ' not found in archive.');
+    //         messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+    //     } else if (dirEntry.isRedirect()) {
+    //         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+    //             var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
+    //             // Ask the ServiceWorker to send an HTTP redirect to the browser.
+    //             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
+    //             // Else, if the redirect URL is in a different directory than the original URL,
+    //             // the relative links in the HTML content would fail. See #312
+    //             messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
+    //         });
+    //     } else {
+    //         // Let's read the content in the ZIM file
+    //         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+    //             var mimetype = fileDirEntry.getMimetype();
+    //             // Let's send the content to the ServiceWorker
+    //             var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
+    //             messagePort.postMessage(message, [content.buffer]);
+    //         });
+    //     }
+    // };
+    // selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
+    //     messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+    // });
 }
 
 /**
