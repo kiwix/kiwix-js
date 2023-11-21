@@ -83,7 +83,6 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             that.addMetadataToZIMFile('Language')
         ]).then(function () {
             console.debug('ZIMArchive ready, metadata will be added in the background');
-            uiUtil.spinnerDisplay(false);
             // All listings should be loaded, so we can now call the callback
             callbackReady(that);
             // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
