@@ -74,15 +74,44 @@ var LZ;
 function ZIMArchive (storage, path, callbackReady, callbackError) {
     var that = this;
     that.file = null;
+    var whenZimReady = function () {
+        // Add time-critical metadata from the M/ namespace that you need early access to here
+        // Note that adding metadata here delays the reporting of the ZIM archive as ready
+        // Further metadata are added in the background below, and can be accessed later
+        return Promise.all([
+            that.addMetadataToZIMFile('Creator'),
+            that.addMetadataToZIMFile('Language')
+        ]).then(function () {
+            console.debug('ZIMArchive ready, metadata will be added in the background');
+            uiUtil.spinnerDisplay(false);
+            // All listings should be loaded, so we can now call the callback
+            callbackReady(that);
+            // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
+            // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the illustration
+            // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArdhive.getMetadata() function when needed
+            setTimeout(function () {
+                Promise.all([
+                    that.addMetadataToZIMFile('Counter'),
+                    that.addMetadataToZIMFile('Date'),
+                    that.addMetadataToZIMFile('Description'),
+                    that.addMetadataToZIMFile('Name'),
+                    that.addMetadataToZIMFile('Publisher'),
+                    that.addMetadataToZIMFile('Title')
+                ]).then(function () {
+                    console.debug('ZIMArchive metadata loaded:', that);
+                });
+            }, 2000); // DEV: If you need any of the above earlier, you can alter this delay
+        });
+    };
     var createZimfile = function (fileArray) {
-        zimfile.fromFileArray(fileArray).then(function (file) {
+        return zimfile.fromFileArray(fileArray).then(function (file) {
             that.file = file;
             // Clear the previous libzimWoker
             LZ = null;
             // Set a global parameter to report the search provider type
             params.searchProvider = 'title';
             // File has been created, but we need to add any Listings which extend the archive metadata
-            that.file.setListings([
+            return that.file.setListings([
                 // Provide here any Listings for which we need to extract metadata as key:value obects to be added to the file
                 // 'ptrName' and 'countName' contain the key names to be set in the archive file object
                 {
@@ -105,6 +134,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     countName: 'fullTextIndexSize'
                 }
             ]).then(function () {
+                that.libzimReady = null;
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                 var isSplitZim = /\.zima.$/i.test(that.file._files[0].name);
                 if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
@@ -113,14 +143,15 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm' : 'asm');
                     console.log('Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
-                    that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function (msg) {
-                        // console.debug(msg);
+                    that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
+                        that.libzimReady = 'ready';
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
                         // Update the API panel
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
                         console.error('The libzim worker could not be instantiated!', err);
+                        that.libzimReady = 'error';
                     });
                 } else {
                     // var message = 'Full text searching is not available because ';
@@ -141,32 +172,8 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 }
                 // Set the archive file type ('open' or 'zimit')
                 that.setZimType();
-                // Add time-critical metadata from the M/ namespace that you need early access to here
-                // Note that adding metadata here delays the reporting of the ZIM archive as ready
-                // Further metadata are added in the background below, and can be accessed later
-                Promise.all([
-                    that.addMetadataToZIMFile('Creator'),
-                    that.addMetadataToZIMFile('Language')
-                ]).then(function () {
-                    console.debug('ZIMArchive ready, metadata will be added in the background');
-                    // All listings should be loaded, so we can now call the callback
-                    callbackReady(that);
-                });
-                // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
-                // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the illustration
-                // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArdhive.getMetadata() function when needed
-                setTimeout(function () {
-                    Promise.all([
-                        that.addMetadataToZIMFile('Counter'),
-                        that.addMetadataToZIMFile('Date'),
-                        that.addMetadataToZIMFile('Description'),
-                        that.addMetadataToZIMFile('Name'),
-                        that.addMetadataToZIMFile('Publisher'),
-                        that.addMetadataToZIMFile('Title')
-                    ]).then(function () {
-                        console.debug('ZIMArchive metadata loaded:', that);
-                    });
-                }, 1500);
+                // If user is not using libzim for reading the file, we can call the ready callback now
+                if (!params.useLibzim) whenZimReady();
             }).catch(function (err) {
                 console.warn('Error setting archive listings: ', err);
             });

@@ -483,9 +483,9 @@ function getItemFromCacheOrZIM (selectedArchive, key, dirEntry) {
                     // Since there was no result, post UI messages and look up asset in ZIM
                     if (/\bx?html\b/.test(mimetype) && !resolvedDirEntry.isAsset &&
                         !/\.(png|gif|jpe?g|svg|css|js|mpe?g|webp|webm|woff2?|eot|mp[43])(\?|$)/i.test(resolvedDirEntry.url)) {
-                        uiUtil.pollSpinner('Loading ' + shortTitle + '...');
+                        uiUtil.spinnerDisplay(true, 'Loading ' + shortTitle + '...');
                     } else if (/(css|javascript|video|vtt)/i.test(mimetype)) {
-                        uiUtil.pollSpinner('Getting ' + shortTitle + '...');
+                        uiUtil.spinnerDisplayr(true, 'Getting ' + shortTitle + '...');
                     }
                     // Set the read function to use according to filetype
                     var readFile = /\b(?:x?html|css|javascript)\b/i.test(mimetype)
