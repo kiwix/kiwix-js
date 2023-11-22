@@ -841,14 +841,27 @@ function initServiceWorkerMessaging () {
         });
     } else if (serviceWorkerRegistration) {
         // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
-        console.warn('The Service Worker needs more time to load, or else the app was force-refrshed...');
+        console.warn('The Service Worker needs more time to load, or else the app was force-refreshed...');
         serviceWorkerRegistration = null;
-        setTimeout(initServiceWorkerMessaging, 1200);
-    } else {
+        setTimeout(initServiceWorkerMessaging, 1600);
+    } else if (params.contentInjectionMode === 'serviceworker') {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
         window.location.reload();
+    } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
+        uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
+            'Offline use is disabled!', true).then(function (response) {
+            if (response) {
+                setContentInjectionMode('serviceworker');
+                if (selectedArchive) {
+                    setTimeout(function () {
+                        params.themeChanged = true;
+                        document.getElementById('btnHome').click();
+                    }, 750);
+                }
+            }
+        });
     }
 }
 
