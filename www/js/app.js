@@ -250,9 +250,9 @@ document.getElementById('languageSelector').addEventListener('change', function 
     if (language === 'other') {
         uiUtil.systemAlert((translateUI.t('dialog-other-language-message') ||
             'We are working hard to bring you more languages! If you are interested in helping to translate the interface to your language, please create an issue on our GitHub. Thank you!'),
-            (translateUI.t('configure-language-selector-other') || 'More soon...')).then(function () {
-                document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
-            });
+        (translateUI.t('configure-language-selector-other') || 'More soon...')).then(function () {
+            document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
+        });
     } else if (language === 'default') {
         params.overrideBrowserLanguage = null;
         settingsStore.removeItem('languageOverride');
@@ -451,10 +451,10 @@ document.getElementById('useCanvasElementsCheck').addEventListener('change', fun
 document.getElementById('btnReset').addEventListener('click', function () {
     uiUtil.systemAlert((translateUI.t('dialog-reset-warning-message') || 'This will reset the app to a freshly installed state, deleting all app caches and settings!'),
         (translateUI.t('dialog-reset-warning-title') || 'WARNING!'), true).then(function (response) {
-            if (response) {
-                settingsStore.reset();
-            }
-        })
+        if (response) {
+            settingsStore.reset();
+        }
+    })
 });
 document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
     if (params.contentInjectionMode !== 'serviceworker') {
@@ -473,10 +473,10 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
     uiUtil.systemAlert((translateUI.t('dialog-disabledragdrop-message') || '<p>We will now attempt to reload the app to apply the new setting.</p>' +
         '<p>(If you cancel, then the setting will only be applied when you next start the app.)</p>'), (translateUI.t('dialog-disabledragdrop-title') || 'Reload app'), true).then(function (result) {
-            if (result) {
-                window.location.reload();
-            }
-        });
+        if (result) {
+            window.location.reload();
+        }
+    });
 });
 document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
     element.addEventListener('change', function () {
@@ -834,10 +834,10 @@ function initServiceWorkerMessaging () {
         }
     };
     // Send the init message to the ServiceWorker
-        if (navigator.serviceWorker.controller) {
+    if (navigator.serviceWorker.controller) {
         console.log('Initializing SW messaging...');
-            navigator.serviceWorker.controller.postMessage({
-                action: 'init'
+        navigator.serviceWorker.controller.postMessage({
+            action: 'init'
         });
     } else if (serviceWorkerRegistration) {
         // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
@@ -848,9 +848,9 @@ function initServiceWorkerMessaging () {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
-            window.location.reload();
-        }
+        window.location.reload();
     }
+}
 
 /**
  * Sets the given injection mode.
@@ -873,8 +873,8 @@ function setContentInjectionMode (value) {
         if (!params.appCache) {
             uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
                 (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
-                    setContentInjectionMode('serviceworker');
-                })
+                setContentInjectionMode('serviceworker');
+            })
             return;
         }
         if (params.referrerExtensionURL) {
@@ -907,7 +907,7 @@ function setContentInjectionMode (value) {
         // We should empty it and turn it off to prevent unnecessary space usage
         if ('caches' in window && isMessageChannelAvailable()) {
             if (isServiceWorkerAvailable() && navigator.serviceWorker.controller) {
-            var channel = new MessageChannel();
+                var channel = new MessageChannel();
                 navigator.serviceWorker.controller.postMessage({
                     action: { assetsCache: 'disable' }
                 }, [channel.port2]);
@@ -932,20 +932,20 @@ function setContentInjectionMode (value) {
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
                 uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
                     (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
-                        if (params.referrerExtensionURL && response) {
-                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
-                            window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
-                        } else {
-                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
-                        }
-                    });
+                    if (params.referrerExtensionURL && response) {
+                        var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
+                        window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                    } else {
+                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                    }
+                });
                 return;
             }
             if (!isMessageChannelAvailable()) {
                 uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to JQuery mode...'),
                     (translateUI.t('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
-                        setContentInjectionMode('jquery');
-                    });
+                    setContentInjectionMode('jquery');
+                });
                 return;
             }
             if (!isServiceWorkerReady()) {
@@ -1095,9 +1095,9 @@ function launchBrowserExtensionServiceWorker () {
             uiUtil.systemAlert((translateUI.t('dialog-serveraccess-check-failed') || 'The server is not currently accessible! ' +
                 '<br/><br/>(Kiwix needs one-time access to the server to cache the PWA).' +
                 '<br/>Please try again when you have a stable Internet connection.'), (translateUI.t('dialog-error-title') || 'Error!')).then(function () {
-                    settingsStore.setItem('allowInternetAccess', false, Infinity);
-                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
-                });
+                settingsStore.setItem('allowInternetAccess', false, Infinity);
+                setContentInjectionMode(params.oldInjectionMode || 'jquery');
+            });
         });
     };
     if (settingsStore.getItem('allowInternetAccess') === 'true') {
@@ -1106,13 +1106,13 @@ function launchBrowserExtensionServiceWorker () {
         } else {
             uiUtil.systemAlert((translateUI.t('dialog-launchpwa-fail-message') || 'The last attempt to launch the PWA appears to have failed.<br/><br/>Do you wish to try again?'),
                 (translateUI.t('dialog-launchpwa-fail-title') || 'Confirmation to retry PWA launch'), true).then(function (response) {
-                    if (response) {
-                        checkPWAIsOnline();
-                    } else {
-                        settingsStore.setItem('allowInternetAccess', false, Infinity);
-                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
-                    }
-                })
+                if (response) {
+                    checkPWAIsOnline();
+                } else {
+                    settingsStore.setItem('allowInternetAccess', false, Infinity);
+                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                }
+            })
         }
     } else {
         uiUtil.systemAlert(message, (translateUI.t('dialog-allow-internetaccess-title') || 'Allow Internet access'), true).then(function (response) {
@@ -1221,7 +1221,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
         if (archiveDirectory === '/') {
             uiUtil.systemAlert((translateUI.t('dialog-invalid-archivelocation-message') ||
                 'It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them to a subdirectory'),
-                (translateUI.t('dialog-invalid-archivelocation-title') || 'Error: invalid archive files location'));
+            (translateUI.t('dialog-invalid-archivelocation-title') || 'Error: invalid archive files location'));
         } else {
             comboArchiveList.options[i] = new Option(archiveDirectory, archiveDirectory);
         }
@@ -1242,13 +1242,13 @@ function populateDropDownListOfArchives (archiveDirectories) {
     } else {
         uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
             (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
-                document.getElementById('btnAbout').click();
-                var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
-                if (isAndroid) {
-                    uiUtil.systemAlert(translateUI.t('dialog-old-android') || "You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.",
-                        translateUI.t('dialog-launchlocal-title') || 'Warning!');
-                }
-            });
+            document.getElementById('btnAbout').click();
+            var isAndroid = (navigator.userAgent.indexOf('Android') !== -1);
+            if (isAndroid) {
+                uiUtil.systemAlert(translateUI.t('dialog-old-android') || "You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.",
+                    translateUI.t('dialog-launchlocal-title') || 'Warning!');
+            }
+        });
     }
 }
 
@@ -1301,7 +1301,7 @@ function setLocalArchiveFromArchiveList () {
 function resetCssCache () {
     // Reset the cssCache if an archive is loaded
     if (selectedArchive) selectedArchive.cssCache = new Map();
-    }
+}
 
 let webKitFileList = null
 
@@ -1349,7 +1349,7 @@ function displayFileSelect () {
         localStorage.setItem('previousZimFileName', e.target.value);
         if (params.isFileSystemApiSupported) {
             return abstractFilesystemAccess.getSelectedZimFromCache(e.target.value).then(function (files) {
-            setLocalArchiveFromFileList(files);
+                setLocalArchiveFromFileList(files);
             }).catch(function (err) {
                 console.error(err);
                 return uiUtil.systemAlert(translateUI.t('dialog-fielhandle-fail-message') || 'We were unable to retrieve a file handle for the selected archive. Please pick the file or folder again.',
@@ -1651,8 +1651,8 @@ function searchDirEntriesFromPrefix (prefix) {
         document.getElementById('searchArticles').focus();
         uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive',
             translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
-                document.getElementById('btnConfigure').click();
-            });
+            document.getElementById('btnConfigure').click();
+        });
     }
 }
 
@@ -1761,7 +1761,6 @@ function isDirEntryExpectedToBeDisplayed (dirEntry) {
 }
 
 // Import the Wombat script
-var Wombat;
 var wombatScript = document.createElement('script');
 wombatScript.type = 'text/javascript';
 wombatScript.src = document.location.href.replace(/[^/]+$/, '') + 'js/lib/wombat.js';
@@ -1905,10 +1904,10 @@ function readArticle (dirEntry) {
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
-        }
+                }
             });
+        }
     }
-}
 }
 
 /**
@@ -1918,38 +1917,38 @@ function readArticle (dirEntry) {
  * @param {Event} event The event object of the message channel
  */
 function handleMessageChannelMessage (event) {
-        // We received a message from the ServiceWorker
-            // The ServiceWorker asks for some content
-            var title = event.data.title;
-            var messagePort = event.ports[0];
-            var readFile = function (dirEntry) {
-                if (dirEntry === null) {
-                    console.error('Title ' + title + ' not found in archive.');
-                    messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
-                } else if (dirEntry.isRedirect()) {
-                    return selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                        var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
-                        // Ask the ServiceWorker to send an HTTP redirect to the browser.
-                        // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
-                        // Else, if the redirect URL is in a different directory than the original URL,
-                        // the relative links in the HTML content would fail. See #312
-                        messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
-                    });
-                } else {
-                    // Let's read the content in the ZIM file
-                    return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                        var mimetype = fileDirEntry.getMimetype();
-                        // Let's send the content to the ServiceWorker
-                        var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
-                        return messagePort.postMessage(message, [content.buffer]);
-                    });
-                }
-            };
-            var returnEmptyContent = function () {
-                messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
-            };
-            return selectedArchive.getDirEntryByPath(title).then(readFile).catch(returnEmptyContent);
+    // We received a message from the ServiceWorker
+    // The ServiceWorker asks for some content
+    var title = event.data.title;
+    var messagePort = event.ports[0];
+    var readFile = function (dirEntry) {
+        if (dirEntry === null) {
+            console.error('Title ' + title + ' not found in archive.');
+            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+        } else if (dirEntry.isRedirect()) {
+            return selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
+                var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
+                // Ask the ServiceWorker to send an HTTP redirect to the browser.
+                // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
+                // Else, if the redirect URL is in a different directory than the original URL,
+                // the relative links in the HTML content would fail. See #312
+                messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
+            });
+        } else {
+            // Let's read the content in the ZIM file
+            return selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                var mimetype = fileDirEntry.getMimetype();
+                // Let's send the content to the ServiceWorker
+                var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
+                return messagePort.postMessage(message, [content.buffer]);
+            });
         }
+    };
+    var returnEmptyContent = function () {
+        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+    };
+    return selectedArchive.getDirEntryByPath(title).then(readFile).catch(returnEmptyContent);
+}
 
 // Compile some regular expressions needed to modify links
 // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
@@ -2145,37 +2144,37 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 }
                 if (newHref === href) {
                 // It's an external URL : we should open it in a new tab
-                anchor.addEventListener('click', function (event) {
+                    anchor.addEventListener('click', function (event) {
                     // Find the closest enclosing A tag
-                    var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
-                    uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                });
+                        var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                    });
                     return;
-            } else {
+                } else {
                     href = selectedArchive.zimitPrefix + newHref;
                 }
             }
-                // It's a link to an article or file in the ZIM
-                var uriComponent = uiUtil.removeUrlParameters(href);
-                var contentType;
-                var downloadAttrValue;
-                // Some file types need to be downloaded rather than displayed (e.g. *.epub)
-                // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
-                // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
-                // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
-                // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
-                var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
-                if (isDownloadableLink) {
-                    downloadAttrValue = anchor.getAttribute('download');
-                    // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
-                    downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
-                    contentType = anchor.getAttribute('type');
-                }
-                // Add an onclick event to extract this article or file from the ZIM
-                // instead of following the link
-                anchor.addEventListener('click', function (e) {
-                    anchorParameter = href.match(/#([^#;]+)$/);
-                    anchorParameter = anchorParameter ? anchorParameter[1] : '';
+            // It's a link to an article or file in the ZIM
+            var uriComponent = uiUtil.removeUrlParameters(href);
+            var contentType;
+            var downloadAttrValue;
+            // Some file types need to be downloaded rather than displayed (e.g. *.epub)
+            // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
+            // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
+            // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
+            // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
+            var isDownloadableLink = anchor.hasAttribute('download') || regexpDownloadLinks.test(href);
+            if (isDownloadableLink) {
+                downloadAttrValue = anchor.getAttribute('download');
+                // Normalize the value to a true Boolean or a filename string or true if there is no download attribute
+                downloadAttrValue = /^(download|true|\s*)$/i.test(downloadAttrValue) || downloadAttrValue || true;
+                contentType = anchor.getAttribute('type');
+            }
+            // Add an onclick event to extract this article or file from the ZIM
+            // instead of following the link
+            anchor.addEventListener('click', function (e) {
+                anchorParameter = href.match(/#([^#;]+)$/);
+                anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
                 if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
                     // It's already a full ZIM URL, so we can use it directly
@@ -2184,9 +2183,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                 }
-                    goToArticle(zimUrl, downloadAttrValue, contentType);
-                    e.preventDefault();
-                });
+                goToArticle(zimUrl, downloadAttrValue, contentType);
+                e.preventDefault();
+            });
         });
     }
 
@@ -2461,8 +2460,8 @@ function goToRandomArticle () {
         // Showing the relevant error message and redirecting to config page for adding the ZIM file
         uiUtil.systemAlert(translateUI.t('dialog-archive-notset-message') || 'Archive not set: please select an archive',
             translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
-                document.getElementById('btnConfigure').click();
-            });
+            document.getElementById('btnConfigure').click();
+        });
     }
 }
 
@@ -2484,7 +2483,7 @@ function goToMainArticle () {
                     'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
                 translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
                 document.getElementById('searchingArticles').style.display = 'none';
-            //     document.getElementById('welcomeText').style.display = '';
+                //     document.getElementById('welcomeText').style.display = '';
                 // Some basic support for displaying Zimit content is available if we set the contentInjectionMode to jquery, storing the original value
                 params.originalContentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
                 params.contentInjectionMode = 'jquery';
