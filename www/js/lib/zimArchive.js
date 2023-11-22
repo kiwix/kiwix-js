@@ -146,12 +146,16 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
                     !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron'))) {
-                    var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm' : 'asm');
+                    // var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm' : 'asm');
+                    var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm.dev' : 'asm.dev');
+
                     console.log('Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
                     that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
                         that.libzimReady = 'ready';
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
+                        if (params.useLibzim) whenZimReady();
+
                         // Update the API panel
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {

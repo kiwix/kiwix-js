@@ -125,6 +125,7 @@ params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
 params['libzimMode'] = getSetting('libzimMode') ?? 'default'; // Sets a value indicating which libzim mode is selected
+params['useLibzim'] = true; // Sets a value indicating which libzim mode is selected
 
 /**
  * Apply any override parameters that might be in the querystring.

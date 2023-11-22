@@ -34,7 +34,6 @@ import uiUtil from './lib/uiUtil.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
-import { type } from 'jquery';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -916,44 +915,21 @@ async function handleMessageChannelByWasm (event) {
     // The ServiceWorker asks for some content
     const title = event.data.title;
     const messagePort = event.ports[0];
-    const ret = await selectedArchive.getEntryDirByWasm(title);
-    if (ret === null) {
-        console.error('Title ' + title + ' not found in archive.');
-        messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
-        return
+    try {
+        const ret = await selectedArchive.getEntryDirByWasm(title);
+        if (ret === null) {
+            console.error('Title ' + title + ' not found in archive.');
+            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+            return
+        }
+
+        // Let's send the content to the ServiceWorker
+        const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+        messagePort.postMessage(message);
+    } catch (error) {
+        const message = { action: 'giveContent', title: title, content: new Uint8Array(), mimetype: '' };
+        messagePort.postMessage(message);
     }
-
-    // // Let's send the content to the ServiceWorker
-    var message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
-    // messagePort.postMessage(message, [ret.content]);
-    messagePort.postMessage(message);
-
-    // var readFile = function (dirEntry) {
-    //     if (dirEntry === null) {
-    //         console.error('Title ' + title + ' not found in archive.');
-    //         messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
-    //     } else if (dirEntry.isRedirect()) {
-    //         selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-    //             var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
-    //             // Ask the ServiceWorker to send an HTTP redirect to the browser.
-    //             // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
-    //             // Else, if the redirect URL is in a different directory than the original URL,
-    //             // the relative links in the HTML content would fail. See #312
-    //             messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
-    //         });
-    //     } else {
-    //         // Let's read the content in the ZIM file
-    //         selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-    //             var mimetype = fileDirEntry.getMimetype();
-    //             // Let's send the content to the ServiceWorker
-    //             var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
-    //             messagePort.postMessage(message, [content.buffer]);
-    //         });
-    //     }
-    // };
-    // selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-    //     messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
-    // });
 }
 
 /**
