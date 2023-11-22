@@ -2,22 +2,22 @@
  * service-worker.js : Service Worker implementation,
  * in order to capture the HTTP requests made by an article, and respond with the
  * corresponding content, coming from the archive
- * 
+ *
  * Copyright 2022 Mossroy, Jaifroid and contributors
  * Licence GPL v3:
- * 
+ *
  * This file is part of Kiwix.
- * 
+ *
  * Kiwix is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public Licence as published by
  * the Free Software Foundation, either version 3 of the Licence, or
  * (at your option) any later version.
- * 
+ *
  * Kiwix is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public Licence for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public Licence
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
@@ -65,9 +65,9 @@ var useAssetsCache = true;
  * This is an expert setting in Configuration
  * @type {Boolean}
  */
- var useAppCache = true;
+var useAppCache = true;
 
-/**  
+/**
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
  * @type {RegExp}
@@ -82,7 +82,7 @@ const regexpCachedContentTypes = /text\/css|\/javascript|application\/javascript
  */
 const regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
 
-/** 
+/**
  * Pattern for ZIM file namespace: see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
  * In our case, there is also the ZIM file name used as a prefix in the URL
  * @type {RegExp}
@@ -95,7 +95,7 @@ const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCHIJMUVWX])\/(.+)/;
  * See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
  * But, in our case, we send a header to tell the browser we only accept the bytes unit.
  * I did not see multiple ranges asked by a browser.
- * 
+ *
  * @type {RegExp}
  */
 const regexpByteRangeHeader = /^\s*bytes=(\d+)-/;
@@ -155,20 +155,20 @@ const precacheFiles = [
 ];
 
 if ('WebAssembly' in self) {
-  precacheFiles.push(
+    precacheFiles.push(
         'www/js/lib/xzdec-wasm.js',
         'www/js/lib/xzdec-wasm.wasm',
         'www/js/lib/zstddec-wasm.js',
         'www/js/lib/zstddec-wasm.wasm',
         'www/js/lib/libzim-wasm.js',
         'www/js/lib/libzim-wasm.wasm'
-  );
+    );
 } else {
-  precacheFiles.push(
+    precacheFiles.push(
         'www/js/lib/xzdec-asm.js',
         'www/js/lib/zstddec-asm.js',
         'www/js/lib/libzim-asm.js'
-  );
+    );
 }
 
 /**
@@ -237,15 +237,13 @@ let fetchCaptureEnabled = true;
 /**
  * Handle custom commands sent from app.js
  */
- self.addEventListener('message', function (event) {
+self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
-            outgoingMessagePort = event.ports[0];
             fetchCaptureEnabled = true;
         } else if (event.data.action === 'disable') {
             // On 'disable' message, we delete the outgoingMessagePort and disable the fetchEventListener
-            outgoingMessagePort = null;
             fetchCaptureEnabled = false;
         }
         var oldValue;
@@ -298,69 +296,69 @@ function handleZIMFetchEvent (event) {
     // especially .js assets, where it may be significant). Anchor targets are irreleveant in this context.
     if (cache === APP_CACHE) rqUrl = strippedUrl;
     return event.respondWith(
-    // First see if the content is in the cache
-    return fromCache(cache, rqUrl).then(function (response) {
-        // The response was found in the cache so we respond with it
-        return response;
-    }).catch(function () {
-        // The response was not found in the cache so we look for it in the ZIM
-        // and add it to the cache if it is an asset type (css or js)
+        // First see if the content is in the cache
+        fromCache(cache, rqUrl).then(function (response) {
+            // The response was found in the cache so we respond with it
+            return response;
+        }).catch(function () {
+            // The response was not found in the cache so we look for it in the ZIM
+            // and add it to the cache if it is an asset type (css or js)
             // YouTube links from Zimit archives are dealt with specially
             if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-            const range = event.request.headers.get('range');
-            return fetchUrlFromZIM(urlObject, range).then(function (response) {
-                // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
-                if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                    !regexpExcludedURLSchema.test(event.request.url)) {
-                    event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
-                }
-                return response;
-            }).catch(function (msgPortData) {
-                console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
-                return msgPortData;
-            });
-        } else {
-            // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
-            return fetch(rqUrl).then(function (response) {
-                // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
-                    event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
-                }
-                return response;
-            }).catch(function (error) {
-                console.debug('[SW] Network request failed and no cache.', error);
-            });
-        }
-        // var oldValue;
-        // if (event.data.action.assetsCache) {
-        //     // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
-        //     oldValue = useAssetsCache;
-        //     useAssetsCache = event.data.action.assetsCache === 'enable';
-        //     if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + useAssetsCache);
-        // }
-        // if (event.data.action.appCache) {
-        //     // Enables or disables use of appCache
-        //     oldValue = useAppCache;
-        //     useAppCache = event.data.action.appCache === 'enable';
-        //     if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
-        // }
-        // if (event.data.action === 'getCacheNames') {
-        //     event.ports[0].postMessage({ app: APP_CACHE, assets: ASSETS_CACHE });
-        // }
-        // if (event.data.action.checkCache) {
-        //     // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
-        //     testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
-        //         event.ports[0].postMessage({ type: cacheArr[0], name: cacheArr[1], description: cacheArr[2], count: cacheArr[3] });
-        //     });
-        // }
-    })
+                const range = event.request.headers.get('range');
+                return fetchUrlFromZIM(urlObject, range).then(function (response) {
+                    // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
+                    if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
+                        !regexpExcludedURLSchema.test(event.request.url)) {
+                        event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
+                    }
+                    return response;
+                }).catch(function (msgPortData) {
+                    console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
+                    return msgPortData;
+                });
+            } else {
+                // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
+                return fetch(rqUrl).then(function (response) {
+                    // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                    if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                        event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
+                    }
+                    return response;
+                }).catch(function (error) {
+                    console.debug('[SW] Network request failed and no cache.', error);
+                });
+            }
+            // var oldValue;
+            // if (event.data.action.assetsCache) {
+            //     // Turns caching on or off (a string value of 'enable' turns it on, any other string turns it off)
+            //     oldValue = useAssetsCache;
+            //     useAssetsCache = event.data.action.assetsCache === 'enable';
+            //     if (useAssetsCache !== oldValue) console.debug('[SW] Use of assetsCache was switched to: ' + useAssetsCache);
+            // }
+            // if (event.data.action.appCache) {
+            //     // Enables or disables use of appCache
+            //     oldValue = useAppCache;
+            //     useAppCache = event.data.action.appCache === 'enable';
+            //     if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
+            // }
+            // if (event.data.action === 'getCacheNames') {
+            //     event.ports[0].postMessage({ app: APP_CACHE, assets: ASSETS_CACHE });
+            // }
+            // if (event.data.action.checkCache) {
+            //     // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
+            //     testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
+            //         event.ports[0].postMessage({ type: cacheArr[0], name: cacheArr[1], description: cacheArr[2], count: cacheArr[3] });
+            //     });
+            // }
+        })
     );
-});
+}
 
 /**
  * Handle custom commands sent from app.js
  */
- self.addEventListener('message', function (event) {
+self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
             // On 'init' message, we enable the fetchEventListener
@@ -376,11 +374,13 @@ function handleZIMFetchEvent (event) {
             // Note that this code doesn't currently run because the app currently never sends a 'disable' message
             // This is because the app may be running as a PWA, and still needs to be able to fetch assets even in jQuery mode
             fetchCaptureEnabled = false;
-}
+        }
+    }
+});
 
 /**
  * Handles URLs that need to be extracted from the ZIM archive
- * 
+ *
  * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
  * @param {String} range Optional byte range string
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
@@ -410,14 +410,14 @@ function fetchUrlFromZIM(urlObject, range) {
                 // headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
                 headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
-                
+
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
                 if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
                     headers.set('Accept-Ranges', 'bytes');
                 }
-                
+
                 var slicedData = msgPortEvent.data.content;
                 if (range) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
@@ -431,18 +431,18 @@ function fetchUrlFromZIM(urlObject, range) {
                     const begin = partsOfRangeHeader[1];
                     const end = contentLength - 1;
                     slicedData = slicedData.slice(begin);
-                    
+
                     headers.set('Content-Range', 'bytes ' + begin + '-' + end + '/' + contentLength);
                     headers.set('Content-Length', end - begin + 1);
                 }
-                
+
                 var responseInit = {
                     // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
                     status: range ? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
-                
+
                 var httpResponse = new Response(slicedData, responseInit);
 
                 // Let's send the content back from the ServiceWorker
@@ -461,13 +461,13 @@ function fetchUrlFromZIM(urlObject, range) {
                 var messageChannel = new MessageChannel();
                 messageChannel.port1.onmessage = messageListener;
                 client.postMessage({
-            action: 'askForContent',
+                    action: 'askForContent',
                     title: titleWithNameSpace,
                     search: uriComponent,
                     anchorTarget: anchorTarget,
                     zimFileName: zimName
-        }, [messageChannel.port2]);
-    });
+                }, [messageChannel.port2]);
+            });
         });
     });
 }
