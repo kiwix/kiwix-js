@@ -851,13 +851,15 @@ function initServiceWorkerMessaging () {
         window.location.reload();
     } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
         uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
-        'Offline use is disabled!', true).then(function (response) {
+            'Offline use is disabled!', true).then(function (response) {
             if (response) {
                 setContentInjectionMode('serviceworker');
-                setTimeout(function () {
-                    params.themeChanged = true;
-                    document.getElementById('btnHome').click();
-                }, 750);
+                if (selectedArchive) {
+                    setTimeout(function () {
+                        params.themeChanged = true;
+                        document.getElementById('btnHome').click();
+                    }, 750);
+                }
             }
         });
     }
