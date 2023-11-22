@@ -26,7 +26,7 @@
 /* global chrome */
 
 // Import the wabac.js Service Worker for reading warc2zim / Zimit-based archives
-importScripts('www/js/lib/wabac.js');
+self.importScripts('www/js/lib/wabac.js');
 
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
@@ -260,7 +260,7 @@ self.addEventListener('message', function (event) {
             if (useAppCache !== oldValue) console.debug('[SW] Use of appCache was switched to: ' + useAppCache);
         }
         if (event.data.action === 'getCacheNames') {
-            event.ports[0].postMessage({ 'app': APP_CACHE, 'assets': ASSETS_CACHE });
+            event.ports[0].postMessage({ app: APP_CACHE, assets: ASSETS_CACHE });
         }
         if (event.data.action.checkCache) {
             // Checks and returns the caching strategy: checkCache key should contain a sample URL string to test
@@ -385,7 +385,7 @@ self.addEventListener('message', function (event) {
  * @param {String} range Optional byte range string
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM(urlObject, range) {
+function fetchUrlFromZIM (urlObject, range) {
     return new Promise(function (resolve, reject) {
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
         // Be sure that you haven't encoded any querystring along with the URL.
@@ -478,7 +478,7 @@ function fetchUrlFromZIM(urlObject, range) {
  * @param {String} requestUrl The Request URL to fulfill from cache
  * @returns {Promise<Response>} A Promise for the cached Response, or rejects with strings 'disabled' or 'no-match'
  */
-function fromCache(cache, requestUrl) {
+function fromCache (cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
     if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) {
         return Promise.reject(new Error('Cache disabled'));
@@ -501,7 +501,7 @@ function fromCache(cache, requestUrl) {
  * @param {Response} response The Response received from the server/ZIM
  * @returns {Promise} A Promise for the update action
  */
-function updateCache(cache, request, response) {
+function updateCache (cache, request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!response.ok || !(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) {
         return Promise.resolve();
@@ -519,16 +519,16 @@ function updateCache(cache, request, response) {
  * @param {String} url A URL to test against excludedURLSchema
  * @returns {Promise<Array>} A Promise for an array of format [cacheType, cacheDescription, assetCount]
  */
-function testCacheAndCountAssets(url) {
+function testCacheAndCountAssets (url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'custom', 'Custom', '-']);
     if (!useAssetsCache) return Promise.resolve(['none', 'none', 'None', 0]);
     return caches.open(ASSETS_CACHE).then(function (cache) {
         return cache.keys().then(function (keys) {
             return ['cacheAPI', ASSETS_CACHE, 'Cache API', keys.length];
-        }).catch(function(err) {
+        }).catch(function (err) {
             return err;
         });
-    }).catch(function(err) {
+    }).catch(function (err) {
         return err;
     });
 }
