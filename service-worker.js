@@ -332,7 +332,29 @@ self.addEventListener('message', function (event) {
     } else if (event.data.msg_type) {
         // Messages for the ReplayWorker
         if (event.data.msg_type === 'addColl') {
-            self.sw.collections._handleMessage(event);
+            // We have to alter some values in the sw object to make it work with the new ZIM
+            self.sw.prefix = event.data.prefix;
+            self.sw.replayPrefix = event.data.prefix;
+            self.sw.distPrefix = event.data.prefix + 'dist/';
+            self.sw.apiPrefix = event.data.prefix + 'api/';
+            self.sw.staticPrefix = event.data.prefix + 'static/';
+            self.sw.api.collections.prefixes = {
+                main: self.sw.prefix + '/w/',
+                root: self.sw.prefix,
+                static: self.sw.staticPrefix
+            }
+            let newMap = new Map();
+            for (let [key, value] of self.sw.staticData.entries()) {
+                const newKey = /wombat\.js/i.test(key) ? this.self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? this.self.sw.staticPrefix + 'wombatWorkers.js' : key;
+                newMap.set(newKey, value);
+            }
+            self.sw.staticData = newMap;
+            self.sw.collections._handleMessage(event).then(function () {
+                self.sw.collections.colls[event.data.name].prefix = self.sw.prefix + '/w/';
+                self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
+                self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
+                self.sw.collections.root = event.data.name;
+            });
         }
     }
 });

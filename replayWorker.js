@@ -60022,7 +60022,9 @@ class SWCollections extends WorkerLoader
 // ===========================================================================
 class SWReplay {
   constructor({staticData = null, ApiClass = api_API, defaultConfig = {}, CollectionsClass = SWCollections} = {}) {
-    this.prefix = self.registration ? self.registration.scope : "";
+    if (!this.prefix) {
+      this.prefix = self.registration ? self.registration.scope : "";
+    }
 
     this.replayPrefix = this.prefix;
 

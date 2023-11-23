@@ -1886,10 +1886,13 @@ function readArticle (dirEntry) {
         }
 
         if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+            var archiveName = selectedArchive.file.name.replace(/\.zim\w{0,2}$/i, '');
+            var prefix = window.location.href.replace(/www\/[^/]*$/, '') + selectedArchive.file.name + '/' + selectedArchive.getContentNamespace() + '/A/';
             // If we are dealing with a Zimit ZIM, we need to instruct Replay to add the file as a new collection
             navigator.serviceWorker.controller.postMessage({
                 msg_type: 'addColl',
-                name: selectedArchive.file.name,
+                name: archiveName,
+                prefix: prefix,
                 file: { sourceUrl: 'proxy:../' },
                 root: true,
                 skipExisting: false,
