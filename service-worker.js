@@ -223,6 +223,8 @@ self.addEventListener('activate', function (event) {
     );
 });
 
+self.importScripts('./replayWorker.js');
+
 // For PWA functionality, this should be true unless explicitly disabled, and in fact currently it is never disabled
 let fetchCaptureEnabled = true;
 
@@ -252,32 +254,35 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
+            var transformer = self.sw && self.sw.handleFetch ? self.sw.handleFetch : Promise.resolve;
+            return transformer(event).then(function () {
             // YouTube links from Zimit archives are dealt with specially
-            if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                const range = event.request.headers.get('range');
-                return fetchUrlFromZIM(urlObject, range).then(function (response) {
-                    // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
-                    if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                        !regexpExcludedURLSchema.test(event.request.url)) {
-                        event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
-                    }
-                    return response;
-                }).catch(function (msgPortData) {
-                    console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
-                    return msgPortData;
-                });
-            } else {
-                // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
-                return fetch(event.request).then(function (response) {
-                    // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                    if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
-                        event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
-                    }
-                    return response;
-                }).catch(function (error) {
-                    console.debug('[SW] Network request failed and no cache.', error);
-                });
-            }
+                if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
+                    const range = event.request.headers.get('range');
+                    return fetchUrlFromZIM(urlObject, range).then(function (response) {
+                        // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
+                        if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
+                            !regexpExcludedURLSchema.test(event.request.url)) {
+                            event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
+                        }
+                        return response;
+                    }).catch(function (msgPortData) {
+                        console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
+                        return msgPortData;
+                    });
+                } else {
+                    // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
+                    return fetch(event.request).then(function (response) {
+                        // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                        if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                            event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
+                        }
+                        return response;
+                    }).catch(function (error) {
+                        console.debug('[SW] Network request failed and no cache.', error);
+                    });
+                }
+            });
         })
     );
 });
@@ -323,6 +328,11 @@ self.addEventListener('message', function (event) {
             testCacheAndCountAssets(event.data.action.checkCache).then(function (cacheArr) {
                 event.ports[0].postMessage({ type: cacheArr[0], name: cacheArr[1], description: cacheArr[2], count: cacheArr[3] });
             });
+        }
+    } else if (event.data.msg_type) {
+        // Messages for the ReplayWorker
+        if (event.data.msg_type === 'addColl') {
+            self.sw.collections._handleMessage(event);
         }
     }
 });
