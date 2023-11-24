@@ -254,11 +254,19 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            var transformer = self.sw && self.sw.handleFetch ? self.sw.handleFetch : Promise.resolve;
-            return transformer(event).then(function () {
-            // YouTube links from Zimit archives are dealt with specially
+            var transformer = self.sw && self.sw.handleFetch ? self.sw.handleFetch : Promise.resolve(event.request);
+            return transformer(event).then(function (modRequest) {
+                if (typeof modRequest.ok !== 'undefined') {
+                    // The request was modified by the ReplayWorker and it returned a modified response, so we return it
+                    console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
+                    return modRequest;
+                }
+                rqUrl = modRequest.url;
+                urlObject = new URL(rqUrl);
+                strippedUrl = urlObject.pathname;
+                // YouTube links from Zimit archives are dealt with specially
                 if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                    const range = event.request.headers.get('range');
+                    const range = modRequest.headers.get('range');
                     return fetchUrlFromZIM(urlObject, range).then(function (response) {
                         // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
                         if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
@@ -272,9 +280,9 @@ self.addEventListener('fetch', function (event) {
                     });
                 } else {
                     // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
-                    return fetch(event.request).then(function (response) {
+                    return fetch(modRequest).then(function (response) {
                         // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                        if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                        if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
                             event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
                         }
                         return response;
