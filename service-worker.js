@@ -232,11 +232,30 @@ let fetchCaptureEnabled = true;
  * Intercept selected Fetch requests from the browser window
  */
 self.addEventListener('fetch', function (event) {
+    console.debug('[SW] Fetch Event processing', event.request.url);
     // Only handle GET or POST requests (POST is intended to handle video in Zimit ZIMs)
     if (!/GET|POST/.test(event.request.method)) return;
     var rqUrl = event.request.url;
     // Filter out requests that do not match the scope of the Service Worker
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
+    // If the request is for static data from the replayWorker, we should see if we already have it in the Worker
+    if (/\/A\/static\//.test(rqUrl) && self.sw && self.sw.staticData) {
+        var staticData = self.sw.staticData.get(rqUrl);
+        if (staticData) {
+            console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
+            // Construct a new Response with headers to return the static data
+            var headers = new Headers();
+            headers.set('Content-Length', staticData.content.length);
+            headers.set('Content-Type', staticData.type);
+            var responseInit = {
+                status: 200,
+                statusText: 'OK',
+                headers: headers
+            };
+            var responseStaticData = new Response(staticData.content, responseInit);
+            return event.respondWith(responseStaticData);
+        }
+    }
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;
