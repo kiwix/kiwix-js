@@ -580,19 +580,29 @@ ZIMArchive.prototype.readUtf8File = function (dirEntry, callback) {
 ZIMArchive.prototype.readBinaryFile = function (dirEntry, callback) {
     var that = this;
     return dirEntry.readData().then(function (data) {
-        if (that && that.zimType === 'zimit' && params.isLandingPage && /\bx?html/i.test(dirEntry.getMimetype())) {
+        if (that && that.zimType === 'zimit' && (params.isLandingPage &&
+          /\bx?html/i.test(dirEntry.getMimetype()) || /load\.js/.test(dirEntry.url))) {
             // We are dealing with a Zimit ZIM, so we need to extract the redirect from the landing page
-            var html = utf8.parse(data);
-            var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
-            if (redirect && redirect[2] && redirect[3]) {
-                // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
-                var relativeZimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
-                var zimitStartPage = dirEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
-                // Store a full Zimit prefix in the archive object
-                that.zimitPrefix = dirEntry.namespace + '/' + relativeZimitPrefix + '/';
-                // Mark the directory entry as a redirect
-                // dirEntry.isredirect = true;
-                dirEntry.zimitRedirect = zimitStartPage;
+            var contents = utf8.parse(data);
+            if (/A\/load\.js/.test(dirEntry.url)) {
+                console.debug('load.js found. Removing service worker registration...');
+                // We need to edit the contents to remove the service worker registration and postMessage
+                contents = contents.replace(/await\s+sw\.register[^;]+;/, "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));");
+                contents = contents.replace(/sw\.controller\.postMessage[^;]+;/, '');
+                var encoder = new TextEncoder();
+                data = encoder.encode(contents);
+            } else {
+                var redirect = contents.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
+                if (redirect && redirect[2] && redirect[3]) {
+                    // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
+                    var relativeZimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
+                    var zimitStartPage = dirEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
+                    // Store a full Zimit prefix in the archive object
+                    that.zimitPrefix = dirEntry.namespace + '/' + relativeZimitPrefix + '/';
+                    // Mark the directory entry as a redirect
+                    // dirEntry.isredirect = true;
+                    dirEntry.zimitRedirect = zimitStartPage;
+                }
             }
         }
         callback(dirEntry, data);
