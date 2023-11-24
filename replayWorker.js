@@ -57694,7 +57694,12 @@ class RemoteWARCProxy {
     let encodedUrl = encodeURI(urlNoScheme);
     encodedUrl = encodeURIComponent(urlNoScheme);
 
-    let headersResp = await fetch(this.sourceUrl + "H/" + encodedUrl);
+    // let headersResp = await fetch(this.sourceUrl + "H/" + encodedUrl);
+    
+    // DEV: modded for kiwix-js
+    let kiwixJSUrl = new URL(sw.prefix.replace(/\/A\/$/, '/H/') + encodedUrl);
+    let headersResp = await fetchUrlFromZIM(kiwixJSUrl);
+    // DEV: End kiwix-js mod
 
     if (headersResp.status !== 200) {
       return null;
