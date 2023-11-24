@@ -484,6 +484,10 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     })
 });
+document.getElementById('hideExternalLinkWarningCheck').addEventListener('change', function (e) {
+    params.hideExternalLinkWarning = !!this.checked;
+    settingsStore.setItem('hideExternalLinkWarning', params.hideExternalLinkWarning, Infinity);
+})
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
     params.slideAway = e.target.checked;
     if (typeof navigator.getDeviceStorages === 'function') {
@@ -896,7 +900,7 @@ function setContentInjectionMode (value) {
                 'WARNING: After this, you may not be able to switch back to SW mode without an online connection!';
             var launchLocal = function () {
                 settingsStore.setItem('allowInternetAccess', false, Infinity);
-                var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false';
+                var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&hideActiveContentWarning=false&hideExternalLinkWarning=false';
                 uriParams += '&appTheme=' + params.appTheme;
                 uriParams += '&showUIAnimations=' + params.showUIAnimations;
                 window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
@@ -1840,7 +1844,15 @@ function readArticle (dirEntry) {
                             // it means it's a link to an external website.
                             // We also do it for ftp even if it's not supported any more by recent browsers...
                             if (/^(?:http|ftp)/i.test(href)) {
-                                uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                                if (!params.hideExternalLinkWarning) {
+                                    uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                                } else {
+                                    var target = clickedAnchor.target
+                                    if (!target) {
+                                        target = '_blank';
+                                    }
+                                    window.open(clickedAnchor.href, target);
+                                }
                             } else if (/\.pdf([?#]|$)/i.test(href)) {
                                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                                 event.preventDefault();
@@ -2138,7 +2150,15 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     anchor.addEventListener('click', function (event) {
                         // Find the closest enclosing A tag
                         var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
-                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                        if (!params.hideExternalLinkWarning) {
+                            uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                        } else {
+                            var target = clickedAnchor.target
+                            if (!target) {
+                                target = '_blank';
+                            }
+                            window.open(clickedAnchor.href, target);
+                        }
                     });
                     return;
                 } else {

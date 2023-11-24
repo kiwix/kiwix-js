@@ -176,12 +176,14 @@ function slideAway (e) {
  * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel")
  * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
  * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
+ * @param {Boolean} displayHideOption If true, option to permanently hide the modal will be shown.
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
-function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
+function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel, displayHideOption) {
     declineConfirmLabel = declineConfirmLabel || (translateUI.t('dialog-cancel') || 'Cancel');
     approveConfirmLabel = approveConfirmLabel || (translateUI.t('dialog-confirm') || 'Confirm');
     closeMessageLabel = closeMessageLabel || (translateUI.t('dialog-ok') || 'Okay');
+    displayHideOption = displayHideOption || false
     label = label || (isConfirm ? 'Confirmation' : 'Message');
     return util.PromiseQueue.enqueue(function () {
         return new Promise(function (resolve, reject) {
@@ -198,6 +200,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('approveConfirm').style.display = isConfirm ? 'inline' : 'none';
             document.getElementById('declineConfirm').style.display = isConfirm ? 'inline' : 'none';
             document.getElementById('closeMessage').style.display = isConfirm ? 'none' : 'inline';
+            document.getElementById('hideOption').style.display = displayHideOption ? 'inline' : 'none';
             // Display the modal
             const modal = document.querySelector('#alertModal');
             const backdrop = document.createElement('div');
@@ -229,6 +232,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
                 document.getElementById('declineConfirm').removeEventListener('click', close);
                 document.getElementById('closeMessage').removeEventListener('click', close);
                 document.getElementById('approveConfirm').removeEventListener('click', closeConfirm);
+                document.getElementById('hideOption').removeEventListener('click', hideConfirm);
                 modal.removeEventListener('click', close);
                 document.getElementsByClassName('modal-dialog')[0].removeEventListener('click', stopOutsideModalClick);
                 modal.removeEventListener('keyup', keyHandler);
@@ -243,6 +247,13 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
                 closeModalHandler();
                 resolve(true);
             };
+            var hideConfirm = function () {
+                params.hideExternalLinkWarning = true
+                settingsStore.setItem('hideExternalLinkWarning', params.hideExternalLinkWarning, Infinity);
+                document.getElementById('hideExternalLinkWarningCheck').checked = params.hideExternalLinkWarning
+                closeModalHandler()
+                resolve(true)
+            }
             var stopOutsideModalClick = function (e) {
                 e.stopPropagation();
             };
@@ -267,6 +278,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('declineConfirm').addEventListener('click', close);
             document.getElementById('closeMessage').addEventListener('click', close);
             document.getElementById('approveConfirm').addEventListener('click', closeConfirm);
+            document.getElementById('hideOption').addEventListener('click', hideConfirm);
 
             modal.addEventListener('click', close);
             document.getElementsByClassName('modal-dialog')[0].addEventListener('click', stopOutsideModalClick);
@@ -934,7 +946,7 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
     message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
-    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true).then(function (response) {
+    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, translateUI.t('dialog-cancel') || 'Cancel', translateUI.t('dialog-confirm') || 'Confirm', translateUI.t('dialog-ok') || 'Okay', true).then(function (response) {
         if (response) {
             if (!target) {
                 target = '_blank';

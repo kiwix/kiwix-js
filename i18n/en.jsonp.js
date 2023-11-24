@@ -89,6 +89,8 @@ document.localeJson = {
       "configure-expert-panel-header": "Troubleshooting and development",
       "configure-expert-hideactivecontentwarning": "<strong>Permanently hide active content warning</strong> (for experienced users)",
       "configure-expert-hideactivecontentwarning-tip": "A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning.",
+      "configure-expert-hideexternallinkwarning": "<strong>Permanently hide external content warning</strong>",
+      "configure-expert-hideexternallinkwarning-tip": "A warning is shown if you open an external link.",
       "configure-expert-disabledragdrop": "<strong>Disable drag-and-drop</strong> (in case it is causing anomalies)",
       "configure-expert-disabledragdrop-tip": "This option disables drag-and-drop of ZIM files onto the app. It is not recommended to disable this feature.",
       "configure-expert-bypassappcache": "<b>Bypass AppCache</b> (<i>disables offline use of this app!</i>)",

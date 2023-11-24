@@ -3,7 +3,7 @@
 /* global params */
 
 var regexpCookieKeysToMigrate = new RegExp([
-    'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
+    'hideActiveContentWarning', 'hideExternalLinkWarning', 'hide', 'showUIAnimations', 'appTheme', 'useCache',
     'contentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
 ].join('|'));
 

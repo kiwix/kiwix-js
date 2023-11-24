@@ -60,10 +60,15 @@
                     <div class="modal-body">
                         <p id="modalText">Modal text goes here.</p>
                     </div>
-                    <div class="modal-footer" id="modalFooter">
-                        <button type="button" class="btn btn-primary" id="approveConfirm" data-dismiss="modal">Confirm</button>
-                        <button type="button" class="btn btn-secondary" id="declineConfirm" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+                    <div class="modal-footer justify-content-between" id="modalFooter">
+                        <div>
+                            <button type="button" class="btn btn-primary" id="hideOption" data-dismiss="modal">Don't ask again</button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary" id="approveConfirm" data-dismiss="modal">Confirm</button>
+                            <button type="button" class="btn btn-secondary" id="declineConfirm" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -679,6 +684,13 @@
                                             id="hideActiveContentWarningCheck">
                                         <span data-i18n="configure-expert-hideactivecontentwarning"><strong>Permanently hide active content warning</strong> (for
                                         experienced users)</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label data-i18n-tip="configure-expert-hideexternallinkwarning-tip" title="A warning is shown if you open an external link.">
+                                        <input type="checkbox" name="hideExternalLinkWarning"
+                                            id="hideExternalLinkWarningCheck">
+                                        <span data-i18n="configure-expert-hideexternallinkwarning"><strong>Permanently hide external content warning</strong></span>
                                     </label>
                                 </div>
                                 <div class="checkbox">
