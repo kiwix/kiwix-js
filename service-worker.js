@@ -354,9 +354,9 @@ self.addEventListener('message', function (event) {
                 self.sw.collections.colls[event.data.name].prefix = self.sw.prefix;
                 self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
                 self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
-                setTimeout(function () { // Probably should check the collections Promise instead
-                    self.sw.collections.colls[event.data.name].config.topTemplateUrl = '';
-                }, 150);
+                // setTimeout(function () { // Probably should check the collections Promise instead
+                //     self.sw.collections.colls[event.data.name].config.topTemplateUrl = '';
+                // }, 150);
                 self.sw.collections.root = event.data.name;
             });
         }
