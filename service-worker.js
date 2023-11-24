@@ -332,6 +332,7 @@ self.addEventListener('message', function (event) {
     } else if (event.data.msg_type) {
         // Messages for the ReplayWorker
         if (event.data.msg_type === 'addColl') {
+            console.debug('[SW] addColl message received from app.js');
             // We have to alter some values in the sw object to make it work with the new ZIM
             self.sw.prefix = event.data.prefix;
             self.sw.replayPrefix = event.data.prefix;
@@ -353,6 +354,9 @@ self.addEventListener('message', function (event) {
                 self.sw.collections.colls[event.data.name].prefix = self.sw.prefix;
                 self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
                 self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
+                setTimeout(function () { // Probably should check the collections Promise instead
+                    self.sw.collections.colls[event.data.name].config.topTemplateUrl = '';
+                }, 150);
                 self.sw.collections.root = event.data.name;
             });
         }
