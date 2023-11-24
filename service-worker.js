@@ -339,7 +339,7 @@ self.addEventListener('message', function (event) {
             self.sw.apiPrefix = event.data.prefix + 'api/';
             self.sw.staticPrefix = event.data.prefix + 'static/';
             self.sw.api.collections.prefixes = {
-                main: self.sw.prefix + '/w/',
+                main: self.sw.prefix,
                 root: self.sw.prefix,
                 static: self.sw.staticPrefix
             }
@@ -350,7 +350,7 @@ self.addEventListener('message', function (event) {
             }
             self.sw.staticData = newMap;
             self.sw.collections._handleMessage(event).then(function () {
-                self.sw.collections.colls[event.data.name].prefix = self.sw.prefix + '/w/';
+                self.sw.collections.colls[event.data.name].prefix = self.sw.prefix;
                 self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
                 self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
                 self.sw.collections.root = event.data.name;
