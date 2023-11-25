@@ -415,7 +415,7 @@ function zimitResolver (event) {
                 }
             }
         } else {
-            console.debug('[SW] Asking ReplayWorker to handleFetch', rqUrl);
+            // console.debug('[SW] Asking ReplayWorker to handleFetch', rqUrl);
             return self.sw.handleFetch(event);
         }
     } else {

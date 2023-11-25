@@ -157,19 +157,25 @@ function resizeIFrame () {
     // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks even if UI animations are disabled
     }, params.showUIAnimations ? 400 : 100);
 
+    // Get the contentWindow of the iframe to operate on
+    var thisArticleWindow = articleWindow;
+    if (articleWindow.document && articleWindow.document.getElementById('replay_iframe')) {
+        thisArticleWindow = articleContainer.contentWindow.document.getElementById('replay_iframe').contentWindow;
+    }
+
     // Remove and add the scroll event listener to the new article window
     // Note that IE11 doesn't support wheel or touch events on the iframe, but it does support keydown and scroll
-    articleWindow.removeEventListener('scroll', uiUtil.scroller);
-    articleWindow.removeEventListener('touchstart', uiUtil.scroller);
-    articleWindow.removeEventListener('touchend', uiUtil.scroller);
-    articleWindow.removeEventListener('wheel', uiUtil.scroller);
-    articleWindow.removeEventListener('keydown', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('scroll', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('touchstart', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('touchend', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('wheel', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('keydown', uiUtil.scroller);
     if (params.slideAway) {
-        articleWindow.addEventListener('scroll', uiUtil.scroller);
-        articleWindow.addEventListener('touchstart', uiUtil.scroller);
-        articleWindow.addEventListener('touchend', uiUtil.scroller);
-        articleWindow.addEventListener('wheel', uiUtil.scroller);
-        articleWindow.addEventListener('keydown', uiUtil.scroller);
+        thisArticleWindow.addEventListener('scroll', uiUtil.scroller);
+        thisArticleWindow.addEventListener('touchstart', uiUtil.scroller);
+        thisArticleWindow.addEventListener('touchend', uiUtil.scroller);
+        thisArticleWindow.addEventListener('wheel', uiUtil.scroller);
+        thisArticleWindow.addEventListener('keydown', uiUtil.scroller);
     }
 }
 
@@ -1810,19 +1816,8 @@ function readArticle (dirEntry) {
             return encodeURIComponent(matchedSubstring);
         });
 
-        // In case we are dealing with a Zimit ZIM, we need to select the inner iframe
-        articleContainer.onload = function () {
-            if (selectedArchive.zimType === 'zimit') {
-                var doc = articleContainer.contentDocument || null;
-                if (doc) {
-                    var replayIframe = doc.getElementById('replay_iframe');
-                    if (replayIframe) {
-                        replayIframe.onload = articleLoadedSW(replayIframe);
-                    }
-                }
-            }
-            articleLoadedSW(articleContainer);
-        };
+        // Set up article onload handler
+        articleLoader();
 
         if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
             return;
@@ -1866,6 +1861,27 @@ function readArticle (dirEntry) {
     }
 }
 
+/**
+ * Selects the iframe to which to attach the onload event, and attaches it
+ */
+function articleLoader () {
+    if (selectedArchive.zimType === 'zimit') {
+        var doc = articleContainer.contentDocument || null;
+        if (doc) {
+            var replayIframe = doc.getElementById('replay_iframe');
+            if (replayIframe) {
+                replayIframe.onload = articleLoadedSW(replayIframe);
+            }
+        }
+    } else {
+        articleContainer.onload = articleLoadedSW(articleContainer);
+    }
+}
+
+/**
+ * Postprocessing required after the article contents are loaded
+ * @param {HTMLIFrameElement} iframeArticleContent The iframe containing the article content
+ */
 function articleLoadedSW (iframeArticleContent) {
     // The content is fully loaded by the browser : we can hide the spinner
     document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
@@ -1875,24 +1891,25 @@ function articleLoadedSW (iframeArticleContent) {
     uiUtil.applyAppTheme(params.appTheme);
     // Display the iframe content
     iframeArticleContent.style.display = '';
+    articleContainer.style.display = '';
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
         var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
         var docBody = doc ? doc.getElementsByTagName('body') : null;
         docBody = docBody ? docBody[0] : null;
         if (docBody) {
-            docBody.addEventListener('dragover', handleIframeDragover);
-            docBody.addEventListener('drop', handleIframeDrop);
+            docBody.ondragover = handleIframeDragover;
+            docBody.ondrop = handleIframeDrop;
         }
     }
     resizeIFrame();
 
     if (iframeArticleContent.contentWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
-        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey); }
+        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.onkeydown = focusPrefixOnHomeKey; }
         if (params.openExternalLinksInNewTabs) {
             // Add event listener to iframe window to check for links to external resources
-            iframeArticleContent.contentWindow.addEventListener('click', function (event) {
+            iframeArticleContent.contentWindow.onclick = function (event) {
                 // Find the closest enclosing A tag (if any)
                 var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
                 if (clickedAnchor) {
@@ -1926,12 +1943,13 @@ function articleLoadedSW (iframeArticleContent) {
                         }
                     }
                 }
-            });
+            };
         }
         // Reset UI when the article is unloaded
         iframeArticleContent.contentWindow.onunload = function () {
+            iframeArticleContent.loader = false;
             // remove eventListener to avoid memory leaks
-            iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+            // iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
             var articleList = document.getElementById('articleList');
             var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
@@ -1972,12 +1990,14 @@ function handleMessageChannelMessage (event) {
                 var mimetype = fileDirEntry.getMimetype();
                 // Show the spinner
                 var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
-                if (!/moved/i.test(shortTitle) && !/image|javascript/.test(mimetype)) {
+                if (!/moved/i.test(shortTitle) && !/image|javascript|warc-headers/.test(mimetype)) {
                     uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
                     clearTimeout(window.timeout);
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
+                    // Ensure the article onload event gets attached to the right iframe
+                    articleLoader();
                 }
                 // Let's send the content to the ServiceWorker
                 var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };

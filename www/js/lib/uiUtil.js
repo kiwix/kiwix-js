@@ -33,6 +33,7 @@ import translateUI from './translateUI.js';
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
 const activeContent = document.getElementById('activeContent');
+let articleContainer = document.getElementById('articleContent');
 
 /**
  * Hides slide-away UI elements
@@ -74,7 +75,10 @@ let scrollThrottle = false;
  * Luuncher for the slide-away function, including a throttle to prevent it being called too often
  */
 function scroller (e) {
-    const articleContainer = document.getElementById('articleContent');
+    // Get the replay_iframe if it exists
+    if (articleContainer.contentWindow && articleContainer.contentWindow.document && articleContainer.contentWindow.document.getElementById('replay_iframe')) {
+        articleContainer = articleContainer.contentWindow.document.getElementById('replay_iframe');
+    }
     if (scrollThrottle) return;
     // windowIsScrollable gets set and reset in slideAway()
     if (windowIsScrollable && e.type === 'wheel') return;
@@ -117,7 +121,6 @@ let windowIsScrollable = false;
 
 // Slides away or restores the header and footer
 function slideAway (e) {
-    const articleContainer = document.getElementById('articleContent');
     const newScrollY = articleContainer.contentWindow.pageYOffset;
     let delta;
     const visibleState = /\(0p?x?\)/.test(header.style.transform);
