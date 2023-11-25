@@ -238,24 +238,6 @@ self.addEventListener('fetch', function (event) {
     var rqUrl = event.request.url;
     // Filter out requests that do not match the scope of the Service Worker
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
-    // If the request is for static data from the replayWorker, we should see if we already have it in the Worker
-    if (/\/A\/static\//.test(rqUrl) && self.sw && self.sw.staticData) {
-        var staticData = self.sw.staticData.get(rqUrl);
-        if (staticData) {
-            console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
-            // Construct a new Response with headers to return the static data
-            var headers = new Headers();
-            headers.set('Content-Length', staticData.content.length);
-            headers.set('Content-Type', staticData.type);
-            var responseInit = {
-                status: 200,
-                statusText: 'OK',
-                headers: headers
-            };
-            var responseStaticData = new Response(staticData.content, responseInit);
-            return event.respondWith(responseStaticData);
-        }
-    }
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;
@@ -273,8 +255,7 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            var transformer = self.sw && self.sw.handleFetch ? self.sw.handleFetch : Promise.resolve(event.request);
-            return transformer(event).then(function (modRequest) {
+            return zimitResolver(event).then(function (modRequest) {
                 if (modRequest instanceof Response) {
                     // The request was modified by the ReplayWorker and it returned a modified response, so we return it
                     // console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
@@ -389,6 +370,57 @@ self.addEventListener('message', function (event) {
         }
     }
 });
+
+/**
+ * Handles resolving content for Zimit-style ZIM archives
+ *
+ * @param {FetchEvent} event The FetchEvent to be processed
+ * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
+ */
+function zimitResolver (event) {
+    var rqUrl = event.request.url;
+    if (/\/A\/load\.js/.test(rqUrl)) {
+        // If the request is for load.js, we should filter its contents to load the mainUrl, as we don't need the other stuff
+        // concerning registration of the ServiceWorker and postMessage handling
+        console.debug('[SW] Filtering content of load.js', rqUrl);
+        // We need to replace the entire contents with a single function that loads mainUrl
+        var contents = "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));"
+        var responseLoadJS = contsructResponse(contents, 'text/javascript');
+        return Promise.resolve(responseLoadJS);
+    } else if (self.sw && self.sw.collections.root && ~rqUrl.indexOf(self.sw.collections.root)) {
+        if (/\/A\/static\//.test(rqUrl)) {
+            // If the request is for static data from the replayWorker, we should see if we already have them in the Worker
+            // DEV: This should extract both wombat.js and wombatWorkers.js from the staticData Map
+            if (self.sw.staticData) {
+                var staticData = self.sw.staticData.get(rqUrl);
+                if (staticData) {
+                    console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
+                    // Construct a new Response with headers to return the static data
+                    var responseStaticData = contsructResponse(staticData.content, staticData.type);
+                    return Promise.resolve(responseStaticData);
+                }
+            }
+        } else {
+            console.debug('[SW] Asking ReplayWorker to handleFetch', rqUrl);
+            return self.sw.handleFetch(event);
+        }
+    } else {
+        // The loaded ZIM archive is not a Zimit archive, so we should just return the request
+        return Promise.resolve(event.request);
+    }
+}
+
+function contsructResponse (content, contentType) {
+    var headers = new Headers();
+    headers.set('Content-Length', content.length);
+    headers.set('Content-Type', contentType);
+    var responseInit = {
+        status: 200,
+        statusText: 'OK',
+        headers: headers
+    };
+    return new Response(content, responseInit);
+}
 
 /**
  * Handles URLs that need to be extracted from the ZIM archive
