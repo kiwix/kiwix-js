@@ -338,7 +338,7 @@ prefixElement.addEventListener('blur', function () {
         appstate.search.status = 'cancelled';
         region.style.overflowY = 'hidden';
         region.style.height = 'auto';
-        document.getElementById('searchingArticles').style.display = 'none';
+        uiUtil.spinnerDisplay(false);
         document.getElementById('articleListWithHeader').style.display = 'none';
     }
 });
@@ -391,7 +391,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-    document.getElementById('searchingArticles').style.display = 'none';
+    uiUtil.spinnerDisplay(false);
     document.getElementById('articleContent').style.display = 'none';
     // Empty and purge the article contents
     var articleContent = document.getElementById('articleContent');
@@ -1205,7 +1205,7 @@ window.onpopstate = function (event) {
         var titleSearch = event.state.titleSearch;
         document.getElementById('prefix').value = '';
         document.getElementById('welcomeText').style.display = 'none';
-        document.getElementById('searchingArticles').style.display = 'none';
+        uiUtil.spinnerDisplay(false);
         $('.navbar-collapse').collapse('hide');
         document.getElementById('configuration').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
@@ -1663,7 +1663,7 @@ function searchDirEntriesFromPrefix (prefix) {
         if (activeContent) activeContent.style.display = 'none';
         selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
     } else {
-        document.getElementById('searchingArticles').style.display = 'none';
+        uiUtil.spinnerDisplay(false);
         // We have to remove the focus from the search field,
         // so that the keyboard does not stay above the message
         document.getElementById('searchArticles').focus();
@@ -1725,7 +1725,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
             return false;
         });
     });
-    if (!stillSearching) document.getElementById('searchingArticles').style.display = 'none';
+    if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
 }
 
@@ -1814,7 +1814,7 @@ function readArticle (dirEntry) {
             // The content is fully loaded by the browser : we can hide the spinner
             document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
             document.getElementById('cachingAssets').style.display = 'none';
-            document.getElementById('searchingArticles').style.display = 'none';
+            uiUtil.spinnerDisplay(false);
             // Set the requested appTheme
             uiUtil.applyAppTheme(params.appTheme);
             // Display the iframe content
@@ -1846,7 +1846,7 @@ function readArticle (dirEntry) {
                             // We also do it for ftp even if it's not supported any more by recent browsers...
                             if (/^(?:http|ftp)/i.test(href)) {
                                 uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                            } else if (/\.pdf([?#]|$)/i.test(href)) {
+                            } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
                                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                                 event.preventDefault();
                                 window.open(clickedAnchor.href, '_blank');
@@ -1951,6 +1951,12 @@ function handleMessageChannelMessage (event) {
             // Let's read the content in the ZIM file
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                 var mimetype = fileDirEntry.getMimetype();
+                // Show the spinner if it's an html file
+                if (mimetype === 'text/html') {
+                    var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
+                    if (/moved/i.test(shortTitle)) shortTitle = '';
+                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
+                }
                 // Let's send the content to the ServiceWorker
                 var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
                 messagePort.postMessage(message, [content.buffer]);
@@ -2304,7 +2310,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             if (cssFulfilled >= cssCount) {
                 document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 document.getElementById('articleContent').style.display = '';
                 // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                 resizeIFrame();
@@ -2448,7 +2454,7 @@ function goToRandomArticle () {
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getRandomDirEntry(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 uiUtil.systemAlert(translateUI.t('dialog-randomarticle-error-message') || 'Error finding random article',
                     translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
             } else {
@@ -2482,7 +2488,7 @@ function goToMainArticle () {
     selectedArchive.getMainPageDirEntry(function (dirEntry) {
         if (dirEntry === null || dirEntry === undefined) {
             console.error('Error finding main article.');
-            document.getElementById('searchingArticles').style.display = 'none';
+            uiUtil.spinnerDisplay(false);
             document.getElementById('welcomeText').style.display = '';
         } else {
             // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
@@ -2494,7 +2500,7 @@ function goToMainArticle () {
                     '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
                     'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
                 translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 // document.getElementById('welcomeText').style.display = '';
                 // Some basic support for displaying Zimit content is available if we set the contentInjectionMode to jquery, storing the original value
                 // params.originalContentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
@@ -2511,7 +2517,7 @@ function goToMainArticle () {
                 readArticle(dirEntry);
             } else {
                 console.error('The main page of this archive does not seem to be an article');
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 document.getElementById('welcomeText').style.display = '';
             }
         }

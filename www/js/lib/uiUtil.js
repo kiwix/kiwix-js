@@ -531,7 +531,7 @@ function displayFileDownloadAlert (title, download, contentType, content) {
             });
         }
     }
-    document.getElementById('searchingArticles').style.display = 'none';
+    spinnerDisplay(false);
 }
 
 /**
