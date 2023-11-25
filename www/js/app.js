@@ -1936,7 +1936,7 @@ function handleMessageChannelMessage (event) {
     var messagePort = event.ports[0];
     var readFile = function (dirEntry) {
         if (dirEntry === null) {
-            console.error('Title ' + title + ' not found in archive.');
+            console.error('Title ' + title.replace(/^(.{1,80}).*/, '$1...') + ' not found in archive.');
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
         } else if (dirEntry.isRedirect()) {
             selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {

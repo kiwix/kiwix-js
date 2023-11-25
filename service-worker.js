@@ -379,14 +379,28 @@ self.addEventListener('message', function (event) {
  */
 function zimitResolver (event) {
     var rqUrl = event.request.url;
-    if (/\/A\/load\.js/.test(rqUrl)) {
+    if (/\/A\/load\.js$/.test(rqUrl)) {
         // If the request is for load.js, we should filter its contents to load the mainUrl, as we don't need the other stuff
         // concerning registration of the ServiceWorker and postMessage handling
         console.debug('[SW] Filtering content of load.js', rqUrl);
-        // We need to replace the entire contents with a single function that loads mainUrl
-        var contents = "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));"
-        var responseLoadJS = contsructResponse(contents, 'text/javascript');
-        return Promise.resolve(responseLoadJS);
+        // First we have to get the contents of load.js from the ZIM, because it is a common name, and there is no way to be sure
+        // that the request will be for the Zimit load.js
+        return fetchUrlFromZIM(new URL(rqUrl)).then(function (response) {
+            // The response was found in the ZIM so we respond with it
+            // Clone the response before reading its body
+            var clonedResponse = response.clone();
+            return response.text().then(function (contents) {
+                // We need to replace the entire contents with a single function that loads mainUrl
+                if (/await\s+sw\.register\([^;]+?sw\.js\?replayPrefix/.test(contents)) {
+                    var newContents = "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));";
+                    var responseLoadJS = contsructResponse(newContents, 'text/javascript');
+                    return responseLoadJS;
+                } else {
+                    // The contents of load.js are not as expected, so we should return the original response
+                    return clonedResponse;
+                }
+            });
+        });
     } else if (self.sw && self.sw.collections.root && ~rqUrl.indexOf(self.sw.collections.root)) {
         if (/\/A\/static\//.test(rqUrl)) {
             // If the request is for static data from the replayWorker, we should see if we already have them in the Worker
