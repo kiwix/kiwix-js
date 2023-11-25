@@ -1794,7 +1794,7 @@ function readArticle (dirEntry) {
     expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
-    if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+    if (!params.isLandingPage) articleContainer.contentWindow.focus();
     // Show the spinner with a loading message
     var message = dirEntry.url.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
     message = message ? message[1] + '...' : '...';
@@ -1809,76 +1809,19 @@ function readArticle (dirEntry) {
         var encodedUrl = dirEntry.url.replace(/[^/]+/g, function (matchedSubstring) {
             return encodeURIComponent(matchedSubstring);
         });
-        var iframeArticleContent = document.getElementById('articleContent');
-        iframeArticleContent.onload = function () {
-            // The content is fully loaded by the browser : we can hide the spinner
-            document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
-            document.getElementById('cachingAssets').style.display = 'none';
-            uiUtil.spinnerDisplay(false);
-            // Set the requested appTheme
-            uiUtil.applyAppTheme(params.appTheme);
-            // Display the iframe content
-            document.getElementById('articleContent').style.display = '';
-            // Deflect drag-and-drop of ZIM file on the iframe to Config
-            if (!params.disableDragAndDrop) {
-                var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
-                var docBody = doc ? doc.getElementsByTagName('body') : null;
-                docBody = docBody ? docBody[0] : null;
-                if (docBody) {
-                    docBody.addEventListener('dragover', handleIframeDragover);
-                    docBody.addEventListener('drop', handleIframeDrop);
-                }
-            }
-            resizeIFrame();
 
-            if (iframeArticleContent.contentWindow) {
-                // Configure home key press to focus #prefix only if the feature is in active state
-                if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey); }
-                if (params.openExternalLinksInNewTabs) {
-                    // Add event listener to iframe window to check for links to external resources
-                    iframeArticleContent.contentWindow.addEventListener('click', function (event) {
-                        // Find the closest enclosing A tag (if any)
-                        var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
-                        if (clickedAnchor) {
-                            var href = clickedAnchor.getAttribute('href');
-                            // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
-                            // it means it's a link to an external website.
-                            // We also do it for ftp even if it's not supported any more by recent browsers...
-                            if (/^(?:http|ftp)/i.test(href)) {
-                                uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                            } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
-                                // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
-                                event.preventDefault();
-                                window.open(clickedAnchor.href, '_blank');
-                            } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
-                                // Show the spinner if it's a ZIM link, but not an anchor
-                                if (!~href.indexOf('#')) {
-                                    var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
-                                    message = message ? message[1] + '...' : '...';
-                                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
-                                    // In case of false positive, ensure spinner is eventually hidden
-                                    setTimeout(function () {
-                                        uiUtil.spinnerDisplay(false);
-                                    }, 4000);
-                                    uiUtil.showSlidingUIElements();
-                                }
-                            }
-                        }
-                    });
+        // In case we are dealing with a Zimit ZIM, we need to select the inner iframe
+        articleContainer.onload = function () {
+            if (selectedArchive.zimType === 'zimit') {
+                var doc = articleContainer.contentDocument || null;
+                if (doc) {
+                    var replayIframe = doc.getElementById('replay_iframe');
+                    if (replayIframe) {
+                        replayIframe.onload = articleLoadedSW(replayIframe);
+                    }
                 }
-                // Reset UI when the article is unloaded
-                iframeArticleContent.contentWindow.onunload = function () {
-                    // remove eventListener to avoid memory leaks
-                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-                    var articleList = document.getElementById('articleList');
-                    var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
-                    while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
-                    while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-                    document.getElementById('articleListWithHeader').style.display = 'none';
-                    document.getElementById('prefix').value = '';
-                    document.getElementById('searchingArticles').style.display = '';
-                };
             }
+            articleLoadedSW(articleContainer);
         };
 
         if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
@@ -1902,7 +1845,7 @@ function readArticle (dirEntry) {
         }
 
         // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-        iframeArticleContent.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
+        articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
     } else {
         // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
         if (dirEntry.isRedirect()) {
@@ -1922,6 +1865,82 @@ function readArticle (dirEntry) {
         }
     }
 }
+
+function articleLoadedSW (iframeArticleContent) {
+    // The content is fully loaded by the browser : we can hide the spinner
+    document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
+    document.getElementById('cachingAssets').style.display = 'none';
+    uiUtil.spinnerDisplay(false);
+    // Set the requested appTheme
+    uiUtil.applyAppTheme(params.appTheme);
+    // Display the iframe content
+    iframeArticleContent.style.display = '';
+    // Deflect drag-and-drop of ZIM file on the iframe to Config
+    if (!params.disableDragAndDrop) {
+        var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
+        var docBody = doc ? doc.getElementsByTagName('body') : null;
+        docBody = docBody ? docBody[0] : null;
+        if (docBody) {
+            docBody.addEventListener('dragover', handleIframeDragover);
+            docBody.addEventListener('drop', handleIframeDrop);
+        }
+    }
+    resizeIFrame();
+
+    if (iframeArticleContent.contentWindow) {
+        // Configure home key press to focus #prefix only if the feature is in active state
+        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey); }
+        if (params.openExternalLinksInNewTabs) {
+            // Add event listener to iframe window to check for links to external resources
+            iframeArticleContent.contentWindow.addEventListener('click', function (event) {
+                // Find the closest enclosing A tag (if any)
+                var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                if (clickedAnchor) {
+                    var href = clickedAnchor.getAttribute('href');
+                    // Check for Zimit links
+                    if (selectedArchive.zimitPrefix) {
+                        var zimitDomain = selectedArchive.zimitPrefix.replace(/^.*\/([^/]+).*/, '$1');
+                        // If it's a Zimit link, let replay functions deal with it
+                        if (zimitDomain && ~href.indexOf(zimitDomain)) return;
+                    }
+                    // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
+                    // it means it's a link to an external website.
+                    // We also do it for ftp even if it's not supported any more by recent browsers...
+                    if (/^(?:http|ftp)/i.test(href)) {
+                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                    } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
+                        // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                        event.preventDefault();
+                        window.open(clickedAnchor.href, '_blank');
+                    } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+                        // Show the spinner if it's a ZIM link, but not an anchor
+                        if (!~href.indexOf('#')) {
+                            var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+                            message = message ? message[1] + '...' : '...';
+                            uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
+                            // In case of false positive, ensure spinner is eventually hidden
+                            setTimeout(function () {
+                                uiUtil.spinnerDisplay(false);
+                            }, 4000);
+                            uiUtil.showSlidingUIElements();
+                        }
+                    }
+                }
+            });
+        }
+        // Reset UI when the article is unloaded
+        iframeArticleContent.contentWindow.onunload = function () {
+            // remove eventListener to avoid memory leaks
+            iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+            var articleList = document.getElementById('articleList');
+            var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
+            while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
+            while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
+            document.getElementById('articleListWithHeader').style.display = 'none';
+            document.getElementById('prefix').value = '';
+        };
+    }
+};
 
 /**
  * Function that handles a message of the messageChannel.
@@ -1951,11 +1970,14 @@ function handleMessageChannelMessage (event) {
             // Let's read the content in the ZIM file
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                 var mimetype = fileDirEntry.getMimetype();
-                // Show the spinner if it's an html file
-                if (mimetype === 'text/html') {
-                    var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
-                    if (/moved/i.test(shortTitle)) shortTitle = '';
+                // Show the spinner
+                var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
+                if (!/moved/i.test(shortTitle) && !/image|javascript/.test(mimetype)) {
                     uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
+                    clearTimeout(window.timeout);
+                    window.timeout = setTimeout(function () {
+                        uiUtil.spinnerDisplay(false);
+                    }, 1000);
                 }
                 // Let's send the content to the ServiceWorker
                 var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
