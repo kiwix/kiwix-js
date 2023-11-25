@@ -232,7 +232,7 @@ let fetchCaptureEnabled = true;
  * Intercept selected Fetch requests from the browser window
  */
 self.addEventListener('fetch', function (event) {
-    console.debug('[SW] Fetch Event processing', event.request.url);
+    // console.debug('[SW] Fetch Event processing', event.request.url);
     // Only handle GET or POST requests (POST is intended to handle video in Zimit ZIMs)
     if (!/GET|POST/.test(event.request.method)) return;
     var rqUrl = event.request.url;
@@ -275,9 +275,9 @@ self.addEventListener('fetch', function (event) {
             // and add it to the cache if it is an asset type (css or js)
             var transformer = self.sw && self.sw.handleFetch ? self.sw.handleFetch : Promise.resolve(event.request);
             return transformer(event).then(function (modRequest) {
-                if (typeof modRequest.ok !== 'undefined') {
+                if (modRequest instanceof Response) {
                     // The request was modified by the ReplayWorker and it returned a modified response, so we return it
-                    console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
+                    // console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
                     return modRequest;
                 }
                 rqUrl = modRequest.url;

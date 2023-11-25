@@ -586,9 +586,9 @@ ZIMArchive.prototype.readBinaryFile = function (dirEntry, callback) {
             var contents = utf8.parse(data);
             if (/A\/load\.js/.test(dirEntry.url)) {
                 console.debug('load.js found. Removing service worker registration...');
-                // We need to edit the contents to remove the service worker registration and postMessage
-                contents = contents.replace(/await\s+sw\.register[^;]+;/, "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));");
-                contents = contents.replace(/sw\.controller\.postMessage[^;]+;/, '');
+                // We need to replace the entire contents with a single function that loads mainUrl
+                contents = "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));"
+                // contents = contents.replace(/sw\.controller\.postMessage[^;]+;/, '');
                 var encoder = new TextEncoder();
                 data = encoder.encode(contents);
             } else {
