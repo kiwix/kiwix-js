@@ -861,18 +861,20 @@ function initServiceWorkerMessaging () {
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
         if (!appstate.preventAutoReboot) window.location.reload();
     } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
-        uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
-            'Offline use is disabled!', true).then(function (response) {
-            if (response) {
-                setContentInjectionMode('serviceworker');
-                if (selectedArchive) {
-                    setTimeout(function () {
-                        params.themeChanged = true;
-                        document.getElementById('btnHome').click();
-                    }, 750);
+        if (!params.noPrompts) {
+            uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
+                'Offline use is disabled!', true).then(function (response) {
+                if (response) {
+                    setContentInjectionMode('serviceworker');
+                    if (selectedArchive) {
+                        setTimeout(function () {
+                            params.themeChanged = true;
+                            document.getElementById('btnHome').click();
+                        }, 750);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }
 
@@ -954,15 +956,19 @@ function setContentInjectionMode (value) {
                     '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
-                uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
-                    (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
-                    if (params.referrerExtensionURL && response) {
-                        var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
-                        window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
-                    } else {
-                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
-                    }
-                });
+                if (!params.noPrompts) {
+                    uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
+                        (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
+                        if (params.referrerExtensionURL && response) {
+                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
+                            window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                        } else {
+                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                        }
+                    });
+                } else {
+                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                }
                 return;
             }
             if (!isMessageChannelAvailable()) {
@@ -1014,15 +1020,17 @@ function setContentInjectionMode (value) {
                                 '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
                             }
                             appstate.preventAutoReboot = true;
-                            uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
-                                setContentInjectionMode('jquery');
-                                // We need to wait for the previous dialogue box to unload fully before attempting to display another
-                                setTimeout(function () {
-                                    params.defaultModeChangeAlertDisplayed = false;
-                                    settingsStore.removeItem('defaultModeChangeAlertDisplayed');
-                                    checkAndDisplayInjectionModeChangeAlert();
-                                }, 1200);
-                            });
+                            if (!params.noPrompts) {
+                                uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
+                                    setContentInjectionMode('jquery');
+                                    // We need to wait for the previous dialogue box to unload fully before attempting to display another
+                                    setTimeout(function () {
+                                        params.defaultModeChangeAlertDisplayed = false;
+                                        settingsStore.removeItem('defaultModeChangeAlertDisplayed');
+                                        checkAndDisplayInjectionModeChangeAlert();
+                                    }, 1200);
+                                });
+                            }
                         }
                     });
                 }

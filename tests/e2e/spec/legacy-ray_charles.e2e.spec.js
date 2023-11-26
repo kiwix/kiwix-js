@@ -122,7 +122,7 @@ function runTests (driver, modes) {
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
             it('Load Kiwix JS and check title', async function () {
-                await driver.get('http://localhost:' + port + '/dist/www/index.html');
+                await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
