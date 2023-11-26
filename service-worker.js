@@ -450,7 +450,7 @@ function contsructResponse (content, contentType) {
 function fetchUrlFromZIM (urlObject, range) {
     return new Promise(function (resolve, reject) {
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
-        // Be sure that you haven't encoded any querystring along with the URL.
+        // Be sure that you haven't encoded any querystring along with the URL (Zimit files, however, require encoding of the querystring)
         var barePathname = decodeURIComponent(urlObject.pathname);
         var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
         var prefix = partsOfZIMUrl ? partsOfZIMUrl[1] : '';

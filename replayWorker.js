@@ -57611,11 +57611,13 @@ class RemoteWARCProxy {
     let reqHeaders = headers;
 
     if (this.type === "kiwix") {
+      // console.debug('Attempting to resolve canonical headers for url', url);
       let headersData = await this.resolveHeaders(url);
 
       if (!headersData) {
         for (const newUrl of fuzzyMatcher.getFuzzyCanonsWithArgs(url)) {
           if (newUrl !== url) {
+            console.debug('Attempting to resolve fuzzy headers for url', url);
             headersData = await this.resolveHeaders(newUrl);
             if (headersData) {
               break;
