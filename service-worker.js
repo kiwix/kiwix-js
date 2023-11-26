@@ -121,7 +121,7 @@ const precacheFiles = [
     'www/article.html',
     'www/library.html',
     'www/main.html',
-    'www/topIframe.html',
+    'www/topFrame.html',
     'www/js/app.js',
     'www/js/init.js',
     'www/js/lib/abstractFilesystemAccess.js',
