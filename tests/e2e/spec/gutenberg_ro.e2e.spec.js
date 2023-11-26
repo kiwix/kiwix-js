@@ -137,7 +137,7 @@ function runTests (driver, modes) {
                 }
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
-                    await driver.sleep(500);
+                    await driver.sleep(2000);
                     let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
                         if (mode === 'serviceworker') {
