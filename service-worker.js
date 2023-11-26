@@ -103,6 +103,7 @@ const regexpByteRangeHeader = /^\s*bytes=(\d+)-/;
 const precacheFiles = [
     '.', // This caches the redirect to www/index.html, in case a user launches the app from its root directory
     'manifest.json',
+    'replayWorker.js',
     'service-worker.js',
     'i18n/en.jsonp.js',
     'i18n/es.jsonp.js',
@@ -120,6 +121,7 @@ const precacheFiles = [
     'www/article.html',
     'www/library.html',
     'www/main.html',
+    'www/topIframe.html',
     'www/js/app.js',
     'www/js/init.js',
     'www/js/lib/abstractFilesystemAccess.js',
