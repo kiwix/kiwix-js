@@ -359,7 +359,12 @@ self.addEventListener('message', function (event) {
             console.debug('[SW] addColl message received from app.js');
             if (!self.sw) {
                 console.error('[SW] Zimit ZIMs in ServiceWorker mode are not supported in this browser');
+                // Reply to the message port with an error
+                event.ports[0].postMessage({ error: 'ReplayWorker is unsupported!' });
                 return;
+            } else {
+                // Reply to the message port with a success message
+                event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
             }
             // Guard against prototype pollution attack
             if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;

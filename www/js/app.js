@@ -894,6 +894,7 @@ function setContentInjectionMode (value) {
         params.serviceWorkerLocal = true;
     }
     params.contentInjectionMode = value;
+    params.originalContentInjectionMode = null;
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
@@ -1581,6 +1582,13 @@ function archiveReadyCallback (archive) {
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
     selectedArchive.cssCache = new Map();
 
+    if (selectedArchive.zimType !== 'zimit') {
+        if (params.originalContentInjectionMode) {
+            params.contentInjectionMode = params.originalContentInjectionMode;
+            params.originalContentInjectionMode = null;
+        }
+    }
+
     // Initialize the Service Worker
     if (params.contentInjectionMode === 'serviceworker') {
         initServiceWorkerMessaging();
@@ -1835,6 +1843,17 @@ function readArticle (dirEntry) {
         if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
             var archiveName = selectedArchive.file.name.replace(/\.zim\w{0,2}$/i, '');
             var prefix = window.location.href.replace(/www\/[^/]*$/, '') + selectedArchive.file.name + '/' + selectedArchive.getContentNamespace() + '/A/';
+            // Open a new message channel to the ServiceWorker
+            var zimitMessageChannel = new MessageChannel();
+            zimitMessageChannel.port1.onmessage = function (event) {
+                if (event.data.error) {
+                    console.error('Reading Zimit archives in ServiceWorker mode is not supported in this browser', event.data.error);
+                    handleUnsupportedReplayWorker(dirEntry);
+                } else if (event.data.success) {
+                    // console.debug(event.data.success);
+                    appstate.isReplayWorkerAvailable = true;
+                }
+            };
             // If we are dealing with a Zimit ZIM, we need to instruct Replay to add the file as a new collection
             navigator.serviceWorker.controller.postMessage({
                 msg_type: 'addColl',
@@ -1845,7 +1864,7 @@ function readArticle (dirEntry) {
                 skipExisting: false,
                 extraConfig: { sourceType: 'kiwix', notFoundPageUrl: './404.html' },
                 topTemplateUrl: './www/topFrame.html'
-            });
+            }, [zimitMessageChannel.port2]);
         }
 
         // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
@@ -1973,6 +1992,20 @@ function articleLoadedSW (iframeArticleContent) {
     }
 };
 
+function handleUnsupportedReplayWorker (unhandledDirEntry) {
+    appstate.isReplayWorkerAvailable = false;
+    params.originalContentInjectionMode = params.contentInjectionMode;
+    params.contentInjectionMode = 'jquery';
+    readArticle(unhandledDirEntry);
+    // if (!params.hideActiveContentWarning) uiUtil.displayActiveContentWarning();
+    uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, ' +
+        'which is not unsupported by your browser version in ServiceWorker mode.</p><p>We have temporarily switched you to JQuery mode ' +
+        'so you can view static content, but a lot of content is non-functional. If you can upgrade your browser, you will ' +
+        'be able to access dynamic content.</p><p>Alternatively, you can try the Kiwix JS PWA, which supports some dynamic Zimit content ' +
+        'in older browsers. Go to: <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>',
+    translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
+}
+
 /**
  * Function that handles a message of the messageChannel.
  * It tries to read the content in the backend, and sends it back to the ServiceWorker
@@ -2066,7 +2099,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         return;
     }
     // Display Bootstrap warning alert if the landing page contains active content
-    if (!params.hideActiveContentWarning && !selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+    if (!params.hideActiveContentWarning && params.isLandingPage) {
         if (regexpActiveContent.test(htmlArticle)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
@@ -2550,11 +2583,6 @@ function goToMainArticle () {
             uiUtil.spinnerDisplay(false);
             document.getElementById('welcomeText').style.display = '';
         } else {
-            // For Zimit archives in jQuery mode, we need to show the active content warning
-            if (params.contentInjectionMode === 'jquery' && selectedArchive.zimType === 'zimit') {
-                uiUtil.spinnerDisplay(false);
-                uiUtil.displayActiveContentWarning();
-            }
             // DEV: see comment above under goToRandomArticle()
             if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                 params.isLandingPage = true;

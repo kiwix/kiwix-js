@@ -180,6 +180,8 @@ document.localeJson = {
       "dialog-serviceworker-defaultmodechange-title": "Change of default content injection mode",
       "dialog-serviceworker-defaultmodechange-message": "<p>We have switched you to ServiceWorker mode (this is now the default). It supports more types of ZIM archives and is much more robust.</p><p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. In that case, please report the problems you experienced to us (see About section).</p>",
       "dialog-slideawaycheck-message": "This setting may not work correctly on Firefox OS. If you find that some ZIM links become unresponsive, try turning this setting off.",
+      "dialog-unsupported-archivetype-message": "<p>You are attempting to open a Zimit-style archive, which is not unsupported by your browser version in ServiceWorker mode.</p><p>We have temporarily switched you to JQuery mode so you can view static content, but a lot of content is non-functional. If you can upgrade your browser, you will be able to access dynamic content.</p><p>Alternatively, you can try the Kiwix JS PWA, which supports some dynamic Zimit content in older browsers. Go to: <a href=\"https://pwa.kiwix.org\" target=\"_blank\">https://pwa.kiwix.org</a>.</p>",
+      "dialog-unsupported-archivetype-title": "Unsupported archive type!",
       "dialog-warning": "Warning",
       "dialog-welcome-title": "Welcome",
       "dialog-welcome-message": "Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)",
