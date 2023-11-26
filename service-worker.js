@@ -65,6 +65,11 @@ var useAssetsCache = true;
 var useAppCache = true;
 
 /**
+ * A global Boolean that records whether the ReplayWorker is available
+ */
+var isReplayWorkerAvailable = false;
+
+/**
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
  * @type {RegExp}
@@ -225,7 +230,16 @@ self.addEventListener('activate', function (event) {
     );
 });
 
-self.importScripts('./replayWorker.js');
+// Wrapped in try-catch
+try {
+    // Import ReplayWorker
+    self.importScripts('./replayWorker.js');
+    isReplayWorkerAvailable = true;
+    console.log('[SW] ReplayWorker is available');
+} catch (err) {
+    console.warn('[SW ReplayWorker is NOT available', err);
+    isReplayWorkerAvailable = false;
+}
 
 // For PWA functionality, this should be true unless explicitly disabled, and in fact currently it is never disabled
 let fetchCaptureEnabled = true;
@@ -343,6 +357,10 @@ self.addEventListener('message', function (event) {
         // Messages for the ReplayWorker
         if (event.data.msg_type === 'addColl') {
             console.debug('[SW] addColl message received from app.js');
+            if (!self.sw) {
+                console.error('[SW] Zimit ZIMs in ServiceWorker mode are not supported in this browser');
+                return;
+            }
             // Guard against prototype pollution attack
             if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;
             // We have to alter some values in the sw object to make it work with the new ZIM
@@ -423,7 +441,7 @@ function zimitResolver (event) {
             return self.sw.handleFetch(event);
         }
     } else {
-        // The loaded ZIM archive is not a Zimit archive, so we should just return the request
+        // The loaded ZIM archive is not a Zimit archive, or sw-Zimit is unsupported, so we should just return the request
         return Promise.resolve(event.request);
     }
 }
