@@ -1,6 +1,7 @@
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
+import { transformAsync } from '@babel/core';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
@@ -94,8 +95,28 @@ if (process.env.BUILD === 'production') {
                     src: ['replayWorker.js'],
                     dest: 'dist',
                     transform: async (contents, filename) => {
-                        // Minify the replayWorker
-                        const result = await minify(contents.toString());
+                        const code = contents.toString();
+                        // Now minify the replayWorker
+                        const minified = await minify(code);
+                        // Transform with babel
+                        const result = await transformAsync(minified.code, {
+                            filename,
+                            presets: [
+                                [
+                                    '@babel/preset-env',
+                                    {
+                                        targets: {
+                                            edge: '18',
+                                            firefox: '60',
+                                            chrome: '67',
+                                            safari: '11.1'
+                                        },
+                                        modules: false,
+                                        spec: true
+                                    }
+                                ]
+                            ]
+                        });
                         return result.code;
                     }
                 },
