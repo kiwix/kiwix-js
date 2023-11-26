@@ -342,7 +342,7 @@ self.addEventListener('message', function (event) {
         if (event.data.msg_type === 'addColl') {
             console.debug('[SW] addColl message received from app.js');
             // Guard against prototype pollution attack
-            if (event.data.prefix === '__proto__' || self.sw.prefix === 'constructor' || self.sw.prefix === 'prototype') return;
+            if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;
             // We have to alter some values in the sw object to make it work with the new ZIM
             self.sw.prefix = event.data.prefix;
             self.sw.replayPrefix = event.data.prefix;
