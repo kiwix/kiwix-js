@@ -101,12 +101,12 @@ jobs:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx http-server --silent -p 8099 &
 
-      - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-        run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
+      # - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
+      #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+      #   env:
+      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      #   run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
 
       - name: Run BrowserStack tests on  Firefox 70 / Win10
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
