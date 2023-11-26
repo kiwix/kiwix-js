@@ -859,7 +859,7 @@ function initServiceWorkerMessaging () {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
-        window.location.reload();
+        if (!appstate.preventAutoReboot) window.location.reload();
     } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
         uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
             'Offline use is disabled!', true).then(function (response) {
@@ -1013,6 +1013,7 @@ function setContentInjectionMode (value) {
                                 message += (translateUI.t('dialog-serviceworker-registration-failure-fileprotocol') ||
                                 '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
                             }
+                            appstate.preventAutoReboot = true;
                             uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
                                 setContentInjectionMode('jquery');
                                 // We need to wait for the previous dialogue box to unload fully before attempting to display another
