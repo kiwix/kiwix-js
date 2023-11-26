@@ -1835,7 +1835,7 @@ function readArticle (dirEntry) {
                 root: true,
                 skipExisting: false,
                 extraConfig: { sourceType: 'kiwix', notFoundPageUrl: './404.html' },
-                topTemplateUrl: './topFrame.html'
+                topTemplateUrl: './www/topFrame.html'
             });
         }
 
@@ -2537,26 +2537,11 @@ function goToMainArticle () {
             uiUtil.spinnerDisplay(false);
             document.getElementById('welcomeText').style.display = '';
         } else {
-            // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
+            // For Zimit archives in jQuery mode, we need to show the active content warning
             if (params.contentInjectionMode === 'jquery' && selectedArchive.zimType === 'zimit') {
-                uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
-                    '<p>A basic view of some static content is shown, but JavaScript and many hyperlinks are non-functional. ' +
-                    'There is more complete support for this kind of archive in the Kiwix JS PWA. Go to: ' +
-                    '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
-                    '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
-                    'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
-                translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
                 uiUtil.spinnerDisplay(false);
-                // document.getElementById('welcomeText').style.display = '';
-                // Some basic support for displaying Zimit content is available if we set the contentInjectionMode to jquery, storing the original value
-                // params.originalContentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
-                // params.contentInjectionMode = 'jquery';
+                uiUtil.displayActiveContentWarning();
             }
-            // else if (selectedArchive.zimType === 'zimit') {
-                // Restore the contentInjectionMode to its original value if it was changed above
-                // params.contentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
-                // params.originalContentInjectionMode = null;
-            // }
             // DEV: see comment above under goToRandomArticle()
             if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                 params.isLandingPage = true;
