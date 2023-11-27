@@ -57657,8 +57657,9 @@ class RemoteWARCProxy {
       if (hasPayload) {
         // response = await fetch(this.sourceUrl + "A/" + encodedUrl, {headers: reqHeaders});
         // DEV: modded for kiwix-js
-        let kiwixJSUrl = new URL(sw.prefix + encodedUrl);
-        response = await fetchUrlFromZIM(kiwixJSUrl);
+        // let kiwixJSUrl = new URL(sw.prefix + encodedUrl);
+        let kiwixJSUrl = sw.prefix + encodedUrl;
+        response = await fetchUrlFromZIM(kiwixJSUrl, range);
         // DEV: End kiwix-js mod
 
         if (response.body) {

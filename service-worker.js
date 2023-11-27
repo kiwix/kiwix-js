@@ -463,23 +463,24 @@ function contsructResponse (content, contentType) {
 }
 
 /**
- * Handles URLs that need to be extracted from the ZIM archive
+ * Handles URLs that need to be extracted from the ZIM archive. They can be strings or URL objects, and should be URI encoded.
  *
- * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
- * @param {String} range Optional byte range string
+ * @param {URL|String} urlObjectOrString The URL object, or a simple string representation, to be processed for extraction from the ZIM
+ * @param {String} range Optional byte range string (mostly used for video or audio streams)
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM (urlObject, range) {
+function fetchUrlFromZIM (urlObjectOrString, range) {
     return new Promise(function (resolve, reject) {
+        var pathname = typeof urlObjectOrString === 'string' ? urlObjectOrString : urlObjectOrString.pathname;
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
         // Be sure that you haven't encoded any querystring along with the URL (Zimit files, however, require encoding of the querystring)
-        var barePathname = decodeURIComponent(urlObject.pathname);
+        var barePathname = decodeURIComponent(pathname);
         var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
         var prefix = partsOfZIMUrl ? partsOfZIMUrl[1] : '';
         var nameSpace = partsOfZIMUrl ? partsOfZIMUrl[2] : '';
         var title = partsOfZIMUrl ? partsOfZIMUrl[3] : barePathname;
-        var anchorTarget = urlObject.hash.replace(/^#/, '');
-        var uriComponent = urlObject.search.replace(/\?kiwix-display/, '');
+        var anchorTarget = urlObjectOrString.hash.replace(/^#/, '');
+        var uriComponent = urlObjectOrString.search.replace(/\?kiwix-display/, '');
         var titleWithNameSpace = nameSpace + '/' + title;
         var zimName = prefix.replace(/\/$/, '');
 
@@ -497,14 +498,15 @@ function fetchUrlFromZIM (urlObject, range) {
                 if (contentType) headers.set('Content-Type', contentType);
 
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
+                // NB, the Replay Worker adds its own Accept-Ranges header, so we don't add it here for such requests.
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
-                if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
+                if (zimType !== 'zimit' && contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
                     headers.set('Accept-Ranges', 'bytes');
                 }
 
                 var slicedData = msgPortEvent.data.content;
-                if (range && zimType !== 'zimit') {
+                if (range) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
                     // In this case, we partially honor the request: if it asks for offsets x to y,
                     // we send partial contents starting at x offset, till the end of the data (ignoring y offset)
