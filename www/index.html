@@ -321,8 +321,7 @@
                                 be capable of installing a Service Worker, which is usually the case in modern browsers. It works by intercepting
                                 the browser or framework's Fetch calls (network requests) and supplying the requested content from the ZIM. In this
                                 mode, the content is read and supplied as-is from the archive to the browser. Dynamic content (e.g. JavaScript) and
-                                proprietary UIs are fully supported in this mode. However, Zimit archives are <b>not</b> currently supported due to
-                                a conflict between the Kiwix JS Service Worker and the WARC Service Worker (but you can use the PWA for experimental support, see above). This mode can feel initially a little
+                                proprietary UIs are fully supported in this mode. This mode can feel initially a little
                                 slower than JQuery mode until commonly used assets are cached, but it soon equals JQuery mode in speed, at least in
                                 modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the app must be running
                                 in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser extensions). While this mode is
