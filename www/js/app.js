@@ -1842,7 +1842,10 @@ function readArticle (dirEntry) {
 
         if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
             var archiveName = selectedArchive.file.name.replace(/\.zim\w{0,2}$/i, '');
-            var prefix = window.location.href.replace(/www\/[^/]*$/, '') + selectedArchive.file.name + '/' + selectedArchive.getContentNamespace() + '/A/';
+            var cns = selectedArchive.getContentNamespace();
+            // Support type 0 and type 1 Zimit archives
+            var replayCns = cns === 'C' ? '/C/A/' : '/A/';
+            var prefix = window.location.href.replace(/www\/[^/]*$/, '') + selectedArchive.file.name + replayCns;
             // Open a new message channel to the ServiceWorker
             var zimitMessageChannel = new MessageChannel();
             zimitMessageChannel.port1.onmessage = function (event) {
