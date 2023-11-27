@@ -98,7 +98,7 @@ if (process.env.BUILD === 'production') {
                         const code = contents.toString();
                         // Now minify the replayWorker
                         const minified = await minify(code);
-                        // Transform with babel
+                        // How to transform with babel (tested to make a difference with Firefox 68+)
                         const result = await transformAsync(minified.code, {
                             filename,
                             presets: [
