@@ -152,7 +152,10 @@ function runTests (driver, modes) {
                         }
                         // We failed to switch modes, so let's try switching back and switching to this mode again
                         console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
-                        const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        let otherModeSelector;
+                        await driver.wait(async function () {
+                            otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        }, 5000);
                         // Click the other mode selector
                         await otherModeSelector.click();
                         // Wait until the mode has switched
