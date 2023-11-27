@@ -280,8 +280,7 @@ self.addEventListener('fetch', function (event) {
                 rqUrl = modRequest.url;
                 urlObject = new URL(rqUrl);
                 strippedUrl = urlObject.pathname;
-                // YouTube links from Zimit archives are dealt with specially
-                if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
+                if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
                     const range = modRequest.headers.get('range');
                     return fetchUrlFromZIM(urlObject, range).then(function (response) {
                         // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
@@ -489,6 +488,7 @@ function fetchUrlFromZIM (urlObject, range) {
                 // Content received from app.js
                 var contentLength = msgPortEvent.data.content ? (msgPortEvent.data.content.byteLength || msgPortEvent.data.content.length) : null;
                 var contentType = msgPortEvent.data.mimetype;
+                var zimType = msgPortEvent.data.zimType;
                 var headers = new Headers();
                 if (contentLength) headers.set('Content-Length', contentLength);
                 // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
@@ -504,7 +504,7 @@ function fetchUrlFromZIM (urlObject, range) {
                 }
 
                 var slicedData = msgPortEvent.data.content;
-                if (range) {
+                if (range && zimType !== 'zimit') {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
                     // In this case, we partially honor the request: if it asks for offsets x to y,
                     // we send partial contents starting at x offset, till the end of the data (ignoring y offset)

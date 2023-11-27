@@ -2040,7 +2040,7 @@ function handleMessageChannelMessage (event) {
                 var mimetype = fileDirEntry.getMimetype();
                 // Show the spinner
                 var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
-                if (!/moved/i.test(shortTitle) && !/image|javascript|warc-headers/.test(mimetype)) {
+                if (!/moved/i.test(shortTitle) && !/image|javascript|warc-headers|jsonp?/.test(mimetype)) {
                     uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
                     clearTimeout(window.timeout);
                     window.timeout = setTimeout(function () {
@@ -2050,13 +2050,14 @@ function handleMessageChannelMessage (event) {
                     articleLoader();
                 }
                 // Let's send the content to the ServiceWorker
-                var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
-                messagePort.postMessage(message, [content.buffer]);
+                var buffer = content.buffer ? content.buffer : content;
+                var message = { action: 'giveContent', title: title, content: buffer, mimetype: mimetype, zimType: selectedArchive.zimType };
+                messagePort.postMessage(message);
             });
         }
     };
     selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array(), zimType: selectedArchive.zimType });
     });
 }
 
