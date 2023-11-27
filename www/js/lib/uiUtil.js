@@ -44,7 +44,7 @@ function hideSlidingUIElements () {
     const footerStyles = getComputedStyle(footer);
     const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
     const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 8;
     const iframeHeight = parseFloat(articleElement.style.height.replace('px', ''));
     footer.style.transform = 'translateY(' + footerHeight + 'px)';
     articleContainer.style.height = iframeHeight + headerHeight + 'px';
@@ -60,7 +60,7 @@ function showSlidingUIElements () {
     const articleContainer = document.getElementById('articleContent');
     const articleElement = document.querySelector('article');
     const headerStyles = getComputedStyle(document.getElementById('top'));
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
     header.style.transform = 'translateY(0)';
     // Needed for Windows Mobile to prevent header disappearing beneath iframe
     articleElement.style.transform = 'translateY(-1px)';
