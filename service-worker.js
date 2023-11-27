@@ -417,7 +417,7 @@ function zimitResolver (event) {
             var clonedResponse = response.clone();
             return response.text().then(function (contents) {
                 // We need to replace the entire contents with a single function that loads mainUrl
-                if (/await\s+sw\.register\([^;]+?sw\.js\?replayPrefix/.test(contents)) {
+                if (/\.register\([^;]+?sw\.js\?replayPrefix/.test(contents)) {
                     var newContents = "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));";
                     var responseLoadJS = contsructResponse(newContents, 'text/javascript');
                     return responseLoadJS;
