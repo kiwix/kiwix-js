@@ -926,12 +926,14 @@ function reportSearchProviderToAPIStatusPanel (provider) {
 /**
  * Warn the user that he/she clicked on an external link, and open it in a new tab
  *
- * @param {Event} event the click event (on an anchor) to handle
- * @param {Element} clickedAnchor the DOM anchor that has been clicked (optional, defaults to event.target)
+ * @param {Event} event The click event (on an anchor) to handle. If not provided, then clickedAnchor must be provided.
+ * @param {Element} clickedAnchor The DOM anchor that has been clicked (optional, defaults to event.target).
  */
 function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
-    event.preventDefault();
-    event.stopPropagation();
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     if (!clickedAnchor) clickedAnchor = event.target;
     var target = clickedAnchor.target;
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';

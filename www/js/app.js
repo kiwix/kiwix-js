@@ -1947,17 +1947,18 @@ function articleLoadedSW (iframeArticleContent) {
             iframeArticleContent.contentWindow.onclick = function (event) {
                 // Find the closest enclosing A tag (if any)
                 var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                // If the anchor has a passthrough property, then we have already checked it is safe, so we can return
+                if (clickedAnchor && clickedAnchor.passthrough) return;
                 if (clickedAnchor) {
-                    var href = clickedAnchor.getAttribute('href');
-                    // Check for Zimit links
-                    if (selectedArchive.zimitPrefix) {
-                        var zimitDomain = selectedArchive.zimitPrefix.replace(/^.*\/([^/]+).*/, '$1');
-                        // If it's a Zimit link, let replay functions deal with it
-                        if (zimitDomain && ~href.indexOf(zimitDomain)) return;
+                    // Check for Zimit links that would normally be handled by the Replay Worker
+                    if (clickedAnchor._orig_href) {
+                        handleClickOnReplayLink(event, clickedAnchor);
+                        return;
                     }
                     // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
                     // it means it's a link to an external website.
                     // We also do it for ftp even if it's not supported any more by recent browsers...
+                    var href = clickedAnchor.getAttribute('href');
                     if (/^(?:http|ftp)/i.test(href)) {
                         uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
                     } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
@@ -1994,6 +1995,32 @@ function articleLoadedSW (iframeArticleContent) {
         };
     }
 };
+
+// Handles a click on a Zimit link that has been processed by Wombat
+function handleClickOnReplayLink (event, clickedAnchor) {
+    var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
+    if (~clickedAnchor._orig_href.indexOf(pseudoNamespace)) {
+        // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
+        var zimUrl = pseudoNamespace + clickedAnchor._parser.hostname + clickedAnchor._parser.pathname;
+        if (zimUrl) {
+            event.preventDefault();
+            event.stopPropagation();
+            selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
+                if (dirEntry && !/pdf/i.test(dirEntry.getMimetype())) {
+                    // Let Replay handle this link
+                    clickedAnchor.passthrough = true;
+                    clickedAnchor.click();
+                } else if (/pdf/i.test(dirEntry.getMimetype())) {
+                    // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                    window.open(clickedAnchor.href, '_blank');
+                } else {
+                    // If dirEntry was not-found, it's probably an external link, so warn user
+                    uiUtil.warnAndOpenExternalLinkInNewTab(null, clickedAnchor);
+                }
+            });
+        }
+    }
+}
 
 function handleUnsupportedReplayWorker (unhandledDirEntry) {
     appstate.isReplayWorkerAvailable = false;
