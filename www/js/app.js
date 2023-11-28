@@ -1951,7 +1951,7 @@ function articleLoadedSW (iframeArticleContent) {
                 if (clickedAnchor && clickedAnchor.passthrough) return;
                 if (clickedAnchor) {
                     // Check for Zimit links that would normally be handled by the Replay Worker
-                    if ('__WB_source' in clickedAnchor) {
+                    if (appstate.isReplayWorkerAvailable) {
                         handleClickOnReplayLink(event, clickedAnchor);
                         return;
                     }
@@ -1997,27 +1997,30 @@ function articleLoadedSW (iframeArticleContent) {
 };
 
 // Handles a click on a Zimit link that has been processed by Wombat
-function handleClickOnReplayLink (event, clickedAnchor) {
+function handleClickOnReplayLink (ev, anchor) {
     var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
-    var pseudoDomainPath = clickedAnchor.href.replace(/^[^:]+:[/]+/, '');
-    var zimUrl = pseudoNamespace + pseudoDomainPath;
+    var pseudoDomainPath = anchor.hostname + anchor.pathname;
+    var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
+    // If the paths are identical, then we are dealing with a link to an anchor in the same document, so we can return
+    if (pseudoDomainPath === containingDocDomainPath) return;
+    var zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
     if (zimUrl) {
-        event.preventDefault();
-        event.stopPropagation();
+        ev.preventDefault();
+        ev.stopPropagation();
         selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
             if (dirEntry) {
                 if (!/pdf/i.test(dirEntry.getMimetype())) {
                     // Let Replay handle this link
-                    clickedAnchor.passthrough = true;
-                    clickedAnchor.click();
+                    anchor.passthrough = true;
+                    anchor.click();
                 } else {
                     // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
-                    window.open(clickedAnchor.href, '_blank');
+                    window.open(anchor.href, '_blank');
                 }
             } else {
                 // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
-                uiUtil.warnAndOpenExternalLinkInNewTab(null, clickedAnchor);
+                uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor);
             }
         });
     }
