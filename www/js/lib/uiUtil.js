@@ -862,13 +862,14 @@ function applyAppTheme (theme) {
 
 // Displays the return link and handles click event. Called by applyAppTheme()
 function showReturnLink () {
-    document.getElementById('viewArticle').style.display = 'block';
-    document.getElementById('viewArticle').addEventListener('click', function (e) {
+    const viewArticleLink = document.getElementById('viewArticle');
+    viewArticleLink.style.display = 'block';
+    viewArticleLink.addEventListener('click', function (e) {
         e.preventDefault();
         document.getElementById('liConfigureNav').classList.remove('active');
         document.getElementById('liHomeNav').classList.add('active');
         viewArticle();
-        viewArticle.style.display = 'none';
+        viewArticleLink.style.display = 'none';
     });
 }
 

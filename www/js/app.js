@@ -378,7 +378,6 @@ document.getElementById('btnTop').addEventListener('click', function (event) {
 document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
     event.preventDefault();
-    this.blur();
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
@@ -408,7 +407,6 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
 });
 document.getElementById('btnConfigure').addEventListener('click', function (event) {
     event.preventDefault();
-    this.blur();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
@@ -417,8 +415,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     if (document.getElementById('configuration').style.display == 'none') {
         // Show the selected content in the page
         uiUtil.tabTransitionToSection('config', params.showUIAnimations);
-    }
-    else{
+    } else {
         uiUtil.viewArticle();
     }
 
@@ -430,21 +427,17 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
 });
 document.getElementById('btnAbout').addEventListener('click', function (event) {
     event.preventDefault();
-    this.blur();
     // Highlight the selected section in the navbar
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
     $('.navbar-collapse').collapse('hide');
-    
     if (document.getElementById('about').style.display == 'none') {
         // Show the selected content in the page
         uiUtil.tabTransitionToSection('about', params.showUIAnimations);
-    }
-    else{
+    } else {
         uiUtil.viewArticle();
     }
-
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
