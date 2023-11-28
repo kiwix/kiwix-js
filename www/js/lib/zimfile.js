@@ -54,14 +54,7 @@ if (!String.prototype.startsWith) {
     });
 }
 
-/**
- * A global variable to track the assembler machine type and the last used decompressor (for reporting to the API panel)
- * This is populated in the Emscripten wrappers
- * @type {Object}
- * @property {String} assemblerMachineType The assembler machine type supported and/or loaded by this app: 'ASM' or 'WASM'
- * @property {String} decompressorLastUsed The decompressor that was last used to decode a compressed cluster (currently 'XZ' or 'ZSTD')
- * @property {String} errorStatus A description of any detected error in loading a decompressor
- */
+// to learn more read init.js:57 or search DecompressorAPI in init.js
 params.decompressorAPI = {
     assemblerMachineType: null,
     decompressorLastUsed: null,
@@ -473,7 +466,8 @@ export default {
             return readMimetypeMap(fileArray[0], mimeListPos, urlPtrPos).then(function (mapData) {
                 var zf = new ZIMFile(fileArray);
                 // Add an abstract archive name (ignoring split file extensions)
-                zf.name = fileArray[0].name.replace(/(\.zim)\w\w$/i, '$1');
+                // Be careful because some file names may contain a path, e.g. when setting remote files as blobs in testing
+                zf.name = fileArray[0].name.replace(/^.*?([^/]+\.zim)\w?\w?$/i, '$1');
                 // Provide a temporary, per-session numeric ZIM ID used in filecache.js
                 zf.id = fileIDs.get(zf.name);
                 if (zf.id === undefined) {

@@ -22,6 +22,9 @@
 
 'use strict';
 
+/* global $ */
+
+import translateUI from './translateUI.js';
 import zimArchive from './zimArchive.js';
 
 /**
@@ -72,11 +75,11 @@ function scanForArchives (storages, callbackFunction, callbackError) {
     $.when.apply(null, promises).then(function () {
         callbackFunction(directories);
     }).catch(function (error) {
-        callbackError('Error scanning your device storage : ' + error +
-        ". If you're using the Firefox OS Simulator, please put the archives in " +
-        "a 'fake-sdcard' directory inside your Firefox profile " +
+        callbackError((translateUI.t('dialog-scanstorage-error-message') || 'Error scanning your device storage:') + ' ' + error + '. ' +
+        (translateUI.t('dialog-scanstorage-fxos-error-message') || ("If you're using the Firefox OS Simulator, please put the archives in " +
+        'a "fake-sdcard" directory inside your Firefox profile ' +
         '(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/' +
-        'profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)', 'Error reading Device Storage');
+        'profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)')), translateUI.t('dialog-scanstorage-fxos-error-title') || 'Error scanning Device Storage');
     });
 }
 

@@ -1,36 +1,38 @@
 /**
  * abstractFilesystemAccess.js: Abstraction layer for file access.
- * This is currently only implemented for FirefoxOS, but could be extended to
+ * This is currently only implemented for FirefoxOS and Standard browser (using File System Access API), but could be extended to
  * Cordova, Electron or other ways to directly browse and read files from the
  * filesystem.
- * It is unfortunately not possible to do that inside a standard browser
- * (even inside an extension).
- *
- * Copyright 2014 Kiwix developers
- * Licence GPL v3:
- *
- * This file is part of Kiwix.
- *
- * Kiwix is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public Licence as published by
- * the Free Software Foundation, either version 3 of the Licence, or
- * (at your option) any later version.
- *
- * Kiwix is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*
+* Copyright 2014-2023 Kiwix developers and Rishabhg71
+* Licence GPL v3:
+*
+* This file is part of Kiwix.
+*
+* Kiwix is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public Licence as published by
+* the Free Software Foundation, either version 3 of the Licence, or
+* (at your option) any later version.
+*
+* Kiwix is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public Licence for more details.
- *
- * You should have received a copy of the GNU General Public Licence
- * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
- */
+*
+* You should have received a copy of the GNU General Public Licence
+* along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
+*/
 
 'use strict';
 
-function StorageFirefoxOS(storage) {
+import cache from './cache.js';
+import translateUI from './translateUI.js';
+
+function StorageFirefoxOS (storage) {
     this._storage = storage;
     this.storageName = storage.storageName;
 }
+
 /**
  * Access the given file.
  * @param {String} path absolute path to the file
@@ -88,6 +90,250 @@ StorageFirefoxOS.prototype.enumerate = function (path) {
     return this._storage.enumerate();
 };
 
+// refer to this article for easy explanation of File System API https://developer.chrome.com/articles/file-system-access/
+
+/**
+ * @param {Array<string>} files All the File names to be shown in the dropdown
+ * @param {string} selectedFile The name of the file to be selected in the dropdown
+ * @returns {Promise<Array<string>>} Array of unique filenames (if a split zim is considered a single file)
+ */
+async function updateZimDropdownOptions (files, selectedFile) {
+    const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
+    // This will make sure that there is no race around condition when platform is firefox os
+    // as other function will handle the dropdown UI updates
+    if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
+
+    const select = document.getElementById('archiveList');
+    const options = [];
+    let count = 0;
+    select.innerHTML = '';
+    if (files.length !== 0) {
+        const placeholderOption = new Option(translateUI.t('configure-select-file-first-option'), '');
+        placeholderOption.disabled = true;
+        select.appendChild(placeholderOption);
+    };
+
+    files.forEach((fileName) => {
+        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
+            options.push(new Option(fileName, fileName));
+            select.appendChild(new Option(fileName, fileName));
+            count++;
+        }
+    });
+    document.getElementById('archiveList').value = selectedFile;
+    document.getElementById('numberOfFilesCount').style.display = '';
+    document.getElementById('fileCountDisplay').style.display = '';
+
+    document.getElementById('numberOfFilesCount').innerText = count.toString();
+    document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
+}
+
+/**
+ * Opens the File System API to select a directory
+ * @returns {Promise<Array<File>>} Previously selected file if available in selected folder
+ */
+async function selectDirectoryFromPickerViaFileSystemApi () {
+    const handle = await window.showDirectoryPicker();
+    const fileNames = [];
+    const previousZimFile = []
+
+    const lastZimNameWithoutExtension = (localStorage.getItem('previousZimFileName') ?? '').replace(/\.zim\w\w$/i, '');
+    const regex = new RegExp(`\\${lastZimNameWithoutExtension}.zim\\w\\w$`, 'i');
+
+    for await (const entry of handle.values()) {
+        fileNames.push(entry.name);
+        if (regex.test(entry.name) || entry.name === (localStorage.getItem('previousZimFileName') ?? '')) previousZimFile.push(await entry.getFile());
+    }
+
+    localStorage.setItem('zimFilenames', fileNames.join('|'));
+    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? localStorage.getItem('previousZimFileName') : '');
+    cache.idxDB('zimFiles', handle, function () {
+        // save file in DB
+    });
+    return previousZimFile;
+}
+
+/**
+ * Opens the File System API to select a file
+ * @returns {Promise<Array<File>>} The selected file from picker
+ */
+async function selectFileFromPickerViaFileSystemApi () {
+    const fileHandles = await window.showOpenFilePicker({ multiple: false });
+    const [selectedFile] = fileHandles;
+    const file = await selectedFile.getFile();
+    const filenameList = [selectedFile.name];
+    localStorage.setItem('zimFilenames', filenameList.join('|'));
+    cache.idxDB('zimFiles', selectedFile, function () {
+        // file saved in DB
+        updateZimDropdownOptions(filenameList, selectedFile.name);
+    });
+    return [file];
+}
+
+/**
+ * Gets the selected zim file from the IndexedDB
+ * @param {string} selectedFilename The name of the file to get back from DB
+ * @returns {Promise<Array<File>>} The selected File Object from cache
+ */
+function getSelectedZimFromCache (selectedFilename) {
+    return new Promise((resolve, reject) => {
+        cache.idxDB('zimFiles', async function (fileOrDirHandle) {
+            if (!fileOrDirHandle) {
+                reject(new Error('No file or directory selected'));
+            }
+            // Left it here for debugging purposes as its sometimes asking for permission even when its granted
+            console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
+            if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
+
+            if (fileOrDirHandle.kind === 'directory') {
+                const files = [];
+                for await (const entry of fileOrDirHandle.values()) {
+                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w\w$/i, '');
+                    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+                    if (regex.test(entry.name) || entry.name === selectedFilename) {
+                        files.push(await entry.getFile());
+                    }
+                }
+                resolve(files);
+            } else {
+                const file = await fileOrDirHandle.getFile();
+                resolve([file]);
+            }
+        });
+    });
+}
+
+/**
+ * @typedef {Object.<number, File>} WebkitFileList
+ */
+
+/**
+ * Gets the selected zim file from the WebkitFileList
+ * @param {WebkitFileList} webKitFileList The WebkitFileList to get the selected file from
+ * @param {string} filename The name of the file to get back from webkitFileList
+ * @returns {Array<File>} The selected Files Object from webkitFileList
+ */
+function getSelectedZimFromWebkitList (webKitFileList, filename) {
+    const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '');
+
+    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+    const files = [];
+    for (const file of webKitFileList) {
+        if (regex.test(file.name) || file.name === filename) {
+            files.push(file);
+        }
+    }
+    return files;
+}
+
+/**
+ * Loads the Previously loaded zim filename(s) via local storage
+ */
+function loadPreviousZimFile () {
+    // If we call `updateZimDropdownOptions` without any delay it will run before the internationalization is initialized
+    // It's a bit hacky but it works and I am not sure if there is any other way ATM
+    setTimeout(() => {
+        if (window.params.isFileSystemApiSupported || window.params.isWebkitDirApiSupported) {
+            const filenames = localStorage.getItem('zimFilenames');
+            if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
+        }
+    }, 200);
+}
+
+/**
+ * Handles the folder drop event via File System API
+ * @param {DragEvent} packet The DragEvent packet
+ * @returns {Promise<boolean>} Whether the dropped item is a file or directory
+ */
+async function handleFolderOrFileDropViaFileSystemAPI (packet) {
+    if (!window.params.isFileSystemApiSupported) return true;
+
+    // Only runs when browser support File System API
+    const fileInfo = packet.dataTransfer.items[0];
+    const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
+    if (fileOrDirHandle.kind === 'file') {
+        localStorage.setItem([fileOrDirHandle.name], [fileOrDirHandle.name].join('|'));
+        cache.idxDB('zimFiles', fileOrDirHandle, function () {
+            // save file in DB
+            updateZimDropdownOptions([fileOrDirHandle.name], fileOrDirHandle.name);
+        });
+        localStorage.setItem('zimFilenames', [fileOrDirHandle.name].join('|'));
+        return true;
+    }
+    if (fileOrDirHandle.kind === 'directory') {
+        const fileNames = [];
+        for await (const entry of fileOrDirHandle.values()) {
+            fileNames.push(entry.name);
+        }
+        localStorage.setItem('zimFilenames', fileNames.join('|'));
+        cache.idxDB('zimFiles', fileOrDirHandle, function () {
+            updateZimDropdownOptions(fileNames, '');
+            // save file in DB
+        });
+        return false;
+    }
+}
+
+/**
+ * Handles the folder drop event via WebkitGetAsEntry
+ * @param {DragEvent} event The DragEvent packet
+ * @returns {Promise<{loadZim: boolean, files: Array<File>} | void>} Whether the dropped item is a file or directory and FileList
+ */
+async function handleFolderOrFileDropViaWebkit (event) {
+    var dt = event.dataTransfer;
+
+    var entry = dt.items[0].webkitGetAsEntry();
+    if (entry.isFile) {
+        localStorage.setItem('zimFilenames', [entry.name].join('|'));
+        await updateZimDropdownOptions([entry.name], entry.name);
+        return { loadZim: true, files: [entry.file] };
+    } else if (entry.isDirectory) {
+        var reader = entry.createReader();
+        const files = await getFilesFromReader(reader);
+        const fileNames = [];
+        files.forEach((file) => fileNames.push(file.name));
+        localStorage.setItem('zimFilenames', fileNames.join('|'));
+        await updateZimDropdownOptions(fileNames, '');
+        return { loadZim: false, files: files };
+    }
+}
+
+/**
+ * Gets the files from the FileSystemReader
+ * @param {FileSystemDirectoryReader} reader The FileSystemReader to get files from
+ * @returns {Promise<Array<File>>} The files from the reader
+ */
+async function getFilesFromReader (reader) {
+    const files = [];
+    const promise = new Promise(function (resolve, _reject) {
+        reader.readEntries(function (entries) {
+            resolve(entries);
+        });
+    });
+    const entries = await promise;
+
+    for (let index = 0; index < entries.length; index++) {
+        const fileOrDir = entries[index];
+        if (fileOrDir.isFile) {
+            const filePromise = await new Promise(function (resolve, _reject) {
+                fileOrDir.file(function (file) {
+                    resolve(file);
+                });
+            });
+            files.push(filePromise);
+        }
+    }
+    return files;
+}
+
 export default {
-    StorageFirefoxOS: StorageFirefoxOS
+    StorageFirefoxOS: StorageFirefoxOS,
+    updateZimDropdownOptions: updateZimDropdownOptions,
+    selectDirectoryFromPickerViaFileSystemApi: selectDirectoryFromPickerViaFileSystemApi,
+    selectFileFromPickerViaFileSystemApi: selectFileFromPickerViaFileSystemApi,
+    getSelectedZimFromCache: getSelectedZimFromCache,
+    loadPreviousZimFile: loadPreviousZimFile,
+    handleFolderOrFileDropViaWebkit: handleFolderOrFileDropViaWebkit,
+    handleFolderOrFileDropViaFileSystemAPI: handleFolderOrFileDropViaFileSystemAPI,
+    getSelectedZimFromWebkitList: getSelectedZimFromWebkitList
 };

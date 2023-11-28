@@ -1,6 +1,6 @@
 'use strict';
 
-/* global define, params */
+/* global params */
 
 var regexpCookieKeysToMigrate = new RegExp([
     'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',

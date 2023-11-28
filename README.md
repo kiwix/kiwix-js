@@ -58,7 +58,7 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
     + <img src="images/microsoftedge-color.svg" width="20" /> Microsoft Edge >=88: [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
 - Chromium / Chrome / Edge 58-87 (as a Manifest V2 extension): use the MV2 zip from the `chrome` or `edge` directory in https://download.kiwix.org/release/browsers/, and follow [instructions below](#installing-signed-or-unsigned-extension-files-in-chromium)
 - <img src="images/safari-color.svg" width="20" /> Safari >=11.3 on macOS or iOS: no extension available, but use https://browser-extension.kiwix.org and install to Home screen; for a more fully featured PWA, use https://pwa.kiwix.org
-- <img src="images/electron-color.svg" width="27" /> Electron >=1.8.0 and NWJS >=0.14.7 (as an application for Linux and Windows): https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html
+- <img src="images/electron-color.svg" width="27" /> Electron >=1.8.0 and NWJS >=0.14.7 (as an application for Linux and Windows): https://kiwix.github.io/kiwix-js-pwa/app
 - <img src="images/microsoftwindows-color.svg" width="20" /> Universal Windows Platform (UWP) >=10.0.10240 (as an HTML/JS application): [Microsoft Store](https://www.microsoft.com/store/apps/9P8SLZ4J979J)
 - <img src="images/ubuntu-color.png" width="20" /> Ubuntu Touch (as an application): [Ubuntu OpenStore](https://open-store.io/app/kiwix)
 
@@ -112,7 +112,7 @@ advised to remain in this mode.
 It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
 security reasons). A handy alternative is to drag-and-drop a ZIM file into the app, which is a quick way to open an archive
 and switch between several archives in a folder. There are
-[versions of this app](https://kiwix.github.io/kiwix-js-windows/kiwix-js-electron.html) that use frameworks like Electron, UWP or NWJS
+[versions of this app](https://kiwix.github.io/kiwix-js-pwa/app) that use frameworks like Electron, UWP or NWJS
 which do have the capability of remembering the chosen archive between app launches. For desktop Chromium browsers, the
 [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (see
 [#656](https://github.com/kiwix/kiwix-js/issues/656)) is implemented in a PWA version at https://pwa.kiwix.org.
