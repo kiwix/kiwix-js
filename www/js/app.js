@@ -2006,15 +2006,17 @@ function handleClickOnReplayLink (event, clickedAnchor) {
             event.preventDefault();
             event.stopPropagation();
             selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
-                if (dirEntry && !/pdf/i.test(dirEntry.getMimetype())) {
-                    // Let Replay handle this link
-                    clickedAnchor.passthrough = true;
-                    clickedAnchor.click();
-                } else if (/pdf/i.test(dirEntry.getMimetype())) {
-                    // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
-                    window.open(clickedAnchor.href, '_blank');
+                if (dirEntry) {
+                    if (!/pdf/i.test(dirEntry.getMimetype())) {
+                        // Let Replay handle this link
+                        clickedAnchor.passthrough = true;
+                        clickedAnchor.click();
+                    } else {
+                        // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                        window.open(clickedAnchor.href, '_blank');
+                    }
                 } else {
-                    // If dirEntry was not-found, it's probably an external link, so warn user
+                    // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
                     uiUtil.warnAndOpenExternalLinkInNewTab(null, clickedAnchor);
                 }
             });
