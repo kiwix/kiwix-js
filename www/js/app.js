@@ -1847,7 +1847,9 @@ function readArticle (dirEntry) {
                                 if (!params.hideExternalLinkWarning) {
                                     uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
                                 } else {
-                                    var target = clickedAnchor.target
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    var target = clickedAnchor.target;
                                     if (!target) {
                                         target = '_blank';
                                     }
@@ -2153,7 +2155,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         if (!params.hideExternalLinkWarning) {
                             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
                         } else {
-                            var target = clickedAnchor.target
+                            event.preventDefault();
+                            event.stopPropagation();
+                            var target = clickedAnchor.target;
                             if (!target) {
                                 target = '_blank';
                             }
