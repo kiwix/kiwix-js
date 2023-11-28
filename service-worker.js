@@ -31,7 +31,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.10.2';
+const appVersion = '3.11.1';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -69,7 +69,7 @@ var useAppCache = true;
  * Add any further Content-Types you wish to cache to the regexp, separated by '|'
  * @type {RegExp}
  */
-var regexpCachedContentTypes = /text\/css|text\/javascript|application\/javascript/i;
+const regexpCachedContentTypes = /text\/css|\/javascript|application\/javascript/i;
 
 /**
  * A regular expression that excludes listed schemata from caching attempts
@@ -77,14 +77,14 @@ var regexpCachedContentTypes = /text\/css|text\/javascript|application\/javascri
  * 'example-extension' is included to show how to add another schema if necessary
  * @type {RegExp}
  */
-var regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
+const regexpExcludedURLSchema = /^(?:file|chrome-extension|example-extension):/i;
 
 /**
  * Pattern for ZIM file namespace: see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
  * In our case, there is also the ZIM file name used as a prefix in the URL
  * @type {RegExp}
  */
-const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCIJMUVWX])\/(.+)/;
+const regexpZIMUrlWithNamespace = /(?:^|\/)([^/]+\/)([-ABCHIJMUVWX])\/(.+)/;
 
 /**
  * Pattern to parse the first offset of a "range" request header
@@ -125,6 +125,7 @@ const precacheFiles = [
     'www/js/lib/abstractFilesystemAccess.js',
     'www/js/lib/arrayFromPolyfill.js',
     'www/js/lib/filecache.js',
+    'www/js/lib/cache.js',
     'www/js/lib/promisePolyfill.js',
     'www/js/lib/settingsStore.js',
     'www/js/lib/translateUI.js',
@@ -200,6 +201,7 @@ self.addEventListener('install', function (event) {
 
 // Allow sw to control current page
 self.addEventListener('activate', function (event) {
+    console.debug('[SW] Activate Event processing');
     // "Claiming" the ServiceWorker is necessary to make it work right away,
     // without the need to reload the page.
     // See https://developer.mozilla.org/en-US/docs/Web/API/Clients/claim
@@ -213,22 +215,26 @@ self.addEventListener('activate', function (event) {
                 if (key !== APP_CACHE && key !== ASSETS_CACHE) {
                     console.debug('[SW] App updated to version ' + appVersion + ': deleting old cache');
                     return caches.delete(key);
+                } else {
+                    return Promise.resolve();
                 }
             }));
         })
     );
 });
 
-let outgoingMessagePort = null;
-let fetchCaptureEnabled = false;
+// For PWA functionality, this should be true unless explicitly disabled, and in fact currently it is never disabled
+let fetchCaptureEnabled = true;
 
 /**
  * Intercept selected Fetch requests from the browser window
  */
 self.addEventListener('fetch', function (event) {
-    // Only cache GET requests
-    if (event.request.method !== 'GET') return;
+    // Only handle GET or POST requests (POST is intended to handle video in Zimit ZIMs)
+    if (!/GET|POST/.test(event.request.method)) return;
     var rqUrl = event.request.url;
+    // Filter out requests that do not match the scope of the Service Worker
+    if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;
@@ -238,7 +244,7 @@ self.addEventListener('fetch', function (event) {
     // For APP_CACHE assets, we should ignore any querystring (whereas it should be conserved for ZIM assets,
     // especially .js assets, where it may be significant). Anchor targets are irreleveant in this context.
     if (cache === APP_CACHE) rqUrl = strippedUrl;
-    event.respondWith(
+    return event.respondWith(
         // First see if the content is in the cache
         fromCache(cache, rqUrl).then(function (response) {
             // The response was found in the cache so we respond with it
@@ -246,7 +252,8 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
+            // YouTube links from Zimit archives are dealt with specially
+            if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
                 const range = event.request.headers.get('range');
                 return fetchUrlFromZIM(urlObject, range).then(function (response) {
                     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
@@ -281,12 +288,18 @@ self.addEventListener('fetch', function (event) {
 self.addEventListener('message', function (event) {
     if (event.data.action) {
         if (event.data.action === 'init') {
-            // On 'init' message, we initialize the outgoingMessagePort and enable the fetchEventListener
-            outgoingMessagePort = event.ports[0];
+            // On 'init' message, we enable the fetchEventListener
             fetchCaptureEnabled = true;
+            // Acdknowledge the init message to all clients
+            self.clients.matchAll().then(function (clientList) {
+                clientList.forEach(function (client) {
+                    client.postMessage({ action: 'acknowledge' });
+                });
+            });
         } else if (event.data.action === 'disable') {
-            // On 'disable' message, we delete the outgoingMessagePort and disable the fetchEventListener
-            outgoingMessagePort = null;
+            // On 'disable' message, we disable the fetchEventListener
+            // Note that this code doesn't currently run because the app currently never sends a 'disable' message
+            // This is because the app may be running as a PWA, and still needs to be able to fetch assets even in jQuery mode
             fetchCaptureEnabled = false;
         }
         var oldValue;
@@ -327,15 +340,15 @@ function fetchUrlFromZIM (urlObject, range) {
         // Be sure that you haven't encoded any querystring along with the URL.
         var barePathname = decodeURIComponent(urlObject.pathname);
         var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
-        var prefix = partsOfZIMUrl[1];
-        var nameSpace = partsOfZIMUrl[2];
-        var title = partsOfZIMUrl[3];
-
+        var prefix = partsOfZIMUrl ? partsOfZIMUrl[1] : '';
+        var nameSpace = partsOfZIMUrl ? partsOfZIMUrl[2] : '';
+        var title = partsOfZIMUrl ? partsOfZIMUrl[3] : barePathname;
+        var anchorTarget = urlObject.hash.replace(/^#/, '');
+        var uriComponent = urlObject.search.replace(/\?kiwix-display/, '');
         var titleWithNameSpace = nameSpace + '/' + title;
+        var zimName = prefix.replace(/\/$/, '');
 
-        // Let's instantiate a new messageChannel, to allow app.js to give us the content
-        var messageChannel = new MessageChannel();
-        messageChannel.port1.onmessage = function (msgPortEvent) {
+        var messageListener = function (msgPortEvent) {
             if (msgPortEvent.data.action === 'giveContent') {
                 // Content received from app.js
                 var contentLength = msgPortEvent.data.content ? (msgPortEvent.data.content.byteLength || msgPortEvent.data.content.length) : null;
@@ -376,7 +389,7 @@ function fetchUrlFromZIM (urlObject, range) {
                     // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
                     status: range ? 206 : 200,
                     statusText: 'OK',
-                    headers
+                    headers: headers
                 };
 
                 var httpResponse = new Response(slicedData, responseInit);
@@ -389,10 +402,22 @@ function fetchUrlFromZIM (urlObject, range) {
                 reject(msgPortEvent.data, titleWithNameSpace);
             }
         };
-        outgoingMessagePort.postMessage({
-            action: 'askForContent',
-            title: titleWithNameSpace
-        }, [messageChannel.port2]);
+        // Get all the clients currently being controlled and send them a message
+        self.clients.matchAll().then(function (clientList) {
+            clientList.forEach(function (client) {
+                if (client.frameType !== 'top-level') return;
+                // Let's instantiate a new messageChannel, to allow app.js to give us the content
+                var messageChannel = new MessageChannel();
+                messageChannel.port1.onmessage = messageListener;
+                client.postMessage({
+                    action: 'askForContent',
+                    title: titleWithNameSpace,
+                    search: uriComponent,
+                    anchorTarget: anchorTarget,
+                    zimFileName: zimName
+                }, [messageChannel.port2]);
+            });
+        });
     });
 }
 
@@ -405,7 +430,7 @@ function fetchUrlFromZIM (urlObject, range) {
 function fromCache (cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
     if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) {
-        return Promise.reject(new Error('disabled'));
+        return Promise.reject(new Error('Cache disabled'));
     }
     return caches.open(cache).then(function (cacheObj) {
         return cacheObj.match(requestUrl).then(function (matching) {
@@ -431,8 +456,9 @@ function updateCache (cache, request, response) {
         return Promise.resolve();
     }
     return caches.open(cache).then(function (cacheObj) {
-        console.debug('[SW] Adding ' + (request.url || request) + ' to ' + cache + '...');
-        return cacheObj.put(request, response);
+        var reqKey = request.url || request;
+        console.debug('[SW] Adding ' + reqKey + ' to ' + cache + '...');
+        return cacheObj.put(reqKey, response);
     });
 }
 

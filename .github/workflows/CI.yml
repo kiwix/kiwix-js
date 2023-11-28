@@ -68,10 +68,11 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-chrome
 
-      - name: End-to-end tests on Edge (Linux)
-        env:
-          GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-edge
+      # Disabling Edge tests for now, as they are very flaky on Linux, but pass fine on Windows
+      # - name: End-to-end tests on Edge (Linux)
+      #   env:
+      #     GITHUB_ACTION: ${{ github.event_name }}
+      #   run: npm run test-e2e-edge
 
       - name: End-to-end tests on Firefox (Linux)
         env:
@@ -93,7 +94,7 @@ jobs:
           local-testing: start
           local-identifier: random
 
-      - name: Run App locally in background
+      - name: Start server locally in background
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
@@ -107,7 +108,7 @@ jobs:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
 
-      - name: Run BrowserStack tests on  Firefox 70 / Win10 [Gutenberg]
+      - name: Run BrowserStack tests on  Firefox 70 / Win10
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}

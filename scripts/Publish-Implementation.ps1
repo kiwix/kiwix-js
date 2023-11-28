@@ -21,7 +21,7 @@ param (
 # Provide parameters
 $release_uri = 'https://api.github.com/repos/kiwix/kiwix-js/actions/workflows/publish-extension.yaml/dispatches'
 
-$app_params = Select-String 'appVersion' "$PSScriptRoot\..\www\js\init.js" -List
+$app_params = Select-String 'params..appVersion' "$PSScriptRoot\..\www\js\init.js" -List
 $serviceworker = Select-String 'appVersion' "$PSScriptRoot\..\service-worker.js" -List
 $suggested_build = ''
 $app_tag = ''

@@ -1,7 +1,7 @@
 /**
  * legacy-ray_charles.e2e.spec.js : End-to-end tests implemented with Selenium WebDriver and Mocha
  *
- * Copyright 2023 Jaifroid, RG7279805 and contributors
+ * Copyright 2023 Jaifroid, Rishabhg71 and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.
@@ -178,7 +178,7 @@ function runTests (driver, modes) {
             // Loads the ZIM archive for the mode if the mode is not skipped
             it('Load Modern zim file', async function () {
                 if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // Wait until files have loaded
@@ -192,6 +192,9 @@ function runTests (driver, modes) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     if (!isFileLoaded) await archiveFiles.sendKeys(gutenbergRoBaseFile);
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+                    // In new browsers Files are loaded using the FileSystem API, so we have to set the local archives using JavaScript
+                    // which were selected using the file input
+                    await driver.executeScript('window.setLocalArchiveFromFileSelect();');
                     // Check that we loaded 1 file
                     assert.equal(1, filesLength);
                 } else {
@@ -216,7 +219,7 @@ function runTests (driver, modes) {
 
             it('Sorting books by popularity', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 await driver.switchTo().frame('articleContent');
@@ -230,7 +233,7 @@ function runTests (driver, modes) {
 
             it('Sorting books by name', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // We switch to default Content and back to Iframe because the If we are retrying the test
@@ -249,7 +252,7 @@ function runTests (driver, modes) {
 
             it('Change Language', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // click on the language dropdown and select option French
@@ -322,7 +325,7 @@ function runTests (driver, modes) {
 
             it('Author search Autocomplete', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
@@ -333,7 +336,7 @@ function runTests (driver, modes) {
 
             it('Author search Results', async function () {
                 if (isJqueryMode) {
-                    console.log('\x1b[33m%s\x1b[0m', '      Test skipped.');
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
                 // search by author name and press enter to apply the filter

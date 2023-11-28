@@ -12,7 +12,7 @@ const capabilities = {
         osVersion: 'Mojave',
         browserVersion: '60.0',
         projectName: 'BStack Project Name: Kiwix JS e2e tests',
-        buildName: 'BStack Build Name: Chrome 58 on Mojave',
+        buildName: 'BStack Build Name: Chrome 60 on Mojave',
         local: true,
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
@@ -36,6 +36,9 @@ async function loadChromeDriver () {
 
 // Maximize the window so that full browser state is visible in the screenshots
 // await driver_chrome.manage().window().maximize(); // Not supported in this version / Selenium
+
+console.log('\x1b[33m%s\x1b[0m', 'Running Gutenberg tests only for this browser version');
+console.log(' ');
 
 // make sure to use await running tests or we are charged unnecessarily on Browserstack
 await gutenbergRo.runTests(await loadChromeDriver());
