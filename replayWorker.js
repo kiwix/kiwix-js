@@ -57617,7 +57617,7 @@ class RemoteWARCProxy {
       if (!headersData) {
         for (const newUrl of fuzzyMatcher.getFuzzyCanonsWithArgs(url)) {
           if (newUrl !== url) {
-            console.debug('Attempting to resolve fuzzy headers for url', url);
+            console.debug('Attempting to resolve fuzzy headers for url', newUrl);
             headersData = await this.resolveHeaders(newUrl);
             if (headersData) {
               break;
@@ -57657,8 +57657,14 @@ class RemoteWARCProxy {
       if (hasPayload) {
         // response = await fetch(this.sourceUrl + "A/" + encodedUrl, {headers: reqHeaders});
         // DEV: modded for kiwix-js
-        let kiwixJSUrl = new URL(sw.prefix + encodedUrl);
-        response = await fetchUrlFromZIM(kiwixJSUrl);
+        // let kiwixJSUrl = new URL(sw.prefix + encodedUrl);
+        let kiwixJSUrl = sw.prefix + encodedUrl;
+        // DEV: For diagnostic purposes, you can send the expected headers as headers below. Although originally, or if used as a Worker,
+        // Replay will issue a Fetch with the requested (rather than expected) headers, we can't do that within a Service Worker, and in any
+        // case, headers are retrieved as a separate process in Kiwix ZIMs. So, only the expected headers could be meaningful in some cases.
+        // Note that range requests for video are responded to with a full uncompressed blob, so for most practical purposes, the expected headers are
+        // not needed. Support may need to be added in future versions of warc2zim.
+        response = await fetchUrlFromZIM(kiwixJSUrl, null/*, headers*/);
         // DEV: End kiwix-js mod
 
         if (response.body) {
@@ -57703,7 +57709,8 @@ class RemoteWARCProxy {
     // let headersResp = await fetch(this.sourceUrl + "H/" + encodedUrl);
     
     // DEV: modded for kiwix-js
-    let kiwixJSUrl = new URL(sw.prefix.replace(/\/A\/$/, '/H/') + encodedUrl);
+    // let kiwixJSUrl = new URL(sw.prefix.replace(/\/A\/$/, '/H/') + encodedUrl);
+    let  kiwixJSUrl = sw.prefix.replace(/\/A\/$/, '/H/') + encodedUrl;
     let headersResp = await fetchUrlFromZIM(kiwixJSUrl);
     // DEV: End kiwix-js mod
 
@@ -57751,6 +57758,8 @@ class RemoteWARCProxy {
       console.warn(e);
       console.warn("Ignoring headers, error parsing headers response for: " + url);
     }
+
+    // console.debug('Header resolved:', {encodedUrl, headers, date, status, statusText, hasPayload});
 
     return {encodedUrl, headers, date, status, statusText, hasPayload};
   }

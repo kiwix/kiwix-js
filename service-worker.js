@@ -463,48 +463,61 @@ function contsructResponse (content, contentType) {
 }
 
 /**
- * Handles URLs that need to be extracted from the ZIM archive
+ * Handles URLs that need to be extracted from the ZIM archive. They can be strings or URL objects, and should be URI encoded.
  *
- * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
- * @param {String} range Optional byte range string
+ * @param {URL|String} urlObjectOrString The URL object, or a simple string representation, to be processed for extraction from the ZIM
+ * @param {String} range Optional byte range string (mostly used for video or audio streams)
+ * @param {String} expectedHeaders Optional comma-separated list of headers to be expected in the response (for error checking). Note that although
+ *     Zimit requests may be for a range of bytes, in fact video (at least) is stored as a blob, so the appropriate response will just be a normal 200.
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM (urlObject, range) {
+function fetchUrlFromZIM (urlObjectOrString, range, expectedHeaders) {
     return new Promise(function (resolve, reject) {
+        var pathname = typeof urlObjectOrString === 'string' ? urlObjectOrString : urlObjectOrString.pathname;
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
         // Be sure that you haven't encoded any querystring along with the URL (Zimit files, however, require encoding of the querystring)
-        var barePathname = decodeURIComponent(urlObject.pathname);
+        var barePathname = decodeURIComponent(pathname);
         var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
         var prefix = partsOfZIMUrl ? partsOfZIMUrl[1] : '';
         var nameSpace = partsOfZIMUrl ? partsOfZIMUrl[2] : '';
         var title = partsOfZIMUrl ? partsOfZIMUrl[3] : barePathname;
-        var anchorTarget = urlObject.hash.replace(/^#/, '');
-        var uriComponent = urlObject.search.replace(/\?kiwix-display/, '');
+        var anchorTarget = '';
+        var uriComponent = '';
+        if (typeof urlObjectOrString === 'object') {
+            anchorTarget = urlObjectOrString.hash.replace(/^#/, '');
+            uriComponent = urlObjectOrString.search.replace(/\?kiwix-display/, '');
+        }
         var titleWithNameSpace = nameSpace + '/' + title;
         var zimName = prefix.replace(/\/$/, '');
 
+        // console.debug('[SW] Asking app.js for ' + titleWithNameSpace + ' from ' + zimName + '...');
+
         var messageListener = function (msgPortEvent) {
             if (msgPortEvent.data.action === 'giveContent') {
-                // Content received from app.js
-                var contentLength = msgPortEvent.data.content ? (msgPortEvent.data.content.byteLength || msgPortEvent.data.content.length) : null;
+                // Content received from app.js (note that null indicates that the content was not found in the ZIM)
+                var contentLength = msgPortEvent.data.content !== null ? (msgPortEvent.data.content.byteLength || msgPortEvent.data.content.length) : null;
                 var contentType = msgPortEvent.data.mimetype;
                 var zimType = msgPortEvent.data.zimType;
                 var headers = new Headers();
-                if (contentLength) headers.set('Content-Length', contentLength);
+                if (contentLength !== null) headers.set('Content-Length', contentLength);
                 // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
                 headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
                 headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
 
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
+                // NB, the Replay Worker adds its own Accept-Ranges header, so we don't add it here for such requests.
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
-                if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
+                if (zimType !== 'zimit' && contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
                     headers.set('Accept-Ranges', 'bytes');
                 }
 
                 var slicedData = msgPortEvent.data.content;
-                if (range && zimType !== 'zimit') {
+
+                if (range && zimType === 'zimit') {
+                    headers.set('Content-Range', range + '/*');
+                } else if (range && slicedData !== null) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
                     // In this case, we partially honor the request: if it asks for offsets x to y,
                     // we send partial contents starting at x offset, till the end of the data (ignoring y offset)
@@ -522,17 +535,30 @@ function fetchUrlFromZIM (urlObject, range) {
                 }
 
                 var responseInit = {
-                    // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
+                    // HTTP status is usually 200, but has to be 206 when partial content (range) is sent
                     status: range ? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
+                // Deal with a not-found dirEntry
+                if (slicedData === null) {
+                    responseInit.status = 404;
+                    responseInit.statusText = 'Not Found';
+                }
+
+                if (slicedData === null) slicedData = '';
+
+                // if (expectedHeaders) {
+                //     console.debug('[SW] Expected headers were', Object.fromEntries(expectedHeaders));
+                //     console.debug('[SW] Constructed headers are', Object.fromEntries(headers));
+                // }
 
                 var httpResponse = new Response(slicedData, responseInit);
 
                 // Let's send the content back from the ServiceWorker
                 resolve(httpResponse);
             } else if (msgPortEvent.data.action === 'sendRedirect') {
+                console.debug('[SW] Redirecting to ' + msgPortEvent.data.redirectUrl);
                 resolve(Response.redirect(prefix + msgPortEvent.data.redirectUrl));
             } else {
                 reject(msgPortEvent.data, titleWithNameSpace);

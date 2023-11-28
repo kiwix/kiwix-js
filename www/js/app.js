@@ -2026,8 +2026,9 @@ function handleMessageChannelMessage (event) {
     var messagePort = event.ports[0];
     var readFile = function (dirEntry) {
         if (dirEntry === null) {
-            console.error('Title ' + title.replace(/^(.{1,160}).*/, '$1...') + ' not found in archive.');
-            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+            console.warn('Title ' + title.replace(/^(.{1,160}).*/, '$1...') + ' not found in archive.');
+            // DEV: We send null for the content, so that the ServiceWorker knows that the article was not found (as opposed to being merely empty)
+            messagePort.postMessage({ action: 'giveContent', title: title, content: null, zimType: selectedArchive.zimType });
         } else if (dirEntry.isRedirect()) {
             selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
                 var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
