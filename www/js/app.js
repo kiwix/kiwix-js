@@ -1856,6 +1856,8 @@ function readArticle (dirEntry) {
                     // console.debug(event.data.success);
                     appstate.isReplayWorkerAvailable = true;
                 }
+                // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+                articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
             };
             // If we are dealing with a Zimit ZIM, we need to instruct Replay to add the file as a new collection
             navigator.serviceWorker.controller.postMessage({
@@ -1864,14 +1866,14 @@ function readArticle (dirEntry) {
                 prefix: prefix,
                 file: { sourceUrl: 'proxy:../' },
                 root: true,
-                skipExisting: false,
+                skipExisting: true,
                 extraConfig: { sourceType: 'kiwix', notFoundPageUrl: './404.html' },
                 topTemplateUrl: './www/topFrame.html'
             }, [zimitMessageChannel.port2]);
+        } else {
+            // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+            articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
         }
-
-        // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-        articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
     } else {
         // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
         if (dirEntry.isRedirect()) {

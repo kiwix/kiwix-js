@@ -31,7 +31,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.11.1';
+const appVersion = '3.11.2';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -360,39 +360,37 @@ self.addEventListener('message', function (event) {
                 console.error('[SW] Zimit ZIMs in ServiceWorker mode are not supported in this browser');
                 // Reply to the message port with an error
                 event.ports[0].postMessage({ error: 'ReplayWorker is unsupported!' });
-                return;
             } else {
+                // Guard against prototype pollution attack
+                if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;
+                // We have to alter some values in the sw object to make it work with the new ZIM
+                self.sw.prefix = event.data.prefix;
+                self.sw.replayPrefix = event.data.prefix;
+                self.sw.distPrefix = event.data.prefix + 'dist/';
+                self.sw.apiPrefix = event.data.prefix + 'api/';
+                self.sw.staticPrefix = event.data.prefix + 'static/';
+                self.sw.api.collections.prefixes = {
+                    main: self.sw.prefix,
+                    root: self.sw.prefix,
+                    static: self.sw.staticPrefix
+                }
+                let newMap = new Map();
+                for (let [key, value] of self.sw.staticData.entries()) {
+                    const newKey = /wombat\.js/i.test(key) ? this.self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? this.self.sw.staticPrefix + 'wombatWorkers.js' : key;
+                    newMap.set(newKey, value);
+                }
+                self.sw.staticData = newMap;
+                self.sw.collections._handleMessage(event).then(function () {
+                    if (self.sw.collections.colls[event.data.name]) {
+                        self.sw.collections.colls[event.data.name].prefix = self.sw.prefix;
+                        self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
+                        self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
+                        self.sw.collections.root = event.data.name;
+                    }
+                });
                 // Reply to the message port with a success message
                 event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
             }
-            // Guard against prototype pollution attack
-            if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;
-            // We have to alter some values in the sw object to make it work with the new ZIM
-            self.sw.prefix = event.data.prefix;
-            self.sw.replayPrefix = event.data.prefix;
-            self.sw.distPrefix = event.data.prefix + 'dist/';
-            self.sw.apiPrefix = event.data.prefix + 'api/';
-            self.sw.staticPrefix = event.data.prefix + 'static/';
-            self.sw.api.collections.prefixes = {
-                main: self.sw.prefix,
-                root: self.sw.prefix,
-                static: self.sw.staticPrefix
-            }
-            let newMap = new Map();
-            for (let [key, value] of self.sw.staticData.entries()) {
-                const newKey = /wombat\.js/i.test(key) ? this.self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? this.self.sw.staticPrefix + 'wombatWorkers.js' : key;
-                newMap.set(newKey, value);
-            }
-            self.sw.staticData = newMap;
-            self.sw.collections._handleMessage(event).then(function () {
-                self.sw.collections.colls[event.data.name].prefix = self.sw.prefix;
-                self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
-                self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
-                // setTimeout(function () { // Probably should check the collections Promise instead
-                //     self.sw.collections.colls[event.data.name].config.topTemplateUrl = '';
-                // }, 150);
-                self.sw.collections.root = event.data.name;
-            });
         }
     }
 });
