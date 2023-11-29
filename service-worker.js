@@ -431,8 +431,8 @@ function zimitResolver (event) {
         });
     } else if (self.sw && self.sw.collections.root && ~rqUrl.indexOf(self.sw.collections.root)) {
         if (/\/A\/static\//.test(rqUrl)) {
-            // If the request is for static data from the replayWorker, we should see if we already have them in the Worker
-            // DEV: This should extract both wombat.js and wombatWorkers.js from the staticData Map
+            // If the request is for static data from the replayWorker, we should get them from the Worker's cache
+            // DEV: This extracts both wombat.js and wombatWorkers.js from the staticData Map
             if (self.sw.staticData) {
                 var staticData = self.sw.staticData.get(rqUrl);
                 if (staticData) {
