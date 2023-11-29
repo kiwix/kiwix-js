@@ -58121,7 +58121,8 @@ class WorkerLoader extends CollectionLoader
 {
   constructor(worker) {
     super();
-    this.registerListener(worker);
+    // modded for kiwix-js
+    // this.registerListener(worker);
   }
 
   async hasCollection(name) {
@@ -60089,6 +60090,8 @@ class SWReplay {
 
     this.stats = sp.get("stats") ? new StatsTracker() : null;
 
+    /* modded for kiwix-js
+
     // self.addEventListener("install", () => {
     //   self.skipWaiting();
     // });
@@ -60102,11 +60105,13 @@ class SWReplay {
     //   event.respondWith(this.handleFetch(event));
     // });
 
-    self.addEventListener("message", (event) => {
-      if (event.data.msg_type === "reload_all") {
-        event.waitUntil(this.collections.loadAll());
-      }
-    });
+    // self.addEventListener("message", (event) => {
+    //   if (event.data.msg_type === "reload_all") {
+    //     event.waitUntil(this.collections.loadAll());
+    //   }
+    // });
+    
+    */
   }
 
   handleFetch(event) {
