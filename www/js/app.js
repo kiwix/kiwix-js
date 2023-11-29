@@ -1845,7 +1845,7 @@ function readArticle (dirEntry) {
             var cns = selectedArchive.getContentNamespace();
             // Support type 0 and type 1 Zimit archives
             var replayCns = cns === 'C' ? '/C/A/' : '/A/';
-            var prefix = window.location.href.replace(/www\/[^/]*$/, '') + selectedArchive.file.name + replayCns;
+            var prefix = window.location.href.replace(/^(.*?\/)www\/.*$/, '$1') + selectedArchive.file.name + replayCns;
             // Open a new message channel to the ServiceWorker
             var zimitMessageChannel = new MessageChannel();
             zimitMessageChannel.port1.onmessage = function (event) {
@@ -1855,9 +1855,9 @@ function readArticle (dirEntry) {
                 } else if (event.data.success) {
                     // console.debug(event.data.success);
                     appstate.isReplayWorkerAvailable = true;
+                    // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+                    articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
                 }
-                // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-                articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
             };
             // If we are dealing with a Zimit ZIM, we need to instruct Replay to add the file as a new collection
             navigator.serviceWorker.controller.postMessage({
