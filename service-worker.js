@@ -235,7 +235,7 @@ try {
     // Import ReplayWorker
     self.importScripts('./replayWorker.js');
     // Instruct the ReplayWorker to load all collections
-    self.sw.collections.loadAll()
+    self.sw.collections.loadAll();
     isReplayWorkerAvailable = true;
     console.log('[SW] ReplayWorker is available');
 } catch (err) {

@@ -1866,7 +1866,7 @@ function readArticle (dirEntry) {
                 prefix: prefix,
                 file: { sourceUrl: 'proxy:../' },
                 root: true,
-                skipExisting: true,
+                skipExisting: false,
                 extraConfig: { sourceType: 'kiwix', notFoundPageUrl: './404.html' },
                 topTemplateUrl: './www/topFrame.html'
             }, [zimitMessageChannel.port2]);
