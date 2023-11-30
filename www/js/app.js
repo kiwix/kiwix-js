@@ -2019,13 +2019,19 @@ function handleClickOnReplayLink (ev, anchor) {
         ev.stopPropagation();
         selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
             if (dirEntry) {
-                if (!/pdf/i.test(dirEntry.getMimetype())) {
-                    // Let Replay handle this link
+                var mimetype = dirEntry.getMimetype();
+                // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
+                if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(anchor.href)) {
+                    window.open(anchor.href, '_blank');
+                } else if (/\bx?html\b/i.test(mimetype)) {
+                    // If the SW has gone to sleep, loading this way gives it a chance to reload configuration
+                    params.isLandingPage = false;
+                    readArticle(dirEntry);
+                } else {
+                    // Fingers crossed, let Replay handle this link
                     anchor.passthrough = true;
                     anchor.click();
-                } else {
-                    // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
-                    window.open(anchor.href, '_blank');
                 }
             } else {
                 // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
