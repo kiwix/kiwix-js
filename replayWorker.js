@@ -32639,7 +32639,13 @@ class Collection {
     let content = null;
 
     if (this.config.topTemplateUrl) {
-      const resp = await fetch(this.config.topTemplateUrl);
+      /* Modded for kiwix-js so the app can work fully offline (avoids a network Fetch request) */
+      // const resp = await fetch(this.config.topTemplateUrl);
+      const cache = await caches.open(APP_CACHE);
+      let resp = await cache.match(this.config.topTemplateUrl);
+      if (!resp) {
+        resp = await fetch(this.config.topTemplateUrl);
+      }
       const topTemplate = await resp.text();
       content = topTemplate.replace("$URL", url).replace("$TS", requestTS).replace("$PREFIX", this.prefix);
     } else {

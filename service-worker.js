@@ -473,6 +473,9 @@ function zimitResolver (event) {
                     // Construct a new Response with headers to return the static data
                     var responseStaticData = contsructResponse(staticData.content, staticData.type);
                     return Promise.resolve(responseStaticData);
+                } else {
+                    // Return a 404 response
+                    return Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' }));
                 }
             }
         } else {
