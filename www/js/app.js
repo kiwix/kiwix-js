@@ -734,8 +734,16 @@ function getAssetsCacheAttributes () {
             // Handler for recieving message reply from service worker
             channel.port1.onmessage = function (event) {
                 var cache = event.data;
-                if (cache.error) reject(cache.error);
-                else resolve(cache);
+                if (cache.error) {
+                    reject(cache.error);
+                } else {
+                    if (cache.type === 'cacheAPI' && selectedArchive && selectedArchive.zimType === 'zimit' && appstate.isReplayWorkerAvailable) {
+                        cache.type = 'replayWorker';
+                        cache.description = 'ReplayWorker';
+                        cache.count = '-';
+                    }
+                    resolve(cache);
+                }
             };
             // Ask Service Worker for its cache status and asset count
             navigator.serviceWorker.controller.postMessage({

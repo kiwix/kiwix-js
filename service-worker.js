@@ -393,7 +393,7 @@ self.addEventListener('message', function (event) {
 /**
  * Adjusts the ReplayWorker configuration to match the Kiwix JS environment
  *
- * @param {String} prefix The URL prefix where assets are loaded, consistine of the local path to the ZIM file plus the namespace 
+ * @param {String} prefix The URL prefix where assets are loaded, consistine of the local path to the ZIM file plus the namespace
  * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
  */
 function adjustReplayConfig (prefix, name) {
