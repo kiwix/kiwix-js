@@ -1845,7 +1845,8 @@ function readArticle (dirEntry) {
             var cns = selectedArchive.getContentNamespace();
             // Support type 0 and type 1 Zimit archives
             var replayCns = cns === 'C' ? '/C/A/' : '/A/';
-            var prefix = window.location.href.replace(/^(.*?\/)www\/.*$/, '$1') + selectedArchive.file.name + replayCns;
+            var base = window.location.href.replace(/^(.*?\/)www\/.*$/, '$1');
+            var prefix = base + selectedArchive.file.name + replayCns;
             // Open a new message channel to the ServiceWorker
             var zimitMessageChannel = new MessageChannel();
             zimitMessageChannel.port1.onmessage = function (event) {
@@ -1864,10 +1865,16 @@ function readArticle (dirEntry) {
                 msg_type: 'addColl',
                 name: archiveName,
                 prefix: prefix,
-                file: { sourceUrl: 'proxy:../' },
+                file: { sourceUrl: 'proxy:' + prefix },
                 root: true,
                 skipExisting: false,
-                extraConfig: { sourceType: 'kiwix', notFoundPageUrl: './404.html' },
+                extraConfig: {
+                    // prefix: prefix, // If not set, Replay will use the proxy URL (without the 'proxy:' prefix)
+                    sourceType: 'kiwix',
+                    notFoundPageUrl: './404.html'/*,
+                    baseUrl: base + selectedArchive.file.name + '/',
+                    baseUrlHashReplay: false */
+                },
                 topTemplateUrl: './www/topFrame.html'
             }, [zimitMessageChannel.port2]);
         } else {

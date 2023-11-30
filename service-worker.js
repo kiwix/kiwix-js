@@ -234,13 +234,24 @@ self.addEventListener('activate', function (event) {
 try {
     // Import ReplayWorker
     self.importScripts('./replayWorker.js');
-    // Instruct the ReplayWorker to load all collections
-    self.sw.collections.loadAll();
     isReplayWorkerAvailable = true;
     console.log('[SW] ReplayWorker is available');
 } catch (err) {
     console.warn('[SW ReplayWorker is NOT available', err);
     isReplayWorkerAvailable = false;
+}
+
+// Instruct the ReplayWorker to load all collections
+if (isReplayWorkerAvailable) {
+    console.debug('[SW] Reloading ReplayWorker collection for ' + self.sw.collections.root);
+    self.sw.api.collections.inited.then(function () {
+        self.sw.collections.reload(self.sw.collections.root).then(function () {
+            if (self.sw.prefix) {
+                adjustReplayConfig(self.sw.collections.colls[sw.collections.root].config.sourceUrl, self.sw.collections.root);
+                console.debug('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' was reloaded'/*, self.sw */);
+            }
+        });
+    });
 }
 
 // For PWA functionality, this should be true unless explicitly disabled, and in fact currently it is never disabled
@@ -367,37 +378,48 @@ self.addEventListener('message', function (event) {
                 if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;
                 event.waitUntil(
                     self.sw.collections._handleMessage(event).then(function () {
-                        // We have to alter some values in the sw object to make it work with the new ZIM
-                        self.sw.prefix = event.data.prefix;
-                        self.sw.replayPrefix = event.data.prefix;
-                        self.sw.distPrefix = event.data.prefix + 'dist/';
-                        self.sw.apiPrefix = event.data.prefix + 'api/';
-                        self.sw.staticPrefix = event.data.prefix + 'static/';
-                        self.sw.api.collections.prefixes = {
-                            main: self.sw.prefix,
-                            root: self.sw.prefix,
-                            static: self.sw.staticPrefix
-                        }
-                        let newMap = new Map();
-                        for (let [key, value] of self.sw.staticData.entries()) {
-                            const newKey = /wombat\.js/i.test(key) ? self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? self.sw.staticPrefix + 'wombatWorkers.js' : key;
-                            newMap.set(newKey, value);
-                        }
-                        self.sw.staticData = newMap;
-                        if (self.sw.collections.colls[event.data.name]) {
-                            self.sw.collections.colls[event.data.name].prefix = self.sw.prefix;
-                            self.sw.collections.colls[event.data.name].rootPrefix = self.sw.prefix;
-                            self.sw.collections.colls[event.data.name].staticPrefix = self.sw.staticPrefix;
-                            self.sw.collections.root = event.data.name;
-                            // Reply to the message port with a success message
-                            event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
-                        }
+                        adjustReplayConfig(event.data.prefix, event.data.name);
+                        // Reply to the message port with a success message
+                        event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
                     })
                 );
             }
         }
     }
 });
+
+/**
+ * Adjusts the ReplayWorker configuration to match the Kiwix JS environment
+ *
+ * @param {String} prefix The URL prefix where assets are loaded, consistine of the local path to the ZIM file plus the namespace 
+ * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
+ */
+function adjustReplayConfig (prefix, name) {
+    // We have to alter some values in the sw object to make it work with the new ZIM
+    self.sw.prefix = prefix;
+    self.sw.replayPrefix = prefix;
+    self.sw.distPrefix = prefix + 'dist/';
+    self.sw.apiPrefix = prefix + 'api/';
+    self.sw.staticPrefix = prefix + 'static/';
+    self.sw.api.collections.prefixes = {
+        main: self.sw.prefix,
+        root: self.sw.prefix,
+        static: self.sw.staticPrefix
+    }
+    let newMap = new Map();
+    for (let [key, value] of self.sw.staticData.entries()) {
+        const newKey = /wombat\.js/i.test(key) ? self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? self.sw.staticPrefix + 'wombatWorkers.js' : key;
+        newMap.set(newKey, value);
+    }
+    self.sw.staticData = newMap;
+    if (self.sw.collections.colls[name]) {
+        // self.sw.collections.reload(name);
+        self.sw.collections.colls[name].prefix = self.sw.prefix;
+        self.sw.collections.colls[name].rootPrefix = self.sw.prefix;
+        self.sw.collections.colls[name].staticPrefix = self.sw.staticPrefix;
+        self.sw.collections.root = name;
+    }
+}
 
 /**
  * Handles resolving content for Zimit-style ZIM archives
