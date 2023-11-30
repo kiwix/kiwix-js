@@ -243,14 +243,16 @@ try {
 
 // Instruct the ReplayWorker to load all collections
 if (isReplayWorkerAvailable) {
-    console.debug('[SW] Reloading ReplayWorker collection for ' + self.sw.collections.root);
     self.sw.api.collections.inited.then(function () {
-        self.sw.collections.reload(self.sw.collections.root).then(function () {
-            if (self.sw.prefix) {
-                adjustReplayConfig(self.sw.collections.colls[sw.collections.root].config.sourceUrl, self.sw.collections.root);
-                console.debug('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' was reloaded'/*, self.sw */);
-            }
-        });
+        if (self.sw.collections.root) {
+            console.debug('[SW] Reloading ReplayWorker collection for ' + self.sw.collections.root + '...');
+            self.sw.collections.reload(self.sw.collections.root).then(function () {
+                if (self.sw.prefix) {
+                    adjustReplayConfig(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
+                    console.debug('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' was reloaded'/*, self.sw */);
+                }
+            });
+        }
     });
 }
 
