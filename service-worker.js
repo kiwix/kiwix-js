@@ -246,10 +246,12 @@ if (isReplayWorkerAvailable) {
     self.sw.api.collections.inited.then(function () {
         if (self.sw.collections.root) {
             console.debug('[SW] Reloading ReplayWorker collection for ' + self.sw.collections.root + '...');
-            self.sw.collections.reload(self.sw.collections.root).then(function () {
+            return self.sw.collections.reload(self.sw.collections.root).then(function () {
                 if (self.sw.prefix) {
                     adjustReplayConfig(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
                     console.debug('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' was reloaded'/*, self.sw */);
+                } else {
+                    console.error('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' could not be reloaded because self.sw.prefix is not defined');
                 }
             });
         }
@@ -376,8 +378,6 @@ self.addEventListener('message', function (event) {
                 // Reply to the message port with an error
                 event.ports[0].postMessage({ error: 'ReplayWorker is unsupported!' });
             } else {
-                // Guard against prototype pollution attack
-                if (event.data.prefix === '__proto__' || event.data.prefix === 'constructor' || event.data.prefix === 'prototype') return;
                 event.waitUntil(
                     self.sw.collections._handleMessage(event).then(function () {
                         adjustReplayConfig(event.data.prefix, event.data.name);
@@ -397,7 +397,16 @@ self.addEventListener('message', function (event) {
  * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
  */
 function adjustReplayConfig (prefix, name) {
-    // We have to alter some values in the sw object to make it work with the new ZIM
+    // Guard against prototype pollution attack
+    if (typeof prefix !== 'string' || typeof name !== 'string') {
+        console.error('Invalid prefix or name');
+        return;
+    }
+    const dangerousProps = ['__proto__', 'constructor', 'prototype'];
+    if (dangerousProps.includes(prefix) || dangerousProps.includes(name)) {
+        console.error('Potentially dangerous prefix or name');
+        return;
+    }
     self.sw.prefix = prefix;
     self.sw.replayPrefix = prefix;
     self.sw.distPrefix = prefix + 'dist/';
