@@ -398,7 +398,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
     uiUtil.spinnerDisplay(false);
-    document.getElementById('articleContent').style.display = 'none';
+    // document.getElementById('articleContent').style.display = 'none';
     // Empty and purge the article contents
     var articleContent = document.getElementById('articleContent');
     var articleContentDoc = articleContent ? articleContent.contentDocument : null;
@@ -2024,14 +2024,20 @@ function handleClickOnReplayLink (ev, anchor) {
                 // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
                 if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(anchor.href)) {
                     window.open(anchor.href, '_blank');
+                /*
                 } else if (/\bx?html\b/i.test(mimetype)) {
                     // If the SW has gone to sleep, loading this way gives it a chance to reload configuration
                     params.isLandingPage = false;
-                    readArticle(dirEntry);
+                    readArticle(dirEntry); */
                 } else {
                     // Fingers crossed, let Replay handle this link
                     anchor.passthrough = true;
-                    anchor.click();
+                    // Handle middle-clicks and ctrl-clicks
+                    if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
+                        window.open(anchor.href, '_blank');
+                    } else {
+                        anchor.click();
+                    }
                 }
             } else {
                 // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
