@@ -123,6 +123,12 @@ function runTests (driver, modes) {
             // Run tests twice, once in serviceworker mode and once in jquery mode
             it('Load Kiwix JS and check title', async function () {
                 await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
+                // Pause for 1.3 seconds to allow the app to load
+                await driver.sleep(1300);
+                // Issue a reload to ensure that the app is in the correct mode
+                await driver.navigate().refresh();
+                // Pause for 800 milliseconds to allow the app to reload
+                await driver.sleep(800);
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
