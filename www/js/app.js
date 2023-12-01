@@ -2131,11 +2131,11 @@ var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
 // The case-insensitive regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces.
 // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
 // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
-// absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until either
-// the opening delimiter (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used
-// below, it will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single
-// quote marks (') in the URL.
-var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(?=\3|\?|#)/ig;
+// absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until any
+// querystring (? character) which (if it is exists) is captured with its contents in another gourp. The regex then tests for the end
+// of the URL with the opening delimiter (" or ', which is capture group \3) or a hash character (#). When the regex is used below, it
+// will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
+var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(\?.*?)?(?=\3|#)/ig;
 // Regex below tests the html of an article for active content [kiwix-js #466]
 // It inspects every <script> block in the html and matches in the following cases: 1) the script is of type "module"; 2) the script
 // loads a UI application called app.js, init.js, or other common scripts found in unsupported ZIMs; 3) the script block has inline
@@ -2148,6 +2148,10 @@ var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]*type=["']module["'
 // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
 // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
 var regexpDownloadLinks = /^.*?\.epub([?#]|$)|^.*?\.pdf([?#]|$)|^.*?\.odt([?#]|$)|^.*?\.zip([?#]|$)/i;
+// A regex to find the Zimit prefix in a Zimit-based article
+var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
+// A regex to find and help transform assets in an article in a Zimit-based archive
+var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
 
 // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
 var anchorParameter;
@@ -2176,20 +2180,70 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
 
-    // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
-    // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
-    // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl) {
-        if (selectedArchive.zimitPrefix && baseUrl === selectedArchive.zimitPrefix) {
-            // We are at the root of a Zimit archive, so we shouldn't allow any navigation higher than root
-            relAssetUrl = relAssetUrl.replace(/^[./]+/, '');
-        }
-        var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
-        // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
-        // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-        // of encodeURIComponent.
-        return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
-    });
+    // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
+    htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
+
+    // Transform as many Zimit-style URLs as possible to their ZIM equivalents
+    if (selectedArchive.zimType === 'zimit') {
+        var rootDirectory = dirEntry.url === dirEntry.url.replace(/^((?:A\/)?[^/]+\/?).*/, '$1');
+        var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
+        zimitPrefix = zimitPrefix ? (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix[1] : zimitPrefix;
+        var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name);
+        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
+            var newBlock = match;
+            var assetUrl = relAssetUrl;
+            // console.log('Asset URL: ' + assetUrl);
+            // Remove google analytics and other analytics files that cause stall
+            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
+            // For root-relative links, we need to add the zimitPrefix
+            assetUrl = assetUrl.replace(/^\/(?!\/)/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
+            // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
+            assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, indexRoot + '/' + dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+            // For fully relative links, we have to remove any '..' if we are in root directory
+            if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
+            // Add placeholder to prevent further transformations
+            if (/^<a\s/i.test(newBlock)) newBlock = newBlock.replace(relAssetUrl, assetUrl);
+            // But for non-anchor URLs, We have to mark potential assets that are not easily identified as assets, due to so many html mimetypes being returned for them
+            else newBlock = newBlock.replace(relAssetUrl, assetUrl);
+            // console.debug('Transform: \n' + match + '\n -> ' + newBlock);
+            return newBlock;
+        });
+        // Deal with image srcsets
+        htmlArticle = htmlArticle.replace(/<img\b[^>]+srcset=["']([^"']+)/ig, function (match, srcset) {
+            var srcsetArr = srcset.split(',');
+            for (var i = 0; i < srcsetArr.length; i++) {
+                // For root-relative links, we need to add the zimitPrefix
+                srcsetArr[i] = srcsetArr[i].replace(/^\s?\/(?!\/)/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
+                // Zimit prefix is in the URL for absolute URLs
+                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s?https?:)?\/\//i, indexRoot + '/' + dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+                if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
+                srcsetArr[i] = '@kiwixtransformed@' + srcsetArr[i];
+            }
+            match = match.replace(srcset, srcsetArr.join(', '));
+            return match;
+        });
+    } else {
+        // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
+        // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
+        // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
+        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
+            if (selectedArchive.zimitPrefix && baseUrl === selectedArchive.zimitPrefix) {
+                // We are at the root of a Zimit archive, so we shouldn't allow any navigation higher than root
+                relAssetUrl = relAssetUrl.replace(/^[./]+/, '');
+            }
+            // We need to save the query string if any for Zimit-style archives
+            querystring = querystring || '';
+            if (!selectedArchive.zimType === 'zimit') {
+                querystring = '';
+            }
+            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
+            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent. For Zimit archives, we add back the querystring if any.
+            return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl) + querystring;
+        });
+    }
+
     // We also need to process data:image/webp if the browser needs the WebPMachine
     if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
 
@@ -2352,8 +2406,10 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
                 if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
-                    // It's already a full ZIM URL, so we can use it directly
-                    zimUrl = href;
+                    // It's already a full ZIM URL, so we can use it after stripping any extraneous paths
+                    var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1').replace(/\//g, '\\/');
+                    var rgxRemoveExtraPaths = new RegExp('^.*?(' + pseudoNamespace + '.*)$');
+                    zimUrl = href.replace(rgxRemoveExtraPaths, '$1');
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);

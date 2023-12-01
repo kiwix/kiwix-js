@@ -878,7 +878,8 @@ function applyAppTheme (theme) {
     // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
     // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
     if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
-        doc.title !== 'Placeholder for injecting an article into the iframe') {
+        // Check if the document contains a meta element with name="description"
+        !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
         showReturnLink();
     }
 }
