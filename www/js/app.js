@@ -2196,15 +2196,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // Remove google analytics and other analytics files that cause stall
             if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
             // For root-relative links, we need to add the zimitPrefix
-            assetUrl = assetUrl.replace(/^\/(?!\/)/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
+            assetUrl = assetUrl.replace(/^\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
             // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
-            assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, indexRoot + '/' + dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+            assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
             // For fully relative links, we have to remove any '..' if we are in root directory
-            if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
-            // Add placeholder to prevent further transformations
-            if (/^<a\s/i.test(newBlock)) newBlock = newBlock.replace(relAssetUrl, assetUrl);
-            // But for non-anchor URLs, We have to mark potential assets that are not easily identified as assets, due to so many html mimetypes being returned for them
-            else newBlock = newBlock.replace(relAssetUrl, assetUrl);
+            if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
+            newBlock = newBlock.replace(relAssetUrl, assetUrl);
             // console.debug('Transform: \n' + match + '\n -> ' + newBlock);
             return newBlock;
         });
@@ -2213,36 +2210,36 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             var srcsetArr = srcset.split(',');
             for (var i = 0; i < srcsetArr.length; i++) {
                 // For root-relative links, we need to add the zimitPrefix
-                srcsetArr[i] = srcsetArr[i].replace(/^\s?\/(?!\/)/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
+                srcsetArr[i] = srcsetArr[i].replace(/^\s?\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
                 // Zimit prefix is in the URL for absolute URLs
-                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s?https?:)?\/\//i, indexRoot + '/' + dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
-                if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, indexRoot + '/' + dirEntry.namespace + '/' + zimitPrefix + '/');
-                srcsetArr[i] = '@kiwixtransformed@' + srcsetArr[i];
+                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s?https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+                if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
             }
             match = match.replace(srcset, srcsetArr.join(', '));
             return match;
         });
-    } else {
-        // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
-        // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
-        // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-        htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
-            if (selectedArchive.zimitPrefix && baseUrl === selectedArchive.zimitPrefix) {
-                // We are at the root of a Zimit archive, so we shouldn't allow any navigation higher than root
-                relAssetUrl = relAssetUrl.replace(/^[./]+/, '');
-            }
-            // We need to save the query string if any for Zimit-style archives
-            querystring = querystring || '';
-            if (!selectedArchive.zimType === 'zimit') {
-                querystring = '';
-            }
-            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
-            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
-            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-            // of encodeURIComponent. For Zimit archives, we add back the querystring if any.
-            return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl) + querystring;
-        });
     }
+
+    // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
+    // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
+    // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
+    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
+        // We need to save the query string if any for Zimit-style archives
+        querystring = querystring || '';
+        if (selectedArchive.zimType !== 'zimit') {
+            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component)
+            // We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent
+            assetZIMUrl = encodeURI(assetZIMUrl);
+        } else {
+            // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
+            // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
+            // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
+            assetZIMUrl = relAssetUrl + querystring;
+        }
+        return blockStart + 'data-kiwixurl' + equals + assetZIMUrl;
+    });
 
     // We also need to process data:image/webp if the browser needs the WebPMachine
     if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
@@ -2406,10 +2403,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
                 if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
-                    // It's already a full ZIM URL, so we can use it after stripping any extraneous paths
-                    var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1').replace(/\//g, '\\/');
-                    var rgxRemoveExtraPaths = new RegExp('^.*?(' + pseudoNamespace + '.*)$');
-                    zimUrl = href.replace(rgxRemoveExtraPaths, '$1');
+                    // It's already a full ZIM URL, so we can use it after stripping any anchor
+                    zimUrl = decodeURIComponent(href.replace(/#.*/, ''));
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
@@ -2485,7 +2480,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         Array.prototype.slice.call(iframe.querySelectorAll('link[data-kiwixurl]')).forEach(function (link) {
             cssCount++;
             var linkUrl = link.getAttribute('data-kiwixurl');
-            var url = decodeURIComponent(uiUtil.removeUrlParameters(linkUrl));
+            var url = decodeURIComponent(selectedArchive.zimType === 'zimit' ? linkUrl : uiUtil.removeUrlParameters(linkUrl));
             if (selectedArchive.cssCache.has(url)) {
                 var nodeContent = selectedArchive.cssCache.get(url);
                 if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
