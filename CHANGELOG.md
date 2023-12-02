@@ -4,9 +4,20 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## In-progress changelog for Kiwix JS v3.11.1
+## Interim changelog for Kiwix JS v3.11.5 [pre-release]
 
+This pre-release version is only published to the browser-extension PWA, and will be superseded by v4.0
+
+* FEATURE: High-fidelity Zimit archive reading, with fallback to static content for old browsers
+* FEATURE: Enabled multi-ZIM support (browsing different ZIMs simultaneously in different browser tabs or windows)
 * BUGFIX: Restored ability to scroll the search results with touch or mouse
+* FIX: Issue causing a bootloop in rare circumstances when the app is in jQuery mode
+* FIX: Updated some broken links
+* DEV: Updated info for developers
+* DEV: Added a generic version of browserAction in backgroundscript to support MV3 extensions
+* DEV: Fixed some anomalies in tests
+* DEV: Updated rollup-js to v4
+* DEV: Updated libzim to v0.5
 
 ## Kiwix JS v3.11.0
 
