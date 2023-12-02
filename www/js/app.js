@@ -2189,7 +2189,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Try to get the Zimit prefix from any canonical URL in the article
         var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
         // If we couldn't get it, reconstruct it from the archive's zimitPrefix
-        zimitPrefix = zimitPrefix || selectedArchive.zimitPrefix.replace(/^[CA]\/(?:A\/)?([^/]+).*/, '$1');
+        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^[CA]\/(?:A\/)?([^/]+).*/, '$1');
         zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
             var newBlock = match;
