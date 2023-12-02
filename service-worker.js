@@ -501,8 +501,8 @@ function zimitResolver (event) {
                     return self.sw.handleFetch(event);
                 }
             } else {
-                // The requested ZIM is not loaded, so we should return not found
-                return Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' }));
+                // The requested ZIM is not loaded, or it is a regular non-Zimit request
+                return event.request;
             }
         });
     } else {
