@@ -2186,9 +2186,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // Transform as many Zimit-style URLs as possible to their ZIM equivalents
     if (selectedArchive.zimType === 'zimit') {
         var rootDirectory = dirEntry.url === dirEntry.url.replace(/^((?:A\/)?[^/]+\/?).*/, '$1');
+        // Try to get the Zimit prefix from any canonical URL in the article
         var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
-        zimitPrefix = zimitPrefix ? (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix[1] : zimitPrefix;
-        var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name);
+        // If we couldn't get it, reconstruct it from the archive's zimitPrefix
+        zimitPrefix = zimitPrefix || selectedArchive.zimitPrefix.replace(/^[CA]\/(?:A\/)?([^/]+).*/, '$1');
+        zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
             var newBlock = match;
             var assetUrl = relAssetUrl;
