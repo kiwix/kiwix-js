@@ -157,19 +157,25 @@ function resizeIFrame () {
     // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks even if UI animations are disabled
     }, params.showUIAnimations ? 400 : 100);
 
+    // Get the contentWindow of the iframe to operate on
+    var thisArticleWindow = articleWindow;
+    if (articleWindow.document && articleWindow.document.getElementById('replay_iframe')) {
+        thisArticleWindow = articleContainer.contentWindow.document.getElementById('replay_iframe').contentWindow;
+    }
+
     // Remove and add the scroll event listener to the new article window
     // Note that IE11 doesn't support wheel or touch events on the iframe, but it does support keydown and scroll
-    articleWindow.removeEventListener('scroll', uiUtil.scroller);
-    articleWindow.removeEventListener('touchstart', uiUtil.scroller);
-    articleWindow.removeEventListener('touchend', uiUtil.scroller);
-    articleWindow.removeEventListener('wheel', uiUtil.scroller);
-    articleWindow.removeEventListener('keydown', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('scroll', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('touchstart', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('touchend', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('wheel', uiUtil.scroller);
+    thisArticleWindow.removeEventListener('keydown', uiUtil.scroller);
     if (params.slideAway) {
-        articleWindow.addEventListener('scroll', uiUtil.scroller);
-        articleWindow.addEventListener('touchstart', uiUtil.scroller);
-        articleWindow.addEventListener('touchend', uiUtil.scroller);
-        articleWindow.addEventListener('wheel', uiUtil.scroller);
-        articleWindow.addEventListener('keydown', uiUtil.scroller);
+        thisArticleWindow.addEventListener('scroll', uiUtil.scroller);
+        thisArticleWindow.addEventListener('touchstart', uiUtil.scroller);
+        thisArticleWindow.addEventListener('touchend', uiUtil.scroller);
+        thisArticleWindow.addEventListener('wheel', uiUtil.scroller);
+        thisArticleWindow.addEventListener('keydown', uiUtil.scroller);
     }
 }
 
@@ -338,7 +344,7 @@ prefixElement.addEventListener('blur', function () {
         appstate.search.status = 'cancelled';
         region.style.overflowY = 'hidden';
         region.style.height = 'auto';
-        document.getElementById('searchingArticles').style.display = 'none';
+        uiUtil.spinnerDisplay(false);
         document.getElementById('articleListWithHeader').style.display = 'none';
     }
 });
@@ -391,8 +397,8 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-    document.getElementById('searchingArticles').style.display = 'none';
-    document.getElementById('articleContent').style.display = 'none';
+    uiUtil.spinnerDisplay(false);
+    // document.getElementById('articleContent').style.display = 'none';
     // Empty and purge the article contents
     var articleContent = document.getElementById('articleContent');
     var articleContentDoc = articleContent ? articleContent.contentDocument : null;
@@ -728,8 +734,16 @@ function getAssetsCacheAttributes () {
             // Handler for recieving message reply from service worker
             channel.port1.onmessage = function (event) {
                 var cache = event.data;
-                if (cache.error) reject(cache.error);
-                else resolve(cache);
+                if (cache.error) {
+                    reject(cache.error);
+                } else {
+                    if (cache.type === 'cacheAPI' && selectedArchive && selectedArchive.zimType === 'zimit' && appstate.isReplayWorkerAvailable) {
+                        cache.type = 'replayWorker';
+                        cache.description = 'ReplayWorker';
+                        cache.count = '-';
+                    }
+                    resolve(cache);
+                }
             };
             // Ask Service Worker for its cache status and asset count
             navigator.serviceWorker.controller.postMessage({
@@ -829,6 +843,11 @@ function initServiceWorkerMessaging () {
                 }
                 handleMessageChannelMessage(event);
             }
+        } else if (event.data.msg_type) {
+            // Messages received from the ReplayWorker
+            if (event.data.msg_type === 'colAdded') {
+                console.debug('ReplayWorker added a collection');
+            }
         } else {
             console.error('Invalid message received', event.data);
         }
@@ -848,20 +867,22 @@ function initServiceWorkerMessaging () {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
-        window.location.reload();
+        if (!appstate.preventAutoReboot) window.location.reload();
     } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
-        uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
-            'Offline use is disabled!', true).then(function (response) {
-            if (response) {
-                setContentInjectionMode('serviceworker');
-                if (selectedArchive) {
-                    setTimeout(function () {
-                        params.themeChanged = true;
-                        document.getElementById('btnHome').click();
-                    }, 750);
+        if (!params.noPrompts) {
+            uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
+                'Offline use is disabled!', true).then(function (response) {
+                if (response) {
+                    setContentInjectionMode('serviceworker');
+                    if (selectedArchive) {
+                        setTimeout(function () {
+                            params.themeChanged = true;
+                            document.getElementById('btnHome').click();
+                        }, 750);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 }
 
@@ -881,6 +902,7 @@ function setContentInjectionMode (value) {
         params.serviceWorkerLocal = true;
     }
     params.contentInjectionMode = value;
+    params.originalContentInjectionMode = null;
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
@@ -943,15 +965,19 @@ function setContentInjectionMode (value) {
                     '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
-                uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
-                    (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
-                    if (params.referrerExtensionURL && response) {
-                        var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
-                        window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
-                    } else {
-                        setContentInjectionMode(params.oldInjectionMode || 'jquery');
-                    }
-                });
+                if (!params.noPrompts) {
+                    uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
+                        (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
+                        if (params.referrerExtensionURL && response) {
+                            var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
+                            window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
+                        } else {
+                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                        }
+                    });
+                } else {
+                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                }
                 return;
             }
             if (!isMessageChannelAvailable()) {
@@ -1002,15 +1028,18 @@ function setContentInjectionMode (value) {
                                 message += (translateUI.t('dialog-serviceworker-registration-failure-fileprotocol') ||
                                 '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
                             }
-                            uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
-                                setContentInjectionMode('jquery');
-                                // We need to wait for the previous dialogue box to unload fully before attempting to display another
-                                setTimeout(function () {
-                                    params.defaultModeChangeAlertDisplayed = false;
-                                    settingsStore.removeItem('defaultModeChangeAlertDisplayed');
-                                    checkAndDisplayInjectionModeChangeAlert();
-                                }, 1200);
-                            });
+                            appstate.preventAutoReboot = true;
+                            if (!params.noPrompts) {
+                                uiUtil.systemAlert(message, (translateUI.t('dialog-serviceworker-registration-failure-title') || 'Failed to register Service Worker')).then(function () {
+                                    setContentInjectionMode('jquery');
+                                    // We need to wait for the previous dialogue box to unload fully before attempting to display another
+                                    setTimeout(function () {
+                                        params.defaultModeChangeAlertDisplayed = false;
+                                        settingsStore.removeItem('defaultModeChangeAlertDisplayed');
+                                        checkAndDisplayInjectionModeChangeAlert();
+                                    }, 1200);
+                                });
+                            }
                         }
                     });
                 }
@@ -1200,7 +1229,7 @@ window.onpopstate = function (event) {
         var titleSearch = event.state.titleSearch;
         document.getElementById('prefix').value = '';
         document.getElementById('welcomeText').style.display = 'none';
-        document.getElementById('searchingArticles').style.display = 'none';
+        uiUtil.spinnerDisplay(false);
         $('.navbar-collapse').collapse('hide');
         document.getElementById('configuration').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
@@ -1561,6 +1590,13 @@ function archiveReadyCallback (archive) {
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
     selectedArchive.cssCache = new Map();
 
+    if (selectedArchive.zimType !== 'zimit') {
+        if (params.originalContentInjectionMode) {
+            params.contentInjectionMode = params.originalContentInjectionMode;
+            params.originalContentInjectionMode = null;
+        }
+    }
+
     // Initialize the Service Worker
     if (params.contentInjectionMode === 'serviceworker') {
         initServiceWorkerMessaging();
@@ -1658,7 +1694,7 @@ function searchDirEntriesFromPrefix (prefix) {
         if (activeContent) activeContent.style.display = 'none';
         selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
     } else {
-        document.getElementById('searchingArticles').style.display = 'none';
+        uiUtil.spinnerDisplay(false);
         // We have to remove the focus from the search field,
         // so that the keyboard does not stay above the message
         document.getElementById('searchArticles').focus();
@@ -1720,7 +1756,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
             return false;
         });
     });
-    if (!stillSearching) document.getElementById('searchingArticles').style.display = 'none';
+    if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
 }
 
@@ -1789,7 +1825,7 @@ function readArticle (dirEntry) {
     expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
-    if (!params.isLandingPage) document.getElementById('articleContent').contentWindow.focus();
+    if (!params.isLandingPage) articleContainer.contentWindow.focus();
     // Show the spinner with a loading message
     var message = dirEntry.url.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
     message = message ? message[1] + '...' : '...';
@@ -1804,84 +1840,55 @@ function readArticle (dirEntry) {
         var encodedUrl = dirEntry.url.replace(/[^/]+/g, function (matchedSubstring) {
             return encodeURIComponent(matchedSubstring);
         });
-        var iframeArticleContent = document.getElementById('articleContent');
-        iframeArticleContent.onload = function () {
-            // The content is fully loaded by the browser : we can hide the spinner
-            document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
-            document.getElementById('cachingAssets').style.display = 'none';
-            document.getElementById('searchingArticles').style.display = 'none';
-            // Set the requested appTheme
-            uiUtil.applyAppTheme(params.appTheme);
-            // Display the iframe content
-            document.getElementById('articleContent').style.display = '';
-            // Deflect drag-and-drop of ZIM file on the iframe to Config
-            if (!params.disableDragAndDrop) {
-                var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
-                var docBody = doc ? doc.getElementsByTagName('body') : null;
-                docBody = docBody ? docBody[0] : null;
-                if (docBody) {
-                    docBody.addEventListener('dragover', handleIframeDragover);
-                    docBody.addEventListener('drop', handleIframeDrop);
-                }
-            }
-            resizeIFrame();
 
-            if (iframeArticleContent.contentWindow) {
-                // Configure home key press to focus #prefix only if the feature is in active state
-                if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey); }
-                if (params.openExternalLinksInNewTabs) {
-                    // Add event listener to iframe window to check for links to external resources
-                    iframeArticleContent.contentWindow.addEventListener('click', function (event) {
-                        // Find the closest enclosing A tag (if any)
-                        var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
-                        if (clickedAnchor) {
-                            var href = clickedAnchor.getAttribute('href');
-                            // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
-                            // it means it's a link to an external website.
-                            // We also do it for ftp even if it's not supported any more by recent browsers...
-                            if (/^(?:http|ftp)/i.test(href)) {
-                                uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                            } else if (/\.pdf([?#]|$)/i.test(href)) {
-                                // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
-                                event.preventDefault();
-                                window.open(clickedAnchor.href, '_blank');
-                            } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
-                                // Show the spinner if it's a ZIM link, but not an anchor
-                                if (!~href.indexOf('#')) {
-                                    var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
-                                    message = message ? message[1] + '...' : '...';
-                                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
-                                    // In case of false positive, ensure spinner is eventually hidden
-                                    setTimeout(function () {
-                                        uiUtil.spinnerDisplay(false);
-                                    }, 4000);
-                                    uiUtil.showSlidingUIElements();
-                                }
-                            }
-                        }
-                    });
-                }
-                // Reset UI when the article is unloaded
-                iframeArticleContent.contentWindow.onunload = function () {
-                    // remove eventListener to avoid memory leaks
-                    iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-                    var articleList = document.getElementById('articleList');
-                    var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
-                    while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
-                    while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-                    document.getElementById('articleListWithHeader').style.display = 'none';
-                    document.getElementById('prefix').value = '';
-                    document.getElementById('searchingArticles').style.display = '';
-                };
-            }
-        };
+        // Set up article onload handler
+        articleLoader();
 
         if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
             return;
         }
 
-        // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
-        iframeArticleContent.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
+        if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+            var archiveName = selectedArchive.file.name.replace(/\.zim\w{0,2}$/i, '');
+            var cns = selectedArchive.getContentNamespace();
+            // Support type 0 and type 1 Zimit archives
+            var replayCns = cns === 'C' ? '/C/A/' : '/A/';
+            var base = window.location.href.replace(/^(.*?\/)www\/.*$/, '$1');
+            var prefix = base + selectedArchive.file.name + replayCns;
+            // Open a new message channel to the ServiceWorker
+            var zimitMessageChannel = new MessageChannel();
+            zimitMessageChannel.port1.onmessage = function (event) {
+                if (event.data.error) {
+                    console.error('Reading Zimit archives in ServiceWorker mode is not supported in this browser', event.data.error);
+                    handleUnsupportedReplayWorker(dirEntry);
+                } else if (event.data.success) {
+                    // console.debug(event.data.success);
+                    appstate.isReplayWorkerAvailable = true;
+                    // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+                    articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
+                }
+            };
+            // If we are dealing with a Zimit ZIM, we need to instruct Replay to add the file as a new collection
+            navigator.serviceWorker.controller.postMessage({
+                msg_type: 'addColl',
+                name: archiveName,
+                prefix: prefix,
+                file: { sourceUrl: 'proxy:' + prefix },
+                root: true,
+                skipExisting: false,
+                extraConfig: {
+                    // prefix: prefix, // If not set, Replay will use the proxy URL (without the 'proxy:' prefix)
+                    sourceType: 'kiwix',
+                    notFoundPageUrl: './404.html'/*,
+                    baseUrl: base + selectedArchive.file.name + '/',
+                    baseUrlHashReplay: false */
+                },
+                topTemplateUrl: './www/topFrame.html'
+            }, [zimitMessageChannel.port2]);
+        } else {
+            // We put the ZIM filename as a prefix in the URL, so that browser caches are separate for each ZIM file
+            articleContainer.src = '../' + selectedArchive.file.name + '/' + dirEntry.namespace + '/' + encodedUrl;
+        }
     } else {
         // In jQuery mode, we read the article content in the backend and manually insert it in the iframe
         if (dirEntry.isRedirect()) {
@@ -1903,6 +1910,166 @@ function readArticle (dirEntry) {
 }
 
 /**
+ * Selects the iframe to which to attach the onload event, and attaches it
+ */
+function articleLoader () {
+    if (selectedArchive.zimType === 'zimit') {
+        var doc = articleContainer.contentDocument || null;
+        if (doc) {
+            var replayIframe = doc.getElementById('replay_iframe');
+            if (replayIframe) {
+                replayIframe.onload = function () {
+                    articleLoadedSW(replayIframe);
+                };
+            }
+        }
+    } else {
+        articleContainer.onload = function () {
+            articleLoadedSW(articleContainer);
+        };
+    }
+}
+
+/**
+ * Postprocessing required after the article contents are loaded
+ * @param {HTMLIFrameElement} iframeArticleContent The iframe containing the article content
+ */
+function articleLoadedSW (iframeArticleContent) {
+    // The content is fully loaded by the browser : we can hide the spinner
+    document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
+    document.getElementById('cachingAssets').style.display = 'none';
+    uiUtil.spinnerDisplay(false);
+    // Set the requested appTheme
+    uiUtil.applyAppTheme(params.appTheme);
+    // Display the iframe content
+    iframeArticleContent.style.display = '';
+    articleContainer.style.display = '';
+    // Deflect drag-and-drop of ZIM file on the iframe to Config
+    if (!params.disableDragAndDrop) {
+        var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
+        var docBody = doc ? doc.getElementsByTagName('body') : null;
+        docBody = docBody ? docBody[0] : null;
+        if (docBody) {
+            docBody.ondragover = handleIframeDragover;
+            docBody.ondrop = handleIframeDrop;
+        }
+    }
+    resizeIFrame();
+
+    if (iframeArticleContent.contentWindow) {
+        // Configure home key press to focus #prefix only if the feature is in active state
+        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.onkeydown = focusPrefixOnHomeKey; }
+        if (params.openExternalLinksInNewTabs) {
+            // Add event listener to iframe window to check for links to external resources
+            iframeArticleContent.contentWindow.onclick = function (event) {
+                // Find the closest enclosing A tag (if any)
+                var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+                // If the anchor has a passthrough property, then we have already checked it is safe, so we can return
+                if (clickedAnchor && clickedAnchor.passthrough) return;
+                if (clickedAnchor) {
+                    // Check for Zimit links that would normally be handled by the Replay Worker
+                    if (appstate.isReplayWorkerAvailable) {
+                        handleClickOnReplayLink(event, clickedAnchor);
+                        return;
+                    }
+                    // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
+                    // it means it's a link to an external website.
+                    // We also do it for ftp even if it's not supported any more by recent browsers...
+                    var href = clickedAnchor.getAttribute('href');
+                    if (/^(?:http|ftp)/i.test(href)) {
+                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+                    } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
+                        // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                        event.preventDefault();
+                        window.open(clickedAnchor.href, '_blank');
+                    } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+                        // Show the spinner if it's a ZIM link, but not an anchor
+                        if (!~href.indexOf('#')) {
+                            var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+                            message = message ? message[1] + '...' : '...';
+                            uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
+                            // In case of false positive, ensure spinner is eventually hidden
+                            setTimeout(function () {
+                                uiUtil.spinnerDisplay(false);
+                            }, 4000);
+                            uiUtil.showSlidingUIElements();
+                        }
+                    }
+                }
+            };
+        }
+        // Reset UI when the article is unloaded
+        iframeArticleContent.contentWindow.onunload = function () {
+            iframeArticleContent.loader = false;
+            // remove eventListener to avoid memory leaks
+            // iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+            var articleList = document.getElementById('articleList');
+            var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
+            while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
+            while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
+            document.getElementById('articleListWithHeader').style.display = 'none';
+            document.getElementById('prefix').value = '';
+        };
+    }
+};
+
+// Handles a click on a Zimit link that has been processed by Wombat
+function handleClickOnReplayLink (ev, anchor) {
+    var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
+    var pseudoDomainPath = anchor.hostname + anchor.pathname;
+    var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
+    // If the paths are identical, then we are dealing with a link to an anchor in the same document, so we can return
+    if (anchor.protocol !== document.location.protocol || pseudoDomainPath === containingDocDomainPath) return;
+    var zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
+    // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
+    if (zimUrl) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
+            if (dirEntry) {
+                var mimetype = dirEntry.getMimetype();
+                // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+                // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
+                if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(anchor.href)) {
+                    window.open(anchor.href, '_blank');
+                /*
+                } else if (/\bx?html\b/i.test(mimetype)) {
+                    // If the SW has gone to sleep, loading this way gives it a chance to reload configuration
+                    params.isLandingPage = false;
+                    readArticle(dirEntry); */
+                } else {
+                    // Fingers crossed, let Replay handle this link
+                    anchor.passthrough = true;
+                    // Handle middle-clicks and ctrl-clicks
+                    if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
+                        window.open(anchor.href, '_blank');
+                    } else {
+                        anchor.click();
+                    }
+                }
+            } else {
+                // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
+                uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor);
+            }
+        });
+    }
+}
+
+function handleUnsupportedReplayWorker (unhandledDirEntry) {
+    appstate.isReplayWorkerAvailable = false;
+    params.originalContentInjectionMode = params.contentInjectionMode;
+    params.contentInjectionMode = 'jquery';
+    readArticle(unhandledDirEntry);
+    // if (!params.hideActiveContentWarning) uiUtil.displayActiveContentWarning();
+    uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, ' +
+        'which is not unsupported by your browser version in ServiceWorker mode.</p><p>We have temporarily switched you to JQuery mode ' +
+        'so you can view static content, but a lot of content is non-functional. If you can upgrade your browser, you will ' +
+        'be able to access dynamic content.</p><p>Alternatively, you can try the Kiwix JS PWA, which supports some dynamic Zimit content ' +
+        'in older browsers. Go to: <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>',
+    translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
+}
+
+/**
  * Function that handles a message of the messageChannel.
  * It tries to read the content in the backend, and sends it back to the ServiceWorker
  *
@@ -1912,11 +2079,16 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
+    if (selectedArchive.zimType === 'zimit') {
+        // Zimit ZIMs store assets with the querystring, so we need to add it!
+        title = title + event.data.search;
+    }
     var messagePort = event.ports[0];
     var readFile = function (dirEntry) {
         if (dirEntry === null) {
-            console.error('Title ' + title + ' not found in archive.');
-            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+            console.warn('Title ' + title.replace(/^(.{1,160}).*/, '$1...') + ' not found in archive.');
+            // DEV: We send null for the content, so that the ServiceWorker knows that the article was not found (as opposed to being merely empty)
+            messagePort.postMessage({ action: 'giveContent', title: title, content: null, zimType: selectedArchive.zimType });
         } else if (dirEntry.isRedirect()) {
             selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
                 var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
@@ -1930,14 +2102,26 @@ function handleMessageChannelMessage (event) {
             // Let's read the content in the ZIM file
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                 var mimetype = fileDirEntry.getMimetype();
+                // Show the spinner
+                var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
+                if (!/moved/i.test(shortTitle) && !/image|javascript|warc-headers|jsonp?/.test(mimetype)) {
+                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
+                    clearTimeout(window.timeout);
+                    window.timeout = setTimeout(function () {
+                        uiUtil.spinnerDisplay(false);
+                    }, 1000);
+                    // Ensure the article onload event gets attached to the right iframe
+                    articleLoader();
+                }
                 // Let's send the content to the ServiceWorker
-                var message = { action: 'giveContent', title: title, content: content.buffer, mimetype: mimetype };
-                messagePort.postMessage(message, [content.buffer]);
+                var buffer = content.buffer ? content.buffer : content;
+                var message = { action: 'giveContent', title: title, content: buffer, mimetype: mimetype, zimType: selectedArchive.zimType };
+                messagePort.postMessage(message);
             });
         }
     };
     selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
+        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array(), zimType: selectedArchive.zimType });
     });
 }
 
@@ -1947,11 +2131,11 @@ var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
 // The case-insensitive regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces.
 // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
 // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
-// absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until either
-// the opening delimiter (" or ', which is capture group \3) or a querystring or hash character (? or #). When the regex is used
-// below, it will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single
-// quote marks (') in the URL.
-var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(?=\3|\?|#)/ig;
+// absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until any
+// querystring (? character) which (if it is exists) is captured with its contents in another gourp. The regex then tests for the end
+// of the URL with the opening delimiter (" or ', which is capture group \3) or a hash character (#). When the regex is used below, it
+// will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
+var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(\?.*?)?(?=\3|#)/ig;
 // Regex below tests the html of an article for active content [kiwix-js #466]
 // It inspects every <script> block in the html and matches in the following cases: 1) the script is of type "module"; 2) the script
 // loads a UI application called app.js, init.js, or other common scripts found in unsupported ZIMs; 3) the script block has inline
@@ -1964,6 +2148,10 @@ var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]*type=["']module["'
 // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
 // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
 var regexpDownloadLinks = /^.*?\.epub([?#]|$)|^.*?\.pdf([?#]|$)|^.*?\.odt([?#]|$)|^.*?\.zip([?#]|$)/i;
+// A regex to find the Zimit prefix in a Zimit-based article
+var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
+// A regex to find and help transform assets in an article in a Zimit-based archive
+var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
 
 // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
 var anchorParameter;
@@ -1980,7 +2168,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         return;
     }
     // Display Bootstrap warning alert if the landing page contains active content
-    if (!params.hideActiveContentWarning && !selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+    if (!params.hideActiveContentWarning && params.isLandingPage) {
         if (regexpActiveContent.test(htmlArticle)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
@@ -1992,20 +2180,69 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
 
+    // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
+    htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
+
+    // Transform as many Zimit-style URLs as possible to their ZIM equivalents
+    if (selectedArchive.zimType === 'zimit') {
+        var rootDirectory = dirEntry.url === dirEntry.url.replace(/^((?:A\/)?[^/]+\/?).*/, '$1');
+        // Try to get the Zimit prefix from any canonical URL in the article
+        var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
+        // If we couldn't get it, reconstruct it from the archive's zimitPrefix
+        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^[CA]\/(?:A\/)?([^/]+).*/, '$1');
+        zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
+        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
+            var newBlock = match;
+            var assetUrl = relAssetUrl;
+            // console.log('Asset URL: ' + assetUrl);
+            // Remove google analytics and other analytics files that cause stall
+            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
+            // For root-relative links, we need to add the zimitPrefix
+            assetUrl = assetUrl.replace(/^\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
+            // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
+            assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+            // For fully relative links, we have to remove any '..' if we are in root directory
+            if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
+            newBlock = newBlock.replace(relAssetUrl, assetUrl);
+            // console.debug('Transform: \n' + match + '\n -> ' + newBlock);
+            return newBlock;
+        });
+        // Deal with image srcsets
+        htmlArticle = htmlArticle.replace(/<img\b[^>]+srcset=["']([^"']+)/ig, function (match, srcset) {
+            var srcsetArr = srcset.split(',');
+            for (var i = 0; i < srcsetArr.length; i++) {
+                // For root-relative links, we need to add the zimitPrefix
+                srcsetArr[i] = srcsetArr[i].replace(/^\s?\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
+                // Zimit prefix is in the URL for absolute URLs
+                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s?https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+                if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
+            }
+            match = match.replace(srcset, srcsetArr.join(', '));
+            return match;
+        });
+    }
+
     // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
     // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
     // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl) {
-        if (selectedArchive.zimitPrefix && baseUrl === selectedArchive.zimitPrefix) {
-            // We are at the root of a Zimit archive, so we shouldn't allow any navigation higher than root
-            relAssetUrl = relAssetUrl.replace(/^[./]+/, '');
+    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
+        // We need to save the query string if any for Zimit-style archives
+        querystring = querystring || '';
+        if (selectedArchive.zimType !== 'zimit') {
+            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component)
+            // We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent
+            assetZIMUrl = encodeURI(assetZIMUrl);
+        } else {
+            // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
+            // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
+            // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
+            assetZIMUrl = relAssetUrl + querystring;
         }
-        var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
-        // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
-        // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-        // of encodeURIComponent.
-        return blockStart + 'data-kiwixurl' + equals + encodeURI(assetZIMUrl);
+        return blockStart + 'data-kiwixurl' + equals + assetZIMUrl;
     });
+
     // We also need to process data:image/webp if the browser needs the WebPMachine
     if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
 
@@ -2168,8 +2405,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
                 if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
-                    // It's already a full ZIM URL, so we can use it directly
-                    zimUrl = href;
+                    // It's already a full ZIM URL, so we can use it after stripping any anchor
+                    zimUrl = decodeURIComponent(href.replace(/#.*/, ''));
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
@@ -2245,7 +2482,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         Array.prototype.slice.call(iframe.querySelectorAll('link[data-kiwixurl]')).forEach(function (link) {
             cssCount++;
             var linkUrl = link.getAttribute('data-kiwixurl');
-            var url = decodeURIComponent(uiUtil.removeUrlParameters(linkUrl));
+            var url = decodeURIComponent(selectedArchive.zimType === 'zimit' ? linkUrl : uiUtil.removeUrlParameters(linkUrl));
             if (selectedArchive.cssCache.has(url)) {
                 var nodeContent = selectedArchive.cssCache.get(url);
                 if (/stylesheet/i.test(link.rel)) uiUtil.replaceCSSLinkWithInlineCSS(link, nodeContent);
@@ -2283,7 +2520,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             if (cssFulfilled >= cssCount) {
                 document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
                 document.getElementById('cachingAssets').style.display = 'none';
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 document.getElementById('articleContent').style.display = '';
                 // We have to resize here for devices with On Screen Keyboards when loading from the article search list
                 resizeIFrame();
@@ -2427,7 +2664,7 @@ function goToRandomArticle () {
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getRandomDirEntry(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 uiUtil.systemAlert(translateUI.t('dialog-randomarticle-error-message') || 'Error finding random article',
                     translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
             } else {
@@ -2461,35 +2698,16 @@ function goToMainArticle () {
     selectedArchive.getMainPageDirEntry(function (dirEntry) {
         if (dirEntry === null || dirEntry === undefined) {
             console.error('Error finding main article.');
-            document.getElementById('searchingArticles').style.display = 'none';
+            uiUtil.spinnerDisplay(false);
             document.getElementById('welcomeText').style.display = '';
         } else {
-            // For now, this code doesn't support reading Zimit archives without error, so we warn the user and suggest some solutions
-            if (selectedArchive.zimType === 'zimit') {
-                uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, which is currently unsupported in this app.</p>' +
-                    '<p>A basic view of some static content is shown, but JavaScript and many hyperlinks are non-functional. ' +
-                    'There is more complete support for this kind of archive in the Kiwix JS PWA. Go to: ' +
-                    '<a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>' +
-                    '<p>Alternatively, you can use Kiwix Serve to serve this archive to your browser from localhost. ' +
-                    'Kiwix Serve is included with <a href="https://www.kiwix.org/applications/" target="_blank">Kiwix Desktop</a>.</p>',
-                translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
-                document.getElementById('searchingArticles').style.display = 'none';
-                // document.getElementById('welcomeText').style.display = '';
-                // Some basic support for displaying Zimit content is available if we set the contentInjectionMode to jquery, storing the original value
-                params.originalContentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
-                params.contentInjectionMode = 'jquery';
-            } else {
-                // Restore the contentInjectionMode to its original value if it was changed above
-                params.contentInjectionMode = params.originalContentInjectionMode || params.contentInjectionMode;
-                params.originalContentInjectionMode = null;
-            }
             // DEV: see comment above under goToRandomArticle()
             if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
                 params.isLandingPage = true;
                 readArticle(dirEntry);
             } else {
                 console.error('The main page of this archive does not seem to be an article');
-                document.getElementById('searchingArticles').style.display = 'none';
+                uiUtil.spinnerDisplay(false);
                 document.getElementById('welcomeText').style.display = '';
             }
         }

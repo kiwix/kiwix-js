@@ -106,7 +106,7 @@ function runTests (driver, modes) {
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
             it('Load Kiwix JS and check title', async function () {
-                await driver.get('http://localhost:' + port + '/dist/www/index.html');
+                await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
@@ -137,7 +137,7 @@ function runTests (driver, modes) {
                 }
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
-                    await driver.sleep(500);
+                    await driver.sleep(2000);
                     let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
                         if (mode === 'serviceworker') {
@@ -152,7 +152,10 @@ function runTests (driver, modes) {
                         }
                         // We failed to switch modes, so let's try switching back and switching to this mode again
                         console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
-                        const otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        let otherModeSelector;
+                        await driver.wait(async function () {
+                            otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        }, 5000);
                         // Click the other mode selector
                         await otherModeSelector.click();
                         // Wait until the mode has switched

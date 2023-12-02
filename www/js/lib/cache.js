@@ -165,7 +165,7 @@ function idxDB (keyOrCommand, valueOrCallback, callback) {
         return;
     }
 
-    // Delete all non-curren IdxDB databases (only works in Chromium currently)
+    // Delete all non-current IdxDB databases (only works in Chromium currently)
     if (keyOrCommand === 'deleteNonCurrent') {
         if (indexedDB.databases) {
             var result = 0;

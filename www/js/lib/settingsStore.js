@@ -65,7 +65,7 @@ function getBestAvailableStorageAPI () {
 /**
  * Performs a full app reset, deleting all caches and settings
  * Or, if a parameter is supplied, deletes or disables the object
- * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'cacheAPI')
+ * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'indexedDB', 'cacheAPI')
  */
 function reset (object) {
     // 1. Clear any cookie entries
@@ -92,7 +92,40 @@ function reset (object) {
         }
     }
 
-    // 3. Clear any Cache API caches
+    // 3. Clear any IndexedDB databases
+    if (!object || object === 'indexedDB') {
+        if (window.indexedDB) {
+            // Attempt to delete all databases (only works in Chromium-based browsers)
+            if (indexedDB.databases) {
+                var result = 0;
+                indexedDB.databases().then(function (dbs) {
+                    dbs.forEach(function (db) {
+                        result++;
+                        indexedDB.deleteDatabase(db.name);
+                        console.debug('Deleting ' + db.name + '...');
+                    });
+                }).then(function () {
+                    console.debug('Deleted ' + result + ' indexedDB databases...');
+                }).catch(function (err) {
+                    console.error('Error deleting indexedDB databases', err);
+                });
+            } else {
+                // For Firefox, we can only delete databases we know the names of
+                var dbNames = [params.cacheIDB, 'collDB'];
+                dbNames.forEach(function (dbName) {
+                    var deleteRequest = indexedDB.deleteDatabase(dbName);
+                    deleteRequest.onsuccess = function () {
+                        console.debug('Deleted ' + dbName + '...');
+                    }
+                    deleteRequest.onerror = function (ev) {
+                        console.error('Error deleting ' + dbName + '...', ev);
+                    }
+                });
+            }
+        }
+    }
+
+    // 4. Clear any Cache API caches
     if (!object || object === 'cacheAPI') {
         getCacheNames(function (cacheNames) {
             if (cacheNames && !cacheNames.error) {

@@ -122,7 +122,13 @@ function runTests (driver, modes) {
             this.slow(10000);
             // Run tests twice, once in serviceworker mode and once in jquery mode
             it('Load Kiwix JS and check title', async function () {
-                await driver.get('http://localhost:' + port + '/dist/www/index.html');
+                await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
+                // Pause for 1.3 seconds to allow the app to load
+                await driver.sleep(1300);
+                // Issue a reload to ensure that the app is in the correct mode
+                await driver.navigate().refresh();
+                // Pause for 800 milliseconds to allow the app to reload
+                await driver.sleep(800);
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
@@ -231,10 +237,11 @@ function runTests (driver, modes) {
                 await driver.wait(async function () {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
                     return contentAvailable;
-                }, 5000);
+                }, 6000);
                 const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
+                const text = await articleLink.getText();
                 // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
-                assert.equal('This Little Girl of Mine', await articleLink.getText());
+                assert.equal('This Little Girl of Mine', text);
                 // Scroll the element into view and navigate to it
                 await driver.wait(async function () {
                     const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);

@@ -33,6 +33,7 @@ import translateUI from './translateUI.js';
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
 const activeContent = document.getElementById('activeContent');
+let articleContainer = document.getElementById('articleContent');
 
 /**
  * Hides slide-away UI elements
@@ -43,7 +44,7 @@ function hideSlidingUIElements () {
     const footerStyles = getComputedStyle(footer);
     const footerHeight = parseFloat(footerStyles.height) + parseFloat(footerStyles.marginTop) - 2;
     const headerStyles = getComputedStyle(header);
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 8;
     const iframeHeight = parseFloat(articleElement.style.height.replace('px', ''));
     footer.style.transform = 'translateY(' + footerHeight + 'px)';
     articleContainer.style.height = iframeHeight + headerHeight + 'px';
@@ -59,7 +60,7 @@ function showSlidingUIElements () {
     const articleContainer = document.getElementById('articleContent');
     const articleElement = document.querySelector('article');
     const headerStyles = getComputedStyle(document.getElementById('top'));
-    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
+    const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) - 2;
     header.style.transform = 'translateY(0)';
     // Needed for Windows Mobile to prevent header disappearing beneath iframe
     articleElement.style.transform = 'translateY(-1px)';
@@ -74,7 +75,12 @@ let scrollThrottle = false;
  * Luuncher for the slide-away function, including a throttle to prevent it being called too often
  */
 function scroller (e) {
-    const articleContainer = document.getElementById('articleContent');
+    // We have to refresh the articleContainer when the window changes
+    articleContainer = document.getElementById('articleContent');
+    // Get the replay_iframe if it exists
+    if (articleContainer.contentWindow && articleContainer.contentWindow.document && articleContainer.contentWindow.document.getElementById('replay_iframe')) {
+        articleContainer = articleContainer.contentWindow.document.getElementById('replay_iframe');
+    }
     if (scrollThrottle) return;
     // windowIsScrollable gets set and reset in slideAway()
     if (windowIsScrollable && e.type === 'wheel') return;
@@ -117,7 +123,6 @@ let windowIsScrollable = false;
 
 // Slides away or restores the header and footer
 function slideAway (e) {
-    const articleContainer = document.getElementById('articleContent');
     const newScrollY = articleContainer.contentWindow.pageYOffset;
     let delta;
     const visibleState = /\(0p?x?\)/.test(header.style.transform);
@@ -531,7 +536,7 @@ function displayFileDownloadAlert (title, download, contentType, content) {
             });
         }
     }
-    document.getElementById('searchingArticles').style.display = 'none';
+    spinnerDisplay(false);
 }
 
 /**
@@ -873,7 +878,8 @@ function applyAppTheme (theme) {
     // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
     // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
     if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
-        doc.title !== 'Placeholder for injecting an article into the iframe') {
+        // Check if the document contains a meta element with name="description"
+        !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
         showReturnLink();
     }
 }
@@ -921,12 +927,14 @@ function reportSearchProviderToAPIStatusPanel (provider) {
 /**
  * Warn the user that he/she clicked on an external link, and open it in a new tab
  *
- * @param {Event} event the click event (on an anchor) to handle
- * @param {Element} clickedAnchor the DOM anchor that has been clicked (optional, defaults to event.target)
+ * @param {Event} event The click event (on an anchor) to handle. If not provided, then clickedAnchor must be provided.
+ * @param {Element} clickedAnchor The DOM anchor that has been clicked (optional, defaults to event.target).
  */
 function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
-    event.preventDefault();
-    event.stopPropagation();
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     if (!clickedAnchor) clickedAnchor = event.target;
     var target = clickedAnchor.target;
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';

@@ -1,10 +1,12 @@
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
+import { transformAsync } from '@babel/core';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import terser from '@rollup/plugin-terser';
+import { minify } from 'terser';
 // import styles from "@ironkinoko/rollup-plugin-styles";
 
 const config = {
@@ -69,20 +71,54 @@ if (process.env.BUILD === 'production') {
                     src: ['service-worker.js'],
                     dest: 'dist',
                     // Modify the Service Worker precache files
-                    transform: (contents, filename) => contents.toString()
-                    // Replace the entry point with the bundle
-                        .replace(/(www[\\/]js[\\/])app.js/, '$1bundle.min.js')
-                    // Remove all the lib files that will be included in the bundle
-                        .replace(/,\s+["']www[\\/]js[\\/]lib[\\/]abstractFilesystemAccess[\s\S]+zimfile.js["']\s*/, '')
-                    // Replace any references to node_modules
-                        .replace(/node_modules\/.*dist\/((?:js|css)\/)?/g, function (m, p1) {
-                            p1 = p1 || 'js/';
-                            return 'www/' + p1;
-                        })
-                    // Alter remaining lib references
-                        .replace(/([\\/])js[\\/]lib/g, '$1js')
-                    // Remove unneeded ASM/WASM binaries
-                        .replace(/["']www[\\/]js[\\/].*dec.*js["'],\s*/g, '')
+                    transform: async (contents, filename) => {
+                        const result = await minify(
+                            contents.toString()
+                            // Replace the entry point with the bundle
+                                .replace(/(www[\\/]js[\\/])app.js/, '$1bundle.min.js')
+                            // Remove all the lib files that will be included in the bundle
+                                .replace(/,\s+["']www[\\/]js[\\/]lib[\\/]abstractFilesystemAccess[\s\S]+zimfile.js["']\s*/, '')
+                            // Replace any references to node_modules
+                                .replace(/node_modules\/.*dist\/((?:js|css)\/)?/g, function (m, p1) {
+                                    p1 = p1 || 'js/';
+                                    return 'www/' + p1;
+                                })
+                            // Alter remaining lib references
+                                .replace(/([\\/])js[\\/]lib/g, '$1js')
+                            // Remove unneeded ASM/WASM binaries
+                                .replace(/["']www[\\/]js[\\/].*dec.*js["'],\s*/g, '')
+                        );
+                        return result.code;
+                    }
+                },
+                {
+                    src: ['replayWorker.js'],
+                    dest: 'dist',
+                    transform: async (contents, filename) => {
+                        const code = contents.toString();
+                        // Now minify the replayWorker
+                        const minified = await minify(code);
+                        // How to transform with babel (tested to make a difference with Firefox 68+)
+                        const result = await transformAsync(minified.code, {
+                            filename,
+                            presets: [
+                                [
+                                    '@babel/preset-env',
+                                    {
+                                        targets: {
+                                            edge: '18',
+                                            firefox: '60',
+                                            chrome: '67',
+                                            safari: '11.1'
+                                        },
+                                        modules: false,
+                                        spec: true
+                                    }
+                                ]
+                            ]
+                        });
+                        return result.code;
+                    }
                 },
                 {
                     src: 'www/index.html',
@@ -133,6 +169,10 @@ if (process.env.BUILD === 'production') {
                         .replace(/([\\/])js[\\/]lib/g, '$1js')
                     // Remove unneeded ASM/WASM binaries
                         .replace(/["']www[\\/]js[\\/].*dec.*js["'],\s*/g, '')
+                },
+                {
+                    src: ['replayWorker.js'],
+                    dest: 'dist'
                 },
                 {
                     src: 'www/index.html',

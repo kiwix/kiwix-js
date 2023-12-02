@@ -25,13 +25,15 @@
 
 /* global chrome */
 
+/* eslint-disable prefer-const */
+
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.11.1';
+const appVersion = '3.11.2';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -63,6 +65,11 @@ var useAssetsCache = true;
  * @type {Boolean}
  */
 var useAppCache = true;
+
+/**
+ * A global Boolean that records whether the ReplayWorker is available
+ */
+var isReplayWorkerAvailable = false;
 
 /**
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE
@@ -103,6 +110,7 @@ const regexpByteRangeHeader = /^\s*bytes=(\d+)-/;
 const precacheFiles = [
     '.', // This caches the redirect to www/index.html, in case a user launches the app from its root directory
     'manifest.json',
+    'replayWorker.js',
     'service-worker.js',
     'i18n/en.jsonp.js',
     'i18n/es.jsonp.js',
@@ -120,6 +128,7 @@ const precacheFiles = [
     'www/article.html',
     'www/library.html',
     'www/main.html',
+    'www/topFrame.html',
     'www/js/app.js',
     'www/js/init.js',
     'www/js/lib/abstractFilesystemAccess.js',
@@ -223,6 +232,40 @@ self.addEventListener('activate', function (event) {
     );
 });
 
+// Wrapped in try-catch
+try {
+    // Import ReplayWorker
+    self.importScripts('./replayWorker.js');
+    isReplayWorkerAvailable = true;
+    console.log('[SW] ReplayWorker is available');
+} catch (err) {
+    console.warn('[SW ReplayWorker is NOT available', err);
+    isReplayWorkerAvailable = false;
+}
+
+let replayCollectionsReloaded;
+
+// Instruct the ReplayWorker to reload all collections, and adjust the root configuration (this is necessary after thw SW has stopped and restarted)
+if (isReplayWorkerAvailable) {
+    replayCollectionsReloaded = self.sw.collections.listAll().then(function (colls) {
+        if (colls) {
+            console.debug('[SW] Reloading ReplayWorker collections', colls);
+            return Promise.all(colls.map(function (coll) {
+                // console.debug('[SW] Reloading ReplayWorker collection ' + coll.name);
+                return self.sw.collections.reload(coll.name);
+            })).then(function () {
+                // Adjust the root configuration
+                if (self.sw.collections.root) {
+                    console.debug('[SW] Adjusting ReplayWorker root configuration to ' + self.sw.collections.root);
+                    return setReplayCollectionAsRoot(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
+                }
+            });
+        } else {
+            console.debug('[SW] No ReplayWorker collections to reload');
+        }
+    });
+}
+
 // For PWA functionality, this should be true unless explicitly disabled, and in fact currently it is never disabled
 let fetchCaptureEnabled = true;
 
@@ -230,6 +273,7 @@ let fetchCaptureEnabled = true;
  * Intercept selected Fetch requests from the browser window
  */
 self.addEventListener('fetch', function (event) {
+    // console.debug('[SW] Fetch Event processing', event.request.url);
     // Only handle GET or POST requests (POST is intended to handle video in Zimit ZIMs)
     if (!/GET|POST/.test(event.request.method)) return;
     var rqUrl = event.request.url;
@@ -252,32 +296,36 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            // YouTube links from Zimit archives are dealt with specially
-            if (/youtubei.*player/.test(strippedUrl) || cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                const range = event.request.headers.get('range');
-                return fetchUrlFromZIM(urlObject, range).then(function (response) {
-                    // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
-                    if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                        !regexpExcludedURLSchema.test(event.request.url)) {
-                        event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
-                    }
-                    return response;
-                }).catch(function (msgPortData) {
-                    console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
-                    return msgPortData;
-                });
-            } else {
-                // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
-                return fetch(event.request).then(function (response) {
-                    // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
-                    if (!regexpExcludedURLSchema.test(event.request.url) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
-                        event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
-                    }
-                    return response;
-                }).catch(function (error) {
-                    console.debug('[SW] Network request failed and no cache.', error);
-                });
-            }
+            return zimitResolver(event).then(function (modRequestOrResponse) {
+                if (modRequestOrResponse instanceof Response) {
+                    // The request was modified by the ReplayWorker and it returned a modified response, so we return it
+                    // console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
+                    return cacheAndReturnResponseForAsset(event, modRequestOrResponse);
+                }
+                rqUrl = modRequestOrResponse.url;
+                urlObject = new URL(rqUrl);
+                strippedUrl = urlObject.pathname;
+                if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
+                    const range = modRequestOrResponse.headers.get('range');
+                    return fetchUrlFromZIM(urlObject, range).then(function (response) {
+                        return cacheAndReturnResponseForAsset(event, response);
+                    }).catch(function (msgPortData) {
+                        console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
+                        return msgPortData;
+                    });
+                } else {
+                    // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
+                    return fetch(modRequestOrResponse).then(function (response) {
+                        // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
+                        if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
+                            event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
+                        }
+                        return response;
+                    }).catch(function (error) {
+                        console.debug('[SW] Network request failed and no cache.', error);
+                    });
+                }
+            });
         })
     );
 });
@@ -324,51 +372,218 @@ self.addEventListener('message', function (event) {
                 event.ports[0].postMessage({ type: cacheArr[0], name: cacheArr[1], description: cacheArr[2], count: cacheArr[3] });
             });
         }
+    } else if (event.data.msg_type) {
+        // Messages for the ReplayWorker
+        if (event.data.msg_type === 'addColl') {
+            console.debug('[SW] addColl message received from app.js');
+            if (!self.sw) {
+                console.error('[SW] Zimit ZIMs in ServiceWorker mode are not supported in this browser');
+                // Reply to the message port with an error
+                event.ports[0].postMessage({ error: 'ReplayWorker is unsupported!' });
+            } else {
+                event.waitUntil(
+                    self.sw.collections._handleMessage(event).then(function () {
+                        setReplayCollectionAsRoot(event.data.prefix, event.data.name);
+                        // Reply to the message port with a success message
+                        event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
+                    })
+                );
+            }
+        }
     }
 });
 
 /**
- * Handles URLs that need to be extracted from the ZIM archive
+ * Sets a Replay collection as the root configuration, so that the Replay Worker will deal correctly with requests to the collection
  *
- * @param {URL} urlObject The URL object to be processed for extraction from the ZIM
- * @param {String} range Optional byte range string
+ * @param {String} prefix The URL prefix where assets are loaded, consisting of the local path to the ZIM file plus the namespace
+ * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
+ */
+function setReplayCollectionAsRoot (prefix, name) {
+    // Guard against prototype pollution attack
+    if (typeof prefix !== 'string' || typeof name !== 'string') {
+        console.error('Invalid prefix or name');
+        return;
+    }
+    const dangerousProps = ['__proto__', 'constructor', 'prototype'];
+    if (dangerousProps.includes(prefix) || dangerousProps.includes(name)) {
+        console.error('Potentially dangerous prefix or name');
+        return;
+    }
+    self.sw.prefix = prefix;
+    self.sw.replayPrefix = prefix;
+    self.sw.distPrefix = prefix + 'dist/';
+    self.sw.apiPrefix = prefix + 'api/';
+    self.sw.staticPrefix = prefix + 'static/';
+    self.sw.api.collections.prefixes = {
+        main: self.sw.prefix,
+        root: self.sw.prefix,
+        static: self.sw.staticPrefix
+    }
+    // If we want to be able to get the static data URL directly from the map, we need to replace the keyes, but as this is quite costly (moving a lot of static)
+    // data around, we're using another way to get the static data URL from the map in zimitResolver()
+    // let newMap = new Map();
+    // for (let [key, value] of self.sw.staticData.entries()) {
+    //     const newKey = /wombat\.js/i.test(key) ? self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? self.sw.staticPrefix + 'wombatWorkers.js' : key;
+    //     newMap.set(newKey, value);
+    // }
+    // self.sw.staticData = newMap;
+    if (self.sw.collections.colls[name]) {
+        self.sw.collections.colls[name].prefix = self.sw.prefix;
+        self.sw.collections.colls[name].rootPrefix = self.sw.prefix;
+        self.sw.collections.colls[name].staticPrefix = self.sw.staticPrefix;
+        self.sw.collections.root = name;
+    }
+}
+
+/**
+ * Handles resolving content for Zimit-style ZIM archives
+ *
+ * @param {FetchEvent} event The FetchEvent to be processed
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM (urlObject, range) {
+function zimitResolver (event) {
+    var rqUrl = event.request.url;
+    var zimStem = rqUrl.replace(/^.*?\/([^/]+?)\.zim\w?\w?\/.*/, '$1');
+    if (/\/A\/load\.js$/.test(rqUrl)) {
+        // If the request is for load.js, we should filter its contents to load the mainUrl, as we don't need the other stuff
+        // concerning registration of the ServiceWorker and postMessage handling
+        console.debug('[SW] Filtering content of load.js', rqUrl);
+        // First we have to get the contents of load.js from the ZIM, because it is a common name, and there is no way to be sure
+        // that the request will be for the Zimit load.js
+        return fetchUrlFromZIM(new URL(rqUrl)).then(function (response) {
+            // The response was found in the ZIM so we respond with it
+            // Clone the response before reading its body
+            var clonedResponse = response.clone();
+            return response.text().then(function (contents) {
+                // We need to replace the entire contents with a single function that loads mainUrl
+                if (/\.register\([^;]+?sw\.js\?replayPrefix/.test(contents)) {
+                    var newContents = "window.location.href = window.location.href.replace(/index\\.html/, window.mainUrl.replace('https://', ''));";
+                    var responseLoadJS = contsructResponse(newContents, 'text/javascript');
+                    return responseLoadJS;
+                } else {
+                    // The contents of load.js are not as expected, so we should return the original response
+                    return clonedResponse;
+                }
+            });
+        });
+    // Check that the requested URL is for a ZIM that we already have loaded
+    } else if (zimStem !== rqUrl && isReplayWorkerAvailable) {
+        // Wait for the ReplayWorker to initialize and reload all collections
+        return replayCollectionsReloaded.then(function () {
+            if (self.sw.collections.colls && self.sw.collections.colls[zimStem]) {
+                if (self.sw.collections.root !== zimStem) {
+                    setReplayCollectionAsRoot(self.sw.collections.colls[zimStem].config.sourceUrl, zimStem);
+                }
+                if (/\/A\/static\//.test(rqUrl)) {
+                    // If the request is for static data from the replayWorker, we should get them from the Worker's cache
+                    // DEV: This extracts both wombat.js and wombatWorkers.js from the staticData Map
+                    var staticDataUrl = rqUrl.replace(/^(.*?\/)[^/]+?\.zim\w?\w?\/[AC/]{2,4}(.*)/, '$1$2')
+                    if (self.sw.staticData) {
+                        var staticData = self.sw.staticData.get(staticDataUrl);
+                        if (staticData) {
+                            console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
+                            // Construct a new Response with headers to return the static data
+                            var responseStaticData = contsructResponse(staticData.content, staticData.type);
+                            return Promise.resolve(responseStaticData);
+                        } else {
+                            // Return a 404 response
+                            return Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' }));
+                        }
+                    }
+                } else {
+                    // console.debug('[SW] Asking ReplayWorker to handleFetch', rqUrl);
+                    return self.sw.handleFetch(event);
+                }
+            } else {
+                // The requested ZIM is not loaded, or it is a regular non-Zimit request
+                return event.request;
+            }
+        });
+    } else {
+        // The loaded ZIM archive is not a Zimit archive, or sw-Zimit is unsupported, so we should just return the request
+        return Promise.resolve(event.request);
+    }
+}
+
+function contsructResponse (content, contentType) {
+    var headers = new Headers();
+    headers.set('Content-Length', content.length);
+    headers.set('Content-Type', contentType);
+    var responseInit = {
+        status: 200,
+        statusText: 'OK',
+        headers: headers
+    };
+    return new Response(content, responseInit);
+}
+
+// Caches and returns the event and response pair for an asset. Do not use this for non-asset requests!
+function cacheAndReturnResponseForAsset (event, response) {
+    // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
+    if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
+        !regexpExcludedURLSchema.test(event.request.url)) {
+        event.waitUntil(updateCache(ASSETS_CACHE, event.request.url, response.clone()));
+    }
+    return response;
+}
+
+/**
+ * Handles URLs that need to be extracted from the ZIM archive. They can be strings or URL objects, and should be URI encoded.
+ *
+ * @param {URL|String} urlObjectOrString The URL object, or a simple string representation, to be processed for extraction from the ZIM
+ * @param {String} range Optional byte range string (mostly used for video or audio streams)
+ * @param {String} expectedHeaders Optional comma-separated list of headers to be expected in the response (for error checking). Note that although
+ *     Zimit requests may be for a range of bytes, in fact video (at least) is stored as a blob, so the appropriate response will just be a normal 200.
+ * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
+ */
+function fetchUrlFromZIM (urlObjectOrString, range, expectedHeaders) {
     return new Promise(function (resolve, reject) {
+        var pathname = typeof urlObjectOrString === 'string' ? urlObjectOrString : urlObjectOrString.pathname;
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
-        // Be sure that you haven't encoded any querystring along with the URL.
-        var barePathname = decodeURIComponent(urlObject.pathname);
+        // Be sure that you haven't encoded any querystring along with the URL (Zimit files, however, require encoding of the querystring)
+        var barePathname = decodeURIComponent(pathname);
         var partsOfZIMUrl = regexpZIMUrlWithNamespace.exec(barePathname);
         var prefix = partsOfZIMUrl ? partsOfZIMUrl[1] : '';
         var nameSpace = partsOfZIMUrl ? partsOfZIMUrl[2] : '';
         var title = partsOfZIMUrl ? partsOfZIMUrl[3] : barePathname;
-        var anchorTarget = urlObject.hash.replace(/^#/, '');
-        var uriComponent = urlObject.search.replace(/\?kiwix-display/, '');
+        var anchorTarget = '';
+        var uriComponent = '';
+        if (typeof urlObjectOrString === 'object') {
+            anchorTarget = urlObjectOrString.hash.replace(/^#/, '');
+            uriComponent = urlObjectOrString.search.replace(/\?kiwix-display/, '');
+        }
         var titleWithNameSpace = nameSpace + '/' + title;
         var zimName = prefix.replace(/\/$/, '');
 
+        // console.debug('[SW] Asking app.js for ' + titleWithNameSpace + ' from ' + zimName + '...');
+
         var messageListener = function (msgPortEvent) {
             if (msgPortEvent.data.action === 'giveContent') {
-                // Content received from app.js
-                var contentLength = msgPortEvent.data.content ? (msgPortEvent.data.content.byteLength || msgPortEvent.data.content.length) : null;
+                // Content received from app.js (note that null indicates that the content was not found in the ZIM)
+                var contentLength = msgPortEvent.data.content !== null ? (msgPortEvent.data.content.byteLength || msgPortEvent.data.content.length) : null;
                 var contentType = msgPortEvent.data.mimetype;
+                var zimType = msgPortEvent.data.zimType;
                 var headers = new Headers();
-                if (contentLength) headers.set('Content-Length', contentLength);
+                if (contentLength !== null) headers.set('Content-Length', contentLength);
                 // Set Content-Security-Policy to sandbox the content (prevent XSS attacks from malicious ZIMs)
                 headers.set('Content-Security-Policy', "default-src 'self' data: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io 'unsafe-inline' 'unsafe-eval'; sandbox allow-scripts allow-same-origin allow-modals allow-popups allow-forms allow-downloads;");
                 headers.set('Referrer-Policy', 'no-referrer');
                 if (contentType) headers.set('Content-Type', contentType);
 
                 // Test if the content is a video or audio file. In this case, Chrome & Edge need us to support ranges.
+                // NB, the Replay Worker adds its own Accept-Ranges header, so we don't add it here for such requests.
                 // See kiwix-js #519 and openzim/zimwriterfs #113 for why we test for invalid types like "mp4" or "webm" (without "video/")
                 // The full list of types produced by zimwriterfs is in https://github.com/openzim/zimwriterfs/blob/master/src/tools.cpp
-                if (contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
+                if (zimType !== 'zimit' && contentLength >= 1 && /^(video|audio)|(^|\/)(mp4|webm|og[gmv]|mpeg)$/i.test(contentType)) {
                     headers.set('Accept-Ranges', 'bytes');
                 }
 
                 var slicedData = msgPortEvent.data.content;
-                if (range) {
+
+                if (range && zimType === 'zimit') {
+                    headers.set('Content-Range', range + '/*');
+                } else if (range && slicedData !== null) {
                     // The browser asks for a range of bytes (usually for a video or audio stream)
                     // In this case, we partially honor the request: if it asks for offsets x to y,
                     // we send partial contents starting at x offset, till the end of the data (ignoring y offset)
@@ -386,17 +601,30 @@ function fetchUrlFromZIM (urlObject, range) {
                 }
 
                 var responseInit = {
-                    // HTTP status is usually 200, but has to bee 206 when partial content (range) is sent
+                    // HTTP status is usually 200, but has to be 206 when partial content (range) is sent
                     status: range ? 206 : 200,
                     statusText: 'OK',
                     headers: headers
                 };
+                // Deal with a not-found dirEntry
+                if (slicedData === null) {
+                    responseInit.status = 404;
+                    responseInit.statusText = 'Not Found';
+                }
+
+                if (slicedData === null) slicedData = '';
+
+                // if (expectedHeaders) {
+                //     console.debug('[SW] Expected headers were', Object.fromEntries(expectedHeaders));
+                //     console.debug('[SW] Constructed headers are', Object.fromEntries(headers));
+                // }
 
                 var httpResponse = new Response(slicedData, responseInit);
 
                 // Let's send the content back from the ServiceWorker
                 resolve(httpResponse);
             } else if (msgPortEvent.data.action === 'sendRedirect') {
+                console.debug('[SW] Redirecting to ' + msgPortEvent.data.redirectUrl);
                 resolve(Response.redirect(prefix + msgPortEvent.data.redirectUrl));
             } else {
                 reject(msgPortEvent.data, titleWithNameSpace);

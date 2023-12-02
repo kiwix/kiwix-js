@@ -187,9 +187,8 @@
                     </p>
                     <p data-i18n="about-step1-para4">
                         <b>Before downloading non-Wiki ZIM types, check if your browser supports ZIM archives with dynamic content</b>: look at the bottom of the Configuration
-                        page, in the API panel, and if you see "ServiceWorker API available and registered" in green, then the app can read all ZIM types (except Zimit:
-                        see <a href="#format">ZIM archive format</a> for more details). Otherwise you should mostly stick to MediaWiki (Wikipedia, Wikivoyage, Wiktionary...)
-                        and Stack Exchange archives (see <a href="#modes">modes</a> below for an explanation).
+                        page, in the API panel, and if you see "ServiceWorker API available and registered" in green, then the app can read all ZIM types. Otherwise you should
+                        mostly stick to MediaWiki (Wikipedia, Wikivoyage, Wiktionary...) and Stack Exchange archives (see <a href="#modes">modes</a> below for an explanation).
                     </p>
                     <h4 data-i18n="about-step2">Step 2: Download or copy the content onto your device</h4>
                     <p data-i18n="about-step2-para1">
@@ -284,10 +283,10 @@
                         ServiceWorker Mode (<a href="#modes">see below</a>).
                     </p>
                     <p data-i18n="about-zim-format-para2">
-                        This application is not currently compatible with archives that are created by <b>Zimit</b> (<a href="https://youzim.it" target="_blank">https://youzim.it&nbsp;<img src="img/Icon_External_Link.png" /></a>)
-                        using the Web Archive (WARC) format. We have plans to enable this format, but there are considerable technical challenges to overcome in order to display
-                        these archives with the fidelity that you expect from Kiwix -- see <a href="https://github.com/kiwix/kiwix-js/issues/1009" target="_blank">issue #1009&nbsp;<img src="img/Icon_External_Link.png" /></a>.
-                        <b>However, there is <i>experimental</i> support for Zimit archives in our Progressive Web App (PWA) available from <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a></b>.
+                        This application is now fully compatible with archives that are created by <b>Zimit</b> (<a href="https://youzim.it" target="_blank">https://youzim.it&nbsp;<img src="img/Icon_External_Link.png" /></a>)
+                        using the Web Archive (WARC) format, so long as your browser supports ServiceWorker mode. If you can only use JQuery mode, we do our best to show you
+                        the static content of the requested article (no JavaScript can run in this mode). This will work for some basic static sites, but many will look broken.
+                        Search for content in the usual way.
                     </p>
 
                     <h4 id="FAT" data-i18n="about-fat-fs">Downloading and storing large archives</h4>
@@ -322,8 +321,7 @@
                                 be capable of installing a Service Worker, which is usually the case in modern browsers. It works by intercepting
                                 the browser or framework's Fetch calls (network requests) and supplying the requested content from the ZIM. In this
                                 mode, the content is read and supplied as-is from the archive to the browser. Dynamic content (e.g. JavaScript) and
-                                proprietary UIs are fully supported in this mode. However, Zimit archives are <b>not</b> currently supported due to
-                                a conflict between the Kiwix JS Service Worker and the WARC Service Worker (but you can use the PWA for experimental support, see above). This mode can feel initially a little
+                                proprietary UIs are fully supported in this mode. This mode can feel initially a little
                                 slower than JQuery mode until commonly used assets are cached, but it soon equals JQuery mode in speed, at least in
                                 modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the app must be running
                                 in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser extensions). While this mode is
