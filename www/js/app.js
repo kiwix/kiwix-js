@@ -2019,7 +2019,7 @@ function handleClickOnReplayLink (ev, anchor) {
     var pseudoDomainPath = anchor.hostname + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
     // If the paths are identical, then we are dealing with a link to an anchor in the same document, so we can return
-    if (pseudoDomainPath === containingDocDomainPath) return;
+    if (anchor.protocol !== document.location.protocol || pseudoDomainPath === containingDocDomainPath) return;
     var zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
     if (zimUrl) {
