@@ -257,7 +257,7 @@ if (isReplayWorkerAvailable) {
                 // Adjust the root configuration
                 if (self.sw.collections.root) {
                     console.debug('[SW] Adjusting ReplayWorker root configuration to ' + self.sw.collections.root);
-                    return setCollectionAsRoot(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
+                    return setReplayCollectionAsRoot(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
                 }
             });
         } else {
@@ -388,7 +388,7 @@ self.addEventListener('message', function (event) {
             } else {
                 event.waitUntil(
                     self.sw.collections._handleMessage(event).then(function () {
-                        setCollectionAsRoot(event.data.prefix, event.data.name);
+                        setReplayCollectionAsRoot(event.data.prefix, event.data.name);
                         // Reply to the message port with a success message
                         event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
                     })
@@ -404,7 +404,7 @@ self.addEventListener('message', function (event) {
  * @param {String} prefix The URL prefix where assets are loaded, consisting of the local path to the ZIM file plus the namespace
  * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
  */
-function setCollectionAsRoot (prefix, name) {
+function setReplayCollectionAsRoot (prefix, name) {
     // Guard against prototype pollution attack
     if (typeof prefix !== 'string' || typeof name !== 'string') {
         console.error('Invalid prefix or name');
@@ -425,12 +425,14 @@ function setCollectionAsRoot (prefix, name) {
         root: self.sw.prefix,
         static: self.sw.staticPrefix
     }
-    let newMap = new Map();
-    for (let [key, value] of self.sw.staticData.entries()) {
-        const newKey = /wombat\.js/i.test(key) ? self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? self.sw.staticPrefix + 'wombatWorkers.js' : key;
-        newMap.set(newKey, value);
-    }
-    self.sw.staticData = newMap;
+    // If we want to be able to get the static data URL directly from the map, we need to replace the keyes, but as this is quite costly (moving a lot of static)
+    // data around, we're using another way to get the static data URL from the map in zimitResolver()
+    // let newMap = new Map();
+    // for (let [key, value] of self.sw.staticData.entries()) {
+    //     const newKey = /wombat\.js/i.test(key) ? self.sw.staticPrefix + 'wombat.js' : /wombatWorkers\.js/i.test(key) ? self.sw.staticPrefix + 'wombatWorkers.js' : key;
+    //     newMap.set(newKey, value);
+    // }
+    // self.sw.staticData = newMap;
     if (self.sw.collections.colls[name]) {
         self.sw.collections.colls[name].prefix = self.sw.prefix;
         self.sw.collections.colls[name].rootPrefix = self.sw.prefix;
@@ -476,13 +478,14 @@ function zimitResolver (event) {
         return replayCollectionsReloaded.then(function () {
             if (self.sw.collections.colls && self.sw.collections.colls[zimStem]) {
                 if (self.sw.collections.root !== zimStem) {
-                    setCollectionAsRoot(self.sw.collections.colls[zimStem].config.sourceUrl, zimStem);
+                    setReplayCollectionAsRoot(self.sw.collections.colls[zimStem].config.sourceUrl, zimStem);
                 }
                 if (/\/A\/static\//.test(rqUrl)) {
                     // If the request is for static data from the replayWorker, we should get them from the Worker's cache
                     // DEV: This extracts both wombat.js and wombatWorkers.js from the staticData Map
+                    var staticDataUrl = rqUrl.replace(/^(.*?\/)[^/]+?\.zim\w?\w?\/[AC/]{2,4}(.*)/, '$1$2')
                     if (self.sw.staticData) {
-                        var staticData = self.sw.staticData.get(rqUrl);
+                        var staticData = self.sw.staticData.get(staticDataUrl);
                         if (staticData) {
                             console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
                             // Construct a new Response with headers to return the static data
