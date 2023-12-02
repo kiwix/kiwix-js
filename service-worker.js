@@ -296,31 +296,26 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            return zimitResolver(event).then(function (modRequest) {
-                if (modRequest instanceof Response) {
+            return zimitResolver(event).then(function (modRequestOrResponse) {
+                if (modRequestOrResponse instanceof Response) {
                     // The request was modified by the ReplayWorker and it returned a modified response, so we return it
                     // console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
-                    return modRequest;
+                    return cacheAndReturnResponseForAsset(event, modRequestOrResponse);
                 }
-                rqUrl = modRequest.url;
+                rqUrl = modRequestOrResponse.url;
                 urlObject = new URL(rqUrl);
                 strippedUrl = urlObject.pathname;
                 if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
-                    const range = modRequest.headers.get('range');
+                    const range = modRequestOrResponse.headers.get('range');
                     return fetchUrlFromZIM(urlObject, range).then(function (response) {
-                        // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
-                        if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
-                            !regexpExcludedURLSchema.test(event.request.url)) {
-                            event.waitUntil(updateCache(ASSETS_CACHE, rqUrl, response.clone()));
-                        }
-                        return response;
+                        return cacheAndReturnResponseForAsset(event, response);
                     }).catch(function (msgPortData) {
                         console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
                         return msgPortData;
                     });
                 } else {
                     // It's not an asset, or it doesn't match a ZIM URL pattern, so we should fetch it with Fetch API
-                    return fetch(modRequest).then(function (response) {
+                    return fetch(modRequestOrResponse).then(function (response) {
                         // If request was successful, add or update it in the cache, but be careful not to cache the ZIM archive itself!
                         if (!regexpExcludedURLSchema.test(rqUrl) && !/\.zim\w{0,2}$/i.test(strippedUrl)) {
                             event.waitUntil(updateCache(APP_CACHE, rqUrl, response.clone()));
@@ -521,6 +516,16 @@ function contsructResponse (content, contentType) {
         headers: headers
     };
     return new Response(content, responseInit);
+}
+
+// Caches and returns the event and response pair for an asset. Do not use this for non-asset requests!
+function cacheAndReturnResponseForAsset (event, response) {
+    // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
+    if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
+        !regexpExcludedURLSchema.test(event.request.url)) {
+        event.waitUntil(updateCache(ASSETS_CACHE, event.request.url, response.clone()));
+    }
+    return response;
 }
 
 /**
