@@ -25,6 +25,8 @@
 
 /* global chrome */
 
+/* eslint-disable prefer-const */
+
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
@@ -241,19 +243,25 @@ try {
     isReplayWorkerAvailable = false;
 }
 
-// Instruct the ReplayWorker to load all collections
+let replayCollectionsReloaded;
+
+// Instruct the ReplayWorker to reload all collections, and adjust the root configuration (this is necessary after thw SW has stopped and restarted)
 if (isReplayWorkerAvailable) {
-    self.sw.api.collections.inited.then(function () {
-        if (self.sw.collections.root) {
-            console.debug('[SW] Reloading ReplayWorker collection for ' + self.sw.collections.root + '...');
-            return self.sw.collections.reload(self.sw.collections.root).then(function () {
-                if (self.sw.prefix) {
-                    adjustReplayConfig(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
-                    console.debug('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' was reloaded'/*, self.sw */);
-                } else {
-                    console.error('[SW] ReplayWorker collection for ' + self.sw.collections.root + ' could not be reloaded because self.sw.prefix is not defined');
+    replayCollectionsReloaded = self.sw.collections.listAll().then(function (colls) {
+        if (colls) {
+            console.debug('[SW] Reloading ReplayWorker collections', colls);
+            return Promise.all(colls.map(function (coll) {
+                // console.debug('[SW] Reloading ReplayWorker collection ' + coll.name);
+                return self.sw.collections.reload(coll.name);
+            })).then(function () {
+                // Adjust the root configuration
+                if (self.sw.collections.root) {
+                    console.debug('[SW] Adjusting ReplayWorker root configuration to ' + self.sw.collections.root);
+                    return setCollectionAsRoot(self.sw.collections.colls[self.sw.collections.root].config.sourceUrl, self.sw.collections.root);
                 }
             });
+        } else {
+            console.debug('[SW] No ReplayWorker collections to reload');
         }
     });
 }
@@ -380,7 +388,7 @@ self.addEventListener('message', function (event) {
             } else {
                 event.waitUntil(
                     self.sw.collections._handleMessage(event).then(function () {
-                        adjustReplayConfig(event.data.prefix, event.data.name);
+                        setCollectionAsRoot(event.data.prefix, event.data.name);
                         // Reply to the message port with a success message
                         event.ports[0].postMessage({ success: 'ReplayWorker is supported!' });
                     })
@@ -391,12 +399,12 @@ self.addEventListener('message', function (event) {
 });
 
 /**
- * Adjusts the ReplayWorker configuration to match the Kiwix JS environment
+ * Sets a Replay collection as the root configuration, so that the Replay Worker will deal correctly with requests to the collection
  *
- * @param {String} prefix The URL prefix where assets are loaded, consistine of the local path to the ZIM file plus the namespace
+ * @param {String} prefix The URL prefix where assets are loaded, consisting of the local path to the ZIM file plus the namespace
  * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
  */
-function adjustReplayConfig (prefix, name) {
+function setCollectionAsRoot (prefix, name) {
     // Guard against prototype pollution attack
     if (typeof prefix !== 'string' || typeof name !== 'string') {
         console.error('Invalid prefix or name');
@@ -424,7 +432,6 @@ function adjustReplayConfig (prefix, name) {
     }
     self.sw.staticData = newMap;
     if (self.sw.collections.colls[name]) {
-        // self.sw.collections.reload(name);
         self.sw.collections.colls[name].prefix = self.sw.prefix;
         self.sw.collections.colls[name].rootPrefix = self.sw.prefix;
         self.sw.collections.colls[name].staticPrefix = self.sw.staticPrefix;
@@ -440,6 +447,7 @@ function adjustReplayConfig (prefix, name) {
  */
 function zimitResolver (event) {
     var rqUrl = event.request.url;
+    var zimStem = rqUrl.replace(/^.*?\/([^/]+?)\.zim\w?\w?\/.*/, '$1');
     if (/\/A\/load\.js$/.test(rqUrl)) {
         // If the request is for load.js, we should filter its contents to load the mainUrl, as we don't need the other stuff
         // concerning registration of the ServiceWorker and postMessage handling
@@ -462,26 +470,38 @@ function zimitResolver (event) {
                 }
             });
         });
-    } else if (self.sw && self.sw.collections.root && ~rqUrl.indexOf(self.sw.collections.root)) {
-        if (/\/A\/static\//.test(rqUrl)) {
-            // If the request is for static data from the replayWorker, we should get them from the Worker's cache
-            // DEV: This extracts both wombat.js and wombatWorkers.js from the staticData Map
-            if (self.sw.staticData) {
-                var staticData = self.sw.staticData.get(rqUrl);
-                if (staticData) {
-                    console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
-                    // Construct a new Response with headers to return the static data
-                    var responseStaticData = contsructResponse(staticData.content, staticData.type);
-                    return Promise.resolve(responseStaticData);
-                } else {
-                    // Return a 404 response
-                    return Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' }));
+    // Check that the requested URL is for a ZIM that we already have loaded
+    } else if (zimStem !== rqUrl && isReplayWorkerAvailable) {
+        // Wait for the ReplayWorker to initialize and reload all collections
+        return replayCollectionsReloaded.then(function () {
+            if (self.sw.collections.colls && self.sw.collections.colls[zimStem]) {
+                if (self.sw.collections.root !== zimStem) {
+                    setCollectionAsRoot(self.sw.collections.colls[zimStem].config.sourceUrl, zimStem);
                 }
+                if (/\/A\/static\//.test(rqUrl)) {
+                    // If the request is for static data from the replayWorker, we should get them from the Worker's cache
+                    // DEV: This extracts both wombat.js and wombatWorkers.js from the staticData Map
+                    if (self.sw.staticData) {
+                        var staticData = self.sw.staticData.get(rqUrl);
+                        if (staticData) {
+                            console.debug('[SW] Returning static data from ReplayWorker', rqUrl);
+                            // Construct a new Response with headers to return the static data
+                            var responseStaticData = contsructResponse(staticData.content, staticData.type);
+                            return Promise.resolve(responseStaticData);
+                        } else {
+                            // Return a 404 response
+                            return Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' }));
+                        }
+                    }
+                } else {
+                    // console.debug('[SW] Asking ReplayWorker to handleFetch', rqUrl);
+                    return self.sw.handleFetch(event);
+                }
+            } else {
+                // The requested ZIM is not loaded, so we should return not found
+                return Promise.resolve(new Response('', { status: 404, statusText: 'Not Found' }));
             }
-        } else {
-            // console.debug('[SW] Asking ReplayWorker to handleFetch', rqUrl);
-            return self.sw.handleFetch(event);
-        }
+        });
     } else {
         // The loaded ZIM archive is not a Zimit archive, or sw-Zimit is unsupported, so we should just return the request
         return Promise.resolve(event.request);
