@@ -11,8 +11,9 @@ This pre-release version is only published to the browser-extension PWA, and wil
 * FEATURE: High-fidelity Zimit archive reading, with fallback to static content for old browsers
 * FEATURE: Enabled multi-ZIM support (browsing different ZIMs simultaneously in different browser tabs or windows)
 * BUGFIX: Restored ability to scroll the search results with touch or mouse
-* FIX: Issue causing a bootloop in rare circumstances when the app is in jQuery mode
+* BUGFIX: Issue causing a bootloop in rare circumstances when the app is in jQuery mode
 * FIX: Updated some broken links
+* DEV: Provided a separate webmanifest for the PWA version
 * DEV: Updated info for developers
 * DEV: Added a generic version of browserAction in backgroundscript to support MV3 extensions
 * DEV: Fixed some anomalies in tests
