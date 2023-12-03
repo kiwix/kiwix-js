@@ -38,7 +38,7 @@
 
     "web_accessible_resources": [{
         "resources": ["www/index.html", "www/article.html"],
-        "matches": ["https://*.kiwix.org/*"]
+        "matches": ["https://*.kiwix.org/*", "https://kiwix.github.io/*"]
     }],
 
     "author": "Kiwix",

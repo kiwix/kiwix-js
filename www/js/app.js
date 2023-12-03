@@ -1849,6 +1849,10 @@ function readArticle (dirEntry) {
         }
 
         if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+            if (window.location.protocol === 'chrome-extension:') {
+                // Zimit archives contain content that is blocked in a local Chromium extension (on every page), so we must fall back to jQuery mode
+                return handleUnsupportedReplayWorker(dirEntry);
+            }
             var archiveName = selectedArchive.file.name.replace(/\.zim\w{0,2}$/i, '');
             var cns = selectedArchive.getContentNamespace();
             // Support type 0 and type 1 Zimit archives
@@ -1860,7 +1864,7 @@ function readArticle (dirEntry) {
             zimitMessageChannel.port1.onmessage = function (event) {
                 if (event.data.error) {
                     console.error('Reading Zimit archives in ServiceWorker mode is not supported in this browser', event.data.error);
-                    handleUnsupportedReplayWorker(dirEntry);
+                    return handleUnsupportedReplayWorker(dirEntry);
                 } else if (event.data.success) {
                     // console.debug(event.data.success);
                     appstate.isReplayWorkerAvailable = true;
@@ -2061,11 +2065,9 @@ function handleUnsupportedReplayWorker (unhandledDirEntry) {
     params.contentInjectionMode = 'jquery';
     readArticle(unhandledDirEntry);
     // if (!params.hideActiveContentWarning) uiUtil.displayActiveContentWarning();
-    uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, ' +
-        'which is not unsupported by your browser version in ServiceWorker mode.</p><p>We have temporarily switched you to JQuery mode ' +
-        'so you can view static content, but a lot of content is non-functional. If you can upgrade your browser, you will ' +
-        'be able to access dynamic content.</p><p>Alternatively, you can try the Kiwix JS PWA, which supports some dynamic Zimit content ' +
-        'in older browsers. Go to: <a href="https://pwa.kiwix.org" target="_blank">https://pwa.kiwix.org</a>.</p>',
+    return uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, ' +
+        'which is not supported by your browser in ServiceWorker(Local) mode.</p><p>We have temporarily switched you to JQuery mode ' +
+        'so you can view static content, but a lot of content is non-functional in this configuration.</p>',
     translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
 }
 
@@ -2181,7 +2183,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
-    htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
+    htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
 
     // Transform as many Zimit-style URLs as possible to their ZIM equivalents
     if (selectedArchive.zimType === 'zimit') {

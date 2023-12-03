@@ -199,6 +199,9 @@ function _reloadApp () {
                         console.debug('All Service Workers unregistered...');
                         reboot();
                     }
+                }).catch(function (err) {
+                    console.error(err);
+                    reboot();
                 });
             });
         }).catch(function (err) {
