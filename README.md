@@ -104,8 +104,9 @@ Service Workers are currently disabled by Mozilla in Firefox extensions, and in 
 for security reasons. In both cases we offer a functional workaround (an offline-first PWA version) as a substitute within the extension;
 - "ServiceWorkerLocal" mode is a restricted ServiceWorker mode that is available only in Chromium extensions running fully locally. Chromium
 extensions running locally block (by design) a lot of dynamic content such as inline JavaScript and `eval`, which means this mode won't work
-with a lot of modern dynamic content, and in particular, it won't work with Zimit-based archives. This mode is only useful if you cannot
-access the offline-first PWA, or with some conforming ZIM types issued by Kiwix;
+with some modern dynamic content, and in particular, it won't work with Zimit-based archives (if you open one of these in this mode, you
+will be thrown back to JQuery mode in order to view static content). However, this mode is useful if you cannot access the offline-first PWA,
+and should work with most official Kiwix ZIM archives;
 - "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract from the ZIM.
 This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so ZIMs with dynamic content do not work well (if at all).
 If you open dynamic (including Zimit) archive in this mode (or if you are thrown into the mode due to another incompatibility), then we will do our
@@ -116,13 +117,10 @@ strongly advised to remain in this mode.
 
 ### Limitations
 
-It is unfortunately not yet technically possible to "remember" the selected ZIM file and open it automatically (browsers do not allow that for
-security reasons). A handy alternative is to drag-and-drop a ZIM file into the app, which is a quick way to open an archive
-and switch between several archives in a folder. There are
-[versions of this app](https://kiwix.github.io/kiwix-js-pwa/app) that use frameworks like Electron, UWP or NWJS
-which do have the capability of remembering the chosen archive between app launches. For desktop Chromium browsers, the
-[File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API) (see
-[#656](https://github.com/kiwix/kiwix-js/issues/656)) is implemented in a PWA version at https://pwa.kiwix.org.
+It is not yet technically possible automatically re-open a selected ZIM file between sessions. However, browsers that support the File System Access API
+or the `webkitdirectory` property of the File API, allow you to re-open a folder or directory of ZIMs with a quick permission prompt. Another alternative
+is to drag-and-drop a ZIM file into the app. There are [versions of this app](https://kiwix.github.io/kiwix-js-pwa/app) that have experimental support for
+the Origin Private File System, or that use frameworks like Electron, which do have the capability of remembering the chosen archive between app launches.
 
 The app has fast title search, and slower full-text search for ZIM archives that have a full-text index, thanks to the
 [openzim/javascript-libzim](https://github.com/openzim/javascript-libzim) project. Currently, full-text searching only works in browsers
