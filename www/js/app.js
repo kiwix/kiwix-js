@@ -2019,6 +2019,7 @@ function articleLoadedSW (iframeArticleContent) {
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
+    var href = anchor.href;
     var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
     var pseudoDomainPath = anchor.hostname + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
@@ -2034,7 +2035,7 @@ function handleClickOnReplayLink (ev, anchor) {
                 var mimetype = dirEntry.getMimetype();
                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                 // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
-                if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(anchor.href)) {
+                if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(href)) {
                     window.open(anchor.href, '_blank');
                 /*
                 } else if (/\bx?html\b/i.test(mimetype)) {
@@ -2046,7 +2047,7 @@ function handleClickOnReplayLink (ev, anchor) {
                     anchor.passthrough = true;
                     // Handle middle-clicks and ctrl-clicks
                     if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
-                        window.open(anchor.href, '_blank');
+                        window.open(href, '_blank');
                     } else {
                         anchor.click();
                     }
