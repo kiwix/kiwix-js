@@ -2019,12 +2019,14 @@ function articleLoadedSW (iframeArticleContent) {
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
-    var href = anchor.href;
     var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
     var pseudoDomainPath = anchor.hostname + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
-    // If the paths are identical, then we are dealing with a link to an anchor in the same document, so we can return
-    if (anchor.protocol !== document.location.protocol || pseudoDomainPath === containingDocDomainPath) return;
+    // If it's for a different protocol (e.g. javascript:) we should let Replay handle that, or if the paths are identical, then we are dealing
+    // with a link to an anchor in the same document, or if the user has pressed the ctrl or command key, the document will open in a new window
+    // anyway, so we can return. Note that some PDFs are served with a protocol of http: instead of https:, so we need to account for that.
+    if (anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':') || pseudoDomainPath === containingDocDomainPath ||
+        ev.ctrlKey || ev.metaKey || ev.button === 1) return;
     var zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
     if (zimUrl) {
@@ -2032,11 +2034,12 @@ function handleClickOnReplayLink (ev, anchor) {
         ev.stopPropagation();
         selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
             if (dirEntry) {
+                var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, selectedArchive.file.name + '/');
                 var mimetype = dirEntry.getMimetype();
                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                 // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
-                if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(href)) {
-                    window.open(anchor.href, '_blank');
+                if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(anchor.href) || /\.pdf(?:[#?]|$)/i.test(dirEntry.url)) {
+                    window.open(pathToArticleDocumentRoot + zimUrl, '_blank');
                 /*
                 } else if (/\bx?html\b/i.test(mimetype)) {
                     // If the SW has gone to sleep, loading this way gives it a chance to reload configuration
@@ -2045,9 +2048,9 @@ function handleClickOnReplayLink (ev, anchor) {
                 } else {
                     // Fingers crossed, let Replay handle this link
                     anchor.passthrough = true;
-                    // Handle middle-clicks and ctrl-clicks
+                    // Handle middle-clicks and ctrl-clicks (these should be filtered out above, but...)
                     if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
-                        window.open(href, '_blank');
+                        window.open(pathToArticleDocumentRoot + zimUrl, '_blank');
                     } else {
                         anchor.click();
                     }
