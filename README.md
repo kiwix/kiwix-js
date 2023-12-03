@@ -39,8 +39,10 @@ As mentioned above, the app requires at least one ZIM archive of offline content
 graphical interface and a preview of each ZIM archive) or from https://download.kiwix.org/zim/ (a more basic list of archives). You have to download
 these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
 
-Please note that certain "Zimit"-based archives (available from the "zimit" directory on https://download.kiwix.org/zim/) are not (yet) compatible
-with this reader. There is experimental support for these in our sister app https://pwa.kiwix.org.
+**Zimit-based archives** (available from the "zimit" directory on https://download.kiwix.org/zim/) are **now compatible** with this reader, as of v3.11.5,
+in modern browsers *if the reader is running in [ServiceWorker mode](#some-technical-details) as an offline-first PWA* ([see below](#some-technical-details)
+for an explanation of what this means). If the app is running in any other mode, then only static content will be viewable, and many Zimit ZIMs may not work
+at all. Our sister app https://pwa.kiwix.org has some more support for Zimit archives in solder browsers.
 
 ## Compatibility
 
@@ -98,14 +100,19 @@ there are two main ways of doing this:
 
 - "ServiceWorker" mode (the default) uses a Service Worker to catch any HTTP request the page may send and reply with content read from
 the ZIM file. It is a generic and clean way of serving content to the browser. It works in any recent browser, but not in older ones.
-Service Workers are currently disabled by Mozilla in Firefox extensions, but we use a workaround (an offline-first PWA version) as a
-substitute within the extension;
-- "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract
-from the ZIM. This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so some ZIMs with dynamic
-content do not work well (if at all). However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
+Service Workers are currently disabled by Mozilla in Firefox extensions, and in Chromium extensions active content is severly restricted
+for security reasons. In both cases we offer a functional workaround (an offline-first PWA version) as a substitute within the extension;
+- "ServiceWorkerLocal" mode is a restricted ServiceWorker mode that is available only in Chromium extensions running fully locally. Chromium
+extensions running locally block (by design) a lot of dynamic content such as inline JavaScript and `eval`, which means this mode won't work
+with a lot of modern dynamic content, and in particular, it won't work with Zimit-based archives. This mode is only useful if you cannot
+access the offline-first PWA, or with some conforming ZIM types issued by Kiwix;
+- "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract from the ZIM.
+This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so ZIMs with dynamic content do not work well (if at all).
+If you open dynamic (including Zimit) archive in this mode (or if you are thrown into the mode due to another incompatibility), then we will do our
+best to display static content, but much functionality is likely to be broken. However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
 
-You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode, you are strongly
-advised to remain in this mode.
+You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode as an offline-first PWA, you are
+strongly advised to remain in this mode.
 
 ### Limitations
 
