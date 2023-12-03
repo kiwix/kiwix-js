@@ -33,7 +33,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '3.11.2';
+const appVersion = '3.11.5';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
