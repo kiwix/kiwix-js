@@ -1597,6 +1597,10 @@ function archiveReadyCallback (archive) {
         }
     }
 
+    // When a new ZIM is loaded, we turn this flag off, so that we don't get false positive attempts to use the Worker
+    // It will be turned on again when the first article is loaded
+    appstate.isReplayWorkerAvailable = false;
+
     // Initialize the Service Worker
     if (params.contentInjectionMode === 'serviceworker') {
         initServiceWorkerMessaging();
@@ -1969,7 +1973,10 @@ function articleLoadedSW (iframeArticleContent) {
                 // Find the closest enclosing A tag (if any)
                 var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
                 // If the anchor has a passthrough property, then we have already checked it is safe, so we can return
-                if (clickedAnchor && clickedAnchor.passthrough) return;
+                if (clickedAnchor && clickedAnchor.passthrough) {
+                    clickedAnchor.passthrough = false;
+                    return;
+                }
                 if (clickedAnchor) {
                     // Check for Zimit links that would normally be handled by the Replay Worker
                     if (appstate.isReplayWorkerAvailable) {
