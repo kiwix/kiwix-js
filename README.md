@@ -14,8 +14,9 @@ read the archive's content. You can have the entire content of Wikipedia in your
 entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this
 amazing repository of knowledge, information and culture.
 
-The Kiwix browser also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), but our main targets are Mediawiki-based
-content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project Gutenberg and TED Talks.
+The Kiwix browser also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), and has support for [Zimit content](https://youzim.it/)
+(based on the Web Archive format), but our main targets are Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project
+Gutenberg and TED Talks.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
@@ -39,10 +40,11 @@ As mentioned above, the app requires at least one ZIM archive of offline content
 graphical interface and a preview of each ZIM archive) or from https://download.kiwix.org/zim/ (a more basic list of archives). You have to download
 these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
 
-**Zimit-based archives** (available from the "zimit" directory on https://download.kiwix.org/zim/) are **now compatible** with this reader, as of v3.11.5,
-in modern browsers *if the reader is running in [ServiceWorker mode](#some-technical-details) as an offline-first PWA* ([see below](#some-technical-details)
-for an explanation of what this means). If the app is running in any other mode, then only static content will be viewable, and many Zimit ZIMs may not work
-at all. Our sister app https://pwa.kiwix.org has some more support for Zimit archives in solder browsers.
+**Zimit-based archives** (available from the "zimit" directory on https://download.kiwix.org/zim/, or made yourself with [youzim.it](https://youzim.it/)), are
+**now compatible** with this reader, as of v3.11.5, in modern browsers *if the reader is running in [ServiceWorker mode](#some-technical-details) as an offline-first PWA*
+([see below](#some-technical-details) for an explanation of what this means). If the app is running in any other mode, then only static content will be
+viewable, and many Zimit ZIMs may not work at all when viewed statically. Our sister app https://pwa.kiwix.org has some more support for Zimit archives
+in solder browsers.
 
 ## Compatibility
 
@@ -109,7 +111,7 @@ will be thrown back to JQuery mode in order to view static content). However, th
 and should work with most official Kiwix ZIM archives;
 - "JQuery" mode (deprecated) parses the DOM to find the HTML tags of the dependencies and modifies them to point to content we extract from the ZIM.
 This mode is compatible with any browser, but it cannot run JavaScript inside the ZIM file, so ZIMs with dynamic content do not work well (if at all).
-If you open dynamic (including Zimit) archive in this mode (or if you are thrown into the mode due to another incompatibility), then we will do our
+If you open a dynamic (including Zimit) archive in this mode (or if you are thrown into the mode due to another incompatibility), then we will do our
 best to display static content, but much functionality is likely to be broken. However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
 
 You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode as an offline-first PWA, you are
