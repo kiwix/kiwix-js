@@ -1586,21 +1586,17 @@ function setLocalArchiveFromFileList (files) {
  */
 function archiveReadyCallback (archive) {
     selectedArchive = archive;
-
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
     selectedArchive.cssCache = new Map();
-
     if (selectedArchive.zimType !== 'zimit') {
         if (params.originalContentInjectionMode) {
             params.contentInjectionMode = params.originalContentInjectionMode;
             params.originalContentInjectionMode = null;
         }
     }
-
     // When a new ZIM is loaded, we turn this flag off, so that we don't get false positive attempts to use the Worker
     // It will be turned on again when the first article is loaded
     appstate.isReplayWorkerAvailable = false;
-
     // Initialize the Service Worker
     if (params.contentInjectionMode === 'serviceworker') {
         initServiceWorkerMessaging();
