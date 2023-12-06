@@ -2022,7 +2022,7 @@ function articleLoadedSW (iframeArticleContent) {
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
-    var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
+    var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
     var pseudoDomainPath = anchor.hostname + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
     // If it's for a different protocol (e.g. javascript:) we should let Replay handle that, or if the paths are identical, then we are dealing
@@ -2198,7 +2198,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Try to get the Zimit prefix from any canonical URL in the article
         var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
         // If we couldn't get it, reconstruct it from the archive's zimitPrefix
-        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^[CA]\/(?:A\/)?([^/]+).*/, '$1');
+        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
         zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
             var newBlock = match;
@@ -2376,7 +2376,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 var newHref = href;
                 if (selectedArchive.zimType === 'zimit') {
                     // We need to check that the link isn't from a domain contained in the Zimit archive
-                    var zimitDomain = selectedArchive.zimitPrefix.replace(/^[CA/]+([^/]+).*/, '$1');
+                    var zimitDomain = selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
                     newHref = href.replace(anchor.protocol + '//' + zimitDomain + '/', '');
                 }
                 if (newHref === href) {
@@ -2388,7 +2388,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     });
                     return;
                 } else {
-                    href = selectedArchive.zimitPrefix + newHref;
+                    href = dirEntry.namespace + '/' + selectedArchive.zimitPrefix + newHref;
                 }
             }
             // It's a link to an article or file in the ZIM
@@ -2413,7 +2413,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
-                if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
+                if (selectedArchive.zimitPrefix && ~href.indexOf(dirEntry.namespace + '/' + selectedArchive.zimitPrefix)) {
                     // It's already a full ZIM URL, so we can use it after stripping any anchor
                     zimUrl = decodeURIComponent(href.replace(/#.*/, ''));
                 } else {

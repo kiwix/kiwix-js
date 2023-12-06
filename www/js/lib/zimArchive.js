@@ -30,7 +30,6 @@ import util from './util.js';
 import uiUtil from './uiUtil.js';
 import utf8 from './utf8.js';
 import translateUI from './translateUI.js';
-import { get } from 'jquery';
 
 /**
  * ZIM Archive
@@ -682,18 +681,30 @@ ZIMArchive.prototype.addMetadataToZIMFile = function (key) {
  */
 ZIMArchive.prototype.setZimitMetadata = function () {
     var that = this;
-    return this.getDirEntryByPath(this.landingPageUrl).then(function (dirEntry) {
-        return dirEntry.readData().then(function (data) {
-            var html = that.getUtf8FromData(data);
-            var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
-            if (redirect && redirect[2] && redirect[3]) {
-                // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
-                var relativeZimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
-                var zimitStartPage = dirEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
-                // Store a full Zimit prefix in the archive object
-                that.zimitPrefix = relativeZimitPrefix + '/';
-                that.zimitStartPage = zimitStartPage;
-            }
+    // Get the landing page
+    return this.file.dirEntryByUrlIndex(this.file.mainPage).then(function (dirEntry) {
+        var findRedirectTarget = dirEntry.redirect ? function (dirEntry) {
+            // If the landing page is a redirect, we need to find the target
+            return that.file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(function (newEntry) {
+                return newEntry;
+            });
+        } : function (dirEntry) {
+            return Promise.resolve(dirEntry);
+        };
+        return findRedirectTarget(dirEntry).then(function (reEntry) {
+            return reEntry.readData().then(function (data) {
+                var html = that.getUtf8FromData(data);
+                var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
+                if (redirect && redirect[2] && redirect[3]) {
+                    // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
+                    var relativeZimitPrefix = (reEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
+                    var zimitStartPage = reEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
+                    // Store a full Zimit prefix in the archive object
+                    that.zimitPrefix = relativeZimitPrefix + '/';
+                    that.zimitStartPage = zimitStartPage;
+                    that.zimitPseudoContentNamespace = reEntry.namespace + '/' + (reEntry.namespace === 'C' ? 'A/' : '');
+                }
+            });
         });
     }).catch(function (e) {
         console.warn('Zimit metadata not found in this archive!', e);
