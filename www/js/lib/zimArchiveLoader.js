@@ -1,7 +1,7 @@
 /**
  * zimArchiveLoader.js: Functions to search and read ZIM archives.
  *
- * Copyright 2015 Mossroy and contributors
+ * Copyright 2015-2024 Mossroy and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.

@@ -69,7 +69,7 @@ var useAppCache = true;
 /**
  * A global Boolean that records whether the ReplayWorker is available
  */
-var isReplayWorkerAvailable = false;
+let isReplayWorkerAvailable = false;
 
 /**
  * A regular expression that matches the Content-Types of assets that may be stored in ASSETS_CACHE

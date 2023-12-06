@@ -48,7 +48,7 @@ const config = {
             },
             { src: ['node_modules/bootstrap/dist/css/bootstrap.min.*'], dest: 'dist/www/css' },
             { src: ['i18n/*'], dest: 'dist/i18n' },
-            { src: ['archives', 'backgroundscript.js', 'index.html', 'manifest.json', 'manifest.fx.v3.json', 'manifest.v2.json', 'manifest.webapp', 'package.json', 'LICENSE-GPLv3.txt', 'CHANGELOG.md', 'README.md', '*.pfx', '*.cjs'], dest: 'dist' }
+            { src: ['archives', 'backgroundscript.js', 'index.html', 'manifest.json', 'manifest.fx.v3.json', 'manifest.v2.json', 'manifest.webapp', 'manifest.webmanifest', 'package.json', 'LICENSE-GPLv3.txt', 'CHANGELOG.md', 'README.md', '*.pfx', '*.cjs'], dest: 'dist' }
             ],
             flatten: true
         })
@@ -168,7 +168,7 @@ if (process.env.BUILD === 'production') {
                     // Alter remaining lib references
                         .replace(/([\\/])js[\\/]lib/g, '$1js')
                     // Remove unneeded ASM/WASM binaries
-                        .replace(/["']www[\\/]js[\\/].*dec.*js["'],\s*/g, '')
+                        .replace(/['"]www[\\/]js[\\/].*dec.*js['"],\s*/g, '')
                 },
                 {
                     src: ['replayWorker.js'],
