@@ -2102,39 +2102,31 @@ function handleMessageChannelMessage (event) {
             console.warn('Title ' + title.replace(/^(.{1,160}).*/, '$1...') + ' not found in archive.');
             // DEV: We send null for the content, so that the ServiceWorker knows that the article was not found (as opposed to being merely empty)
             messagePort.postMessage({ action: 'giveContent', title: title, content: null, zimType: selectedArchive.zimType });
-        } else if (dirEntry.isRedirect()) {
-            selectedArchive.resolveRedirect(dirEntry, function (resolvedDirEntry) {
-                var redirectURL = resolvedDirEntry.namespace + '/' + resolvedDirEntry.url;
-                // Ask the ServiceWorker to send an HTTP redirect to the browser.
-                // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
-                // Else, if the redirect URL is in a different directory than the original URL,
-                // the relative links in the HTML content would fail. See #312
-                messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectURL });
-            });
+        } else if (dirEntry.isRedirect) {
+            var redirectPath = dirEntry.redirectPath;
+            // Ask the ServiceWorker to send an HTTP redirect to the browser.
+            // We could send the final content directly, but it is necessary to let the browser know in which directory it ends up.
+            // Else, if the redirect URL is in a different directory than the original URL,
+            // the relative links in the HTML content would fail. See #312
+            messagePort.postMessage({ action: 'sendRedirect', title: title, redirectUrl: redirectPath });
         } else {
-            // Let's read the content in the ZIM file
-            selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-                var mimetype = fileDirEntry.getMimetype();
-                // Show the spinner
-                var shortTitle = dirEntry.getTitleOrUrl().replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
-                if (!/moved/i.test(shortTitle) && !/image|javascript|warc-headers|jsonp?/.test(mimetype)) {
-                    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
-                    clearTimeout(window.timeout);
-                    window.timeout = setTimeout(function () {
-                        uiUtil.spinnerDisplay(false);
-                    }, 1000);
-                    // Ensure the article onload event gets attached to the right iframe
-                    articleLoader();
-                }
-                // Let's send the content to the ServiceWorker
-                var buffer = content.buffer ? content.buffer : content;
-                var message = { action: 'giveContent', title: title, content: buffer, mimetype: mimetype, zimType: selectedArchive.zimType };
-                messagePort.postMessage(message);
-            });
+            var shortTitle = title.replace(/^.*?([^/]{3,18})[^/]*\/?$/, '$1 ...');
+            if (!/moved/i.test(shortTitle) && !/image|javascript|warc-headers|jsonp?/.test(dirEntry.mimetype)) {
+                uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + shortTitle);
+                clearTimeout(window.timeout);
+                window.timeout = setTimeout(function () {
+                    uiUtil.spinnerDisplay(false);
+                }, 1000);
+                // Ensure the article onload event gets attached to the right iframe
+                articleLoader();
+            }
+
+            var message = { action: 'giveContent', title: title, content: dirEntry.content, mimetype: dirEntry.mimetype };
+            messagePort.postMessage(message);
         }
     };
-    selectedArchive.getDirEntryByPath(title).then(readFile).catch(function () {
-        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array(), zimType: selectedArchive.zimType });
+    selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title, follow: false }).then(readFile).catch(function () {
+        messagePort.postMessage({ action: 'giveContent', title: title, content: new Uint8Array() });
     });
 }
 

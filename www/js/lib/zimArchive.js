@@ -144,9 +144,13 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
                     that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
                         that.libzimReady = 'ready';
+                        // if (params.useLibzim) whenZimReady();
+                        whenZimReady();
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
                         // Update the API panel
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+                        // Archive is set, go home
+                        document.getElementById('btnHome').click();
                     }).catch(function (err) {
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
                         console.error('The libzim worker could not be instantiated!', err);
@@ -172,7 +176,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 // Set the archive file type ('open' or 'zimit')
                 that.setZimType();
                 // If user is not using libzim for reading the file, we can call the ready callback now
-                if (!params.useLibzim) whenZimReady();
+                // if (!params.useLibzim) whenZimReady();
             }).catch(function (err) {
                 console.warn('Error setting archive listings: ', err);
             });
