@@ -1904,6 +1904,7 @@ function readArticle (dirEntry) {
             selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, content) {
                 // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect
                 if (fileDirEntry.zimitRedirect) {
+                    params.isLandingPage = false;
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
@@ -2505,8 +2506,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         throw new Error('DirEntry ' + typeof dirEntry);
                     }
                     var mimetype = dirEntry.getMimetype();
-                    var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
-                    return readFile(dirEntry, function (fileDirEntry, content) {
+                    var readFile = /^text\//i.test(mimetype) ? 'readUtf8File' : 'readBinaryFile';
+                    return selectedArchive[readFile](dirEntry, function (fileDirEntry, content) {
                         var fullUrl = fileDirEntry.namespace + '/' + fileDirEntry.url;
                         if (params.assetsCache) selectedArchive.cssCache.set(fullUrl, content);
                         if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
