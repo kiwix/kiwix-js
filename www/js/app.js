@@ -2222,9 +2222,9 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             var srcsetArr = srcset.split(',');
             for (var i = 0; i < srcsetArr.length; i++) {
                 // For root-relative links, we need to add the zimitPrefix
-                srcsetArr[i] = srcsetArr[i].replace(/^\s?\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
+                srcsetArr[i] = srcsetArr[i].replace(/^\s*\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
                 // Zimit prefix is in the URL for absolute URLs
-                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s?https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s*https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
                 if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
             }
             match = match.replace(srcset, srcsetArr.join(', '));
