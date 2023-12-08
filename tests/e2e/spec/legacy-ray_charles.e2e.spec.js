@@ -158,7 +158,7 @@ function runTests (driver, modes) {
                 }
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
-                    await driver.sleep(500);
+                    await driver.sleep(800);
                     let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
                     try {
                         if (mode === 'serviceworker') {
@@ -238,8 +238,13 @@ function runTests (driver, modes) {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
                     return contentAvailable;
                 }, 6000);
-                const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
-                const text = await articleLink.getText();
+                // const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
+                // const text = await articleLink.getText();
+                let articleLink;
+                const text = await driver.wait(async function () {
+                    articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                    return await articleLink.getText();
+                }, 6000);
                 // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
                 assert.equal('This Little Girl of Mine', text);
                 // Scroll the element into view and navigate to it
