@@ -2228,6 +2228,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
             }
             match = match.replace(srcset, srcsetArr.join(', '));
+            match = match.replace(/srcset/i, 'data-kiwixsrcset');
             return match;
         });
     }
@@ -2238,17 +2239,18 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
         // We need to save the query string if any for Zimit-style archives
         querystring = querystring || '';
-        if (selectedArchive.zimType !== 'zimit') {
-            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+        var assetZIMUrl = relAssetUrl + querystring;
+        if (!/^[CA]\//.test(relAssetUrl)) {
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component)
-            // We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-            // of encodeURIComponent
+            assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // Re-encode the URI with encodeURI (which does not encode forward slashes) instead of encodeURIComponent
             assetZIMUrl = encodeURI(assetZIMUrl);
-        } else {
-            // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
-            // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
-            // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
-            assetZIMUrl = relAssetUrl + querystring;
+            if (selectedArchive.zimType === 'zimit') {
+                // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
+                // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
+                // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
+                assetZIMUrl = assetZIMUrl + querystring;
+            }
         }
         return blockStart + 'data-kiwixurl' + equals + assetZIMUrl;
     });
@@ -2440,6 +2442,14 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             images.busy = true;
             // Extract the image at the top of the images array and remove it from the array
             var image = images.shift();
+            // Get any data-kiwixsrcset
+            var srcset = image.getAttribute('data-kiwixsrcset');
+            var srcsetArr = [];
+            if (srcset) {
+                // We need to get the array of images in the srcset
+                srcsetArr = srcset.split(',');
+            }
+            // Get the image URL
             var imageUrl = image.getAttribute('data-kiwixurl');
             // Decode any WebP images that are encoded as dataURIs
             if (/^data:image\/webp/i.test(imageUrl)) {
@@ -2454,7 +2464,43 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     var mimetype = dirEntry.getMimetype();
                     uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function () {
                         images.busy = false;
-                        extractImage();
+                        if (srcsetArr.length) {
+                            // We need to process each image in the srcset
+                            // Empty or make a new srcset
+                            image.srcset = '';
+                            var srcsetCount = srcsetArr.length;
+                            srcsetArr.forEach(function (imgAndResolutionUrl) {
+                                srcsetCount--;
+                                images.busy = true;
+                                // Get the url and the resolution from the srcset entry
+                                var urlMatch = imgAndResolutionUrl.match(/^\s*([^\s]+)\s+([0-9.]+\w+)\s*$/);
+                                var url = urlMatch ? urlMatch[1] : '';
+                                var resolution = urlMatch ? urlMatch[2]: '';
+                                selectedArchive.getDirEntryByPath(url).then(function (srcEntry) {
+                                    selectedArchive.readBinaryFile(srcEntry, function (fileDirEntry, content) {
+                                        var mimetype = srcEntry.getMimetype();
+                                        uiUtil.getDataUriFromUint8Array(content, mimetype).then(function (dataUri) {
+                                            // Add the dataUri to the srcset
+                                            image.srcset += (image.srcset ? ', ' : '') + dataUri + ' ' + resolution;
+                                            images.busy = false;
+                                            if (srcsetCount === 0) {
+                                                extractImage();
+                                            }
+                                        }).catch(function (e) {
+                                            console.error('Could not get dataUri for image:' + url, e);
+                                            images.busy = false;
+                                            if (srcsetCount === 0) extractImage();
+                                        });
+                                    });
+                                }).catch(function (e) {
+                                    console.error('Could not find DirEntry for image:' + url, e);
+                                    images.busy = false;
+                                    if (srcsetCount === 0) extractImage();
+                                });
+                            });
+                        } else {
+                            extractImage();
+                        }
                     });
                 });
             }).catch(function (e) {
