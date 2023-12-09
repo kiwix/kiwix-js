@@ -1594,9 +1594,9 @@ function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
-    // When a new ZIM is loaded, we turn this flag off, so that we don't get false positive attempts to use the Worker
-    // It will be turned on again when the first article is loaded
-    appstate.isReplayWorkerAvailable = false;
+    // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
+    // It will be defined as false or true when the first article is loaded
+    appstate.isReplayWorkerAvailable = null;
     // Initialize the Service Worker
     if (params.contentInjectionMode === 'serviceworker') {
         initServiceWorkerMessaging();
@@ -1848,7 +1848,7 @@ function readArticle (dirEntry) {
             return;
         }
 
-        if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+        if (selectedArchive.zimType === 'zimit' && !appstate.isReplayWorkerAvailable) {
             if (window.location.protocol === 'chrome-extension:') {
                 // Zimit archives contain content that is blocked in a local Chromium extension (on every page), so we must fall back to jQuery mode
                 return handleUnsupportedReplayWorker(dirEntry);
