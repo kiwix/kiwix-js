@@ -920,8 +920,34 @@ async function handleMessageChannelByWasm (event) {
         if (ret === null) {
             console.error('Title ' + title + ' not found in archive.');
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
-            return
+            return;
         }
+
+        if (ret.mimetype === 'unknown') {
+            const dirEntry = await new Promise((resolve, reject) => {
+                selectedArchive.getMainPageDirEntry((value) => {
+                    resolve(value);
+                });
+            });
+            console.log(dirEntry);
+            if (dirEntry.redirect) {
+                const redirect = await new Promise((resolve, reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v)));
+                const ret = await selectedArchive.getEntryDirByWasm(redirect.namespace + '/' + redirect.url);
+                const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+                messagePort.postMessage(message);
+                return;
+            }
+        }
+
+        // if (ret.redirect) {
+        //     const redirect = await new Promise((resolve, reject) => selectedArchive.resolveRedirect(ret, (v) => resolve(v)));
+        //     const ret = await selectedArchive.getEntryDirByWasm(redirect.namespace + '/' + redirect.url);
+
+        //     console.log(ret);
+        //     const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+        //     messagePort.postMessage(message);
+        //     return;
+        // }
 
         // Let's send the content to the ServiceWorker
         const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
