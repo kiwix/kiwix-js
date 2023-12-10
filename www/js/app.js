@@ -868,7 +868,7 @@ function initServiceWorkerMessaging () {
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
         if (!appstate.preventAutoReboot) window.location.reload();
-    } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
+    } else if (/^https/.test(window.location.protocol) && navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
         if (!params.noPrompts) {
             uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
                 'Offline use is disabled!', true).then(function (response) {
@@ -1586,21 +1586,17 @@ function setLocalArchiveFromFileList (files) {
  */
 function archiveReadyCallback (archive) {
     selectedArchive = archive;
-
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
     selectedArchive.cssCache = new Map();
-
     if (selectedArchive.zimType !== 'zimit') {
         if (params.originalContentInjectionMode) {
             params.contentInjectionMode = params.originalContentInjectionMode;
             params.originalContentInjectionMode = null;
         }
     }
-
-    // When a new ZIM is loaded, we turn this flag off, so that we don't get false positive attempts to use the Worker
-    // It will be turned on again when the first article is loaded
-    appstate.isReplayWorkerAvailable = false;
-
+    // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
+    // It will be defined as false or true when the first article is loaded
+    appstate.isReplayWorkerAvailable = null;
     // Initialize the Service Worker
     if (params.contentInjectionMode === 'serviceworker') {
         initServiceWorkerMessaging();
@@ -1852,7 +1848,7 @@ function readArticle (dirEntry) {
             return;
         }
 
-        if (selectedArchive.zimType === 'zimit' && params.isLandingPage) {
+        if (selectedArchive.zimType === 'zimit' && !appstate.isReplayWorkerAvailable) {
             if (window.location.protocol === 'chrome-extension:') {
                 // Zimit archives contain content that is blocked in a local Chromium extension (on every page), so we must fall back to jQuery mode
                 return handleUnsupportedReplayWorker(dirEntry);
@@ -1908,6 +1904,7 @@ function readArticle (dirEntry) {
             selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, content) {
                 // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect
                 if (fileDirEntry.zimitRedirect) {
+                    params.isLandingPage = false;
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
@@ -2026,7 +2023,7 @@ function articleLoadedSW (iframeArticleContent) {
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
-    var pseudoNamespace = selectedArchive.zimitPrefix.replace(/^(.*\/)[^/]{2,}\/$/, '$1');
+    var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
     var pseudoDomainPath = anchor.hostname + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
     // If it's for a different protocol (e.g. javascript:) we should let Replay handle that, or if the paths are identical, then we are dealing
@@ -2202,7 +2199,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Try to get the Zimit prefix from any canonical URL in the article
         var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
         // If we couldn't get it, reconstruct it from the archive's zimitPrefix
-        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^[CA]\/(?:A\/)?([^/]+).*/, '$1');
+        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
         zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
             var newBlock = match;
@@ -2225,12 +2222,13 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             var srcsetArr = srcset.split(',');
             for (var i = 0; i < srcsetArr.length; i++) {
                 // For root-relative links, we need to add the zimitPrefix
-                srcsetArr[i] = srcsetArr[i].replace(/^\s?\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
+                srcsetArr[i] = srcsetArr[i].replace(/^\s*\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
                 // Zimit prefix is in the URL for absolute URLs
-                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s?https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
+                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s*https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
                 if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
             }
             match = match.replace(srcset, srcsetArr.join(', '));
+            match = match.replace(/srcset/i, 'data-kiwixsrcset');
             return match;
         });
     }
@@ -2241,17 +2239,18 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
         // We need to save the query string if any for Zimit-style archives
         querystring = querystring || '';
-        if (selectedArchive.zimType !== 'zimit') {
-            var assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+        var assetZIMUrl = relAssetUrl + querystring;
+        if (!/^[CA]\//.test(relAssetUrl)) {
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component)
-            // We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-            // of encodeURIComponent
+            assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
+            // Re-encode the URI with encodeURI (which does not encode forward slashes) instead of encodeURIComponent
             assetZIMUrl = encodeURI(assetZIMUrl);
-        } else {
-            // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
-            // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
-            // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
-            assetZIMUrl = relAssetUrl + querystring;
+            if (selectedArchive.zimType === 'zimit') {
+                // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
+                // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
+                // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
+                assetZIMUrl = assetZIMUrl + querystring;
+            }
         }
         return blockStart + 'data-kiwixurl' + equals + assetZIMUrl;
     });
@@ -2380,7 +2379,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 var newHref = href;
                 if (selectedArchive.zimType === 'zimit') {
                     // We need to check that the link isn't from a domain contained in the Zimit archive
-                    var zimitDomain = selectedArchive.zimitPrefix.replace(/^[CA/]+([^/]+).*/, '$1');
+                    var zimitDomain = selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
                     newHref = href.replace(anchor.protocol + '//' + zimitDomain + '/', '');
                 }
                 if (newHref === href) {
@@ -2392,7 +2391,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     });
                     return;
                 } else {
-                    href = selectedArchive.zimitPrefix + newHref;
+                    href = dirEntry.namespace + '/' + selectedArchive.zimitPrefix + newHref;
                 }
             }
             // It's a link to an article or file in the ZIM
@@ -2417,7 +2416,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var zimUrl;
-                if (selectedArchive.zimitPrefix && ~href.indexOf(selectedArchive.zimitPrefix)) {
+                if (selectedArchive.zimitPrefix && ~href.indexOf(dirEntry.namespace + '/' + selectedArchive.zimitPrefix)) {
                     // It's already a full ZIM URL, so we can use it after stripping any anchor
                     zimUrl = decodeURIComponent(href.replace(/#.*/, ''));
                 } else {
@@ -2443,6 +2442,14 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             images.busy = true;
             // Extract the image at the top of the images array and remove it from the array
             var image = images.shift();
+            // Get any data-kiwixsrcset
+            var srcset = image.getAttribute('data-kiwixsrcset');
+            var srcsetArr = [];
+            if (srcset) {
+                // We need to get the array of images in the srcset
+                srcsetArr = srcset.split(',');
+            }
+            // Get the image URL
             var imageUrl = image.getAttribute('data-kiwixurl');
             // Decode any WebP images that are encoded as dataURIs
             if (/^data:image\/webp/i.test(imageUrl)) {
@@ -2457,7 +2464,43 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     var mimetype = dirEntry.getMimetype();
                     uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function () {
                         images.busy = false;
-                        extractImage();
+                        if (srcsetArr.length) {
+                            // We need to process each image in the srcset
+                            // Empty or make a new srcset
+                            image.srcset = '';
+                            var srcsetCount = srcsetArr.length;
+                            srcsetArr.forEach(function (imgAndResolutionUrl) {
+                                srcsetCount--;
+                                images.busy = true;
+                                // Get the url and the resolution from the srcset entry
+                                var urlMatch = imgAndResolutionUrl.match(/^\s*([^\s]+)\s+([0-9.]+\w+)\s*$/);
+                                var url = urlMatch ? urlMatch[1] : '';
+                                var resolution = urlMatch ? urlMatch[2]: '';
+                                selectedArchive.getDirEntryByPath(url).then(function (srcEntry) {
+                                    selectedArchive.readBinaryFile(srcEntry, function (fileDirEntry, content) {
+                                        var mimetype = srcEntry.getMimetype();
+                                        uiUtil.getDataUriFromUint8Array(content, mimetype).then(function (dataUri) {
+                                            // Add the dataUri to the srcset
+                                            image.srcset += (image.srcset ? ', ' : '') + dataUri + ' ' + resolution;
+                                            images.busy = false;
+                                            if (srcsetCount === 0) {
+                                                extractImage();
+                                            }
+                                        }).catch(function (e) {
+                                            console.error('Could not get dataUri for image:' + url, e);
+                                            images.busy = false;
+                                            if (srcsetCount === 0) extractImage();
+                                        });
+                                    });
+                                }).catch(function (e) {
+                                    console.error('Could not find DirEntry for image:' + url, e);
+                                    images.busy = false;
+                                    if (srcsetCount === 0) extractImage();
+                                });
+                            });
+                        } else {
+                            extractImage();
+                        }
                     });
                 });
             }).catch(function (e) {
@@ -2509,8 +2552,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         throw new Error('DirEntry ' + typeof dirEntry);
                     }
                     var mimetype = dirEntry.getMimetype();
-                    var readFile = /^text\//i.test(mimetype) ? selectedArchive.readUtf8File : selectedArchive.readBinaryFile;
-                    return readFile(dirEntry, function (fileDirEntry, content) {
+                    var readFile = /^text\//i.test(mimetype) ? 'readUtf8File' : 'readBinaryFile';
+                    return selectedArchive[readFile](dirEntry, function (fileDirEntry, content) {
                         var fullUrl = fileDirEntry.namespace + '/' + fileDirEntry.url;
                         if (params.assetsCache) selectedArchive.cssCache.set(fullUrl, content);
                         if (/text\/css/i.test(mimetype)) uiUtil.replaceCSSLinkWithInlineCSS(link, content);
