@@ -1,7 +1,7 @@
 /**
  * uiUtil.js : Utility functions for the User Interface
  *
- * Copyright 2013-2020 Mossroy and contributors
+ * Copyright 2013-2024 Mossroy, Jaifroid and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.

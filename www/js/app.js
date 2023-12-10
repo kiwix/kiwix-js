@@ -868,7 +868,7 @@ function initServiceWorkerMessaging () {
         // Turn off failsafe, as this is a controlled reboot
         settingsStore.setItem('lastPageLoad', 'rebooting', Infinity);
         if (!appstate.preventAutoReboot) window.location.reload();
-    } else if (navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
+    } else if (/^https/.test(window.location.protocol) && navigator && navigator.serviceWorker && !navigator.serviceWorker.controller) {
         if (!params.noPrompts) {
             uiUtil.systemAlert('<p>No Service Worker is registered, meaning this app will not currently work offline!</p><p>Would you like to switch to ServiceWorker mode?</p>',
                 'Offline use is disabled!', true).then(function (response) {
