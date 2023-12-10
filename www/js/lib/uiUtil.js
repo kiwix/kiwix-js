@@ -1,7 +1,7 @@
 /**
  * uiUtil.js : Utility functions for the User Interface
  *
- * Copyright 2013-2020 Mossroy and contributors
+ * Copyright 2013-2024 Mossroy, Jaifroid and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.
@@ -322,16 +322,35 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback) 
     } else {
         if (callback) callback(); // Calling back as soon as possible speeds up extraction
         // In browsers that support WebP natively, or for non-WebP images, we can simply convert the Uint8Array to a data URI
-        // DEV: we use FileReader method because btoa fails on utf8 strings (in SVGs, for example)
-        // See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
-        // This native browser method is very fast: see https://stackoverflow.com/a/66046176/9727685
+        getDataUriFromUint8Array(content, mimeType).then(function (dataUri) {
+            node.setAttribute(nodeAttribute, dataUri);
+        }).catch(function (err) {
+            console.error('There was an error converting Uint8Array to data URI', err);
+        });
+    }
+}
+
+/**
+ * Creates a data: URI from the given content
+ * @param {Uint8Array} content The binary content to convert to a URI
+ * @param {String} mimeType The MIME type of the content
+ * @returns {Promise<String>} A promise that resolves to the data URI
+ */
+function getDataUriFromUint8Array (content, mimeType) {
+    // Use FileReader method because btoa fails on utf8 strings (in SVGs, for example)
+    // See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
+    // This native browser method is very fast: see https://stackoverflow.com/a/66046176/9727685
+    return new Promise((resolve, reject) => {
         var myReader = new FileReader();
         myReader.onloadend = function () {
             var url = myReader.result;
-            node.setAttribute(nodeAttribute, url);
+            resolve(url);
+        };
+        myReader.onerror = function (err) {
+            reject(err);
         };
         myReader.readAsDataURL(new Blob([content], { type: mimeType }));
-    }
+    });
 }
 
 /**
@@ -1010,6 +1029,7 @@ export default {
     scroller: scroller,
     systemAlert: systemAlert,
     feedNodeWithDataURI: feedNodeWithDataURI,
+    getDataUriFromUint8Array: getDataUriFromUint8Array,
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
