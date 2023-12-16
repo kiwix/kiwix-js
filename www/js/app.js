@@ -848,7 +848,7 @@ function initServiceWorkerMessaging () {
                     // Until we find a way to tell where it is coming from, we allow the request through on all controlled clients and try to load the content
                     console.warn('>>> Allowing passthrough of SW request to process Zimit video <<<');
                 }
-                if (params.useLibzim) handleMessageChannelByWasm(event);
+                if (params.useLibzim) handleMessageChannelByLibzim(event);
                 else handleMessageChannelMessage(event);
             }
         } else if (event.data.msg_type) {
@@ -900,13 +900,13 @@ function initServiceWorkerMessaging () {
  *
  * @param {Event} event The event object of the message channel
  */
-async function handleMessageChannelByWasm (event) {
+async function handleMessageChannelByLibzim (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     const title = event.data.title;
     const messagePort = event.ports[0];
     try {
-        const ret = await selectedArchive.getEntryDirByWasm(title);
+        const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title })
         if (ret === null) {
             console.error('Title ' + title + ' not found in archive.');
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
@@ -921,7 +921,7 @@ async function handleMessageChannelByWasm (event) {
             const dirEntry = await new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value)));
             if (dirEntry.redirect) {
                 const redirect = await new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v)));
-                const ret = await selectedArchive.getEntryDirByWasm(redirect.namespace + '/' + redirect.url);
+                const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url })
                 const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
                 messagePort.postMessage(message);
                 return;
