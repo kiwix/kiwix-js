@@ -475,9 +475,14 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
     refreshCacheStatus();
 });
 
+if (params.useLibzim) document.getElementById('libzimMode').style.display = '';
 document.getElementById('libzimModeSelect').addEventListener('change', function (e) {
-    // console.log(settingsStore.getItem('libzimMode'));
     settingsStore.setItem('libzimMode', e.target.value);
+    window.location.reload();
+});
+
+document.getElementById('useLibzim').addEventListener('click', function (e) {
+    settingsStore.setItem('useLibzim', !params.useLibzim);
     window.location.reload();
 });
 
@@ -2526,7 +2531,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                                 // Get the url and the resolution from the srcset entry
                                 var urlMatch = imgAndResolutionUrl.match(/^\s*([^\s]+)\s+([0-9.]+\w+)\s*$/);
                                 var url = urlMatch ? urlMatch[1] : '';
-                                var resolution = urlMatch ? urlMatch[2]: '';
+                                var resolution = urlMatch ? urlMatch[2] : '';
                                 selectedArchive.getDirEntryByPath(url).then(function (srcEntry) {
                                     selectedArchive.readBinaryFile(srcEntry, function (fileDirEntry, content) {
                                         var mimetype = srcEntry.getMimetype();

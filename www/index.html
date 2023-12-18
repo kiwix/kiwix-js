@@ -696,9 +696,15 @@
                                 </div>
                                 <div class="checkbox" id="">
                                     <label title="Libzim wasm mode">
-                                        <span><b>Libzim Wasm mode</b> (<i>Uses unstable wasm api</i>)</span>
+                                        <input type="checkbox" name="useLibzim" id="useLibzim">
+                                        <span><b>Use Libzim for loading zim</b> (<i>Uses unstable libzim api for reading zim</i>)</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox" id="libzimMode" style="display: none;">
+                                    <label title="Libzim wasm mode">
+                                        <span><b>Libzim version</b> (<i>Select which version to use</i>)</span>
                                         <select id="libzimModeSelect">
-                                            <option value="default">Default</option>
+                                            <!-- <option value="default">Default (Full text search)</option> -->
                                             <option value="wasm">WASM</option>
                                             <option value="asm">ASM</option>
                                             <option value="wasm.dev">WASM Debug</option>
