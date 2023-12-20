@@ -97,7 +97,7 @@ document.localeJson = {
       "configure-expert-useLibzim": "Use Libzim for loading zim",
       "configure-expert-useLibzim-warning": "Uses unstable libzim api for reading zim",
       "configure-expert-libzimMode-tip": "Libzim version: (Select which version to use)",
-      "cconfigure-expert-libzimMode": "Select libzim version to use:",
+      "configure-expert-libzimMode": "Select libzim version to use:",
       "configure-expert-resetapp-description": "Reset the app to default settings and erase all caches:",
       "configure-expert-resetapp": "Reset App",
       "configure-expert-resetapp-tip": "This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.",
