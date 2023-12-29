@@ -920,7 +920,7 @@ async function handleMessageChannelByLibzim (event) {
 
         if (ret.mimetype === 'unknown') {
             // We have a redirect to follow
-            // this is still a bit flawed, as we do not check if the redirect or the file doesnt exist
+            // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
             // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
 
             const dirEntry = await new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value)));
