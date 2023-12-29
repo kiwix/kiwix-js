@@ -1388,7 +1388,7 @@ function displayFileSelect () {
 
     document.getElementById('archiveList').addEventListener('change', function (e) {
         // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
-        localStorage.setItem('previousZimFileName', e.target.value);
+        settingsStore.setItem('previousZimFileName', e.target.value, Infinity);
         if (params.isFileSystemApiSupported) {
             return abstractFilesystemAccess.getSelectedZimFromCache(e.target.value).then(function (files) {
                 setLocalArchiveFromFileList(files);
@@ -1399,7 +1399,7 @@ function displayFileSelect () {
             });
         } else {
             if (webKitFileList === null) {
-                const element = localStorage.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
+                const element = settingsStore.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
                 if ('showPicker' in HTMLInputElement.prototype) {
                     document.getElementById(element).showPicker();
                     return;
@@ -1427,7 +1427,7 @@ function displayFileSelect () {
             const filenames = [];
 
             const previousZimFile = []
-            const lastFilename = localStorage.getItem('previousZimFileName') ?? '';
+            const lastFilename = settingsStore.getItem('previousZimFileName') ?? '';
             const filenameWithoutExtension = lastFilename.replace(/\.zim\w\w$/i, '');
             const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
 
@@ -1436,7 +1436,7 @@ function displayFileSelect () {
                 if (regex.test(file.name) || file.name === lastFilename) previousZimFile.push(file);
             }
             webKitFileList = e.target.files;
-            localStorage.setItem('zimFilenames', filenames.join('|'));
+            settingsStogare.setItem('zimFilenames', filenames.join('|'), Infinity);
             // will load the old file if the selected folder contains the same file
             if (previousZimFile.length !== 0) setLocalArchiveFromFileList(previousZimFile);
             await abstractFilesystemAccess.updateZimDropdownOptions(filenames, previousZimFile.length !== 0 ? lastFilename : '');
@@ -1472,7 +1472,7 @@ function useLegacyFilePicker () {
     archiveFiles.addEventListener('change', async function (e) {
         if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
             const activeFilename = e.target.files[0].name;
-            localStorage.setItem('zimFilenames', [activeFilename].join('|'));
+            settingsStore.setItem('zimFilenames', [activeFilename].join('|'), Infinity);
             await abstractFilesystemAccess.updateZimDropdownOptions([activeFilename], activeFilename);
         }
         setLocalArchiveFromFileSelect();

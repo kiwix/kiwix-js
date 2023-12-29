@@ -1,4 +1,4 @@
-/**
+ /**
  * abstractFilesystemAccess.js: Abstraction layer for file access.
  * This is currently only implemented for FirefoxOS and Standard browser (using File System Access API), but could be extended to
  * Cordova, Electron or other ways to directly browse and read files from the
@@ -27,6 +27,7 @@
 
 import cache from './cache.js';
 import translateUI from './translateUI.js';
+import settingsStore from './settingsStore.js';
 
 function StorageFirefoxOS (storage) {
     this._storage = storage;
@@ -137,20 +138,20 @@ async function selectDirectoryFromPickerViaFileSystemApi () {
     const fileNames = [];
     const previousZimFile = []
 
-    const lastZimNameWithoutExtension = (localStorage.getItem('previousZimFileName') ?? '').replace(/\.zim\w\w$/i, '');
+    const lastZimNameWithoutExtension = (settingsStore.getItem('previousZimFileName') ?? '').replace(/\.zim\w\w$/i, '');
     const regex = new RegExp(`\\${lastZimNameWithoutExtension}.zim\\w\\w$`, 'i');
 
     for await (const entry of handle.values()) {
         fileNames.push(entry.name);
-        if (regex.test(entry.name) || entry.name === (localStorage.getItem('previousZimFileName') ?? '')) previousZimFile.push(await entry.getFile());
+        if (regex.test(entry.name) || entry.name === (settingsStore.getItem('previousZimFileName') ?? '')) previousZimFile.push(await entry.getFile());
     }
 
-    localStorage.setItem('zimFilenames', fileNames.join('|'));
-    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? localStorage.getItem('previousZimFileName') : '');
+    settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
+    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? settingsStore.getItem('previousZimFileName') : '');
     cache.idxDB('zimFiles', handle, function () {
         // save file in DB
     });
-    return previousZimFile;
+    return previousZimFile; 
 }
 
 /**
@@ -162,7 +163,7 @@ async function selectFileFromPickerViaFileSystemApi () {
     const [selectedFile] = fileHandles;
     const file = await selectedFile.getFile();
     const filenameList = [selectedFile.name];
-    localStorage.setItem('zimFilenames', filenameList.join('|'));
+    settingsStore.setItem('zimFilenames', filenameList.join('|'));
     cache.idxDB('zimFiles', selectedFile, function () {
         // file saved in DB
         updateZimDropdownOptions(filenameList, selectedFile.name);
@@ -234,7 +235,7 @@ function loadPreviousZimFile () {
     // It's a bit hacky but it works and I am not sure if there is any other way ATM
     setTimeout(() => {
         if (window.params.isFileSystemApiSupported || window.params.isWebkitDirApiSupported) {
-            const filenames = localStorage.getItem('zimFilenames');
+            const filenames = settingsStore.getItem('zimFilenames');
             if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
         }
     }, 200);
@@ -252,12 +253,12 @@ async function handleFolderOrFileDropViaFileSystemAPI (packet) {
     const fileInfo = packet.dataTransfer.items[0];
     const fileOrDirHandle = await fileInfo.getAsFileSystemHandle();
     if (fileOrDirHandle.kind === 'file') {
-        localStorage.setItem([fileOrDirHandle.name], [fileOrDirHandle.name].join('|'));
+        settingsStore.setItem([fileOrDirHandle.name], [fileOrDirHandle.name].join('|'), Infinity);
         cache.idxDB('zimFiles', fileOrDirHandle, function () {
             // save file in DB
             updateZimDropdownOptions([fileOrDirHandle.name], fileOrDirHandle.name);
         });
-        localStorage.setItem('zimFilenames', [fileOrDirHandle.name].join('|'));
+        settingsStore.setItem('zimFilenames', [fileOrDirHandle.name].join('|'), Infinity);
         return true;
     }
     if (fileOrDirHandle.kind === 'directory') {
@@ -265,7 +266,7 @@ async function handleFolderOrFileDropViaFileSystemAPI (packet) {
         for await (const entry of fileOrDirHandle.values()) {
             fileNames.push(entry.name);
         }
-        localStorage.setItem('zimFilenames', fileNames.join('|'));
+        settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
         cache.idxDB('zimFiles', fileOrDirHandle, function () {
             updateZimDropdownOptions(fileNames, '');
             // save file in DB
@@ -284,7 +285,7 @@ async function handleFolderOrFileDropViaWebkit (event) {
 
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
-        localStorage.setItem('zimFilenames', [entry.name].join('|'));
+        settingsStore.setItem('zimFilenames', [entry.name].join('|'), Infinity);
         await updateZimDropdownOptions([entry.name], entry.name);
         return { loadZim: true, files: [entry.file] };
     } else if (entry.isDirectory) {
@@ -292,7 +293,7 @@ async function handleFolderOrFileDropViaWebkit (event) {
         const files = await getFilesFromReader(reader);
         const fileNames = [];
         files.forEach((file) => fileNames.push(file.name));
-        localStorage.setItem('zimFilenames', fileNames.join('|'));
+        settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
         await updateZimDropdownOptions(fileNames, '');
         return { loadZim: false, files: files };
     }
