@@ -96,7 +96,6 @@ document.localeJson = {
       "configure-expert-useLibzim-tip": "Uses the selected version of libzim to access the ZIM contents (ServiceWorker mode only)",
       "configure-expert-useLibzim": "Use libzim for loading ZIM",
       "configure-expert-useLibzim-warning": "uses unstable libzim API for reading ZIM",
-      "configure-expert-libzimMode-tip": "Libzim version: (Select which version to use)",
       "configure-expert-libzimMode": "Select libzim version to use:",
       "configure-expert-resetapp-description": "Reset the app to default settings and erase all caches:",
       "configure-expert-resetapp": "Reset App",
