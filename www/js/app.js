@@ -1819,6 +1819,27 @@ function readArticle (dirEntry) {
         uiUtil.spinnerDisplay(false);
         return;
     }
+
+    if (settingsStore.getItem('trustedZimFiles') === null) {
+        settingsStore.setItem('trustedZimFiles', '', Infinity);
+    }
+    // Check if source of the zim file can be trusted.
+    if (!(settingsStore.getItem('trustedZimFiles').includes(dirEntry._zimfile.name))) {
+        // Alert user about unknown source.
+        uiUtil.systemAlert('Do you trust this source?\n You can still read the zim file in Safe Mode incase you cannot verify the source. Closing this window also opens the file in Safe Mode.', 'Alert!', true, 'Open in Safe Mode', 'Trust Source')
+        .then((response) => {
+            if (!response) {
+                // user doesn't trust the source hence open in jQuery mode.
+                setContentInjectionMode('jquery');
+            } else {
+                // User trusts the source. Add the zim file to trustedZimFiles and proceed.
+                setContentInjectionMode('serviceworker');
+                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+                var updatedTrustedZimFiles = trustedZimFiles + dirEntry._zimfile.name + '|';
+                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+            }
+        });
+    }
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for expectedArticleURLToBeDisplayed.
