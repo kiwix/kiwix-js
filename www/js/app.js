@@ -1436,7 +1436,7 @@ function displayFileSelect () {
                 if (regex.test(file.name) || file.name === lastFilename) previousZimFile.push(file);
             }
             webKitFileList = e.target.files;
-            settingsStogare.setItem('zimFilenames', filenames.join('|'), Infinity);
+            settingsStore.setItem('zimFilenames', filenames.join('|'), Infinity);
             // will load the old file if the selected folder contains the same file
             if (previousZimFile.length !== 0) setLocalArchiveFromFileList(previousZimFile);
             await abstractFilesystemAccess.updateZimDropdownOptions(filenames, previousZimFile.length !== 0 ? lastFilename : '');
