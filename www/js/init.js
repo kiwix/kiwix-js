@@ -123,6 +123,7 @@ params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
+params['trustAllLocalZIMArchives'] = true; // Sets a boolean indicating weather a user trusts the source of zim files.
 
 /**
  * Apply any override parameters that might be in the querystring.
