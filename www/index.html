@@ -694,7 +694,12 @@
                                         <span data-i18n="configure-expert-bypassappcache"><b>Bypass AppCache</b> (<i>disables offline use of PWA!</i>)</span>
                                     </label>
                                 </div>
-                                <p data-i18n="configure-expert-resetapp-description" class="pt-2">Reset the app to default settings and erase all caches:</p>
+                                <div class="checkbox">
+                                    <label data-i18n-tip="configure-expert-disable-source-verification" title="Warning: A few zim files might run malicious programs in your browser. This can however be prevented by using jquery mode, kiwix will automatically switch to jquery mode if you  mention you donot trust the source. Disabling this option will result in using serviceworker mode by default, if available." >
+                                        <input type="checkbox" name="disableFileVerification" id="enableSourceVerification" >
+                                        <span data-i18n="configure-expert-disable-source-verification"><strong>Enable source verification of new files</strong> (once checked, kiwix will ask to verify file source before opening.)</span>
+                                    </label>
+                                </div>
                                 <div class="button">
                                     <label data-i18n-tip="configure-expert-resetapp-tip" title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
                                         <button data-i18n="configure-expert-resetapp" type="button" class="btn btn-danger" id="btnReset">Reset App</button>

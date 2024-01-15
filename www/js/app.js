@@ -484,6 +484,10 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
         }
     });
 });
+document.getElementById('enableSourceVerification').addEventListener('change', function() {
+    params.sourceVerification = this.checked;
+    settingsStore.setItem('sourceVerification', this.checked, Infinity)
+})
 document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.hideActiveContentWarning = !!this.checked;
@@ -1584,7 +1588,7 @@ function setLocalArchiveFromFileList (files) {
  *
  * @param {ZIMArchive} archive The ZIM archive
  */
-function archiveReadyCallback (archive) {
+async function archiveReadyCallback (archive) {
     selectedArchive = archive;
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
     selectedArchive.cssCache = new Map();
@@ -1594,6 +1598,27 @@ function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
+    if (settingsStore.getItem('trustedZimFiles') === null) {
+        settingsStore.setItem('trustedZimFiles', '', Infinity);
+    }
+    if (params.sourceVerification && isServiceWorkerAvailable()){
+        // Check if source of the zim file can be trusted.
+        if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
+            // Alert user about unknown source.
+            console.log("check22")
+            const response = await uiUtil.systemAlert('Do you trust this source?\n You can still read the zim file in Safe Mode incase you cannot verify the source. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Alert!', true, 'Open in Safe Mode', 'Trust Source')
+            console.log(response);
+            if (response) {
+                setContentInjectionMode('serviceworker');
+                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+                var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
+                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+                
+            } else {
+                setContentInjectionMode('jquery');
+            }
+    }
+}
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
     // It will be defined as false or true when the first article is loaded
     appstate.isReplayWorkerAvailable = null;
@@ -1820,28 +1845,6 @@ function readArticle (dirEntry) {
         return;
     }
 
-    if (settingsStore.getItem('trustedZimFiles') === null) {
-        settingsStore.setItem('trustedZimFiles', '', Infinity);
-    }
-    if (!params.trustAllLocalZIMArchives) {
-        // Check if source of the zim file can be trusted.
-        if (!(settingsStore.getItem('trustedZimFiles').includes(dirEntry._zimfile.name))) {
-            // Alert user about unknown source.
-            uiUtil.systemAlert('Do you trust this source?\n You can still read the zim file in Safe Mode incase you cannot verify the source. Closing this window also opens the file in Safe Mode.', 'Alert!', true, 'Open in Safe Mode', 'Trust Source')
-                    .then((response) => {
-                        if (!response) {
-                            // user doesn't trust the source hence open in jQuery mode.
-                            setContentInjectionMode('jquery');
-                        } else {
-                            // User trusts the source. Add the zim file to trustedZimFiles and proceed.
-                            setContentInjectionMode('serviceworker');
-                            var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
-                            var updatedTrustedZimFiles = trustedZimFiles + dirEntry._zimfile.name + '|';
-                            settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
-                        }
-                });
-        }
-    } 
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for expectedArticleURLToBeDisplayed.

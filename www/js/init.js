@@ -123,8 +123,7 @@ params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
-params['trustAllLocalZIMArchives'] = true; // Sets a boolean indicating weather a user trusts the source of zim files.
-
+params['sourceVerification'] = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification'); // Sets a boolean indicating weather a user trusts the source of zim files.
 /**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
@@ -187,7 +186,7 @@ document.getElementById('openExternalLinksInNewTabsCheck').checked = params.open
 document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
-
+document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification'); 
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {
     var result;
