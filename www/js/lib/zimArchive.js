@@ -142,16 +142,19 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             ]).then(function () {
                 that.libzimReady = null;
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
+                // In case of a split ZIM, It will not be loaded properly by libzim if libzim is enabled
                 var isSplitZim = /\.zima.$/i.test(that.file._files[0].name);
                 if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
-                    !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron'))) {
-                    var libzimReaderType = params.debugLibzimASM || ('WebAssembly' in self ? 'wasm' : 'asm');
-                    console.log('Instantiating libzim ' + libzimReaderType + ' Web Worker...');
+                    !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron')) || params.useLibzim) {
+                    var libzimReaderType = params.libzimMode;
+                    if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
+                    console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
                     that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
                         that.libzimReady = 'ready';
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
+                        if (params.useLibzim) whenZimReady();
                         // Update the API panel
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {

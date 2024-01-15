@@ -57,7 +57,7 @@ const ASSETS_CACHE = 'kiwixjs-assetsCache';
 var appstate = {};
 
 /**
- * @type ZIMArchive
+ * @type ZIMArchive | null
  */
 var selectedArchive = null;
 
@@ -474,6 +474,18 @@ document.getElementById('bypassAppCacheCheck').addEventListener('change', functi
     // This will also send any new values to Service Worker
     refreshCacheStatus();
 });
+
+if (params.useLibzim) document.getElementById('libzimMode').style.display = '';
+document.getElementById('libzimModeSelect').addEventListener('change', function (e) {
+    settingsStore.setItem('libzimMode', e.target.value);
+    window.location.reload();
+});
+
+document.getElementById('useLibzim').addEventListener('click', function (e) {
+    settingsStore.setItem('useLibzim', !params.useLibzim);
+    window.location.reload();
+});
+
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
     params.disableDragAndDrop = !!this.checked;
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
@@ -841,7 +853,8 @@ function initServiceWorkerMessaging () {
                     // Until we find a way to tell where it is coming from, we allow the request through on all controlled clients and try to load the content
                     console.warn('>>> Allowing passthrough of SW request to process Zimit video <<<');
                 }
-                handleMessageChannelMessage(event);
+                if (params.useLibzim) handleMessageChannelByLibzim(event);
+                else handleMessageChannelMessage(event);
             }
         } else if (event.data.msg_type) {
             // Messages received from the ReplayWorker
@@ -883,6 +896,49 @@ function initServiceWorkerMessaging () {
                 }
             });
         }
+    }
+}
+
+/**
+ * Function that handles a message of the messageChannel.
+ * This function will deal with the messages if useLibzim is set to true
+ *
+ * @param {Event} event The event object of the message channel
+ */
+async function handleMessageChannelByLibzim (event) {
+    // We received a message from the ServiceWorker
+    // The ServiceWorker asks for some content
+    const title = event.data.title;
+    const messagePort = event.ports[0];
+    try {
+        const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title })
+        if (ret === null) {
+            console.error('Title ' + title + ' not found in archive.');
+            messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
+            return;
+        }
+
+        if (ret.mimetype === 'unknown') {
+            // We have a redirect to follow
+            // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
+            // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
+
+            const dirEntry = await new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value)));
+            if (dirEntry.redirect) {
+                const redirect = await new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v)));
+                const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url })
+                const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+                messagePort.postMessage(message);
+                return;
+            }
+        }
+
+        // Let's send the content to the ServiceWorker
+        const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+        messagePort.postMessage(message);
+    } catch (error) {
+        const message = { action: 'giveContent', title: title, content: new Uint8Array(), mimetype: '' };
+        messagePort.postMessage(message);
     }
 }
 
@@ -2475,7 +2531,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                                 // Get the url and the resolution from the srcset entry
                                 var urlMatch = imgAndResolutionUrl.match(/^\s*([^\s]+)\s+([0-9.]+\w+)\s*$/);
                                 var url = urlMatch ? urlMatch[1] : '';
-                                var resolution = urlMatch ? urlMatch[2]: '';
+                                var resolution = urlMatch ? urlMatch[2] : '';
                                 selectedArchive.getDirEntryByPath(url).then(function (srcEntry) {
                                     selectedArchive.readBinaryFile(srcEntry, function (fileDirEntry, content) {
                                         var mimetype = srcEntry.getMimetype();
