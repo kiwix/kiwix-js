@@ -93,7 +93,7 @@ document.localeJson = {
       "configure-expert-disabledragdrop-tip": "This option disables drag-and-drop of ZIM files onto the app. It is not recommended to disable this feature.",
       "configure-expert-bypassappcache": "<b>Bypass AppCache</b> (<i>disables offline use of this app!</i>)",
       "configure-expert-bypassappcache-tip": "WARNING: Leaving this checked will prevent offline usage of the PWA. Setting will clear all existing Cache API caches, but assetsCache will be used unless also disabled above. For testing new code with the PWA.",
-      "configure-expert-useLibzim-tip": "Uses the selected version of libzim to access the ZIM contents (ServiceWorker mode only)",
+      "configure-expert-useLibzim-tip": "Uses the selected version of libzim to access the ZIM contents (ServiceWorker mode only).",
       "configure-expert-useLibzim": "Use libzim for loading ZIM",
       "configure-expert-useLibzim-warning": "uses unstable libzim API for reading ZIM",
       "configure-expert-libzimMode": "Select libzim version to use:",

@@ -149,7 +149,6 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron')) || params.useLibzim) {
                     var libzimReaderType = params.libzimMode;
                     if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
-
                     console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
                     that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {

@@ -56,7 +56,7 @@
  * @property {boolean} isFileSystemApiSupported - A boolean indicating whether the FileSystem API is supported.
  * @property {boolean} isWebkitDirApiSupported - A boolean indicating whether the Webkit Directory API is supported.
  * @property {boolean} useLibzim - A boolean indicating weather to use the libzim to load zim files.
- * @property {"wasm-dev" | "wasm" | "asm" | "asm-dev" | "default"} libzimMode - A value indicating which libzim mode is selected.
+ * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
 /**
