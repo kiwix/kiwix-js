@@ -695,11 +695,29 @@
                                     </label>
                                 </div>
                                 <div class="checkbox">
-                                    <label data-i18n-tip="configure-expert-disable-source-verification" title="Warning: A few zim files might run malicious programs in your browser. This can however be prevented by using jquery mode, kiwix will automatically switch to jquery mode if you  mention you donot trust the source. Disabling this option will result in using serviceworker mode by default, if available." >
+                                    <label data-i18n-tip="configure-expert-enaable-source-verification" title="Warning: A few zim files might run malicious programs in your browser. This can however be prevented by using jquery mode, kiwix will automatically switch to jquery mode if you  mention you donot trust the source. Disabling this option will result in using serviceworker mode by default, if available." >
                                         <input type="checkbox" name="disableFileVerification" id="enableSourceVerification" >
                                         <span data-i18n="configure-expert-disable-source-verification"><strong>Enable source verification of new files</strong> (once checked, kiwix will ask to verify file source before opening.)</span>
                                     </label>
                                 </div>
+                                <div class="checkbox" id="">
+                                    <label data-i18n-tip="configure-expert-useLibzim-tip" title="Uses the selected version of libzim to access the ZIM contents (ServiceWorker mode only).">
+                                        <input type="checkbox" name="useLibzim" id="useLibzim">
+                                        <span><strong data-i18n="configure-expert-useLibzim">Use libzim for loading zim</strong> (<i data-i18n="configure-expert-useLibzim-warning">uses unstable libzim API for reading ZIM</i>)</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox" id="libzimMode" style="display: none;">
+                                    <label>
+                                        <span><strong data-i18n="configure-expert-libzimMode">Select libzim version to use:</strong></span>
+                                        <select id="libzimModeSelect">
+                                            <option value="wasm">WASM</option>
+                                            <option value="asm">ASM</option>
+                                            <option value="wasm.dev">WASM Debug</option>
+                                            <option value="asm.dev">ASM Debug</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <p data-i18n="configure-expert-resetapp-description" class="pt-2">Reset the app to default settings and erase all caches:</p>
                                 <div class="button">
                                     <label data-i18n-tip="configure-expert-resetapp-tip" title="This will return the app to its original settings on launch, and will empty all caches and settings and deregister Service Workers. The app will then reload.">
                                         <button data-i18n="configure-expert-resetapp" type="button" class="btn btn-danger" id="btnReset">Reset App</button>

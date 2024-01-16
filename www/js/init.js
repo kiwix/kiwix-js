@@ -55,6 +55,8 @@
  * @property {string} cacheIDB - Name of the Indexed DB database
  * @property {boolean} isFileSystemApiSupported - A boolean indicating whether the FileSystem API is supported.
  * @property {boolean} isWebkitDirApiSupported - A boolean indicating whether the Webkit Directory API is supported.
+ * @property {boolean} useLibzim - A boolean indicating weather to use the libzim to load zim files.
+ * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
 /**
@@ -124,6 +126,10 @@ params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
 params['sourceVerification'] = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification'); // Sets a boolean indicating weather a user trusts the source of zim files.
+params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
+params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
+
+
 /**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
@@ -185,6 +191,8 @@ document.getElementById('useHomeKeyToFocusSearchBarCheck').checked = params.useH
 document.getElementById('openExternalLinksInNewTabsCheck').checked = params.openExternalLinksInNewTabs;
 document.getElementById('languageSelector').value = params.overrideBrowserLanguage || 'default';
 document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
+document.getElementById('libzimModeSelect').value = params.libzimMode;
+document.getElementById('useLibzim').checked = params.useLibzim;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification'); 
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
