@@ -129,7 +129,6 @@ params['sourceVerification'] = getSetting('sourceVerification') === null ? false
 params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
 
-
 /**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
