@@ -193,7 +193,7 @@ document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('libzimModeSelect').value = params.libzimMode;
 document.getElementById('useLibzim').checked = params.useLibzim;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
-document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification'); 
+document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification');
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {
     var result;
