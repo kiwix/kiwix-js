@@ -387,20 +387,17 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
  * @returns {String} The content namespace for the ZIM archive
  */
 ZIMArchive.prototype.getContentNamespace = function () {
-    var errorText;
     if (this.isReady()) {
         var ver = this.file.minorVersion;
         // DEV: There are currently only two defined values for minorVersion in the OpenZIM specification
         // If this changes, adapt the error checking and return values
-        if (ver > 1) {
-            errorText = 'Unknown ZIM minor version!';
-        } else {
-            return ver === 0 ? 'A' : 'C';
+        if (ver > 2) {
+            console.error('Unknown ZIM minor version: ' + ver + '! Assuming content namespace is C.');
         }
+        return ver === 0 ? 'A' : 'C';
     } else {
-        errorText = 'We could not determine the content namespace because the ZIM file is not ready!';
+        throw new Error('We could not determine the content namespace because the ZIM file is not ready!');
     }
-    throw new Error(errorText);
 };
 
 /**
