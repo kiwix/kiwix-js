@@ -2092,6 +2092,7 @@ function handleClickOnReplayLink (ev, anchor) {
         ev.preventDefault();
         ev.stopPropagation();
         // Note that true in the fourth argument instructs getDirEntryByPath to follow redirects by looking up the Header
+        // DEV: CURRENTLY NON-FUNCTION IN KIWIX-JS -- NEEDS FIXING
         return selectedArchive.getDirEntryByPath(zimUrl, null, null, true).then(function (dirEntry) {
             if (dirEntry) {
                 var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, selectedArchive.file.name + '/');
