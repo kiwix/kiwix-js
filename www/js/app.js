@@ -2032,9 +2032,9 @@ function articleLoadedSW (iframeArticleContent) {
                 }
                 if (clickedAnchor) {
                     // Check for Zimit links that would normally be handled by the Replay Worker
-                    if (appstate.isReplayWorkerAvailable) {
-                        handleClickOnReplayLink(event, clickedAnchor);
-                        return;
+                    // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
+                    if (appstate.isReplayWorkerAvailable || '__WB_pmw' in clickedAnchor) {
+                        return handleClickOnReplayLink(event, clickedAnchor);
                     }
                     // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
                     // it means it's a link to an external website.
@@ -2080,45 +2080,94 @@ function articleLoadedSW (iframeArticleContent) {
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
     var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
-    var pseudoDomainPath = anchor.hostname + anchor.pathname;
+    var pseudoDomainPath = (anchor.hostname === window.location.hostname ? selectedArchive.zimitPrefix.replace(/\/$/, '') : anchor.hostname) + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
     // If it's for a different protocol (e.g. javascript:) we should let Replay handle that, or if the paths are identical, then we are dealing
     // with a link to an anchor in the same document, or if the user has pressed the ctrl or command key, the document will open in a new window
     // anyway, so we can return. Note that some PDFs are served with a protocol of http: instead of https:, so we need to account for that.
-    if (anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':') || pseudoDomainPath === containingDocDomainPath ||
-        ev.ctrlKey || ev.metaKey || ev.button === 1) return;
+    if (anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':') || pseudoDomainPath === containingDocDomainPath) return;
     var zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
     if (zimUrl) {
         ev.preventDefault();
         ev.stopPropagation();
-        selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
+        // Note that true in the fourth argument instructs getDirEntryByPath to follow redirects by looking up the Header
+        return selectedArchive.getDirEntryByPath(zimUrl, null, null, true).then(function (dirEntry) {
             if (dirEntry) {
                 var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, selectedArchive.file.name + '/');
                 var mimetype = dirEntry.getMimetype();
                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                 // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
                 if (/pdf/i.test(mimetype) || /\.pdf(?:[#?]|$)/i.test(anchor.href) || /\.pdf(?:[#?]|$)/i.test(dirEntry.url)) {
-                    window.open(pathToArticleDocumentRoot + zimUrl, '_blank');
-                /*
-                } else if (/\bx?html\b/i.test(mimetype)) {
-                    // If the SW has gone to sleep, loading this way gives it a chance to reload configuration
-                    params.isLandingPage = false;
-                    readArticle(dirEntry); */
-                } else {
-                    // Fingers crossed, let Replay handle this link
-                    anchor.passthrough = true;
-                    // Handle middle-clicks and ctrl-clicks (these should be filtered out above, but...)
-                    if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
-                        window.open(pathToArticleDocumentRoot + zimUrl, '_blank');
+                    if (/Android/.test(params.appType) || window.nw) {
+                        // User is on an Android device, where opening a PDF in a new tab is not sufficient to evade the sandbox
+                        // so we need to download the PDF instead
+                        var readAndDownloadBinaryContent = function (zimUrl) {
+                            return selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
+                                if (dirEntry) {
+                                    selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                                        var mimetype = fileDirEntry.getMimetype();
+                                        uiUtil.displayFileDownloadAlert(zimUrl, true, mimetype, content);
+                                        uiUtil.clearSpinner();
+                                    });
+                                } else {
+                                    return uiUtil.systemAlert('We could not find a PDF document at ' + zimUrl, 'PDF not found');
+                                }
+                            });
+                        };
+                        // If the document is in fact an html redirect, we need to follow it first till we get the underlying PDF document
+                        if (/\bx?html\b/.test(mimetype)) {
+                            selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, data) {
+                                var redirectURL = data.match(/<meta[^>]*http-equiv="refresh"[^>]*content="[^;]*;url='?([^"']+)/i);
+                                if (redirectURL) {
+                                    redirectURL = redirectURL[1];
+                                    var contentUrl = pseudoNamespace + redirectURL.replace(/^[^/]+\/\//, '');
+                                    return readAndDownloadBinaryContent(contentUrl);
+                                } else {
+                                    return readAndDownloadBinaryContent(zimUrl);
+                                }
+                            });
+                        } else {
+                            return readAndDownloadBinaryContent(zimUrl);
+                        }
                     } else {
+                        window.open(pathToArticleDocumentRoot + zimUrl, params.windowOpener === 'tab' ? '_blank' : dirEntry.title,
+                            params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
+                    }
+                } else {
+                    // Handle middle-clicks and ctrl-clicks
+                    if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
+                        var encodedTitle = encodeURIComponent(dirEntry.getTitleOrUrl());
+                        var articleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
+                            params.windowOpener === 'tab' ? '_blank' : encodedTitle,
+                            params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null
+                        );
+                        // Conditional, because opening a new window can be blocked by the browser
+                        if (articleContainer) {
+                            appstate.target = 'window';
+                            articleContainer.kiwixType = appstate.target;
+                        }
+                        uiUtil.clearSpinner();
+                    } else {
+                        // Let Replay handle this link
+                        anchor.passthrough = true;
+                        articleContainer = document.getElementById('articleContent');
+                        appstate.target = 'iframe';
+                        articleContainer.kiwixType = appstate.target;
+                        // Since we know the URL works, Normalize the href (this is needed for zimit2 relative links)
+                        anchor.href = pathToArticleDocumentRoot + zimUrl;
                         anchor.click();
+                        // Poll spinner with abbreviated title
+                        uiUtil.spinnerDisplay(true, 'Loading ' + dirEntry.getTitleOrUrl().replace(/([^/]+)$/, '$1').substring(0, 18) + '...');
                     }
                 }
             } else {
                 // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
                 uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor);
             }
+        }).catch(function (err) {
+            console.error('Error getting dirEntry for ' + zimUrl, err);
+            appstate.isReplayWorkerAvailable = true;
         });
     }
 }

@@ -93,13 +93,15 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     that.addMetadataToZIMFile('Description'),
                     that.addMetadataToZIMFile('Name'),
                     that.addMetadataToZIMFile('Publisher'),
+                    that.addMetadataToZIMFile('Source'),
                     that.addMetadataToZIMFile('Title')
                 ]).then(function () {
                     console.debug('ZIMArchive metadata loaded:', that);
                 });
-            }, 2000); // DEV: If you need any of the above earlier, you can alter this delay
+            }, 1000); // DEV: If you need any of the above earlier, you can alter this delay
             // We need to get the landing page of any Zimit archive opened
-            if (that.zimType === 'zimit') {
+            // Note that the test below catches both zimit and zimit2 types
+            if (/zimit/.test(that.zimType)) {
                 return that.setZimitMetadata().then(function () {
                     callbackReady(that);
                 });
@@ -153,8 +155,9 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
                     that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
                         that.libzimReady = 'ready';
-                        params.searchProvider = 'fulltext: ' + libzimReaderType;
+                        // If user is using libzim for reading the file, we have delayed the callback till now
                         if (params.useLibzim) whenZimReady();
+                        params.searchProvider = 'fulltext: ' + libzimReaderType;
                         // Update the API panel
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {
@@ -698,19 +701,25 @@ ZIMArchive.prototype.setZimitMetadata = function () {
             return Promise.resolve(dirEntry);
         };
         return findRedirectTarget(dirEntry).then(function (reEntry) {
-            return reEntry.readData().then(function (data) {
-                var html = that.getUtf8FromData(data);
-                var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
-                if (redirect && redirect[2] && redirect[3]) {
-                    // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
-                    var relativeZimitPrefix = (reEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
-                    var zimitStartPage = reEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
-                    // Store a full Zimit prefix in the archive object
-                    that.zimitPrefix = relativeZimitPrefix + '/';
-                    that.zimitStartPage = zimitStartPage;
-                    that.zimitPseudoContentNamespace = reEntry.namespace + '/' + (reEntry.namespace === 'C' ? 'A/' : '');
-                }
-            });
+            // Note that in the case of zimit classic, the values below will be overwritten in the conditional clause
+            that.zimitPseudoContentNamespace = reEntry.namespace + '/';
+            that.zimitStartPage = reEntry.namespace + '/' + reEntry.url;
+            that.zimitPrefix = reEntry.url.replace(/\/.*$/, '') + '/';
+            if (that.zimType === 'zimit') {
+                return reEntry.readData().then(function (data) {
+                    var html = that.getUtf8FromData(data);
+                    var redirect = html.match(/window\.mainUrl\s*=\s*(['"])https?:\/\/([^/]+)(.+?)\1/);
+                    if (redirect && redirect[2] && redirect[3]) {
+                        // Logic added to distinguish between Type 0 and Type 1 Zimit ZIMs
+                        var relativeZimitPrefix = (reEntry.namespace === 'C' ? 'A/' : '') + redirect[2];
+                        var zimitStartPage = reEntry.namespace + '/' + relativeZimitPrefix + redirect[3];
+                        // Store a full Zimit prefix in the archive object
+                        that.zimitPrefix = relativeZimitPrefix + '/';
+                        that.zimitStartPage = zimitStartPage;
+                        that.zimitPseudoContentNamespace = reEntry.namespace + '/' + (reEntry.namespace === 'C' ? 'A/' : '');
+                    }
+                });
+            }
         });
     }).catch(function (e) {
         console.warn('Zimit metadata not found in this archive!', e);
