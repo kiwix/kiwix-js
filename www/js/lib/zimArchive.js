@@ -179,10 +179,12 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     }
                     uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                 }
-                // Set the archive file type ('open' or 'zimit')
-                that.setZimType();
-                // If user is not using libzim for reading the file, we can call the ready callback now
-                if (!params.useLibzim) whenZimReady();
+                // Set the archive file type ('open', 'zimit' or 'zimit2')
+                return that.addMetadataToZIMFile('Scraper').then(function () {
+                    params.zimType = that.setZimType();
+                    // If user is not using libzim for reading the file, we can call the ready callback now
+                    if (!params.useLibzim) whenZimReady();
+                });
             }).catch(function (err) {
                 console.warn('Error setting archive listings: ', err);
             });
@@ -247,7 +249,7 @@ ZIMArchive.prototype.isReady = function () {
 /**
  * Detects whether the supplied archive is a Zimit-style archive or an OpenZIM archive and
  * sets a zimType property accordingly; also returns the detected type. Extends ZIMArchive.
- * @returns {String} Either 'zimit' for a Zimit archive, or 'open' for an OpenZIM archive
+ * @returns {String} 'zimit' for a classic Zimit archive, 'zimit2' for a zimit2 archive, or 'open' for an OpenZIM archive
  */
 ZIMArchive.prototype.setZimType = function () {
     var archiveType = null;
@@ -256,6 +258,10 @@ ZIMArchive.prototype.setZimType = function () {
         this.file.mimeTypes.forEach(function (v) {
             if (/warc-headers/i.test(v)) archiveType = 'zimit';
         });
+        if (archiveType !== 'zimit' && this.scraper) {
+            // Check if it's a zimit2 type archive by seeing if the scraper contains 'warc2zim'
+            archiveType = /warc2zim/i.test(this.scraper) ? 'zimit2' : archiveType;
+        }
         this.zimType = archiveType;
         console.debug('Archive type set to: ' + archiveType);
     } else {
