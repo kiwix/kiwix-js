@@ -2,7 +2,7 @@
  * app.js : The main Kiwix User Interface implementation
  * This file handles the interaction between the Kiwix JS back end and the user
  *
- * Copyright 2013-2023 Mossroy, Jaifroid and contributors
+ * Copyright 2013-2024 Mossroy, Jaifroid and contributors
  * Licence GPL v3:
  *
  * This file is part of Kiwix.
@@ -1991,6 +1991,51 @@ function articleLoader () {
     }
 }
 
+// Add event listener to iframe window to check for links to external resources
+function filterClickEvent (event) {
+    // Find the closest enclosing A tag (if any)
+    var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
+    // If the anchor has a passthrough property, then we have already checked it is safe, so we can return
+    if (clickedAnchor && clickedAnchor.passthrough) {
+        clickedAnchor.passthrough = false;
+        return;
+    }
+    if (clickedAnchor) {
+        // Check for Zimit links that would normally be handled by the Replay Worker
+        // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
+        if (appstate.isReplayWorkerAvailable || '__WB_pmw' in clickedAnchor) {
+            return handleClickOnReplayLink(event, clickedAnchor);
+        }
+        var href = clickedAnchor.getAttribute('href');
+        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
+        // We also do it for ftp even if it's not supported any more by recent browsers...
+        if (/^(?:http|ftp)/i.test(href)) {
+            console.debug('filterClickEvent opening external link in new tab');
+            clickedAnchor.newcontainer = true;
+            uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
+        } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
+            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+            event.preventDefault();
+            event.stopPropagation();
+            console.debug('filterClickEvent opening new window for PDF');
+            clickedAnchor.newcontainer = true;
+            window.open(clickedAnchor.href, '_blank');
+        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+            // Show the spinner if it's a ZIM link, but not an anchor
+            if (!~href.indexOf('#')) {
+                var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
+                message = message ? message[1] + '...' : '...';
+                uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
+                // In case of false positive, ensure spinner is eventually hidden
+                setTimeout(function () {
+                    uiUtil.spinnerDisplay(false);
+                }, 4000);
+                uiUtil.showSlidingUIElements();
+            }
+        }
+    }
+};
+
 /**
  * Postprocessing required after the article contents are loaded
  * @param {HTMLIFrameElement} iframeArticleContent The iframe containing the article content
@@ -2022,45 +2067,7 @@ function articleLoadedSW (iframeArticleContent) {
         if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.onkeydown = focusPrefixOnHomeKey; }
         if (params.openExternalLinksInNewTabs) {
             // Add event listener to iframe window to check for links to external resources
-            iframeArticleContent.contentWindow.onclick = function (event) {
-                // Find the closest enclosing A tag (if any)
-                var clickedAnchor = uiUtil.closestAnchorEnclosingElement(event.target);
-                // If the anchor has a passthrough property, then we have already checked it is safe, so we can return
-                if (clickedAnchor && clickedAnchor.passthrough) {
-                    clickedAnchor.passthrough = false;
-                    return;
-                }
-                if (clickedAnchor) {
-                    // Check for Zimit links that would normally be handled by the Replay Worker
-                    // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
-                    if (appstate.isReplayWorkerAvailable || '__WB_pmw' in clickedAnchor) {
-                        return handleClickOnReplayLink(event, clickedAnchor);
-                    }
-                    // We assume that, if an absolute http(s) link is hardcoded inside an HTML string,
-                    // it means it's a link to an external website.
-                    // We also do it for ftp even if it's not supported any more by recent browsers...
-                    var href = clickedAnchor.getAttribute('href');
-                    if (/^(?:http|ftp)/i.test(href)) {
-                        uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-                    } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
-                        // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
-                        event.preventDefault();
-                        window.open(clickedAnchor.href, '_blank');
-                    } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
-                        // Show the spinner if it's a ZIM link, but not an anchor
-                        if (!~href.indexOf('#')) {
-                            var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
-                            message = message ? message[1] + '...' : '...';
-                            uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
-                            // In case of false positive, ensure spinner is eventually hidden
-                            setTimeout(function () {
-                                uiUtil.spinnerDisplay(false);
-                            }, 4000);
-                            uiUtil.showSlidingUIElements();
-                        }
-                    }
-                }
-            };
+            iframeArticleContent.contentWindow.onclick = filterClickEvent;
         }
         // Reset UI when the article is unloaded
         iframeArticleContent.contentWindow.onunload = function () {
@@ -2155,8 +2162,11 @@ function handleClickOnReplayLink (ev, anchor) {
                         articleContainer = document.getElementById('articleContent');
                         appstate.target = 'iframe';
                         articleContainer.kiwixType = appstate.target;
-                        // Since we know the URL works, Normalize the href (this is needed for zimit2 relative links)
-                        anchor.href = pathToArticleDocumentRoot + zimUrl;
+                        if (selectedArchive.zimType === 'zimit2') {
+                            // Since we know the URL works, normalize the href (this is needed for zimit2 relative links)
+                            // NB We mustn't do this for zimit classic because it breaks wombat rewriting of absolute links!
+                            anchor.href = pathToArticleDocumentRoot + zimUrl;
+                        }
                         anchor.click();
                         // Poll spinner with abbreviated title
                         uiUtil.spinnerDisplay(true, 'Loading ' + dirEntry.getTitleOrUrl().replace(/([^/]+)$/, '$1').substring(0, 18) + '...');
