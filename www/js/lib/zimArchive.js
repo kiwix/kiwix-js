@@ -263,7 +263,7 @@ ZIMArchive.prototype.setZimType = function () {
         });
         if (archiveType !== 'zimit' && this.scraper) {
             // Check if it's a zimit2 type archive by seeing if the scraper contains 'warc2zim'
-            archiveType = /warc2zim/i.test(this.scraper) ? 'zimit2' : archiveType;
+            archiveType = /warc2zim|zimit/i.test(this.scraper) ? 'zimit2' : archiveType;
         }
         this.zimType = archiveType;
         console.debug('Archive type set to: ' + archiveType);
