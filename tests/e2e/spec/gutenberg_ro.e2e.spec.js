@@ -277,7 +277,7 @@ function runTests (driver, modes) {
                 await driver.switchTo().defaultContent();
                 // The source verification check must be dismissed, if enabled.
                 try {
-                    await driver.sleep(1300);
+                    await driver.sleep(2000);
                     const trustSrc = await driver.findElement(By.id('approveConfirm'));
                     await trustSrc.click();
                 } catch {
