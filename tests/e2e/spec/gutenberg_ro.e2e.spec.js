@@ -275,6 +275,14 @@ function runTests (driver, modes) {
 
             it('Primary Search Autocomplete', async function () {
                 await driver.switchTo().defaultContent();
+                // The source verification check must be dismissed, if enabled.
+                try {
+                    await driver.sleep(1300);
+                    const trustSrc = await driver.findElement(By.id('approveConfirm'));
+                    await trustSrc.click();
+                } catch {
+                    // do nothing
+                }
                 const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
                 await searchBox.sendKeys('Poezii.35323.html');
                 // checks if the autocomplete list is displayed has one element

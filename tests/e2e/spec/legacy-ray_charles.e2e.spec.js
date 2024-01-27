@@ -230,6 +230,14 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
+                // The source verification check must be dismissed, if enabled.
+                try {
+                    await driver.sleep(1300);
+                    const trustSrc = await driver.findElement(By.id('approveConfirm'));
+                    await trustSrc.click();
+                } catch {
+                    // do nothing
+                }
                 // console.log('FilesLength outer: ' + filesLength);
                 // Switch to iframe and check that the index contains the specified article
                 await driver.switchTo().frame('articleContent');

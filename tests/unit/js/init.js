@@ -28,7 +28,8 @@
 // Define global params needed for tests to run on existing app code
 // eslint-disable-next-line no-unused-vars
 var params = {};
-
+// setting source verification to false will enable proper testing.
+params['sourceVerification'] = true; 
 // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
 // eslint-disable-next-line no-unused-vars
 var webpMachine = false;

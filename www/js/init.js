@@ -125,7 +125,7 @@ params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
-params['sourceVerification'] = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification'); // Sets a boolean indicating weather a user trusts the source of zim files.
+params['sourceVerification'] = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification'); // Sets a boolean indicating weather a user trusts the source of zim files.
 params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
 
@@ -193,7 +193,7 @@ document.getElementById('bypassAppCacheCheck').checked = !params.appCache;
 document.getElementById('libzimModeSelect').value = params.libzimMode;
 document.getElementById('useLibzim').checked = params.useLibzim;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
-document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? false : getSetting('sourceVerification');
+document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {
     var result;
