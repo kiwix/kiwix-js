@@ -1657,7 +1657,7 @@ async function archiveReadyCallback (archive) {
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
-    if (params.sourceVerification && isServiceWorkerAvailable()){
+    if (params.sourceVerification && isServiceWorkerAvailable() && params.contentInjectionMode === 'serviceworker'){
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
             // Alert user about unknown source.
