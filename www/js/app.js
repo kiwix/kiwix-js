@@ -1958,9 +1958,8 @@ function readArticle (dirEntry) {
             // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
             document.getElementById('searchingArticles').style.display = '';
             selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, content) {
-                // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect
-                if (fileDirEntry.zimitRedirect) {
-                    params.isLandingPage = false;
+                // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect, but not if we already have the correct dirEntry
+                if (fileDirEntry.zimitRedirect && fileDirEntry.zimitRedirect.replace(/^C\//, '') !== fileDirEntry.url) {
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
@@ -2306,7 +2305,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
     // Display Bootstrap warning alert if the landing page contains active content
     if (!params.hideActiveContentWarning && params.isLandingPage) {
-        if (regexpActiveContent.test(htmlArticle)) {
+        if (regexpActiveContent.test(htmlArticle) || /zimit/.test(selectedArchive.zimType)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
                 uiUtil.displayActiveContentWarning();
@@ -2558,7 +2557,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         zimUrl = zimUrl.replace(zimRoot, '').replace('#' + anchorParameter, '');
                     } else if (/^\//.test(zimUrl)) {
                         zimUrl = zimUrl.replace(/^\//, selectedArchive.zimitPseudoContentNamespace + selectedArchive.zimitPrefix.replace(/^A\//, ''));
-                    } else {
+                    } else if (!~zimUrl.indexOf(selectedArchive.zimitPseudoContentNamespace)) { // Doesn't begin with pseudoContentNamespace
                         // Zimit ZIMs store URLs percent-encoded and with querystring and
                         // deriveZimUrlFromRelativeUrls strips any querystring and decodes
                         var zimUrlToTransform = zimUrl;
