@@ -125,7 +125,7 @@ params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a boolean indicating whether the Webkit Directory API is supported
-params['sourceVerification'] = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification'); // Sets a boolean indicating weather a user trusts the source of zim files.
+params['sourceVerification'] = params.contentInjectionMode === 'serviceworker' ? (getSetting('sourceVerification') === null ? true : getSetting('sourceVerification')) : false;// Sets a boolean indicating weather a user trusts the source of zim files.
 params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
 

@@ -496,6 +496,21 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
         }
     });
 });
+// Handle switching from jQuery to serviceWorker modes.
+document.getElementById('serviceworkerModeRadio').addEventListener('click', function() {
+    if (this.checked) {
+        document.getElementById('enableSourceVerificationCheckBox').style.display = 'block' 
+        params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification')
+    }
+}) 
+document.getElementById('jqueryModeRadio').addEventListener('click', function() {
+    if (this.checked) {
+        document.getElementById('enableSourceVerificationCheckBox').style.display = 'none'
+    }
+})
+// Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
+document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+
 document.getElementById('enableSourceVerification').addEventListener('change', function() {
     params.sourceVerification = this.checked;
     settingsStore.setItem('sourceVerification', this.checked, Infinity)
@@ -1657,7 +1672,7 @@ async function archiveReadyCallback (archive) {
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
-    if (params.sourceVerification && isServiceWorkerAvailable() && params.contentInjectionMode === 'serviceworker'){
+    if (params.sourceVerification && params.contentInjectionMode === 'serviceworker'){
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
             // Alert user about unknown source.

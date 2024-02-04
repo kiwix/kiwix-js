@@ -182,6 +182,12 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
                     await driver.quit();
                 }
+                if(mode === 'serviceworker') {
+                    const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
+                    if (sourceVerificationCheckbox.isSelected()) {
+                        await sourceVerificationCheckbox.click();
+                    }
+                }
             });
 
             // Loads the ZIM archive for the mode if the mode is not skipped
@@ -275,14 +281,6 @@ function runTests (driver, modes) {
 
             it('Primary Search Autocomplete', async function () {
                 await driver.switchTo().defaultContent();
-                // The source verification check must be dismissed, if enabled.
-                try {
-                    await driver.sleep(2000);
-                    const trustSrc = await driver.findElement(By.id('approveConfirm'));
-                    await trustSrc.click();
-                } catch {
-                    // do nothing
-                }
                 const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
                 await searchBox.sendKeys('Poezii.35323.html');
                 // checks if the autocomplete list is displayed has one element

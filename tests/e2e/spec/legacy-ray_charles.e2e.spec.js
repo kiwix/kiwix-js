@@ -194,8 +194,14 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
                     await driver.quit();
                 }
+                if(mode === 'serviceworker') {
+                    const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
+                    if (sourceVerificationCheckbox.isSelected()) {
+                        await sourceVerificationCheckbox.click();
+                    }
+                }
             });
-
+            
             it('Load legacy Ray Charles and check index contains specified article', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
@@ -222,7 +228,7 @@ function runTests (driver, modes) {
                     // We are running tests on BrowserStack, so create files as blobs and use the setRemoteArchives function to initiate the app
                     await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', rayCharlesFileArray);
                     await driver.sleep('1300');
-                }
+                } 
             });
 
             it('Navigate to "This Little Girl of Mine"', async function () {
@@ -230,14 +236,7 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
-                // The source verification check must be dismissed, if enabled.
-                try {
-                    await driver.sleep(2000);
-                    const trustSrc = await driver.findElement(By.id('approveConfirm'));
-                    await trustSrc.click();
-                } catch {
-                    // do nothing
-                }
+                
                 // console.log('FilesLength outer: ' + filesLength);
                 // Switch to iframe and check that the index contains the specified article
                 await driver.switchTo().frame('articleContent');
@@ -245,7 +244,7 @@ function runTests (driver, modes) {
                 await driver.wait(async function () {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
                     return contentAvailable;
-                }, 6000);
+                }, 6000); 
                 // const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
                 // const text = await articleLink.getText();
                 let articleLink;
