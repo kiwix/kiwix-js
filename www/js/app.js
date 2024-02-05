@@ -2184,7 +2184,7 @@ function handleClickOnReplayLink (ev, anchor) {
                 }
             } else {
                 // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
-                uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor);
+                uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor, selectedArchive);
             }
         }).catch(function (err) {
             console.error('Error getting dirEntry for ' + zimUrl, err);
