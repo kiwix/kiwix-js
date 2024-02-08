@@ -695,9 +695,9 @@
                                     </label>
                                 </div>
                                 <div class="checkbox" id="enableSourceVerificationCheckBox">
-                                    <label data-i18n-tip="configure-expert-enaable-source-verification" title="Warning: A few zim files might run malicious programs in your browser. This can however be prevented by using jquery mode, kiwix will automatically switch to jquery mode if you  mention you donot trust the source. Disabling this option will result in using serviceworker mode by default, if available." >
+                                    <label data-i18n-tip="configure-expert-enaable-source-verification" title="Warning: Some ZIM archives from untrusted sources could run malicious code in your browser. This can be prevented by using JQuery mode, which cannot run active content from the ZIM. Highly dynamic ZIMs will probably fail in JQuery mode, but ZIMs with largely static content should work. If you trust the source of all of your ZIMs, then disabling this option will use ServiceWorker mode by default, if available.">
                                         <input type="checkbox" name="disableFileVerification" id="enableSourceVerification" >
-                                        <span data-i18n="configure-expert-disable-source-verification"><strong>Enable source verification of new files</strong> (once checked, kiwix will ask to verify file source before opening.)</span>
+                                        <span data-i18n="configure-expert-disable-source-verification"><strong>Enable source verification of new files</strong> (<i>recommended</i>: you will only be prompted the first time you open a ZIM)</span>
                                     </label>
                                 </div>
                                 <div class="checkbox" id="">
