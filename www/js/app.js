@@ -499,22 +499,22 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', function() {
     if (this.checked) {
-        document.getElementById('enableSourceVerificationCheckBox').style.display = 'block' 
-        params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification')
+        document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
+        params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
     }
-}) 
+}); 
 document.getElementById('jqueryModeRadio').addEventListener('click', function() {
     if (this.checked) {
-        document.getElementById('enableSourceVerificationCheckBox').style.display = 'none'
+        document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
     }
-})
+});
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
 document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
 
 document.getElementById('enableSourceVerification').addEventListener('change', function() {
     params.sourceVerification = this.checked;
-    settingsStore.setItem('sourceVerification', this.checked, Infinity)
-})
+    settingsStore.setItem('sourceVerification', this.checked, Infinity);
+});
 document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.hideActiveContentWarning = !!this.checked;
@@ -1676,7 +1676,6 @@ async function archiveReadyCallback (archive) {
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
             // Alert user about unknown source.
-            console.log("check22")
             const response = await uiUtil.systemAlert('Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
             console.log(response);
             if (response) {
