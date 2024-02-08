@@ -1677,7 +1677,7 @@ async function archiveReadyCallback (archive) {
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
             // Alert user about unknown source.
             console.log("check22")
-            const response = await uiUtil.systemAlert('Do you trust this source?\n You can still read the zim file in Safe Mode incase you cannot verify the source. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Alert!', true, 'Open in Safe Mode', 'Trust Source')
+            const response = await uiUtil.systemAlert('Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
             console.log(response);
             if (response) {
                 setContentInjectionMode('serviceworker');
