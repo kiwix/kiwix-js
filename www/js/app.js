@@ -497,12 +497,23 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
     });
 });
 // Handle switching from jQuery to serviceWorker modes.
-document.getElementById('serviceworkerModeRadio').addEventListener('click', function() {
-    if (this.checked) {
-        document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
-        params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
+document.getElementById('serviceworkerModeRadio').addEventListener('click', async function() {
+    document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
+    params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
+        const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
+            console.log(response);
+            if (response) {
+                params.contentInjectionMode = 'serviceworker';
+                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+                var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
+                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+                
+            } else {
+                params.contentInjectionMode = 'jquery';
+            }
     }
-}); 
+});
 document.getElementById('jqueryModeRadio').addEventListener('click', function() {
     if (this.checked) {
         document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
@@ -1669,6 +1680,10 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
+    // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
+    if (params.contentInjectionMode === 'jquery') {
+        params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
+    }
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
@@ -1679,13 +1694,14 @@ async function archiveReadyCallback (archive) {
             const response = await uiUtil.systemAlert('Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
             console.log(response);
             if (response) {
-                setContentInjectionMode('serviceworker');
+                params.contentInjectionMode = 'serviceworker';
                 var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
                 var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
                 settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
                 
             } else {
-                setContentInjectionMode('jquery');
+                // Switch to Safe mode
+                params.contentInjectionMode = 'jquery';
             }
     }
 }
