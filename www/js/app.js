@@ -2116,7 +2116,7 @@ function handleClickOnReplayLink (ev, anchor) {
         // DEV: CURRENTLY NON-FUNCTION IN KIWIX-JS -- NEEDS FIXING
         return selectedArchive.getDirEntryByPath(zimUrl, null, null, true).then(function (dirEntry) {
             var processDirEntry = function (dirEntry) {
-                var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, appstate.selectedArchive.file.name + '/');
+                var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, selectedArchive.file.name + '/');
                 var mimetype = dirEntry.getMimetype();
                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                 // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
