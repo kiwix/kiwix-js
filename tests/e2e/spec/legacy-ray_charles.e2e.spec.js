@@ -236,7 +236,7 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
-                
+
                 // console.log('FilesLength outer: ' + filesLength);
                 // Switch to iframe and check that the index contains the specified article
                 await driver.switchTo().frame('articleContent');
