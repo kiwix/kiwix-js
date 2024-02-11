@@ -947,9 +947,10 @@ function reportSearchProviderToAPIStatusPanel (provider) {
  * Warn the user that they clicked on an external link, and open it in a new tab
  *
  * @param {Event} event The click event (on an anchor) to handle. If not provided, then clickedAnchor must be provided.
- * @param {Element} clickedAnchor The DOM anchor that has been clicked (optional, defaults to event.target).
+ * @param {Element} clickedAnchor The DOM anchor that has been clicked (optional, defaults to event.target)
+ * @param {ZIMArchive} archive The archive object from which the link was scraped (optional)
  */
-function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
+function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
     if (event) {
         // We have to prevent any blank target from firing on the original event
         event.target.removeAttribute('target');
@@ -957,8 +958,9 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor) {
         event.stopPropagation();
     }
     if (!clickedAnchor) clickedAnchor = event.target;
-    if (articleContainer.contentWindow && clickedAnchor.origin === articleContainer.contentWindow.location.origin) {
-        clickedAnchor.href = clickedAnchor.href.replace(clickedAnchor.origin, appstate.selectedArchive.source.replace(/\/$/, ''));
+    // This is for Zimit-style relative links where the link isn't in the archive, so we have to reconstruct the original URL it was scraped from
+    if (archive && articleContainer.contentWindow && clickedAnchor.origin === articleContainer.contentWindow.location.origin) {
+        clickedAnchor.href = clickedAnchor.href.replace(clickedAnchor.origin, archive.source.replace(/\/$/, ''));
     }
     var target = clickedAnchor.target;
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';

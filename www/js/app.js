@@ -1958,9 +1958,8 @@ function readArticle (dirEntry) {
             // TODO: Investigate whether it is really an async issue or whether there is a rogue .hide() statement in the chain
             document.getElementById('searchingArticles').style.display = '';
             selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, content) {
-                // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect
-                if (fileDirEntry.zimitRedirect) {
-                    params.isLandingPage = false;
+                // Because a Zimit landing page will change the dirEntry, we have to check again for a redirect, but not if we already have the correct dirEntry
+                if (fileDirEntry.zimitRedirect && fileDirEntry.namespace + '/' + fileDirEntry.url !== fileDirEntry.zimitRedirect) {
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
@@ -2003,7 +2002,10 @@ function filterClickEvent (event) {
     if (clickedAnchor) {
         // Check for Zimit links that would normally be handled by the Replay Worker
         // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
-        if (appstate.isReplayWorkerAvailable || '__WB_pmw' in clickedAnchor) {
+        // however, this misses zimit2 archives where the framework doesn't support wombat.js, so monitor if always processing zimit2 links
+        // causes any adverse effects @TODO
+        if (appstate.isReplayWorkerAvailable || '__WB_pmw' in clickedAnchor || selectedArchive.zimType === 'zimit2' &&
+          articleWindow.location.href.replace(/[#?].*$/, '') !== clickedAnchor.href.replace(/[#?].*$/, '') && !clickedAnchor.hash) {
             return handleClickOnReplayLink(event, clickedAnchor);
         }
         var href = clickedAnchor.getAttribute('href');
@@ -2086,6 +2088,8 @@ function articleLoadedSW (iframeArticleContent) {
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
+    var basePath = window.location.href.replace(/^(.*?\/)www\/.*$/, '$1');
+    var pathToZim = basePath + selectedArchive.file.name + '/';
     var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
     var pseudoDomainPath = (anchor.hostname === window.location.hostname ? selectedArchive.zimitPrefix.replace(/\/$/, '') : anchor.hostname) + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
@@ -2093,15 +2097,25 @@ function handleClickOnReplayLink (ev, anchor) {
     // with a link to an anchor in the same document, or if the user has pressed the ctrl or command key, the document will open in a new window
     // anyway, so we can return. Note that some PDFs are served with a protocol of http: instead of https:, so we need to account for that.
     if (anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':') || pseudoDomainPath === containingDocDomainPath) return;
-    var zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
-    // We are dealing with a ZIM link transformed by Wombat, so we need to reconstruct the ZIM link
+    var zimUrl;
+    // If it starts with the path to the ZIM file, then we are dealing with an untransformed absolute local ZIM link
+    if (!anchor.href.indexOf(pathToZim)) {
+        zimUrl = anchor.href.replace(pathToZim, '');
+    // If it is the same as the pseudoDomainPath, then we are dealing with an untransformed pseuodo relative link that looks like an absolute https:// link
+    // (this probably only applies to zimit2 without Wombat)
+    } else if (anchor.href.replace(/^[^:]+:\/\//, '') === pseudoDomainPath && /\.zim\/[CA]\//.test(anchor.href)) {
+        zimUrl = anchor.href.replace(/^(?:[^.]|\.(?!zim\/[CA]\/))+\.zim\//, '');
+    } else {
+        zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
+    }
+    // We need to test the ZIM link
     if (zimUrl) {
         ev.preventDefault();
         ev.stopPropagation();
         // Note that true in the fourth argument instructs getDirEntryByPath to follow redirects by looking up the Header
         // DEV: CURRENTLY NON-FUNCTION IN KIWIX-JS -- NEEDS FIXING
         return selectedArchive.getDirEntryByPath(zimUrl, null, null, true).then(function (dirEntry) {
-            if (dirEntry) {
+            var processDirEntry = function (dirEntry) {
                 var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, selectedArchive.file.name + '/');
                 var mimetype = dirEntry.getMimetype();
                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
@@ -2172,13 +2186,29 @@ function handleClickOnReplayLink (ev, anchor) {
                         uiUtil.spinnerDisplay(true, 'Loading ' + dirEntry.getTitleOrUrl().replace(/([^/]+)$/, '$1').substring(0, 18) + '...');
                     }
                 }
+            };
+            if (dirEntry) {
+                processDirEntry(dirEntry);
             } else {
-                // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
-                uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor);
+                // If URL has final slash, we need to try it without the slash
+                if (/\/$/.test(zimUrl)) {
+                    zimUrl = zimUrl.replace(/\/$/, '');
+                    return selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
+                        if (dirEntry) {
+                            processDirEntry(dirEntry);
+                        } else {
+                            // If dirEntry was still not-found, it's probably an external link, so warn user before opening a new tab/window
+                            uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor, selectedArchive);
+                        }
+                    });
+                } else {
+                    // It's probably an external link, so warn user before opening a new tab/window
+                    uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor, selectedArchive);
+                }
             }
         }).catch(function (err) {
             console.error('Error getting dirEntry for ' + zimUrl, err);
-            appstate.isReplayWorkerAvailable = true;
+            uiUtil.systemAlert('There was an error looking up ' + zimUrl, 'Error reading direcotry entry!');
         });
     }
 }
@@ -2258,10 +2288,10 @@ var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
 // It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
 // (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
 // absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until any
-// querystring (? character) which (if it is exists) is captured with its contents in another gourp. The regex then tests for the end
+// querystring (? character) which (if it is exists) is captured with its contents in another group. The regex then tests for the end
 // of the URL with the opening delimiter (" or ', which is capture group \3) or a hash character (#). When the regex is used below, it
 // will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
-var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(\?.*?)?(?=\3|#)/ig;
+var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(\?.*?)?(?=\3|#)([\s\S]*?>)/ig;
 // Regex below tests the html of an article for active content [kiwix-js #466]
 // It inspects every <script> block in the html and matches in the following cases: 1) the script is of type "module"; 2) the script
 // loads a UI application called app.js, init.js, or other common scripts found in unsupported ZIMs; 3) the script block has inline
@@ -2295,7 +2325,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
     // Display Bootstrap warning alert if the landing page contains active content
     if (!params.hideActiveContentWarning && params.isLandingPage) {
-        if (regexpActiveContent.test(htmlArticle)) {
+        if (regexpActiveContent.test(htmlArticle) || /zimit/.test(selectedArchive.zimType)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
                 uiUtil.displayActiveContentWarning();
@@ -2304,7 +2334,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
 
     // Calculate the current article's ZIM baseUrl to use when processing relative links
-    var baseUrl = dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, '');
+    // (duplicated because we sometimes bypass readArticle above)
+    var baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
@@ -2352,23 +2383,34 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
     // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
     // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring) {
+    var newBlock;
+    var assetZIMUrlEnc;
+    var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
+    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring, blockClose) {
+        // Don't process data URIs (yet)
+        if (/data:image/i.test(relAssetUrl)) return match;
         // We need to save the query string if any for Zimit-style archives
         querystring = querystring || '';
-        var assetZIMUrl = relAssetUrl + querystring;
-        if (!/^[CA]\//.test(relAssetUrl)) {
-            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component)
-            assetZIMUrl = uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl);
-            // Re-encode the URI with encodeURI (which does not encode forward slashes) instead of encodeURIComponent
-            assetZIMUrl = encodeURI(assetZIMUrl);
-            if (selectedArchive.zimType === 'zimit') {
-                // For Zimit-style ZIMs, we we have to remove any root path for jQuery mode to detect the asset
-                // var rootPathToAsset = document.location.pathname.replace(/\/index.html.*/, '/') + selectedArchive.file.name + '/';
-                // relAssetUrl = relAssetUrl.replace(rootPathToAsset, '');
-                assetZIMUrl = assetZIMUrl + querystring;
-            }
+        if (/zimit/.test(params.zimType)) {
+            assetZIMUrlEnc = relAssetUrl.replace(indexRoot, '');
+            assetZIMUrlEnc = assetZIMUrlEnc + querystring;
         }
-        return blockStart + 'data-kiwixurl' + equals + assetZIMUrl;
+        if (params.zimType !== 'zimit') {
+            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
+            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
+            // of encodeURIComponent.
+            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl));
+        }
+        newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
+        // Replace any srcset with data-kiwixsrcset
+        newBlock = newBlock.replace(/\bsrcset\s*=/, 'data-kiwixsrcset=');
+        return newBlock;
+    });
+    // We also need to process data:image/webp if the browser needs the WebPMachine
+    if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
+    // Remove any empty media containers on page (they can cause layout issue in jQuery mode)
+    htmlArticle = htmlArticle.replace(/(<(audio|video)\b(?:[^<]|<(?!\/\2))+<\/\2>)/ig, function (p0) {
+        return /(?:src|data-kiwixurl)\s*=\s*["']/.test(p0) ? p0 : '';
     });
 
     // We also need to process data:image/webp if the browser needs the WebPMachine
@@ -2529,18 +2571,38 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // Add an onclick event to extract this article or file from the ZIM
             // instead of following the link
             anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
-                var zimUrl;
-                if (selectedArchive.zimitPrefix && ~href.indexOf(dirEntry.namespace + '/' + selectedArchive.zimitPrefix)) {
-                    // It's already a full ZIM URL, so we can use it after stripping any anchor
-                    zimUrl = decodeURIComponent(href.replace(/#.*/, ''));
+                var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
+                var zimRoot = indexRoot.replace(/^.+?\/www\//, '/');
+                var zimUrl = href;
+                // var zimUrlFullEncoding;
+                // Some URLs are incorrectly given with spaces at the beginning and end, so we remove these
+                zimUrl = zimUrl.replace(/^\s+|\s+$/g, '');
+                if (/zimit/.test(params.zimType)) {
+                    // Deal with root-relative URLs in zimit ZIMs
+                    if (!zimUrl.indexOf(indexRoot)) { // If begins with indexRoot
+                        zimUrl = zimUrl.replace(indexRoot, '').replace('#' + anchorParameter, '');
+                    } else if (!zimUrl.indexOf(zimRoot)) { // If begins with zimRoot
+                        zimUrl = zimUrl.replace(zimRoot, '').replace('#' + anchorParameter, '');
+                    } else if (/^\//.test(zimUrl)) {
+                        zimUrl = zimUrl.replace(/^\//, selectedArchive.zimitPseudoContentNamespace + selectedArchive.zimitPrefix.replace(/^A\//, ''));
+                    } else if (!~zimUrl.indexOf(selectedArchive.zimitPseudoContentNamespace)) { // Doesn't begin with pseudoContentNamespace
+                        // Zimit ZIMs store URLs percent-encoded and with querystring and
+                        // deriveZimUrlFromRelativeUrls strips any querystring and decodes
+                        var zimUrlToTransform = zimUrl;
+                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl)) +
+                            href.replace(uriComponent, '').replace('#' + anchorParameter, '');
+                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl) +
+                        //     href.replace(uriComponent, '').replace('#' + anchorParameter, ''));
+                    }
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
                 }
                 goToArticle(zimUrl, downloadAttrValue, contentType);
-                e.preventDefault();
             });
         });
     }
