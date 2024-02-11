@@ -2101,6 +2101,10 @@ function handleClickOnReplayLink (ev, anchor) {
     // If it starts with the path to the ZIM file, then we are dealing with an untransformed absolute local ZIM link
     if (!anchor.href.indexOf(pathToZim)) {
         zimUrl = anchor.href.replace(pathToZim, '');
+    // If it is the same as the pseudoDomainPath, then we are dealing with an untransformed pseuodo relative link that looks like an absolute https:// link
+    // (this probably only applies to zimit2 without Wombat)
+    } else if (anchor.href.replace(/^[^:]+:\/\//, '') === pseudoDomainPath && /\.zim\/[CA]\//.test(anchor.href)) {
+        zimUrl = anchor.href.replace(/^(?:[^.]|\.(?!zim\/[CA]\/))+\.zim\//, '');
     } else {
         zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     }
@@ -2111,8 +2115,8 @@ function handleClickOnReplayLink (ev, anchor) {
         // Note that true in the fourth argument instructs getDirEntryByPath to follow redirects by looking up the Header
         // DEV: CURRENTLY NON-FUNCTION IN KIWIX-JS -- NEEDS FIXING
         return selectedArchive.getDirEntryByPath(zimUrl, null, null, true).then(function (dirEntry) {
-            if (dirEntry) {
-                var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, selectedArchive.file.name + '/');
+            var processDirEntry = function (dirEntry) {
+                var pathToArticleDocumentRoot = document.location.href.replace(/www\/index\.html.*$/, appstate.selectedArchive.file.name + '/');
                 var mimetype = dirEntry.getMimetype();
                 // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
                 // Note that some Replay PDFs have html mimetypes, or can be redirects to PDFs, we need to check the URL as well
@@ -2182,13 +2186,29 @@ function handleClickOnReplayLink (ev, anchor) {
                         uiUtil.spinnerDisplay(true, 'Loading ' + dirEntry.getTitleOrUrl().replace(/([^/]+)$/, '$1').substring(0, 18) + '...');
                     }
                 }
+            };
+            if (dirEntry) {
+                processDirEntry(dirEntry);
             } else {
-                // If dirEntry was not-found, it's probably an external link, so warn user before opening a new tab/window
-                uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor, selectedArchive);
+                // If URL has final slash, we need to try it without the slash
+                if (/\/$/.test(zimUrl)) {
+                    zimUrl = zimUrl.replace(/\/$/, '');
+                    return selectedArchive.getDirEntryByPath(zimUrl).then(function (dirEntry) {
+                        if (dirEntry) {
+                            processDirEntry(dirEntry);
+                        } else {
+                            // If dirEntry was still not-found, it's probably an external link, so warn user before opening a new tab/window
+                            uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor, selectedArchive);
+                        }
+                    });
+                } else {
+                    // It's probably an external link, so warn user before opening a new tab/window
+                    uiUtil.warnAndOpenExternalLinkInNewTab(null, anchor, selectedArchive);
+                }
             }
         }).catch(function (err) {
             console.error('Error getting dirEntry for ' + zimUrl, err);
-            appstate.isReplayWorkerAvailable = true;
+            uiUtil.systemAlert('There was an error looking up ' + zimUrl, 'Error reading direcotry entry!');
         });
     }
 }
