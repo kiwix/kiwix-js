@@ -15,7 +15,7 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: npm ci
@@ -37,7 +37,7 @@ jobs:
     timeout-minutes: 30
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Test integrity of app parameters
         run: |
@@ -157,7 +157,7 @@ jobs:
     timeout-minutes: 30
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: npm ci
@@ -198,7 +198,7 @@ jobs:
   #   runs-on: macos-latest
   #   steps:
   #     # Clone the repo and checkout the commit for which the workflow was triggered
-  #     - uses: actions/checkout@v3
+  #     - uses: actions/checkout@v4
 
   #     - name: Install dependencies
   #       run: npm ci
