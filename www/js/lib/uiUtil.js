@@ -451,7 +451,13 @@ function deriveZimUrlFromRelativeUrl (url, base) {
  * Displays a Bootstrap warning alert with information about how to access content in a ZIM with unsupported active UI
  */
 var activeContentWarningSetup = false;
-function displayActiveContentWarning () {
+function displayActiveContentWarning (mode) {
+    // Adapt the text for other modes (e.g., ServiceWorkerLocal)
+    if (mode) {
+        activeContent.innerHTML = activeContent.innerHTML.replace(/JQuery/i, mode);
+        // We have to set up event listeners again
+        activeContentWarningSetup = false;
+    }
     activeContent.style.display = '';
     if (!activeContentWarningSetup) {
         // We are setting up the active content warning for the first time
