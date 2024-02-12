@@ -2071,6 +2071,10 @@ function articleLoadedSW (iframeArticleContent) {
             // Add event listener to iframe window to check for links to external resources
             iframeArticleContent.contentWindow.onclick = filterClickEvent;
         }
+        // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
+        if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
+            uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
+        }
         // Reset UI when the article is unloaded
         iframeArticleContent.contentWindow.onunload = function () {
             iframeArticleContent.loader = false;
@@ -2084,6 +2088,7 @@ function articleLoadedSW (iframeArticleContent) {
             document.getElementById('prefix').value = '';
         };
     }
+    params.isLandingPage = false;
 };
 
 // Handles a click on a Zimit link that has been processed by Wombat
@@ -2497,6 +2502,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
             };
         }
+        params.isLandingPage = false;
     };
 
     // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -2935,11 +2941,18 @@ function goToMainArticle () {
             uiUtil.spinnerDisplay(false);
             document.getElementById('welcomeText').style.display = '';
         } else {
-            // DEV: see comment above under goToRandomArticle()
-            if (dirEntry.redirect || dirEntry.getMimetype() === 'text/html' || dirEntry.namespace === 'A') {
+            var setMainPage = function (dirEntry) {
                 params.isLandingPage = true;
+                selectedArchive.landingPageUrl = dirEntry.namespace + '/' + dirEntry.url;
                 readArticle(dirEntry);
+            }
+            if (dirEntry.redirect) {
+                selectedArchive.resolveRedirect(dirEntry, setMainPage);
+            // DEV: see comment above under goToRandomArticle()
+            } else if (/text/.test(dirEntry.getMimetype()) || dirEntry.namespace === 'A') {
+                setMainPage(dirEntry);
             } else {
+                params.isLandingPage = false;
                 console.error('The main page of this archive does not seem to be an article');
                 uiUtil.spinnerDisplay(false);
                 document.getElementById('welcomeText').style.display = '';
