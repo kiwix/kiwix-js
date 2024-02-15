@@ -499,20 +499,7 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', async function() {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
-        const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
-            console.log(response);
-            if (response) {
-                params.contentInjectionMode = 'serviceworker';
-                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
-                var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
-                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
-            } else {
-                params.contentInjectionMode = 'jquery';
-                document.getElementById('jqueryModeRadio').checked = true;
-            }
-    }
+    verifyLoadedArchive();
 });
 document.getElementById('jqueryModeRadio').addEventListener('click', function() {
     if (this.checked) {
@@ -520,23 +507,9 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function() 
     }
 });
 // Handle switching to serviceWorkerLocal mode for chrome-extension
-document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function() {
+document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
-    params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
-        const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
-            console.log(response);
-            if (response) {
-                params.contentInjectionMode = 'serviceworker';
-                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
-                var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
-                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
-                
-            } else {
-                params.contentInjectionMode = 'jquery';
-                document.getElementById('jqueryModeRadio').checked = true;
-            }
-    }
+   verifyLoadedArchive();
 });
 document.getElementById('jqueryModeRadio').addEventListener('click', function() {
     if (this.checked) {
@@ -653,6 +626,21 @@ function focusPrefixOnHomeKey (event) {
         setTimeout(function () {
             document.getElementById('prefix').focus();
         }, 0);
+    }
+}
+// Verify the source for a loaded archive
+async function verifyLoadedArchive () {
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
+        const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
+        if (response) {
+            params.contentInjectonMode = 'serviceworker';
+            var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+            var updatedTrustedZimFiles = trustedZimFiles + selectedArchive.file.name + '|';
+            settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+        } else {
+            params.contentInjectionMode = 'jquery';
+            document.getElementById('jqueryModeRadio').checked = true;
+        }
     }
 }
 // switch on/off the feature to use Home Key to focus search bar
