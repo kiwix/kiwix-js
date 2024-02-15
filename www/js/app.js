@@ -501,7 +501,7 @@ document.getElementById('serviceworkerModeRadio').addEventListener('click', asyn
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
     verifyLoadedArchive();
 });
-document.getElementById('jqueryModeRadio').addEventListener('click', function() {
+document.getElementById('jqueryModeRadio').addEventListener('click', function () {
     if (this.checked) {
         document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
     }
@@ -511,7 +511,7 @@ document.getElementById('serviceworkerLocalModeRadio').addEventListener('click',
     document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
    verifyLoadedArchive();
 });
-document.getElementById('jqueryModeRadio').addEventListener('click', function() {
+document.getElementById('jqueryModeRadio').addEventListener('click', function () {
     if (this.checked) {
         document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
     }
