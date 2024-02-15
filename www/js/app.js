@@ -498,6 +498,29 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 });
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', async function() {
+    document.getElementById('enableSourceVerificationCheckBox').style.display = '';
+    params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
+        const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
+            console.log(response);
+            if (response) {
+                params.contentInjectionMode = 'serviceworker';
+                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+                var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
+                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+            } else {
+                params.contentInjectionMode = 'jquery';
+                document.getElementById('jqueryModeRadio').checked = true;
+            }
+    }
+});
+document.getElementById('jqueryModeRadio').addEventListener('click', function() {
+    if (this.checked) {
+        document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
+    }
+});
+// Handle switching to serviceWorkerLocal mode for chrome-extension
+document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function() {
     document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
     params.sourceVerification = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
     if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
@@ -511,6 +534,7 @@ document.getElementById('serviceworkerModeRadio').addEventListener('click', asyn
                 
             } else {
                 params.contentInjectionMode = 'jquery';
+                document.getElementById('jqueryModeRadio').checked = true;
             }
     }
 });
@@ -1683,11 +1707,20 @@ async function archiveReadyCallback (archive) {
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
+        // Change the radio buttons accordingly
+        switch (settingsStore.getItem('contentInjectionMode')) {
+            case 'serviceworker':
+                document.getElementById('serviceworkerModeRadio').checked = true;
+                break;
+            case 'serviceworkerlocal':
+                document.getElementById('serviceworkerLocalModeRadio').checked = true;
+                break;
+        }
     }
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
-    if (params.sourceVerification && params.contentInjectionMode === 'serviceworker'){
+    if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')){
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
             // Alert user about unknown source.
@@ -1698,10 +1731,16 @@ async function archiveReadyCallback (archive) {
                 var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
                 var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
                 settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
-                
+                // Change radio buttons accourdingly
+                 if (params.serviceWorkerLocal) {
+                    document.getElementById('serviceworkerLocalModeRadio').checked = true;
+                } else {
+                    document.getElementById('serviceworkerModeRadio').checked = true;
+                }
             } else {
                 // Switch to Safe mode
                 params.contentInjectionMode = 'jquery';
+                document.getElementById('jqueryModeRadio').checked = true;
             }
     }
 }
