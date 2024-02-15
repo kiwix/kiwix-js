@@ -497,7 +497,7 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
     });
 });
 // Handle switching from jQuery to serviceWorker modes.
-document.getElementById('serviceworkerModeRadio').addEventListener('click', async function() {
+document.getElementById('serviceworkerModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
     verifyLoadedArchive();
 });
@@ -519,7 +519,7 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function() 
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
 document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
 
-document.getElementById('enableSourceVerification').addEventListener('change', function() {
+document.getElementById('enableSourceVerification').addEventListener('change', function () {
     params.sourceVerification = this.checked;
     settingsStore.setItem('sourceVerification', this.checked, Infinity);
 });
