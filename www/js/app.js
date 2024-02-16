@@ -511,11 +511,7 @@ document.getElementById('serviceworkerLocalModeRadio').addEventListener('click',
     document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
    verifyLoadedArchive();
 });
-document.getElementById('jqueryModeRadio').addEventListener('click', function () {
-    if (this.checked) {
-        document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
-    }
-});
+
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
 document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
 
@@ -630,7 +626,7 @@ function focusPrefixOnHomeKey (event) {
 }
 // Verify the source for a loaded archive
 async function verifyLoadedArchive () {
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name))) {
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
         const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
         if (response) {
             params.contentInjectonMode = 'serviceworker';
