@@ -509,11 +509,11 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function ()
 // Handle switching to serviceWorkerLocal mode for chrome-extension
 document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
-   verifyLoadedArchive();
+    verifyLoadedArchive();
 });
 
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
-document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === ('serviceworker' || 'serviceworkerlocal') ? 'block' : 'none';
 
 document.getElementById('enableSourceVerification').addEventListener('change', function () {
     params.sourceVerification = this.checked;
