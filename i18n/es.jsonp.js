@@ -24,6 +24,7 @@ document.localeJson = {
       "configure-changed-content-note": "(Vuelva a seleccionar carpeta si hay contenido actualizado en su dispositivo)",
       "configure-btn-rescan": "Volver a escanear",
       "configure-about-rescan-tip": "Volver a escanear las tarjetas SD y la memoria interna",
+      "configure-expert-enable-source-verification-tip": "Advertencia: Algunos archivos ZIM de fuentes no fiables podrían ejecutar código malicioso en tu navegador. Esto puede evitarse utilizando el modo JQuery, que no puede ejecutar contenido activo desde el ZIM. Los ZIM muy dinámicos probablemente fallarán en el modo JQuery, pero los ZIM con contenido mayoritariamente estático deberían funcionar. Si confías en la fuente de todos tus ZIMs, desactivando esta opción utilizarás el modo ServiceWorker por defecto, si está disponible.",
       "configure-select-file-numbers": "archivo(s) encontrado(s) en la ubicación seleccionada. ",
       "configure-download-instructions": "Esta aplicación necesita un archivo ZIM para funcionar.<br />Para instrucciones completas, vea la sección",
       "configure-select-instructions": "Seleccione o arrastre y suelte un archivo .zim (o todos los .zimaa, .zimab etc en caso de un archivo dividido):",
