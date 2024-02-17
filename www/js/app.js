@@ -499,7 +499,9 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    verifyLoadedArchive();
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+        await verifyLoadedArchive(selectedArchive);
+    }
 });
 document.getElementById('jqueryModeRadio').addEventListener('click', function () {
     if (this.checked) {
@@ -508,8 +510,10 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function ()
 });
 // Handle switching to serviceWorkerLocal mode for chrome-extension
 document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
-    document.getElementById('enableSourceVerificationCheckBox').style.display = ''; 
-    verifyLoadedArchive();
+    document.getElementById('enableSourceVerificationCheckBox').style.display = '';
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+        await verifyLoadedArchive(selectedArchive);
+    }
 });
 
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
@@ -624,19 +628,28 @@ function focusPrefixOnHomeKey (event) {
         }, 0);
     }
 }
-// Verify the source for a loaded archive
-async function verifyLoadedArchive () {
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
-        const response = await uiUtil.systemAlert('Is the loaded ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
-        if (response) {
-            params.contentInjectonMode = 'serviceworker';
-            var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
-            var updatedTrustedZimFiles = trustedZimFiles + selectedArchive.file.name + '|';
-            settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+/**
+ * Verifies the given archive and switches contentInjectionMode accourdingly
+ * @param {archive} the archive that needs verification
+ *
+ * */
+async function verifyLoadedArchive (archive) {
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert'), translateUI.t('dialog-sourceverification-title'), true, 'Open in Safe Mode', 'Trust Source');
+    if (response) {
+        params.contentInjectionMode = 'serviceworker';
+        var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+        var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
+        settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+        // Change radio buttons accordingly
+        if (params.serviceWorkerLocal) {
+            document.getElementById('serviceworkerLocalModeRadio').checked = true;
         } else {
-            params.contentInjectionMode = 'jquery';
-            document.getElementById('jqueryModeRadio').checked = true;
+            document.getElementById('serviceworkerModeRadio').checked = true;
         }
+    } else {
+        // Switch to Safe mode
+        params.contentInjectionMode = 'jquery';
+        document.getElementById('jqueryModeRadio').checked = true;
     }
 }
 // switch on/off the feature to use Home Key to focus search bar
@@ -1704,28 +1717,10 @@ async function archiveReadyCallback (archive) {
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
-    if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')){
+    if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')) {
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
-            // Alert user about unknown source.
-            const response = await uiUtil.systemAlert('Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', 'Security alert!', true, 'Open in Safe Mode', 'Trust Source');
-            console.log(response);
-            if (response) {
-                params.contentInjectionMode = 'serviceworker';
-                var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
-                var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
-                settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
-                // Change radio buttons accourdingly
-                 if (params.serviceWorkerLocal) {
-                    document.getElementById('serviceworkerLocalModeRadio').checked = true;
-                } else {
-                    document.getElementById('serviceworkerModeRadio').checked = true;
-                }
-            } else {
-                // Switch to Safe mode
-                params.contentInjectionMode = 'jquery';
-                document.getElementById('jqueryModeRadio').checked = true;
-            }
+          await verifyLoadedArchive(archive);
     }
 }
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
