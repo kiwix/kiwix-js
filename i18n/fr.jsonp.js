@@ -184,6 +184,8 @@ document.localeJson = {
       "dialog-serviceworker-defaultmodechange-title": "Changement du mode d'injection de contenu par défaut",
       "dialog-serviceworker-defaultmodechange-message": "<p>Nous vous avons basculé en mode ServiceWorker (c'est maintenant le mode par défaut). Il prend en charge plus de types de fichiers ZIM et est beaucoup plus robuste.</p><p>Si vous rencontrez des problèmes avec ce mode, vous pouvez revenir au mode JQuery (maintenant obsolète). Dans ce cas, veuillez signaler les problèmes que vous avez rencontrés (voir la page Informations).</p>",
       "dialog-slideawaycheck-message": "Ce paramètre peut ne pas fonctionner correctement chez Firefox OS. Si vous constatez que certains liens ZIM deviennent inactifs, veuillez désactiver ce paramètre.",
+      "dialog-sourceverification-alert": "Cette archive ZIM provient-elle d'une source fiable ? Si ce n'est pas le cas, vous pouvez toujours lire le fichier ZIM en mode sans échec (également appelé mode JQuery). La fermeture de cette fenêtre ouvre également le fichier en mode sans échec. Cette option peut être désactivée dans Expert Settings",
+      "dialog-sourceverification-title": "Alerte sécurité!",
       "dialog-unsupported-archivetype-message": "<p>Vous essayez d'ouvrir une archive de type Zimit, ce qui n'est pas pris en charge par votre navigateur en mode ServiceWorker(Local).</p><p>Nous vous avons temporairement basculé en mode JQuery afin que vous puissiez afficher le contenu statique, mais une grande partie du contenu n'est pas fonctionnelle avec cette configuration.</p>",
       "dialog-unsupported-archivetype-title": "Type d'archive non pris en charge&nbsp;!",
       "dialog-warning": "Avertissement",
