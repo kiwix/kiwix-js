@@ -631,7 +631,6 @@ function focusPrefixOnHomeKey (event) {
 /**
  * Verifies the given archive and switches contentInjectionMode accourdingly
  * @param {archive} the archive that needs verification
- *
  * */
 async function verifyLoadedArchive (archive) {
     const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert'), translateUI.t('dialog-sourceverification-title'), true, 'Open in Safe Mode', 'Trust Source');
