@@ -633,7 +633,7 @@ function focusPrefixOnHomeKey (event) {
  * @param {archive} the archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert'), translateUI.t('dialog-sourceverification-title'), true, 'Open in Safe Mode', 'Trust Source');
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || "Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings", translateUI.t('dialog-sourceverification-title') || "Security alert!", true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button')|| 'Trust Source');
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
