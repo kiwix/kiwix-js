@@ -4,21 +4,37 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Interim changelog for Kiwix JS v3.11.5 [pre-release]
+## Kiwix JS v4.0.0
 
-This pre-release version is only published to the browser-extension PWA, and will be superseded by v4.0
+Released on *2024-02-22*
 
-* FEATURE: High-fidelity Zimit archive reading, with fallback to static content for old browsers
+* FEATURE: High-fidelity Zinit archive reading, with fallback to static content for old browsers
+* FEATURE: Added preliminary support for forthcoming Zimit 2.0 archive types
 * FEATURE: Enabled multi-ZIM support (browsing different ZIMs simultaneously in different browser tabs or windows)
+* FEATURE: Added a security warning on opening a ZIM for the first time with fallback to Secure Mode (aka JQuery)
+* ENHANCEMENT: Support most Zimit (1/2) archives in jQuery mode if they have largely static content
+* ENHANCEMENT: Better UX for dealing with unsupported Zimit archives, and auto fallback
+* ENHANCEMENT: Added an active content warning when opening a Zimit 2 archive in ServiceWorkerLocal mode
+* UPDATE: Better detection for opening PDFs and external links outside the sandbox
+* KNOWN ISSUE: Dark mode inverts images in Zimit-based archives
 * BUGFIX: Restored ability to scroll the search results with touch or mouse
-* BUGFIX: Issue causing a bootloop in rare circumstances when the app is in jQuery mode
+* BUGFIX: Issue causing a bootloop in rare circumstances when the app is in JQuery mode
+* FIX: Failure to handle PDFs in some OpenZIM archive types
+* FIX: Opening of new tabs in Zimit-based archives
 * FIX: Updated some broken links
+* FIX: Added support for srcsets when reading a Zimit archive in JQuery mode
+* WORKAROUND: Provide alternative zimit2 link handling for browsers that do not support wombat.js
+* DEV: Added low-level support for zimit2, add added zimType to ZIMArchive properties shown in console
+* DEV: Added possibility of using libzim for reading OpenZIM file contents (see Expert Settings)
 * DEV: Provided a separate webmanifest for the PWA version
 * DEV: Updated info for developers
 * DEV: Added a generic version of browserAction in backgroundscript to support MV3 extensions
 * DEV: Fixed some anomalies in tests
+* DEV: Ensured consistent use of settingsStore prefix with localStorage keys
 * DEV: Updated rollup-js to v4
-* DEV: Updated libzim to v0.5
+* DEV: Updated libzim to v0.6
+* DEV: Updated vite-js to v4.5.2
+* DEV: Bumped GitHub actions/checkout@v3 to actions/checkout@v4
 
 ## Kiwix JS v3.11.0
 

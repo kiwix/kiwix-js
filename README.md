@@ -44,7 +44,7 @@ these separately, store them in your filesystem, and manually select them after 
 **now compatible** with this reader, as of v3.11.5, in modern browsers *if the reader is running in [ServiceWorker mode](#some-technical-details) as an offline-first PWA*
 ([see below](#some-technical-details) for an explanation of what this means). If the app is running in any other mode, then only static content will be
 viewable, and many Zimit ZIMs may not work at all when viewed statically. Our sister app https://pwa.kiwix.org has some more support for Zimit archives
-in solder browsers.
+in older browsers.
 
 ## Compatibility
 
