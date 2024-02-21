@@ -496,6 +496,33 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
         }
     });
 });
+// Handle switching from jQuery to serviceWorker modes.
+document.getElementById('serviceworkerModeRadio').addEventListener('click', async function () {
+    document.getElementById('enableSourceVerificationCheckBox').style.display = '';
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+        await verifyLoadedArchive(selectedArchive);
+    }
+});
+document.getElementById('jqueryModeRadio').addEventListener('click', function () {
+    if (this.checked) {
+        document.getElementById('enableSourceVerificationCheckBox').style.display = 'none';
+    }
+});
+// Handle switching to serviceWorkerLocal mode for chrome-extension
+document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
+    document.getElementById('enableSourceVerificationCheckBox').style.display = '';
+    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+        await verifyLoadedArchive(selectedArchive);
+    }
+});
+
+// Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
+document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === ('serviceworker' || 'serviceworkerlocal') ? 'block' : 'none';
+
+document.getElementById('enableSourceVerification').addEventListener('change', function () {
+    params.sourceVerification = this.checked;
+    settingsStore.setItem('sourceVerification', this.checked, Infinity);
+});
 document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.hideActiveContentWarning = !!this.checked;
@@ -599,6 +626,29 @@ function focusPrefixOnHomeKey (event) {
         setTimeout(function () {
             document.getElementById('prefix').focus();
         }, 0);
+    }
+}
+/**
+ * Verifies the given archive and switches contentInjectionMode accourdingly
+ * @param {archive} the archive that needs verification
+ * */
+async function verifyLoadedArchive (archive) {
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || "Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings", translateUI.t('dialog-sourceverification-title') || "Security alert!", true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button')|| 'Trust Source');
+    if (response) {
+        params.contentInjectionMode = 'serviceworker';
+        var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
+        var updatedTrustedZimFiles = trustedZimFiles + archive.file.name + '|';
+        settingsStore.setItem('trustedZimFiles', updatedTrustedZimFiles, Infinity);
+        // Change radio buttons accordingly
+        if (params.serviceWorkerLocal) {
+            document.getElementById('serviceworkerLocalModeRadio').checked = true;
+        } else {
+            document.getElementById('serviceworkerModeRadio').checked = true;
+        }
+    } else {
+        // Switch to Safe mode
+        params.contentInjectionMode = 'jquery';
+        document.getElementById('jqueryModeRadio').checked = true;
     }
 }
 // switch on/off the feature to use Home Key to focus search bar
@@ -1640,7 +1690,7 @@ function setLocalArchiveFromFileList (files) {
  *
  * @param {ZIMArchive} archive The ZIM archive
  */
-function archiveReadyCallback (archive) {
+async function archiveReadyCallback (archive) {
     selectedArchive = archive;
     // A css cache significantly speeds up the loading of CSS files (used by default in jQuery mode)
     selectedArchive.cssCache = new Map();
@@ -1650,6 +1700,28 @@ function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
+    // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
+    if (params.contentInjectionMode === 'jquery') {
+        params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
+        // Change the radio buttons accordingly
+        switch (settingsStore.getItem('contentInjectionMode')) {
+            case 'serviceworker':
+                document.getElementById('serviceworkerModeRadio').checked = true;
+                break;
+            case 'serviceworkerlocal':
+                document.getElementById('serviceworkerLocalModeRadio').checked = true;
+                break;
+        }
+    }
+    if (settingsStore.getItem('trustedZimFiles') === null) {
+        settingsStore.setItem('trustedZimFiles', '', Infinity);
+    }
+    if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')) {
+        // Check if source of the zim file can be trusted.
+        if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
+          await verifyLoadedArchive(archive);
+    }
+}
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
     // It will be defined as false or true when the first article is loaded
     appstate.isReplayWorkerAvailable = null;
@@ -1875,6 +1947,7 @@ function readArticle (dirEntry) {
         uiUtil.spinnerDisplay(false);
         return;
     }
+
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for expectedArticleURLToBeDisplayed.

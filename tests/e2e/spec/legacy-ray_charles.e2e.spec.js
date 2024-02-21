@@ -194,8 +194,14 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
                     await driver.quit();
                 }
+                // Disable source verification in SW mode as the dialogue box gave incosistent test results in automated tests
+                if (mode === 'serviceworker') {
+                    const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
+                    if (sourceVerificationCheckbox.isSelected()) {
+                        await sourceVerificationCheckbox.click();
+                    }
+                }
             });
-
             it('Load legacy Ray Charles and check index contains specified article', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
@@ -230,6 +236,7 @@ function runTests (driver, modes) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
+
                 // console.log('FilesLength outer: ' + filesLength);
                 // Switch to iframe and check that the index contains the specified article
                 await driver.switchTo().frame('articleContent');
