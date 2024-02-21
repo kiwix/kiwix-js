@@ -6,7 +6,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v4.0.0
 
-Released on *TODO*
+Released on *2024-02-22*
 
 * FEATURE: High-fidelity Zinit archive reading, with fallback to static content for old browsers
 * FEATURE: Added preliminary support for forthcoming Zimit 2.0 archive types
