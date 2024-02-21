@@ -11,6 +11,7 @@ Released on *TODO*
 * FEATURE: High-fidelity Zinit archive reading, with fallback to static content for old browsers
 * FEATURE: Added preliminary support for forthcoming Zimit 2.0 archive types
 * FEATURE: Enabled multi-ZIM support (browsing different ZIMs simultaneously in different browser tabs or windows)
+* FEATURE: Added a security warning on opening a ZIM for the first time with fallback to Secure Mode (aka JQuery)
 * ENHANCEMENT: Support most Zimit (1/2) archives in jQuery mode if they have largely static content
 * ENHANCEMENT: Better UX for dealing with unsupported Zimit archives, and auto fallback
 * ENHANCEMENT: Added an active content warning when opening a Zimit 2 archive in ServiceWorkerLocal mode
