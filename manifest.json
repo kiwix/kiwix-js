@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Kiwix JS Browser Extension",
     "short_name": "Kiwix JS",
-    "version": "4.0.0",
+    "version": "4.0.1",
 
     "description": "Kiwix is an offline reader for content from Wikipedia, TED Talks, Stackexchange, and many other sources.",
     
