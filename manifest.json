@@ -4,7 +4,7 @@
     "short_name": "Kiwix JS",
     "version": "4.0.0",
 
-    "description": "Kiwix is an offline reader for content from Wikipedia, Project Gutenberg, TED Talks, Wikivoyage, Stackexchange, and many other Web archives. It makes knowledge available to people with limited or no Internet access.",
+    "description": "Kiwix is an offline reader for content from Wikipedia, TED Talks, Stackexchange, and many other sources.",
     
     "icons": {
         "16": "www/img/icons/kiwix-16.png",

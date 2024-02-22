@@ -2,7 +2,7 @@
   "name": "kiwix-js",
   "productName": "Kiwix JS",
   "version": "4.0.0",
-  "description": "Kiwix JS offline ZIM archive reader",
+  "description": "Kiwix is an offline reader for content from Wikipedia, TED Talks, Stackexchange, and many other sources.",
   "type": "module",
   "scripts": {
     "serve": "vite",

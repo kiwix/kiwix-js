@@ -3,7 +3,7 @@
     "name": "Kiwix",
     "version": "4.0.0",
 
-    "description": "Kiwix Offline Browser",
+    "description": "Kiwix is an offline reader for content from Wikipedia, TED Talks, Stackexchange, and many other sources.",
     
     "icons": {
         "16": "www/img/icons/kiwix-16.png",
