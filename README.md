@@ -1,6 +1,8 @@
+![Kiwix JS 4 0 Anniversary](https://github.com/kiwix/kiwix-js/assets/4304337/97c639ef-a943-45b8-baf9-80aba2bc6ac7)
+
 # Kiwix JS
 
-Kiwix is an offline browser for Wikipedia, Stackexchange, Project Gutenberg, and other Web resources packaged as highly compressed ZIM
+Kiwix is an offline browser for Wikipedia, Stackexchange, Project Gutenberg, TED Talks, and hndreds of other Web resources packaged as highly compressed ZIM
 archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
 
 Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
@@ -14,9 +16,8 @@ read the archive's content. You can have the entire content of Wikipedia in your
 entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this
 amazing repository of knowledge, information and culture.
 
-The Kiwix browser also works with other content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), and has support for [Zimit content](https://youzim.it/)
-(based on the Web Archive format), but our main targets are Mediawiki-based content (Wikipedia, Wikivoyage, Wikitionary, etc.), StackExchange, Project
-Gutenberg and TED Talks.
+The Kiwix browser works with all available content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), and has full support for [Zimit content](https://youzim.it/)
+(based on the Web Archive format), both Zimit Classic and Zimit v2.0. Some content requires your browser to support Service Workers (see below).
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
@@ -36,20 +37,26 @@ you would rather not use a store, you can get a file-based version of the extens
 Alternatively, you can bookmark or install the PWA version from https://browser-extension.kiwix.org/current/ (it will auto-update), or try our dedicated
 PWA version at https://pwa.kiwix.org. To install the PWA (in Chromium browsers), go to Settings -> Apps -> Install this site as an app.
 
-As mentioned above, the app requires at least one ZIM archive of offline content. You can download one from https://library.kiwix.org (this has a nice,
-graphical interface and a preview of each ZIM archive) or from https://download.kiwix.org/zim/ (a more basic list of archives). You have to download
-these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
+As mentioned above, the app requires at least one ZIM archive of offline content. You can download one from the in-app library, or else in any browser go to
+https://library.kiwix.org (this has a nice, graphical interface and a preview of each ZIM archive) or from https://download.kiwix.org/zim/ (a more basic list of archives).
+You have to download these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
 
 **Zimit-based archives** (available from the "zimit" directory on https://download.kiwix.org/zim/, or made yourself with [youzim.it](https://youzim.it/)), are
-**now compatible** with this reader, as of v3.11.5, in modern browsers *if the reader is running in [ServiceWorker mode](#some-technical-details) as an offline-first PWA*
+fully compatible with this reader. For the best experience, you will need a modern browser and to allow the app to *run in [ServiceWorker mode](#some-technical-details) as an offline-first PWA*
 ([see below](#some-technical-details) for an explanation of what this means). If the app is running in any other mode, then only static content will be
-viewable, and many Zimit ZIMs may not work at all when viewed statically. Our sister app https://pwa.kiwix.org has some more support for Zimit archives
-in older browsers.
+viewable (if at all). Our sister app https://pwa.kiwix.org has some further support for Zimit archives in older browsers.
+
+## Security
+
+Be sure to get your ZIM archives only from a secure source, such as the official Kiwix library. This is because ZIM archives can run dynamic code in your browser. While
+we do our best to sandbox the ZIM's content, a detemined malicious ZIM could remove the sandbox and redirect the iframe to, say, a phishing Web site. For this reason
+we now show a Security Warning when you open a ZIM with dynamic content in ServiceWorker mode for the first time. If you do not trust the source of the ZIM, and wish to
+browser static content safely, then open the ZIM first in Secure Mode before deciding whether to switch to ServiceWorker Mode.
 
 ## Compatibility
 
 Since the app is written in HTML/JavaScript, it should work in most recent browser engines and many older ones too, depending on the Content
-Injection mode supported by the specific browser engine. Archives containing dynamic content (most non-Wikimedia archives) work much better
+Injection mode supported by the specific browser engine. Archives containing dynamic content (most non-Wikimedia archives) work better
 in ServiceWorker mode ([see below](#some-technical-details)), but unfortunately this is not available in many older browsers. If you wish to read such archives, we
 would suggest that you upgrade to a browser that supports Service Workers (Chrome 58+, Firefox 61+ [not ESR versions], Edge 17+, Safari 11.3+).
 
