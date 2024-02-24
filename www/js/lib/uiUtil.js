@@ -454,7 +454,7 @@ var activeContentWarningSetup = false;
 function displayActiveContentWarning (mode) {
     // Adapt the text for other modes (e.g., ServiceWorkerLocal)
     if (mode) {
-        activeContent.innerHTML = activeContent.innerHTML.replace(/JQuery/i, mode);
+        activeContent.innerHTML = activeContent.innerHTML.replace(/Safe/i, mode);
         // We have to set up event listeners again
         activeContentWarningSetup = false;
     }

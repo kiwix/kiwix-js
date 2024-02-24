@@ -338,8 +338,9 @@
                                 are protected from inline code execution at the cost of loss of some features in dynamic ZIMs.
                             </li>
                             <li data-i18n="about-contentinjection-para4">
-                                <b>Safe Mode</b>: This mode is now deprecated. It is retained for
-                                compatibility with older browsers or frameworks that cannot run Service Workers. The mode has limitations which
+                                <b>Safe Mode</b>: This mode prevents attached scripts from running in the iframe, so it is useful for checking the static
+                                content of a ZIM before you allow scripts to run. It is also compatible with older browsers or frameworks that cannot run
+                                Service Workers.The mode has limitations which
                                 mean that only static content can be displayed, such as that found in Wikipedia / WikiMedia archives and (for now)
                                 Stackexchange. It is a way of inserting articles extracted from the ZIM into the DOM (browser document) by injecting
                                 the content into an iframe or tab. We then use native DOM methods, or sometimes JQuery, to parse the article's HTML
@@ -642,10 +643,10 @@
                                     </label>
                                 </div>
                                 <div class="radio">
-                                    <label data-i18n-tip="configure-compatibility-option-jquery-tip" title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
+                                    <label data-i18n-tip="configure-compatibility-option-jquery-tip" title="This mode cannot run dynamic ZIM files. However, static ZIM archives like Wikipedia / Wikimedia should work fine.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jqueryModeRadio" checked>
-                                        <span data-i18n="configure-compatibility-option-jquery"><strong>Safe Mode</strong> (<i>deprecated</i>: no dynamic content, compatible with older browsers)</span>
+                                        <span data-i18n="configure-compatibility-option-jquery"><strong>Safe Mode</strong>(No dynamic content, compatible with older browsers)</span>
                                     </label>
                                 </div>
                             </div>
