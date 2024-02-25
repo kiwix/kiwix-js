@@ -346,6 +346,12 @@ button {
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
     }
+
+    /* Reduce margin between search button and result text */
+    #formArticleSearch > .container{
+        margin-bottom: 0rem;
+    }
+
     /* Reduce size of the top buttons */
     .btn-outline-secondary {
         font-size: 10px !important;
