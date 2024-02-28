@@ -4,6 +4,7 @@ document.localeJson = {
     "translation": {
       "title": "Kiwix",
       "sub-title": "Offline Browser",
+      "alert-activecontentwarning-safemode": "Safe",
       "home": "Home",
       "home-search": "Search",
       "home-welcome-text": "Once you have loaded a ZIM archive, you can search its contents using the above search field.",
