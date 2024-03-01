@@ -1,4 +1,4 @@
- /**
+/**
  * abstractFilesystemAccess.js: Abstraction layer for file access.
  * This is currently only implemented for FirefoxOS and Standard browser (using File System Access API), but could be extended to
  * Cordova, Electron or other ways to directly browse and read files from the
@@ -137,21 +137,23 @@ async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
     const fileNames = [];
     const previousZimFile = []
-
-    const lastZimNameWithoutExtension = (settingsStore.getItem('previousZimFileName') ?? '').replace(/\.zim\w\w$/i, '');
-    const regex = new RegExp(`\\${lastZimNameWithoutExtension}.zim\\w\\w$`, 'i');
-
+    const lastZimName = settingsStore.getItem('previousZimFileName') || '';
+    const lastZimNameWithoutExtension = lastZimName.replace(/\.zim\w?\w?$/i, '');
+    // Iterate over all files in directory, store an array of ZIM files, and get the previously selectee ZIM file if it exists
     for await (const entry of handle.values()) {
-        fileNames.push(entry.name);
-        if (regex.test(entry.name) || entry.name === (settingsStore.getItem('previousZimFileName') ?? '')) previousZimFile.push(await entry.getFile());
+        if (entry.kind === 'file' && /\.zim\w?\w?$/i.test(entry.name)) {
+            fileNames.push(entry.name);
+            if (!entry.name.indexOf(lastZimNameWithoutExtension)) {
+                previousZimFile.push(await entry.getFile());
+            }
+        }
     }
-
     settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
-    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? settingsStore.getItem('previousZimFileName') : '');
+    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? lastZimName : '');
     cache.idxDB('zimFiles', handle, function () {
         // save file in DB
     });
-    return previousZimFile; 
+    return previousZimFile;
 }
 
 /**
@@ -183,15 +185,15 @@ function getSelectedZimFromCache (selectedFilename) {
                 reject(new Error('No file or directory selected'));
             }
             // Left it here for debugging purposes as its sometimes asking for permission even when its granted
-            console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
+            // console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
 
             if (fileOrDirHandle.kind === 'directory') {
                 const files = [];
                 for await (const entry of fileOrDirHandle.values()) {
-                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w\w$/i, '');
-                    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
-                    if (regex.test(entry.name) || entry.name === selectedFilename) {
+                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w?\w?$/i, '');
+                    // const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+                    if (!entry.name.indexOf(filenameWithoutExtension)) {
                         files.push(await entry.getFile());
                     }
                 }
