@@ -115,7 +115,7 @@ async function updateZimDropdownOptions (files, selectedFile) {
     };
 
     files.forEach((fileName) => {
-        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
+        if (/\.zim(aa)?$/i.test(fileName)) {
             options.push(new Option(fileName, fileName));
             select.appendChild(new Option(fileName, fileName));
             count++;
