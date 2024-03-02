@@ -181,12 +181,17 @@ function getSelectedZimFromCache (selectedFilename) {
     return new Promise((resolve, reject) => {
         cache.idxDB('zimFiles', async function (fileOrDirHandle) {
             if (!fileOrDirHandle) {
-                reject(new Error('No file or directory selected'));
+                return reject(new Error('No file or directory selected'));
             }
             // Left it here for debugging purposes as its sometimes asking for permission even when its granted
             // console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
-            if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
-
+            if ((await fileOrDirHandle.queryPermission()) !== 'granted') {
+                try {
+                    await fileOrDirHandle.requestPermission();
+                } catch (error) {
+                    return reject(new Error('Permission denied', error));
+                }
+            }
             if (fileOrDirHandle.kind === 'directory') {
                 const files = [];
                 for await (const entry of fileOrDirHandle.values()) {
