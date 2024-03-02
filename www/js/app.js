@@ -499,7 +499,7 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+    if (selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
         await verifyLoadedArchive(selectedArchive);
     }
 });
@@ -511,7 +511,7 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function ()
 // Handle switching to serviceWorkerLocal mode for chrome-extension
 document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+    if (selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
         await verifyLoadedArchive(selectedArchive);
     }
 });
@@ -637,7 +637,7 @@ function focusPrefixOnHomeKey (event) {
  * @param {archive} the archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || "Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings", translateUI.t('dialog-sourceverification-title') || "Security alert!", true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button')|| 'Trust Source');
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -1731,9 +1731,9 @@ async function archiveReadyCallback (archive) {
     if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')) {
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
-          await verifyLoadedArchive(archive);
+            await verifyLoadedArchive(archive);
+        }
     }
-}
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
     // It will be defined as false or true when the first article is loaded
     appstate.isReplayWorkerAvailable = null;
