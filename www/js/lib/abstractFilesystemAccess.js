@@ -1,4 +1,4 @@
- /**
+/**
  * abstractFilesystemAccess.js: Abstraction layer for file access.
  * This is currently only implemented for FirefoxOS and Standard browser (using File System Access API), but could be extended to
  * Cordova, Electron or other ways to directly browse and read files from the
@@ -96,9 +96,9 @@ StorageFirefoxOS.prototype.enumerate = function (path) {
 /**
  * @param {Array<string>} files All the File names to be shown in the dropdown
  * @param {string} selectedFile The name of the file to be selected in the dropdown
- * @returns {Promise<Array<string>>} Array of unique filenames (if a split zim is considered a single file)
+ * @returns {Array<string>} Array of unique filenames (if a split zim is considered a single file)
  */
-async function updateZimDropdownOptions (files, selectedFile) {
+function updateZimDropdownOptions (files, selectedFile) {
     const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
     // This will make sure that there is no race around condition when platform is firefox os
     // as other function will handle the dropdown UI updates
@@ -113,18 +113,17 @@ async function updateZimDropdownOptions (files, selectedFile) {
         placeholderOption.disabled = true;
         select.appendChild(placeholderOption);
     };
-
+    // Create a new option for each fileName or for the zimaa part of a split archive
     files.forEach((fileName) => {
-        if (fileName.endsWith('.zim') || fileName.endsWith('.zimaa')) {
+        if (/\.zim(aa)?$/i.test(fileName)) {
             options.push(new Option(fileName, fileName));
             select.appendChild(new Option(fileName, fileName));
             count++;
         }
     });
-    document.getElementById('archiveList').value = selectedFile;
+    select.value = selectedFile;
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
-
     document.getElementById('numberOfFilesCount').innerText = count.toString();
     document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
 }
@@ -137,21 +136,23 @@ async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
     const fileNames = [];
     const previousZimFile = []
-
-    const lastZimNameWithoutExtension = (settingsStore.getItem('previousZimFileName') ?? '').replace(/\.zim\w\w$/i, '');
-    const regex = new RegExp(`\\${lastZimNameWithoutExtension}.zim\\w\\w$`, 'i');
-
+    const lastZimName = settingsStore.getItem('previousZimFileName') || '';
+    const lastZimNameWithoutExtension = lastZimName.replace(/\.zim\w?\w?$/i, '');
+    // Iterate over all files in directory, store an array of ZIM files, and get the previously selectee ZIM file if it exists
     for await (const entry of handle.values()) {
-        fileNames.push(entry.name);
-        if (regex.test(entry.name) || entry.name === (settingsStore.getItem('previousZimFileName') ?? '')) previousZimFile.push(await entry.getFile());
+        if (entry.kind === 'file' && /\.zim\w?\w?$/i.test(entry.name)) {
+            fileNames.push(entry.name);
+            if (!entry.name.indexOf(lastZimNameWithoutExtension)) {
+                previousZimFile.push(await entry.getFile());
+            }
+        }
     }
-
     settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
-    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? settingsStore.getItem('previousZimFileName') : '');
+    updateZimDropdownOptions(fileNames, previousZimFile.length !== 0 ? lastZimName : '');
     cache.idxDB('zimFiles', handle, function () {
         // save file in DB
     });
-    return previousZimFile; 
+    return previousZimFile;
 }
 
 /**
@@ -183,15 +184,15 @@ function getSelectedZimFromCache (selectedFilename) {
                 reject(new Error('No file or directory selected'));
             }
             // Left it here for debugging purposes as its sometimes asking for permission even when its granted
-            console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
+            // console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') await fileOrDirHandle.requestPermission();
 
             if (fileOrDirHandle.kind === 'directory') {
                 const files = [];
                 for await (const entry of fileOrDirHandle.values()) {
-                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w\w$/i, '');
-                    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
-                    if (regex.test(entry.name) || entry.name === selectedFilename) {
+                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w?\w?$/i, '');
+                    // const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+                    if (!entry.name.indexOf(filenameWithoutExtension)) {
                         files.push(await entry.getFile());
                     }
                 }
@@ -210,17 +211,17 @@ function getSelectedZimFromCache (selectedFilename) {
 
 /**
  * Gets the selected zim file from the WebkitFileList
- * @param {WebkitFileList} webKitFileList The WebkitFileList to get the selected file from
+ *
+ * @param {WebkitFileList} fileList The WebkitFileList to get the selected file from
  * @param {string} filename The name of the file to get back from webkitFileList
  * @returns {Array<File>} The selected Files Object from webkitFileList
  */
-function getSelectedZimFromWebkitList (webKitFileList, filename) {
-    const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '');
-
-    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+function getSelectedZimFromWebkitList (fileList, filename) {
+    const filenameWithoutExtension = filename.replace(/\.zim\w?\w?$/i, '');
     const files = [];
-    for (const file of webKitFileList) {
-        if (regex.test(file.name) || file.name === filename) {
+    for (const file of fileList) {
+        // If the file.name begins with the filenameWithoutExtension, then it matches (may match mutliple split ZIM files)
+        if (!file.name.indexOf(filenameWithoutExtension)) {
             files.push(file);
         }
     }
@@ -239,6 +240,36 @@ function loadPreviousZimFile () {
             if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
         }
     }, 200);
+}
+
+/**
+ * Handles selecting a directory from the webkitdirectory picker, setting the UI and storing the selected files
+ *
+ * @param {WebkitFileList} fileList The list returned from the webkitdirectory picker
+ * @returns An object containing all the ZIM files in the directory and the previously selected ZIM fileset if available
+ */
+function selectDirectoryFromPickerViaWebkit (fileList) {
+    const zimFiles = [];
+    const filenames = [];
+    const previousZimFile = []
+    const lastFilename = settingsStore.getItem('previousZimFileName') || '';
+    const filenameWithoutExtension = lastFilename.replace(/\.zim\w?\w?$/i, '');
+    for (const file of fileList) {
+        // Only add ZIM files in top directory to the filenames array. To do this, we must exclude ZIM files that contain more than one '/' in their path.
+        // This is because most browsers using this API will return the full path of the file including the directory it is in (but Chromium < 72 will not return the full path, so
+        // in that browser, we will get some files that are in subdirectories). See MDN webkitdirectory documentation for more information.
+        if (/^[^/]+\/[^/]+\.zim\w?\w?$/i.test(file.webkitRelativePath)) {
+            zimFiles.push(file);
+            filenames.push(file.name);
+            // If the file.name begins with the filenameWithoutExtension...
+            if (filenameWithoutExtension && !file.name.indexOf(filenameWithoutExtension)) {
+                previousZimFile.push(file);
+            }
+        }
+    }
+    settingsStore.setItem('zimFilenames', filenames.join('|'), Infinity);
+    updateZimDropdownOptions(filenames, previousZimFile.length ? lastFilename : '');
+    return { files: zimFiles, selectedFile: previousZimFile };
 }
 
 /**
@@ -282,19 +313,20 @@ async function handleFolderOrFileDropViaFileSystemAPI (packet) {
  */
 async function handleFolderOrFileDropViaWebkit (event) {
     var dt = event.dataTransfer;
-
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
         settingsStore.setItem('zimFilenames', [entry.name].join('|'), Infinity);
-        await updateZimDropdownOptions([entry.name], entry.name);
+        updateZimDropdownOptions([entry.name], entry.name);
         return { loadZim: true, files: [entry.file] };
     } else if (entry.isDirectory) {
         var reader = entry.createReader();
         const files = await getFilesFromReader(reader);
         const fileNames = [];
-        files.forEach((file) => fileNames.push(file.name));
+        files.forEach(function (file) {
+            fileNames.push(file.name)
+        });
         settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
-        await updateZimDropdownOptions(fileNames, '');
+        updateZimDropdownOptions(fileNames, '');
         return { loadZim: false, files: files };
     }
 }
@@ -336,5 +368,6 @@ export default {
     loadPreviousZimFile: loadPreviousZimFile,
     handleFolderOrFileDropViaWebkit: handleFolderOrFileDropViaWebkit,
     handleFolderOrFileDropViaFileSystemAPI: handleFolderOrFileDropViaFileSystemAPI,
-    getSelectedZimFromWebkitList: getSelectedZimFromWebkitList
+    getSelectedZimFromWebkitList: getSelectedZimFromWebkitList,
+    selectDirectoryFromPickerViaWebkit: selectDirectoryFromPickerViaWebkit
 };
