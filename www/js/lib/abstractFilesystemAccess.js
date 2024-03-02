@@ -183,8 +183,7 @@ function getSelectedZimFromCache (selectedFilename) {
             if (!fileOrDirHandle) {
                 return reject(new Error('No file or directory selected'));
             }
-            // Left it here for debugging purposes as its sometimes asking for permission even when its granted
-            // console.debug('FileHandle and Permission', fileOrDirHandle, await fileOrDirHandle.queryPermission())
+            // Request permission if not already granted
             if ((await fileOrDirHandle.queryPermission()) !== 'granted') {
                 try {
                     await fileOrDirHandle.requestPermission();
