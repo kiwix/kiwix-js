@@ -499,7 +499,7 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+    if (selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
         await verifyLoadedArchive(selectedArchive);
     }
 });
@@ -511,7 +511,7 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function ()
 // Handle switching to serviceWorkerLocal mode for chrome-extension
 document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    if (selectedArchive.isReady() && !(settingsStore.getItem("trustedZimFiles").includes(selectedArchive.file.name)) && params.sourceVerification) {
+    if (selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
         await verifyLoadedArchive(selectedArchive);
     }
 });
@@ -560,6 +560,10 @@ document.querySelectorAll('input[type="checkbox"][name=openExternalLinksInNewTab
         params.openExternalLinksInNewTabs = !!this.checked;
         settingsStore.setItem('openExternalLinksInNewTabs', params.openExternalLinksInNewTabs, Infinity);
     })
+});
+document.getElementById('reopenLastArchiveCheck').addEventListener('change', function (e) {
+    params.reopenLastArchive = e.target.checked;
+    settingsStore.setItem('reopenLastArchive', params.reopenLastArchive, Infinity);
 });
 document.getElementById('appThemeSelect').addEventListener('change', function (e) {
     params.appTheme = e.target.value;
@@ -633,7 +637,7 @@ function focusPrefixOnHomeKey (event) {
  * @param {archive} the archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || "Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings", translateUI.t('dialog-sourceverification-title') || "Security alert!", true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button')|| 'Trust Source');
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -1311,14 +1315,27 @@ if ($.isFunction(navigator.getDeviceStorages)) {
     });
 }
 
+// @AUTOLOAD of archives starts here for frameworks or APIs that allow it
+
+// If DeviceStorage is available (Firefox OS), we look for archives in it
 if (storages !== null && storages.length > 0) {
     // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
     // This way, it is only done once at this moment, instead of being done several times in callbacks
     // After that, we can start looking for archives
     storages[0].get('fake-file-to-read').then(searchForArchivesInPreferencesOrStorage,
         searchForArchivesInPreferencesOrStorage);
+// If the File System Access API is available, we may be able to autoload the last selected archive in Chromium > 122
+// which has persistent permissions
+} else if (params.reopenLastArchive && window.showOpenFilePicker && params.previousZimFileName) {
+    displayFileSelect();
+    abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName).then(function (files) {
+        setLocalArchiveFromFileList(files);
+    }).catch(function (err) {
+        console.warn(err);
+        document.getElementById('btnConfigure').click();
+    });
+// If no autoload API is available, we display the file select dialog
 } else {
-    // If DeviceStorage is not available, we display the file select components
     displayFileSelect();
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Archive files are already selected,
@@ -1714,9 +1731,9 @@ async function archiveReadyCallback (archive) {
     if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')) {
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
-          await verifyLoadedArchive(archive);
+            await verifyLoadedArchive(archive);
+        }
     }
-}
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
     // It will be defined as false or true when the first article is loaded
     appstate.isReplayWorkerAvailable = null;
