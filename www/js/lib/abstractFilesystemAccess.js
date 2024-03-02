@@ -96,9 +96,9 @@ StorageFirefoxOS.prototype.enumerate = function (path) {
 /**
  * @param {Array<string>} files All the File names to be shown in the dropdown
  * @param {string} selectedFile The name of the file to be selected in the dropdown
- * @returns {Promise<Array<string>>} Array of unique filenames (if a split zim is considered a single file)
+ * @returns {Array<string>} Array of unique filenames (if a split zim is considered a single file)
  */
-async function updateZimDropdownOptions (files, selectedFile) {
+function updateZimDropdownOptions (files, selectedFile) {
     const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
     // This will make sure that there is no race around condition when platform is firefox os
     // as other function will handle the dropdown UI updates
@@ -113,7 +113,7 @@ async function updateZimDropdownOptions (files, selectedFile) {
         placeholderOption.disabled = true;
         select.appendChild(placeholderOption);
     };
-
+    // Create a new option for each fileName or for the zimaa part of a split archive
     files.forEach((fileName) => {
         if (/\.zim(aa)?$/i.test(fileName)) {
             options.push(new Option(fileName, fileName));
@@ -121,10 +121,9 @@ async function updateZimDropdownOptions (files, selectedFile) {
             count++;
         }
     });
-    document.getElementById('archiveList').value = selectedFile;
+    select.value = selectedFile;
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
-
     document.getElementById('numberOfFilesCount').innerText = count.toString();
     document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
 }
@@ -212,17 +211,17 @@ function getSelectedZimFromCache (selectedFilename) {
 
 /**
  * Gets the selected zim file from the WebkitFileList
- * @param {WebkitFileList} webKitFileList The WebkitFileList to get the selected file from
+ *
+ * @param {WebkitFileList} fileList The WebkitFileList to get the selected file from
  * @param {string} filename The name of the file to get back from webkitFileList
  * @returns {Array<File>} The selected Files Object from webkitFileList
  */
-function getSelectedZimFromWebkitList (webKitFileList, filename) {
-    const filenameWithoutExtension = filename.replace(/\.zim\w\w$/i, '');
-
-    const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
+function getSelectedZimFromWebkitList (fileList, filename) {
+    const filenameWithoutExtension = filename.replace(/\.zim\w?\w?$/i, '');
     const files = [];
-    for (const file of webKitFileList) {
-        if (regex.test(file.name) || file.name === filename) {
+    for (const file of fileList) {
+        // If the file.name begins with the filenameWithoutExtension, then it matches (may match mutliple split ZIM files)
+        if (!file.name.indexOf(filenameWithoutExtension)) {
             files.push(file);
         }
     }
@@ -241,6 +240,36 @@ function loadPreviousZimFile () {
             if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
         }
     }, 200);
+}
+
+/**
+ * Handles selecting a directory from the webkitdirectory picker, setting the UI and storing the selected files
+ *
+ * @param {WebkitFileList} fileList The list returned from the webkitdirectory picker
+ * @returns An object containing all the ZIM files in the directory and the previously selected ZIM fileset if available
+ */
+function selectDirectoryFromPickerViaWebkit (fileList) {
+    const zimFiles = [];
+    const filenames = [];
+    const previousZimFile = []
+    const lastFilename = settingsStore.getItem('previousZimFileName') || '';
+    const filenameWithoutExtension = lastFilename.replace(/\.zim\w?\w?$/i, '');
+    for (const file of fileList) {
+        // Only add ZIM files in top directory to the filenames array. To do this, we must exclude ZIM files that contain more than one '/' in their path.
+        // This is because most browsers using this API will return the full path of the file including the directory it is in (but Chromium < 72 will not return the full path, so
+        // in that browser, we will get some files that are in subdirectories). See MDN webkitdirectory documentation for more information.
+        if (/^[^/]+\/[^/]+\.zim\w?\w?$/i.test(file.webkitRelativePath)) {
+            zimFiles.push(file);
+            filenames.push(file.name);
+            // If the file.name begins with the filenameWithoutExtension...
+            if (filenameWithoutExtension && !file.name.indexOf(filenameWithoutExtension)) {
+                previousZimFile.push(file);
+            }
+        }
+    }
+    settingsStore.setItem('zimFilenames', filenames.join('|'), Infinity);
+    updateZimDropdownOptions(filenames, previousZimFile.length ? lastFilename : '');
+    return { files: zimFiles, selectedFile: previousZimFile };
 }
 
 /**
@@ -284,19 +313,20 @@ async function handleFolderOrFileDropViaFileSystemAPI (packet) {
  */
 async function handleFolderOrFileDropViaWebkit (event) {
     var dt = event.dataTransfer;
-
     var entry = dt.items[0].webkitGetAsEntry();
     if (entry.isFile) {
         settingsStore.setItem('zimFilenames', [entry.name].join('|'), Infinity);
-        await updateZimDropdownOptions([entry.name], entry.name);
+        updateZimDropdownOptions([entry.name], entry.name);
         return { loadZim: true, files: [entry.file] };
     } else if (entry.isDirectory) {
         var reader = entry.createReader();
         const files = await getFilesFromReader(reader);
         const fileNames = [];
-        files.forEach((file) => fileNames.push(file.name));
+        files.forEach(function (file) {
+            fileNames.push(file.name)
+        });
         settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
-        await updateZimDropdownOptions(fileNames, '');
+        updateZimDropdownOptions(fileNames, '');
         return { loadZim: false, files: files };
     }
 }
@@ -338,5 +368,6 @@ export default {
     loadPreviousZimFile: loadPreviousZimFile,
     handleFolderOrFileDropViaWebkit: handleFolderOrFileDropViaWebkit,
     handleFolderOrFileDropViaFileSystemAPI: handleFolderOrFileDropViaFileSystemAPI,
-    getSelectedZimFromWebkitList: getSelectedZimFromWebkitList
+    getSelectedZimFromWebkitList: getSelectedZimFromWebkitList,
+    selectDirectoryFromPickerViaWebkit: selectDirectoryFromPickerViaWebkit
 };
