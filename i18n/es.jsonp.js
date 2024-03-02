@@ -49,6 +49,8 @@ document.localeJson = {
       "configure-display-homekeyfocus-tip": "Enfoca automáticamente la barra de búsqueda al pulsar la tecla Inicio, y también al hacer clic o tocar en la pestaña Inicio. Habilita acceso rápido a la búsqueda con el teclado, sin importar en qué parte del artículo esté.",
       "configure-display-openexternallinks": "<strong>Abrir enlaces externos en nuevas pestañas</strong>. Si desactiva esto, se puede romper la interfaz de kiwix-js en algunos casos específicos",
       "configure-display-openexternallinks-tip": "Abre los enlaces externos fuera de kiwix-js (evita algunos efectos secundarios que afectan la interfaz de kiwix-js).",
+      "configure-display-reopenlastarchive": "<strong>Reabrir automáticamente el último archivo seleccionado</strong> (sólo funciona si concede permiso permanente cuando se le solicite)",
+      "configure-display-reopenlastarchive-tip": "Si su navegador soporta la característica de permisos permanentes de la API de Acceso al Sistema de Archivos, puede reabrir automáticamente los archivos cuando reinicie la aplicación. Para habilitar esta funcionalidad, debe dar permiso para acceder a los archivos 'en cada visita' cuando su navegador se lo solicite.",
       "configure-display-selectapptheme": "<b>Seleccionar tema de la aplicación</b> (la inversión de contenido es experimental):",
       "configure-display-selectapptheme-tip": "Permite la selección de temas para la aplicación o para la aplicación y el contenido cargado.",
       "configure-display-themeoption-light": "Claro",

@@ -129,6 +129,7 @@ params['sourceVerification'] = params.contentInjectionMode === 'serviceworker' ?
 params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
 params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets the name of the last opened zim file
+params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets a Boolean defaulting to true indicating whether to reopen the last opened zim file if possible
 
 /**
  * Apply any override parameters that might be in the querystring.
@@ -195,6 +196,10 @@ document.getElementById('libzimModeSelect').value = params.libzimMode;
 document.getElementById('useLibzim').checked = params.useLibzim;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
+document.getElementById('reopenLastArchiveCheck').checked = params.reopenLastArchive;
+// If the File System Access API is supported, unhide the reopenLastArchiveDiv
+if (params.isFileSystemApiSupported) document.getElementById('reopenLastArchiveDiv').style.display = '';
+
 // This is a simplified version of code in settingsStore, because that module is not available in init.js
 function getSetting (name) {
     var result;

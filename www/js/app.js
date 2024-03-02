@@ -561,6 +561,10 @@ document.querySelectorAll('input[type="checkbox"][name=openExternalLinksInNewTab
         settingsStore.setItem('openExternalLinksInNewTabs', params.openExternalLinksInNewTabs, Infinity);
     })
 });
+document.getElementById('reopenLastArchiveCheck').addEventListener('change', function (e) {
+    params.reopenLastArchive = e.target.checked;
+    settingsStore.setItem('reopenLastArchive', params.reopenLastArchive, Infinity);
+});
 document.getElementById('appThemeSelect').addEventListener('change', function (e) {
     params.appTheme = e.target.value;
     settingsStore.setItem('appTheme', params.appTheme, Infinity);
@@ -1322,7 +1326,7 @@ if (storages !== null && storages.length > 0) {
         searchForArchivesInPreferencesOrStorage);
 // If the File System Access API is available, we may be able to autoload the last selected archive in Chromium > 122
 // which has persistent permissions
-} else if (window.showOpenFilePicker && params.previousZimFileName) {
+} else if (params.reopenLastArchive && window.showOpenFilePicker && params.previousZimFileName) {
     displayFileSelect();
     abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName).then(function (files) {
         setLocalArchiveFromFileList(files);

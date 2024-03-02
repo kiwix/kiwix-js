@@ -541,9 +541,14 @@
                                 </div>
                                 <div class="checkbox">
                                     <label data-i18n-tip="configure-display-openexternallinks-tip" title="Opens the external links outside kiwix-js (avoids some side-effects affecting kiwix-js UI).">
-                                        <input type="checkbox" name="openExternalLinksInNewTabs"
-                                               id="openExternalLinksInNewTabsCheck" checked>
-                                               <span data-i18n="configure-display-openexternallinks"><strong>Open external links in new tabs</strong>. Disabling this might break kiwix-js UI in some specific cases
+                                        <input type="checkbox" name="openExternalLinksInNewTabs" id="openExternalLinksInNewTabsCheck" checked>
+                                        <span data-i18n="configure-display-openexternallinks"><strong>Open external links in new tabs</strong>. Disabling this might break kiwix-js UI in some specific cases
+                                    </label>
+                                </div>
+                                <div id="reopenLastArchiveDiv" class="checkbox" style="display: none;">
+                                    <label data-i18n-tip="configure-display-reopenlastarchive-tip" title="If your browser supports the permanent permissions feature of the File System Access API, you can automatically re-open archives when you restart the app. To enable this functionality, you need to give permission to access files 'on every visit' when prompted by your browser.">
+                                        <input type="checkbox" name="reopenLastArchive" id="reopenLastArchiveCheck" checked>
+                                        <span data-i18n="configure-display-reopenlastarchive"><strong>Automatically re-open last selected archive</strong> (only works if you grant permanent permission when prompted)</span>
                                     </label>
                                 </div>
                                 <div class="form-group">
