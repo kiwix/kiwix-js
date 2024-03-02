@@ -1311,14 +1311,27 @@ if ($.isFunction(navigator.getDeviceStorages)) {
     });
 }
 
+// @AUTOLOAD of archives starts here for frameworks or APIs that allow it
+
+// If DeviceStorage is available (Firefox OS), we look for archives in it
 if (storages !== null && storages.length > 0) {
     // Make a fake first access to device storage, in order to ask the user for confirmation if necessary.
     // This way, it is only done once at this moment, instead of being done several times in callbacks
     // After that, we can start looking for archives
     storages[0].get('fake-file-to-read').then(searchForArchivesInPreferencesOrStorage,
         searchForArchivesInPreferencesOrStorage);
+// If the File System Access API is available, we may be able to autoload the last selected archive in Chromium > 122
+// which has persistent permissions
+} else if (window.showOpenFilePicker && params.previousZimFileName) {
+    displayFileSelect();
+    abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName).then(function (files) {
+        setLocalArchiveFromFileList(files);
+    }).catch(function (err) {
+        console.warn(err);
+        document.getElementById('btnConfigure').click();
+    });
+// If no autoload API is available, we display the file select dialog
 } else {
-    // If DeviceStorage is not available, we display the file select components
     displayFileSelect();
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Archive files are already selected,

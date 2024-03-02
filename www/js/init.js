@@ -128,6 +128,7 @@ params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement(
 params['sourceVerification'] = params.contentInjectionMode === 'serviceworker' ? (getSetting('sourceVerification') === null ? true : getSetting('sourceVerification')) : false; // Sets a boolean indicating weather a user trusts the source of zim files
 params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
+params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets the name of the last opened zim file
 
 /**
  * Apply any override parameters that might be in the querystring.
