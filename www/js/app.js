@@ -687,7 +687,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
         message = [(translateUI.t('dialog-serviceworker-defaultmodechange-message') ||
             '<p>We have switched you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p>' +
-            '<p>If you experience problems with this mode, you can switch back to the Safe mode. ' +
+            '<p>If you experience problems with this mode, you can switch back to Safe mode. ' +
             'In that case, please report the problems you experienced to us (see About section).</p>'),
         (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
@@ -696,7 +696,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
     } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
         message = [(translateUI.t('dialog-serviceworker-unsupported-message') ||
             '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
-            '<p>You can continue to use the app in the Safe mode, but note that this mode only works well with ' +
+            '<p>You can continue to use the app in Safe mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
             '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
         (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
@@ -1068,7 +1068,7 @@ function setContentInjectionMode (value) {
             if (!isServiceWorkerAvailable()) {
                 message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
-                    '<p>You can continue to use the app in the Safe mode, but note that this mode only works well with ' +
+                    '<p>You can continue to use the app in Safe mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
                 if (!params.noPrompts) {
