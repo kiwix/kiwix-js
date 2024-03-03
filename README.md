@@ -124,12 +124,18 @@ best to display static content, but much functionality is likely to be broken. H
 You can switch between these content injection modes in Configuration, but if your browser supports ServiceWorker mode as an offline-first PWA, you are
 strongly advised to remain in this mode.
 
-### Limitations
+### File access and other limitations
 
-It is not yet technically possible automatically re-open a selected ZIM file between sessions. However, browsers that support the File System Access API
-or the `webkitdirectory` property of the File API, allow you to re-open a folder or directory of ZIMs with a quick permission prompt. Another alternative
-is to drag-and-drop a ZIM file into the app. There are [versions of this app](https://kiwix.github.io/kiwix-js-pwa/app) that have experimental support for
-the Origin Private File System, or that use frameworks like Electron, which do have the capability of remembering the chosen archive between app launches.
+You can only re-open an archive automatically if your browser supports the File System Access API and allows you to grant permanent access permission.
+In practice, this currently means Chromium browsers (Chrome, Edge, etc.) with a version number of 122 or higher. If that is the case, you will see a
+popup asking you whether you wish to grant access "on every visit" (this will appear only after the second or third time that you have picked an archive
+or folder). If you grant this permanent permission, then the browser will (optionally) re-open the last-visited archive when you open the app.
+
+In other cases, your browser may fall back to using the `webkitdirectory` property of the File API, which allows you to re-open a folder or directory of
+ZIMs with a quick permission prompt. Another alternative is to drag-and-drop a ZIM file into the app.
+
+There are [versions of this app](https://kiwix.github.io/kiwix-js-pwa/app) that have experimental support for the Origin Private File System, or that use
+frameworks like Electron, which do have the capability of remembering the chosen archive between app launches.
 
 The app has fast title search, and slower full-text search for ZIM archives that have a full-text index, thanks to the
 [openzim/javascript-libzim](https://github.com/openzim/javascript-libzim) project. Currently, full-text searching only works in browsers

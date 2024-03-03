@@ -50,6 +50,8 @@ document.localeJson = {
       "configure-display-homekeyfocus-tip": "Auto-focuses the search bar when you press the Home key, and also when you click or tap on the Home tab. Enables quick access to search, no matter where you are in an article.",
       "configure-display-openexternallinks": "<strong>Open external links in new tabs</strong>. Disabling this might break kiwix-js UI in some specific cases",
       "configure-display-openexternallinks-tip": "Opens the external links outside kiwix-js (avoids some side-effects affecting kiwix-js UI).",
+      "configure-display-reopenlastarchive": "<strong>Automatically re-open last selected archive</strong> (only works if you grant permanent permission when prompted)",
+      "configure-display-reopenlastarchive-tip": "If your browser supports the permanent permissions feature of the File System Access API, you can automatically re-open archives when you restart the app. To enable this functionality, you need to give permission to access files 'on every visit' when prompted by your browser.",
       "configure-display-selectapptheme": "<b>Select app theme</b> (content inversion is experimental):",
       "configure-display-selectapptheme-tip": "Allows selection of themes either for the app only, or for the app and the loaded content.",
       "configure-display-themeoption-light": "Light",

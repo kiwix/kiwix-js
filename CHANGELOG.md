@@ -4,6 +4,13 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## In-progress (interim) Kiwix JS v4.0.1
+
+Note: this is temporarily released as an update to the browser-extension remote PWA only
+
+* FEATURE: Ability optionally to re-open an archive automatically in Chromium browsers > 122
+* FIX: Various issues with enumarating the contents of picked folders
+
 ## Kiwix JS v4.0.0
 
 Released on *2024-02-22*

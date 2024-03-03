@@ -50,6 +50,8 @@ document.localeJson = {
       "configure-display-homekeyfocus-tip": "La barre de recherche se focalise automatiquement lorsque vous appuyez sur la touche Accueil, ainsi que lorsque vous cliquez ou tapez sur l'onglet Accueil. Active l'accès rapide à la recherche par clavier, quel que soit l'endroit où vous vous trouvez dans l'article.",
       "configure-display-openexternallinks": "<strong>Ouvrir les liens externes dans de nouveaux onglets</strong>. Si vous désactivez cette option, l'interface de kiwix-js peut être cassée dans certains cas spécifiques",
       "configure-display-openexternallinks-tip": "Ouvre les liens externes en dehors de kiwix-js (évite certains effets secondaires affectant l'interface de kiwix-js).",
+      "configure-display-reopenlastarchive": "<strong>Rouvrir automatiquement la dernière archive sélectionnée</strong> (fonctionne uniquement si vous accordez la permission permanente lorsque vous y êtes invité(e))",
+      "configure-display-reopenlastarchive-tip": "Si votre navigateur prend en charge la fonctionnalité de permissions permanentes de l'API d'Accès au Système de Fichiers, vous pouvez rouvrir automatiquement les archives lorsque vous redémarrez l'application. Pour activer cette fonctionnalité, vous devez donner la permission d'accéder aux fichiers 'à chaque visite' lorsque votre navigateur vous le demande.",
       "configure-display-selectapptheme": "<b>Sélectionner le thème de l'application</b> (le mode inversé est expérimentale)&nbsp;:",
       "configure-display-selectapptheme-tip": "Permet de sélectionner un thème pour l'application ou pour l'application et le contenu chargé.",
       "configure-display-themeoption-light": "Clair",
