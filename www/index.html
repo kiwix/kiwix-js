@@ -136,7 +136,7 @@
                             <ul>
                                 <li><a href="#format" data-i18n="about-zim-format">ZIM archive format</a></li>
                                 <li><a href="#FAT" data-i18n="about-fat-fs">Downloading and storing large archives</a></li>
-                                <li><a href="#modes" data-i18n="about-contentinjection-modes">JQuery and ServiceWorker modes</a></li>
+                                <li><a href="#modes" data-i18n="about-contentinjection-modes">ServiceWorker and Safe modes</a></li>
                             </ul>
                         </li>
                         <li><a href="#feedback" data-i18n="about-feedback">Feedback/helping/contributing</a></li>
@@ -285,7 +285,7 @@
                     </p>
                     <p data-i18n="about-zim-format-para2">
                         This application is now fully compatible with archives that are created by <b>Zimit</b> (<a href="https://youzim.it" target="_blank">https://youzim.it&nbsp;<img src="img/Icon_External_Link.png" /></a>)
-                        using the Web Archive (WARC) format, so long as your browser supports ServiceWorker mode. If you can only use JQuery mode (or ServiceWorkerLocal), we do
+                        using the Web Archive (WARC) format, so long as your browser supports ServiceWorker mode. If you can only use Safe mode (or ServiceWorkerLocal), we do
                         our best to show you the static content of the requested article (no JavaScript can run in this mode). This will work for some basic static sites, but many will look broken.
                         Search for content in the usual way.
                     </p>
@@ -311,10 +311,10 @@
                     </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
-                    <h4 id="modes" data-i18n="about-contentinjection-modes">ServiceWorker and JQuery modes</h4>
+                    <h4 id="modes" data-i18n="about-contentinjection-modes">ServiceWorker and Safe modes</h4>
                     <p>
                         <span data-i18n="about-contentinjection-para1">Depending on your browser or framework, this app may be capable of running in
-                        different modes, which we call "ServiceWorker Mode" and "JQuery Mode". There is a toggle under Compatibility Settings in
+                        different modes, which we call "ServiceWorker Mode" and "Safe Mode". There is a toggle under Compatibility Settings in
                         Configuration that allows you to select between these. Here is a technical explanation of what these modes do:</span>
                         <ul>
                             <li data-i18n="about-contentinjection-para2">
@@ -323,7 +323,7 @@
                                 the browser or framework's Fetch calls (network requests) and supplying the requested content from the ZIM. In this
                                 mode, the content is read and supplied as-is from the archive to the browser. Dynamic content (e.g. JavaScript) and
                                 proprietary UIs are fully supported in this mode. This mode can feel initially a little
-                                slower than JQuery mode until commonly used assets are cached, but it soon equals JQuery mode in speed, at least in
+                                slower than Safe mode until commonly used assets are cached, but it soon equals Safe mode in speed, at least in
                                 modern browsers. However, older browsers such as IE11 are incompatible with this mode, and the app must be running
                                 in a secure context (<code>https:</code>, <code>localhost</code>, or certain browser extensions). While this mode is
                                 not natively supported in Mozilla (Firefox) browser extensions, we provide a functional workaround by re-launching
@@ -338,8 +338,9 @@
                                 are protected from inline code execution at the cost of loss of some features in dynamic ZIMs.
                             </li>
                             <li data-i18n="about-contentinjection-para4">
-                                <b>JQuery Mode</b>: This mode is now deprecated (and does not in fact require JQuery). It is retained for
-                                compatibility with older browsers or frameworks that cannot run Service Workers. The mode has limitations which
+                                <b>Safe Mode</b>: This mode prevents attached scripts from running in the iframe, so it is useful for checking the static
+                                content of a ZIM before you allow scripts to run. It is also compatible with older browsers or frameworks that cannot run
+                                Service Workers.The mode has limitations which
                                 mean that only static content can be displayed, such as that found in Wikipedia / WikiMedia archives and (for now)
                                 Stackexchange. It is a way of inserting articles extracted from the ZIM into the DOM (browser document) by injecting
                                 the content into an iframe or tab. We then use native DOM methods, or sometimes JQuery, to parse the article's HTML
@@ -493,7 +494,7 @@
                                 </label>
                             </span>
                             <br />
-                            <strong id="jqueryCompatibility" data-i18n="configure-static-content">Only ZIMs with static content (e.g. Wiki-style) are supported in JQuery mode.<br /></strong>
+                            <strong id="jqueryCompatibility" data-i18n="configure-static-content">Only ZIMs with static content (e.g. Wiki-style) are supported in Safe mode.<br /></strong>
                             <span data-i18n="configure-supportedarchives">For information on ZIM compatibility, see</span> <a href="#usage" data-i18n="configure-about-usage-link" class="aboutLinks">About (Usage)</a>.<br />
                         </div>
                         <div id="scanningForArchives" style="display: none;">
@@ -647,10 +648,10 @@
                                     </label>
                                 </div>
                                 <div class="radio">
-                                    <label data-i18n-tip="configure-compatibility-option-jquery-tip" title="This mode is deprecated, but should be fine for Wikipedia / WikiMedia archives. It works on all devices.">
+                                    <label data-i18n-tip="configure-compatibility-option-jquery-tip" title="This mode cannot run dynamic ZIM files. However, static ZIM archives like Wikipedia / Wikimedia should work fine.">
                                         <input type="radio" name="contentInjectionMode" value="jquery"
                                             id="jqueryModeRadio" checked>
-                                        <span data-i18n="configure-compatibility-option-jquery"><strong>JQuery</strong> (<i>deprecated</i>: no dynamic content, compatible with older browsers)</span>
+                                        <span data-i18n="configure-compatibility-option-jquery"><strong>Safe Mode</strong>(No dynamic content, compatible with older browsers)</span>
                                     </label>
                                 </div>
                             </div>
@@ -678,7 +679,7 @@
                             <div data-i18n="configure-expert-panel-header" class="card-header">Troubleshooting and development</div>
                             <div class="card-body">
                                 <div class="checkbox">
-                                    <label data-i18n-tip="configure-expert-hideactivecontentwarning-tip" title="A warning is shown if you load a ZIM that has active or dynamic content while you are in JQuery mode. It is not recommended to disable this warning.">
+                                    <label data-i18n-tip="configure-expert-hideactivecontentwarning-tip" title="A warning is shown if you load a ZIM that has active or dynamic content while you are in Safe mode. It is not recommended to disable this warning.">
                                         <input type="checkbox" name="hideActiveContentWarning"
                                             id="hideActiveContentWarningCheck">
                                         <span data-i18n="configure-expert-hideactivecontentwarning"><strong>Permanently hide active content warning</strong> (for
@@ -693,7 +694,7 @@
                                     </label>
                                 </div>
                                 <div class="checkbox" id="enableSourceVerificationCheckBox">
-                                    <label data-i18n-tip="configure-expert-enable-source-verification-tip" title="Warning: Some ZIM archives from untrusted sources could run malicious code in your browser. This can be prevented by using JQuery mode, which cannot run active content from the ZIM. Highly dynamic ZIMs will probably fail in JQuery mode, but ZIMs with largely static content should work. If you trust the source of all of your ZIMs, then disabling this option will use ServiceWorker mode by default, if available.">
+                                    <label data-i18n-tip="configure-expert-enable-source-verification-tip" title="Warning: Some ZIM archives from untrusted sources could run malicious code in your browser. This can be prevented by using Safe mode, which cannot run active content from the ZIM. Highly dynamic ZIMs will probably fail in Safe mode, but ZIMs with largely static content should work. If you trust the source of all of your ZIMs, then disabling this option will use ServiceWorker mode by default, if available.">
                                         <input type="checkbox" name="disableFileVerification" id="enableSourceVerification" >
                                         <span data-i18n="configure-expert-enable-source-verification-check-box"><strong>Enable source verification of new files</strong> (<i>recommended</i>: you will only be prompted the first time you open a ZIM)</span>
                                     </label>
@@ -761,7 +762,7 @@
                     <div id="activeContent" style="display:none;" class="kiwix-alert alert alert-warning alert-dismissible fade show">
                         <button type="button" class="close" data-hide="alert">&times;</button>
                         <strong data-i18n="alert-activecontentwarning-title">Unable to display active content:</strong>
-                        <span data-i18n="alert-activecontentwarning-part1">This ZIM is not fully supported in JQuery mode.<br />
+                        <span data-i18n="alert-activecontentwarning-part1">This ZIM is not fully supported in Safe mode.<br />
                         Content may be available by clicking search button above (or type a letter of the alphabet), or else</span>
                         <a id="swModeLink" data-i18n="alert-activecontentwarning-part2" href="#contentInjectionModeDiv" class="alert-link">switch to ServiceWorker mode</a>
                         <span data-i18n="alert-activecontentwarning-part3">if your platform supports it.</span>&nbsp;

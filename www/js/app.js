@@ -637,7 +637,7 @@ function focusPrefixOnHomeKey (event) {
  * @param {archive} the archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode (aka JQuery mode). Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button')|| 'Trust Source');
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -691,7 +691,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
         message = [(translateUI.t('dialog-serviceworker-defaultmodechange-message') ||
             '<p>We have switched you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p>' +
-            '<p>If you experience problems with this mode, you can switch back to the (now deprecated) JQuery mode. ' +
+            '<p>If you experience problems with this mode, you can switch back to Safe mode. ' +
             'In that case, please report the problems you experienced to us (see About section).</p>'),
         (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
@@ -700,7 +700,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
     } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
         message = [(translateUI.t('dialog-serviceworker-unsupported-message') ||
             '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
-            '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
+            '<p>You can continue to use the app in Safe mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
             '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
         (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
@@ -1016,7 +1016,7 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to JQuery mode!'),
+            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Safe mode!'),
                 (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
@@ -1072,12 +1072,12 @@ function setContentInjectionMode (value) {
             if (!isServiceWorkerAvailable()) {
                 message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
-                    '<p>You can continue to use the app in the (now deprecated) JQuery mode, but note that this mode only works well with ' +
+                    '<p>You can continue to use the app in Safe mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
                 if (!params.noPrompts) {
                     uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
-                        (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use JQuery mode')).then(function (response) {
+                        (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use Safe mode')).then(function (response) {
                         if (params.referrerExtensionURL && response) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
@@ -1091,7 +1091,7 @@ function setContentInjectionMode (value) {
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to JQuery mode...'),
+                uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to Safe mode...'),
                     (translateUI.t('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
                     setContentInjectionMode('jquery');
                 });
@@ -1133,7 +1133,7 @@ function setContentInjectionMode (value) {
                         } else {
                             console.error('Error while registering serviceWorker', err);
                             refreshAPIStatus();
-                            var message = (translateUI.t('dialog-serviceworker-registration-failure-message') || 'The Service Worker could not be properly registered. Switching back to JQuery mode... Error message:') + ' ' + err;
+                            var message = (translateUI.t('dialog-serviceworker-registration-failure-message') || 'The Service Worker could not be properly registered. Switching back to Safe mode... Error message:') + ' ' + err;
                             if (protocol === 'file:') {
                                 message += (translateUI.t('dialog-serviceworker-registration-failure-fileprotocol') ||
                                 '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
@@ -1219,7 +1219,7 @@ function launchBrowserExtensionServiceWorker () {
     message += (translateUI.t('dialog-allow-internetaccess-message4') ||
         'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
         'If available, the PWA will work offline, but will auto-update periodically when online as per the ' +
-        'Service Worker spec.</p><p>You can switch back any time by returning to JQuery mode.</p>' +
+        'Service Worker spec.</p><p>You can switch back any time by returning to Safe mode.</p>' +
         '<p>WARNING: This will attempt to access the following server:<br/>') + params.PWAServer + '</p>';
     var launchPWA = function () {
         uiUtil.spinnerDisplay(false);
@@ -2310,7 +2310,7 @@ function handleUnsupportedReplayWorker (unhandledDirEntry) {
     readArticle(unhandledDirEntry);
     // if (!params.hideActiveContentWarning) uiUtil.displayActiveContentWarning();
     return uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, ' +
-        'which is not supported by your browser in ServiceWorker(Local) mode.</p><p>We have temporarily switched you to JQuery mode ' +
+        'which is not supported by your browser in ServiceWorker(Local) mode.</p><p>We have temporarily switched you to Safe mode ' +
         'so you can view static content, but a lot of content is non-functional in this configuration.</p>',
     translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
 }
