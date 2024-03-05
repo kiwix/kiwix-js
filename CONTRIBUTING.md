@@ -1,10 +1,10 @@
 # Kiwix JS Contribution Guide
 
 If you have some development experience with HTML and JavaScript, we welcome Pull Requests on existing issues. If you are thinking of contributing, we would kindly ask
-you to read this guide very carefually **all the way through**. We often have potential contributors asking us to guide them on issues that are fully explained here!
+you to read this guide very carefully **all the way through**. We often have potential contributors asking us to guide them on issues that are fully explained here!
 
 If you are looking for an issue to work on, please look at this repository's Issue tracker, in particular those marked "good first issue". Ask to be assigned first before
-starting work in case someoene else is already working on an issue, and also to check that the issue is still wanted/current.
+starting work in case someone else is already working on an issue, and also to check that the issue is still wanted/current.
 
 If you have found a bug, check first that we do not have an existing issue covering it, and if not, feel free to create one.
 
@@ -15,7 +15,7 @@ If you intend to contribute code rather than, say, documentation, then you will 
 
 ## Build system and setup
 
-Kiwix JS prides itself on supporting old frameworks and browsers, while not compromosing on performance in modern browsers. Therefore we use a modern bundling
+Kiwix JS prides itself on supporting old frameworks and browsers, while not compromising on performance in modern browsers. Therefore we use a modern bundling
 system, with [Rollup](https://rollupjs.org/), which transpiles code to [ECMAScript 5](https://caniuse.com/es5). Although you can run and test your code in a modern
 browser without transpiling, you will need to transpile in order to test your code thoroughly. We also use some development tools that are very useful:
 a [Vite server](https://vitejs.dev/) with Hot Module Replacement (this means real-time update of what you see in the browser while you develop), and
@@ -85,7 +85,7 @@ _You must test your code yourself before asking for review, like this_:
 * _You **must** test your fix in both "JQuery" mode and "ServiceWorker" modes_ (under Compatibility settings). You will be astonished the number of times a new contributor tells us
   that their fix is working, but we discover they only applied the fix in one of these two modes. Don't be **that** contributor!
 * Unit tests, which test for regressions with basic app functions, are run automatically with GitHub Actions on each PR and push to a PR. If one of these tests fails, you will want
-  to debug. First, see if you can also see the failure by running the tests with `npm test`, whcih should run the tests in all your installed browsers. To address any issues
+  to debug. First, see if you can also see the failure by running the tests with `npm test`, which should run the tests in all your installed browsers. To address any issues
   identified, see [TESTS](./TESTS.md) so you can debug;
 * End-to-end (e2e) tests are also run on GitHub Actions when you push to your PR. These test typical user actions in a headless browser. Tests are currently enabled for latest
   Firefox, Edge, Chrome in Linux and Windows, and in IE Mode on Windows (this is the equivalent to testing on Internet Explorer 11). You can run these tests yourself in a
@@ -104,7 +104,7 @@ extensions, and Manifest V2 for the Firefox extension, so there are different in
 * Build the production code by running `npm run build-min`;
 * In Chromium, you can install the extension by loading the distribution folder with Extensions -> Load Unpacked (with Developer Mode turned ON) -> navigate to and enter the `dist` directory of the repository -> Select Folder;
 * In Firefox, you need to rename `manifest.json` in the `dist` folder to `manifest.v3.json`, and then rename `manifest.v2.json` to `manifest.json`. Then you can load the extension with Manage Your Extensions -> Debug Add-ons -> Load Temporary Add-on, navigate to and enter the `dist` directory, and then pick any file in that directory;
-* Optionally, you can also test the MV3 version for Firefox (though we currently only publish the MV2 version in the Mozilla store). To do this, lookd for `manifest.fx.v3.json` and rename this to `manifest.json` as above, and load the temporary extension in the same way (it might be easier if you remove the MV2 extension first);
+* Optionally, you can also test the MV3 version for Firefox (though we currently only publish the MV2 version in the Mozilla store). To do this, look for `manifest.fx.v3.json` and rename this to `manifest.json` as above, and load the temporary extension in the same way (it might be easier if you remove the MV2 extension first);
 * You only need to revert manifest changes if you want to do further testing with MV3. The `dist` folder is erased next time the app is built.
 
 If your feature works and tests are passing, make a PR, describe the testing you have done, and ask for a code review. If you do not state what testing you have done, we reserve
