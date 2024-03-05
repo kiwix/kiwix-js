@@ -1316,6 +1316,7 @@ if ($.isFunction(navigator.getDeviceStorages)) {
 }
 
 // @AUTOLOAD of archives starts here for frameworks or APIs that allow it
+var willJumpToRemoteExtension = params.contentInjectionMode === 'serviceworker' && navigator.serviceWorker && /^(moz|chrome)-extension/.test(window.location.protocol) && localStorage.getItem(params.keyPrefix + 'PWA_launch') === 'success';
 
 // If DeviceStorage is available (Firefox OS), we look for archives in it
 if (storages !== null && storages.length > 0) {
@@ -1332,10 +1333,12 @@ if (storages !== null && storages.length > 0) {
         setLocalArchiveFromFileList(files);
     }).catch(function (err) {
         console.warn(err);
-        document.getElementById('btnConfigure').click();
+        if (!willJumpToRemoteExtension) {
+            document.getElementById('btnConfigure').click();
+        }
     });
-// If no autoload API is available, we display the file select dialog
-} else {
+// If no autoload API is available and we're not about to jump to the remote extension, we display the file select dialog
+} else if (!willJumpToRemoteExtension) {
     displayFileSelect();
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Archive files are already selected,
