@@ -2,22 +2,14 @@
 
 # Kiwix JS
 
-Kiwix is an offline browser for Wikipedia, Stackexchange, Project Gutenberg, TED Talks, and hndreds of other Web resources packaged as highly compressed ZIM
-archives. For full information about the open-source Kiwix project, see our main Web site: https://www.kiwix.org/.
+Kiwix is your gateway for offline access to vast web resources like Wikipedia, Stackexchange, Project Gutenberg, TED Talks, and much more. These resources are
+packaged as highly compressed ZIM archives available for free from Kiwix. Learn more about the open-source Kiwix project on our main [website](https://www.kiwix.org/).
 
-Kiwix JS is an official HTML5/Javascript implementation of the Kiwix software, principally targeting browser extensions or add-ons. You
-can get the extension, completely free, from the Mozilla, Chrome and Edge extension stores (see [Store links](#officially-supported-platforms) below).
-There is also a version, primarily intended for use within extensions, implemented as an offline-first Progressive Web App (PWA)
-at https://browser-extension.kiwix.org/current/. For the dedicated, fully featured PWA based on Kiwix JS, please see https://pwa.kiwix.org. 
+Kiwix JS is our official HTML5/Javascript version, primarily designed for browser extensions. Grab our free extension from Mozilla, Chrome, and Edge extension stores. Check out the [Store links](#officially-supported-platforms) for more details. We also offer an offline-first Progressive Web App (PWA) version at https://browser-extension.kiwix.org/current/. For a fully featured PWA based on Kiwix JS, visit https://pwa.kiwix.org.
 
-To use Kiwix JS, you will need to obtain, completely free, a content archive (see [Usage](#usage)). Once you have this on your device, select it with the
-file selector (Configuration page), or drag-and-drop it into the app, and start searching for article titles. No further Internet access is required to
-read the archive's content. You can have the entire content of Wikipedia in your own language inside your device (including images and audiovisual content)
-entirely offline. If your Internet access is expensive, intermittent, slow, unreliable, controlled or censored, you can still have offline access to this
-amazing repository of knowledge, information and culture.
+To get started with Kiwix JS, download a free content archive ([Usage](#usage)), select it on your device, and start exploring articles. No internet? No problem! You can access the entire content of Wikipedia in your language, including images and audiovisual content, offline. Ideal for users with expensive, intermittent, slow, unreliable, or censored internet access. You can even load ZIM archives shared on a USB stick or external hard drive.
 
-The Kiwix browser works with all available content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), and has full support for [Zimit content](https://youzim.it/)
-(based on the Web Archive format), both Zimit Classic and Zimit v2.0. Some content requires your browser to support Service Workers (see below).
+Kiwix supports all content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), including full support for [Zimit content](https://youzim.it/) (based on the Web Archive format), both Zimit Classic and Zimit v2.0. Note: Some content requires your browser to support Service Workers.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
 [![Build Status: Release](https://github.com/kiwix/kiwix-js/workflows/Release/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
