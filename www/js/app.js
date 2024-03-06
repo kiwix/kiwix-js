@@ -1356,11 +1356,16 @@ window.onpopstate = function (event) {
         document.getElementById('prefix').value = '';
         document.getElementById('welcomeText').style.display = 'none';
         uiUtil.spinnerDisplay(false);
-        $('.navbar-collapse').collapse('hide');
+        // Replacing $('.navbar-collapse').collapse('hide');
+        var navbarCollapse = document.querySelector('.navbar-collapse');
+        navbarCollapse.classList.remove('show');
         document.getElementById('configuration').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
-        $('#articleContent').contents().empty();
-
+        // Replacing $('#articleContent').contents().empty();
+        var articleContent = document.getElementById('articleContent');
+        while (articleContent.firstChild) {
+            articleContent.removeChild(articleContent.firstChild);
+        }
         if (title && !(title === '')) {
             goToArticle(title);
         } else if (titleSearch && titleSearch !== '') {
