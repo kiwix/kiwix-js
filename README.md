@@ -48,7 +48,7 @@ viewable (if at all). Our sister app https://pwa.kiwix.org has some further supp
 Be sure to get your ZIM archives only from a secure source, such as the official Kiwix library. This is because ZIM archives can run dynamic code in your browser. While
 we do our best to sandbox the ZIM's content, a detemined malicious ZIM could remove the sandbox and redirect the iframe to, say, a phishing Web site. For this reason
 we now show a Security Warning when you open a ZIM with dynamic content in ServiceWorker mode for the first time. If you do not trust the source of the ZIM, and wish to
-browser static content safely, then open the ZIM first in Secure Mode before deciding whether to switch to ServiceWorker Mode.
+browser static content safely, then open the ZIM first in Safe Mode before deciding whether to switch to ServiceWorker Mode.
 
 ## Compatibility
 
