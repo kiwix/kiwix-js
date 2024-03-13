@@ -534,6 +534,10 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
         settingsStore.setItem('hideActiveContentWarning', params.hideActiveContentWarning, Infinity);
     })
 });
+document.getElementById('hideExternalLinkWarningCheck').addEventListener('change', function () {
+    params.hideExternalLinkWarning = !!this.checked;
+    settingsStore.setItem('hideExternalLinkWarning', params.hideExternalLinkWarning, Infinity);
+})
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
     params.slideAway = e.target.checked;
     if (typeof navigator.getDeviceStorages === 'function') {
