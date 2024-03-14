@@ -181,6 +181,7 @@ function slideAway (e) {
  * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel")
  * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
  * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
+ * @param {String} hideOptionLabel  The text to display on the hide option button (optional, Default = "Don't ask again")
  * @param {Boolean} displayHideOption If true, option to permanently hide the modal will be shown (currently only implemented for hideExternalLinkWarning)
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
@@ -198,6 +199,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('approveConfirm').textContent = approveConfirmLabel;
             document.getElementById('declineConfirm').textContent = declineConfirmLabel;
             document.getElementById('closeMessage').textContent = closeMessageLabel;
+            document.getElementById('hideOption').textContent = hideOptionLabel;
             // Some titles need &nbsp; or other HTML, so we have to use innerHTML
             document.getElementById('modalLabel').innerHTML = label;
             // Using innerHTML to set the message to allow HTML formatting
@@ -992,7 +994,7 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
     message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
-    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, true).then(function (response) {
+    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
             window.open(clickedAnchor.href, target);
         }
