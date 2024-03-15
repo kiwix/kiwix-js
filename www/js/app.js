@@ -2201,9 +2201,10 @@ function handleClickOnReplayLink (ev, anchor) {
     } else {
         zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     }
-    if (params.zimType === 'zimit2') {
-        zimUrl = decodeURIComponent(zimUrl);
-    }
+    // We may need to fully decode zimit2 URLs, depending on the outcome of discussions
+    // if (params.zimType === 'zimit2') {
+    //     zimUrl = decodeURIComponent(zimUrl);
+    // }
     // We need to test the ZIM link
     if (zimUrl) {
         ev.preventDefault();
