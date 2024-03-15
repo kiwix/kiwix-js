@@ -2333,8 +2333,8 @@ function handleMessageChannelMessage (event) {
     // The ServiceWorker asks for some content
     var title = event.data.title;
     if (/zimit/.test(selectedArchive.zimType)) {
-        // Zimit ZIMs store assets with the querystring, so we need to add it!
-        title = title + event.data.search;
+        // Zimit ZIMs store assets encoded with the querystring, so we need to add it!
+        title = encodeURI(title) + event.data.search;
     }
     var messagePort = event.ports[0];
     var readFile = function (dirEntry) {
