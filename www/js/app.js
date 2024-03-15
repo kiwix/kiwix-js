@@ -2331,7 +2331,7 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
-    if (selectedArchive.zimType === 'zimit') {
+    if (/zimit/.test(selectedArchive.zimType)) {
         // Zimit ZIMs store assets with the querystring, so we need to add it!
         title = title + event.data.search;
     }
