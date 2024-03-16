@@ -637,7 +637,10 @@ function focusPrefixOnHomeKey (event) {
  * @param {archive} the archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings', translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode', translateUI.t('dialog-sourceverification-trust-button')|| 'Trust Source');
+    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') ||
+        'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
+    translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
+    translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -1720,12 +1723,12 @@ async function archiveReadyCallback (archive) {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
         // Change the radio buttons accordingly
         switch (settingsStore.getItem('contentInjectionMode')) {
-            case 'serviceworker':
-                document.getElementById('serviceworkerModeRadio').checked = true;
-                break;
-            case 'serviceworkerlocal':
-                document.getElementById('serviceworkerLocalModeRadio').checked = true;
-                break;
+        case 'serviceworker':
+            document.getElementById('serviceworkerModeRadio').checked = true;
+            break;
+        case 'serviceworkerlocal':
+            document.getElementById('serviceworkerLocalModeRadio').checked = true;
+            break;
         }
     }
     if (settingsStore.getItem('trustedZimFiles') === null) {
