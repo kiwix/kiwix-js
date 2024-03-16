@@ -23,7 +23,7 @@
 'use strict';
 
 /* eslint-disable indent */
-/* global $, webpMachine, webpHero, params */
+/* global webpMachine, webpHero, params */
 
 import util from './util.js';
 import settingsStore from './settingsStore.js';
@@ -740,10 +740,10 @@ function slideToRight (sectionToShow, sectionToHide) {
  * @returns {String} The name of the section which is currently visible
  */
 function fromSection () {
-    const isConfigPageVisible = !$('#configuration').is(':hidden');
-    const isAboutPageVisible = !$('#about').is(':hidden');
-    const isArticlePageVisible = !$('#articleContent').is(':hidden');
-    const isLibraryPageVisible = !$('#library').is(':hidden');
+    const isConfigPageVisible = document.getElementById('configuration').style.display !== 'none';
+    const isAboutPageVisible = document.getElementById('about').style.display !== 'none';
+    const isArticlePageVisible = document.getElementById('articleContent').style.display !== 'none';
+    const isLibraryPageVisible = document.getElementById('library').style.display !== 'none';
     if (isConfigPageVisible) return 'config';
     if (isLibraryPageVisible) return 'library';
     else if (isAboutPageVisible) return 'about';

@@ -24,7 +24,7 @@
 'use strict';
 
 // The global parameters object is defined in init.js
-/* global params, webpMachine, $ */
+/* global params, webpMachine */
 
 // import styles from '../css/app.css' assert { type: "css" };
 // import bootstrap from '../css/bootstrap.min.css' assert { type: "css" };
@@ -202,7 +202,8 @@ searchArticle.addEventListener('click', function () {
     region.style.overflowY = 'auto';
     // Initiate the search
     searchDirEntriesFromPrefix(prefix);
-    $('.navbar-collapse').collapse('hide');
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.remove('show');
     document.getElementById('prefix').focus();
     // This flag is set to true in the mousedown event below
     searchArticlesFocused = false;
@@ -354,7 +355,8 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
     document.getElementById('articleListWithHeader').style.display = 'none';
-    $('.navbar-collapse').collapse('hide');
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.remove('show');
 });
 
 document.getElementById('btnRescanDeviceStorage').addEventListener('click', function () {
@@ -386,7 +388,8 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
-    $('.navbar-collapse').collapse('hide');
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.remove('show');
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('home', params.showUIAnimations);
 
@@ -416,7 +419,8 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', 'active');
     document.getElementById('liAboutNav').setAttribute('class', '');
-    $('.navbar-collapse').collapse('hide');
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.remove('show');
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('config', params.showUIAnimations);
     refreshAPIStatus();
@@ -431,7 +435,8 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
     document.getElementById('liHomeNav').setAttribute('class', '');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', 'active');
-    $('.navbar-collapse').collapse('hide');
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.remove('show');
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('about', params.showUIAnimations);
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
@@ -638,7 +643,7 @@ function focusPrefixOnHomeKey (event) {
  * */
 async function verifyLoadedArchive (archive) {
     const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') ||
-        'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
+    'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
     translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
     translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
     if (response) {
@@ -1107,7 +1112,10 @@ function setContentInjectionMode (value) {
                     console.log('Active Service Worker found, no need to register');
                     serviceWorkerRegistration = true;
                     // Remove any jQuery hooks from a previous jQuery session
-                    $('#articleContent').contents().remove();
+                    var articleContent = document.getElementById('articleContent');
+                    while (articleContent.firstChild) {
+                        articleContent.removeChild(articleContent.firstChild);
+                    }
                     // Create the MessageChannel and send 'init'
                     refreshAPIStatus();
                 } else {
@@ -1120,7 +1128,10 @@ function setContentInjectionMode (value) {
                         serviceWorker.addEventListener('statechange', function (statechangeevent) {
                             if (statechangeevent.target.state === 'activated') {
                                 // Remove any jQuery hooks from a previous jQuery session
-                                $('#articleContent').contents().remove();
+                                var articleContent = document.getElementById('articleContent');
+                                while (articleContent.firstChild) {
+                                    articleContent.removeChild(articleContent.firstChild);
+                                }
                                 // We need to refresh cache status here on first activation because SW was inaccessible till now
                                 // We also initialize the ASSETS_CACHE constant in SW here
                                 refreshCacheStatus();
@@ -1163,9 +1174,14 @@ function setContentInjectionMode (value) {
             }
         }
     }
-    $('input:radio[name=contentInjectionMode]').prop('checked', false);
+    document.querySelectorAll('input[name=contentInjectionMode]').forEach(function (radio) {
+        radio.checked = false;
+    });
     var trueMode = params.serviceWorkerLocal ? value + 'local' : value;
-    $('input:radio[name=contentInjectionMode]').filter('[value="' + trueMode + '"]').prop('checked', true);
+    var radioToCheck = document.querySelector('input[name=contentInjectionMode][value="' + trueMode + '"]');
+    if (radioToCheck) {
+        radioToCheck.checked = true;
+    }
     // Save the value in the Settings Store, so that to be able to keep it after a reload/restart
     settingsStore.setItem('contentInjectionMode', trueMode, Infinity);
     refreshCacheStatus();
@@ -1310,10 +1326,9 @@ function searchForArchivesInStorage () {
         uiUtil.systemAlert().then(populateDropDownListOfArchives(null));
     });
 }
-
-if ($.isFunction(navigator.getDeviceStorages)) {
+if (navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function') {
     // The method getDeviceStorages is available (FxOS>=1.1)
-    storages = $.map(navigator.getDeviceStorages('sdcard'), function (s) {
+    storages = Array.from(navigator.getDeviceStorages('sdcard')).map(function (s) {
         return new abstractFilesystemAccess.StorageFirefoxOS(s);
     });
 }
@@ -1359,11 +1374,16 @@ window.onpopstate = function (event) {
         document.getElementById('prefix').value = '';
         document.getElementById('welcomeText').style.display = 'none';
         uiUtil.spinnerDisplay(false);
-        $('.navbar-collapse').collapse('hide');
+        // Replacing $('.navbar-collapse').collapse('hide');
+        var navbarCollapse = document.querySelector('.navbar-collapse');
+        navbarCollapse.classList.remove('show');
         document.getElementById('configuration').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
-        $('#articleContent').contents().empty();
-
+        // Replacing $('#articleContent').contents().empty();
+        var articleContent = document.getElementById('articleContent');
+        while (articleContent.firstChild) {
+            articleContent.removeChild(articleContent.firstChild);
+        }
         if (title && !(title === '')) {
             goToArticle(title);
         } else if (titleSearch && titleSearch !== '') {
@@ -1404,7 +1424,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
         var lastSelectedArchive = settingsStore.getItem('lastSelectedArchive');
         if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== '') {
             // Attempt to select the corresponding item in the list, if it exists
-            if ($("#archiveList option[value='" + lastSelectedArchive + "']").length > 0) {
+            if (document.querySelector("#archiveList option[value='" + lastSelectedArchive + "']")) {
                 document.getElementById('archiveList').value = lastSelectedArchive;
             }
         }
@@ -2518,8 +2538,10 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     htmlCSS = htmlCSS ? htmlCSS[1].replace(/\s+/g, ' ').split(' ') : [];
 
     // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
-    $('#articleContent').contents().remove();
-
+    var articleContent = document.getElementById('articleContent');
+    while (articleContent.firstChild) {
+        articleContent.removeChild(articleContent.firstChild);
+    }
     // Hide any alert box that was activated in uiUtil.displayFileDownloadAlert function
     var downloadAlert = document.getElementById('downloadAlert');
     if (downloadAlert) downloadAlert.style.display = 'none';
@@ -2788,11 +2810,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
     function loadNoScriptTags () {
         // For each noscript tag, we replace it with its content, so that the browser interprets it
-        $('#articleContent').contents().find('noscript').replaceWith(function () {
-            // When javascript is enabled, browsers interpret the content of noscript tags as text
-            // (see https://html.spec.whatwg.org/multipage/scripting.html#the-noscript-element)
-            // So we can read this content with .textContent
-            return this.textContent;
+        var noscriptTags = iframeArticleContent.contentDocument.querySelectorAll('noscript');
+        Array.prototype.forEach.call(noscriptTags, function (noscriptTag) {
+            var content = noscriptTag.textContent;
+            var replacementNode = iframeArticleContent.contentDocument.createElement('script');
+            replacementNode.text = content;
+            noscriptTag.parentNode.replaceChild(replacementNode, noscriptTag);
         });
     }
 
@@ -2860,33 +2883,6 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             }
         }
     }
-
-    /**
-    * Code below is currently non-functional in jQuery mode, but provides an outline of how JS scripts could
-    * be attached to the DOM. Users who want JS support should switch to ServiceWorker mode if avaialable on
-    * their browser/OS. There is an experimental implementation of JS support in jQuery mode in the branch
-    * <kiwix-js/javaScript-support>.
-    */
-    // function loadJavaScriptJQuery() {
-    //     $('#articleContent').contents().find('script[data-kiwixurl]').each(function() {
-    //         var script = $(this);
-    //         var scriptUrl = script.attr("data-kiwixurl");
-    //         // TODO check that the type of the script is text/javascript or application/javascript
-    //         var title = uiUtil.removeUrlParameters(scriptUrl);
-    //         selectedArchive.getDirEntryByPath(title).then(function(dirEntry) {
-    //             if (dirEntry === null) {
-    //                 console.log("Error: js file not found: " + title);
-    //             } else {
-    //                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
-    //                     // TODO : JavaScript support not yet functional [kiwix-js #152]
-    //                     uiUtil.feedNodeWithDataURI(script, 'src', content, 'text/javascript');
-    //                 });
-    //             }
-    //         }).catch(function (e) {
-    //             console.error("could not find DirEntry for javascript : " + title, e);
-    //         });
-    //     });
-    // }
 
     function insertMediaBlobsJQuery () {
         var iframe = iframeArticleContent.contentDocument;
