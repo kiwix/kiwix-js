@@ -151,8 +151,6 @@ const precacheFiles = [
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
     'node_modules/bootstrap/dist/css/bootstrap.min.css',
     'node_modules/bootstrap/dist/css/bootstrap.min.css.map',
-    'node_modules/jquery/dist/jquery.slim.min.js',
-    'node_modules/jquery/dist/jquery.slim.min.map'
 ];
 
 if ('WebAssembly' in self) {

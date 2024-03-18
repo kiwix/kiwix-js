@@ -83,8 +83,8 @@
                     <a id="appVersion" class="navbar-brand">Kiwix</a>
 
                     <!-- Toggler/collapsible Button -->
-                    <button class="navbar-toggler" type="button" data-toggle="collapse"
-                        data-target=".navbar-collapse">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target=".navbar-collapse">
                         <i class="fas fa-bars"></i>
                     </button>
 
@@ -479,16 +479,16 @@
                             <p data-i18n="configure-select-instructions" id="selectInstructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file):</p>
                             <span id="fileSelectionButtonContainer">
-                                <label tabindex="5" id="archiveFilesLbl" class="btn btn-light custom-file-upload">
+                                <label tabindex="5" id="archiveFilesLbl" class="btn btn-outline-dark custom-file-upload">
                                     <input type="file" id="archiveFiles" multiple class="btn" 
                                         accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
                                     <span data-i18n="home-btn-fileselect">Select ZIM File(s)</span>
                                 </label>
-                                <label tabindex="6" class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
+                                <label tabindex="6" class="btn btn-outline-dark custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
                                     <input type="file" id="archiveFolders" style="display: none;" webkitdirectory="true"/>
                                     <span data-i18n="configure-btn-folderselect">Select Folder</span>
                                 </label>
-                                <label tabindex="7" class="btn btn-light custom-file-upload" id="btnLibrary" data-i18n="configure-btn-library" data-i18n-tip="configure-btn-library-tip" title="This will display a graphical library of ZIM archives for download if your browser can open it. Otherwise, it opens a text-only version. If you are using the Chromium extension in ServiceWorkerLocal mode, you will only be able to use the latter (switch to ServiceWorker mode for the full graphical version).">
+                                <label tabindex="7" class="btn btn-outline-secondary custom-file-upload" id="btnLibrary" data-i18n="configure-btn-library" data-i18n-tip="configure-btn-library-tip" title="This will display a graphical library of ZIM archives for download if your browser can open it. Otherwise, it opens a text-only version. If you are using the Chromium extension in ServiceWorkerLocal mode, you will only be able to use the latter (switch to ServiceWorker mode for the full graphical version).">
                                     Browse ZIM Library
                                 </label>
                             </span>
