@@ -294,6 +294,17 @@ button {
     margin: 2px;
 }
 
+/* Changes - overriding changes of bootstrap for dark btn hover*/
+
+.btn-outline-dark:hover {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+
+
+
 .btn-danger {
     background-color: lightyellow;
     color: darkred;
