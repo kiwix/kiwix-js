@@ -2332,8 +2332,11 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
-    if (/zimit/.test(selectedArchive.zimType)) {
-        // Zimit ZIMs store assets encoded with the querystring, so we need to add it!
+    if (appstate.isReplayWorkerAvailable) {
+        // Zimit ZIMs store assets with the querystring, so we need to add it. ReplayWorker handles encoding.
+        title = title + event.data.search;
+    } else if (params.zimType === 'zimit') {
+        // Zimit classic ZIMs store assets encoded with the querystring, so we need to add it
         title = encodeURI(title) + event.data.search;
     }
     var messagePort = event.ports[0];
