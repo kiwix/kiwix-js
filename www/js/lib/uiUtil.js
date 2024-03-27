@@ -990,7 +990,7 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
         return;
     }
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';
-    if (!target || target === '_blank') {
+    if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
     message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';

@@ -535,7 +535,7 @@ document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]
     })
 });
 document.getElementById('hideExternalLinkWarningCheck').addEventListener('change', function () {
-    params.hideExternalLinkWarning = !!this.checked;
+    params.hideExternalLinkWarning = this.checked;
     settingsStore.setItem('hideExternalLinkWarning', params.hideExternalLinkWarning, Infinity);
 })
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
