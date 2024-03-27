@@ -139,7 +139,7 @@ document.localeJson = {
       "dialog-article-readerror-title": "Error al leer artículo",
       "dialog-cancel": "Cancelar",
       "dialog-ok": "OK",
-      "dialog-hide": "No vuelvas a preguntar",
+      "dialog-hide": "No vuelva a preguntar",
       "dialog-confirm": "Confirmar",
       "dialog-blocked-fileprotocol": "<p>Parece que está abriendo kiwix-js con el protocolo file://, lo cual está bloqueado por su navegador por razones de seguridad.</p><p>La forma más fácil de ejecutar esta aplicación es en forma de una extensión (se puede obtenir gratis de la tienda de extensiones de su navegador).</p><p>O bien puede abrirlo a través de un servidor web: ya sea a través de uno local (http://localhost/...) o a través de uno remoto (pero necesitará una conexión segura, p.ej.: https://webserver/...)</p><p>Otra opción es forzar a su navegador a que lo acepte (pero abrirá una brecha de seguridad): en Chrome/Edge, puede iniciarlo con el argumento de línea de comandos --allow-file-access-from-files; en Firefox, puede cambiar la opción privacy.file_unique_origin a falso en about:config</p>",
       "dialog-bypassappcachecheck-message": "¡Este ajuste sólo se puede usar en el modo ServiceWorker!",
