@@ -85,11 +85,11 @@
         <section id="search-article" role="region">
             <header id="top">
                 <nav class="navbar navbar-expand-md bg-light" role="navigation">
-                    <a id="appVersion" class="navbar-brand">Kiwix</a>
+                    <a id="appVersion" class="navbar-brand ms-3">Kiwix</a>
 
                     <!-- Toggler/collapsible Button -->
-                    <button class="navbar-toggler" type="button" data-toggle="collapse"
-                        data-target=".navbar-collapse">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target=".navbar-collapse">
                         <i class="fas fa-bars"></i>
                     </button>
 
@@ -109,7 +109,7 @@
                         <div class="row">
                             <span class="col-10">
                                 <span class="input-group">
-                                    <input type="search" data-i18n-tip="home-prefix-tip" title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type." id="prefix" placeholder="Search..." class="form-control" />
+                                    <input type="search" data-i18n-tip="home-prefix-tip" title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type." id="prefix" placeholder="Search..." class="form-select" />
                                     <button type="button" data-i18n-tip="home-search" title="Search" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
                                 </span>
                             </span>
@@ -465,15 +465,17 @@
                             <button type="button" class="close" data-hide="alert">&times;</button>
                             <span id="persistentMessage"></span>
                         </div>
+                        <!-- Dropdown prev (updated but arrow isn't visible) -->
                         <div class="dropdown" style="float:right">
-                            <select class="form-control" tabindex="4" id="languageSelector" name="languageSelector" aria-labelledby="languageSelector">
-                                <option data-i18n="configure-language-selector-default" selected class="dropdown-item" href="#" value="default">Language</a>
+                            <select class="form-select dropdown-toggle" tabindex="4" id="languageSelector" data-bs-toggle="dropdown" name="languageSelector" aria-labelledby="languageSelector">
+                                <option data-i18n="configure-language-selector-default" selected class="dropdown-item" href="#" value="default">Language </a>
                                 <option class="dropdown-item" href="#" value="en">English</a>
                                 <option class="dropdown-item" href="#" value="fr">Français</a>
                                 <option class="dropdown-item" href="#" value="es">Español</a>
                                 <option data-i18n="configure-language-selector-other" class="dropdown-item" href="#" value="other">More coming soon...!</a>
                             </select>
                         </div>
+                        
                         <p id="downloadInstruction"><span data-i18n="configure-download-instructions">This application needs a ZIM archive to work.<br />
                             For full instructions, please see the section</span> <strong><a href="#configuration" data-i18n="about" class="aboutLinks">About</a></strong>.</p>
                         <div id="selectorsDisplay" style="display: none;">
@@ -484,16 +486,16 @@
                             <p data-i18n="configure-select-instructions" id="selectInstructions">Please select or drag and drop a .zim file (or all the .zimaa, .zimab etc in
                                 case of a split ZIM file):</p>
                             <span id="fileSelectionButtonContainer">
-                                <label tabindex="5" id="archiveFilesLbl" class="btn btn-light custom-file-upload">
+                                <label tabindex="5" id="archiveFilesLbl" class="btn btn-outline-dark custom-file-upload">
                                     <input type="file" id="archiveFiles" multiple class="btn" 
                                         accept="application/octet-stream,.zim,.zimaa,.zimab,.zimac,.zimad,.zimae,.zimaf,.zimag,.zimah,.zimai,.zimaj,.zimak,.zimal,.zimam,.ziman,.zimao,.zimap,.zimaq,.zimar,.zimas,.zimat,.zimau,.zimav,.zimaw,.zimax,.zimay,.zimaz,.zimba,.zimbb,.zimbc,.zimbd,.zimbe,.zimbf,.zimbg,.zimbh,.zimbi,.zimbj,.zimbk,.zimbl,.zimbm,.zimbn,.zimbo,.zimbp,.zimbq,.zimbr,.zimbs,.zimbt,.zimbu,.zimbv,.zimbw,.zimbx,.zimby,.zimbz" />
                                     <span data-i18n="home-btn-fileselect">Select ZIM File(s)</span>
                                 </label>
-                                <label tabindex="6" class="btn btn-light custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
+                                <label tabindex="6" class="btn btn-outline-dark custom-file-upload" id="folderSelect" data-i18n="" style="display: none;" data-i18n="configure-btn-folderselect">
                                     <input type="file" id="archiveFolders" style="display: none;" webkitdirectory="true"/>
                                     <span data-i18n="configure-btn-folderselect">Select Folder</span>
                                 </label>
-                                <label tabindex="7" class="btn btn-light custom-file-upload" id="btnLibrary" data-i18n="configure-btn-library" data-i18n-tip="configure-btn-library-tip" title="This will display a graphical library of ZIM archives for download if your browser can open it. Otherwise, it opens a text-only version. If you are using the Chromium extension in ServiceWorkerLocal mode, you will only be able to use the latter (switch to ServiceWorker mode for the full graphical version).">
+                                <label tabindex="7" class="btn btn-outline-dark custom-file-upload" id="btnLibrary" data-i18n="configure-btn-library" data-i18n-tip="configure-btn-library-tip" title="This will display a graphical library of ZIM archives for download if your browser can open it. Otherwise, it opens a text-only version. If you are using the Chromium extension in ServiceWorkerLocal mode, you will only be able to use the latter (switch to ServiceWorker mode for the full graphical version).">
                                     Browse ZIM Library
                                 </label>
                             </span>
@@ -512,7 +514,7 @@
                                 </p>
                                 <p data-i18n="configure-select-file-instructions">Please select the archive you want to use:</p>
                             </div>
-                            <select id="archiveList" class="form-control"></select>
+                            <select id="archiveList" class="form-select"></select>
                             <p><i data-i18n="configure-changed-content-note">(Re-pick folder if there is new content on your device)</i></p>
                             <span id="rescanButtonAndText" style="display: none;">
                                 <button type="button" class="btn btn-light" id="btnRescanDeviceStorage" data-i18n="configure-btn-rescan">Rescan</button>
@@ -560,7 +562,7 @@
                                     <label data-i18n-tip="configure-display-selectapptheme-tip" title="Allows selection of themes either for the app only, or for the app and the loaded content.">
                                         <span data-i18n="configure-display-selectapptheme"><b>Select app theme</b> (content inversion is experimental):</span>
                                     </label>
-                                    <select class="form-control" id="appThemeSelect">
+                                    <select class="form-select" id="appThemeSelect">
                                         <option data-i18n="configure-display-themeoption-light" value="light">Light</option>
                                         <option data-i18n="configure-display-themeoption-dark-apponly" value="dark">Dark (app only)</option>
                                         <option data-i18n="configure-display-themeoption-dark-invert" value="dark_invert">Dark (generic invert)</option>
@@ -622,7 +624,7 @@
                                     <div class="col-sm-8">
                                         <div class="range">
                                             <label>
-                                                <input type="range" class="form-control-range" min="5" max="100" id="titleSearchRange" value="25">
+                                                <input type="range" class="form-select-range" min="5" max="100" id="titleSearchRange" value="25">
                                                 <span data-i18n="configure-performance-searchrange-valuetext">Value</span>: <span id="titleSearchRangeVal"></span> (<i data-i18n="configure-performance-searchrange-help">default 25, higher values increase search time</i>)
                                             </label>
                                         </div>
@@ -800,7 +802,7 @@
     <!-- Legacy jQuery and Bootstrap are not ES-module-aware, and interact with each other using side-effects, so we are forced to load them globally here.
         There is code in rollup.config.js which alters these references, and the link reference above, to point to the local destination of the copied modules.
     -->
-    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.slim.min.js"></script>
+    <!-- <script type="text/javascript" src="../node_modules/jquery/dist/jquery.slim.min.js"></script> -->
     <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="js/init.js"></script>
     <script type="module" defer src="js/app.js"></script>
