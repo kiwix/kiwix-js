@@ -181,12 +181,16 @@ function slideAway (e) {
  * @param {String} declineConfirmLabel The text to display on the decline confirmation button (optional, Default = "Cancel")
  * @param {String} approveConfirmLabel  The text to display on the approve confirmation button (optional, Default = "Confirm")
  * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
+ * @param {String} hideOptionLabel  The text to display on the hide option button (optional, Default = "Don't ask again")
+ * @param {Boolean} displayHideOption If true, option to permanently hide the modal will be shown (currently only implemented for hideExternalLinkWarning)
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
-function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel) {
+function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel, hideOptionLabel, displayHideOption) {
     declineConfirmLabel = declineConfirmLabel || (translateUI.t('dialog-cancel') || 'Cancel');
     approveConfirmLabel = approveConfirmLabel || (translateUI.t('dialog-confirm') || 'Confirm');
     closeMessageLabel = closeMessageLabel || (translateUI.t('dialog-ok') || 'Okay');
+    hideOptionLabel = hideOptionLabel || (translateUI.t('dialog-hide') || "Don't ask again");
+    displayHideOption = displayHideOption || false;
     label = label || (isConfirm ? 'Confirmation' : 'Message');
     return util.PromiseQueue.enqueue(function () {
         return new Promise(function (resolve, reject) {
@@ -195,6 +199,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('approveConfirm').textContent = approveConfirmLabel;
             document.getElementById('declineConfirm').textContent = declineConfirmLabel;
             document.getElementById('closeMessage').textContent = closeMessageLabel;
+            document.getElementById('hideOption').textContent = hideOptionLabel;
             // Some titles need &nbsp; or other HTML, so we have to use innerHTML
             document.getElementById('modalLabel').innerHTML = label;
             // Using innerHTML to set the message to allow HTML formatting
@@ -203,6 +208,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('approveConfirm').style.display = isConfirm ? 'inline' : 'none';
             document.getElementById('declineConfirm').style.display = isConfirm ? 'inline' : 'none';
             document.getElementById('closeMessage').style.display = isConfirm ? 'none' : 'inline';
+            document.getElementById('hideOption').style.display = displayHideOption ? 'inline' : 'none';
             // Display the modal
             const modal = document.querySelector('#alertModal');
             const backdrop = document.createElement('div');
@@ -234,6 +240,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
                 document.getElementById('declineConfirm').removeEventListener('click', close);
                 document.getElementById('closeMessage').removeEventListener('click', close);
                 document.getElementById('approveConfirm').removeEventListener('click', closeConfirm);
+                document.getElementById('hideOption').removeEventListener('click', hideConfirm);
                 modal.removeEventListener('click', close);
                 document.getElementsByClassName('modal-dialog')[0].removeEventListener('click', stopOutsideModalClick);
                 modal.removeEventListener('keyup', keyHandler);
@@ -245,6 +252,11 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
                 resolve(false);
             };
             var closeConfirm = function () {
+                closeModalHandler();
+                resolve(true);
+            };
+            var hideConfirm = function () {
+                document.getElementById('hideExternalLinkWarningCheck').click();
                 closeModalHandler();
                 resolve(true);
             };
@@ -272,6 +284,7 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('declineConfirm').addEventListener('click', close);
             document.getElementById('closeMessage').addEventListener('click', close);
             document.getElementById('approveConfirm').addEventListener('click', closeConfirm);
+            document.getElementById('hideOption').addEventListener('click', hideConfirm);
 
             modal.addEventListener('click', close);
             document.getElementsByClassName('modal-dialog')[0].addEventListener('click', stopOutsideModalClick);
@@ -969,16 +982,20 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
         clickedAnchor.href = clickedAnchor.href.replace(clickedAnchor.origin, archive.source.replace(/\/$/, ''));
     }
     var target = clickedAnchor.target;
+    if (!target) {
+        target = '_blank';
+    }
+    if (params.hideExternalLinkWarning) {
+        window.open(clickedAnchor.href, target);
+        return;
+    }
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';
-    if (!target || target === '_blank') {
+    if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
     message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
-    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true).then(function (response) {
+    systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
-            if (!target) {
-                target = '_blank';
-            }
             window.open(clickedAnchor.href, target);
         }
     });
