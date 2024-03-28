@@ -35,6 +35,7 @@
  * @property {string} storeType - A parameter to determine the Settings Store API in use.
  * @property {string} keyPrefix - The key prefix used by the settingsStore.js.
  * @property {boolean} hideActiveContentWarning - A boolean indicating whether to hide the active content warning.
+ * @property {boolean} hideExternalLinkWarning - A boolean indicating whether to hide the external link warning.
  * @property {boolean} slideAway - A boolean indicating whether to slide away the header and footer when scrolling.
  * @property {boolean} showUIAnimations - A boolean indicating whether to show UI animations.
  * @property {number} maxSearchResultsSize - The maximum number of article titles to return.
@@ -89,6 +90,7 @@ params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
+params['hideExternalLinkWarning'] = getSetting('hideExternalLinkWarning') === true;
 // A parameter to determine whether to slide away the header and footer when scrolling (defaults to true except on Firefox OS devices which may be buggy with this setting)
 params['slideAway'] = getSetting('slideAway') === false ? false : typeof navigator.getDeviceStorages !== 'function';
 params['showUIAnimations'] = getSetting('showUIAnimations') === true;
@@ -182,6 +184,7 @@ params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCa
  * Set the State and UI settings associated with parameters defined above
  */
 document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
+document.getElementById('hideExternalLinkWarningCheck').checked = params.hideExternalLinkWarning;
 document.getElementById('disableDragAndDropCheck').checked = params.disableDragAndDrop;
 document.getElementById('slideAwayCheck').checked = params.slideAway;
 document.getElementById('showUIAnimationsCheck').checked = params.showUIAnimations;
