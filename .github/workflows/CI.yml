@@ -74,7 +74,7 @@ jobs:
             echo "!/node_modules/ not found in .gitignore, so patch failed."
             failed=1
           fi
-          exit failed
+          exit $failed
 
       - name: End-to-end tests on Chrome (Linux)
         env:
