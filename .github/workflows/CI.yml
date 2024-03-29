@@ -57,6 +57,25 @@ jobs:
       - name: Test a full build of the app
         run: npm run build
 
+      - name: Test integrity of patch_gitignore.sh
+        run: |
+          # Check that the /scripts/patch_gitignore script valid (it will be needed for the gh-pages implementation used for unbundled testing)
+          echo "DEV: If this patch_gitignore script fails, follow instructions in ADDING_DEPENDENCIES_NODE_MODULES.md to correct it."
+          chmod +x ./scripts/patch_gitignore.sh
+          ./scripts/patch_gitignore.sh
+          # Check that .gitignore does NOT contain /dist/
+          failed=0
+          if grep -q "^/dist/" .gitignore; then
+            echo "/dist/ found in .gitignore, so patch failed."
+            failed=1
+          fi
+          # Check that .gitignore DOES contain !/node_modules/
+          if ! grep -q "^\!/node_modules/" .gitignore; then
+            echo "!/node_modules/ not found in .gitignore, so patch failed."
+            failed=1
+          fi
+          exit failed
+
       - name: End-to-end tests on Chrome (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
