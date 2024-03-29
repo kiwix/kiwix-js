@@ -26,4 +26,5 @@ sed -i 's|/node_modules\*/|/node_modules/*\
 /node_modules/jquery/*\
 !/node_modules/jquery/dist\
 /node_modules/jquery/dist/*\
-!/node_modules/jquery/dist/jquery.slim.min.*|' .gitignore
+!/node_modules/jquery/dist/jquery.slim.min.*\
+|' .gitignore
