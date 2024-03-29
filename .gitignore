@@ -53,7 +53,7 @@ www-ghdeploy
 /reports/
 
 /dist/
-/node_modules/*
+/node_modules*/
 
 #Visual Studio
 /.vs/
