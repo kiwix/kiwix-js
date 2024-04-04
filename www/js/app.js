@@ -192,7 +192,7 @@ const searchArticle = document.getElementById('searchArticles')
 searchArticle.addEventListener('click', function () {
     var prefix = document.getElementById('prefix').value;
     // Do not initiate the same search if it is already in progress
-    if (appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
+    if (prefix !== '' && appstate.search.prefix === prefix && !/^(cancelled|complete)$/.test(appstate.search.status)) return;
     document.getElementById('welcomeText').style.display = 'none';
     document.querySelector('.kiwix-alert').style.display = 'none';
     document.getElementById('searchingArticles').style.display = '';
