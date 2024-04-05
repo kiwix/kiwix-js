@@ -61,10 +61,15 @@
                     <div class="modal-body">
                         <p id="modalText">Modal text goes here.</p>
                     </div>
-                    <div class="modal-footer" id="modalFooter">
-                        <button type="button" class="btn btn-primary" id="approveConfirm" data-dismiss="modal">Confirm</button>
-                        <button type="button" class="btn btn-secondary" id="declineConfirm" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+                    <div class="modal-footer justify-content-between" id="modalFooter">
+                        <div>
+                            <button type="button" class="btn btn-link" id="hideOption" data-dismiss="modal">Don't ask again</button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary" id="approveConfirm" data-dismiss="modal">Confirm</button>
+                            <button type="button" class="btn btn-secondary" id="declineConfirm" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -383,13 +388,12 @@
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
                     <h3 id="credits" data-i18n="about-credits">Credits</h3>
-                    <p data-i18n="about-credits-gratitude">We owe a big debt of gratitude to:
-                        <ul>
-                            <li>Kelson and all the Kiwix community for welcoming us to this project;</li>
-                            <li>Wikipedia teams and contributors for helping to make knowledge available to everybody;</li>
-                            <li>All the developers of libraries and tools we used, for releasing them as Free software (see libraries and tools paragraph).</li>
-                        </ul>
-                    </p>
+                    <p data-i18n="about-credits-gratitude">We owe a big debt of gratitude to:</p>
+                    <ul>
+                        <li data-i18n="about-credits-gratitude-part1">Kelson and all the Kiwix community for welcoming us to this project;</li>
+                        <li data-i18n="about-credits-gratitude-part2">Wikipedia teams and contributors for helping to make knowledge available to everybody;</li>
+                        <li data-i18n="about-credits-gratitude-part3">All the developers of libraries and tools we used, for releasing them as Free software (see libraries and tools paragraph).</li>
+                    </ul>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
                     <h3 id="licence" data-i18n="about-licence">Licence information</h3>
@@ -684,6 +688,12 @@
                                             id="hideActiveContentWarningCheck">
                                         <span data-i18n="configure-expert-hideactivecontentwarning"><strong>Permanently hide active content warning</strong> (for
                                         experienced users)</span>
+                                    </label>
+                                </div>
+                                <div class="checkbox">
+                                    <label data-i18n-tip="configure-expert-hideexternallinkwarning-tip" title="If this option is checked, links to external sites will open in a new tab without confirmation.">
+                                        <input type="checkbox" name="hideExternalLinkWarning" id="hideExternalLinkWarningCheck">
+                                        <span data-i18n="configure-expert-hideexternallinkwarning"><strong>Permanently hide "Opening external link" warning</strong></span>
                                     </label>
                                 </div>
                                 <div class="checkbox">

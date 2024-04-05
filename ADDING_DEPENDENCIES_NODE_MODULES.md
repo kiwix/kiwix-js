@@ -10,34 +10,29 @@ This syntax is sufficient for the bundler, rollup.js, to pick up the dependency 
 
 The problem is that the `node_modules` folder is usually ignored so that developers do not submit dependencies to the Repository: instead, each developer should install dependencies using NPM. But unless we make an exception for dependencies needed in the unbundled version, they won't be available when running it in the browser, so we have to ensure they are added **only** to the version published on the dev server.
 
-## Update the `gitignore.patch` (NOT `.gitignore`)
+## Update the `patch_gitignore.sh` (NOT `.gitignore`)
 
 The app is published to the development server from the `gh-pages` branch. To see the process, look at the workflow `publish-extension.yaml`. It installs dependencies and builds the app. In the workflow, you will see the following lines:
 
 ```
-# Apply the patch to gitignore to allow some dependencies to be included
-git apply ./scripts/gitignore.patch
+# Patch gitignore so that files needed for the distribution are exposed
+chmod +x ./scripts/patch_gitignore.sh
+./scripts/patch_gitignore.sh
 ```
+As this implies, you will need to add your new dependency to the `patch_gitignore.sh` script so that `.gitignore` on the `gh-pages` branch is altered, and the dependency is included in the files published to the server. N.B., you must NOT directly commit the changes to `.gitignore` itself, because we do not want multiple versions of dependencies committed to the Repo on every branch and kept forever. The only branch that should have these dependencies committed is `gh-pages`, and that branch is force-pushed each time that the app is published, so only the latest versions of dependencies are committed and kept.
 
-As this implies, you will need to add your new dependency to the `gitignore.patch` so that `.gitignore` on the `gh-pages` branch is altered, and the dependency is included in the files published to the server. N.B., you must NOT directly commit the changes to `.gitignore` itself, because we do not want multiple versions of dependencies committed to the Repo on every branch and kept forever. The only branch that should have these dependencies committed is `gh-pages`, and that branch is force-pushed each time that the app is published, so only the latest versions of dependencies are committed and kept.
+To update the patch, you will need to follow this procedure:
 
-To update the patch, you will need the help of the git software to generate the patch, like this:
+1. Edit `patch_gitignore.sh` following the example below:
 
-1. On your PR branch make sure your working tree is clean (that you have committed other irrelevant changes -- it's not necessary to have pushed the changes as well);
-2. Then run the exising patch with `git apply ./scripts/gitignore.patch`. Do NOT commit the changes to `.gitignore` that this will produce, but do save those changes;
-3. Now add your your dependency directly into `.gitignore`, putting it in alphabetical order into the existing block of changes, e.g.:
    ```
-   !/node_modules/i18next
-   /node_modules/i18next/*
-   !/node_modules/i18next/dist
-   /node_modules/i18next/dist/*
-   !/node_modules/i18next/dist/es
-   !/node_modules/i18next/dist/es/*
+   !/node_modules/i18next\
+   /node_modules/i18next/*\
+   !/node_modules/i18next/dist\
+   /node_modules/i18next/dist/*\
+   !/node_modules/i18next/dist/es\
+   !/node_modules/i18next/dist/es/*\
    ```
-   This unwieldy syntax is necessary to exclude all the contents of each folder other than the file(s) you wish to include. Note that the `!` at the start of some lines means "do not ignore this folder" (or file). A line without `!` means that the files listed or globbed will all be ignored;
-4. Save the file (but don't commit it);
-5. Run something like `git diff > mypatch.patch`;
-6. Take the code in `mypatch.patch` and overwrite the code (but not the comment) in the current `./scripts/gitignore.patch`;
-7. Save the chnages to `gitignore.patch`, and discard the changes to `.gitignore` and `mypatch.patch` (when you discard `.gitignore`, the unignored `node_modules` dependencies should no longer appear as unsstaged changes in your PR);
-8. Test your patch works with `git apply ./scripts/gitignore.patch`;
-9. If it works, discard the changed `.gitignore` again, and you can finally push (just) the edited `gitignore.patch` to your PR.
+   This unwieldy syntax is necessary to exclude all the contents of each folder other than the file(s) you wish to include. Note that the `!` at the start of some lines means "do not ignore this folder" (or file). A line without `!` means that the files listed or globbed will all be ignored.
+2. Test your patch works by running the script manually (you may need to do `chmod +x` first). You should see the relevant file(s) now appearing as a dirty change in git. DO NOT COMMIT THIS CHANGE! 
+3. If it works, discard the changed `.gitignore` again, and you can finally push (just) the edited `patch_gitignoe.sh` script to your PR.
