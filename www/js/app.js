@@ -2953,6 +2953,56 @@ function pushBrowserHistoryState (title, titleSearch) {
     }
     window.history.pushState(stateObj, stateLabel, urlParameters);
 }
+var dropup = document.getElementById('dropup');
+dropup.addEventListener('click', function () {
+    var ToCList = document.getElementById('ToCList');
+    ToCList.style.display = ToCList.style.display === 'block' ? 'none' : 'block';
+    dropup.style.fontSize = '14px';
+    setupTableOfContents();
+});
+
+function setupTableOfContents () {
+    var iframe = document.getElementById('articleContent');
+    var innerDoc = iframe.contentDocument;
+    var tableOfContents = new uiUtil.TOC(innerDoc);
+    var headings = tableOfContents.getHeadingObjects();
+
+    var dropupHtml = '';
+    params.relativeFontSize = 100;
+    headings.forEach(function (heading) {
+        if (/^h1$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + params.relativeFontSize + '%;"><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h2$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + ~~(params.relativeFontSize * 0.9) + '%;"><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h3$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + ~~(params.relativeFontSize * 0.8) + '%;"><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h4$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + ~~(params.relativeFontSize * 0.7) + '%;"><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        }
+        // Skip smaller headings (if there are any) to avoid making list too long
+    });
+    var ToCList = document.getElementById('ToCList');
+    ToCList.style.maxHeight = ~~(window.innerHeight * 0.75) + 'px';
+    ToCList.style.marginLeft = ~~(window.innerWidth / 2) - ~~(window.innerWidth * 0.16) + 'px';
+    ToCList.innerHTML = dropupHtml;
+    Array.prototype.slice.call(ToCList.getElementsByTagName('a')).forEach(function (listElement) {
+        listElement.addEventListener('click', function () {
+            var sectionEle = innerDoc.getElementById(this.dataset.headingId);
+            console.log(this.dataset.geadingId)
+            var csec = uiUtil.closest(sectionEle, 'details, section');
+            csec = csec && /DETAILS|SECTION/.test(csec.parentElement.tagName) ? csec.parentElement : csec;
+            // Scroll to element
+            sectionEle.scrollIntoView();
+            // Scrolling up then down ensures that the toolbars show according to user settings
+            iframe.contentWindow.scrollBy(0, -5);
+            setTimeout(function () {
+                iframe.contentWindow.scrollBy(0, 5);
+                iframe.contentWindow.focus();
+            }, 250);
+            ToCList.style.display = 'block';
+        });
+    });
+}
 
 /**
  * Extracts the content of the given article pathname, or a downloadable file, from the ZIM

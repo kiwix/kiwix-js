@@ -171,6 +171,38 @@ function slideAway (e) {
         // console.debug('eventType: ' + e.type + ' oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
     }
 }
+function closest (ele, s) {
+    var cele = ele;
+    var cmatches = Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    do {
+        if (cmatches.call(cele, s)) return cele;
+        cele = cele.parentElement || cele.parentNode;
+    } while (cele !== null && cele.nodeType === 1);
+    return null;
+}
+/*
+  * Returns a list of headings
+*/
+function TableOfContents (articleDoc) {
+    this.doc = articleDoc;
+    this.headings = this.doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+    this.getHeadingObjects = function () {
+        var headings = [];
+        for (var i = 0; i < this.headings.length; i++) {
+            var element = this.headings[i];
+            var obj = {};
+            obj.id = element.id;
+            var objectId = element.innerHTML.match(/\bid\s*=\s*["']\s*([^"']+?)\s*["']/i);
+            obj.id = obj.id ? obj.id : objectId && objectId.length > 1 ? objectId[1] : '';
+            obj.index = i;
+            obj.textContent = element.textContent;
+            obj.tagName = element.tagName;
+            headings.push(obj);
+        }
+        return headings;
+    };
+}
 
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
@@ -1046,6 +1078,8 @@ export default {
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
+    TOC: TableOfContents,
+    closest: closest,
     removeUrlParameters: removeUrlParameters,
     displayActiveContentWarning: displayActiveContentWarning,
     displayFileDownloadAlert: displayFileDownloadAlert,
