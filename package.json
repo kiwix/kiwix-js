@@ -61,6 +61,6 @@
     "selenium-webdriver": "^4.11.1",
     "start-server-and-test": "^2.0.0",
     "testcafe": "^3.0.0",
-    "vite": "^4.5.2"
+    "vite": "^4.5.3"
   }
 }
