@@ -59,7 +59,7 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 
 ### Officially supported platforms
 
-- <img src="images/firefoxbrowser-color.svg" width="20" /> Mozilla Firefox >=56 (as an extension): [Mozilla Add-ons Store](https://addons.mozilla.org/en-US/firefox/addon/kiwix-offline/)
+- <img src="images/firefoxbrowser-color.svg" width="20" /> Mozilla Firefox >=56 (as an extension): [Mozilla Add-ons Store](https://addons.mozilla.org/firefox/addon/kiwix-offline/)
     + Firefox 52-56 and ESR version 58: Limited support (Safe mode only)
 - Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
     + <img src="images/googlechrome-color.svg" width="20" /> Google Chrome >=88: [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
