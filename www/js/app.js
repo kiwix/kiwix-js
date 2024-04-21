@@ -2956,14 +2956,26 @@ function pushBrowserHistoryState (title, titleSearch) {
     }
     window.history.pushState(stateObj, stateLabel, urlParameters);
 }
+
+// Setup table of contents and display the list when the dropup button is clicked
 var dropup = document.getElementById('dropup');
+dropup.setAttribute('tabindex', '0');
+var ToCList = document.getElementById('ToCList');
 dropup.addEventListener('click', function () {
-    var ToCList = document.getElementById('ToCList');
-    ToCList.style.display = ToCList.style.display === 'block' ? 'none' : 'block';
-    dropup.style.fontSize = '14px';
-    setupTableOfContents();
+    if (ToCList.style.display !== 'none') {
+        ToCList.style.display = 'none';
+    } else {
+        setupTableOfContents();
+        ToCList.style.display = 'block';
+        dropup.style.fontSize = '14px';
+    }
 });
 
+dropup.addEventListener('blur', function () {
+    if (ToCList.style.display === 'block') ToCList.style.display = 'none';
+});
+
+// Inject table of contents list into dropup element and scroll selection into view
 function setupTableOfContents () {
     var iframe = document.getElementById('articleContent');
     var innerDoc = iframe.contentDocument;
@@ -2986,14 +2998,11 @@ function setupTableOfContents () {
     });
     var ToCList = document.getElementById('ToCList');
     ToCList.style.maxHeight = ~~(window.innerHeight * 0.75) + 'px';
-    ToCList.style.marginLeft = '-30px'
+    ToCList.style.marginLeft = '-5% !important';
     ToCList.innerHTML = dropupHtml;
     Array.prototype.slice.call(ToCList.getElementsByTagName('a')).forEach(function (listElement) {
         listElement.addEventListener('click', function () {
             var sectionEle = innerDoc.getElementById(this.dataset.headingId);
-            console.log(this.dataset.geadingId)
-            var csec = uiUtil.closest(sectionEle, 'details, section');
-            csec = csec && /DETAILS|SECTION/.test(csec.parentElement.tagName) ? csec.parentElement : csec;
             // Scroll to element
             sectionEle.scrollIntoView();
             // Scrolling up then down ensures that the toolbars show according to user settings
@@ -3002,7 +3011,6 @@ function setupTableOfContents () {
                 iframe.contentWindow.scrollBy(0, 5);
                 iframe.contentWindow.focus();
             }, 250);
-            ToCList.style.display = 'block';
         });
     });
 }
