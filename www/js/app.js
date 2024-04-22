@@ -2972,7 +2972,9 @@ dropup.addEventListener('click', function () {
 });
 
 dropup.addEventListener('blur', function () {
-    if (ToCList.style.display === 'block') ToCList.style.display = 'none';
+    setTimeout(() => {
+        if (ToCList.style.display === 'block') ToCList.style.display = 'none';
+    }, 100);
 });
 
 // Inject table of contents list into dropup element and scroll selection into view
@@ -3011,6 +3013,7 @@ function setupTableOfContents () {
                 iframe.contentWindow.scrollBy(0, 5);
                 iframe.contentWindow.focus();
             }, 250);
+            ToCList.style.display = 'none';
         });
     });
 }
