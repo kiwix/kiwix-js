@@ -171,15 +171,7 @@ function slideAway (e) {
         // console.debug('eventType: ' + e.type + ' oldScrollY: ' + oldScrollY + ' newScrollY: ' + newScrollY + ' windowIsScrollable: ' + windowIsScrollable);
     }
 }
-function closest (ele, s) {
-    var cele = ele;
-    var cmatches = Element.prototype.matches || Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
-    do {
-        if (cmatches.call(cele, s)) return cele;
-        cele = cele.parentElement || cele.parentNode;
-    } while (cele !== null && cele.nodeType === 1);
-    return null;
-}
+
 /*
   * Returns a list of headings
 */
@@ -1096,7 +1088,6 @@ export default {
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
     TOC: TableOfContents,
-    closest: closest,
     removeUrlParameters: removeUrlParameters,
     displayActiveContentWarning: displayActiveContentWarning,
     displayFileDownloadAlert: displayFileDownloadAlert,
