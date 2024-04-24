@@ -205,9 +205,11 @@ iframe._invert, iframe._mwInvert {
     width: 50px;
     height: 50px;
 }
+
 .btn-group.btn-block {
     padding-left: 5%;
 }
+
 .dropdown-menu.flex-container {
     overflow-y:auto;
     padding-top: 10px;
@@ -217,6 +219,7 @@ iframe._invert, iframe._mwInvert {
     position: absolute;
     left: 10px;
 }
+
 .status {
     position: absolute;
     top: 50%;
