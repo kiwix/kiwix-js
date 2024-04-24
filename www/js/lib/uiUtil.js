@@ -173,7 +173,9 @@ function slideAway (e) {
 }
 
 /*
-  * Returns a list of headings
+  * Returns a list of headings from an article
+    * @param {String} the page for which table of cotents needs to be listed
+    * @returns {List} a list of all headings as objects
 */
 function TableOfContents (articleDoc) {
     this.doc = articleDoc;
