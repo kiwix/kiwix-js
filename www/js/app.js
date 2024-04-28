@@ -1524,6 +1524,7 @@ function displayFileSelect () {
         globalDropZone.addEventListener('dragover', handleGlobalDragover);
         globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
+        globalDropZone.addEventListener('dragenter', handleGlobalDragenter);
     }
 
     if (isFireFoxOsNativeFileApiAvailable) {
@@ -1633,14 +1634,17 @@ let noPointerEventsStyle = '#search-article * { pointer-events: none; };'
 let noPointerEventsStyleSheet = document.createElement('style');
 noPointerEventsStyleSheet.innerText = noPointerEventsStyle;
 
+function handleGlobalDragenter (e) {
+    e.preventDefault();
+    document.head.append(noPointerEventsStyleSheet);
+}
+
 function handleGlobalDragover (e) {
     e.preventDefault();
-   
-    document.head.append(noPointerEventsStyleSheet);
 
     if (e.dataTransfer.types.includes('Files')) {
         e.dataTransfer.dropEffect = 'link';
-        globalDropZone.style.border = '3px dotted red';
+        globalDropZone.style.border = '3px dashed red';
         document.getElementById('btnConfigure').click();
     }
 }
@@ -1659,6 +1663,7 @@ function handleIframeDragover (e) {
     // add type check for chromium browsers
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         e.dataTransfer.dropEffect = 'link';
+        document.head.append(noPointerEventsStyleSheet);
         document.getElementById('btnConfigure').click();
     }
 }
