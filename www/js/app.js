@@ -1521,16 +1521,8 @@ function displayFileSelect () {
 
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
-        configDropZone.addEventListener('dragover', handleGlobalDragover);
-        configDropZone.addEventListener('dragleave', function () {
-            configDropZone.style.border = '';
-        });
-        // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
-        globalDropZone.addEventListener('dragover', function (e) {
-            e.preventDefault();
-            if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
-            e.dataTransfer.dropEffect = 'link';
-        });
+        globalDropZone.addEventListener('dragover', handleGlobalDragover);
+        globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
     }
 
@@ -1635,16 +1627,40 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
     }
 });
 
+// while being dragged over, disable pointer events
+// on children so dragleave fires appropriately
+let noPointerEventsStyle = '#search-article * { pointer-events: none; };'
+let noPointerEventsStyleSheet = document.createElement('style');
+noPointerEventsStyleSheet.innerText = noPointerEventsStyle;
+
 function handleGlobalDragover (e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'link';
-    configDropZone.style.border = '3px dotted red';
+   
+    document.head.append(noPointerEventsStyleSheet);
+
+    if (e.dataTransfer.types.includes('Files')) {
+        e.dataTransfer.dropEffect = 'link';
+        globalDropZone.style.border = '3px dotted red';
+        document.getElementById('btnConfigure').click();
+    }
+}
+
+function handleGlobalDragleave (e) {
+    e.preventDefault();
+    globalDropZone.style.border = '';
+    if (e.dataTransfer.types.includes('Files')) {
+        document.getElementById('btnHome').click();
+        noPointerEventsStyleSheet.remove();
+    }
 }
 
 function handleIframeDragover (e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'link';
-    document.getElementById('btnConfigure').click();
+    // add type check for chromium browsers
+    if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
+        e.dataTransfer.dropEffect = 'link';
+        document.getElementById('btnConfigure').click();
+    }
 }
 
 function handleIframeDrop (e) {
@@ -1652,10 +1668,20 @@ function handleIframeDrop (e) {
     e.preventDefault();
 }
 
+function hasInvalidType (typesList) {
+    for (var i = 0; i < typesList.length; i++) {
+        if (typesList[i].startsWith('image') || typesList[i].startsWith('text') || typesList[i].startsWith('video')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
-    configDropZone.style.border = '';
+    globalDropZone.style.border = '';
+    noPointerEventsStyleSheet.remove();
     var files = packet.dataTransfer.files;
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
