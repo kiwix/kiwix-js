@@ -1640,7 +1640,6 @@ function handleGlobalDragenter (e) {
 }
 
 function handleGlobalDragover (e) {
-    console.log('glb over')
     e.preventDefault();
 
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
@@ -1654,7 +1653,6 @@ function handleGlobalDragover (e) {
 function handleGlobalDragleave (e) {
     e.preventDefault();
     globalDropZone.style.border = '';
-    console.log(e.target)
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         /** can we somehow check if a page has been loaded? no need to go home if no page loaded yet. just keep on config */
         if (lastenter === e.target) {
@@ -1666,7 +1664,6 @@ function handleGlobalDragleave (e) {
 
 function handleIframeDragover (e) {
     e.preventDefault();
-    // add type check for chromium browsers
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         globalDropZone.classList.add('dragging-over')
         e.dataTransfer.dropEffect = 'link';
@@ -1674,6 +1671,7 @@ function handleIframeDragover (e) {
     }
 }
 
+// add type check for chromium browsers, since they count images on the same page as files
 function hasInvalidType (typesList) {
     for (var i = 0; i < typesList.length; i++) {
         if (typesList[i].startsWith('image') || typesList[i].startsWith('text') || typesList[i].startsWith('video')) {
