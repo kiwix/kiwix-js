@@ -1628,22 +1628,24 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
     }
 });
 
-// while being dragged over, disable pointer events
-// on children so dragleave fires appropriately
-let noPointerEventsStyle = '#search-article * { pointer-events: none; };'
-let noPointerEventsStyleSheet = document.createElement('style');
-noPointerEventsStyleSheet.innerText = noPointerEventsStyle;
+// keep track of entrance event so we only fire the correct leave event 
+var lastenter;
 
 function handleGlobalDragenter (e) {
     e.preventDefault();
-    document.head.append(noPointerEventsStyleSheet);
+    // disable pointer-events on children
+    // so they don't interfere with dragleave events
+    globalDropZone.classList.add('dragging-over')
+    lastenter = e.target;
 }
 
 function handleGlobalDragover (e) {
+    console.log('glb over')
     e.preventDefault();
 
-    if (e.dataTransfer.types.includes('Files')) {
+    if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         e.dataTransfer.dropEffect = 'link';
+        globalDropZone.classList.add('dragging-over')
         globalDropZone.style.border = '3px dashed red';
         document.getElementById('btnConfigure').click();
     }
@@ -1652,9 +1654,13 @@ function handleGlobalDragover (e) {
 function handleGlobalDragleave (e) {
     e.preventDefault();
     globalDropZone.style.border = '';
-    if (e.dataTransfer.types.includes('Files')) {
-        document.getElementById('btnHome').click();
-        noPointerEventsStyleSheet.remove();
+    console.log(e.target)
+    if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
+        /** can we somehow check if a page has been loaded? no need to go home if no page loaded yet. just keep on config */
+        if (lastenter === e.target) {
+            globalDropZone.classList.remove('dragging-over')
+            document.getElementById('btnHome').click();
+        }
     }
 }
 
@@ -1662,15 +1668,10 @@ function handleIframeDragover (e) {
     e.preventDefault();
     // add type check for chromium browsers
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
+        globalDropZone.classList.add('dragging-over')
         e.dataTransfer.dropEffect = 'link';
-        document.head.append(noPointerEventsStyleSheet);
         document.getElementById('btnConfigure').click();
     }
-}
-
-function handleIframeDrop (e) {
-    e.stopPropagation();
-    e.preventDefault();
 }
 
 function hasInvalidType (typesList) {
@@ -1686,7 +1687,7 @@ async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
     globalDropZone.style.border = '';
-    noPointerEventsStyleSheet.remove();
+    globalDropZone.classList.remove('dragging-over')
     var files = packet.dataTransfer.files;
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
