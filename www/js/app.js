@@ -1521,6 +1521,7 @@ function displayFileSelect () {
 
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
+        // do globally, since the whole page functions as a drop zone, so indicate properly
         globalDropZone.addEventListener('dragover', handleGlobalDragover);
         globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
@@ -1628,15 +1629,17 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
     }
 });
 
+/** Drag and Drop handling for ZIM files */
+
 // keep track of entrance event so we only fire the correct leave event 
-var lastenter;
+var enteredelement;
 
 function handleGlobalDragenter (e) {
     e.preventDefault();
     // disable pointer-events on children
     // so they don't interfere with dragleave events
-    globalDropZone.classList.add('dragging-over')
-    lastenter = e.target;
+    globalDropZone.classList.add('dragging-over');
+    enteredelement = e.target;
 }
 
 function handleGlobalDragover (e) {
@@ -1644,7 +1647,7 @@ function handleGlobalDragover (e) {
 
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         e.dataTransfer.dropEffect = 'link';
-        globalDropZone.classList.add('dragging-over')
+        globalDropZone.classList.add('dragging-over');
         globalDropZone.style.border = '3px dashed red';
         document.getElementById('btnConfigure').click();
     }
@@ -1655,8 +1658,8 @@ function handleGlobalDragleave (e) {
     globalDropZone.style.border = '';
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         /** can we somehow check if a page has been loaded? no need to go home if no page loaded yet. just keep on config */
-        if (lastenter === e.target) {
-            globalDropZone.classList.remove('dragging-over')
+        if (enteredelement === e.target) {
+            globalDropZone.classList.remove('dragging-over');
             document.getElementById('btnHome').click();
         }
     }
@@ -1665,10 +1668,15 @@ function handleGlobalDragleave (e) {
 function handleIframeDragover (e) {
     e.preventDefault();
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
-        globalDropZone.classList.add('dragging-over')
+        globalDropZone.classList.add('dragging-over');
         e.dataTransfer.dropEffect = 'link';
         document.getElementById('btnConfigure').click();
     }
+}
+
+function handleIframeDrop (e) {
+    e.preventDefault();
+    e.stopPropagation();
 }
 
 // add type check for chromium browsers, since they count images on the same page as files
@@ -1685,7 +1693,7 @@ async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
     globalDropZone.style.border = '';
-    globalDropZone.classList.remove('dragging-over')
+    globalDropZone.classList.remove('dragging-over');
     var files = packet.dataTransfer.files;
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
