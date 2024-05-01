@@ -2228,6 +2228,10 @@ function handleClickOnReplayLink (ev, anchor) {
     } else {
         zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     }
+    // It is necessary to fully decode zimit2, as these archives follow OpenZIM spec
+    if (params.zimType === 'zimit2') {
+        zimUrl = decodeURIComponent(zimUrl);
+    }
     // We need to test the ZIM link
     if (zimUrl) {
         ev.preventDefault();
@@ -2355,9 +2359,12 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
-    if (selectedArchive.zimType === 'zimit') {
-        // Zimit ZIMs store assets with the querystring, so we need to add it!
+    if (appstate.isReplayWorkerAvailable) {
+        // Zimit ZIMs store assets with the querystring, so we need to add it. ReplayWorker handles encoding.
         title = title + event.data.search;
+    } else if (params.zimType === 'zimit') {
+        // Zimit classic ZIMs store assets encoded with the querystring, so we need to add it
+        title = encodeURI(title) + event.data.search;
     }
     var messagePort = event.ports[0];
     var readFile = function (dirEntry) {
