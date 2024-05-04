@@ -1655,9 +1655,8 @@ function handleGlobalDragover (e) {
 function handleGlobalDragleave (e) {
     e.preventDefault();
     globalDropZone.style.border = '';
-    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types) && enteredElement === e.target) {
+    if (enteredElement === e.target) {
         globalDropZone.classList.remove('dragging-over');
-            
         // Only return to page if a ZIM is actually loaded
         if (selectedArchive.isReady()) {
             returnToCurrentPage();
