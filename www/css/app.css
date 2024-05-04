@@ -65,7 +65,7 @@
 }
 
 .dragging-over * {
-    pointer-events: none !important;
+    pointer-events: none;
 }
 
 .form-control {

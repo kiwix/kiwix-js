@@ -1521,7 +1521,7 @@ function displayFileSelect () {
 
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
-        // do globally, since the whole page functions as a drop zone, so indicate properly
+        // Set a global drop zone, so that whole page is enabled for drag and drop.
         globalDropZone.addEventListener('dragover', handleGlobalDragover);
         globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
@@ -1631,15 +1631,14 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
 
 /** Drag and Drop handling for ZIM files */
 
-// keep track of entrance event so we only fire the correct leave event 
-var enteredelement;
+// Keep track of entrance event so we only fire the correct leave event 
+var enteredElement;
 
 function handleGlobalDragenter (e) {
     e.preventDefault();
-    // disable pointer-events on children
-    // so they don't interfere with dragleave events
+    // Disable pointer-events on children so they don't interfere with dragleave events
     globalDropZone.classList.add('dragging-over');
-    enteredelement = e.target;
+    enteredElement = e.target;
 }
 
 function handleGlobalDragover (e) {
@@ -1658,9 +1657,12 @@ function handleGlobalDragleave (e) {
     globalDropZone.style.border = '';
     if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
         /** can we somehow check if a page has been loaded? no need to go home if no page loaded yet. just keep on config */
-        if (enteredelement === e.target) {
+        if (enteredElement === e.target) {
             globalDropZone.classList.remove('dragging-over');
-            document.getElementById('btnHome').click();
+            
+            if (selectedArchive.isReady()) {
+                returnToCurrentPage();
+            }
         }
     }
 }
@@ -1679,7 +1681,7 @@ function handleIframeDrop (e) {
     e.stopPropagation();
 }
 
-// add type check for chromium browsers, since they count images on the same page as files
+// Add type check for chromium browsers, since they count images on the same page as files
 function hasInvalidType (typesList) {
     for (var i = 0; i < typesList.length; i++) {
         if (typesList[i].startsWith('image') || typesList[i].startsWith('text') || typesList[i].startsWith('video')) {
@@ -1687,6 +1689,16 @@ function hasInvalidType (typesList) {
         }
     }
     return false;
+}
+
+// Function to switch back to currently loaded page from config page after dragleave event
+function returnToCurrentPage () {
+    document.getElementById('liConfigureNav').classList.remove('active');
+    document.getElementById('liHomeNav').classList.add('active');
+    uiUtil.tabTransitionToSection('home', params.showUIAnimations);
+    const welcomeText = document.getElementById('welcomeText');
+    welcomeText.style.display = 'none';
+    viewArticle.style.display = 'none';
 }
 
 async function handleFileDrop (packet) {
@@ -1701,11 +1713,11 @@ async function handleFileDrop (packet) {
     document.getElementById('selectorsDisplay').style.display = 'inline';
     archiveFiles.value = null;
 
-    // value will be set to true if a folder is dropped then there will be no need to
+    // Value will be set to true if a folder is dropped then there will be no need to
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    // no previous file will be loaded in case of FileSystemApi
+    // No previous file will be loaded in case of FileSystemApi
     if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet);
     else if (params.isWebkitDirApiSupported) {
         const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet);
