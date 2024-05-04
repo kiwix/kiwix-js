@@ -1659,7 +1659,7 @@ function handleGlobalDragleave (e) {
         globalDropZone.classList.remove('dragging-over');
         // Only return to page if a ZIM is actually loaded
         if (selectedArchive.isReady()) {
-            returnToCurrentPage();
+            uiUtil.returnToCurrentPage();
         }
     }
 }
@@ -1698,16 +1698,6 @@ function hasType (typesList, type) {
         }
     }
     return false;
-}
-
-// Function to switch back to currently loaded page from config page after dragleave event
-function returnToCurrentPage () {
-    document.getElementById('liConfigureNav').classList.remove('active');
-    document.getElementById('liHomeNav').classList.add('active');
-    uiUtil.tabTransitionToSection('home', params.showUIAnimations);
-    const welcomeText = document.getElementById('welcomeText');
-    welcomeText.style.display = 'none';
-    viewArticle.style.display = 'none';
 }
 
 async function handleFileDrop (packet) {
