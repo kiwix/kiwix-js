@@ -1521,17 +1521,11 @@ function displayFileSelect () {
 
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
-        configDropZone.addEventListener('dragover', handleGlobalDragover);
-        configDropZone.addEventListener('dragleave', function () {
-            configDropZone.style.border = '';
-        });
-        // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
-        globalDropZone.addEventListener('dragover', function (e) {
-            e.preventDefault();
-            if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
-            e.dataTransfer.dropEffect = 'link';
-        });
+        // Set a global drop zone, so that whole page is enabled for drag and drop
+        globalDropZone.addEventListener('dragover', handleGlobalDragover);
+        globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
+        globalDropZone.addEventListener('dragenter', handleGlobalDragenter);
     }
 
     if (isFireFoxOsNativeFileApiAvailable) {
@@ -1635,27 +1629,92 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
     }
 });
 
+/** Drag and Drop handling for ZIM files */
+
+// Keep track of entrance event so we only fire the correct leave event 
+var enteredElement;
+
+function handleGlobalDragenter (e) {
+    e.preventDefault();
+    // Disable pointer-events on children so they don't interfere with dragleave events
+    globalDropZone.classList.add('dragging-over');
+    enteredElement = e.target;
+}
+
 function handleGlobalDragover (e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'link';
-    configDropZone.style.border = '3px dotted red';
+
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
+        e.dataTransfer.dropEffect = 'link';
+        globalDropZone.classList.add('dragging-over');
+        globalDropZone.style.border = '3px dashed red';
+        document.getElementById('btnConfigure').click();
+    }
+}
+
+function handleGlobalDragleave (e) {
+    e.preventDefault();
+    globalDropZone.style.border = '';
+    if (enteredElement === e.target) {
+        globalDropZone.classList.remove('dragging-over');
+        // Only return to page if a ZIM is actually loaded
+        if (selectedArchive.isReady()) {
+            returnToCurrentPage();
+        }
+    }
 }
 
 function handleIframeDragover (e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'link';
-    document.getElementById('btnConfigure').click();
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
+        globalDropZone.classList.add('dragging-over');
+        e.dataTransfer.dropEffect = 'link';
+        document.getElementById('btnConfigure').click();
+    }
 }
 
 function handleIframeDrop (e) {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
+}
+
+// Add type check for chromium browsers, since they count images on the same page as files
+function hasInvalidType (typesList) {
+    for (var i = 0; i < typesList.length; i++) {
+        // Use indexOf() instead of startsWith() for IE11 support. Also, IE11 uses Text instead of text (and so does Opera).
+        // This is not comprehensive, but should cover most cases.
+        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0|| typesList[i].indexOf('video') === 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// IE11 doesn't support .includes(), so custom function to check for presence of types
+function hasType (typesList, type) {
+    for (var i = 0; i < typesList.length; i++) {
+        if (typesList[i] === type) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Function to switch back to currently loaded page from config page after dragleave event
+function returnToCurrentPage () {
+    document.getElementById('liConfigureNav').classList.remove('active');
+    document.getElementById('liHomeNav').classList.add('active');
+    uiUtil.tabTransitionToSection('home', params.showUIAnimations);
+    const welcomeText = document.getElementById('welcomeText');
+    welcomeText.style.display = 'none';
+    viewArticle.style.display = 'none';
 }
 
 async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
-    configDropZone.style.border = '';
+    globalDropZone.style.border = '';
+    globalDropZone.classList.remove('dragging-over');
     var files = packet.dataTransfer.files;
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
@@ -1663,11 +1722,11 @@ async function handleFileDrop (packet) {
     document.getElementById('selectorsDisplay').style.display = 'inline';
     archiveFiles.value = null;
 
-    // value will be set to true if a folder is dropped then there will be no need to
+    // Value will be set to true if a folder is dropped then there will be no need to
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    // no previous file will be loaded in case of FileSystemApi
+    // No previous file will be loaded in case of FileSystemApi
     if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet);
     else if (params.isWebkitDirApiSupported) {
         const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet);
