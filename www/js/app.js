@@ -1521,7 +1521,7 @@ function displayFileSelect () {
 
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
-        // Set a global drop zone, so that whole page is enabled for drag and drop.
+        // Set a global drop zone, so that whole page is enabled for drag and drop
         globalDropZone.addEventListener('dragover', handleGlobalDragover);
         globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
@@ -1644,7 +1644,7 @@ function handleGlobalDragenter (e) {
 function handleGlobalDragover (e) {
     e.preventDefault();
 
-    if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
         e.dataTransfer.dropEffect = 'link';
         globalDropZone.classList.add('dragging-over');
         globalDropZone.style.border = '3px dashed red';
@@ -1655,21 +1655,19 @@ function handleGlobalDragover (e) {
 function handleGlobalDragleave (e) {
     e.preventDefault();
     globalDropZone.style.border = '';
-    if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
-        /** can we somehow check if a page has been loaded? no need to go home if no page loaded yet. just keep on config */
-        if (enteredElement === e.target) {
-            globalDropZone.classList.remove('dragging-over');
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types) && enteredElement === e.target) {
+        globalDropZone.classList.remove('dragging-over');
             
-            if (selectedArchive.isReady()) {
-                returnToCurrentPage();
-            }
+        // Only return to page if a ZIM is actually loaded
+        if (selectedArchive.isReady()) {
+            returnToCurrentPage();
         }
     }
 }
 
 function handleIframeDragover (e) {
     e.preventDefault();
-    if (e.dataTransfer.types.includes('Files') && !hasInvalidType(e.dataTransfer.types)) {
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
         globalDropZone.classList.add('dragging-over');
         e.dataTransfer.dropEffect = 'link';
         document.getElementById('btnConfigure').click();
@@ -1684,7 +1682,19 @@ function handleIframeDrop (e) {
 // Add type check for chromium browsers, since they count images on the same page as files
 function hasInvalidType (typesList) {
     for (var i = 0; i < typesList.length; i++) {
-        if (typesList[i].startsWith('image') || typesList[i].startsWith('text') || typesList[i].startsWith('video')) {
+        // Use indexOf() instead of startsWith() for IE11 support. Also, IE11 uses Text instead of text (and so does Opera).
+        // This is not comprehensive, but should cover most cases.
+        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0|| typesList[i].indexOf('video') === 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// IE11 doesn't support .includes(), so custom function to check for presence of types
+function hasType (typesList, type) {
+    for (var i = 0; i < typesList.length; i++) {
+        if (typesList[i] === type) {
             return true;
         }
     }
