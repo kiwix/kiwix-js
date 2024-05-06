@@ -101,7 +101,6 @@ setContentInjectionMode(params.contentInjectionMode);
 
 // Define frequently used UI elements
 const globalDropZone = document.getElementById('search-article');
-const configDropZone = document.getElementById('configuration');
 const folderSelect = document.getElementById('folderSelect');
 const archiveFiles = document.getElementById('archiveFiles');
 
