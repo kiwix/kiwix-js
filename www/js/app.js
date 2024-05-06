@@ -1657,7 +1657,7 @@ function handleGlobalDragleave (e) {
     if (enteredElement === e.target) {
         globalDropZone.classList.remove('dragging-over');
         // Only return to page if a ZIM is actually loaded
-        if (selectedArchive.isReady()) {
+        if (selectedArchive && selectedArchive.isReady()) {
             uiUtil.returnToCurrentPage();
         }
     }
