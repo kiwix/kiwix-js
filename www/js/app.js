@@ -645,10 +645,20 @@ function focusPrefixOnHomeKey (event) {
  * @param {archive} the archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') ||
-    'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
-    translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
-    translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
+    const metadata = await archive.getConfirmationMetadata();
+
+    const response = await uiUtil.systemAlert(
+        translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
+        translateUI.t('dialog-sourceverification-title') || 'Security alert!',
+        true,
+        translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
+        translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source',
+        false,
+        false,
+        false,
+        metadata
+    );
+
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -1630,7 +1640,7 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
 
 /** Drag and Drop handling for ZIM files */
 
-// Keep track of entrance event so we only fire the correct leave event 
+// Keep track of entrance event so we only fire the correct leave event
 var enteredElement;
 
 function handleGlobalDragenter (e) {
@@ -1682,7 +1692,7 @@ function hasInvalidType (typesList) {
     for (var i = 0; i < typesList.length; i++) {
         // Use indexOf() instead of startsWith() for IE11 support. Also, IE11 uses Text instead of text (and so does Opera).
         // This is not comprehensive, but should cover most cases.
-        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0|| typesList[i].indexOf('video') === 0) {
+        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0 || typesList[i].indexOf('video') === 0) {
             return true;
         }
     }

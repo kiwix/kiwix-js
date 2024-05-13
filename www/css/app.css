@@ -250,6 +250,22 @@ iframe._invert, iframe._mwInvert {
     animation-duration: 0.1s;
 }
 
+#modal-archive-metadata-container {
+    border: solid 1px lightgrey;
+    padding: 10px;
+}
+
+.archive-metadata {
+    margin: 0;
+    padding: 0;
+}
+
+#modal-archive-metadata-warning {
+    color: rgb(255, 8, 0);
+    font-style: italic;
+    font-weight: bold;
+}
+
 .container {
     margin-bottom: 1.5em;
 }

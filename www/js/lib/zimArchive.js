@@ -85,7 +85,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             console.debug('ZIMArchive ready, metadata will be added in the background');
             // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
             // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the illustration
-            // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArdhive.getMetadata() function when needed
+            // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArchive.getMetadata() function when needed
             setTimeout(function () {
                 Promise.all([
                     that.addMetadataToZIMFile('Counter'),
@@ -98,7 +98,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 ]).then(function () {
                     console.debug('ZIMArchive metadata loaded:', that);
                 });
-            }, 1000); // DEV: If you need any of the above earlier, you can alter this delay
+            }, 0); // DEV: If you need any of the above earlier, you can alter this delay
             // We need to get the landing page of any Zimit archive opened
             // Note that the test below catches both zimit and zimit2 types
             if (/zimit/.test(that.zimType)) {
@@ -667,6 +667,25 @@ ZIMArchive.prototype.getMetadata = function (key, callback) {
         callback();
     });
 };
+
+/**
+ * Get all Metadata required for ZIM file security confirmation
+ * @returns {Promise<Object>} A Promise that resolves with the metadata object (contains Name, Creator, Publisher, Scraper)
+ */
+ZIMArchive.prototype.getConfirmationMetadata = function () {
+    var that = this;
+    return new Promise(function (resolve, reject) {
+        that.getMetadata('Name', function (name) {
+            that.getMetadata('Creator', function (creator) {
+                that.getMetadata('Publisher', function (publisher) {
+                    that.getMetadata('Scraper', function (scraper) {
+                        resolve({ name: name, creator: creator, publisher: publisher, scraper: scraper });
+                    });
+                });
+            });
+        });
+    })
+}
 
 /**
  * Add Metadata to the ZIM file
