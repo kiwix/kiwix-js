@@ -98,7 +98,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 ]).then(function () {
                     console.debug('ZIMArchive metadata loaded:', that);
                 });
-            }, 0); // DEV: If you need any of the above earlier, you can alter this delay
+            }, 1000); // DEV: If you need any of the above earlier, you can alter this delay
             // We need to get the landing page of any Zimit archive opened
             // Note that the test below catches both zimit and zimit2 types
             if (/zimit/.test(that.zimType)) {
