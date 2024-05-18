@@ -80,6 +80,9 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
         // Further metadata are added in the background below, and can be accessed later
         return Promise.all([
             that.addMetadataToZIMFile('Creator'),
+            that.addMetadataToZIMFile('Publisher'),
+            that.addMetadataToZIMFile('Scraper'),
+            that.addMetadataToZIMFile('Name'),
             that.addMetadataToZIMFile('Language')
         ]).then(function () {
             console.debug('ZIMArchive ready, metadata will be added in the background');
@@ -91,8 +94,6 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     that.addMetadataToZIMFile('Counter'),
                     that.addMetadataToZIMFile('Date'),
                     that.addMetadataToZIMFile('Description'),
-                    that.addMetadataToZIMFile('Name'),
-                    that.addMetadataToZIMFile('Publisher'),
                     that.addMetadataToZIMFile('Source'),
                     that.addMetadataToZIMFile('Title')
                 ]).then(function () {
@@ -667,25 +668,6 @@ ZIMArchive.prototype.getMetadata = function (key, callback) {
         callback();
     });
 };
-
-/**
- * Get all Metadata required for ZIM file security confirmation
- * @returns {Promise<Object>} A Promise that resolves with the metadata object (contains Name, Creator, Publisher, Scraper)
- */
-ZIMArchive.prototype.getConfirmationMetadata = function () {
-    var that = this;
-    return new Promise(function (resolve, reject) {
-        that.getMetadata('Name', function (name) {
-            that.getMetadata('Creator', function (creator) {
-                that.getMetadata('Publisher', function (publisher) {
-                    that.getMetadata('Scraper', function (scraper) {
-                        resolve({ name: name, creator: creator, publisher: publisher, scraper: scraper });
-                    });
-                });
-            });
-        });
-    })
-}
 
 /**
  * Add Metadata to the ZIM file

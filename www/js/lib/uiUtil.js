@@ -183,27 +183,15 @@ function slideAway (e) {
  * @param {String} closeMessageLabel  The text to display on the close alert message button (optional, Default = "Okay")
  * @param {String} hideOptionLabel  The text to display on the hide option button (optional, Default = "Don't ask again")
  * @param {Boolean} displayHideOption If true, option to permanently hide the modal will be shown (currently only implemented for hideExternalLinkWarning)
- * @param {Object} archiveMetadata If warning message for unknown ZIM file, contains the information to show user to help them confirm validity of ZIM file
- * @param {String} archiveMetadata.name The name of the ZIM file
- * @param {String} archiveMetadata.creator The creator of the ZIM file
- * @param {String} archiveMetadata.publisher The publisher of the ZIM file
- * @param {String} archiveMetadata.scraper The scraper used to create the ZIM file
  * @returns {Promise<Boolean>} A promise which resolves to true if the user clicked Confirm, false if the user clicked Cancel/Okay, backdrop or the cross(x) button
  */
-function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel, hideOptionLabel, displayHideOption, archiveMetadata, metadataWarningLabel) {
+function systemAlert (message, label, isConfirm, declineConfirmLabel, approveConfirmLabel, closeMessageLabel, hideOptionLabel, displayHideOption) {
     declineConfirmLabel = declineConfirmLabel || (translateUI.t('dialog-cancel') || 'Cancel');
     approveConfirmLabel = approveConfirmLabel || (translateUI.t('dialog-confirm') || 'Confirm');
     closeMessageLabel = closeMessageLabel || (translateUI.t('dialog-ok') || 'Okay');
     hideOptionLabel = hideOptionLabel || (translateUI.t('dialog-hide') || "Don't ask again");
     displayHideOption = displayHideOption || false;
     label = label || (isConfirm ? 'Confirmation' : 'Message');
-    metadataWarningLabel = metadataWarningLabel || translateUI.t('dialog-metadata-warning') || 'Warning: above data can be spoofed!';
-    const metadataLabels = {
-        name: translateUI.t('dialog-metadata-name') || 'Name: ',
-        creator: translateUI.t('dialog-metadata-creator') || 'Creator: ',
-        publisher: translateUI.t('dialog-metadata-publisher') || 'Publisher: ',
-        scraper: translateUI.t('dialog-metadata-scraper') || 'Scraper: '
-    }
     return util.PromiseQueue.enqueue(function () {
         return new Promise(function (resolve, reject) {
             if (!message) reject(new Error('Missing body message'));
@@ -216,16 +204,6 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
             document.getElementById('modalLabel').innerHTML = label;
             // Using innerHTML to set the message to allow HTML formatting
             document.getElementById('modalText').innerHTML = message;
-            // Set archive metadata if provided. Avoid using innerHTML since data can be spoofed.
-            document.getElementById('modal-archive-metadata-container').style.display = archiveMetadata ? 'block' : 'none';
-            if (archiveMetadata) {
-                document.getElementById('confirm-archive-name').textContent = metadataLabels.name + (archiveMetadata.name || '-');
-                document.getElementById('confirm-archive-creator').textContent = metadataLabels.creator + (archiveMetadata.creator || '-');
-                document.getElementById('confirm-archive-publisher').textContent = metadataLabels.publisher + (archiveMetadata.publisher || '-');
-                document.getElementById('confirm-archive-scraper').textContent = metadataLabels.scraper + (archiveMetadata.scraper || '-');
-            }
-            document.getElementById('modal-archive-metadata-warning').textContent = metadataWarningLabel;
-            document.getElementById('modal-archive-metadata-warning').style.display = archiveMetadata ? 'block' : 'none';
             // Display buttons acc to the type of alert
             document.getElementById('approveConfirm').style.display = isConfirm ? 'inline' : 'none';
             document.getElementById('declineConfirm').style.display = isConfirm ? 'inline' : 'none';
