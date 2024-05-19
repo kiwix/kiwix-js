@@ -1091,7 +1091,9 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                 });
             });
         }
-        if (dirEntry.redirect) {
+        if (!dirEntry) {
+            return Promise.reject(new Error('No directory entry found'));
+        } else if (dirEntry.redirect) {
             return new Promise((resolve, reject) => {
                 archive.resolveRedirect(dirEntry, function (reDirEntry) {
                     resolve(readArticle(reDirEntry));

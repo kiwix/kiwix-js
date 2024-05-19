@@ -2236,8 +2236,9 @@ function articleLoadedSW (iframeArticleContent) {
             if (!iframeDoc) return;
             // Attach the popover CSS to the current article document
             uiUtil.attachKiwixPopoverCss(iframeDoc);
-            // Add mouseover event listener to iframe window to check for links
-            iframeWindow.onmouseover = handleMouseOverEvent;
+            // Add event listeners to iframe window to check for links
+            iframeWindow.addEventListener('mouseover', handleEvent, true);
+            iframeWindow.addEventListener('focus', handleEvent, true);
         }
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
@@ -2260,36 +2261,46 @@ function articleLoadedSW (iframeArticleContent) {
 };
 
 /**
- * Mouseover event handler for attaching preview popovers
- * @param {Event} event The event produced by the mouseover action
+ * Event handler for attaching preview popovers
+ * @param {Event} event The event produced by the mouseover or focus action
  */
-function handleMouseOverEvent (event) {
-    // Check if the hovered element or its parent is a link (but throttle its activation)
-    if (window.mouseoverThrottle) return;
-    window.mouseoverThrottle = true;
+function handleEvent (event) {
+    // Check if the hovered or focused element or its parent is a link (but throttle its activation)
+    if (window.popoverThrottle) return;
+    window.popoverThrottle = true;
     setTimeout(function () {
         let a = event.target;
         const iframeDoc = a.ownerDocument;
-        const iframeWindow = iframeDoc.defaultView;
-        while (a && a !== iframeWindow && a.nodeName !== 'A') {
-            a = a.parentNode;
+        // console.debug('iframeDoc', iframeDoc);
+        if (iframeDoc) {
+            const iframeWindow = iframeDoc.defaultView;
+            while (a && a !== iframeWindow && a.nodeName !== 'A') {
+                a = a.parentNode;
+            }
+            // If a link was hovered or focused, process it
+            if (a && a.nodeName === 'A') {
+                // console.debug(`a.${event.type}`, a);
+                // Check if a popover div is currently being hovered
+                const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
+                let divIsHovered = false;
+                Array.prototype.slice.call(divs).forEach(function (div) {
+                    if (div.matches(':hover')) divIsHovered = true;
+                });
+                // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
+                if (!divIsHovered) {
+                    uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, null, selectedArchive);
+                }
+                const outHandler = function () {
+                    setTimeout(function () {
+                        a.popoverisloading = false;
+                        uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                        a.removeEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+                    }, 250);
+                };
+                a.addEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+            }
         }
-        // If a link was hovered, process it
-        if (a && a.nodeName === 'A') {
-            console.debug('a.hover', a);
-            // Process the link...
-            uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, null, selectedArchive);
-            const mouseoutHandler = function () {
-                setTimeout(function () {
-                    console.debug('a.mouseout');
-                    a.popoverisloading = false;
-                    uiUtil.removeKiwixPopoverDivs(iframeDoc);
-                    a.removeEventListener('mouseout', mouseoutHandler);
-                }, 250);
-            };
-            a.addEventListener('mouseout', mouseoutHandler);
-        }
-        window.mouseoverThrottle = false;
+        window.popoverThrottle = false;
     }, 10);
 };
 
