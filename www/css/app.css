@@ -64,6 +64,10 @@
     padding-left: 1px !important;
 }
 
+.dragging-over * {
+    pointer-events: none;
+}
+
 .form-control {
     margin-top: 2px;
 }

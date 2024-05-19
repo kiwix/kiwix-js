@@ -926,15 +926,17 @@ function applyAppTheme (theme) {
 function showReturnLink () {
     var viewArticle = document.getElementById('viewArticle');
     viewArticle.style.display = 'block';
-    viewArticle.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.getElementById('liConfigureNav').classList.remove('active');
-        document.getElementById('liHomeNav').classList.add('active');
-        tabTransitionToSection('home', params.showUIAnimations);
-        const welcomeText = document.getElementById('welcomeText');
-        welcomeText.style.display = 'none';
-        viewArticle.style.display = 'none';
-    });
+    viewArticle.addEventListener('click', returnToCurrentPage);
+}
+
+// Function to switch back to currently loaded page
+function returnToCurrentPage () {
+    document.getElementById('liConfigureNav').classList.remove('active');
+    document.getElementById('liHomeNav').classList.add('active');
+    tabTransitionToSection('home', params.showUIAnimations);
+    const welcomeText = document.getElementById('welcomeText');
+    welcomeText.style.display = 'none';
+    viewArticle.style.display = 'none';
 }
 
 // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
@@ -1077,5 +1079,6 @@ export default {
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
-    getBrowserLanguage: getBrowserLanguage
+    getBrowserLanguage: getBrowserLanguage,
+    returnToCurrentPage: returnToCurrentPage
 };
