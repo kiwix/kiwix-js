@@ -936,7 +936,7 @@ function returnToCurrentPage () {
     tabTransitionToSection('home', params.showUIAnimations);
     const welcomeText = document.getElementById('welcomeText');
     welcomeText.style.display = 'none';
-    viewArticle.style.display = 'none';
+    document.getElementById('viewArticle').style.display = 'none';
 }
 
 // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
