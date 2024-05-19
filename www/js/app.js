@@ -643,10 +643,10 @@ function focusPrefixOnHomeKey (event) {
 
 /**
  * Verifies the given archive and switches contentInjectionMode accourdingly
- * @param {archive} archive the archive that needs verification
+ * @param {Object} archive The archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    // We construct a HTML element to show the user in the alert with the metadata contained in it
+    // We construct an HTML element to show the user the alert with the metadata contained in it
     const metadataLabels = {
         name: translateUI.t('dialog-metadata-name') || 'Name: ',
         creator: translateUI.t('dialog-metadata-creator') || 'Creator: ',
@@ -656,8 +656,9 @@ async function verifyLoadedArchive (archive) {
 
     const verificationBody = document.createElement('div');
 
-    // text & metadata box
-    const verificationText = translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings';
+    // Text & metadata box
+    const verificationText = document.createElement('p');
+    verificationText.innerHTML = translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings.';
 
     const metadataBox = document.createElement('div');
     metadataBox.id = 'modal-archive-metadata-container';
@@ -684,7 +685,7 @@ async function verifyLoadedArchive (archive) {
 
     const verifyWarning = document.createElement('p');
     verifyWarning.id = 'modal-archive-metadata-warning';
-    verifyWarning.innerText = translateUI.t('dialog-metadata-warning') || 'Warning: above data can be spoofed!';
+    verifyWarning.innerHTML = translateUI.t('dialog-metadata-warning') || 'Warning: above data can be spoofed!';
 
     metadataBox.append(verifyName, verifyCreator, verifyPublisher, verifyScraper);
     verificationBody.append(verificationText, metadataBox, verifyWarning);
