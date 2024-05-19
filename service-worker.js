@@ -122,6 +122,8 @@ const precacheFiles = [
     'www/img/icons/kiwix-256.png',
     'www/img/icons/kiwix-32.png',
     'www/img/icons/kiwix-60.png',
+    'www/img/icons/new_window_black.svg',
+    'www/img/icons/new_window_white.svg',
     'www/img/spinner.gif',
     'www/img/Icon_External_Link.png',
     'www/index.html',
