@@ -24,7 +24,7 @@
 'use strict';
 
 // The global parameters object is defined in init.js
-/* global params, webpMachine */
+/* global params, appstate, webpMachine */
 
 // import styles from '../css/app.css' assert { type: "css" };
 // import bootstrap from '../css/bootstrap.min.css' assert { type: "css" };
@@ -48,13 +48,6 @@ if (params.abort) {
  */
 // DEV: Ensure this matches the name defined in service-worker.js (a check is provided in refreshCacheStatus() below)
 const ASSETS_CACHE = 'kiwixjs-assetsCache';
-
-/**
- * A global object for storing app state
- *
- * @type Object
- */
-var appstate = {};
 
 /**
  * @type ZIMArchive | null
@@ -105,7 +98,7 @@ const folderSelect = document.getElementById('folderSelect');
 const archiveFiles = document.getElementById('archiveFiles');
 
 // Unique identifier of the article expected to be displayed
-var expectedArticleURLToBeDisplayed = '';
+appstate.expectedArticleURLToBeDisplayed = '';
 
 // define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
@@ -1790,6 +1783,7 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
+    appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
@@ -2019,9 +2013,9 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
 function isDirEntryExpectedToBeDisplayed (dirEntry) {
     var curArticleURL = dirEntry.namespace + '/' + dirEntry.url;
 
-    if (expectedArticleURLToBeDisplayed !== curArticleURL) {
+    if (appstate.expectedArticleURLToBeDisplayed !== curArticleURL) {
         console.debug('url of current article :' + curArticleURL + ', does not match the expected url :' +
-        expectedArticleURLToBeDisplayed);
+        appstate.expectedArticleURLToBeDisplayed);
         return false;
     }
     return true;
@@ -2041,7 +2035,9 @@ function readArticle (dirEntry) {
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for expectedArticleURLToBeDisplayed.
-    expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+    appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+    // Calculate the current article's ZIM baseUrl to use when processing relative links
+    appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
     if (!params.isLandingPage) articleContainer.contentWindow.focus();
@@ -2233,6 +2229,42 @@ function articleLoadedSW (iframeArticleContent) {
         if (params.openExternalLinksInNewTabs) {
             // Add event listener to iframe window to check for links to external resources
             iframeArticleContent.contentWindow.onclick = filterClickEvent;
+        }
+        var throttle = false;
+        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews) {
+            var iframeWindow = iframeArticleContent.contentWindow;
+            var iframeDoc = iframeWindow ? iframeWindow.document : null;
+            if (!iframeDoc) return;
+            // Attach the popover CSS to the current article document
+            uiUtil.attachKiwixPopoverCss(iframeDoc, params.cssTheme === 'darkReader');
+            // Add mouseover event listener to iframe window to check for links
+            iframeArticleContent.contentWindow.onmouseover = function (e) {
+                // Check if the hovered element or its parent is a link (but throttle its activation)
+                if (throttle) return;
+                throttle = true;
+                setTimeout(function () {
+                    var a = e.target;
+                    while (a && a !== iframeWindow && a.nodeName !== 'A') {
+                        a = a.parentNode;
+                    }
+                    // If a link was hovered, process it
+                    if (a && a.nodeName === 'A') {
+                        console.debug('a.hover', a);
+                        // Process the link...
+                        uiUtil.attachKiwixPopoverDiv(e, a, appstate.baseUrl, null, selectedArchive);
+                        var mouseoutHandler = function () {
+                            setTimeout(function () {
+                                console.debug('a.mouseout');
+                                a.popoverisloading = false;
+                                uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                                a.removeEventListener('mouseout', mouseoutHandler);
+                            }, 250);
+                        };
+                        a.addEventListener('mouseout', mouseoutHandler);
+                    }
+                    throttle = false;
+                }, 10);
+            };
         }
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
@@ -2441,6 +2473,10 @@ function handleMessageChannelMessage (event) {
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
+                    if (/\bhtml/i.test(mimetype)) {
+                        // Calculate the current article's ZIM baseUrl to use when attaching popovers
+                        appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
+                    }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
                 }
@@ -2510,7 +2546,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     // (duplicated because we sometimes bypass readArticle above)
-    var baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
+    appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
@@ -2574,7 +2610,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
             // of encodeURIComponent.
-            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl));
+            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, appstate.baseUrl));
         }
         newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
         // Replace any srcset with data-kiwixsrcset
@@ -2771,14 +2807,14 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         // Zimit ZIMs store URLs percent-encoded and with querystring and
                         // deriveZimUrlFromRelativeUrls strips any querystring and decodes
                         var zimUrlToTransform = zimUrl;
-                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl)) +
+                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl)) +
                             href.replace(uriComponent, '').replace('#' + anchorParameter, '');
-                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl) +
+                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl) +
                         //     href.replace(uriComponent, '').replace('#' + anchorParameter, ''));
                     }
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
-                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, appstate.baseUrl);
                 }
                 goToArticle(zimUrl, downloadAttrValue, contentType);
             });
@@ -2789,12 +2825,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Make an array from the images that need to be processed
         var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
         // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
-        images.owner = expectedArticleURLToBeDisplayed;
+        images.owner = appstate.expectedArticleURLToBeDisplayed;
         // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
         // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
         // DOM, making for a better user experience (because images above the fold are extracted first)
         (function extractImage () {
-            if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
+            if (!images.length || images.busy || images.owner !== appstate.expectedArticleURLToBeDisplayed) return;
             images.busy = true;
             // Extract the image at the top of the images array and remove it from the array
             var image = images.shift();
@@ -2948,7 +2984,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function (mediaSource) {
                 var source = mediaSource.getAttribute('src');
-                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
+                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, appstate.baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
                 source = source || decodeURIComponent(mediaSource.dataset.kiwixurl);
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {

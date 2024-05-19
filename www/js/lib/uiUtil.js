@@ -23,7 +23,7 @@
 'use strict';
 
 /* eslint-disable indent */
-/* global webpMachine, webpHero, params */
+/* global webpMachine, webpHero, params, appstate */
 
 import util from './util.js';
 import settingsStore from './settingsStore.js';
@@ -402,10 +402,14 @@ function determineCanvasElementsWorkaround () {
  *
  * @param {Element} link The original link node from the DOM
  * @param {String} cssContent The content to insert as an inline stylesheet
+ * @param {String} id An optional id to add to the style element
  */
-function replaceCSSLinkWithInlineCSS (link, cssContent) {
+function replaceCSSLinkWithInlineCSS (link, cssContent, id) {
     var cssElement = document.createElement('style');
-    cssElement.type = 'text/css';
+    if (id) {
+        cssElement.id = id;
+    }
+    cssElement.type = 'text/css'; // Still needed for FFOS
     if (cssElement.styleSheet) {
         cssElement.styleSheet.cssText = cssContent;
     } else {
@@ -1004,6 +1008,380 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
 }
 
 /**
+ * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
+ * main image (if any). This function currently only parses Wikimedia articles. It returns an HTML string, formatted
+ * for display in a popover
+ *
+ * @param {String} href The href of the article link from which to extract the lede
+ * @param {String} baseUrl The base URL of the currently loaded article
+ * @param {Document} articleDocument The DOM of the currently loaded article
+ * @param {ZIMArchive} archive The archive from which to extract the lede
+ * @returns {Promise<String>} A Promise for the linked article's lede HTML including first main image URL if any
+ */
+function getArticleLede (href, baseUrl, articleDocument, archive) {
+    var uriComponent = removeUrlParameters(href);
+    var zimURL = deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+    console.debug('Previewing ' + zimURL);
+    return archive.getDirEntryByPath(zimURL).then(function (dirEntry) {
+        var readArticle = function (dirEntry) {
+            return new Promise((resolve, reject) => {
+                archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlArticle, 'text/html');
+                    // const articleBody = doc.getElementById('mw-content-text');
+                    const articleBody = doc.body;
+                    if (articleBody) {
+                        let balloonString = '';
+                        // Remove all standalone style elements, because their content is shown by both innerText and textContent
+                        const styleElements = Array.from(articleBody.querySelectorAll('style'));
+                        styleElements.forEach(style => {
+                            style.parentNode.removeChild(style);
+                        });
+                        const paragraphs = Array.from(articleBody.querySelectorAll('p'));
+                        // Filter out empty paragraphs or those with less than 50 characters
+                        const nonEmptyParagraphs = paragraphs.filter(para => {
+                            const text = para.innerText.trim();
+                            return !/^\s*$/.test(text) && text.length >= 50;
+                        });
+                        if (nonEmptyParagraphs.length > 0) {
+                            var cumulativeCharCount = 0;
+                            // Add enough paras to complete the word count
+                            for (let i = 0; i < nonEmptyParagraphs.length; i++) {
+                                // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
+                                var plainText = nonEmptyParagraphs[i].innerText;
+                                cumulativeCharCount += plainText.length;
+                                // In Restricted mode, we risk breaking the UI if user clicks on an embedded link, so only use innerText
+                                var content = params.contentInjectionMode === 'jquery' ? plainText
+                                    : nonEmptyParagraphs[i].innerHTML;
+                                balloonString += '<p>' + content + '</p>';
+                                // console.debug('Cumulatve character count: ' + cumulativeCharCount);
+                                if (cumulativeCharCount >= 850) break;
+                            }
+                        }
+                        const images = articleBody.querySelectorAll('img');
+                        let firstImage = null;
+                        if (images && params.contentInjectionMode === 'serviceworker') {
+                            // Iterate over images until we find one with a width greater than 50 pixels
+                            // (this filters out small icons)
+                            const imageArray = Array.from(images);
+                            for (let j = 0; j < imageArray.length; j++) {
+                                if (imageArray[j] && imageArray[j].width > 50) {
+                                    firstImage = imageArray[j];
+                                    break;
+                                }
+                            }
+                        }
+                        if (firstImage) {
+                            // Calculate absolute URL of image
+                            var balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
+                            var imageZimURL = encodeURI(deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
+                            var absolutePath = articleDocument.location.href.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+                            firstImage.src = absolutePath + imageZimURL;
+                            balloonString = firstImage.outerHTML + balloonString;
+                        }
+                        // console.debug(balloonString);
+                        if (!balloonString) {
+                            reject(new Error('No article lede or image'));
+                        } else {
+                            resolve(balloonString);
+                        }
+                    } else {
+                        reject(new Error('No article body found'));
+                    }
+                });
+            });
+        }
+        if (dirEntry.redirect) {
+            return new Promise((resolve, reject) => {
+                archive.resolveRedirect(dirEntry, function (reDirEntry) {
+                    resolve(readArticle(reDirEntry));
+                });
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } else {
+            return Promise.resolve(readArticle(dirEntry));
+        }
+    });
+}
+
+/**
+ * A function to attach the tooltip CSS for popovers (NB this does not attach the box itself, only the CSS)
+ * @param {Document} doc The document to which to attach the blloon.css styelesheet
+ * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes
+ */
+function attachKiwixPopoverCss (doc, dark) {
+    const colour = dark ? '#darkgray' : '#black';
+    const backgroundColour = dark ? '#111' : '#ebf4fb';
+    var cssLink = document.createElement('link');
+    doc.head.appendChild(cssLink);
+    replaceCSSLinkWithInlineCSS(cssLink, `
+        .kiwixtooltip {
+            position: absolute;
+            bottom: 1em;
+            /* prettify */
+            padding: 0 5px 5px;
+            color: ${colour};
+            background: ${backgroundColour};
+            border: 0.1em solid #b7ddf2;
+            /* round the corners */
+            border-radius: 0.5em;
+            /* handle overflow */
+            overflow: visible;
+            text-overflow: ellipsis;
+            /* handle text wrap */
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            /* add fade-in transition */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .kiwixtooltip img {
+            float: right;
+            margin-left: 5px;
+            max-width: 40%;
+            height: auto;
+        }
+
+        #popcloseicon {
+            padding-top: 1px;
+            padding-right: 2px;
+            font-size: 20px;
+            font-family: sans-serif;
+        }
+        
+        #popcloseicon:hover { 
+            cursor: pointer;
+        }
+        
+        #popbreakouticon {
+            height: 18px;
+            margin-right: 18px;
+        }
+        
+        #popbreakouticon:hover {
+            cursor: pointer;
+        }`,
+        // The id of the style element for easy manipulation
+        'kiwixtooltipstylesheet'
+    );
+}
+
+/**
+ * Attaches a popover div for the given link to the given document's DOM
+ * @param {Event} ev The event which has fired this popover action
+ * @param {Element} link The link element that is being actioned
+ * @param {String} articleBaseUrl The base URL of the currently loaded document
+ * @param {Boolean} dark An optional value to switch colour theme to dark if true
+ * @param {ZIMArchive} archive The archive from which the popover information is extracted
+ */
+function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
+    // Do not show popover if the user has initiated an article load
+    if (link.articleloading || link.popoverisloading) return;
+    var linkHref = link.getAttribute('href');
+    // Do not show popover if there is no href or with certain landing pages
+    if (!linkHref || /^wikivoyage/i.test(archive.file.name) &&
+      (appstate.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
+      appstate.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
+        return;
+    }
+    link.popoverisloading = true;
+    // Do not disply a popover if one is already showing for the current link
+    var kiwixPopover = ev.target.ownerDocument.querySelector('.kiwixtooltip');
+    if (kiwixPopover && kiwixPopover.dataset.href === linkHref) return;
+    // console.debug('Attaching popover...');
+    var currentDocument = ev.target.ownerDocument;
+    var articleWindow = currentDocument.defaultView;
+    removeKiwixPopoverDivs(currentDocument);
+    setTimeout(function () {
+        // Do not show popover if the user has initiated an article load
+        if (link.articleloading) return;
+        // Check if the link is still being hovered over, and abort display of popover if not
+        if (!link.matches(':hover') && currentDocument.activeElement !== link) {
+            link.popoverisloading = false;
+            return;
+        }
+        var div = document.createElement('div');
+        div.popoverisloading = true; // console.debug('div.popoverisloading', div.popoverisloading);
+        var screenWidth = articleWindow.innerWidth - 40;
+        var screenHeight = document.documentElement.clientHeight;
+        var margin = 40;
+        var divWidth = 512;
+        if (screenWidth <= divWidth) {
+            divWidth = screenWidth;
+            margin = 10;
+        }
+        // Check if we have restricted screen height
+        var divHeight = screenHeight < 512 ? 160 : 256;
+        div.style.width = divWidth + 'px';
+        div.style.height = divHeight + 'px';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'center';
+        div.style.alignItems = 'center';
+        div.className = 'kiwixtooltip';
+        div.innerHTML = '<p>Loading ...</p>';
+        div.dataset.href = linkHref;
+        currentDocument.body.appendChild(div);
+        // Calculate the position of the link that is being hovered
+        var linkRect = link.getBoundingClientRect();
+        // Initially position the div 20px above the link
+        var triangleDirection = 'top';
+        var divOffsetHeight = div.offsetHeight + 20;
+        var divRectY = linkRect.top - divOffsetHeight;
+        var triangleY = divHeight + 6;
+        // If we're less than half margin from the top, move the div below the link
+        if (divRectY < margin / 2) {
+            triangleDirection = 'bottom';
+            divRectY = linkRect.bottom + 20;
+            triangleY = -16;
+        }
+        // Position it horizontally in relation to the pointer position
+        var divRectX, triangleX;
+        if (ev.type === 'touchstart') {
+            divRectX = ev.touches[0].clientX - divWidth / 2;
+            triangleX = ev.touches[0].clientX - divRectX - 20;
+        } else if (ev.type === 'focus') {
+            divRectX = linkRect.left + linkRect.width / 2 - divWidth / 2;
+            triangleX = linkRect.left + linkRect.width / 2 - divRectX - 20;
+        } else {
+            divRectX = ev.clientX - divWidth / 2;
+            triangleX = ev.clientX - divRectX - 20;
+        }
+        // If right edge of div is greater than margin from the right side of window, shift it to margin
+        if (divRectX + divWidth > screenWidth - margin) {
+            triangleX += divRectX;
+            divRectX = screenWidth - divWidth - margin;
+            triangleX -= divRectX;
+        }
+        // If we're less than margin to the left, shift it to margin px from left
+        if (divRectX < margin) {
+            triangleX += divRectX;
+            divRectX = margin;
+            triangleX -= divRectX;
+        }
+        // Adjust triangleX if necessary
+        if (triangleX < 10) triangleX = 10;
+        if (triangleX > divWidth - 10) triangleX = divWidth - 10;
+        // Now set the calculated x and y positions, taking into account the zoom factor
+        div.style.top = divRectY + articleWindow.scrollY + 'px';
+        div.style.left = divRectX + 'px';
+        div.style.opacity = '1';
+        getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
+            link.articleloading = false;
+            div.style.justifyContent = '';
+            div.style.alignItems = '';
+            div.style.display = 'block';
+            var breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
+            var backgroundColour = dark ? '#222' : '#ebf4fb';
+            div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${divHeight}px;">
+                <div style="background: ${backgroundColour} !important; opacity: 70%; position: absolute; top: 0; right: 0; display: flex; align-items: center; padding: 0;">
+                    <img id="popbreakouticon" src="${breakoutIconFile}" />
+                    <span id="popcloseicon">X</span>
+                </div>
+                <div style="padding-top: 3px">${html}</div>
+            </div>`;
+            // Now insert the arrow
+            var tooltipStyle = articleWindow.document.getElementById('kiwixtooltipstylesheet');
+            var triangleColour = '#b7ddf2'; // Same as border colour of div
+            if (tooltipStyle) {
+                var span = document.createElement('span');
+                span.style.cssText = `
+                    width: 0;
+                    height: 0;
+                    border-${triangleDirection}: 16px solid ${triangleColour};
+                    border-left: 8px solid transparent !important;
+                    border-right: 8px solid transparent !important;
+                    position: absolute;
+                    top: ${triangleY}px;
+                    left: ${triangleX}px;
+                `;
+                div.appendChild(span);
+            }
+            // Programme the icons
+            addEventListenersToPopoverIcons(link, div, currentDocument);
+            setTimeout(function () {
+                div.popoverisloading = false; // console.debug('div.popoverisloading', div.popoverisloading);
+            }, 900);
+        }).catch(function (err) {
+            console.warn(err);
+            // Remove the div
+            div.style.opacity = '0';
+            div.parentElement.removeChild(div);
+            link.articleloading = false;
+            link.dataset.touchevoked = false;
+            link.popoverisloading = false;
+        });
+    }, 600);
+}
+
+/**
+ * Adds event listeners to the popover's control icons
+ *
+ * @param {Element} anchor The anchor which launched the popover
+ * @param {Element} popover The containing element of the popover (div)
+ * @param {Document} doc The doucment on which to operate
+ */
+function addEventListenersToPopoverIcons (anchor, popover, doc) {
+    var breakout = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        anchor.newcontainer = true;
+        anchor.click();
+        closePopover(popover);
+    }
+    var closeIcon = doc.getElementById('popcloseicon');
+    var breakoutIcon = doc.getElementById('popbreakouticon');
+    // Register click event for full support
+    closeIcon.addEventListener('mousedown', function () {
+        closePopover(popover);
+    }, true);
+    breakoutIcon.addEventListener('mousedown', breakout, true);
+    // Register either pointerdown or touchstart if supported
+    var eventName = window.PointerEvent ? 'pointerdown' : 'touchstart';
+    closeIcon.addEventListener(eventName, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closePopover(popover);
+    }, true);
+    breakoutIcon.addEventListener(eventName, breakout, true);
+}
+
+/**
+ * Remove any preview popover DIVs
+ *
+ * @param {Document} doc The document from which to remove any popovers
+ */
+function removeKiwixPopoverDivs (doc) {
+    var divs = doc.getElementsByClassName('kiwixtooltip');
+    setTimeout(function () {
+        Array.prototype.slice.call(divs).forEach(function (div) {
+            if (div.popoverisloading) return;
+            var timeoutID;
+            var fadeOutDiv = function () {
+                clearTimeout(timeoutID);
+                if (!div.matches(':hover')) {
+                    closePopover(div);
+                } else {
+                    timeoutID = setTimeout(fadeOutDiv, 250);
+                }
+            };
+            timeoutID = setTimeout(fadeOutDiv, 0);
+        });
+    }, 400);
+}
+
+// Directly close any popovers
+function closePopover (div) {
+    div.style.opacity = '0';
+    setTimeout(function () {
+        if (div && div.parentElement) {
+            div.parentElement.removeChild(div);
+        }
+    }, 200);
+};
+
+/**
  * Finds the closest <a> or <area> enclosing tag of an element.
  * Returns undefined if there isn't any.
  *
@@ -1075,6 +1453,9 @@ export default {
     removeAnimationClasses: removeAnimationClasses,
     tabTransitionToSection: tabTransitionToSection,
     applyAppTheme: applyAppTheme,
+    attachKiwixPopoverCss: attachKiwixPopoverCss,
+    attachKiwixPopoverDiv: attachKiwixPopoverDiv,
+    removeKiwixPopoverDivs: removeKiwixPopoverDivs,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,

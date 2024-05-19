@@ -56,7 +56,8 @@
  * @property {string} cacheIDB - Name of the Indexed DB database
  * @property {boolean} isFileSystemApiSupported - A boolean indicating whether the FileSystem API is supported.
  * @property {boolean} isWebkitDirApiSupported - A boolean indicating whether the Webkit Directory API is supported.
- * @property {boolean} useLibzim - A boolean indicating weather to use the libzim to load zim files.
+ * @property {boolean} useLibzim - A boolean indicating whether to use the libzim to load zim files.
+ * @property {boolean} showPopoverPreviews - A boolean indicating whether to show previews of ZIM links (currently only for Wikimedia archives)
  * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
@@ -73,6 +74,14 @@
  * @type {AppParams}
  */
 var params = {};
+
+/**
+ * A global object for storing app state
+ *
+ * @type Object
+ */
+// eslint-disable-next-line no-unused-vars
+var appstate = {};
 
 /**
  * Set parameters from the Settings Store, together with any defaults
@@ -132,6 +141,7 @@ params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indic
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
 params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets the name of the last opened zim file
 params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets a Boolean defaulting to true indicating whether to reopen the last opened zim file if possible
+params['showPopoverPreviews'] = getSetting('showPopoverPreviews') !== false; // Sets a Boolean defaulting to true indicating whether to show previews of article contents when hovering a ZIM link
 
 /**
  * Apply any override parameters that might be in the querystring.
