@@ -643,7 +643,7 @@ function focusPrefixOnHomeKey (event) {
 
 /**
  * Verifies the given archive and switches contentInjectionMode accourdingly
- * @param {Object} archive The archive that needs verification
+ * @param {ZIMArchive} archive The archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
     // We construct an HTML element to show the user the alert with the metadata contained in it
