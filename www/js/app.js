@@ -2223,48 +2223,21 @@ function articleLoadedSW (iframeArticleContent) {
     }
     resizeIFrame();
 
-    if (iframeArticleContent.contentWindow) {
+    var iframeWindow = iframeArticleContent.contentWindow;
+    if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
-        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.onkeydown = focusPrefixOnHomeKey; }
+        if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
         if (params.openExternalLinksInNewTabs) {
             // Add event listener to iframe window to check for links to external resources
-            iframeArticleContent.contentWindow.onclick = filterClickEvent;
+            iframeWindow.onclick = filterClickEvent;
         }
-        var throttle = false;
         if (appstate.wikimediaZimLoaded && params.showPopoverPreviews) {
-            var iframeWindow = iframeArticleContent.contentWindow;
-            var iframeDoc = iframeWindow ? iframeWindow.document : null;
+            const iframeDoc = iframeWindow.document;
             if (!iframeDoc) return;
             // Attach the popover CSS to the current article document
-            uiUtil.attachKiwixPopoverCss(iframeDoc, params.cssTheme === 'darkReader');
+            uiUtil.attachKiwixPopoverCss(iframeDoc);
             // Add mouseover event listener to iframe window to check for links
-            iframeArticleContent.contentWindow.onmouseover = function (e) {
-                // Check if the hovered element or its parent is a link (but throttle its activation)
-                if (throttle) return;
-                throttle = true;
-                setTimeout(function () {
-                    var a = e.target;
-                    while (a && a !== iframeWindow && a.nodeName !== 'A') {
-                        a = a.parentNode;
-                    }
-                    // If a link was hovered, process it
-                    if (a && a.nodeName === 'A') {
-                        console.debug('a.hover', a);
-                        // Process the link...
-                        uiUtil.attachKiwixPopoverDiv(e, a, appstate.baseUrl, null, selectedArchive);
-                        var mouseoutHandler = function () {
-                            setTimeout(function () {
-                                console.debug('a.mouseout');
-                                a.popoverisloading = false;
-                                uiUtil.removeKiwixPopoverDivs(iframeDoc);
-                                a.removeEventListener('mouseout', mouseoutHandler);
-                            }, 250);
-                        };
-                        a.addEventListener('mouseout', mouseoutHandler);
-                    }
-                    throttle = false;
-                }, 10);
-            };
+            iframeWindow.onmouseover = handleMouseOverEvent;
         }
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
@@ -2284,6 +2257,40 @@ function articleLoadedSW (iframeArticleContent) {
         };
     }
     params.isLandingPage = false;
+};
+
+/**
+ * Mouseover event handler for attaching preview popovers
+ * @param {Event} event The event produced by the mouseover action
+ */
+function handleMouseOverEvent (event) {
+    // Check if the hovered element or its parent is a link (but throttle its activation)
+    if (window.mouseoverThrottle) return;
+    window.mouseoverThrottle = true;
+    setTimeout(function () {
+        let a = event.target;
+        const iframeDoc = a.ownerDocument;
+        const iframeWindow = iframeDoc.defaultView;
+        while (a && a !== iframeWindow && a.nodeName !== 'A') {
+            a = a.parentNode;
+        }
+        // If a link was hovered, process it
+        if (a && a.nodeName === 'A') {
+            console.debug('a.hover', a);
+            // Process the link...
+            uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, null, selectedArchive);
+            const mouseoutHandler = function () {
+                setTimeout(function () {
+                    console.debug('a.mouseout');
+                    a.popoverisloading = false;
+                    uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                    a.removeEventListener('mouseout', mouseoutHandler);
+                }, 250);
+            };
+            a.addEventListener('mouseout', mouseoutHandler);
+        }
+        window.mouseoverThrottle = false;
+    }, 10);
 };
 
 // Handles a click on a Zimit link that has been processed by Wombat
