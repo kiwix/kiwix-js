@@ -294,8 +294,8 @@ function runTests (driver, modes) {
                 await driver.executeScript('document.getElementById("mwWw").focus();');
                 // Wait for the popover to appear
                 await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
-                // Wait until the popover element is located in the DOM
-                let popover = await driver.wait(until.elementLocated(By.css('.kiwixtooltip')), 3000);
+                // Use standard JavaScript methods to find the popover element
+                let popover = await driver.executeScript('return document.querySelector(".kiwixtooltip");');
                 assert.ok(popover, 'Popover div with class ".kiwixtooltip" not found');
                 await driver.switchTo().defaultContent();
             });
