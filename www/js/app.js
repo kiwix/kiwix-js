@@ -2207,6 +2207,9 @@ function filterClickEvent (event) {
         clickedAnchor.passthrough = false;
         return;
     }
+    // Remove any Kiwix Popovers that may be hanging around
+    uiUtil.removeKiwixPopoverDivs(event.target.ownerDocument);
+    if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
         // Check for Zimit links that would normally be handled by the Replay Worker
         // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
@@ -2223,11 +2226,11 @@ function filterClickEvent (event) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-        } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
+        } else if (clickedAnchor.newcontainer || /\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
             // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
             event.preventDefault();
             event.stopPropagation();
-            console.debug('filterClickEvent opening new window for PDF');
+            console.debug('filterClickEvent opening new window for PDF or requested new container');
             clickedAnchor.newcontainer = true;
             window.open(clickedAnchor.href, '_blank');
         } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
@@ -2276,10 +2279,8 @@ function articleLoadedSW (iframeArticleContent) {
     if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
-        if (params.openExternalLinksInNewTabs) {
-            // Add event listener to iframe window to check for links to external resources
-            iframeWindow.onclick = filterClickEvent;
-        }
+        // Add event listener to iframe window to check for links to external resources
+        iframeWindow.onclick = filterClickEvent;
         // The popover feature requires as a minimum that the browser supports the css matches function
         // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
         if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
