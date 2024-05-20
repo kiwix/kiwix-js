@@ -1147,7 +1147,7 @@ function attachKiwixPopoverCss (doc, dark) {
             max-width: 40%;
             height: auto;
         }
-
+        
         #popcloseicon {
             padding-top: 1px;
             padding-right: 2px;
@@ -1278,6 +1278,8 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             div.style.display = 'block';
             const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
             const backgroundColour = '#ebf4fb';
+            // DEV: Most style declarations in this div only work properly inline. If added in stylesheet, even with !important, the positioning goes awry
+            // (appears to be a timing issue related to the reservation of space given that the div is inserted dynamically).
             div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${divHeight}px;">
                 <div style="background: ${backgroundColour} !important; opacity: 70%; position: absolute; top: 0; right: 0; display: flex; align-items: center; padding: 0; z-index: 1;">
                     <img id="popbreakouticon" src="${breakoutIconFile}" />
