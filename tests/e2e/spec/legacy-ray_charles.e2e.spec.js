@@ -205,7 +205,7 @@ function runTests (driver, modes) {
             it('Load legacy Ray Charles and check index contains specified article', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    this.skipe();
+                    this.skip();
                 }
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                 // Unhide the element using JavaScript in case it is hidden
@@ -294,8 +294,9 @@ function runTests (driver, modes) {
                 await driver.executeScript('document.getElementById("mwWw").focus();');
                 // Wait for the popover to appear
                 await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
-                // Use standard JavaScript methods to find the popover element
+                // Use standard JavaScript methods to find the popover element because Safari 14 fails when using WebDriver methods
                 let popover = await driver.executeScript('return document.querySelector(".kiwixtooltip").outerHTML;');
+                // The popover should contain the word "bluesy" (description of style of song)
                 let popoverContainsText = /bluesy/.test(popover);
                 assert.ok(popoverContainsText, 'Popover div with class ".kiwixtooltip" did not have expected text "bluesy"');
                 await driver.switchTo().defaultContent();

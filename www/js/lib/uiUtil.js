@@ -1119,6 +1119,7 @@ function attachKiwixPopoverCss (doc, dark) {
     const backgroundColour = dark ? '#111' : '#ebf4fb';
     const cssLink = document.createElement('link');
     doc.head.appendChild(cssLink);
+    // DEV: Firefox OS blocks loading stylesheet files into iframe DOM content even if it is same origin, so we are forced to insert a style element instead
     replaceCSSLinkWithInlineCSS(cssLink, `
         .kiwixtooltip {
             position: absolute;
@@ -1332,6 +1333,7 @@ function addEventListenersToPopoverIcons (anchor, popover, doc) {
     const breakout = function (e) {
         e.preventDefault();
         e.stopPropagation();
+        // Adding the newcontainer property to the anchor will be cauught by the filterClickEvent function and will open in new tab
         anchor.newcontainer = true;
         anchor.click();
         closePopover(popover);

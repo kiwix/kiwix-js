@@ -2227,7 +2227,8 @@ function filterClickEvent (event) {
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
         } else if (clickedAnchor.newcontainer || /\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
-            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab. We also open
+            // a new tab if the user has explicitly requested it: in this case the anchor will have a property 'newcontainer' (e.g. with popover control)
             event.preventDefault();
             event.stopPropagation();
             console.debug('filterClickEvent opening new window for PDF or requested new container');
@@ -2545,7 +2546,9 @@ function handleMessageChannelMessage (event) {
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
-                    if (/\bhtml/i.test(mimetype)) {
+                    // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
+                    // or simply `html`, so this has to be as generic as possible
+                    if (/\bx?html/i.test(mimetype)) {
                         // Calculate the current article's ZIM baseUrl to use when attaching popovers
                         appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
                     }
@@ -2893,6 +2896,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         });
         // The popover feature requires as a minimum that the browser supports the css matches function
         // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled)
+        // DEV: Code below is the Safe mode version of the code given above when the app is in ServiceWorker mode
         if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
             const iframeWindow = iframeArticleContent.contentWindow
             const iframeDoc = iframeWindow.document;
