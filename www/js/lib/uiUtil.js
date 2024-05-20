@@ -1112,7 +1112,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 /**
  * A function to attach the tooltip CSS for popovers (NB this does not attach the box itself, only the CSS)
  * @param {Document} doc The document to which to attach the blloon.css styelesheet
- * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes
+ * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
 function attachKiwixPopoverCss (doc, dark) {
     const colour = dark ? '#darkgray' : '#black';
@@ -1277,9 +1277,9 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             div.style.alignItems = '';
             div.style.display = 'block';
             const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
-            const backgroundColour = dark ? '#222' : '#ebf4fb';
+            const backgroundColour = '#ebf4fb';
             div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${divHeight}px;">
-                <div style="background: ${backgroundColour} !important; opacity: 70%; position: absolute; top: 0; right: 0; display: flex; align-items: center; padding: 0;">
+                <div style="background: ${backgroundColour} !important; opacity: 70%; position: absolute; top: 0; right: 0; display: flex; align-items: center; padding: 0; z-index: 1;">
                     <img id="popbreakouticon" src="${breakoutIconFile}" />
                     <span id="popcloseicon">X</span>
                 </div>

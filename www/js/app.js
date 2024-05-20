@@ -2337,7 +2337,9 @@ function handleEvent (event) {
                 });
                 // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
                 if (!divIsHovered) {
-                    uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, null, selectedArchive);
+                    // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
+                    const isDarkTheme = /^auto/.test(params.appTheme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : params.appTheme.replace(/_.*$/, '') === 'dark';
+                    uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function () {
                     setTimeout(function () {
