@@ -1019,11 +1019,11 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
  * @returns {Promise<String>} A Promise for the linked article's lede HTML including first main image URL if any
  */
 function getArticleLede (href, baseUrl, articleDocument, archive) {
-    var uriComponent = removeUrlParameters(href);
-    var zimURL = deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+    const uriComponent = removeUrlParameters(href);
+    const zimURL = deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
     return archive.getDirEntryByPath(zimURL).then(function (dirEntry) {
-        var readArticle = function (dirEntry) {
+        const readArticle = function (dirEntry) {
             return new Promise((resolve, reject) => {
                 archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
                     const parser = new DOMParser();
@@ -1044,14 +1044,14 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                             return !/^\s*$/.test(text) && text.length >= 50;
                         });
                         if (nonEmptyParagraphs.length > 0) {
-                            var cumulativeCharCount = 0;
+                            let cumulativeCharCount = 0;
                             // Add enough paras to complete the word count
                             for (let i = 0; i < nonEmptyParagraphs.length; i++) {
                                 // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
-                                var plainText = nonEmptyParagraphs[i].innerText;
+                                const plainText = nonEmptyParagraphs[i].innerText;
                                 cumulativeCharCount += plainText.length;
-                                // In Restricted mode, we risk breaking the UI if user clicks on an embedded link, so only use innerText
-                                var content = params.contentInjectionMode === 'jquery' ? plainText
+                                // In Safe mode, we risk breaking the UI if user clicks on an embedded link, so only use innerText
+                                const content = params.contentInjectionMode === 'jquery' ? plainText
                                     : nonEmptyParagraphs[i].innerHTML;
                                 balloonString += '<p>' + content + '</p>';
                                 // console.debug('Cumulatve character count: ' + cumulativeCharCount);
@@ -1073,9 +1073,9 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                         }
                         if (firstImage) {
                             // Calculate absolute URL of image
-                            var balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
-                            var imageZimURL = encodeURI(deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
-                            var absolutePath = articleDocument.location.href.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+                            const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
+                            const imageZimURL = encodeURI(deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
+                            const absolutePath = articleDocument.location.href.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
                             firstImage.src = absolutePath + imageZimURL;
                             balloonString = firstImage.outerHTML + balloonString;
                         }
@@ -1104,6 +1104,8 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         } else {
             return Promise.resolve(readArticle(dirEntry));
         }
+    }).catch(function (err) {
+        throw new Error('Could not get Directory Entry for ' + zimURL, err);
     });
 }
 
@@ -1115,7 +1117,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 function attachKiwixPopoverCss (doc, dark) {
     const colour = dark ? '#darkgray' : '#black';
     const backgroundColour = dark ? '#111' : '#ebf4fb';
-    var cssLink = document.createElement('link');
+    const cssLink = document.createElement('link');
     doc.head.appendChild(cssLink);
     replaceCSSLinkWithInlineCSS(cssLink, `
         .kiwixtooltip {
@@ -1181,7 +1183,7 @@ function attachKiwixPopoverCss (doc, dark) {
 function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
     // Do not show popover if the user has initiated an article load
     if (link.articleloading || link.popoverisloading) return;
-    var linkHref = link.getAttribute('href');
+    const linkHref = link.getAttribute('href');
     // Do not show popover if there is no href or with certain landing pages
     if (!linkHref || /^wikivoyage/i.test(archive.file.name) &&
       (appstate.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
@@ -1190,11 +1192,11 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
     }
     link.popoverisloading = true;
     // Do not disply a popover if one is already showing for the current link
-    var kiwixPopover = ev.target.ownerDocument.querySelector('.kiwixtooltip');
+    const kiwixPopover = ev.target.ownerDocument.querySelector('.kiwixtooltip');
     if (kiwixPopover && kiwixPopover.dataset.href === linkHref) return;
     // console.debug('Attaching popover...');
-    var currentDocument = ev.target.ownerDocument;
-    var articleWindow = currentDocument.defaultView;
+    const currentDocument = ev.target.ownerDocument;
+    const articleWindow = currentDocument.defaultView;
     removeKiwixPopoverDivs(currentDocument);
     setTimeout(function () {
         // Do not show popover if the user has initiated an article load
@@ -1204,18 +1206,18 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             link.popoverisloading = false;
             return;
         }
-        var div = document.createElement('div');
-        div.popoverisloading = true; // console.debug('div.popoverisloading', div.popoverisloading);
-        var screenWidth = articleWindow.innerWidth - 40;
-        var screenHeight = document.documentElement.clientHeight;
-        var margin = 40;
-        var divWidth = 512;
+        const div = document.createElement('div');
+        div.popoverisloading = true;
+        const screenWidth = articleWindow.innerWidth - 40;
+        const screenHeight = document.documentElement.clientHeight;
+        let margin = 40;
+        let divWidth = 512;
         if (screenWidth <= divWidth) {
             divWidth = screenWidth;
             margin = 10;
         }
         // Check if we have restricted screen height
-        var divHeight = screenHeight < 512 ? 160 : 256;
+        const divHeight = screenHeight < 512 ? 160 : 256;
         div.style.width = divWidth + 'px';
         div.style.height = divHeight + 'px';
         div.style.display = 'flex';
@@ -1226,12 +1228,12 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
         div.dataset.href = linkHref;
         currentDocument.body.appendChild(div);
         // Calculate the position of the link that is being hovered
-        var linkRect = link.getBoundingClientRect();
+        const linkRect = link.getBoundingClientRect();
         // Initially position the div 20px above the link
-        var triangleDirection = 'top';
-        var divOffsetHeight = div.offsetHeight + 20;
-        var divRectY = linkRect.top - divOffsetHeight;
-        var triangleY = divHeight + 6;
+        let triangleDirection = 'top';
+        const divOffsetHeight = div.offsetHeight + 20;
+        let divRectY = linkRect.top - divOffsetHeight;
+        let triangleY = divHeight + 6;
         // If we're less than half margin from the top, move the div below the link
         if (divRectY < margin / 2) {
             triangleDirection = 'bottom';
@@ -1239,7 +1241,7 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             triangleY = -16;
         }
         // Position it horizontally in relation to the pointer position
-        var divRectX, triangleX;
+        let divRectX, triangleX;
         if (ev.type === 'touchstart') {
             divRectX = ev.touches[0].clientX - divWidth / 2;
             triangleX = ev.touches[0].clientX - divRectX - 20;
@@ -1274,8 +1276,8 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
-            var breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
-            var backgroundColour = dark ? '#222' : '#ebf4fb';
+            const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
+            const backgroundColour = dark ? '#222' : '#ebf4fb';
             div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${divHeight}px;">
                 <div style="background: ${backgroundColour} !important; opacity: 70%; position: absolute; top: 0; right: 0; display: flex; align-items: center; padding: 0;">
                     <img id="popbreakouticon" src="${breakoutIconFile}" />
@@ -1284,10 +1286,10 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
                 <div style="padding-top: 3px">${html}</div>
             </div>`;
             // Now insert the arrow
-            var tooltipStyle = articleWindow.document.getElementById('kiwixtooltipstylesheet');
-            var triangleColour = '#b7ddf2'; // Same as border colour of div
+            const tooltipStyle = articleWindow.document.getElementById('kiwixtooltipstylesheet');
+            const triangleColour = '#b7ddf2'; // Same as border colour of div
             if (tooltipStyle) {
-                var span = document.createElement('span');
+                const span = document.createElement('span');
                 span.style.cssText = `
                     width: 0;
                     height: 0;
@@ -1303,7 +1305,7 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             // Programme the icons
             addEventListenersToPopoverIcons(link, div, currentDocument);
             setTimeout(function () {
-                div.popoverisloading = false; // console.debug('div.popoverisloading', div.popoverisloading);
+                div.popoverisloading = false;
             }, 900);
         }).catch(function (err) {
             console.warn(err);
@@ -1325,22 +1327,22 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
  * @param {Document} doc The doucment on which to operate
  */
 function addEventListenersToPopoverIcons (anchor, popover, doc) {
-    var breakout = function (e) {
+    const breakout = function (e) {
         e.preventDefault();
         e.stopPropagation();
         anchor.newcontainer = true;
         anchor.click();
         closePopover(popover);
     }
-    var closeIcon = doc.getElementById('popcloseicon');
-    var breakoutIcon = doc.getElementById('popbreakouticon');
+    const closeIcon = doc.getElementById('popcloseicon');
+    const breakoutIcon = doc.getElementById('popbreakouticon');
     // Register click event for full support
     closeIcon.addEventListener('mousedown', function () {
         closePopover(popover);
     }, true);
     breakoutIcon.addEventListener('mousedown', breakout, true);
     // Register either pointerdown or touchstart if supported
-    var eventName = window.PointerEvent ? 'pointerdown' : 'touchstart';
+    const eventName = window.PointerEvent ? 'pointerdown' : 'touchstart';
     closeIcon.addEventListener(eventName, function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1355,13 +1357,16 @@ function addEventListenersToPopoverIcons (anchor, popover, doc) {
  * @param {Document} doc The document from which to remove any popovers
  */
 function removeKiwixPopoverDivs (doc) {
-    var divs = doc.getElementsByClassName('kiwixtooltip');
+    const divs = doc.getElementsByClassName('kiwixtooltip');
     setTimeout(function () {
+        // Gather any popover divs (on rare occasions, more than one may be displayed)
         Array.prototype.slice.call(divs).forEach(function (div) {
+            // Do not remove any popover in process of loading
             if (div.popoverisloading) return;
-            var timeoutID;
-            var fadeOutDiv = function () {
+            let timeoutID;
+            const fadeOutDiv = function () {
                 clearTimeout(timeoutID);
+                // Do not close any div which is being hovered
                 if (!div.matches(':hover')) {
                     closePopover(div);
                 } else {
@@ -1373,7 +1378,7 @@ function removeKiwixPopoverDivs (doc) {
     }, 400);
 }
 
-// Directly close any popovers
+// Directly close a popover div
 function closePopover (div) {
     div.style.opacity = '0';
     setTimeout(function () {
