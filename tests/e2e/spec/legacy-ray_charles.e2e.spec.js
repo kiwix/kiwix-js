@@ -290,8 +290,8 @@ function runTests (driver, modes) {
                 let link = await driver.findElement(By.id('mwVw'));
                 await driver.executeScript('arguments[0].focus();', link);
                 await driver.sleep(2000);
-                // Tab to the next link "A Fool for You"
-                await driver.executeScript('var event = new KeyboardEvent("keydown", {bubbles : true, cancelable : true, key : "Tab"}); arguments[0].dispatchEvent(event);', link);
+                // Focus on the next link "A Fool for You" with id="mwWw"
+                await driver.executeScript('document.getElementById("mwWw").focus();');
                 // Wait for the popover to appear
                 await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
                 // Check for the presence of a popover div with class ".kiwixtooltip"
