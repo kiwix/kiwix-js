@@ -2296,6 +2296,8 @@ function articleLoadedSW (iframeArticleContent) {
             // Add event listeners to iframe window to check for links
             iframeWindow.addEventListener('mouseover', handlePopoverEvents, true);
             iframeWindow.addEventListener('focus', handlePopoverEvents, true);
+            // Add event listeners to support touch events
+            iframeWindow.addEventListener('touchstart', handlePopoverEvents, true);
         }
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
@@ -2336,7 +2338,14 @@ function handlePopoverEvents (event) {
             }
             // If a link was hovered or focused, process it
             if (a && a.nodeName === 'A') {
-                // console.debug(`a.${event.type}`, a);
+                // Prevent context menu on this anchor element
+                a.addEventListener('contextmenu', function (e) {
+                    e.preventDefault();
+                }, false);
+                console.debug(`a.${event.type}`, a);
+                if (event.type === 'touchstart') {
+                    a.touched = true; // Used to prevent dismissal of popver on mouseout
+                }
                 // Check if a popover div is currently being hovered
                 const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
                 let divIsHovered = false;
@@ -2349,14 +2358,20 @@ function handlePopoverEvents (event) {
                     const isDarkTheme = /^auto/.test(params.appTheme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : params.appTheme.replace(/_.*$/, '') === 'dark';
                     uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
-                const outHandler = function () {
+                const outHandler = function (e) {
+                    console.debug('outHandler', e.type);
                     setTimeout(function () {
                         a.popoverisloading = false;
-                        uiUtil.removeKiwixPopoverDivs(iframeDoc);
                         a.removeEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+                        if (a.type === 'blur' || !a.touched) {
+                            uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                        }
+                        a.touched = false;
                     }, 250);
                 };
-                a.addEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+                if (event.type !== 'touchstart') {
+                    a.addEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+                }
             }
         }
         window.popoverThrottle = false;
