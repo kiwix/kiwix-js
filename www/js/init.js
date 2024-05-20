@@ -210,6 +210,7 @@ document.getElementById('useLibzim').checked = params.useLibzim;
 document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion;
 document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
 document.getElementById('reopenLastArchiveCheck').checked = params.reopenLastArchive;
+document.getElementById('showPopoverPreviewsCheck').checked = params.showPopoverPreviews;
 // If the File System Access API is supported, unhide the reopenLastArchiveDiv
 if (params.isFileSystemApiSupported) document.getElementById('reopenLastArchiveDiv').style.display = '';
 

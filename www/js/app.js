@@ -598,6 +598,10 @@ document.getElementById('titleSearchRange').addEventListener('change', function 
 document.getElementById('titleSearchRange').addEventListener('input', function (e) {
     titleSearchRangeVal.textContent = e.target.value;
 });
+document.getElementById('showPopoverPreviewsCheck').addEventListener('change', function (e) {
+    params.showPopoverPreviews = e.target.checked;
+    settingsStore.setItem('showPopoverPreviews', params.showPopoverPreviews, Infinity);
+});
 // Add event listeners to the About links in Configuration, so that they jump to the linked sections
 document.querySelectorAll('.aboutLinks').forEach(function (link) {
     link.addEventListener('click', function () {
