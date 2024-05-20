@@ -2280,7 +2280,9 @@ function articleLoadedSW (iframeArticleContent) {
             // Add event listener to iframe window to check for links to external resources
             iframeWindow.onclick = filterClickEvent;
         }
-        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews) {
+        // The popover feature requires as a minimum that the browser supports the css matches function
+        // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
+        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
             const iframeDoc = iframeWindow.document;
             if (!iframeDoc) return;
             // Attach the popover CSS to the current article document
