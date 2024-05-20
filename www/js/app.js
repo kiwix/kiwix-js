@@ -2890,6 +2890,18 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 goToArticle(zimUrl, downloadAttrValue, contentType);
             });
         });
+        // The popover feature requires as a minimum that the browser supports the css matches function
+        // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled)
+        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
+            const iframeWindow = iframeArticleContent.contentWindow
+            const iframeDoc = iframeWindow.document;
+            if (!iframeDoc) return;
+            // Attach the popover CSS to the current article document
+            uiUtil.attachKiwixPopoverCss(iframeDoc);
+            // Add event listeners to iframe window to check for links
+            iframeWindow.addEventListener('mouseover', handleEvent, true);
+            iframeWindow.addEventListener('focus', handleEvent, true);
+        }
     }
 
     function loadImagesJQuery () {
