@@ -289,11 +289,11 @@ function runTests (driver, modes) {
                 // Focus on the link "Hallelujah" with id="mwVw"
                 let link = await driver.findElement(By.id('mwVw'));
                 await driver.executeScript('arguments[0].focus();', link);
-                await driver.sleep(1500);
+                await driver.sleep(2000);
                 // Tab to the next link "A Fool for You"
                 await driver.actions().sendKeys(Key.TAB).perform();
                 // Wait for the popover to appear
-                await driver.sleep(2000); // DEV: Adjust this delay as needed
+                await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
                 // Check for the presence of a popover div with class ".kiwixtooltip"
                 let popover = await driver.findElement(By.css('.kiwixtooltip'));
                 assert.ok(popover, 'Popover div with class ".kiwixtooltip" not found');
