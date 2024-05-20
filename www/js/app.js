@@ -2288,8 +2288,8 @@ function articleLoadedSW (iframeArticleContent) {
             // Attach the popover CSS to the current article document
             uiUtil.attachKiwixPopoverCss(iframeDoc);
             // Add event listeners to iframe window to check for links
-            iframeWindow.addEventListener('mouseover', handleEvent, true);
-            iframeWindow.addEventListener('focus', handleEvent, true);
+            iframeWindow.addEventListener('mouseover', handlePopoverEvents, true);
+            iframeWindow.addEventListener('focus', handlePopoverEvents, true);
         }
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
@@ -2315,7 +2315,7 @@ function articleLoadedSW (iframeArticleContent) {
  * Event handler for attaching preview popovers
  * @param {Event} event The event produced by the mouseover or focus action
  */
-function handleEvent (event) {
+function handlePopoverEvents (event) {
     // Check if the hovered or focused element or its parent is a link (but throttle its activation)
     if (window.popoverThrottle) return;
     window.popoverThrottle = true;
@@ -2899,8 +2899,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // Attach the popover CSS to the current article document
             uiUtil.attachKiwixPopoverCss(iframeDoc);
             // Add event listeners to iframe window to check for links
-            iframeWindow.addEventListener('mouseover', handleEvent, true);
-            iframeWindow.addEventListener('focus', handleEvent, true);
+            iframeWindow.addEventListener('mouseover', handlePopoverEvents, true);
+            iframeWindow.addEventListener('focus', handlePopoverEvents, true);
         }
     }
 
