@@ -1190,9 +1190,6 @@ function attachKiwixPopoverCss (doc, dark) {
         
         a { 
             -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
         }
         `,
         // The id of the style element for easy manipulation
