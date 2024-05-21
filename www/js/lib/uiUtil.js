@@ -1011,7 +1011,6 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
  * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
  * main image (if any). This function currently only parses Wikimedia articles. It returns an HTML string, formatted
  * for display in a popover
- *
  * @param {String} href The href of the article link from which to extract the lede
  * @param {String} baseUrl The base URL of the currently loaded article
  * @param {Document} articleDocument The DOM of the currently loaded article
@@ -1338,7 +1337,6 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
 
 /**
  * Adds event listeners to the popover's control icons
- *
  * @param {Element} anchor The anchor which launched the popover
  * @param {Element} popover The containing element of the popover (div)
  * @param {Document} doc The doucment on which to operate
@@ -1370,8 +1368,7 @@ function addEventListenersToPopoverIcons (anchor, popover, doc) {
 }
 
 /**
- * Remove any preview popover DIVs
- *
+ * Remove any preview popover DIVs found in the given document
  * @param {Document} doc The document from which to remove any popovers
  */
 function removeKiwixPopoverDivs (doc) {
@@ -1396,7 +1393,10 @@ function removeKiwixPopoverDivs (doc) {
     }, 400);
 }
 
-// Directly close a popover div
+/**
+ * Closes the specified popover div, with fadeout effect, and removes it from the DOM
+ * @param {Element} div The div to close
+ */
 function closePopover (div) {
     div.style.opacity = '0';
     setTimeout(function () {
