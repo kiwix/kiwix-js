@@ -2322,8 +2322,12 @@ function attachPopoverTriggerEvents (win) {
             // Add event listeners to iframe window to check for links
             win.addEventListener('mouseover', handlePopoverEvents, true);
             win.addEventListener('focus', handlePopoverEvents, true);
-            // Add event listeners to support touch events
-            win.addEventListener('touchstart', handlePopoverEvents, true);
+            // Conditionally add event listeners to support touch events with fallback to pointer events
+            if ('ontouchstart' in win) {
+                win.addEventListener('touchstart', handlePopoverEvents, true);
+            } else {
+                win.addEventListener('pointerdown', handlePopoverEvents, true);
+            }
         }
     }
 }
@@ -2350,9 +2354,10 @@ function handlePopoverEvents (event) {
                 // Prevent context menu on this anchor element
                 a.addEventListener('contextmenu', function (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                 }, false);
                 console.debug(`a.${event.type}`, a);
-                if (event.type === 'touchstart') {
+                if (/touchstart|pointerdown/.test(event.type)) {
                     a.touched = true; // Used to prevent dismissal of popver on mouseout
                 }
                 // Check if a popover div is currently being hovered
@@ -2378,7 +2383,7 @@ function handlePopoverEvents (event) {
                         a.touched = false;
                     }, 250);
                 };
-                if (event.type !== 'touchstart') {
+                if (!/touchstart|pointerdown/.test(event.type)) {
                     a.addEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
                 }
             }
