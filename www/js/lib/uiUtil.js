@@ -1031,6 +1031,10 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                     // const articleBody = doc.getElementById('mw-content-text');
                     const articleBody = doc.body;
                     if (articleBody) {
+                        // Establish the balloon's base URL and the absolute path for calculating the ZIM URL of links and images
+                        const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
+                        const docUrl = new URL(articleDocument.location.href);
+                        const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
                         let balloonString = '';
                         // Remove all standalone style elements, because their content is shown by both innerText and textContent
                         const styleElements = Array.from(articleBody.querySelectorAll('style'));
@@ -1050,11 +1054,23 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                                 // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
                                 const plainText = nonEmptyParagraphs[i].innerText;
                                 cumulativeCharCount += plainText.length;
-                                // In Safe mode, we risk breaking the UI if user clicks on an embedded link, so only use innerText
+                                // In ServiceWorker mode, we need to transform the URLs of any links in the paragraph
+                                if (params.contentInjectionMode === 'serviceworker') {
+                                    const links = Array.from(nonEmptyParagraphs[i].querySelectorAll('a'));
+                                    links.forEach(link => {
+                                        const href = link.getAttribute('href');
+                                        if (href && !/^#/.test(href)) {
+                                            const zimURL = deriveZimUrlFromRelativeUrl(href, balloonBaseURL);
+                                            link.href = rootRelativePathPrefix + encodeURI(zimURL);
+                                        }
+                                    });
+                                }
+                                // Get the transformed HTML. Note that in Safe mode, we risk breaking the UI if user clicks on an
+                                // embedded link, so only use innerText in that case
                                 const content = params.contentInjectionMode === 'jquery' ? plainText
                                     : nonEmptyParagraphs[i].innerHTML;
                                 balloonString += '<p>' + content + '</p>';
-                                // console.debug('Cumulatve character count: ' + cumulativeCharCount);
+                                // If we have enough characters to fill the box, break
                                 if (cumulativeCharCount >= 850) break;
                             }
                         }
@@ -1072,11 +1088,9 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                             }
                         }
                         if (firstImage) {
-                            // Calculate absolute URL of image
-                            const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
+                            // Calculate root relative URL of image
                             const imageZimURL = encodeURI(deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
-                            const absolutePath = articleDocument.location.href.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
-                            firstImage.src = absolutePath + imageZimURL;
+                            firstImage.src = rootRelativePathPrefix + imageZimURL;
                             balloonString = firstImage.outerHTML + balloonString;
                         }
                         // console.debug(balloonString);
