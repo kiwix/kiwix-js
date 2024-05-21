@@ -2354,7 +2354,6 @@ function handlePopoverEvents (event) {
     setTimeout(function () {
         let a = event.target;
         const iframeDoc = a.ownerDocument;
-        // console.debug('iframeDoc', iframeDoc);
         if (iframeDoc) {
             const iframeWindow = iframeDoc.defaultView;
             while (a && a !== iframeWindow && a.nodeName !== 'A') {
@@ -2367,9 +2366,9 @@ function handlePopoverEvents (event) {
                     e.preventDefault();
                     e.stopPropagation();
                 }, false);
-                console.debug(`a.${event.type}`, a);
+                // console.debug(`a.${event.type}`, a);
                 if (/touchstart|pointerdown/.test(event.type)) {
-                    a.touched = true; // Used to prevent dismissal of popver on mouseout
+                    a.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
                 }
                 // Check if a popover div is currently being hovered
                 const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
@@ -2384,7 +2383,7 @@ function handlePopoverEvents (event) {
                     uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
-                    console.debug('outHandler', e.type);
+                    // console.debug('outHandler', e.type);
                     setTimeout(function () {
                         a.popoverisloading = false;
                         a.removeEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
