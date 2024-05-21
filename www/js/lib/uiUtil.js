@@ -1187,10 +1187,6 @@ function attachKiwixPopoverCss (doc, dark) {
         body { 
             -webkit-touch-callout: none !important;
         }
-        
-        a { 
-            -webkit-user-select: none !important;
-        }
         `,
         // The id of the style element for easy manipulation
         'kiwixtooltipstylesheet'
@@ -1204,21 +1200,22 @@ function attachKiwixPopoverCss (doc, dark) {
  * @param {String} articleBaseUrl The base URL of the currently loaded document
  * @param {Boolean} dark An optional value to switch colour theme to dark if true
  * @param {ZIMArchive} archive The archive from which the popover information is extracted
+ * @returns {Promise<div>} A Promise for the attached popover div or undefined if the popover is not attached
  */
 function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
     // Do not show popover if the user has initiated an article load (set in filterClickEvent)
-    if (link.articleisloading || link.popoverisloading) return;
+    if (link.articleisloading || link.popoverisloading) return Promise.resolve();
     const linkHref = link.getAttribute('href');
     // Do not show popover if there is no href or with certain landing pages
     if (!linkHref || /^wikivoyage/i.test(archive.file.name) &&
       (appstate.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
       appstate.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
-        return;
+        return Promise.resolve();
     }
     link.popoverisloading = true;
     // Do not display a popover if one is already showing for the current link
     const kiwixPopover = ev.target.ownerDocument.querySelector('.kiwixtooltip');
-    if (kiwixPopover && kiwixPopover.dataset.href === linkHref) return;
+    if (kiwixPopover && kiwixPopover.dataset.href === linkHref) return Promise.resolve();
     // console.debug('Attaching popover...');
     const currentDocument = ev.target.ownerDocument;
     const articleWindow = currentDocument.defaultView;
@@ -1227,7 +1224,7 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
         // Check if the user has moved away from the link or has clicked it, and abort display of popover if so
         if (link.articleisloading || !link.matches(':hover') && currentDocument.activeElement !== link) {
             link.popoverisloading = false;
-            return;
+            return Promise.resolve();
         }
         const div = document.createElement('div');
         div.popoverisloading = true;
@@ -1294,7 +1291,7 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
         div.style.top = divRectY + articleWindow.scrollY + 'px';
         div.style.left = divRectX + 'px';
         div.style.opacity = '1';
-        getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
+        return getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
@@ -1331,6 +1328,8 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             setTimeout(function () {
                 div.popoverisloading = false;
             }, 900);
+            // Finally, return the div DOM element
+            return div;
         }).catch(function (err) {
             console.warn(err);
             // Remove the div
