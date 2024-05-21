@@ -2215,6 +2215,8 @@ function filterClickEvent (event) {
     uiUtil.removeKiwixPopoverDivs(event.target.ownerDocument);
     if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
+        // This prevents any popover from being displayed when the user clicks on a link
+        clickedAnchor.articleisloading = true;
         // Check for Zimit links that would normally be handled by the Replay Worker
         // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
         // however, this misses zimit2 archives where the framework doesn't support wombat.js, so monitor if always processing zimit2 links
@@ -2223,6 +2225,7 @@ function filterClickEvent (event) {
           articleWindow.location.href.replace(/[#?].*$/, '') !== clickedAnchor.href.replace(/[#?].*$/, '') && !clickedAnchor.hash) {
             return handleClickOnReplayLink(event, clickedAnchor);
         }
+        // DEV: The href returned below is the href as written in the HTML, which may be relative
         var href = clickedAnchor.getAttribute('href');
         // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
         // We also do it for ftp even if it's not supported any more by recent browsers...
@@ -2238,7 +2241,7 @@ function filterClickEvent (event) {
             console.debug('filterClickEvent opening new window for PDF or requested new container');
             clickedAnchor.newcontainer = true;
             window.open(clickedAnchor.href, '_blank');
-        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) { // clickedAnchor.href returns the absolute URL, including any namespace
             // Show the spinner if it's a ZIM link, but not an anchor
             if (!~href.indexOf('#')) {
                 var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
@@ -2251,6 +2254,14 @@ function filterClickEvent (event) {
                 uiUtil.showSlidingUIElements();
             }
         }
+        // Reset popup block
+        setTimeout(function () {
+            // Anchor may have been unloaded along with the page by the time this runs
+            // but will still be present if user opened a new tab
+            if (clickedAnchor) {
+                clickedAnchor.articleisloading = false;
+            }
+        }, 1000);
     }
 };
 
