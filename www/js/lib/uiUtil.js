@@ -1180,7 +1180,18 @@ function attachKiwixPopoverCss (doc, dark) {
         
         #popbreakouticon:hover {
             cursor: pointer;
-        }`,
+        }
+        
+        /* Prevent native iOS popover on Safari if option is enabled */
+        
+        body { 
+            -webkit-touch-callout: none !important;
+        }
+        
+        a { 
+            -webkit-user-select: none !important;
+        }
+        `,
         // The id of the style element for easy manipulation
         'kiwixtooltipstylesheet'
     );
