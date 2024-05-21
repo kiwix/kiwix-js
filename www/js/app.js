@@ -2365,6 +2365,13 @@ function handlePopoverEvents (event) {
                 a.addEventListener('contextmenu', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    // Remove any selection of the triggering anchor's text
+                    // DEV: We can't use css user-select: none, as it prevents the link from receiving focus
+                    if (iframeWindow.getSelection) {
+                        iframeWindow.getSelection().removeAllRanges();
+                    } else if (iframeDoc.selection) {
+                        iframeDoc.selection.empty();
+                    }
                 }, false);
                 // console.debug(`a.${event.type}`, a);
                 if (/touchstart|pointerdown/.test(event.type)) {
@@ -2383,7 +2390,7 @@ function handlePopoverEvents (event) {
                     uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
-                    // console.debug('outHandler', e.type);
+                    console.debug('outHandler', e.type);
                     setTimeout(function () {
                         a.popoverisloading = false;
                         a.removeEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
