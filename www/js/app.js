@@ -2286,19 +2286,7 @@ function articleLoadedSW (iframeArticleContent) {
         if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
         // Add event listener to iframe window to check for links to external resources
         iframeWindow.onclick = filterClickEvent;
-        // The popover feature requires as a minimum that the browser supports the css matches function
-        // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
-        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
-            const iframeDoc = iframeWindow.document;
-            if (!iframeDoc) return;
-            // Attach the popover CSS to the current article document
-            uiUtil.attachKiwixPopoverCss(iframeDoc);
-            // Add event listeners to iframe window to check for links
-            iframeWindow.addEventListener('mouseover', handlePopoverEvents, true);
-            iframeWindow.addEventListener('focus', handlePopoverEvents, true);
-            // Add event listeners to support touch events
-            iframeWindow.addEventListener('touchstart', handlePopoverEvents, true);
-        }
+        attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
@@ -2318,6 +2306,27 @@ function articleLoadedSW (iframeArticleContent) {
     }
     params.isLandingPage = false;
 };
+
+/**
+ * Attaches popover trigger events to the given window
+ * @param {Window} win The window to which to attach popover trigger events
+ */
+function attachPopoverTriggerEvents (win) {
+    // The popover feature requires as a minimum that the browser supports the css matches function
+    // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
+    if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
+        const iframeDoc = win.document;
+        if (iframeDoc) {
+            // Attach the popover CSS to the current article document
+            uiUtil.attachKiwixPopoverCss(iframeDoc);
+            // Add event listeners to iframe window to check for links
+            win.addEventListener('mouseover', handlePopoverEvents, true);
+            win.addEventListener('focus', handlePopoverEvents, true);
+            // Add event listeners to support touch events
+            win.addEventListener('touchstart', handlePopoverEvents, true);
+        }
+    }
+}
 
 /**
  * Event handler for attaching preview popovers
@@ -2913,19 +2922,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 goToArticle(zimUrl, downloadAttrValue, contentType);
             });
         });
-        // The popover feature requires as a minimum that the browser supports the css matches function
-        // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled)
-        // DEV: Code below is the Safe mode version of the code given above when the app is in ServiceWorker mode
-        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
-            const iframeWindow = iframeArticleContent.contentWindow
-            const iframeDoc = iframeWindow.document;
-            if (!iframeDoc) return;
-            // Attach the popover CSS to the current article document
-            uiUtil.attachKiwixPopoverCss(iframeDoc);
-            // Add event listeners to iframe window to check for links
-            iframeWindow.addEventListener('mouseover', handlePopoverEvents, true);
-            iframeWindow.addEventListener('focus', handlePopoverEvents, true);
-        }
+        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
     }
 
     function loadImagesJQuery () {
