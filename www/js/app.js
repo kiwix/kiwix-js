@@ -2905,6 +2905,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                // Prevent display of any popovers because we're loading a new article
+                anchor.articleisloading = true;
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
@@ -2935,6 +2937,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, appstate.baseUrl);
                 }
                 goToArticle(zimUrl, downloadAttrValue, contentType);
+                // DEV: There is no need to remove the anchor.articleisloading flag because we do not open new tabs for ZIM URLs in Safe Mode
+                // so the anchor will be erased form the DOM when the new article is loaded
             });
         });
         attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
