@@ -1226,71 +1226,8 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             link.popoverisloading = false;
             return Promise.resolve();
         }
-        const div = document.createElement('div');
-        div.popoverisloading = true;
-        const screenWidth = articleWindow.innerWidth - 40;
-        const screenHeight = document.documentElement.clientHeight;
-        let margin = 40;
-        let divWidth = 512;
-        if (screenWidth <= divWidth) {
-            divWidth = screenWidth;
-            margin = 10;
-        }
-        // Check if we have restricted screen height
-        const divHeight = screenHeight < 512 ? 160 : 256;
-        div.style.width = divWidth + 'px';
-        div.style.height = divHeight + 'px';
-        div.style.display = 'flex';
-        div.style.justifyContent = 'center';
-        div.style.alignItems = 'center';
-        div.className = 'kiwixtooltip';
-        div.innerHTML = '<p>Loading ...</p>';
-        div.dataset.href = linkHref;
-        currentDocument.body.appendChild(div);
-        // Calculate the position of the link that is being hovered
-        const linkRect = link.getBoundingClientRect();
-        // Initially position the div 20px above the link
-        let triangleDirection = 'top';
-        const divOffsetHeight = div.offsetHeight + 20;
-        let divRectY = linkRect.top - divOffsetHeight;
-        let triangleY = divHeight + 6;
-        // If we're less than half margin from the top, move the div below the link
-        if (divRectY < margin / 2) {
-            triangleDirection = 'bottom';
-            divRectY = linkRect.bottom + 20;
-            triangleY = -16;
-        }
-        // Position it horizontally in relation to the pointer position
-        let divRectX, triangleX;
-        if (ev.type === 'touchstart') {
-            divRectX = ev.touches[0].clientX - divWidth / 2;
-            triangleX = ev.touches[0].clientX - divRectX - 20;
-        } else if (ev.type === 'focus') {
-            divRectX = linkRect.left + linkRect.width / 2 - divWidth / 2;
-            triangleX = linkRect.left + linkRect.width / 2 - divRectX - 20;
-        } else {
-            divRectX = ev.clientX - divWidth / 2;
-            triangleX = ev.clientX - divRectX - 20;
-        }
-        // If right edge of div is greater than margin from the right side of window, shift it to margin
-        if (divRectX + divWidth > screenWidth - margin) {
-            triangleX += divRectX;
-            divRectX = screenWidth - divWidth - margin;
-            triangleX -= divRectX;
-        }
-        // If we're less than margin to the left, shift it to margin px from left
-        if (divRectX < margin) {
-            triangleX += divRectX;
-            divRectX = margin;
-            triangleX -= divRectX;
-        }
-        // Adjust triangleX if necessary
-        if (triangleX < 10) triangleX = 10;
-        if (triangleX > divWidth - 10) triangleX = divWidth - 10;
-        // Now set the calculated x and y positions, taking into account the zoom factor
-        div.style.top = divRectY + articleWindow.scrollY + 'px';
-        div.style.left = divRectX + 'px';
-        div.style.opacity = '1';
+        // Create a new Kiwix popover container
+        const div = createNewKiwixPopoverCointainer(articleWindow, link, ev);
         return getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
@@ -1299,30 +1236,13 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             const backgroundColour = '#ebf4fb';
             // DEV: Most style declarations in this div only work properly inline. If added in stylesheet, even with !important, the positioning goes awry
             // (appears to be a timing issue related to the reservation of space given that the div is inserted dynamically).
-            div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${divHeight}px;">
+            div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${div.style.height};">
                 <div style="background: ${backgroundColour} !important; opacity: 70%; position: absolute; top: 0; right: 0; display: flex; align-items: center; padding: 0; z-index: 1;">
                     <img id="popbreakouticon" src="${breakoutIconFile}" />
                     <span id="popcloseicon">X</span>
                 </div>
                 <div style="padding-top: 3px">${html}</div>
             </div>`;
-            // Now insert the arrow
-            const tooltipStyle = articleWindow.document.getElementById('kiwixtooltipstylesheet');
-            const triangleColour = '#b7ddf2'; // Same as border colour of div
-            if (tooltipStyle) {
-                const span = document.createElement('span');
-                span.style.cssText = `
-                    width: 0;
-                    height: 0;
-                    border-${triangleDirection}: 16px solid ${triangleColour};
-                    border-left: 8px solid transparent !important;
-                    border-right: 8px solid transparent !important;
-                    position: absolute;
-                    top: ${triangleY}px;
-                    left: ${triangleX}px;
-                `;
-                div.appendChild(span);
-            }
             // Programme the icons
             addEventListenersToPopoverIcons(link, div, currentDocument);
             setTimeout(function () {
@@ -1339,6 +1259,101 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             link.popoverisloading = false;
         });
     }, 600);
+}
+
+/**
+ * Create a new empty Kiwix popover container and attach it to the current document appropriately sized and positioned
+ * in relation to the given anchor and available screen width and height
+ * @param {Window} win The window of the article DOM
+ * @param {Element} anchor The anchor element that is being actioned
+ * @param {Event} event The event which has fired this popover action
+ */
+function createNewKiwixPopoverCointainer (win, anchor, event) {
+    const div = document.createElement('div');
+    const linkHref = anchor.getAttribute('href');
+    const currentDocument = win.document;
+    div.popoverisloading = true;
+    const screenWidth = win.innerWidth - 40;
+    const screenHeight = document.documentElement.clientHeight;
+    let margin = 40;
+    let divWidth = 512;
+    if (screenWidth <= divWidth) {
+        divWidth = screenWidth;
+        margin = 10;
+    }
+    // Check if we have restricted screen height
+    const divHeight = screenHeight < 512 ? 160 : 256;
+    div.style.width = divWidth + 'px';
+    div.style.height = divHeight + 'px';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'center';
+    div.style.alignItems = 'center';
+    div.className = 'kiwixtooltip';
+    div.innerHTML = '<p>Loading ...</p>';
+    div.dataset.href = linkHref;
+    currentDocument.body.appendChild(div);
+    // Calculate the position of the link that is being hovered
+    const linkRect = anchor.getBoundingClientRect();
+    // Initially position the div 20px above the link
+    let triangleDirection = 'top';
+    const divOffsetHeight = div.offsetHeight + 20;
+    let divRectY = linkRect.top - divOffsetHeight;
+    let triangleY = divHeight + 6;
+    // If we're less than half margin from the top, move the div below the link
+    if (divRectY < margin / 2) {
+        triangleDirection = 'bottom';
+        divRectY = linkRect.bottom + 20;
+        triangleY = -16;
+    }
+    // Position it horizontally in relation to the pointer position
+    let divRectX, triangleX;
+    if (event.type === 'touchstart') {
+        divRectX = event.touches[0].clientX - divWidth / 2;
+        triangleX = event.touches[0].clientX - divRectX - 20;
+    } else if (event.type === 'focus') {
+        divRectX = linkRect.left + linkRect.width / 2 - divWidth / 2;
+        triangleX = linkRect.left + linkRect.width / 2 - divRectX - 20;
+    } else {
+        divRectX = event.clientX - divWidth / 2;
+        triangleX = event.clientX - divRectX - 20;
+    }
+    // If right edge of div is greater than margin from the right side of window, shift it to margin
+    if (divRectX + divWidth > screenWidth - margin) {
+        triangleX += divRectX;
+        divRectX = screenWidth - divWidth - margin;
+        triangleX -= divRectX;
+    }
+    // If we're less than margin to the left, shift it to margin px from left
+    if (divRectX < margin) {
+        triangleX += divRectX;
+        divRectX = margin;
+        triangleX -= divRectX;
+    }
+    // Adjust triangleX if necessary
+    if (triangleX < 10) triangleX = 10;
+    if (triangleX > divWidth - 10) triangleX = divWidth - 10;
+    // Now set the calculated x and y positions, taking into account the zoom factor
+    div.style.top = divRectY + win.scrollY + 'px';
+    div.style.left = divRectX + 'px';
+    div.style.opacity = '1';
+    // Now insert the arrow
+    const tooltipStyle = currentDocument.getElementById('kiwixtooltipstylesheet');
+    const triangleColour = '#b7ddf2'; // Same as border colour of div
+    if (tooltipStyle) {
+        const span = document.createElement('span');
+        span.style.cssText = `
+            width: 0;
+            height: 0;
+            border-${triangleDirection}: 16px solid ${triangleColour};
+            border-left: 8px solid transparent !important;
+            border-right: 8px solid transparent !important;
+            position: absolute;
+            top: ${triangleY}px;
+            left: ${triangleX}px;
+        `;
+        div.appendChild(span);
+    }
+    return div;
 }
 
 /**
