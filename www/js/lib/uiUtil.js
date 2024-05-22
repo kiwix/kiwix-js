@@ -1222,7 +1222,8 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
     removeKiwixPopoverDivs(currentDocument);
     setTimeout(function () {
         // Check if the user has moved away from the link or has clicked it, and abort display of popover if so
-        if (link.articleisloading || !link.matches(':hover') && currentDocument.activeElement !== link) {
+        if (link.articleisloading || !link.matches(':hover') && !link.touched && currentDocument.activeElement !== link) {
+            console.debug('Aborting popover display for ' + linkHref + ' because user has moved away from link or clicked it');
             link.popoverisloading = false;
             return Promise.resolve();
         }

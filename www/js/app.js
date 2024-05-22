@@ -2334,7 +2334,7 @@ function attachPopoverTriggerEvents (win) {
             win.addEventListener('mouseover', handlePopoverEvents, true);
             win.addEventListener('focus', handlePopoverEvents, true);
             // Conditionally add event listeners to support touch events with fallback to pointer events
-            if ('ontouchstart' in win) {
+            if (window.navigator.maxTouchPoints > 0) {
                 win.addEventListener('touchstart', handlePopoverEvents, true);
             } else {
                 win.addEventListener('pointerdown', handlePopoverEvents, true);
@@ -2361,12 +2361,12 @@ function handlePopoverEvents (event) {
             }
             // If a link was hovered or focused, process it
             if (a && a.nodeName === 'A') {
+                console.debug(event.type, event.target, a);
                 // Prevent context menu on this anchor element
                 a.addEventListener('contextmenu', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                 }, false);
-                // console.debug(`a.${event.type}`, a);
                 if (/touchstart|pointerdown/.test(event.type)) {
                     a.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
                 }
@@ -2378,8 +2378,11 @@ function handlePopoverEvents (event) {
                 });
                 // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
                 if (!divIsHovered) {
+                    // Prevent text selection while popover is open
+                    a.style.userSelect = 'none';
                     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
                     const isDarkTheme = /^auto/.test(params.appTheme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : params.appTheme.replace(/_.*$/, '') === 'dark';
+                    // Attach the popover corresponding to the hovered or focused link
                     uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
@@ -2391,6 +2394,7 @@ function handlePopoverEvents (event) {
                             uiUtil.removeKiwixPopoverDivs(iframeDoc);
                         }
                         a.touched = false;
+                        a.style.userSelect = 'auto';
                     }, 250);
                 };
                 if (!/touchstart|pointerdown/.test(event.type)) {
