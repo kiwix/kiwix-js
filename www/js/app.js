@@ -2384,10 +2384,10 @@ function handlePopoverEvents (event) {
                 });
                 // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
                 if (!divIsHovered) {
-                    // Prevent text selection while popover is open
+                    // Prevent text selection while popover is open in modern browsers
                     a.style.userSelect = 'none';
-                    // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
-                    const isDarkTheme = /^auto/.test(params.appTheme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : params.appTheme.replace(/_.*$/, '') === 'dark';
+                    // Resolve the true app theme
+                    const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
                     // Attach the popover corresponding to the hovered or focused link
                     uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
@@ -2401,6 +2401,7 @@ function handlePopoverEvents (event) {
                         }
                         a.style.webkitUserSelect = 'auto';
                         a.style.msUserSelect = 'auto';
+                        a.style.userSelect = 'auto';
                         a.removeEventListener(e.type, outHandler);
                         a.removeEventListener('contextmenu', suppressContextMenuHandler, true);
                     }, 250);

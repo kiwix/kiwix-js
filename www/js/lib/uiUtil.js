@@ -852,9 +852,8 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
  */
 function applyAppTheme (theme) {
-    var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
-    var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
+    var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
     var contentTheme = theme.replace(/^[^_]*/, '');
     var htmlEl = document.querySelector('html');
@@ -924,6 +923,11 @@ function applyAppTheme (theme) {
         !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
         showReturnLink();
     }
+}
+
+// Determines whether the user has requested a dark theme based on preference and browser settings
+function isDarkTheme (theme) {
+    return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
 }
 
 // Displays the return link and handles click event. Called by applyAppTheme()
@@ -1227,7 +1231,9 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
             return Promise.resolve();
         }
         // Create a new Kiwix popover container
-        const div = createNewKiwixPopoverCointainer(articleWindow, link, ev);
+        const divWithArrow = createNewKiwixPopoverCointainer(articleWindow, link, ev);
+        const div = divWithArrow.div;
+        const span = divWithArrow.span;
         return getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
@@ -1243,6 +1249,8 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
                 </div>
                 <div style="padding-top: 3px">${html}</div>
             </div>`;
+            // Now it is populated, we can attach the arrow to the div
+            div.appendChild(span);
             // Programme the icons
             addEventListenersToPopoverIcons(link, div, currentDocument);
             setTimeout(function () {
@@ -1263,10 +1271,12 @@ function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
 
 /**
  * Create a new empty Kiwix popover container and attach it to the current document appropriately sized and positioned
- * in relation to the given anchor and available screen width and height
+ * in relation to the given anchor and available screen width and height. Also returns the arrow span element which can be
+ * attached to the div after the div is populated with content.
  * @param {Window} win The window of the article DOM
  * @param {Element} anchor The anchor element that is being actioned
  * @param {Event} event The event which has fired this popover action
+ * @returns {Object} An object containing the popover div and the arrow span elements
  */
 function createNewKiwixPopoverCointainer (win, anchor, event) {
     const div = document.createElement('div');
@@ -1337,23 +1347,19 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     div.style.left = divRectX + 'px';
     div.style.opacity = '1';
     // Now insert the arrow
-    const tooltipStyle = currentDocument.getElementById('kiwixtooltipstylesheet');
     const triangleColour = '#b7ddf2'; // Same as border colour of div
-    if (tooltipStyle) {
-        const span = document.createElement('span');
-        span.style.cssText = `
-            width: 0;
-            height: 0;
-            border-${triangleDirection}: 16px solid ${triangleColour};
-            border-left: 8px solid transparent !important;
-            border-right: 8px solid transparent !important;
-            position: absolute;
-            top: ${triangleY}px;
-            left: ${triangleX}px;
-        `;
-        div.appendChild(span);
-    }
-    return div;
+    const span = document.createElement('span');
+    span.style.cssText = `
+        width: 0;
+        height: 0;
+        border-${triangleDirection}: 16px solid ${triangleColour};
+        border-left: 8px solid transparent !important;
+        border-right: 8px solid transparent !important;
+        position: absolute;
+        top: ${triangleY}px;
+        left: ${triangleX}px;
+    `;
+    return { div: div, span: span };
 }
 
 /**
@@ -1499,6 +1505,7 @@ export default {
     removeAnimationClasses: removeAnimationClasses,
     tabTransitionToSection: tabTransitionToSection,
     applyAppTheme: applyAppTheme,
+    isDarkTheme: isDarkTheme,
     attachKiwixPopoverCss: attachKiwixPopoverCss,
     attachKiwixPopoverDiv: attachKiwixPopoverDiv,
     removeKiwixPopoverDivs: removeKiwixPopoverDivs,
