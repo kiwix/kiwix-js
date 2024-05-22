@@ -2392,21 +2392,30 @@ function handlePopoverEvents (event) {
                     uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
-                    // console.debug('outHandler', e.type);
+                    console.debug('outHandler', e.type);
                     setTimeout(function () {
                         a.popoverisloading = false;
-                        a.removeEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
-                        a.removeEventListener('contextmenu', suppressContextMenuHandler, true);
-                        if (a.type === 'blur' || !a.touched) {
+                        if (/blur/.test(e.type) || !a.touched) {
                             uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                            a.touched = false;
                         }
-                        a.touched = false;
                         a.style.webkitUserSelect = 'auto';
                         a.style.msUserSelect = 'auto';
+                        a.removeEventListener(e.type, outHandler);
+                        a.removeEventListener('contextmenu', suppressContextMenuHandler, true);
                     }, 250);
                 };
-                if (!/touchstart|pointerdown/.test(event.type)) {
-                    a.addEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+                if (/mouseover/.test(event.type)) {
+                    a.addEventListener('mouseleave', outHandler);
+                }
+                if (/pointerdown/.test(event.type)) {
+                    a.addEventListener('pointerup', outHandler);
+                }
+                if (/touchstart/.test(event.type)) {
+                    a.addEventListener('touchend', outHandler);
+                }
+                if (event.type === 'focus') {
+                    a.addEventListener('blur', outHandler);
                 }
             }
         }
