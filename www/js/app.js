@@ -2370,6 +2370,11 @@ function handlePopoverEvents (event) {
                 if (/touchstart|pointerdown/.test(event.type)) {
                     a.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
                 }
+                if (a.style.userSelect === undefined) {
+                    // This prevents selection of the text in a touched link in Safari for iOS and Edge Legacy / UWP
+                    a.style.webkitUserSelect = 'none';
+                    a.style.msUserSelect = 'none';
+                }
                 // Check if a popover div is currently being hovered
                 const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
                 let divIsHovered = false;
@@ -2394,7 +2399,8 @@ function handlePopoverEvents (event) {
                             uiUtil.removeKiwixPopoverDivs(iframeDoc);
                         }
                         a.touched = false;
-                        a.style.userSelect = 'auto';
+                        a.style.webkitUserSelect = 'auto';
+                        a.style.msUserSelect = 'auto';
                     }, 250);
                 };
                 if (!/touchstart|pointerdown/.test(event.type)) {

@@ -1183,7 +1183,6 @@ function attachKiwixPopoverCss (doc, dark) {
         }
         
         /* Prevent native iOS popover on Safari if option is enabled */
-        
         body { 
             -webkit-touch-callout: none !important;
         }
