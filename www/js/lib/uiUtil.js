@@ -1205,7 +1205,7 @@ function attachKiwixPopoverCss (doc, dark) {
  * @param {ZIMArchive} archive The archive from which the popover information is extracted
  * @returns {Promise<div>} A Promise for the attached popover div or undefined if the popover is not attached
  */
-function attachKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
+function populateKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
     // Do not show popover if the user has initiated an article load (set in filterClickEvent)
     if (link.articleisloading || link.popoverisloading) return Promise.resolve();
     const linkHref = link.getAttribute('href');
@@ -1507,7 +1507,7 @@ export default {
     applyAppTheme: applyAppTheme,
     isDarkTheme: isDarkTheme,
     attachKiwixPopoverCss: attachKiwixPopoverCss,
-    attachKiwixPopoverDiv: attachKiwixPopoverDiv,
+    populateKiwixPopoverDiv: populateKiwixPopoverDiv,
     removeKiwixPopoverDivs: removeKiwixPopoverDivs,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,

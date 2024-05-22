@@ -2388,8 +2388,8 @@ function handlePopoverEvents (event) {
                     a.style.userSelect = 'none';
                     // Resolve the true app theme
                     const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
-                    // Attach the popover corresponding to the hovered or focused link
-                    uiUtil.attachKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
+                    // Get and populate the popover corresponding to the hovered or focused link
+                    uiUtil.populateKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
                     console.debug('outHandler', e.type);
