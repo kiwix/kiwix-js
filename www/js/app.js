@@ -2362,11 +2362,12 @@ function handlePopoverEvents (event) {
             // If a link was hovered or focused, process it
             if (a && a.nodeName === 'A') {
                 console.debug(event.type, event.target, a);
-                // Prevent context menu on this anchor element
-                a.addEventListener('contextmenu', function (e) {
+                const suppressContextMenuHandler = function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                }, false);
+                };
+                // Prevent context menu on this anchor element
+                a.addEventListener('contextmenu', suppressContextMenuHandler, true);
                 if (/touchstart|pointerdown/.test(event.type)) {
                     a.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
                 }
@@ -2395,6 +2396,7 @@ function handlePopoverEvents (event) {
                     setTimeout(function () {
                         a.popoverisloading = false;
                         a.removeEventListener(event.type === 'mouseover' ? 'mouseout' : 'blur', outHandler);
+                        a.removeEventListener('contextmenu', suppressContextMenuHandler, true);
                         if (a.type === 'blur' || !a.touched) {
                             uiUtil.removeKiwixPopoverDivs(iframeDoc);
                         }
