@@ -1132,7 +1132,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 
 /**
  * A function to attach the tooltip CSS for popovers (NB this does not attach the box itself, only the CSS)
- * @param {Document} doc The document to which to attach the blloon.css styelesheet
+ * @param {Document} doc The document to which to attach the popover styleesheet
  * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
 function attachKiwixPopoverCss (doc, dark) {
