@@ -2361,7 +2361,7 @@ function handlePopoverEvents (event) {
             }
             // If a link was hovered or focused, process it
             if (a && a.nodeName === 'A') {
-                console.debug(event.type, event.target, a);
+                // console.debug(event.type, event.target, a);
                 const suppressContextMenuHandler = function (e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -2392,7 +2392,7 @@ function handlePopoverEvents (event) {
                     uiUtil.populateKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
-                    console.debug('outHandler', e.type);
+                    // console.debug('outHandler', e.type);
                     setTimeout(function () {
                         a.popoverisloading = false;
                         if (/blur/.test(e.type) || !a.touched) {

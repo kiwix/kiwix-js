@@ -1025,16 +1025,18 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     const uriComponent = removeUrlParameters(href);
     const zimURL = deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
+    // Do a binary search in the URL index to get the directory entry for the requested article
     return archive.getDirEntryByPath(zimURL).then(function (dirEntry) {
         const readArticle = function (dirEntry) {
+            // Wrap legacy callback-based code in a Promise
             return new Promise((resolve, reject) => {
+                // As we're reading Wikipedia articles, we can assume that they are UTF-8 encoded HTML data
                 archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(htmlArticle, 'text/html');
-                    // const articleBody = doc.getElementById('mw-content-text');
                     const articleBody = doc.body;
                     if (articleBody) {
-                        // Establish the balloon's base URL and the absolute path for calculating the ZIM URL of links and images
+                        // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
                         const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
                         const docUrl = new URL(articleDocument.location.href);
                         const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
@@ -1077,6 +1079,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                                 if (cumulativeCharCount >= 850) break;
                             }
                         }
+                        // If we have a lede, we can now add an image to the balloon
                         const images = articleBody.querySelectorAll('img');
                         let firstImage = null;
                         if (images && params.contentInjectionMode === 'serviceworker') {
@@ -1096,7 +1099,6 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                             firstImage.src = rootRelativePathPrefix + imageZimURL;
                             balloonString = firstImage.outerHTML + balloonString;
                         }
-                        // console.debug(balloonString);
                         if (!balloonString) {
                             reject(new Error('No article lede or image'));
                         } else {
@@ -1111,6 +1113,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         if (!dirEntry) {
             return Promise.reject(new Error('No directory entry found'));
         } else if (dirEntry.redirect) {
+            // If the dirEntry is a redirect, we need to resolve it before reading the article
             return new Promise((resolve, reject) => {
                 archive.resolveRedirect(dirEntry, function (reDirEntry) {
                     resolve(readArticle(reDirEntry));
@@ -1119,6 +1122,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                 return Promise.reject(error);
             });
         } else {
+            // Directory entry was found, so now read the article data
             return Promise.resolve(readArticle(dirEntry));
         }
     }).catch(function (err) {
@@ -1222,11 +1226,12 @@ function populateKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
     // console.debug('Attaching popover...');
     const currentDocument = ev.target.ownerDocument;
     const articleWindow = currentDocument.defaultView;
+    // Remove any existing popover(s) that the user may not have closed before creating a new one
     removeKiwixPopoverDivs(currentDocument);
     setTimeout(function () {
         // Check if the user has moved away from the link or has clicked it, and abort display of popover if so
         if (link.articleisloading || !link.matches(':hover') && !link.touched && currentDocument.activeElement !== link) {
-            console.debug('Aborting popover display for ' + linkHref + ' because user has moved away from link or clicked it');
+            // console.debug('Aborting popover display for ' + linkHref + ' because user has moved away from link or clicked it');
             link.popoverisloading = false;
             return Promise.resolve();
         }
@@ -1234,6 +1239,7 @@ function populateKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
         const divWithArrow = createNewKiwixPopoverCointainer(articleWindow, link, ev);
         const div = divWithArrow.div;
         const span = divWithArrow.span;
+        // Get the article's 'lede' (first main paragraph or two) and the first main image (if any)
         return getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
@@ -1301,6 +1307,7 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     div.className = 'kiwixtooltip';
     div.innerHTML = '<p>Loading ...</p>';
     div.dataset.href = linkHref;
+    // DEV: We need to insert the div into the target document before we can obtain its computed dimensions accurately
     currentDocument.body.appendChild(div);
     // Calculate the position of the link that is being hovered
     const linkRect = anchor.getBoundingClientRect();
@@ -1342,11 +1349,12 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     // Adjust triangleX if necessary
     if (triangleX < 10) triangleX = 10;
     if (triangleX > divWidth - 10) triangleX = divWidth - 10;
-    // Now set the calculated x and y positions, taking into account the zoom factor
+    // Now set the calculated x and y positions
     div.style.top = divRectY + win.scrollY + 'px';
     div.style.left = divRectX + 'px';
     div.style.opacity = '1';
-    // Now insert the arrow
+    // Now create the arrow span element. Note that we cannot attach it yet as we need to populate the div first
+    // and doing so will overwrite the innerHTML of the div
     const triangleColour = '#b7ddf2'; // Same as border colour of div
     const span = document.createElement('span');
     span.style.cssText = `
@@ -1379,12 +1387,12 @@ function addEventListenersToPopoverIcons (anchor, popover, doc) {
     }
     const closeIcon = doc.getElementById('popcloseicon');
     const breakoutIcon = doc.getElementById('popbreakouticon');
-    // Register click event for full support
+    // Register mousedown event (should work in all contexts)
     closeIcon.addEventListener('mousedown', function () {
         closePopover(popover);
     }, true);
     breakoutIcon.addEventListener('mousedown', breakout, true);
-    // Register either pointerdown or touchstart if supported
+    // Additionally register either pointerdown or touchstart if supported for faster response
     const eventName = window.PointerEvent ? 'pointerdown' : 'touchstart';
     closeIcon.addEventListener(eventName, function (e) {
         e.preventDefault();
