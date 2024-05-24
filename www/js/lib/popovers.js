@@ -242,6 +242,8 @@ function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
     const articleWindow = currentDocument.defaultView;
     // Remove any existing popover(s) that the user may not have closed before creating a new one
     removeKiwixPopoverDivs(currentDocument);
+    // Timeout below ensures that popovers are not loaded if a user is simply moving their mouse around on a page
+    // without hovering. It provides a 600ms pause before app begins the process of binary search and decompression
     setTimeout(function () {
         // Check if the user has moved away from the link or has clicked it, and abort display of popover if so
         if (link.articleisloading || !link.matches(':hover') && !link.touched && currentDocument.activeElement !== link) {
