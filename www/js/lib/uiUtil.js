@@ -1240,7 +1240,7 @@ function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
         const div = divWithArrow.div;
         const span = divWithArrow.span;
         // Get the article's 'lede' (first main paragraph or two) and the first main image (if any)
-        return getArticleLede(linkHref, appstate.articleBaseUrl, currentDocument, archive).then(function (html) {
+        return getArticleLede(linkHref, appstate.baseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
