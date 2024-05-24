@@ -2350,14 +2350,17 @@ function attachPopoverTriggerEvents (win) {
     }
 }
 
+// Throttle the popover event handler to prevent multiple activations with mouse movement
+let popoverThrottle = false;
+
 /**
  * Event handler for attaching preview popovers
  * @param {Event} event The event produced by the mouseover or focus action
  */
 function handlePopoverEvents (event) {
     // Check if the hovered or focused element or its parent is a link (but throttle its activation)
-    if (window.popoverThrottle) return;
-    window.popoverThrottle = true;
+    if (popoverThrottle) return;
+    popoverThrottle = true;
     setTimeout(function () {
         let a = event.target;
         const iframeDoc = a.ownerDocument;
@@ -2427,7 +2430,7 @@ function handlePopoverEvents (event) {
                 }
             }
         }
-        window.popoverThrottle = false;
+        popoverThrottle = false;
     }, 10);
 };
 
