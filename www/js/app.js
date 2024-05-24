@@ -2067,7 +2067,7 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
 }
 
 /**
- * Check whether the given URL from given dirEntry equals the appstate.expectedArticleURLToBeDisplayed
+ * Check whether the given URL from given dirEntry matches the expected article
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function isDirEntryExpectedToBeDisplayed (dirEntry) {
