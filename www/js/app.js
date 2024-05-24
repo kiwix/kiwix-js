@@ -2338,7 +2338,7 @@ function attachPopoverTriggerEvents (win) {
     }
     // Attach the popover CSS to the current article document
     uiUtil.attachKiwixPopoverCss(iframeDoc);
-    // Add event listeners to iframe window to check for links
+    // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
     // Conditionally add event listeners to support touch events with fallback to pointer events
