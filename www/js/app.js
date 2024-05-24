@@ -2339,13 +2339,13 @@ function attachPopoverTriggerEvents (win) {
     // Attach the popover CSS to the current article document
     uiUtil.attachKiwixPopoverCss(iframeDoc);
     // Add event listeners to iframe window to check for links
-    win.addEventListener('mouseover', handlePopoverEvents, true);
-    win.addEventListener('focus', handlePopoverEvents, true);
+    win.addEventListener('mouseover', evokePopoverEvents, true);
+    win.addEventListener('focus', evokePopoverEvents, true);
     // Conditionally add event listeners to support touch events with fallback to pointer events
     if (window.navigator.maxTouchPoints > 0) {
-        win.addEventListener('touchstart', handlePopoverEvents, true);
+        win.addEventListener('touchstart', evokePopoverEvents, true);
     } else {
-        win.addEventListener('pointerdown', handlePopoverEvents, true);
+        win.addEventListener('pointerdown', evokePopoverEvents, true);
     }
 }
 
@@ -2353,85 +2353,91 @@ function attachPopoverTriggerEvents (win) {
 let popoverThrottle = false;
 
 /**
- * Event handler for attaching preview popovers
- * @param {Event} event The event produced by the mouseover or focus action
+ * Conditionally evokes popover events subject to a throttle
+ * @param {Event} event The event produced by the calling action
  */
-function handlePopoverEvents (event) {
-    // Check if the hovered or focused element or its parent is a link (but throttle its activation)
+function evokePopoverEvents (event) {
+    // Check if the hovered or focused element or its parent is a link
     if (popoverThrottle) return;
     popoverThrottle = true;
     setTimeout(function () {
-        let a = event.target;
-        const iframeDoc = a.ownerDocument;
-        if (iframeDoc) {
-            const iframeWindow = iframeDoc.defaultView;
-            while (a && a !== iframeWindow && a.nodeName !== 'A') {
-                a = a.parentNode;
-            }
-            // If a link was hovered or focused, process it
-            if (a && a.nodeName === 'A') {
-                // console.debug(event.type, event.target, a);
-                const suppressContextMenuHandler = function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                };
-                // Prevent context menu on this anchor element
-                a.addEventListener('contextmenu', suppressContextMenuHandler, true);
-                if (/touchstart|pointerdown/.test(event.type)) {
-                    a.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
-                }
-                if (a.style.userSelect === undefined) {
-                    // This prevents selection of the text in a touched link in Safari for iOS and Edge Legacy / UWP
-                    a.style.webkitUserSelect = 'none';
-                    a.style.msUserSelect = 'none';
-                }
-                // Check if a popover div is currently being hovered
-                const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
-                let divIsHovered = false;
-                Array.prototype.slice.call(divs).forEach(function (div) {
-                    if (div.matches(':hover')) divIsHovered = true;
-                });
-                // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
-                if (!divIsHovered) {
-                    // Prevent text selection while popover is open in modern browsers
-                    a.style.userSelect = 'none';
-                    // Resolve the true app theme
-                    const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
-                    // Get and populate the popover corresponding to the hovered or focused link
-                    uiUtil.populateKiwixPopoverDiv(event, a, appstate, isDarkTheme, selectedArchive);
-                }
-                const outHandler = function (e) {
-                    // console.debug('outHandler', e.type);
-                    setTimeout(function () {
-                        a.popoverisloading = false;
-                        if (/blur/.test(e.type) || !a.touched) {
-                            uiUtil.removeKiwixPopoverDivs(iframeDoc);
-                            a.touched = false;
-                        }
-                        a.style.webkitUserSelect = 'auto';
-                        a.style.msUserSelect = 'auto';
-                        a.style.userSelect = 'auto';
-                        a.removeEventListener(e.type, outHandler);
-                        a.removeEventListener('contextmenu', suppressContextMenuHandler, true);
-                    }, 250);
-                };
-                if (/mouseover/.test(event.type)) {
-                    a.addEventListener('mouseleave', outHandler);
-                }
-                if (/pointerdown/.test(event.type)) {
-                    a.addEventListener('pointerup', outHandler);
-                }
-                if (/touchstart/.test(event.type)) {
-                    a.addEventListener('touchend', outHandler);
-                }
-                if (event.type === 'focus') {
-                    a.addEventListener('blur', outHandler);
-                }
-            }
-        }
+        handlePopoverEvents(event);
         popoverThrottle = false;
     }, 10);
 };
+
+/**
+ * Event handler for attaching preview popovers
+ * @param {Event} event The event produced by the mouseover or focus action
+ */
+function handlePopoverEvents (ev) {
+    let anchor = ev.target;
+    const iframeDoc = anchor.ownerDocument;
+    if (!iframeDoc) return;
+    const iframeWindow = iframeDoc.defaultView;
+    while (anchor && anchor !== iframeWindow && anchor.nodeName !== 'A') {
+        anchor = anchor.parentNode;
+    }
+    // If we're not hovering a link, then we can exit
+    if (!anchor || anchor.nodeName !== 'A') return;
+    // console.debug(event.type, event.target, a);
+    const suppressContextMenuHandler = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+    // Prevent context menu on this anchor element
+    anchor.addEventListener('contextmenu', suppressContextMenuHandler, true);
+    if (/touchstart|pointerdown/.test(ev.type)) {
+        anchor.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
+    }
+    if (anchor.style.userSelect === undefined) {
+        // This prevents selection of the text in a touched link in Safari for iOS and Edge Legacy / UWP
+        anchor.style.webkitUserSelect = 'none';
+        anchor.style.msUserSelect = 'none';
+    }
+    // Check if a popover div is currently being hovered
+    const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
+    let divIsHovered = false;
+    Array.prototype.slice.call(divs).forEach(function (div) {
+        if (div.matches(':hover')) divIsHovered = true;
+    });
+    // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
+    if (!divIsHovered) {
+        // Prevent text selection while popover is open in modern browsers
+        anchor.style.userSelect = 'none';
+        // Resolve the true app theme
+        const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
+        // Get and populate the popover corresponding to the hovered or focused link
+        uiUtil.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
+    }
+    const outHandler = function (e) {
+        // console.debug('outHandler', e.type);
+        setTimeout(function () {
+            anchor.popoverisloading = false;
+            if (/blur/.test(e.type) || !anchor.touched) {
+                uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                anchor.touched = false;
+            }
+            anchor.style.webkitUserSelect = 'auto';
+            anchor.style.msUserSelect = 'auto';
+            anchor.style.userSelect = 'auto';
+            anchor.removeEventListener(e.type, outHandler);
+            anchor.removeEventListener('contextmenu', suppressContextMenuHandler, true);
+        }, 250);
+    };
+    if (/mouseover/.test(ev.type)) {
+        anchor.addEventListener('mouseleave', outHandler);
+    }
+    if (/pointerdown/.test(ev.type)) {
+        anchor.addEventListener('pointerup', outHandler);
+    }
+    if (/touchstart/.test(ev.type)) {
+        anchor.addEventListener('touchend', outHandler);
+    }
+    if (ev.type === 'focus') {
+        anchor.addEventListener('blur', outHandler);
+    }
+}
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
