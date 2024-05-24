@@ -2421,6 +2421,7 @@ function handlePopoverEvents (ev) {
             anchor.removeEventListener('contextmenu', suppressContextMenuHandler, true);
         }, 250);
     };
+    // Clean up when user stops hovering, lifts pointer, stops touching, or unfocuses (blurs) the link
     if (/mouseover/.test(ev.type)) {
         anchor.addEventListener('mouseleave', outHandler);
     }
