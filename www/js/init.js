@@ -76,14 +76,6 @@
 var params = {};
 
 /**
- * A global object for storing app state
- *
- * @type Object
- */
-// eslint-disable-next-line no-unused-vars
-var appstate = {};
-
-/**
  * Set parameters from the Settings Store, together with any defaults
  * Note that the params global object is declared in init.js so that it is available to modules
  * WARNING: Only change these parameters if you know what you are doing

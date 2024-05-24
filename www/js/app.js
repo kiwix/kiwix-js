@@ -24,7 +24,7 @@
 'use strict';
 
 // The global parameters object is defined in init.js
-/* global params, appstate, webpMachine */
+/* global params, webpMachine */
 
 // import styles from '../css/app.css' assert { type: "css" };
 // import bootstrap from '../css/bootstrap.min.css' assert { type: "css" };
@@ -48,6 +48,13 @@ if (params.abort) {
  */
 // DEV: Ensure this matches the name defined in service-worker.js (a check is provided in refreshCacheStatus() below)
 const ASSETS_CACHE = 'kiwixjs-assetsCache';
+
+/**
+ * A global object for storing app state
+ *
+ * @type Object
+ */
+var appstate = {};
 
 /**
  * @type ZIMArchive | null
@@ -2060,7 +2067,7 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
 }
 
 /**
- * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
+ * Check whether the given URL from given dirEntry equals the appstate.expectedArticleURLToBeDisplayed
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function isDirEntryExpectedToBeDisplayed (dirEntry) {
@@ -2087,7 +2094,7 @@ function readArticle (dirEntry) {
 
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
-    // Only update for expectedArticleURLToBeDisplayed.
+    // Only update for appstate.expectedArticleURLToBeDisplayed.
     appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
@@ -2389,7 +2396,7 @@ function handlePopoverEvents (event) {
                     // Resolve the true app theme
                     const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
                     // Get and populate the popover corresponding to the hovered or focused link
-                    uiUtil.populateKiwixPopoverDiv(event, a, appstate.baseUrl, isDarkTheme, selectedArchive);
+                    uiUtil.populateKiwixPopoverDiv(event, a, appstate, isDarkTheme, selectedArchive);
                 }
                 const outHandler = function (e) {
                     // console.debug('outHandler', e.type);

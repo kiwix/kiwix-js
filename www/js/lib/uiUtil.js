@@ -23,7 +23,7 @@
 'use strict';
 
 /* eslint-disable indent */
-/* global webpMachine, webpHero, params, appstate */
+/* global webpMachine, webpHero, params */
 
 import util from './util.js';
 import settingsStore from './settingsStore.js';
@@ -1204,12 +1204,12 @@ function attachKiwixPopoverCss (doc, dark) {
  * Attaches a popover div for the given link to the given document's DOM
  * @param {Event} ev The event which has fired this popover action
  * @param {Element} link The link element that is being actioned
- * @param {String} articleBaseUrl The base URL of the currently loaded document
+ * @param {Object} appstate The globlal object defined in app.js that holds the current state of the app
  * @param {Boolean} dark An optional value to switch colour theme to dark if true
  * @param {ZIMArchive} archive The archive from which the popover information is extracted
  * @returns {Promise<div>} A Promise for the attached popover div or undefined if the popover is not attached
  */
-function populateKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
+function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
     // Do not show popover if the user has initiated an article load (set in filterClickEvent)
     if (link.articleisloading || link.popoverisloading) return Promise.resolve();
     const linkHref = link.getAttribute('href');
@@ -1240,7 +1240,7 @@ function populateKiwixPopoverDiv (ev, link, articleBaseUrl, dark, archive) {
         const div = divWithArrow.div;
         const span = divWithArrow.span;
         // Get the article's 'lede' (first main paragraph or two) and the first main image (if any)
-        return getArticleLede(linkHref, articleBaseUrl, currentDocument, archive).then(function (html) {
+        return getArticleLede(linkHref, appstate.articleBaseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
