@@ -1843,6 +1843,7 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
+    // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
