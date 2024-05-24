@@ -2396,11 +2396,8 @@ function handlePopoverEvents (ev) {
         anchor.style.msUserSelect = 'none';
     }
     // Check if a popover div is currently being hovered
-    const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
-    let divIsHovered = false;
-    Array.from(divs).forEach(function (div) {
-        if (div.matches(':hover')) divIsHovered = true;
-    });
+    const divArray = Array.from(iframeDoc.getElementsByClassName('kiwixtooltip'));
+    const divIsHovered = divArray.some(div => div.matches(':hover'));
     // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
     if (!divIsHovered) {
         // Prevent text selection while popover is open in modern browsers
