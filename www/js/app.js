@@ -31,6 +31,7 @@
 import '../../node_modules/@fortawesome/fontawesome-free/js/all.js';
 import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
+import popovers from './lib/popovers.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
@@ -2220,7 +2221,7 @@ function filterClickEvent (event) {
         return;
     }
     // Remove any Kiwix Popovers that may be hanging around
-    uiUtil.removeKiwixPopoverDivs(event.target.ownerDocument);
+    popovers.removeKiwixPopoverDivs(event.target.ownerDocument);
     if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
         // This prevents any popover from being displayed when the user clicks on a link
@@ -2338,7 +2339,7 @@ function attachPopoverTriggerEvents (win) {
         return;
     }
     // Attach the popover CSS to the current article document
-    uiUtil.attachKiwixPopoverCss(iframeDoc);
+    popovers.attachKiwixPopoverCss(iframeDoc);
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
@@ -2406,13 +2407,13 @@ function handlePopoverEvents (ev) {
         // Resolve the true app theme
         const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
         // Get and populate the popover corresponding to the hovered or focused link
-        uiUtil.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
+        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
     }
     const outHandler = function (e) {
         setTimeout(function () {
             anchor.popoverisloading = false;
             if (/blur/.test(e.type) || !anchor.touched) {
-                uiUtil.removeKiwixPopoverDivs(iframeDoc);
+                popovers.removeKiwixPopoverDivs(iframeDoc);
                 anchor.touched = false;
             }
             anchor.style.webkitUserSelect = 'auto';
