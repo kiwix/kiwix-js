@@ -2068,7 +2068,7 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
 }
 
 /**
- * Check whether the given URL from given dirEntry equals the appstate.expectedArticleURLToBeDisplayed
+ * Check whether the given URL from given dirEntry matches the expected article
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function isDirEntryExpectedToBeDisplayed (dirEntry) {
@@ -2303,7 +2303,7 @@ function articleLoadedSW (iframeArticleContent) {
     if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
-        // Add event listener to iframe window to check for links to external resources
+        // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
@@ -2339,7 +2339,7 @@ function attachPopoverTriggerEvents (win) {
     }
     // Attach the popover CSS to the current article document
     uiUtil.attachKiwixPopoverCss(iframeDoc);
-    // Add event listeners to iframe window to check for links
+    // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
     // Conditionally add event listeners to support touch events with fallback to pointer events
@@ -2350,7 +2350,7 @@ function attachPopoverTriggerEvents (win) {
     }
 }
 
-// Throttle the popover event handler to prevent multiple activations with mouse movement
+// Throttle for the popover event handler to prevent multiple activations with mouse movement
 let popoverThrottle = false;
 
 /**
@@ -2422,6 +2422,7 @@ function handlePopoverEvents (ev) {
             anchor.removeEventListener('contextmenu', suppressContextMenuHandler, true);
         }, 250);
     };
+    // Clean up when user stops hovering, lifts pointer, stops touching, or unfocuses (blurs) the link
     if (/mouseover/.test(ev.type)) {
         anchor.addEventListener('mouseleave', outHandler);
     }
