@@ -2349,7 +2349,7 @@ function attachPopoverTriggerEvents (win) {
     }
 }
 
-// Throttle the popover event handler to prevent multiple activations with mouse movement
+// Throttle for the popover event handler to prevent multiple activations with mouse movement
 let popoverThrottle = false;
 
 /**
