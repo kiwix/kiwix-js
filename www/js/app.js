@@ -2302,7 +2302,7 @@ function articleLoadedSW (iframeArticleContent) {
     if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
-        // Add event listener to iframe window to check for links to external resources
+        // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
