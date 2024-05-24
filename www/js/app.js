@@ -2398,7 +2398,7 @@ function handlePopoverEvents (ev) {
     // Check if a popover div is currently being hovered
     const divs = iframeDoc.getElementsByClassName('kiwixtooltip');
     let divIsHovered = false;
-    Array.prototype.slice.call(divs).forEach(function (div) {
+    Array.from(divs).forEach(function (div) {
         if (div.matches(':hover')) divIsHovered = true;
     });
     // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
@@ -2411,7 +2411,6 @@ function handlePopoverEvents (ev) {
         uiUtil.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
     }
     const outHandler = function (e) {
-        // console.debug('outHandler', e.type);
         setTimeout(function () {
             anchor.popoverisloading = false;
             if (/blur/.test(e.type) || !anchor.touched) {
