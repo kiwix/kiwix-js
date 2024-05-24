@@ -2330,23 +2330,22 @@ function articleLoadedSW (iframeArticleContent) {
  * @param {Window} win The window to which to attach popover trigger events
  */
 function attachPopoverTriggerEvents (win) {
+    const iframeDoc = win.document;
     // The popover feature requires as a minimum that the browser supports the css matches function
     // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
-    if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && 'matches' in Element.prototype) {
-        const iframeDoc = win.document;
-        if (iframeDoc) {
-            // Attach the popover CSS to the current article document
-            uiUtil.attachKiwixPopoverCss(iframeDoc);
-            // Add event listeners to iframe window to check for links
-            win.addEventListener('mouseover', handlePopoverEvents, true);
-            win.addEventListener('focus', handlePopoverEvents, true);
-            // Conditionally add event listeners to support touch events with fallback to pointer events
-            if (window.navigator.maxTouchPoints > 0) {
-                win.addEventListener('touchstart', handlePopoverEvents, true);
-            } else {
-                win.addEventListener('pointerdown', handlePopoverEvents, true);
-            }
-        }
+    if (!iframeDoc || !appstate.wikimediaZimLoaded || !params.showPopoverPreviews || !('matches' in Element.prototype)) {
+        return;
+    }
+    // Attach the popover CSS to the current article document
+    uiUtil.attachKiwixPopoverCss(iframeDoc);
+    // Add event listeners to iframe window to check for links
+    win.addEventListener('mouseover', handlePopoverEvents, true);
+    win.addEventListener('focus', handlePopoverEvents, true);
+    // Conditionally add event listeners to support touch events with fallback to pointer events
+    if (window.navigator.maxTouchPoints > 0) {
+        win.addEventListener('touchstart', handlePopoverEvents, true);
+    } else {
+        win.addEventListener('pointerdown', handlePopoverEvents, true);
     }
 }
 
