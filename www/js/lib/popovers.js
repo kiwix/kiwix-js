@@ -240,19 +240,19 @@ function attachKiwixPopoverCss (doc, dark) {
  * Attaches a popover div for the given link to the given document's DOM
  * @param {Event} ev The event which has fired this popover action
  * @param {Element} link The link element that is being actioned
- * @param {Object} appstate The globlal object defined in app.js that holds the current state of the app
+ * @param {Object} state The globlal object defined in app.js that holds the current state of the app
  * @param {Boolean} dark An optional value to switch colour theme to dark if true
  * @param {ZIMArchive} archive The archive from which the popover information is extracted
  * @returns {Promise<div>} A Promise for the attached popover div or undefined if the popover is not attached
  */
-function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
+function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
     // Do not show popover if the user has initiated an article load (set in filterClickEvent)
     if (link.articleisloading || link.popoverisloading) return Promise.resolve();
     const linkHref = link.getAttribute('href');
     // Do not show popover if there is no href or with certain landing pages
     if (!linkHref || /^wikivoyage/i.test(archive.file.name) &&
-      (appstate.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
-      appstate.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
+      (state.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
+      state.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
         return Promise.resolve();
     }
     link.popoverisloading = true;
@@ -279,12 +279,12 @@ function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
         const div = divWithArrow.div;
         const span = divWithArrow.span;
         // Get the article's 'lede' (first main paragraph or two) and the first main image (if any)
-        getArticleLede(linkHref, appstate.baseUrl, currentDocument, archive).then(function (html) {
+        getArticleLede(linkHref, state.baseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
             const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
-            const backgroundColour = '#ebf4fb';
+            const backgroundColour = dark && !/invert/i.test(params.appTheme) ? 'black' : '#ebf4fb';
             // DEV: Most style declarations in this div only work properly inline. If added in stylesheet, even with !important, the positioning goes awry
             // (appears to be a timing issue related to the reservation of space given that the div is inserted dynamically).
             div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${div.style.height};">
