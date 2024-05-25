@@ -175,6 +175,7 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
 function attachKiwixPopoverCss (doc, dark) {
     const colour = dark ? 'darkgray' : 'black';
     const backgroundColour = dark ? '#111' : '#ebf4fb';
+    const borderColour = dark ? 'darkslategray' : 'skyblue';
     const cssLink = document.createElement('link');
     doc.head.appendChild(cssLink);
     // DEV: Firefox OS blocks loading stylesheet files into iframe DOM content even if it is same origin, so we are forced to insert a style element instead
@@ -186,7 +187,7 @@ function attachKiwixPopoverCss (doc, dark) {
             padding: 0 5px 5px;
             color: ${colour};
             background: ${backgroundColour};
-            border: 0.1em solid #b7ddf2;
+            border: 0.1em solid ${borderColour};
             /* round the corners */
             border-radius: 0.5em;
             /* handle overflow */
@@ -275,7 +276,7 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
             return;
         }
         // Create a new Kiwix popover container
-        const divWithArrow = createNewKiwixPopoverCointainer(articleWindow, link, ev);
+        const divWithArrow = createNewKiwixPopoverCointainer(articleWindow, link, ev, dark);
         const div = divWithArrow.div;
         const span = divWithArrow.span;
         // Get the article's 'lede' (first main paragraph or two) and the first main image (if any)
@@ -319,9 +320,10 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
  * @param {Window} win The window of the article DOM
  * @param {Element} anchor The anchor element that is being actioned
  * @param {Event} event The event which has fired this popover action
+ * @param {Boolean} dark An optional value to switch colour theme to dark if true
  * @returns {Object} An object containing the popover div and the arrow span elements
  */
-function createNewKiwixPopoverCointainer (win, anchor, event) {
+function createNewKiwixPopoverCointainer (win, anchor, event, dark) {
     const div = document.createElement('div');
     const linkHref = anchor.getAttribute('href');
     const currentDocument = win.document;
@@ -392,7 +394,7 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     div.style.opacity = '1';
     // Now create the arrow span element. Note that we cannot attach it yet as we need to populate the div first
     // and doing so will overwrite the innerHTML of the div
-    const triangleColour = '#b7ddf2'; // Same as border colour of div
+    const triangleColour = dark && !/invert/i.test(params.appTheme) ? 'darkslategray' : 'skyblue'; // Same as border colour of div
     const span = document.createElement('span');
     span.style.cssText = `
         width: 0;
