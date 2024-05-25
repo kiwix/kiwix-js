@@ -40,107 +40,106 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     const uriComponent = uiUtil.removeUrlParameters(href);
     const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
-    // Do a binary search in the URL index to get the directory entry for the requested article
-    return archive.getDirEntryByPath(zimURL).then(function (dirEntry) {
-        const readArticle = function (dirEntry) {
-            // Wrap legacy callback-based code in a Promise
-            return new Promise((resolve, reject) => {
-                // As we're reading Wikipedia articles, we can assume that they are UTF-8 encoded HTML data
-                archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(htmlArticle, 'text/html');
-                    const articleBody = doc.body;
-                    if (articleBody) {
-                        // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-                        const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
-                        const docUrl = new URL(articleDocument.location.href);
-                        const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
-                        let balloonString = '';
-                        // Remove all standalone style elements, because their content is shown by both innerText and textContent
-                        const styleElements = Array.from(articleBody.querySelectorAll('style'));
-                        styleElements.forEach(style => {
-                            style.parentNode.removeChild(style);
-                        });
-                        const paragraphs = Array.from(articleBody.querySelectorAll('p'));
-                        // Filter out empty paragraphs or those with less than 50 characters
-                        const nonEmptyParagraphs = paragraphs.filter(para => {
-                            const text = para.innerText.trim();
-                            return !/^\s*$/.test(text) && text.length >= 50;
-                        });
-                        if (nonEmptyParagraphs.length > 0) {
-                            let cumulativeCharCount = 0;
-                            // Add enough paras to complete the word count
-                            for (let i = 0; i < nonEmptyParagraphs.length; i++) {
-                                // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
-                                const plainText = nonEmptyParagraphs[i].innerText;
-                                cumulativeCharCount += plainText.length;
-                                // In ServiceWorker mode, we need to transform the URLs of any links in the paragraph
-                                if (params.contentInjectionMode === 'serviceworker') {
-                                    const links = Array.from(nonEmptyParagraphs[i].querySelectorAll('a'));
-                                    links.forEach(link => {
-                                        const href = link.getAttribute('href');
-                                        if (href && !/^#/.test(href)) {
-                                            const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(href, balloonBaseURL);
-                                            link.href = rootRelativePathPrefix + encodeURI(zimURL);
-                                        }
-                                    });
-                                }
-                                // Get the transformed HTML. Note that in Safe mode, we risk breaking the UI if user clicks on an
-                                // embedded link, so only use innerText in that case
-                                const content = params.contentInjectionMode === 'jquery' ? plainText
-                                    : nonEmptyParagraphs[i].innerHTML;
-                                balloonString += '<p>' + content + '</p>';
-                                // If we have enough characters to fill the box, break
-                                if (cumulativeCharCount >= 850) break;
+    const readArticle = function (dirEntry) {
+        // Wrap legacy callback-based code in a Promise
+        return new Promise((resolve, reject) => {
+            // As we're reading Wikipedia articles, we can assume that they are UTF-8 encoded HTML data
+            archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlArticle, 'text/html');
+                const articleBody = doc.body;
+                if (articleBody) {
+                    // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
+                    const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
+                    const docUrl = new URL(articleDocument.location.href);
+                    const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+                    let balloonString = '';
+                    // Remove all standalone style elements, because their content is shown by both innerText and textContent
+                    const styleElements = Array.from(articleBody.querySelectorAll('style'));
+                    styleElements.forEach(style => {
+                        style.parentNode.removeChild(style);
+                    });
+                    const paragraphs = Array.from(articleBody.querySelectorAll('p'));
+                    // Filter out empty paragraphs or those with less than 50 characters
+                    const nonEmptyParagraphs = paragraphs.filter(para => {
+                        const text = para.innerText.trim();
+                        return !/^\s*$/.test(text) && text.length >= 50;
+                    });
+                    if (nonEmptyParagraphs.length > 0) {
+                        let cumulativeCharCount = 0;
+                        // Add enough paras to complete the word count
+                        for (let i = 0; i < nonEmptyParagraphs.length; i++) {
+                            // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
+                            const plainText = nonEmptyParagraphs[i].innerText;
+                            cumulativeCharCount += plainText.length;
+                            // In ServiceWorker mode, we need to transform the URLs of any links in the paragraph
+                            if (params.contentInjectionMode === 'serviceworker') {
+                                const links = Array.from(nonEmptyParagraphs[i].querySelectorAll('a'));
+                                links.forEach(link => {
+                                    const href = link.getAttribute('href');
+                                    if (href && !/^#/.test(href)) {
+                                        const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(href, balloonBaseURL);
+                                        link.href = rootRelativePathPrefix + encodeURI(zimURL);
+                                    }
+                                });
                             }
+                            // Get the transformed HTML. Note that in Safe mode, we risk breaking the UI if user clicks on an
+                            // embedded link, so only use innerText in that case
+                            const content = params.contentInjectionMode === 'jquery' ? plainText
+                                : nonEmptyParagraphs[i].innerHTML;
+                            balloonString += '<p>' + content + '</p>';
+                            // If we have enough characters to fill the box, break
+                            if (cumulativeCharCount >= 850) break;
                         }
-                        // If we have a lede, we can now add an image to the balloon
-                        const images = articleBody.querySelectorAll('img');
-                        let firstImage = null;
-                        if (images && params.contentInjectionMode === 'serviceworker') {
-                            // Iterate over images until we find one with a width greater than 50 pixels
-                            // (this filters out small icons)
-                            const imageArray = Array.from(images);
-                            for (let j = 0; j < imageArray.length; j++) {
-                                if (imageArray[j] && imageArray[j].width > 50) {
-                                    firstImage = imageArray[j];
-                                    break;
-                                }
-                            }
-                        }
-                        if (firstImage) {
-                            // Calculate root relative URL of image
-                            const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
-                            firstImage.src = rootRelativePathPrefix + imageZimURL;
-                            balloonString = firstImage.outerHTML + balloonString;
-                        }
-                        if (!balloonString) {
-                            reject(new Error('No article lede or image'));
-                        } else {
-                            resolve(balloonString);
-                        }
-                    } else {
-                        reject(new Error('No article body found'));
                     }
-                });
+                    // If we have a lede, we can now add an image to the balloon
+                    const images = articleBody.querySelectorAll('img');
+                    let firstImage = null;
+                    if (images && params.contentInjectionMode === 'serviceworker') {
+                        // Iterate over images until we find one with a width greater than 50 pixels
+                        // (this filters out small icons)
+                        const imageArray = Array.from(images);
+                        for (let j = 0; j < imageArray.length; j++) {
+                            if (imageArray[j] && imageArray[j].width > 50) {
+                                firstImage = imageArray[j];
+                                break;
+                            }
+                        }
+                    }
+                    if (firstImage) {
+                        // Calculate root relative URL of image
+                        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
+                        firstImage.src = rootRelativePathPrefix + imageZimURL;
+                        balloonString = firstImage.outerHTML + balloonString;
+                    }
+                    if (!balloonString) {
+                        reject(new Error('No article lede or image'));
+                    } else {
+                        resolve(balloonString);
+                    }
+                } else {
+                    reject(new Error('No article body found'));
+                }
             });
-        }
-        if (!dirEntry) {
-            return Promise.reject(new Error('No directory entry found'));
-        } else if (dirEntry.redirect) {
-            // If the dirEntry is a redirect, we need to resolve it before reading the article
-            return new Promise((resolve, reject) => {
+        });
+    };
+    const processDirEntry = function (dirEntry) {
+        return new Promise((resolve, reject) => {
+            if (!dirEntry) reject(new Error('No directory entry found'));
+            if (dirEntry.redirect) {
+                // If the dirEntry is a redirect, we need to resolve it before reading the article
                 archive.resolveRedirect(dirEntry, function (reDirEntry) {
+                    if (!reDirEntry) reject(new Error('Could not resolve redirect'));
                     resolve(readArticle(reDirEntry));
                 });
-            }).catch(error => {
-                return Promise.reject(error);
-            });
-        } else {
-            // Directory entry was found, so now read the article data
-            return Promise.resolve(readArticle(dirEntry));
-        }
-    }).catch(function (err) {
+            } else {
+                // Directory entry was found, so now read the article data
+                resolve(readArticle(dirEntry));
+            }
+        });
+    };
+    // Do a binary search in the URL index to get the directory entry for the requested article
+    return archive.getDirEntryByPath(zimURL).then(processDirEntry).catch(function (err) {
         throw new Error('Could not get Directory Entry for ' + zimURL, err);
     });
 }
