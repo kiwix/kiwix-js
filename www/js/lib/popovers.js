@@ -258,6 +258,7 @@ function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
     link.popoverisloading = true;
     // Do not display a popover if one is already showing for the current link
     const kiwixPopover = ev.target.ownerDocument.querySelector('.kiwixtooltip');
+    // DEV: popoverIsLoading will get reset in app.js after user deselects link
     if (kiwixPopover && kiwixPopover.dataset.href === linkHref) return Promise.resolve();
     // console.debug('Attaching popover...');
     const currentDocument = ev.target.ownerDocument;
@@ -269,16 +270,16 @@ function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
     setTimeout(function () {
         // Check if the user has moved away from the link or has clicked it, and abort display of popover if so
         if (link.articleisloading || !link.matches(':hover') && !link.touched && currentDocument.activeElement !== link) {
-            // console.debug('Aborting popover display for ' + linkHref + ' because user has moved away from link or clicked it');
+            // Aborting popover display because user has moved away from link or clicked it
             link.popoverisloading = false;
-            return Promise.resolve();
+            return;
         }
         // Create a new Kiwix popover container
         const divWithArrow = createNewKiwixPopoverCointainer(articleWindow, link, ev);
         const div = divWithArrow.div;
         const span = divWithArrow.span;
         // Get the article's 'lede' (first main paragraph or two) and the first main image (if any)
-        return getArticleLede(linkHref, appstate.baseUrl, currentDocument, archive).then(function (html) {
+        getArticleLede(linkHref, appstate.baseUrl, currentDocument, archive).then(function (html) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
@@ -300,8 +301,6 @@ function populateKiwixPopoverDiv (ev, link, appstate, dark, archive) {
             setTimeout(function () {
                 div.popoverisloading = false;
             }, 900);
-            // Finally, return the div DOM element
-            return div;
         }).catch(function (err) {
             console.warn(err);
             // Remove the div
@@ -436,6 +435,8 @@ function addEventListenersToPopoverIcons (anchor, popover, doc) {
  */
 function removeKiwixPopoverDivs (doc) {
     const divs = doc.getElementsByClassName('kiwixtooltip');
+    // Timeout is set to allow for a delay before removing popovers - so user can hover the popover itself to prevent it from closing,
+    // or so that links and buttons in the popover can be clicked
     setTimeout(function () {
         // Gather any popover divs (on rare occasions, more than one may be displayed)
         Array.prototype.slice.call(divs).forEach(function (div) {
@@ -462,6 +463,7 @@ function removeKiwixPopoverDivs (doc) {
  */
 function closePopover (div) {
     div.style.opacity = '0';
+    // Timeout allows the animation to complete before removing the div
     setTimeout(function () {
         if (div && div.parentElement) {
             div.parentElement.removeChild(div);
