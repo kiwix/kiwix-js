@@ -53,61 +53,19 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                     const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
                     const docUrl = new URL(articleDocument.location.href);
                     const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+                    // Clean up the lede content
+                    const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
+                    // Concatenate paragraphs to fill the balloon
                     let balloonString = '';
-                    // Remove all standalone style elements, because their content is shown by both innerText and textContent
-                    removeAllStyleElements(articleBody);
-                    const paragraphs = Array.from(articleBody.querySelectorAll('p'));
-                    // Filter out empty paragraphs or those with less than 50 characters
-                    const nonEmptyParagraphs = paragraphs.filter(para => {
-                        const text = para.innerText.trim();
-                        return !/^\s*$/.test(text) && text.length >= 50;
-                    });
                     if (nonEmptyParagraphs.length > 0) {
-                        let cumulativeCharCount = 0;
-                        // Add enough paras to complete the word count
-                        for (let i = 0; i < nonEmptyParagraphs.length; i++) {
-                            // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
-                            const plainText = nonEmptyParagraphs[i].innerText;
-                            cumulativeCharCount += plainText.length;
-                            // In ServiceWorker mode, we need to transform the URLs of any links in the paragraph
-                            if (params.contentInjectionMode === 'serviceworker') {
-                                const links = Array.from(nonEmptyParagraphs[i].querySelectorAll('a'));
-                                links.forEach(link => {
-                                    const href = link.getAttribute('href');
-                                    if (href && !/^#/.test(href)) {
-                                        const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(href, balloonBaseURL);
-                                        link.href = rootRelativePathPrefix + encodeURI(zimURL);
-                                    }
-                                });
-                            }
-                            // Get the transformed HTML. Note that in Safe mode, we risk breaking the UI if user clicks on an
-                            // embedded link, so only use innerText in that case
-                            const content = params.contentInjectionMode === 'jquery' ? plainText
-                                : nonEmptyParagraphs[i].innerHTML;
-                            balloonString += '<p>' + content + '</p>';
-                            // If we have enough characters to fill the box, break
-                            if (cumulativeCharCount >= 850) break;
-                        }
+                        balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
                     }
-                    // If we have a lede, we can now add an image to the balloon
-                    const images = articleBody.querySelectorAll('img');
-                    let firstImage = null;
-                    if (images && params.contentInjectionMode === 'serviceworker') {
-                        // Iterate over images until we find one with a width greater than 50 pixels
-                        // (this filters out small icons)
-                        const imageArray = Array.from(images);
-                        for (let j = 0; j < imageArray.length; j++) {
-                            if (imageArray[j] && imageArray[j].width > 50) {
-                                firstImage = imageArray[j];
-                                break;
-                            }
+                    // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
+                    if (balloonString && params.contentInjectionMode === 'serviceworker') {
+                        const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
+                        if (imageHTML) {
+                            balloonString = imageHTML + balloonString;
                         }
-                    }
-                    if (firstImage) {
-                        // Calculate root relative URL of image
-                        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), balloonBaseURL));
-                        firstImage.src = rootRelativePathPrefix + imageZimURL;
-                        balloonString = firstImage.outerHTML + balloonString;
                     }
                     if (!balloonString) {
                         reject(new Error('No article lede or image'));
@@ -139,12 +97,74 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     });
 };
 
-// Remove all standalone style elements from the given DOM node
-function removeAllStyleElements (node) {
+// Helper function to clean up the lede content
+function cleanUpLedeContent (node) {
+    // Remove all standalone style elements from the given DOM node, because their content is shown by innerText and textContent
     const styleElements = Array.from(node.querySelectorAll('style'));
     styleElements.forEach(style => {
         style.parentNode.removeChild(style);
     });
+    const paragraphs = Array.from(node.querySelectorAll('p'));
+    // Filter out empty paragraphs or those with less than 50 characters
+    const parasWithContent = paragraphs.filter(para => {
+        const text = para.innerText.trim();
+        return !/^\s*$/.test(text) && text.length >= 50;
+    });
+    return parasWithContent;
+}
+
+// Helper function to concatenate paragraphs to fill the balloon
+function fillBalloonString (paras, baseURL, pathPrefix) {
+    let cumulativeCharCount = 0;
+    let concatenatedText = '';
+    // Add enough paras to complete the word count
+    for (let i = 0; i < paras.length; i++) {
+        // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
+        const plainText = paras[i].innerText;
+        cumulativeCharCount += plainText.length;
+        // In ServiceWorker mode, we need to transform the URLs of any links in the paragraph
+        if (params.contentInjectionMode === 'serviceworker') {
+            const links = Array.from(paras[i].querySelectorAll('a'));
+            links.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && !/^#/.test(href)) {
+                    const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(href, baseURL);
+                    link.href = pathPrefix + encodeURI(zimURL);
+                }
+            });
+        }
+        // Get the transformed HTML. Note that in Safe mode, we risk breaking the UI if user clicks on an
+        // embedded link, so only use innerText in that case
+        const content = params.contentInjectionMode === 'jquery' ? plainText
+            : paras[i].innerHTML;
+        concatenatedText += '<p>' + content + '</p>';
+        // If we have enough characters to fill the box, break
+        if (cumulativeCharCount >= 850) break;
+    }
+    return concatenatedText;
+}
+
+// Helper function to get the first main image from the given node
+function getImageHTMLFromNode (node, baseURL, pathPrefix) {
+    const images = node.querySelectorAll('img');
+    let firstImage = null;
+    if (images) {
+        // Iterate over images until we find one with a width greater than 50 pixels
+        // (this filters out small icons)
+        const imageArray = Array.from(images);
+        for (let j = 0; j < imageArray.length; j++) {
+            if (imageArray[j] && imageArray[j].width > 50) {
+                firstImage = imageArray[j];
+                break;
+            }
+        }
+    }
+    if (firstImage) {
+        // Calculate root relative URL of image
+        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), baseURL));
+        firstImage.src = pathPrefix + imageZimURL;
+        return firstImage.outerHTML;
+    }
 }
 
 /**
