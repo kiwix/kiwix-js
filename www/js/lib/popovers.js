@@ -40,7 +40,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     const uriComponent = uiUtil.removeUrlParameters(href);
     const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
-    const readArticle = function (dirEntry) {
+    const promiseForArticle = function (dirEntry) {
         // Wrap legacy callback-based code in a Promise
         return new Promise((resolve, reject) => {
             // As we're reading Wikipedia articles, we can assume that they are UTF-8 encoded HTML data
@@ -124,25 +124,23 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         });
     };
     const processDirEntry = function (dirEntry) {
-        return new Promise((resolve, reject) => {
-            if (!dirEntry) reject(new Error('No directory entry found'));
-            if (dirEntry.redirect) {
-                // If the dirEntry is a redirect, we need to resolve it before reading the article
+        if (!dirEntry) throw new Error('No directory entry found');
+        if (dirEntry.redirect) {
+            return new Promise((resolve, reject) => {
                 archive.resolveRedirect(dirEntry, function (reDirEntry) {
                     if (!reDirEntry) reject(new Error('Could not resolve redirect'));
-                    resolve(readArticle(reDirEntry));
+                    resolve(promiseForArticle(reDirEntry));
                 });
-            } else {
-                // Directory entry was found, so now read the article data
-                resolve(readArticle(dirEntry));
-            }
-        });
+            });
+        } else {
+            return promiseForArticle(dirEntry);
+        }
     };
     // Do a binary search in the URL index to get the directory entry for the requested article
     return archive.getDirEntryByPath(zimURL).then(processDirEntry).catch(function (err) {
         throw new Error('Could not get Directory Entry for ' + zimURL, err);
     });
-}
+};
 
 /**
  * A function to attach the tooltip CSS for popovers (NB this does not attach the box itself, only the CSS)
