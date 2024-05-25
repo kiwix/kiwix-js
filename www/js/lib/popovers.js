@@ -55,10 +55,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                     const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
                     let balloonString = '';
                     // Remove all standalone style elements, because their content is shown by both innerText and textContent
-                    const styleElements = Array.from(articleBody.querySelectorAll('style'));
-                    styleElements.forEach(style => {
-                        style.parentNode.removeChild(style);
-                    });
+                    removeAllStyleElements(articleBody);
                     const paragraphs = Array.from(articleBody.querySelectorAll('p'));
                     // Filter out empty paragraphs or those with less than 50 characters
                     const nonEmptyParagraphs = paragraphs.filter(para => {
@@ -141,6 +138,14 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         throw new Error('Could not get Directory Entry for ' + zimURL, err);
     });
 };
+
+// Remove all standalone style elements from the given DOM node
+function removeAllStyleElements (node) {
+    const styleElements = Array.from(node.querySelectorAll('style'));
+    styleElements.forEach(style => {
+        style.parentNode.removeChild(style);
+    });
+}
 
 /**
  * A function to attach the tooltip CSS for popovers (NB this does not attach the box itself, only the CSS)
