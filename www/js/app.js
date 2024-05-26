@@ -3061,6 +3061,67 @@ function pushBrowserHistoryState (title, titleSearch) {
     window.history.pushState(stateObj, stateLabel, urlParameters);
 }
 
+// Setup table of contents and display the list when the dropup button is clicked
+var dropup = document.getElementById('dropup');
+dropup.setAttribute('tabindex', '0');
+var ToCList = document.getElementById('ToCList');
+dropup.addEventListener('click', function () {
+    if (ToCList.style.display !== 'none') {
+        ToCList.style.display = 'none';
+    } else {
+        setupTableOfContents();
+        ToCList.style.display = 'block';
+        dropup.style.fontSize = '14px';
+    }
+});
+
+dropup.addEventListener('blur', function () {
+    setTimeout(() => {
+        if (ToCList.style.display === 'block') ToCList.style.display = 'none';
+    }, 200);
+});
+
+// Inject table of contents list into dropup element and scroll selection into view
+function setupTableOfContents () {
+    var iframe = document.getElementById('articleContent');
+    var innerDoc = iframe.contentDocument;
+    var tableOfContents = new uiUtil.TOC(innerDoc);
+    var headings = tableOfContents.getHeadingObjects();
+
+    var dropupHtml = '';
+    params.relativeFontSize = 100;
+    headings.forEach(function (heading) {
+        if (/^h1$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + params.relativeFontSize + '%;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h2$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + ~~(params.relativeFontSize * 0.9) + '%;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h3$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + ~~(params.relativeFontSize * 0.8) + '%;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h4$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + ~~(params.relativeFontSize * 0.7) + '%;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        }
+        // Skip smaller headings (if there are any) to avoid making list too long
+    });
+    var ToCList = document.getElementById('ToCList');
+    ToCList.style.maxHeight = ~~(window.innerHeight * 0.75) + 'px';
+    ToCList.style.marginLeft = '-5% !important';
+    ToCList.innerHTML = dropupHtml;
+    Array.prototype.slice.call(ToCList.getElementsByTagName('a')).forEach(function (listElement) {
+        listElement.addEventListener('click', function () {
+            var sectionEle = innerDoc.getElementById(this.dataset.headingId);
+            // Scroll to element
+            sectionEle.scrollIntoView();
+            // Scrolling up then down ensures that the toolbars show according to user settings
+            iframe.contentWindow.scrollBy(0, -5);
+            setTimeout(function () {
+                iframe.contentWindow.scrollBy(0, 5);
+                iframe.contentWindow.focus();
+            }, 150);
+            ToCList.style.display = 'none';
+        });
+    });
+}
+
 /**
  * Extracts the content of the given article pathname, or a downloadable file, from the ZIM
  *
