@@ -80,19 +80,20 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
         // Further metadata are added in the background below, and can be accessed later
         return Promise.all([
             that.addMetadataToZIMFile('Creator'),
+            that.addMetadataToZIMFile('Publisher'),
+            that.addMetadataToZIMFile('Scraper'),
+            that.addMetadataToZIMFile('Name'),
             that.addMetadataToZIMFile('Language')
         ]).then(function () {
             console.debug('ZIMArchive ready, metadata will be added in the background');
             // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
             // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the illustration
-            // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArdhive.getMetadata() function when needed
+            // metadata as icons for the loaded ZIM [kiwix-js #886], you should simply use the ZIMArchive.getMetadata() function when needed
             setTimeout(function () {
                 Promise.all([
                     that.addMetadataToZIMFile('Counter'),
                     that.addMetadataToZIMFile('Date'),
                     that.addMetadataToZIMFile('Description'),
-                    that.addMetadataToZIMFile('Name'),
-                    that.addMetadataToZIMFile('Publisher'),
                     that.addMetadataToZIMFile('Source'),
                     that.addMetadataToZIMFile('Title')
                 ]).then(function () {

@@ -64,6 +64,10 @@
     padding-left: 1px !important;
 }
 
+.dragging-over * {
+    pointer-events: none;
+}
+
 .form-control {
     margin-top: 2px;
 }
@@ -258,6 +262,23 @@ iframe._invert, iframe._mwInvert {
     -webkit-animation-duration: 0.1s;
     animation-name: animatetop;
     animation-duration: 0.1s;
+}
+
+#modal-archive-metadata-container {
+    border: solid 1px lightgrey;
+    padding: 10px;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.archive-metadata {
+    margin: 0;
+    padding: 0;
+}
+
+#modal-archive-metadata-warning {
+    font-style: italic;
+    font-weight: bold;
 }
 
 .container {

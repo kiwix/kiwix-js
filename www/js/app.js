@@ -101,7 +101,6 @@ setContentInjectionMode(params.contentInjectionMode);
 
 // Define frequently used UI elements
 const globalDropZone = document.getElementById('search-article');
-const configDropZone = document.getElementById('configuration');
 const folderSelect = document.getElementById('folderSelect');
 const archiveFiles = document.getElementById('archiveFiles');
 
@@ -641,15 +640,64 @@ function focusPrefixOnHomeKey (event) {
         }, 0);
     }
 }
+
 /**
  * Verifies the given archive and switches contentInjectionMode accourdingly
- * @param {archive} the archive that needs verification
+ * @param {ZIMArchive} archive The archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') ||
-    'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
-    translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
-    translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
+    // We construct an HTML element to show the user the alert with the metadata contained in it
+    const metadataLabels = {
+        name: translateUI.t('dialog-metadata-name') || 'Name: ',
+        creator: translateUI.t('dialog-metadata-creator') || 'Creator: ',
+        publisher: translateUI.t('dialog-metadata-publisher') || 'Publisher: ',
+        scraper: translateUI.t('dialog-metadata-scraper') || 'Scraper: '
+    }
+
+    const verificationBody = document.createElement('div');
+
+    // Text & metadata box
+    const verificationText = document.createElement('p');
+    verificationText.innerHTML = translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings.';
+
+    const metadataBox = document.createElement('div');
+    metadataBox.id = 'modal-archive-metadata-container';
+
+    const verifyName = document.createElement('p');
+    verifyName.id = 'confirm-archive-name';
+    verifyName.classList.add('archive-metadata');
+    verifyName.innerText = metadataLabels.name + (archive.name || '-');
+
+    const verifyCreator = document.createElement('p');
+    verifyCreator.id = 'confirm-archive-creator';
+    verifyCreator.classList.add('archive-metadata')
+    verifyCreator.innerText = metadataLabels.creator + (archive.creator || '-');
+
+    const verifyPublisher = document.createElement('p');
+    verifyPublisher.id = 'confirm-archive-publisher';
+    verifyPublisher.classList.add('archive-metadata');
+    verifyPublisher.innerText = metadataLabels.publisher + (archive.publisher || '-');
+
+    const verifyScraper = document.createElement('p');
+    verifyScraper.id = 'confirm-archive-scraper';
+    verifyScraper.classList.add('archive-metadata');
+    verifyScraper.innerText = metadataLabels.scraper + (archive.scraper || '-');
+
+    const verifyWarning = document.createElement('p');
+    verifyWarning.id = 'modal-archive-metadata-warning';
+    verifyWarning.innerHTML = translateUI.t('dialog-metadata-warning') || 'Warning: above data can be spoofed!';
+
+    metadataBox.append(verifyName, verifyCreator, verifyPublisher, verifyScraper);
+    verificationBody.append(verificationText, metadataBox, verifyWarning);
+
+    const response = await uiUtil.systemAlert(
+        verificationBody.outerHTML,
+        translateUI.t('dialog-sourceverification-title') || 'Security alert!',
+        true,
+        translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
+        translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source'
+    );
+
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -1521,17 +1569,11 @@ function displayFileSelect () {
 
     // Set the main drop zone
     if (!params.disableDragAndDrop) {
-        configDropZone.addEventListener('dragover', handleGlobalDragover);
-        configDropZone.addEventListener('dragleave', function () {
-            configDropZone.style.border = '';
-        });
-        // Also set a global drop zone (allows us to ensure Config is always displayed for the file drop)
-        globalDropZone.addEventListener('dragover', function (e) {
-            e.preventDefault();
-            if (configDropZone.style.display === 'none') document.getElementById('btnConfigure').click();
-            e.dataTransfer.dropEffect = 'link';
-        });
+        // Set a global drop zone, so that whole page is enabled for drag and drop
+        globalDropZone.addEventListener('dragover', handleGlobalDragover);
+        globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
         globalDropZone.addEventListener('drop', handleFileDrop);
+        globalDropZone.addEventListener('dragenter', handleGlobalDragenter);
     }
 
     if (isFireFoxOsNativeFileApiAvailable) {
@@ -1635,27 +1677,82 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
     }
 });
 
+/** Drag and Drop handling for ZIM files */
+
+// Keep track of entrance event so we only fire the correct leave event
+var enteredElement;
+
+function handleGlobalDragenter (e) {
+    e.preventDefault();
+    // Disable pointer-events on children so they don't interfere with dragleave events
+    globalDropZone.classList.add('dragging-over');
+    enteredElement = e.target;
+}
+
 function handleGlobalDragover (e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'link';
-    configDropZone.style.border = '3px dotted red';
+
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
+        e.dataTransfer.dropEffect = 'link';
+        globalDropZone.classList.add('dragging-over');
+        globalDropZone.style.border = '3px dashed red';
+        document.getElementById('btnConfigure').click();
+    }
+}
+
+function handleGlobalDragleave (e) {
+    e.preventDefault();
+    globalDropZone.style.border = '';
+    if (enteredElement === e.target) {
+        globalDropZone.classList.remove('dragging-over');
+        // Only return to page if a ZIM is actually loaded
+        if (selectedArchive && selectedArchive.isReady()) {
+            uiUtil.returnToCurrentPage();
+        }
+    }
 }
 
 function handleIframeDragover (e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'link';
-    document.getElementById('btnConfigure').click();
+    if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
+        globalDropZone.classList.add('dragging-over');
+        e.dataTransfer.dropEffect = 'link';
+        document.getElementById('btnConfigure').click();
+    }
 }
 
 function handleIframeDrop (e) {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
+}
+
+// Add type check for chromium browsers, since they count images on the same page as files
+function hasInvalidType (typesList) {
+    for (var i = 0; i < typesList.length; i++) {
+        // Use indexOf() instead of startsWith() for IE11 support. Also, IE11 uses Text instead of text (and so does Opera).
+        // This is not comprehensive, but should cover most cases.
+        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0 || typesList[i].indexOf('video') === 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// IE11 doesn't support .includes(), so custom function to check for presence of types
+function hasType (typesList, type) {
+    for (var i = 0; i < typesList.length; i++) {
+        if (typesList[i] === type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 async function handleFileDrop (packet) {
     packet.stopPropagation();
     packet.preventDefault();
-    configDropZone.style.border = '';
+    globalDropZone.style.border = '';
+    globalDropZone.classList.remove('dragging-over');
     var files = packet.dataTransfer.files;
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
@@ -1663,11 +1760,11 @@ async function handleFileDrop (packet) {
     document.getElementById('selectorsDisplay').style.display = 'inline';
     archiveFiles.value = null;
 
-    // value will be set to true if a folder is dropped then there will be no need to
+    // Value will be set to true if a folder is dropped then there will be no need to
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    // no previous file will be loaded in case of FileSystemApi
+    // No previous file will be loaded in case of FileSystemApi
     if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet);
     else if (params.isWebkitDirApiSupported) {
         const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet);
@@ -2228,6 +2325,10 @@ function handleClickOnReplayLink (ev, anchor) {
     } else {
         zimUrl = pseudoNamespace + pseudoDomainPath + anchor.search;
     }
+    // It is necessary to fully decode zimit2, as these archives follow OpenZIM spec
+    if (params.zimType === 'zimit2') {
+        zimUrl = decodeURIComponent(zimUrl);
+    }
     // We need to test the ZIM link
     if (zimUrl) {
         ev.preventDefault();
@@ -2355,9 +2456,12 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
-    if (selectedArchive.zimType === 'zimit') {
-        // Zimit ZIMs store assets with the querystring, so we need to add it!
+    if (appstate.isReplayWorkerAvailable) {
+        // Zimit ZIMs store assets with the querystring, so we need to add it. ReplayWorker handles encoding.
         title = title + event.data.search;
+    } else if (params.zimType === 'zimit') {
+        // Zimit classic ZIMs store assets encoded with the querystring, so we need to add it
+        title = encodeURI(title) + event.data.search;
     }
     var messagePort = event.ports[0];
     var readFile = function (dirEntry) {
