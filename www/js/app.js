@@ -31,6 +31,7 @@
 import '../../node_modules/@fortawesome/fontawesome-free/js/all.js';
 import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
+import popovers from './lib/popovers.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
@@ -105,7 +106,7 @@ const folderSelect = document.getElementById('folderSelect');
 const archiveFiles = document.getElementById('archiveFiles');
 
 // Unique identifier of the article expected to be displayed
-var expectedArticleURLToBeDisplayed = '';
+appstate.expectedArticleURLToBeDisplayed = '';
 
 // define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
@@ -604,6 +605,10 @@ document.getElementById('titleSearchRange').addEventListener('change', function 
 });
 document.getElementById('titleSearchRange').addEventListener('input', function (e) {
     titleSearchRangeVal.textContent = e.target.value;
+});
+document.getElementById('showPopoverPreviewsCheck').addEventListener('change', function (e) {
+    params.showPopoverPreviews = e.target.checked;
+    settingsStore.setItem('showPopoverPreviews', params.showPopoverPreviews, Infinity);
 });
 // Add event listeners to the About links in Configuration, so that they jump to the linked sections
 document.querySelectorAll('.aboutLinks').forEach(function (link) {
@@ -1839,6 +1844,8 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
+    // This flag will be reset each time a new archive is loaded
+    appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
@@ -2062,15 +2069,15 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
 }
 
 /**
- * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
+ * Check whether the given URL from given dirEntry matches the expected article
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function isDirEntryExpectedToBeDisplayed (dirEntry) {
     var curArticleURL = dirEntry.namespace + '/' + dirEntry.url;
 
-    if (expectedArticleURLToBeDisplayed !== curArticleURL) {
+    if (appstate.expectedArticleURLToBeDisplayed !== curArticleURL) {
         console.debug('url of current article :' + curArticleURL + ', does not match the expected url :' +
-        expectedArticleURLToBeDisplayed);
+        appstate.expectedArticleURLToBeDisplayed);
         return false;
     }
     return true;
@@ -2089,8 +2096,10 @@ function readArticle (dirEntry) {
 
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
-    // Only update for expectedArticleURLToBeDisplayed.
-    expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+    // Only update for appstate.expectedArticleURLToBeDisplayed.
+    appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+    // Calculate the current article's ZIM baseUrl to use when processing relative links
+    appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
     if (!params.isLandingPage) articleContainer.contentWindow.focus();
@@ -2211,7 +2220,12 @@ function filterClickEvent (event) {
         clickedAnchor.passthrough = false;
         return;
     }
+    // Remove any Kiwix Popovers that may be hanging around
+    popovers.removeKiwixPopoverDivs(event.target.ownerDocument);
+    if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
+        // This prevents any popover from being displayed when the user clicks on a link
+        clickedAnchor.articleisloading = true;
         // Check for Zimit links that would normally be handled by the Replay Worker
         // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
         // however, this misses zimit2 archives where the framework doesn't support wombat.js, so monitor if always processing zimit2 links
@@ -2220,6 +2234,7 @@ function filterClickEvent (event) {
           articleWindow.location.href.replace(/[#?].*$/, '') !== clickedAnchor.href.replace(/[#?].*$/, '') && !clickedAnchor.hash) {
             return handleClickOnReplayLink(event, clickedAnchor);
         }
+        // DEV: The href returned below is the href as written in the HTML, which may be relative
         var href = clickedAnchor.getAttribute('href');
         // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
         // We also do it for ftp even if it's not supported any more by recent browsers...
@@ -2227,14 +2242,15 @@ function filterClickEvent (event) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-        } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
-            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+        } else if (clickedAnchor.newcontainer || /\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
+            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab. We also open
+            // a new tab if the user has explicitly requested it: in this case the anchor will have a property 'newcontainer' (e.g. with popover control)
             event.preventDefault();
             event.stopPropagation();
-            console.debug('filterClickEvent opening new window for PDF');
+            console.debug('filterClickEvent opening new window for PDF or requested new container');
             clickedAnchor.newcontainer = true;
             window.open(clickedAnchor.href, '_blank');
-        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) { // clickedAnchor.href returns the absolute URL, including any namespace
             // Show the spinner if it's a ZIM link, but not an anchor
             if (!~href.indexOf('#')) {
                 var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
@@ -2247,6 +2263,14 @@ function filterClickEvent (event) {
                 uiUtil.showSlidingUIElements();
             }
         }
+        // Reset popup block
+        setTimeout(function () {
+            // Anchor may have been unloaded along with the page by the time this runs
+            // but will still be present if user opened a new tab
+            if (clickedAnchor) {
+                clickedAnchor.articleisloading = false;
+            }
+        }, 1000);
     }
 };
 
@@ -2276,13 +2300,13 @@ function articleLoadedSW (iframeArticleContent) {
     }
     resizeIFrame();
 
-    if (iframeArticleContent.contentWindow) {
+    var iframeWindow = iframeArticleContent.contentWindow;
+    if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
-        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.onkeydown = focusPrefixOnHomeKey; }
-        if (params.openExternalLinksInNewTabs) {
-            // Add event listener to iframe window to check for links to external resources
-            iframeArticleContent.contentWindow.onclick = filterClickEvent;
-        }
+        if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
+        // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
+        iframeWindow.onclick = filterClickEvent;
+        attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
@@ -2302,6 +2326,117 @@ function articleLoadedSW (iframeArticleContent) {
     }
     params.isLandingPage = false;
 };
+
+/**
+ * Attaches popover trigger events to the given window
+ * @param {Window} win The window to which to attach popover trigger events
+ */
+function attachPopoverTriggerEvents (win) {
+    const iframeDoc = win.document;
+    // The popover feature requires as a minimum that the browser supports the css matches function
+    // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
+    if (!iframeDoc || !appstate.wikimediaZimLoaded || !params.showPopoverPreviews || !('matches' in Element.prototype)) {
+        return;
+    }
+    // Attach the popover CSS to the current article document
+    popovers.attachKiwixPopoverCss(iframeDoc);
+    // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
+    win.addEventListener('mouseover', evokePopoverEvents, true);
+    win.addEventListener('focus', evokePopoverEvents, true);
+    // Conditionally add event listeners to support touch events with fallback to pointer events
+    if (window.navigator.maxTouchPoints > 0) {
+        win.addEventListener('touchstart', evokePopoverEvents, true);
+    } else {
+        win.addEventListener('pointerdown', evokePopoverEvents, true);
+    }
+}
+
+// Throttle for the popover event handler to prevent multiple activations with mouse movement
+let popoverThrottle = false;
+
+/**
+ * Conditionally evokes popover events subject to a throttle
+ * @param {Event} event The event produced by the calling action
+ */
+function evokePopoverEvents (event) {
+    // Check if the hovered or focused element or its parent is a link
+    if (popoverThrottle) return;
+    popoverThrottle = true;
+    setTimeout(function () {
+        handlePopoverEvents(event);
+        popoverThrottle = false;
+    }, 10);
+};
+
+/**
+ * Event handler for attaching preview popovers
+ * @param {Event} event The event produced by the mouseover or focus action
+ */
+function handlePopoverEvents (ev) {
+    let anchor = ev.target;
+    const iframeDoc = anchor.ownerDocument;
+    if (!iframeDoc) return;
+    const iframeWindow = iframeDoc.defaultView;
+    while (anchor && anchor !== iframeWindow && anchor.nodeName !== 'A') {
+        anchor = anchor.parentNode;
+    }
+    // If we're not hovering a link, then we can exit
+    if (!anchor || anchor.nodeName !== 'A') return;
+    // console.debug(event.type, event.target, a);
+    const suppressContextMenuHandler = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+    // Prevent context menu on this anchor element
+    anchor.addEventListener('contextmenu', suppressContextMenuHandler, true);
+    if (/touchstart|pointerdown/.test(ev.type)) {
+        anchor.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
+    }
+    if (anchor.style.userSelect === undefined) {
+        // This prevents selection of the text in a touched link in Safari for iOS and Edge Legacy / UWP
+        anchor.style.webkitUserSelect = 'none';
+        anchor.style.msUserSelect = 'none';
+    }
+    // Check if a popover div is currently being hovered
+    const divArray = Array.from(iframeDoc.getElementsByClassName('kiwixtooltip'));
+    const divIsHovered = divArray.some(div => div.matches(':hover'));
+    // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
+    if (!divIsHovered) {
+        // Prevent text selection while popover is open in modern browsers
+        anchor.style.userSelect = 'none';
+        // Resolve the true app theme
+        const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
+        // Get and populate the popover corresponding to the hovered or focused link
+        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
+    }
+    const outHandler = function (e) {
+        setTimeout(function () {
+            anchor.popoverisloading = false;
+            if (/blur/.test(e.type) || !anchor.touched) {
+                popovers.removeKiwixPopoverDivs(iframeDoc);
+                anchor.touched = false;
+            }
+            anchor.style.webkitUserSelect = 'auto';
+            anchor.style.msUserSelect = 'auto';
+            anchor.style.userSelect = 'auto';
+            anchor.removeEventListener(e.type, outHandler);
+            anchor.removeEventListener('contextmenu', suppressContextMenuHandler, true);
+        }, 250);
+    };
+    // Clean up when user stops hovering, lifts pointer, stops touching, or unfocuses (blurs) the link
+    if (/mouseover/.test(ev.type)) {
+        anchor.addEventListener('mouseleave', outHandler);
+    }
+    if (/pointerdown/.test(ev.type)) {
+        anchor.addEventListener('pointerup', outHandler);
+    }
+    if (/touchstart/.test(ev.type)) {
+        anchor.addEventListener('touchend', outHandler);
+    }
+    if (ev.type === 'focus') {
+        anchor.addEventListener('blur', outHandler);
+    }
+}
 
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
@@ -2490,6 +2625,12 @@ function handleMessageChannelMessage (event) {
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
+                    // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
+                    // or simply `html`, so this has to be as generic as possible
+                    if (/\bx?html/i.test(mimetype)) {
+                        // Calculate the current article's ZIM baseUrl to use when attaching popovers
+                        appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
+                    }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
                 }
@@ -2559,7 +2700,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     // (duplicated because we sometimes bypass readArticle above)
-    var baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
+    appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
@@ -2623,7 +2764,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
             // of encodeURIComponent.
-            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl));
+            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, appstate.baseUrl));
         }
         newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
         // Replace any srcset with data-kiwixsrcset
@@ -2800,6 +2941,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                // Prevent display of any popovers because we're loading a new article
+                anchor.articleisloading = true;
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
@@ -2820,30 +2963,33 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         // Zimit ZIMs store URLs percent-encoded and with querystring and
                         // deriveZimUrlFromRelativeUrls strips any querystring and decodes
                         var zimUrlToTransform = zimUrl;
-                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl)) +
+                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl)) +
                             href.replace(uriComponent, '').replace('#' + anchorParameter, '');
-                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl) +
+                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl) +
                         //     href.replace(uriComponent, '').replace('#' + anchorParameter, ''));
                     }
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
-                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, appstate.baseUrl);
                 }
                 goToArticle(zimUrl, downloadAttrValue, contentType);
+                // DEV: There is no need to remove the anchor.articleisloading flag because we do not open new tabs for ZIM URLs in Safe Mode
+                // so the anchor will be erased form the DOM when the new article is loaded
             });
         });
+        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
     }
 
     function loadImagesJQuery () {
         // Make an array from the images that need to be processed
         var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
         // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
-        images.owner = expectedArticleURLToBeDisplayed;
+        images.owner = appstate.expectedArticleURLToBeDisplayed;
         // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
         // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
         // DOM, making for a better user experience (because images above the fold are extracted first)
         (function extractImage () {
-            if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
+            if (!images.length || images.busy || images.owner !== appstate.expectedArticleURLToBeDisplayed) return;
             images.busy = true;
             // Extract the image at the top of the images array and remove it from the array
             var image = images.shift();
@@ -2997,7 +3143,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function (mediaSource) {
                 var source = mediaSource.getAttribute('src');
-                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
+                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, appstate.baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
                 source = source || decodeURIComponent(mediaSource.dataset.kiwixurl);
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {

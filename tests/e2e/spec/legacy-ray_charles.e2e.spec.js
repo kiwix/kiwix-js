@@ -205,7 +205,7 @@ function runTests (driver, modes) {
             it('Load legacy Ray Charles and check index contains specified article', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                 // Unhide the element using JavaScript in case it is hidden
@@ -234,7 +234,7 @@ function runTests (driver, modes) {
             it('Navigate to "This Little Girl of Mine"', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
 
                 // console.log('FilesLength outer: ' + filesLength);
@@ -274,12 +274,38 @@ function runTests (driver, modes) {
                 // console.log('Element text: ' + elementText);
                 // Check that the article title is correct
                 assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
+                await driver.switchTo().defaultContent();
+            });
+
+            it('Check for popover functionality when focusing link', async function () {
+                // Check if the browser supports 'matches' in Element.prototype
+                const matchesSupported = await driver.executeScript('return typeof Element.prototype.matches === "function";');
+                if (!matchesSupported) {
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped because browser does not support css matches:');
+                    this.skip();
+                }
+                // Switch to iframe
+                await driver.switchTo().frame('articleContent');
+                // Focus on the link "Hallelujah" with id="mwVw"
+                let link = await driver.findElement(By.id('mwVw'));
+                await driver.executeScript('arguments[0].focus();', link);
+                await driver.sleep(2000);
+                // Focus on the next link "A Fool for You" with id="mwWw"
+                await driver.executeScript('document.getElementById("mwWw").focus();');
+                // Wait for the popover to appear
+                await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
+                // Use standard JavaScript methods to find the popover element because Safari 14 fails when using WebDriver methods
+                let popover = await driver.executeScript('return document.querySelector(".kiwixtooltip").outerHTML;');
+                // The popover should contain the word "bluesy" (description of style of song)
+                let popoverContainsText = /bluesy/.test(popover);
+                assert.ok(popoverContainsText, 'Popover div with class ".kiwixtooltip" did not have expected text "bluesy"');
+                await driver.switchTo().defaultContent();
             });
 
             it('Search for Ray Charles in title index and go to article', async function () {
                 if (!serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 await driver.switchTo().defaultContent();
                 const prefix = await driver.findElement(By.id('prefix'));

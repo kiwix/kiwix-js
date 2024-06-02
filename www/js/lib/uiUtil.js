@@ -402,10 +402,14 @@ function determineCanvasElementsWorkaround () {
  *
  * @param {Element} link The original link node from the DOM
  * @param {String} cssContent The content to insert as an inline stylesheet
+ * @param {String} id An optional id to add to the style element
  */
-function replaceCSSLinkWithInlineCSS (link, cssContent) {
+function replaceCSSLinkWithInlineCSS (link, cssContent, id) {
     var cssElement = document.createElement('style');
-    cssElement.type = 'text/css';
+    if (id) {
+        cssElement.id = id;
+    }
+    cssElement.type = 'text/css'; // Still needed for FFOS
     if (cssElement.styleSheet) {
         cssElement.styleSheet.cssText = cssContent;
     } else {
@@ -848,9 +852,8 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
  */
 function applyAppTheme (theme) {
-    var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
-    var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
+    var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
     var contentTheme = theme.replace(/^[^_]*/, '');
     var htmlEl = document.querySelector('html');
@@ -920,6 +923,11 @@ function applyAppTheme (theme) {
         !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
         showReturnLink();
     }
+}
+
+// Determines whether the user has requested a dark theme based on preference and browser settings
+function isDarkTheme (theme) {
+    return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
 }
 
 // Displays the return link and handles click event. Called by applyAppTheme()
@@ -1075,6 +1083,7 @@ export default {
     removeAnimationClasses: removeAnimationClasses,
     tabTransitionToSection: tabTransitionToSection,
     applyAppTheme: applyAppTheme,
+    isDarkTheme: isDarkTheme,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,

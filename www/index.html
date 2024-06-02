@@ -577,9 +577,9 @@
                         </div>
                     </div>
                     <div class="container">
-                        <h3 data-i18n="configure-performance-settings-title">Performance settings</h3>
+                        <h3 data-i18n="configure-performance-settings-title">Performance / compatibility</h3>
                         <div class="card card-warning" id="performanceSettingsDiv">
-                            <div data-i18n="configure-performance-panel-header" class="card-header">Speed up archive access</div>
+                            <div data-i18n="configure-performance-panel-header" class="card-header">Caching and preview settings</div>
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-sm-6">
@@ -628,11 +628,22 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <div class="checkbox">
+                                            <label data-i18n-tip="configure-previews-tip" title="Shows a small popup preview of Wikipedia and Wikivoyage articles when the pointer is hovered over an article link. Turn this off if it is too slow or interferes wtih display of articles on small-screen devices.">
+                                                <input type="checkbox" name="showPopoverPreviews" id="showPopoverPreviewsCheck" checked>
+                                                <span data-i18n="configure-previews">
+                                                    <b>Show a popover preview of <i>Wikipedia / Wkivoyage</i> articles</b> when hovering over links (<i>limited functionality in Safe Mode</i>)
+                                                </span>
+                                            </label>   
+                                        </div> 
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="container">
-                        <h3 data-i18n="configure-compatibility-settings-title">Compatibility settings</h3>
                         <div class="card card-warning" id="contentInjectionModeDiv">
                             <div data-i18n="configure-compatibility-panel-header" class="card-header">Content injection mode</div>
                             <div class="card-body">
