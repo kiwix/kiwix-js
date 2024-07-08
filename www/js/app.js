@@ -2237,8 +2237,8 @@ function filterClickEvent (event) {
         // DEV: The href returned below is the href as written in the HTML, which may be relative
         var href = clickedAnchor.getAttribute('href');
         // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
-        // We also do it for ftp even if it's not supported any more by recent browsers...
-        if (/^(?:http|ftp)/i.test(href)) {
+        // By comparing the protocols, we can filter out links such as `mailto:`, `tel:`, `skype:`, etc. (these should open in a new window).
+        if (/^(?:http|ftp)/i.test(href) || clickedAnchor.protocol && clickedAnchor.protocol !== ':' && articleWindow.location.protocol !== clickedAnchor.protocol) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
