@@ -2236,8 +2236,9 @@ function filterClickEvent (event) {
         }
         // DEV: The href returned below is the href as written in the HTML, which may be relative
         var href = clickedAnchor.getAttribute('href');
-        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
-        // By comparing the protocols, we can filter out links such as `mailto:`, `tel:`, `skype:`, etc. (these should open in a new window).
+        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website
+        // (this assumption is only safe for non-Replay archives, but we deal with those separately above: they are routed to handleClickOnReplayLink).
+        // Additionally, by comparing the protocols, we can filter out protocols such as `mailto:`, `tel:`, `skype:`, etc. (these should open in a new window).
         if (/^(?:http|ftp)/i.test(href) || clickedAnchor.protocol && clickedAnchor.protocol !== ':' && articleWindow.location.protocol !== clickedAnchor.protocol) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
@@ -2452,7 +2453,7 @@ function handleClickOnReplayLink (ev, anchor) {
     if (anchor.protocol && anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':')) {
         // DEV: Monitor whether you need to handle /blob:|data:|file:/ as well (probably not, as they would be blocked by the sandbox if loaded into iframe)
         if (/about:|javascript:/i.test(anchor.protocol) || ev.ctrlKey || ev.metaKey || ev.button === 1) return;
-        // So it's probably a URI scheme or protocol like mailto: that would violate the CSP, so we need to open it explicitly in a new taba
+        // So it's probably a URI scheme or protocol like mailto: that would violate the CSP, so we need to open it explicitly in a new tab
         ev.preventDefault();
         ev.stopPropagation();
         console.debug('handleClickOnReplayLink opening custom protocol ' + anchor.protocol + ' in new tab');
