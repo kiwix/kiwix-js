@@ -133,7 +133,7 @@ function fillBalloonString (paras, baseURL, pathPrefix) {
                 }
             });
         }
-        // Get the transformed HTML. Note that in Safe mode, we risk breaking the UI if user clicks on an
+        // Get the transformed HTML. Note that in Restricted mode, we risk breaking the UI if user clicks on an
         // embedded link, so only use innerText in that case
         const content = params.contentInjectionMode === 'jquery' ? plainText
             : paras[i].innerHTML;
