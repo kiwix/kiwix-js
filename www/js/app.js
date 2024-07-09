@@ -2448,11 +2448,14 @@ function handleClickOnReplayLink (ev, anchor) {
     var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
     var pseudoDomainPath = (anchor.hostname === window.location.hostname ? selectedArchive.zimitPrefix.replace(/\/$/, '') : anchor.hostname) + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
+    // Normalize the protocols of the clicked anchor and the document, because some PDFs are served with a protocol of http: instead of https:
+    var normalizedAnchorProtocol = anchor.protocol ? anchor.protocol.replace(/s:/, ':') : '';
+    var normalizedDocumentProtocol = document.location.protocol.replace(/s:/, ':');
     // If the paths are identical, then we are dealing with a link to an anchor in the same document
     if (pseudoDomainPath === containingDocDomainPath) return;
     // If it's for a different protocol (e.g. javascript:) we may need to handle that, or if the user has pressed the ctrl or command key, the document
-    // will open in a new window anyway, so we can return. Note that some PDFs are served with a protocol of http: instead of https:, so we need to account for that.
-    if (anchor.protocol && anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':')) {
+    // will open in a new window anyway, so we can return.
+    if (normalizedAnchorProtocol && normalizedAnchorProtocol !== normalizedDocumentProtocol) {
         // DEV: Monitor whether you need to handle /blob:|data:|file:/ as well (probably not, as they would be blocked by the sandbox if loaded into iframe)
         if (/about:|javascript:/i.test(anchor.protocol) || ev.ctrlKey || ev.metaKey || ev.button === 1) return;
         // So it's probably a URI scheme or protocol like mailto: that would violate the CSP, so we need to open it explicitly in a new tab
