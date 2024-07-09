@@ -2239,7 +2239,9 @@ function filterClickEvent (event) {
         // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website
         // (this assumption is only safe for non-Replay archives, but we deal with those separately above: they are routed to handleClickOnReplayLink).
         // Additionally, by comparing the protocols, we can filter out protocols such as `mailto:`, `tel:`, `skype:`, etc. (these should open in a new window).
-        if (/^(?:http|ftp)/i.test(href) || clickedAnchor.protocol && clickedAnchor.protocol !== ':' && articleWindow.location.protocol !== clickedAnchor.protocol) {
+        // DEV: The test for a protocol of ':' may no longer be needed. It needs careful testing in all browsers (particularly in Edge Legacy), and if no
+        // longer triggered, it can be removed.
+        if (/^http/i.test(href) || clickedAnchor.protocol && clickedAnchor.protocol !== ':' && articleWindow.location.protocol !== clickedAnchor.protocol) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
