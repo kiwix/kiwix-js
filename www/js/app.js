@@ -2236,9 +2236,12 @@ function filterClickEvent (event) {
         }
         // DEV: The href returned below is the href as written in the HTML, which may be relative
         var href = clickedAnchor.getAttribute('href');
-        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
-        // We also do it for ftp even if it's not supported any more by recent browsers...
-        if (/^(?:http|ftp)/i.test(href)) {
+        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website
+        // (this assumption is only safe for non-Replay archives, but we deal with those separately above: they are routed to handleClickOnReplayLink).
+        // Additionally, by comparing the protocols, we can filter out protocols such as `mailto:`, `tel:`, `skype:`, etc. (these should open in a new window).
+        // DEV: The test for a protocol of ':' may no longer be needed. It needs careful testing in all browsers (particularly in Edge Legacy), and if no
+        // longer triggered, it can be removed.
+        if (/^http/i.test(href) || clickedAnchor.protocol && clickedAnchor.protocol !== ':' && articleWindow.location.protocol !== clickedAnchor.protocol) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
@@ -2445,10 +2448,23 @@ function handleClickOnReplayLink (ev, anchor) {
     var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
     var pseudoDomainPath = (anchor.hostname === window.location.hostname ? selectedArchive.zimitPrefix.replace(/\/$/, '') : anchor.hostname) + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
-    // If it's for a different protocol (e.g. javascript:) we should let Replay handle that, or if the paths are identical, then we are dealing
-    // with a link to an anchor in the same document, or if the user has pressed the ctrl or command key, the document will open in a new window
-    // anyway, so we can return. Note that some PDFs are served with a protocol of http: instead of https:, so we need to account for that.
-    if (anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':') || pseudoDomainPath === containingDocDomainPath) return;
+    // Normalize the protocols of the clicked anchor and the document, because some PDFs are served with a protocol of http: instead of https:
+    var normalizedAnchorProtocol = anchor.protocol ? anchor.protocol.replace(/s:/, ':') : '';
+    var normalizedDocumentProtocol = document.location.protocol.replace(/s:/, ':');
+    // If the paths are identical, then we are dealing with a link to an anchor in the same document
+    if (pseudoDomainPath === containingDocDomainPath) return;
+    // If it's for a different protocol (e.g. javascript:) we may need to handle that, or if the user has pressed the ctrl or command key, the document
+    // will open in a new window anyway, so we can return.
+    if (normalizedAnchorProtocol && normalizedAnchorProtocol !== normalizedDocumentProtocol) {
+        // DEV: Monitor whether you need to handle /blob:|data:|file:/ as well (probably not, as they would be blocked by the sandbox if loaded into iframe)
+        if (/about:|javascript:/i.test(anchor.protocol) || ev.ctrlKey || ev.metaKey || ev.button === 1) return;
+        // So it's probably a URI scheme or protocol like mailto: that would violate the CSP, so we need to open it explicitly in a new tab
+        ev.preventDefault();
+        ev.stopPropagation();
+        console.debug('handleClickOnReplayLink opening custom protocol ' + anchor.protocol + ' in new tab');
+        uiUtil.warnAndOpenExternalLinkInNewTab(ev, anchor);
+        return;
+    }
     var zimUrl;
     // If it starts with the path to the ZIM file, then we are dealing with an untransformed absolute local ZIM link
     if (!anchor.href.indexOf(pathToZim)) {
