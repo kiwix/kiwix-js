@@ -975,7 +975,7 @@ function reportSearchProviderToAPIStatusPanel (provider) {
 /**
  * Warn the user that they clicked on an external link, and open it in a new tab
  *
- * @param {Event} event The click event (on an anchor) to handle. If not provided, then clickedAnchor must be provided.
+ * @param {Event} event The click event to handle. If not provided, then clickedAnchor must be provided.
  * @param {Element} clickedAnchor The DOM anchor that has been clicked (optional, defaults to event.target)
  * @param {ZIMArchive} archive The archive object from which the link was scraped (optional)
  */
@@ -995,18 +995,24 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
     if (!target) {
         target = '_blank';
     }
+    let href = clickedAnchor.href;
+    // @WORKAROUND: Note that for Zimit2 ZIMs (only), any querystring in an external link will be overencoded.
+    // See https://github.com/kiwix/kiwix-js/issues/1258. DEV: Monitor this issue, and remove the workaround if it is fixed upstream.
+    if (params.zimType === 'zimit2') {
+        href = decodeURIComponent(href);
+    }
     if (params.hideExternalLinkWarning) {
-        window.open(clickedAnchor.href, target);
+        window.open(href, target);
         return;
     }
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';
     if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
-    message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
+    message += '</p><p style="word-break:break-all;">' + href + '</p>';
     systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
-            window.open(clickedAnchor.href, target);
+            window.open(href, target);
         }
     });
 }
