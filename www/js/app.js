@@ -1617,7 +1617,7 @@ function displayFileSelect () {
         folderSelect.addEventListener('click', async function (e) {
             e.preventDefault();
             const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
-            if (previousZimFiles.length !== 0) setLocalArchiveFromFileList(previousZimFiles);
+            if (previousZimFiles.length === 1) setLocalArchiveFromFileList(previousZimFiles);
         });
     }
     if (params.isWebkitDirApiSupported) {
