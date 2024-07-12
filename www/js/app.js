@@ -991,10 +991,10 @@ function initServiceWorkerMessaging () {
             action: 'init'
         });
     } else if (serviceWorkerRegistration) {
-        // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
+        // If this is the first time we are initiating the SW, allow Promises to complete and assets to be fetched by delaying potential reload
         console.warn('The Service Worker needs more time to load, or else the app was force-refreshed...');
         serviceWorkerRegistration = null;
-        setTimeout(initServiceWorkerMessaging, 1600);
+        setTimeout(initServiceWorkerMessaging, 3000);
     } else if (params.contentInjectionMode === 'serviceworker') {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
@@ -1010,7 +1010,7 @@ function initServiceWorkerMessaging () {
                         setTimeout(function () {
                             params.themeChanged = true;
                             document.getElementById('btnHome').click();
-                        }, 750);
+                        }, 800);
                     }
                 }
             });
@@ -1617,7 +1617,7 @@ function displayFileSelect () {
         folderSelect.addEventListener('click', async function (e) {
             e.preventDefault();
             const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
-            if (previousZimFiles.length !== 0) setLocalArchiveFromFileList(previousZimFiles);
+            if (previousZimFiles.length === 1) setLocalArchiveFromFileList(previousZimFiles);
         });
     }
     if (params.isWebkitDirApiSupported) {
