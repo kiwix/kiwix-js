@@ -13,6 +13,7 @@ Released on *TODO*
 * FEATURE: New security dialogue box when opening untrusted ZIMs now shows enhanced ZIM metadata
 * ENHANCEMENT: Display active content warning when opening PhET ZIMs in Restricted mode
 * ENHANCEMENT: Added option to turn off external link warning
+* INFO: Translated Kiwix JS extension entries in Edge and Chrome Stores to Spanish and French
 * UPDATE: JQuery mode is now renamed to Restricted mode to better indicate its effect
 * UPDATE: JQuery is now fully removed from all non-dependency code
 * UPDATE: Simplify active content warning for clarity and impact
