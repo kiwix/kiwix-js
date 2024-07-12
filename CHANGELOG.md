@@ -17,6 +17,7 @@ Released on *TODO*
 * UPDATE: JQuery mode is now renamed to Restricted mode to better indicate its effect
 * UPDATE: JQuery is now fully removed from all non-dependency code
 * UPDATE: Simplify active content warning for clarity and impact
+* UPDATE: Allow more time for caching assets before rebooting if SW registration stalls
 * FIX: Various issues with enumarating the contents of picked folders
 * FIX: Bug with empty search box on initial ZIM load
 * FIX: Bug which caused app to reload when accidentally dragging images or links in articles 
