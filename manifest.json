@@ -42,6 +42,7 @@
         "matches": ["https://*.kiwix.org/*", "https://kiwix.github.io/*"]
     }],
 
+    "default_locale": "en",
     "author": "Kiwix",
     "homepage_url": "https://www.kiwix.org",
     "offline_enabled": true
