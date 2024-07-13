@@ -15,7 +15,7 @@ Released on *TODO*
 * ENHANCEMENT: Added option to turn off external link warning
 * INFO: Translated Kiwix JS extension entries in Edge and Chrome Stores to Spanish and French
 * UPDATE: JQuery mode is now renamed to Restricted mode to better indicate its effect
-* UPDATE: JQuery is now fully removed from all non-dependency code
+* UPDATE: JQuery is now fully removed from all first-party code
 * UPDATE: Simplify active content warning for clarity and impact
 * UPDATE: Allow more time for caching assets before rebooting if SW registration stalls
 * FIX: Various issues with enumarating the contents of picked folders
