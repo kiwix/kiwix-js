@@ -25,6 +25,7 @@ Released on *TODO*
 * FIX: Avoid accidentally opening the first ZIM archive in a picked directory of archives
 * FIX: Several typos
 * WORKAROUND: Overencoded querystrings in Zimit2 external links are now decoded
+* DEV: Add i18n for extension manifests so that Add-on Store entries can be translated
 * DEV: Change method for patching gitignore when adding NPM dependencies
 * DEV: Some code reorganization
 * DEPENDENCIES: Updates to follow-redirects, Vite, braces, ws
