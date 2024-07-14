@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
-    "name": "Kiwix",
+    "name": "__MSG_extensionName__",
     "version": "4.1.0",
 
-    "description": "Kiwix is an offline reader for content from Wikipedia, TED Talks, Stackexchange, and many other sources.",
+    "description": "__MSG_extensionDescription__",
     
     "icons": {
         "16": "www/img/icons/kiwix-16.png",
@@ -41,6 +41,7 @@
         "matches": ["https://*.kiwix.org/*", "https://kiwix.github.io/*"]
     }],
 
+    "default_locale": "en",
     "author": "Kiwix",
     "homepage_url": "https://www.kiwix.org",
     "offline_enabled": true
