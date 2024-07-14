@@ -131,7 +131,7 @@ document.localeJson = {
       "dialog-allow-internetaccess-message1": "<p>Pour activer le Service Worker, nous",
       "dialog-allow-internetaccess-message2": "<p>Nous allons essayer de passer en mode ServiceWorker (c'est maintenant le mode par défaut).",
       "dialog-allow-internetaccess-message3": "Il prend en charge plus de types de fichiers ZIM et est beaucoup plus robuste.</p><p>",
-      "dialog-allow-internetaccess-message4": "avons besoin d'accéder une seule fois à notre serveur Restreint pour que l'application puisse redémarrer en tant que Progressive Web App (PWA). Si elle est disponible, la PWA fonctionnera hors ligne, mais se mettra à jour automatiquement lorsqu'elle sera en ligne selon la spécification du Service Worker.</p><p>Vous pouvez revenir au mode Restreint à tout moment.</p><p>AVERTISSEMENT&nbsp;: Cela tentera d'accéder au serveur suivant&nbsp;:<br/>",
+      "dialog-allow-internetaccess-message4": "avons besoin d'accéder une seule fois à notre serveur sécurisé pour que l'application puisse redémarrer en tant que Progressive Web App (PWA). Si elle est disponible, la PWA fonctionnera hors ligne, mais se mettra à jour automatiquement lorsqu'elle sera en ligne selon la spécification du Service Worker.</p><p>Vous pouvez revenir au mode Restreint à tout moment.</p><p>AVERTISSEMENT&nbsp;: Cela tentera d'accéder au serveur suivant&nbsp;:<br/>",
       "dialog-archive-notset-title": "Aucun fichier sélectionné",
       "dialog-archive-notset-message": "Aucun fichier n'est chargé&nbsp;: veuillez en sélectionner un",
       "dialog-article-notfound-message": "L'article avec l'URL suivante n'a pas été trouvé dans le fichier&nbsp;:",
