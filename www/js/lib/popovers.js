@@ -107,7 +107,10 @@ function cleanUpLedeContent (node) {
     const paragraphs = Array.from(node.querySelectorAll('p'));
     // Filter out empty paragraphs or those with less than 50 characters
     const parasWithContent = paragraphs.filter(para => {
-        const text = para.innerText.trim();
+        // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
+        // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
+        const innerText = para.innerText ? para.innerText : para.textContent;
+        const text = innerText.trim();
         return !/^\s*$/.test(text) && text.length >= 50;
     });
     return parasWithContent;
@@ -120,7 +123,8 @@ function fillBalloonString (paras, baseURL, pathPrefix) {
     // Add enough paras to complete the word count
     for (let i = 0; i < paras.length; i++) {
         // Get the character count: to fill the larger box we need ~850 characters (815 plus leeway)
-        const plainText = paras[i].innerText;
+        // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
+        const plainText = paras[i].innerText ? paras[i].innerText : paras[i].textContent;
         cumulativeCharCount += plainText.length;
         // In ServiceWorker mode, we need to transform the URLs of any links in the paragraph
         if (params.contentInjectionMode === 'serviceworker') {
@@ -134,7 +138,7 @@ function fillBalloonString (paras, baseURL, pathPrefix) {
             });
         }
         // Get the transformed HTML. Note that in Restricted mode, we risk breaking the UI if user clicks on an
-        // embedded link, so only use innerText in that case
+        // embedded link, so only use plainText in that case
         const content = params.contentInjectionMode === 'jquery' ? plainText
             : paras[i].innerHTML;
         concatenatedText += '<p>' + content + '</p>';
