@@ -6,7 +6,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v4.1.0
 
-Released on *TODO*
+Released on *2024-07-15*
 
 * FEATURE: Preview a WikiMedia ZIM article in a popover by hovering, long-pressing, or tabbing into a link
 * FEATURE: Automatically re-open the last selected archive in Chromium browsers > 122
