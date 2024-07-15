@@ -28,7 +28,7 @@ Released on *2024-07-15*
 * DEV: Add i18n for extension manifests so that Add-on Store entries can be translated
 * DEV: Change method for patching gitignore when adding NPM dependencies
 * DEV: Some code reorganization
-* DEPENDENCIES: Updates to follow-redirects, Vite, braces, ws
+* DEPENDENCIES: Updates to follow-redirects, vite, braces, ws
 
 ## Kiwix JS v4.0.0
 
