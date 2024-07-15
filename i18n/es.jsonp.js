@@ -201,7 +201,7 @@ document.localeJson = {
       "dialog-sourceverification-alert": "¿Proviene este archivo ZIM de una fuente de confianza?\nDe no ser así, aún puede leer el archivo en modo Restringido. Al cerrar esta ventana también se abre el archivo en modo Restringido. Esta verificación puede desactivarse en Opciones avanzadas.",
       "dialog-sourceverification-title": "¡Alerta de seguridad!",
       "dialog-sourceverification-trust-button": "Fuente de confianza",
-      "dialog-sourceverification-safe-mode-button": "Abrir en modo Restringido",
+      "dialog-sourceverification-restricted-mode-button": "Abrir en modo Restringido",
       "dialog-unsupported-archivetype-message": "<p>Está intentando abrir un archivo Zimit, lo cual no es compatible con su navegador en modo ServiceWorker(Local).</p><p>Le hemos cambiado temporalmente al modo Restringido para que pueda ver el contenido estático, pero gran parte del contenido no es funcional con esta configuración.</p>",
       "dialog-unsupported-archivetype-title": "¡Tipo de archivo no compatible!",
       "dialog-warning": "¡Aviso!",

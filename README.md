@@ -113,7 +113,7 @@ extensions running locally block (by design) a lot of dynamic content such as in
 with some modern dynamic content, and in particular, it won't work with Zimit-based archives (if you open one of these in this mode, you
 will be thrown back to Restricted mode in order to view static content). However, this mode is useful if you cannot access the offline-first PWA,
 and should work with most official Kiwix ZIM archives;
-- "Safe" mode prevents running attached scripts in the iframe, and so is useful for checking the contents of a ZIM before deciding it is safe
+- "Restricted" mode prevents running attached scripts in the iframe, and so is useful for checking the contents of a ZIM before deciding it is safe
 to run. This mode also works in browsers that do not support Service Workers. It parses the DOM to find the HTML tags of the dependencies and
 modifies them to point to content we extract from the ZIM. This mode is compatible with any browser, but becuase it cannot run JavaScript
 inside the ZIM file, does not work well (if at all) with ZIMs that depend on dynamic content. If you open a dynamic (including Zimit) archive

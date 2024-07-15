@@ -699,7 +699,7 @@ async function verifyLoadedArchive (archive) {
         verificationBody.outerHTML,
         translateUI.t('dialog-sourceverification-title') || 'Security alert!',
         true,
-        translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Restricted Mode',
+        translateUI.t('dialog-sourceverification-restricted-mode-button') || 'Open in Restricted Mode',
         translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source'
     );
 
