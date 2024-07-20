@@ -48,7 +48,7 @@ const config = {
                 dest: 'dist/www/js'
             },
             { src: ['node_modules/bootstrap/dist/css/bootstrap.min.*'], dest: 'dist/www/css' },
-            { src: ['i18n/*'], dest: 'dist/i18n' },
+            { src: ['i18n', '_locales'], dest: 'dist' },
             { src: ['archives', 'backgroundscript.js', 'index.html', 'manifest.json', 'manifest.fx.v3.json', 'manifest.v2.json', 'manifest.webapp', 'manifest.webmanifest', 'package.json', 'LICENSE-GPLv3.txt', 'CHANGELOG.md', 'README.md', '*.pfx', '*.cjs'], dest: 'dist' }
             ],
             flatten: true

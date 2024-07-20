@@ -31,6 +31,7 @@
 import '../../node_modules/@fortawesome/fontawesome-free/js/all.js';
 import zimArchiveLoader from './lib/zimArchiveLoader.js';
 import uiUtil from './lib/uiUtil.js';
+import popovers from './lib/popovers.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
@@ -105,7 +106,7 @@ const folderSelect = document.getElementById('folderSelect');
 const archiveFiles = document.getElementById('archiveFiles');
 
 // Unique identifier of the article expected to be displayed
-var expectedArticleURLToBeDisplayed = '';
+appstate.expectedArticleURLToBeDisplayed = '';
 
 // define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
@@ -605,6 +606,10 @@ document.getElementById('titleSearchRange').addEventListener('change', function 
 document.getElementById('titleSearchRange').addEventListener('input', function (e) {
     titleSearchRangeVal.textContent = e.target.value;
 });
+document.getElementById('showPopoverPreviewsCheck').addEventListener('change', function (e) {
+    params.showPopoverPreviews = e.target.checked;
+    settingsStore.setItem('showPopoverPreviews', params.showPopoverPreviews, Infinity);
+});
 // Add event listeners to the About links in Configuration, so that they jump to the linked sections
 document.querySelectorAll('.aboutLinks').forEach(function (link) {
     link.addEventListener('click', function () {
@@ -640,15 +645,64 @@ function focusPrefixOnHomeKey (event) {
         }, 0);
     }
 }
+
 /**
  * Verifies the given archive and switches contentInjectionMode accourdingly
- * @param {archive} the archive that needs verification
+ * @param {ZIMArchive} archive The archive that needs verification
  * */
 async function verifyLoadedArchive (archive) {
-    const response = await uiUtil.systemAlert(translateUI.t('dialog-sourceverification-alert') ||
-    'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Safe Mode. Closing this window also opens the file in Safe Mode. This option can be disabled in Expert Settings',
-    translateUI.t('dialog-sourceverification-title') || 'Security alert!', true, translateUI.t('dialog-sourceverification-safe-mode-button') || 'Open in Safe Mode',
-    translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source');
+    // We construct an HTML element to show the user the alert with the metadata contained in it
+    const metadataLabels = {
+        name: translateUI.t('dialog-metadata-name') || 'Name: ',
+        creator: translateUI.t('dialog-metadata-creator') || 'Creator: ',
+        publisher: translateUI.t('dialog-metadata-publisher') || 'Publisher: ',
+        scraper: translateUI.t('dialog-metadata-scraper') || 'Scraper: '
+    }
+
+    const verificationBody = document.createElement('div');
+
+    // Text & metadata box
+    const verificationText = document.createElement('p');
+    verificationText.innerHTML = translateUI.t('dialog-sourceverification-alert') || 'Is this ZIM archive from a trusted source?\n If not, you can still read the ZIM file in Restricted Mode. Closing this window also opens the file in Restricted Mode. This option can be disabled in Expert Settings.';
+
+    const metadataBox = document.createElement('div');
+    metadataBox.id = 'modal-archive-metadata-container';
+
+    const verifyName = document.createElement('p');
+    verifyName.id = 'confirm-archive-name';
+    verifyName.classList.add('archive-metadata');
+    verifyName.innerText = metadataLabels.name + (archive.name || '-');
+
+    const verifyCreator = document.createElement('p');
+    verifyCreator.id = 'confirm-archive-creator';
+    verifyCreator.classList.add('archive-metadata')
+    verifyCreator.innerText = metadataLabels.creator + (archive.creator || '-');
+
+    const verifyPublisher = document.createElement('p');
+    verifyPublisher.id = 'confirm-archive-publisher';
+    verifyPublisher.classList.add('archive-metadata');
+    verifyPublisher.innerText = metadataLabels.publisher + (archive.publisher || '-');
+
+    const verifyScraper = document.createElement('p');
+    verifyScraper.id = 'confirm-archive-scraper';
+    verifyScraper.classList.add('archive-metadata');
+    verifyScraper.innerText = metadataLabels.scraper + (archive.scraper || '-');
+
+    const verifyWarning = document.createElement('p');
+    verifyWarning.id = 'modal-archive-metadata-warning';
+    verifyWarning.innerHTML = translateUI.t('dialog-metadata-warning') || 'Warning: above data can be spoofed!';
+
+    metadataBox.append(verifyName, verifyCreator, verifyPublisher, verifyScraper);
+    verificationBody.append(verificationText, metadataBox, verifyWarning);
+
+    const response = await uiUtil.systemAlert(
+        verificationBody.outerHTML,
+        translateUI.t('dialog-sourceverification-title') || 'Security alert!',
+        true,
+        translateUI.t('dialog-sourceverification-restricted-mode-button') || 'Open in Restricted Mode',
+        translateUI.t('dialog-sourceverification-trust-button') || 'Trust Source'
+    );
+
     if (response) {
         params.contentInjectionMode = 'serviceworker';
         var trustedZimFiles = settingsStore.getItem('trustedZimFiles');
@@ -661,7 +715,7 @@ async function verifyLoadedArchive (archive) {
             document.getElementById('serviceworkerModeRadio').checked = true;
         }
     } else {
-        // Switch to Safe mode
+        // Switch to Restricted mode
         params.contentInjectionMode = 'jquery';
         document.getElementById('jqueryModeRadio').checked = true;
     }
@@ -702,7 +756,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
         message = [(translateUI.t('dialog-serviceworker-defaultmodechange-message') ||
             '<p>We have switched you to ServiceWorker mode (this is now the default). ' +
             'It supports more types of ZIM archives and is much more robust.</p>' +
-            '<p>If you experience problems with this mode, you can switch back to Safe mode. ' +
+            '<p>If you experience problems with this mode, you can switch back to Restricted mode. ' +
             'In that case, please report the problems you experienced to us (see About section).</p>'),
         (translateUI.t('dialog-serviceworker-defaultmodechange-title') || 'Change of default content injection mode')];
         uiUtil.systemAlert(message[0], message[1]).then(function () {
@@ -711,7 +765,7 @@ function checkAndDisplayInjectionModeChangeAlert () {
     } else if (!params.defaultModeChangeAlertDisplayed && params.contentInjectionMode === 'jquery') {
         message = [(translateUI.t('dialog-serviceworker-unsupported-message') ||
             '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
-            '<p>You can continue to use the app in Safe mode, but note that this mode only works well with ' +
+            '<p>You can continue to use the app in Restricted mode, but note that this mode only works well with ' +
             'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
             '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>'),
         (translateUI.t('dialog-serviceworker-unsupported-title') || 'ServiceWorker mode unsupported')];
@@ -937,10 +991,10 @@ function initServiceWorkerMessaging () {
             action: 'init'
         });
     } else if (serviceWorkerRegistration) {
-        // If this is the first time we are initiating the SW, allow Promises to complete by delaying potential reload till next tick
+        // If this is the first time we are initiating the SW, allow Promises to complete and assets to be fetched by delaying potential reload
         console.warn('The Service Worker needs more time to load, or else the app was force-refreshed...');
         serviceWorkerRegistration = null;
-        setTimeout(initServiceWorkerMessaging, 1600);
+        setTimeout(initServiceWorkerMessaging, 3000);
     } else if (params.contentInjectionMode === 'serviceworker') {
         console.error('The Service Worker is not controlling the current page! We have to reload.');
         // Turn off failsafe, as this is a controlled reboot
@@ -956,7 +1010,7 @@ function initServiceWorkerMessaging () {
                         setTimeout(function () {
                             params.themeChanged = true;
                             document.getElementById('btnHome').click();
-                        }, 750);
+                        }, 800);
                     }
                 }
             });
@@ -1027,7 +1081,7 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Safe mode!'),
+            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Restricted mode!'),
                 (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
@@ -1083,12 +1137,12 @@ function setContentInjectionMode (value) {
             if (!isServiceWorkerAvailable()) {
                 message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
-                    '<p>You can continue to use the app in Safe mode, but note that this mode only works well with ' +
+                    '<p>You can continue to use the app in Restricted mode, but note that this mode only works well with ' +
                     'ZIM archives that have static content, such as Wikipedia / Wikimedia ZIMs or Stackexchange.</p>' +
                     '<p>If you can, we recommend that you update your browser to a version that supports ServiceWorker mode.</p>';
                 if (!params.noPrompts) {
                     uiUtil.systemAlert(message, (translateUI.t('dialog-launchpwa-unsupported-title') || 'ServiceWorker API not available'), true, null,
-                        (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use Safe mode')).then(function (response) {
+                        (translateUI.t('dialog-serviceworker-unsupported-fallback') || 'Use Restricted mode')).then(function (response) {
                         if (params.referrerExtensionURL && response) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
@@ -1102,7 +1156,7 @@ function setContentInjectionMode (value) {
                 return;
             }
             if (!isMessageChannelAvailable()) {
-                uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to Safe mode...'),
+                uiUtil.systemAlert((translateUI.t('dialog-messagechannel-unsupported-message') || 'The MessageChannel API is not available on your device. Falling back to Restricted mode...'),
                     (translateUI.t('dialog-messagechannel-unsupported-title') || 'MessageChannel API not available')).then(function () {
                     setContentInjectionMode('jquery');
                 });
@@ -1150,7 +1204,7 @@ function setContentInjectionMode (value) {
                         } else {
                             console.error('Error while registering serviceWorker', err);
                             refreshAPIStatus();
-                            var message = (translateUI.t('dialog-serviceworker-registration-failure-message') || 'The Service Worker could not be properly registered. Switching back to Safe mode... Error message:') + ' ' + err;
+                            var message = (translateUI.t('dialog-serviceworker-registration-failure-message') || 'The Service Worker could not be properly registered. Switching back to Restricted mode... Error message:') + ' ' + err;
                             if (protocol === 'file:') {
                                 message += (translateUI.t('dialog-serviceworker-registration-failure-fileprotocol') ||
                                 '<br/><br/>You seem to be opening kiwix-js with the file:// protocol. You should open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you need a secure connection: https://webserver.org/...)');
@@ -1241,7 +1295,7 @@ function launchBrowserExtensionServiceWorker () {
     message += (translateUI.t('dialog-allow-internetaccess-message4') ||
         'need one-time access to our secure server so that the app can re-launch as a Progressive Web App (PWA). ' +
         'If available, the PWA will work offline, but will auto-update periodically when online as per the ' +
-        'Service Worker spec.</p><p>You can switch back any time by returning to Safe mode.</p>' +
+        'Service Worker spec.</p><p>You can switch back any time by returning to Restricted mode.</p>' +
         '<p>WARNING: This will attempt to access the following server:<br/>') + params.PWAServer + '</p>';
     var launchPWA = function () {
         uiUtil.spinnerDisplay(false);
@@ -1563,7 +1617,7 @@ function displayFileSelect () {
         folderSelect.addEventListener('click', async function (e) {
             e.preventDefault();
             const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
-            if (previousZimFiles.length !== 0) setLocalArchiveFromFileList(previousZimFiles);
+            if (previousZimFiles.length === 1) setLocalArchiveFromFileList(previousZimFiles);
         });
     }
     if (params.isWebkitDirApiSupported) {
@@ -1630,7 +1684,7 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
 
 /** Drag and Drop handling for ZIM files */
 
-// Keep track of entrance event so we only fire the correct leave event 
+// Keep track of entrance event so we only fire the correct leave event
 var enteredElement;
 
 function handleGlobalDragenter (e) {
@@ -1682,7 +1736,7 @@ function hasInvalidType (typesList) {
     for (var i = 0; i < typesList.length; i++) {
         // Use indexOf() instead of startsWith() for IE11 support. Also, IE11 uses Text instead of text (and so does Opera).
         // This is not comprehensive, but should cover most cases.
-        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0|| typesList[i].indexOf('video') === 0) {
+        if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0 || typesList[i].indexOf('video') === 0) {
             return true;
         }
     }
@@ -1790,7 +1844,9 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
-    // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Safe Mode/jquery Mode when opening the previous archive
+    // This flag will be reset each time a new archive is loaded
+    appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
         // Change the radio buttons accordingly
@@ -2013,15 +2069,15 @@ function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
 }
 
 /**
- * Check whether the given URL from given dirEntry equals the expectedArticleURLToBeDisplayed
+ * Check whether the given URL from given dirEntry matches the expected article
  * @param {DirEntry} dirEntry The directory entry of the article to read
  */
 function isDirEntryExpectedToBeDisplayed (dirEntry) {
     var curArticleURL = dirEntry.namespace + '/' + dirEntry.url;
 
-    if (expectedArticleURLToBeDisplayed !== curArticleURL) {
+    if (appstate.expectedArticleURLToBeDisplayed !== curArticleURL) {
         console.debug('url of current article :' + curArticleURL + ', does not match the expected url :' +
-        expectedArticleURLToBeDisplayed);
+        appstate.expectedArticleURLToBeDisplayed);
         return false;
     }
     return true;
@@ -2040,8 +2096,10 @@ function readArticle (dirEntry) {
 
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
-    // Only update for expectedArticleURLToBeDisplayed.
-    expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+    // Only update for appstate.expectedArticleURLToBeDisplayed.
+    appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+    // Calculate the current article's ZIM baseUrl to use when processing relative links
+    appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
     // We must remove focus from UI elements in order to deselect whichever one was clicked (in both jQuery and SW modes),
     // but we should not do this when opening the landing page (or else one of the Unit Tests fails, at least on Chrome 58)
     if (!params.isLandingPage) articleContainer.contentWindow.focus();
@@ -2162,7 +2220,12 @@ function filterClickEvent (event) {
         clickedAnchor.passthrough = false;
         return;
     }
+    // Remove any Kiwix Popovers that may be hanging around
+    popovers.removeKiwixPopoverDivs(event.target.ownerDocument);
+    if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
+        // This prevents any popover from being displayed when the user clicks on a link
+        clickedAnchor.articleisloading = true;
         // Check for Zimit links that would normally be handled by the Replay Worker
         // DEV: '__WB_pmw' is a function inserted by wombat.js, so this detects links that have been rewritten in zimit2 archives
         // however, this misses zimit2 archives where the framework doesn't support wombat.js, so monitor if always processing zimit2 links
@@ -2171,21 +2234,26 @@ function filterClickEvent (event) {
           articleWindow.location.href.replace(/[#?].*$/, '') !== clickedAnchor.href.replace(/[#?].*$/, '') && !clickedAnchor.hash) {
             return handleClickOnReplayLink(event, clickedAnchor);
         }
+        // DEV: The href returned below is the href as written in the HTML, which may be relative
         var href = clickedAnchor.getAttribute('href');
-        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website.
-        // We also do it for ftp even if it's not supported any more by recent browsers...
-        if (/^(?:http|ftp)/i.test(href)) {
+        // We assume that, if an absolute http(s) link is hardcoded inside an HTML string, it means it's a link to an external website
+        // (this assumption is only safe for non-Replay archives, but we deal with those separately above: they are routed to handleClickOnReplayLink).
+        // Additionally, by comparing the protocols, we can filter out protocols such as `mailto:`, `tel:`, `skype:`, etc. (these should open in a new window).
+        // DEV: The test for a protocol of ':' may no longer be needed. It needs careful testing in all browsers (particularly in Edge Legacy), and if no
+        // longer triggered, it can be removed.
+        if (/^http/i.test(href) || clickedAnchor.protocol && clickedAnchor.protocol !== ':' && articleWindow.location.protocol !== clickedAnchor.protocol) {
             console.debug('filterClickEvent opening external link in new tab');
             clickedAnchor.newcontainer = true;
             uiUtil.warnAndOpenExternalLinkInNewTab(event, clickedAnchor);
-        } else if (/\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
-            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab
+        } else if (clickedAnchor.newcontainer || /\.pdf([?#]|$)/i.test(href) && selectedArchive.zimType !== 'zimit') {
+            // Due to the iframe sandbox, we have to prevent the PDF viewer from opening in the iframe and instead open it in a new tab. We also open
+            // a new tab if the user has explicitly requested it: in this case the anchor will have a property 'newcontainer' (e.g. with popover control)
             event.preventDefault();
             event.stopPropagation();
-            console.debug('filterClickEvent opening new window for PDF');
+            console.debug('filterClickEvent opening new window for PDF or requested new container');
             clickedAnchor.newcontainer = true;
             window.open(clickedAnchor.href, '_blank');
-        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) {
+        } else if (/\/[-ABCIJMUVWX]\/.+$/.test(clickedAnchor.href)) { // clickedAnchor.href returns the absolute URL, including any namespace
             // Show the spinner if it's a ZIM link, but not an anchor
             if (!~href.indexOf('#')) {
                 var message = href.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
@@ -2198,6 +2266,14 @@ function filterClickEvent (event) {
                 uiUtil.showSlidingUIElements();
             }
         }
+        // Reset popup block
+        setTimeout(function () {
+            // Anchor may have been unloaded along with the page by the time this runs
+            // but will still be present if user opened a new tab
+            if (clickedAnchor) {
+                clickedAnchor.articleisloading = false;
+            }
+        }, 1000);
     }
 };
 
@@ -2227,13 +2303,13 @@ function articleLoadedSW (iframeArticleContent) {
     }
     resizeIFrame();
 
-    if (iframeArticleContent.contentWindow) {
+    var iframeWindow = iframeArticleContent.contentWindow;
+    if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
-        if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.onkeydown = focusPrefixOnHomeKey; }
-        if (params.openExternalLinksInNewTabs) {
-            // Add event listener to iframe window to check for links to external resources
-            iframeArticleContent.contentWindow.onclick = filterClickEvent;
-        }
+        if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
+        // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
+        iframeWindow.onclick = filterClickEvent;
+        attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
@@ -2254,6 +2330,117 @@ function articleLoadedSW (iframeArticleContent) {
     params.isLandingPage = false;
 };
 
+/**
+ * Attaches popover trigger events to the given window
+ * @param {Window} win The window to which to attach popover trigger events
+ */
+function attachPopoverTriggerEvents (win) {
+    const iframeDoc = win.document;
+    // The popover feature requires as a minimum that the browser supports the css matches function
+    // (having this condition prevents very erratic popover placement in IE11, for example, so the feature is disabled for such browsers)
+    if (!iframeDoc || !appstate.wikimediaZimLoaded || !params.showPopoverPreviews || !('matches' in Element.prototype)) {
+        return;
+    }
+    // Attach the popover CSS to the current article document
+    popovers.attachKiwixPopoverCss(iframeDoc);
+    // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
+    win.addEventListener('mouseover', evokePopoverEvents, true);
+    win.addEventListener('focus', evokePopoverEvents, true);
+    // Conditionally add event listeners to support touch events with fallback to pointer events
+    if (window.navigator.maxTouchPoints > 0) {
+        win.addEventListener('touchstart', evokePopoverEvents, true);
+    } else {
+        win.addEventListener('pointerdown', evokePopoverEvents, true);
+    }
+}
+
+// Throttle for the popover event handler to prevent multiple activations with mouse movement
+let popoverThrottle = false;
+
+/**
+ * Conditionally evokes popover events subject to a throttle
+ * @param {Event} event The event produced by the calling action
+ */
+function evokePopoverEvents (event) {
+    // Check if the hovered or focused element or its parent is a link
+    if (popoverThrottle) return;
+    popoverThrottle = true;
+    setTimeout(function () {
+        handlePopoverEvents(event);
+        popoverThrottle = false;
+    }, 10);
+};
+
+/**
+ * Event handler for attaching preview popovers
+ * @param {Event} event The event produced by the mouseover or focus action
+ */
+function handlePopoverEvents (ev) {
+    let anchor = ev.target;
+    const iframeDoc = anchor.ownerDocument;
+    if (!iframeDoc) return;
+    const iframeWindow = iframeDoc.defaultView;
+    while (anchor && anchor !== iframeWindow && anchor.nodeName !== 'A') {
+        anchor = anchor.parentNode;
+    }
+    // If we're not hovering a link, then we can exit
+    if (!anchor || anchor.nodeName !== 'A') return;
+    // console.debug(event.type, event.target, a);
+    const suppressContextMenuHandler = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+    // Prevent context menu on this anchor element
+    anchor.addEventListener('contextmenu', suppressContextMenuHandler, true);
+    if (/touchstart|pointerdown/.test(ev.type)) {
+        anchor.touched = true; // Used to prevent dismissal of popver on mouseout if initiated by touch
+    }
+    if (anchor.style.userSelect === undefined) {
+        // This prevents selection of the text in a touched link in Safari for iOS and Edge Legacy / UWP
+        anchor.style.webkitUserSelect = 'none';
+        anchor.style.msUserSelect = 'none';
+    }
+    // Check if a popover div is currently being hovered
+    const divArray = Array.from(iframeDoc.getElementsByClassName('kiwixtooltip'));
+    const divIsHovered = divArray.some(div => div.matches(':hover'));
+    // Only add a popover to the link if a current popover is not being hovered (prevents popovers showing for links in a popover)
+    if (!divIsHovered) {
+        // Prevent text selection while popover is open in modern browsers
+        anchor.style.userSelect = 'none';
+        // Resolve the true app theme
+        const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
+        // Get and populate the popover corresponding to the hovered or focused link
+        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
+    }
+    const outHandler = function (e) {
+        setTimeout(function () {
+            anchor.popoverisloading = false;
+            if (/blur/.test(e.type) || !anchor.touched) {
+                popovers.removeKiwixPopoverDivs(iframeDoc);
+                anchor.touched = false;
+            }
+            anchor.style.webkitUserSelect = 'auto';
+            anchor.style.msUserSelect = 'auto';
+            anchor.style.userSelect = 'auto';
+            anchor.removeEventListener(e.type, outHandler);
+            anchor.removeEventListener('contextmenu', suppressContextMenuHandler, true);
+        }, 250);
+    };
+    // Clean up when user stops hovering, lifts pointer, stops touching, or unfocuses (blurs) the link
+    if (/mouseover/.test(ev.type)) {
+        anchor.addEventListener('mouseleave', outHandler);
+    }
+    if (/pointerdown/.test(ev.type)) {
+        anchor.addEventListener('pointerup', outHandler);
+    }
+    if (/touchstart/.test(ev.type)) {
+        anchor.addEventListener('touchend', outHandler);
+    }
+    if (ev.type === 'focus') {
+        anchor.addEventListener('blur', outHandler);
+    }
+}
+
 // Handles a click on a Zimit link that has been processed by Wombat
 function handleClickOnReplayLink (ev, anchor) {
     var basePath = window.location.href.replace(/^(.*?\/)www\/.*$/, '$1');
@@ -2261,10 +2448,23 @@ function handleClickOnReplayLink (ev, anchor) {
     var pseudoNamespace = selectedArchive.zimitPseudoContentNamespace;
     var pseudoDomainPath = (anchor.hostname === window.location.hostname ? selectedArchive.zimitPrefix.replace(/\/$/, '') : anchor.hostname) + anchor.pathname;
     var containingDocDomainPath = anchor.ownerDocument.location.hostname + anchor.ownerDocument.location.pathname;
-    // If it's for a different protocol (e.g. javascript:) we should let Replay handle that, or if the paths are identical, then we are dealing
-    // with a link to an anchor in the same document, or if the user has pressed the ctrl or command key, the document will open in a new window
-    // anyway, so we can return. Note that some PDFs are served with a protocol of http: instead of https:, so we need to account for that.
-    if (anchor.protocol.replace(/s:/, ':') !== document.location.protocol.replace(/s:/, ':') || pseudoDomainPath === containingDocDomainPath) return;
+    // Normalize the protocols of the clicked anchor and the document, because some PDFs are served with a protocol of http: instead of https:
+    var normalizedAnchorProtocol = anchor.protocol ? anchor.protocol.replace(/s:/, ':') : '';
+    var normalizedDocumentProtocol = document.location.protocol.replace(/s:/, ':');
+    // If the paths are identical, then we are dealing with a link to an anchor in the same document
+    if (pseudoDomainPath === containingDocDomainPath) return;
+    // If it's for a different protocol (e.g. javascript:) we may need to handle that, or if the user has pressed the ctrl or command key, the document
+    // will open in a new window anyway, so we can return.
+    if (normalizedAnchorProtocol && normalizedAnchorProtocol !== normalizedDocumentProtocol) {
+        // DEV: Monitor whether you need to handle /blob:|data:|file:/ as well (probably not, as they would be blocked by the sandbox if loaded into iframe)
+        if (/about:|javascript:/i.test(anchor.protocol) || ev.ctrlKey || ev.metaKey || ev.button === 1) return;
+        // So it's probably a URI scheme or protocol like mailto: that would violate the CSP, so we need to open it explicitly in a new tab
+        ev.preventDefault();
+        ev.stopPropagation();
+        console.debug('handleClickOnReplayLink opening custom protocol ' + anchor.protocol + ' in new tab');
+        uiUtil.warnAndOpenExternalLinkInNewTab(ev, anchor);
+        return;
+    }
     var zimUrl;
     // If it starts with the path to the ZIM file, then we are dealing with an untransformed absolute local ZIM link
     if (!anchor.href.indexOf(pathToZim)) {
@@ -2392,7 +2592,7 @@ function handleUnsupportedReplayWorker (unhandledDirEntry) {
     readArticle(unhandledDirEntry);
     // if (!params.hideActiveContentWarning) uiUtil.displayActiveContentWarning();
     return uiUtil.systemAlert(translateUI.t('dialog-unsupported-archivetype-message') || '<p>You are attempting to open a Zimit-style archive, ' +
-        'which is not supported by your browser in ServiceWorker(Local) mode.</p><p>We have temporarily switched you to Safe mode ' +
+        'which is not supported by your browser in ServiceWorker(Local) mode.</p><p>We have temporarily switched you to Restricted mode ' +
         'so you can view static content, but a lot of content is non-functional in this configuration.</p>',
     translateUI.t('dialog-unsupported-archivetype-title') || 'Unsupported archive type!');
 }
@@ -2441,6 +2641,12 @@ function handleMessageChannelMessage (event) {
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
+                    // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
+                    // or simply `html`, so this has to be as generic as possible
+                    if (/\bx?html/i.test(mimetype)) {
+                        // Calculate the current article's ZIM baseUrl to use when attaching popovers
+                        appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
+                    }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
                 }
@@ -2510,7 +2716,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     // (duplicated because we sometimes bypass readArticle above)
-    var baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
+    appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
@@ -2574,7 +2780,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
             // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
             // of encodeURIComponent.
-            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl));
+            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, appstate.baseUrl));
         }
         newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
         // Replace any srcset with data-kiwixsrcset
@@ -2751,6 +2957,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
+                // Prevent display of any popovers because we're loading a new article
+                anchor.articleisloading = true;
                 anchorParameter = href.match(/#([^#;]+)$/);
                 anchorParameter = anchorParameter ? anchorParameter[1] : '';
                 var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
@@ -2771,30 +2979,33 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         // Zimit ZIMs store URLs percent-encoded and with querystring and
                         // deriveZimUrlFromRelativeUrls strips any querystring and decodes
                         var zimUrlToTransform = zimUrl;
-                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl)) +
+                        zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl)) +
                             href.replace(uriComponent, '').replace('#' + anchorParameter, '');
-                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, baseUrl) +
+                        // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl) +
                         //     href.replace(uriComponent, '').replace('#' + anchorParameter, ''));
                     }
                 } else {
                     // It's a relative URL, so we need to calculate the full ZIM URL
-                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+                    zimUrl = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, appstate.baseUrl);
                 }
                 goToArticle(zimUrl, downloadAttrValue, contentType);
+                // DEV: There is no need to remove the anchor.articleisloading flag because we do not open new tabs for ZIM URLs in Restricted Mode
+                // so the anchor will be erased form the DOM when the new article is loaded
             });
         });
+        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
     }
 
     function loadImagesJQuery () {
         // Make an array from the images that need to be processed
         var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
         // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
-        images.owner = expectedArticleURLToBeDisplayed;
+        images.owner = appstate.expectedArticleURLToBeDisplayed;
         // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
         // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
         // DOM, making for a better user experience (because images above the fold are extracted first)
         (function extractImage () {
-            if (!images.length || images.busy || images.owner !== expectedArticleURLToBeDisplayed) return;
+            if (!images.length || images.busy || images.owner !== appstate.expectedArticleURLToBeDisplayed) return;
             images.busy = true;
             // Extract the image at the top of the images array and remove it from the array
             var image = images.shift();
@@ -2948,7 +3159,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         Array.prototype.slice.call(iframe.querySelectorAll('video, audio, source, track'))
             .forEach(function (mediaSource) {
                 var source = mediaSource.getAttribute('src');
-                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, baseUrl) : null;
+                source = source ? uiUtil.deriveZimUrlFromRelativeUrl(source, appstate.baseUrl) : null;
                 // We have to exempt text tracks from using deriveZimUrlFromRelativeurl due to a bug in Firefox [kiwix-js #496]
                 source = source || decodeURIComponent(mediaSource.dataset.kiwixurl);
                 if (!source || !regexpZIMUrlWithNamespace.test(source)) {

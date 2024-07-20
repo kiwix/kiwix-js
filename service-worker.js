@@ -33,7 +33,7 @@
  * download and install a new copy; we have to hard code this here because it is needed before any other file
  * is cached in APP_CACHE
  */
-const appVersion = '4.0.1';
+const appVersion = '4.1.1';
 
 /**
  * The name of the Cache API cache in which assets defined in regexpCachedContentTypes will be stored
@@ -122,6 +122,8 @@ const precacheFiles = [
     'www/img/icons/kiwix-256.png',
     'www/img/icons/kiwix-32.png',
     'www/img/icons/kiwix-60.png',
+    'www/img/icons/new_window_black.svg',
+    'www/img/icons/new_window_white.svg',
     'www/img/spinner.gif',
     'www/img/Icon_External_Link.png',
     'www/index.html',
@@ -135,6 +137,7 @@ const precacheFiles = [
     'www/js/lib/arrayFromPolyfill.js',
     'www/js/lib/filecache.js',
     'www/js/lib/cache.js',
+    'www/js/lib/popovers.js',
     'www/js/lib/promisePolyfill.js',
     'www/js/lib/settingsStore.js',
     'www/js/lib/translateUI.js',

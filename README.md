@@ -48,7 +48,7 @@ viewable (if at all). Our sister app https://pwa.kiwix.org has some further supp
 Be sure to get your ZIM archives only from a secure source, such as the official Kiwix library. This is because ZIM archives can run dynamic code in your browser. While
 we do our best to sandbox the ZIM's content, a detemined malicious ZIM could remove the sandbox and redirect the iframe to, say, a phishing Web site. For this reason
 we now show a Security Warning when you open a ZIM with dynamic content in ServiceWorker mode for the first time. If you do not trust the source of the ZIM, and wish to
-browser static content safely, then open the ZIM first in Safe Mode before deciding whether to switch to ServiceWorker Mode.
+browser static content safely, then open the ZIM first in Restricted Mode before deciding whether to switch to ServiceWorker Mode.
 
 ## Compatibility
 
@@ -60,7 +60,7 @@ would suggest that you upgrade to a browser that supports Service Workers (Chrom
 ### Officially supported platforms
 
 - <img src="images/firefoxbrowser-color.svg" width="20" /> Mozilla Firefox >=56 (as an extension): [Mozilla Add-ons Store](https://addons.mozilla.org/firefox/addon/kiwix-offline/)
-    + Firefox 52-56 and ESR version 58: Limited support (Safe mode only)
+    + Firefox 52-56 and ESR version 58: Limited support (Restricted mode only)
 - Chromium / Chrome / Edge >= 88 (as a Manifest V3 extension):
     + <img src="images/googlechrome-color.svg" width="20" /> Google Chrome >=88: [Chrome Web Store](https://chrome.google.com/webstore/detail/kiwix/donaljnlmapmngakoipdmehbfcioahhk)
     + <img src="images/microsoftedge-color.svg" width="20" /> Microsoft Edge >=88: [Edge Add-ons Store](https://microsoftedge.microsoft.com/addons/detail/kiwix/jlepddlenlljlnnhjinfaciabanbnjbp)
@@ -76,8 +76,8 @@ These platforms/browsers are deprecated. We still partially test against them, a
 
 - Firefox OS >=1.2: needs to be installed manually on the device with WebIDE
 - Microsoft Edge Legacy >=17: no extension available, but bookmark https://browser-extension.kiwix.org or https://pwa.kiwix.org
-- Microsoft Edge Legacy 15-16: needs to run a bundled version of the source code in Safe mode only
-- Microsoft Internet Explorer 11: needs to run a bundled version of the source code in Safe mode only
+- Microsoft Edge Legacy 15-16: needs to run a bundled version of the source code in Restricted mode only
+- Microsoft Internet Explorer 11: needs to run a bundled version of the source code in Restricted mode only
 
 **_You can build a bundled version by running `npm install` and `npm run build` in the root directory of this repo._** Alternatively, a bundled version is served
 as a web app for testing from https://kiwix.github.io/kiwix-js/dist/ (also available on the `gh-pages` branch of this repo, under `/dist`). 
@@ -111,9 +111,9 @@ for security reasons. In both cases we offer a functional workaround (an offline
 - "ServiceWorkerLocal" mode is a restricted ServiceWorker mode that is available only in Chromium extensions running fully locally. Chromium
 extensions running locally block (by design) a lot of dynamic content such as inline JavaScript and `eval`, which means this mode won't work
 with some modern dynamic content, and in particular, it won't work with Zimit-based archives (if you open one of these in this mode, you
-will be thrown back to Safe mode in order to view static content). However, this mode is useful if you cannot access the offline-first PWA,
+will be thrown back to Restricted mode in order to view static content). However, this mode is useful if you cannot access the offline-first PWA,
 and should work with most official Kiwix ZIM archives;
-- "Safe" mode prevents running attached scripts in the iframe, and so is useful for checking the contents of a ZIM before deciding it is safe
+- "Restricted" mode prevents running attached scripts in the iframe, and so is useful for checking the contents of a ZIM before deciding it is safe
 to run. This mode also works in browsers that do not support Service Workers. It parses the DOM to find the HTML tags of the dependencies and
 modifies them to point to content we extract from the ZIM. This mode is compatible with any browser, but becuase it cannot run JavaScript
 inside the ZIM file, does not work well (if at all) with ZIMs that depend on dynamic content. If you open a dynamic (including Zimit) archive

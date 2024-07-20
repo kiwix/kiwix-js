@@ -4,12 +4,31 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## In-progress (interim) Kiwix JS v4.0.1
+## Kiwix JS v4.1.0
 
-Note: this is temporarily released as an update to the browser-extension remote PWA only
+Released on *2024-07-15*
 
-* FEATURE: Ability optionally to re-open an archive automatically in Chromium browsers > 122
+* FEATURE: Preview a WikiMedia ZIM article in a popover by hovering, long-pressing, or tabbing into a link
+* FEATURE: Automatically re-open the last selected archive in Chromium browsers > 122
+* FEATURE: New security dialogue box when opening untrusted ZIMs now shows enhanced ZIM metadata
+* ENHANCEMENT: Display active content warning when opening PhET ZIMs in Restricted mode
+* ENHANCEMENT: Added option to turn off external link warning
+* INFO: Translated Kiwix JS extension entries in Edge and Chrome Stores to Spanish and French
+* UPDATE: JQuery mode is now renamed to Restricted mode to better indicate its effect
+* UPDATE: JQuery is now fully removed from all first-party code
+* UPDATE: Simplify active content warning for clarity and impact
+* UPDATE: Allow more time for caching assets before rebooting if SW registration stalls
 * FIX: Various issues with enumarating the contents of picked folders
+* FIX: Bug with empty search box on initial ZIM load
+* FIX: Bug which caused app to reload when accidentally dragging images or links in articles 
+* FIX: Non-supported URI schemata (protocols) now open outside the sandbox
+* FIX: Avoid accidentally opening the first ZIM archive in a picked directory of archives
+* FIX: Several typos
+* WORKAROUND: Overencoded querystrings in Zimit2 external links are now decoded
+* DEV: Add i18n for extension manifests so that Add-on Store entries can be translated
+* DEV: Change method for patching gitignore when adding NPM dependencies
+* DEV: Some code reorganization
+* DEPENDENCIES: Updates to follow-redirects, vite, braces, ws
 
 ## Kiwix JS v4.0.0
 

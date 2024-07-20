@@ -402,10 +402,14 @@ function determineCanvasElementsWorkaround () {
  *
  * @param {Element} link The original link node from the DOM
  * @param {String} cssContent The content to insert as an inline stylesheet
+ * @param {String} id An optional id to add to the style element
  */
-function replaceCSSLinkWithInlineCSS (link, cssContent) {
+function replaceCSSLinkWithInlineCSS (link, cssContent, id) {
     var cssElement = document.createElement('style');
-    cssElement.type = 'text/css';
+    if (id) {
+        cssElement.id = id;
+    }
+    cssElement.type = 'text/css'; // Still needed for FFOS
     if (cssElement.styleSheet) {
         cssElement.styleSheet.cssText = cssContent;
     } else {
@@ -467,7 +471,7 @@ var activeContentWarningSetup = false;
 function displayActiveContentWarning (mode) {
     // Adapt the text for other modes (e.g., ServiceWorkerLocal)
     if (mode) {
-        activeContent.innerHTML = activeContent.innerHTML.replace(translateUI.t('alert-activecontentwarning-safemode') || 'Safe', mode);
+        activeContent.innerHTML = activeContent.innerHTML.replace(translateUI.t('alert-activecontentwarning-restrictedmode') || 'Restricted', mode);
         // We have to set up event listeners again
         activeContentWarningSetup = false;
     }
@@ -848,9 +852,8 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
  */
 function applyAppTheme (theme) {
-    var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
-    var appTheme = /^auto/.test(theme) ? darkPreference.matches ? 'dark' : 'light' : theme.replace(/_.*$/, '');
+    var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
     var contentTheme = theme.replace(/^[^_]*/, '');
     var htmlEl = document.querySelector('html');
@@ -922,6 +925,11 @@ function applyAppTheme (theme) {
     }
 }
 
+// Determines whether the user has requested a dark theme based on preference and browser settings
+function isDarkTheme (theme) {
+    return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
+}
+
 // Displays the return link and handles click event. Called by applyAppTheme()
 function showReturnLink () {
     var viewArticle = document.getElementById('viewArticle');
@@ -936,7 +944,7 @@ function returnToCurrentPage () {
     tabTransitionToSection('home', params.showUIAnimations);
     const welcomeText = document.getElementById('welcomeText');
     welcomeText.style.display = 'none';
-    viewArticle.style.display = 'none';
+    document.getElementById('viewArticle').style.display = 'none';
 }
 
 // Reports an error in loading one of the ASM or WASM machines to the UI API Status Panel
@@ -967,7 +975,7 @@ function reportSearchProviderToAPIStatusPanel (provider) {
 /**
  * Warn the user that they clicked on an external link, and open it in a new tab
  *
- * @param {Event} event The click event (on an anchor) to handle. If not provided, then clickedAnchor must be provided.
+ * @param {Event} event The click event to handle. If not provided, then clickedAnchor must be provided.
  * @param {Element} clickedAnchor The DOM anchor that has been clicked (optional, defaults to event.target)
  * @param {ZIMArchive} archive The archive object from which the link was scraped (optional)
  */
@@ -987,18 +995,24 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
     if (!target) {
         target = '_blank';
     }
+    let href = clickedAnchor.href;
+    // @WORKAROUND: Note that for Zimit2 ZIMs (only), any querystring in an external link will be overencoded.
+    // See https://github.com/kiwix/kiwix-js/issues/1258. DEV: Monitor this issue, and remove the workaround if it is fixed upstream.
+    if (params.zimType === 'zimit2') {
+        href = decodeURIComponent(href);
+    }
     if (params.hideExternalLinkWarning) {
-        window.open(clickedAnchor.href, target);
+        window.open(href, target);
         return;
     }
     var message = translateUI.t('dialog-open-externalurl-message') || '<p>Do you want to open this external link?';
     if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
-    message += '</p><p style="word-break:break-all;">' + clickedAnchor.href + '</p>';
+    message += '</p><p style="word-break:break-all;">' + href + '</p>';
     systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
-            window.open(clickedAnchor.href, target);
+            window.open(href, target);
         }
     });
 }
@@ -1075,6 +1089,7 @@ export default {
     removeAnimationClasses: removeAnimationClasses,
     tabTransitionToSection: tabTransitionToSection,
     applyAppTheme: applyAppTheme,
+    isDarkTheme: isDarkTheme,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
