@@ -74,6 +74,16 @@ var LZ;
 function ZIMArchive (storage, path, callbackReady, callbackError) {
     var that = this;
     that.file = null;
+
+        // Helper function to handle errors
+        function handleError(error) {
+            if (callbackError) {
+                callbackError({ success: false, message: `Error: ${error.message}` });
+            } else {
+                console.error(`Error: ${error.message}`);
+            }
+        }
+
     var whenZimReady = function () {
         // Add time-critical metadata from the M/ namespace that you need early access to here
         // Note that adding metadata here delays the reporting of the ZIM archive as ready
@@ -98,20 +108,132 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     that.addMetadataToZIMFile('Title')
                 ]).then(function () {
                     console.debug('ZIMArchive metadata loaded:', that);
-                });
+                }).catch(handleError);
             }, 1000); // DEV: If you need any of the above earlier, you can alter this delay
             // We need to get the landing page of any Zimit archive opened
             // Note that the test below catches both zimit and zimit2 types
-            if (/zimit/.test(that.zimType)) {
-                return that.setZimitMetadata().then(function () {
-                    callbackReady(that);
-                });
-            } else {
-                // All listings should be loaded, so we can now call the callback
-                callbackReady(that);
+        // We need to get the landing page of any Zimit archive opened
+        if (/zimit/.test(that.zimType)) {
+            return that.setZimitMetadata()
+                .then(function () {
+                    if (callbackReady) {
+                        callbackReady({ success: true, archive: that });
+                    }
+                })
+                .catch(handleError); // Handle errors during Zimit metadata setting
+        } else {
+            // All listings should be loaded, so we can now call the callback
+            if (callbackReady) {
+                callbackReady({ success: true, archive: that });
             }
-        });
+        }
+    })
+    .catch(handleError); // Handle errors during initial metadata addition
+};
+    if (storage && !path) {
+        var fileList = storage;
+        // We need to convert the FileList into an Array
+        var fileArray = [].slice.call(fileList);
+        // The constructor has been called with an array of File/Blob parameter
+        createZimfile(fileArray);
+    } else {
+        if (/.*zim..$/.test(path)) {
+            // split archive
+            that._searchArchiveParts(storage, path.slice(0, -2)).then(function (fileArray) {
+                createZimfile(fileArray);
+            }).catch(function (error) {
+                handleError(new Error((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + path + ': ' + error));
+            });
+
+        } else {
+            storage.get(path).then(function (file) {
+                createZimfile([file]);
+            }).catch(function (error) {
+                handleError(new Error((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + path + ': ' + error));
+            });
+        }
+    }
+}
+
+/**
+ * Searches the directory for all parts of a split archive.
+ * @param {Storage} storage storage interface
+ * @param {String} prefixPath path to the split files, missing the "aa" / "ab" / ... suffix.
+ * @returns {Promise} that resolves to the array of file objects found.
+ */
+ZIMArchive.prototype._searchArchiveParts = function (storage, prefixPath) {
+    var fileArray = [];
+    var nextFile = function (part) {
+        var suffix = String.fromCharCode(0x61 + Math.floor(part / 26)) + String.fromCharCode(0x61 + part % 26);
+        return storage.get(prefixPath + suffix)
+            .then(function (file) {
+                fileArray.push(file);
+                return nextFile(part + 1);
+            })  .catch(function (error) {
+                handleError(new Error(`Error reading split archive file ${prefixPath + suffix}: ${error.message}`));
+                return fileArray; // Continue with the files that have been successfully read
+            });
     };
+
+    return nextFile(0);
+};
+
+/**
+ *
+ * @returns {Boolean}
+ */
+ZIMArchive.prototype.isReady = function () {
+    return this.file !== null;
+};
+
+/**
+ * Detects whether the supplied archive is a Zimit-style archive or an OpenZIM archive and
+ * sets a zimType property accordingly; also returns the detected type. Extends ZIMArchive.
+ * @returns {String} 'zimit' for a classic Zimit archive, 'zimit2' for a zimit2 archive, or 'open' for an OpenZIM archive
+ */
+ZIMArchive.prototype.setZimType = function () {
+    var archiveType = null;
+    if (this.isReady()) {
+        archiveType = 'open';
+        this.file.mimeTypes.forEach(function (v) {
+            if (/warc-headers/i.test(v)) archiveType = 'zimit';
+        });
+        if (archiveType !== 'zimit' && this.scraper) {
+            // Check if it's a zimit2 type archive by seeing if the scraper contains 'warc2zim'
+            archiveType = /warc2zim|zimit/i.test(this.scraper) ? 'zimit2' : archiveType;
+        }
+        this.zimType = archiveType;
+        console.debug('Archive type set to: ' + archiveType);
+    } else {
+        console.error('ZIMArchive is not ready! Cannot set ZIM type.');
+    }
+    return archiveType;
+};
+
+/**
+ * Looks for the DirEntry of the main page
+ * @param {Function} callback - The function to call with the DirEntry
+ * @returns {Promise} that resolves to the DirEntry
+ */
+ZIMArchive.prototype.getMainPageDirEntry = function (callback) {
+    if (this.isReady()) {
+        var mainPageUrlIndex = this.file.mainPage;
+        return this.file.dirEntryByUrlIndex(mainPageUrlIndex)
+            .then(callback)
+            .catch(function (error) {
+                console.error('Error getting main page DirEntry:', error);
+                if (callback) {
+                    callback(null, error);
+                }
+            });
+    } else {
+        console.error('ZIMArchive is not ready! Cannot get main page DirEntry.');
+        if (callback) {
+            callback(null, new Error('ZIMArchive is not ready!'));
+        }
+    }
+};
+
     var createZimfile = function (fileArray) {
         return zimfile.fromFileArray(fileArray).then(function (file) {
             that.file = file;
@@ -165,7 +287,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
                         console.error('The libzim worker could not be instantiated!', err);
                         that.libzimReady = 'error';
-                    });
+                      });
                 } else {
                     // var message = 'Full text searching is not available because ';
                     if (!that.file.fullTextIndex) {
@@ -192,99 +314,12 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             }).catch(function (err) {
                 console.warn('Error setting archive listings: ', err);
             });
-        });
-    };
-    if (storage && !path) {
-        var fileList = storage;
-        // We need to convert the FileList into an Array
-        var fileArray = [].slice.call(fileList);
-        // The constructor has been called with an array of File/Blob parameter
-        createZimfile(fileArray);
-    } else {
-        if (/.*zim..$/.test(path)) {
-            // split archive
-            that._searchArchiveParts(storage, path.slice(0, -2)).then(function (fileArray) {
-                createZimfile(fileArray);
-            }).catch(function (error) {
-                callbackError((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + path + '&nbsp;: ' + error,
-                    translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
-            });
-        } else {
-            storage.get(path).then(function (file) {
-                createZimfile([file]);
-            }).catch(function (error) {
-                callbackError((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + path + '&nbsp;: ' + error,
-                    translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
-            });
-        }
-    }
-}
-
-/**
- * Searches the directory for all parts of a split archive.
- * @param {Storage} storage storage interface
- * @param {String} prefixPath path to the split files, missing the "aa" / "ab" / ... suffix.
- * @returns {Promise} that resolves to the array of file objects found.
- */
-ZIMArchive.prototype._searchArchiveParts = function (storage, prefixPath) {
-    var fileArray = [];
-    var nextFile = function (part) {
-        var suffix = String.fromCharCode(0x61 + Math.floor(part / 26)) + String.fromCharCode(0x61 + part % 26);
-        return storage.get(prefixPath + suffix)
-            .then(function (file) {
-                fileArray.push(file);
-                return nextFile(part + 1);
-            }, function (error) {
-                console.error('Error reading split archive file ' + prefixPath + suffix + ': ', error);
-                return fileArray;
-            });
-    };
-    return nextFile(0);
-};
-
-/**
- *
- * @returns {Boolean}
- */
-ZIMArchive.prototype.isReady = function () {
-    return this.file !== null;
-};
-
-/**
- * Detects whether the supplied archive is a Zimit-style archive or an OpenZIM archive and
- * sets a zimType property accordingly; also returns the detected type. Extends ZIMArchive.
- * @returns {String} 'zimit' for a classic Zimit archive, 'zimit2' for a zimit2 archive, or 'open' for an OpenZIM archive
- */
-ZIMArchive.prototype.setZimType = function () {
-    var archiveType = null;
-    if (this.isReady()) {
-        archiveType = 'open';
-        this.file.mimeTypes.forEach(function (v) {
-            if (/warc-headers/i.test(v)) archiveType = 'zimit';
-        });
-        if (archiveType !== 'zimit' && this.scraper) {
-            // Check if it's a zimit2 type archive by seeing if the scraper contains 'warc2zim'
-            archiveType = /warc2zim|zimit/i.test(this.scraper) ? 'zimit2' : archiveType;
-        }
-        this.zimType = archiveType;
-        console.debug('Archive type set to: ' + archiveType);
-    } else {
-        console.error('ZIMArchive is not ready! Cannot set ZIM type.');
-    }
-    return archiveType;
-};
-
-/**
- * Looks for the DirEntry of the main page
- * @param {callbackDirEntry} callback
- * @returns {Promise} that resolves to the DirEntry
- */
-ZIMArchive.prototype.getMainPageDirEntry = function (callback) {
+        }); {
     if (this.isReady()) {
         var mainPageUrlIndex = this.file.mainPage;
         this.file.dirEntryByUrlIndex(mainPageUrlIndex).then(callback);
     }
-};
+}};
 
 /**
  *

@@ -20,12 +20,12 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-'use strict';
+"use strict";
 
 /* global $ */
 
-import translateUI from './translateUI.js';
-import zimArchive from './zimArchive.js';
+import translateUI from "./translateUI.js";
+import zimArchive from "./zimArchive.js";
 
 /**
  * Create a ZIMArchive from DeviceStorage location
@@ -35,8 +35,13 @@ import zimArchive from './zimArchive.js';
  * @param {callbackZIMArchive} callbackError
  * @returns {ZIMArchive}
  */
-function loadArchiveFromDeviceStorage (storage, path, callbackReady, callbackError) {
-    return new zimArchive.ZIMArchive(storage, path, callbackReady, callbackError);
+function loadArchiveFromDeviceStorage(
+  storage,
+  path,
+  callbackReady,
+  callbackError
+) {
+  return new zimArchive.ZIMArchive(storage, path, callbackReady, callbackError);
 }
 /**
  * Create a ZIMArchive from Files
@@ -45,10 +50,10 @@ function loadArchiveFromDeviceStorage (storage, path, callbackReady, callbackErr
  * @param {callbackZIMArchive} callbackError
  * @returns {ZIMArchive}
  */
-function loadArchiveFromFiles (files, callbackReady, callbackError) {
-    if (files.length >= 1) {
-        return new zimArchive.ZIMArchive(files, null, callbackReady, callbackError);
-    }
+function loadArchiveFromFiles(files, callbackReady, callbackError) {
+  if (files.length >= 1) {
+    return new zimArchive.ZIMArchive(files, null, callbackReady, callbackError);
+  }
 }
 
 /**
@@ -63,28 +68,39 @@ function loadArchiveFromFiles (files, callbackReady, callbackError) {
  * @param {callbackPathList} callbackFunction Function to call with the list of directories where archives are found
  * @param {callbackPathList} callbackError Function to call in case of an error
  */
-function scanForArchives (storages, callbackFunction, callbackError) {
-    var directories = [];
-    var promises = $.map(storages, function (storage) {
-        return storage.scanForArchives()
-            .then(function (dirs) {
-                $.merge(directories, dirs);
-                return true;
-            });
+function scanForArchives(storages, callbackFunction, callbackError) {
+  var directories = [];
+  var promises = $.map(storages, function (storage) {
+    return storage.scanForArchives().then(function (dirs) {
+      $.merge(directories, dirs);
+      return true;
     });
-    $.when.apply(null, promises).then(function () {
-        callbackFunction(directories);
-    }).catch(function (error) {
-        callbackError((translateUI.t('dialog-scanstorage-error-message') || 'Error scanning your device storage:') + ' ' + error + '. ' +
-        (translateUI.t('dialog-scanstorage-fxos-error-message') || ("If you're using the Firefox OS Simulator, please put the archives in " +
-        'a "fake-sdcard" directory inside your Firefox profile ' +
-        '(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/' +
-        'profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)')), translateUI.t('dialog-scanstorage-fxos-error-title') || 'Error scanning Device Storage');
+  });
+  $.when
+    .apply(null, promises)
+    .then(function () {
+      callbackFunction(directories);
+    })
+    .catch(function (error) {
+      callbackError(
+        (translateUI.t("dialog-scanstorage-error-message") ||
+          "Error scanning your device storage:") +
+          " " +
+          error +
+          ". " +
+          (translateUI.t("dialog-scanstorage-fxos-error-message") ||
+            "If you're using the Firefox OS Simulator, please put the archives in " +
+              'a "fake-sdcard" directory inside your Firefox profile ' +
+              "(ex : ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/" +
+              "profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)"),
+        translateUI.t("dialog-scanstorage-fxos-error-title") ||
+          "Error scanning Device Storage"
+      );
     });
 }
 
 export default {
-    loadArchiveFromDeviceStorage: loadArchiveFromDeviceStorage,
-    loadArchiveFromFiles: loadArchiveFromFiles,
-    scanForArchives: scanForArchives
+  loadArchiveFromDeviceStorage: loadArchiveFromDeviceStorage,
+  loadArchiveFromFiles: loadArchiveFromFiles,
+  scanForArchives: scanForArchives,
 };
