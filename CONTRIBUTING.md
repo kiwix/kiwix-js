@@ -82,7 +82,7 @@ _You must test your code yourself before asking for review, like this_:
   test a minified bundle, you can run `npm run build-min`;
 * Manually test your bundle in at least Firefox and Chromium (Edge or Chrome), ideally also in IE11 or in "IE Mode" in Edge. Be sure that you actually load a ZIM and test the code in
   real-world scenarios. You can download ZIMs for testing from https://library.kiwix.org or https://download.kiwix.org/zim/;
-* _You **must** test your fix in both "JQuery" mode and "ServiceWorker" modes_ (under Compatibility settings). You will be astonished the number of times a new contributor tells us
+* _You **must** test your fix in both "Restricted" and "ServiceWorker" modes_ (under Compatibility settings). You will be astonished the number of times a new contributor tells us
   that their fix is working, but we discover they only applied the fix in one of these two modes. Don't be **that** contributor!
 * Unit tests, which test for regressions with basic app functions, are run automatically with GitHub Actions on each PR and push to a PR. If one of these tests fails, you will want
   to debug. First, see if you can also see the failure by running the tests with `npm test`, which should run the tests in all your installed browsers. To address any issues
