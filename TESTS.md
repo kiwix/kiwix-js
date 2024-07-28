@@ -34,7 +34,7 @@ commandline, then you'll need, e.g., `npx testcafe chrome ./tests/initTestCafe.j
 End-to-end (e2e) tests are implemented with [Selenium WebDriver](https://www.selenium.dev/documentation/webdriver/), which in turn uses [Mocha](https://mochajs.org/) as the testing
 framework. The tests can be found in the `tests` directory, and are implemented as ES6 modules. Each test consists of a runner for a specified browser (e.g.
 `microsoftEdge.e2e.runner.js`) which in turn imports one or more specification test suites (e.g. `legacy-ray_charles.e2e.spec.js`). The test suites load a specific ZIM archive,
-and undertake tests in both JQuery and ServiceWorker modes. Each ZIM tested should have its own `e2e.spec.js` suite. You will also see some runners designed to do remote testing on legacy browsers on BrowserStack. These are named `*.bs.spec.js`.
+and undertake tests in both Restricted and ServiceWorker modes. Each ZIM tested should have its own `e2e.spec.js` suite. You will also see some runners designed to do remote testing on legacy browsers on BrowserStack. These are named `*.bs.spec.js`.
 
 Standard e2e tests on GitHub Actions are run automatically on every push and pull request by the GitHub Actions runner `CI.yml` (in the `.github/workflows` directory). They can also
 be run locally with the following procedure:
@@ -54,7 +54,7 @@ not break them.
 The ZIM archive that is tested is also found in `tests`. In the case of `legacy-ray_charles.e2e.spec.js`, this is a legacy split ZIM archive that has XZ compression, so a useful test
 of that type of ZIM. Another test suite, `gutenberg_ro.e2e.spec.js`, for a modern Gutenberg ZIM with ZSTD compression and dynamic content, also runs in compatible browsers.
 
-If you wish to develop tests for a new archive, be sure to create a new `e2e.spec.js` file that corresponds to that archive. It will be easiest to duplicate one of the existing test suites and change the name of your copy. Be sure that the filename easily allows developers to identify which ZIM it corresponds to. To luanch your new tests, you will
+If you wish to develop tests for a new archive, be sure to create a new `e2e.spec.js` file that corresponds to that archive. It will be easiest to duplicate one of the existing test suites and change the name of your copy. Be sure that the filename easily allows developers to identify which ZIM it corresponds to. To launch your new tests, you will
 need to add them to each browser's runner as an import. You will need to load a new instance of the driver (in the respective `*.e2e.spec.js` files) to run your new test suite.
 Tests should run in chronological order of ZIM archives (oldest ZIM archives should be tested first).
 
