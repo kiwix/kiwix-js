@@ -153,9 +153,7 @@ const precacheFiles = [
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
     'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
     'node_modules/bootstrap/dist/css/bootstrap.min.css',
-    'node_modules/bootstrap/dist/css/bootstrap.min.css.map',
-    'node_modules/jquery/dist/jquery.slim.min.js',
-    'node_modules/jquery/dist/jquery.slim.min.map'
+    'node_modules/bootstrap/dist/css/bootstrap.min.css.map'
 ];
 
 if ('WebAssembly' in self) {
@@ -470,7 +468,7 @@ function zimitResolver (event) {
                 }
             });
         });
-    // Check that the requested URL is for a ZIM that we already have loaded
+        // Check that the requested URL is for a ZIM that we already have loaded
     } else if (zimStem !== rqUrl && isReplayWorkerAvailable) {
         // Wait for the ReplayWorker to initialize and reload all collections
         return replayCollectionsReloaded.then(function () {
