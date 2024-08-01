@@ -400,7 +400,7 @@ self.addEventListener('message', function (event) {
  * @param {String} prefix The URL prefix where assets are loaded, consisting of the local path to the ZIM file plus the namespace
  * @param {String} name The name of the ZIM file (wihtout any extension), used as the Replay root
  */
-function setReplayCollectionAsRoot(prefix, name) {
+function setReplayCollectionAsRoot (prefix, name) {
     // Guard against prototype pollution attack
     if (typeof prefix !== 'string' || typeof name !== 'string') {
         console.error('Invalid prefix or name');
@@ -443,7 +443,7 @@ function setReplayCollectionAsRoot(prefix, name) {
  * @param {FetchEvent} event The FetchEvent to be processed
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function zimitResolver(event) {
+function zimitResolver (event) {
     var rqUrl = event.request.url;
     var zimStem = rqUrl.replace(/^.*?\/([^/]+?)\.zim\w?\w?\/.*/, '$1');
     if (/\/A\/load\.js$/.test(rqUrl)) {
@@ -507,7 +507,7 @@ function zimitResolver(event) {
     }
 }
 
-function contsructResponse(content, contentType) {
+function contsructResponse (content, contentType) {
     var headers = new Headers();
     headers.set('Content-Length', content.length);
     headers.set('Content-Type', contentType);
@@ -520,7 +520,7 @@ function contsructResponse(content, contentType) {
 }
 
 // Caches and returns the event and response pair for an asset. Do not use this for non-asset requests!
-function cacheAndReturnResponseForAsset(event, response) {
+function cacheAndReturnResponseForAsset (event, response) {
     // Add css or js assets to ASSETS_CACHE (or update their cache entries) unless the URL schema is not supported
     if (regexpCachedContentTypes.test(response.headers.get('Content-Type')) &&
         !regexpExcludedURLSchema.test(event.request.url)) {
@@ -538,7 +538,7 @@ function cacheAndReturnResponseForAsset(event, response) {
  *     Zimit requests may be for a range of bytes, in fact video (at least) is stored as a blob, so the appropriate response will just be a normal 200.
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM(urlObjectOrString, range, expectedHeaders) {
+function fetchUrlFromZIM (urlObjectOrString, range, expectedHeaders) {
     return new Promise(function (resolve, reject) {
         var pathname = typeof urlObjectOrString === 'string' ? urlObjectOrString : urlObjectOrString.pathname;
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
@@ -656,7 +656,7 @@ function fetchUrlFromZIM(urlObjectOrString, range, expectedHeaders) {
  * @param {String} requestUrl The Request URL to fulfill from cache
  * @returns {Promise<Response>} A Promise for the cached Response, or rejects with strings 'disabled' or 'no-match'
  */
-function fromCache(cache, requestUrl) {
+function fromCache (cache, requestUrl) {
     // Prevents use of Cache API if user has disabled it
     if (!(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) {
         return Promise.reject(new Error('Cache disabled'));
@@ -679,7 +679,7 @@ function fromCache(cache, requestUrl) {
  * @param {Response} response The Response received from the server/ZIM
  * @returns {Promise} A Promise for the update action
  */
-function updateCache(cache, request, response) {
+function updateCache (cache, request, response) {
     // Prevents use of Cache API if user has disabled it
     if (!response.ok || !(useAppCache && cache === APP_CACHE || useAssetsCache && cache === ASSETS_CACHE)) {
         return Promise.resolve();
@@ -697,7 +697,7 @@ function updateCache(cache, request, response) {
  * @param {String} url A URL to test against excludedURLSchema
  * @returns {Promise<Array>} A Promise for an array of format [cacheType, cacheDescription, assetCount]
  */
-function testCacheAndCountAssets(url) {
+function testCacheAndCountAssets (url) {
     if (regexpExcludedURLSchema.test(url)) return Promise.resolve(['custom', 'custom', 'Custom', '-']);
     if (!useAssetsCache) return Promise.resolve(['none', 'none', 'None', 0]);
     return caches.open(ASSETS_CACHE).then(function (cache) {
