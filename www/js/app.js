@@ -2646,6 +2646,7 @@ function handleMessageChannelMessage (event) {
                     if (/\bx?html/i.test(mimetype)) {
                         // Calculate the current article's ZIM baseUrl to use when attaching popovers
                         appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
+                        appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
                     }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
