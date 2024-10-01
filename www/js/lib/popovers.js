@@ -36,7 +36,7 @@ import uiUtil from './uiUtil.js';
  * @param {ZIMArchive} archive The archive from which to extract the lede
  * @returns {Promise<String>} A Promise for the linked article's lede HTML including first main image URL if any
  */
-function getArticleLede (href, baseUrl, articleDocument, archive) {
+function getArticleLede(href, baseUrl, articleDocument, archive) {
     const uriComponent = uiUtil.removeUrlParameters(href);
     const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
@@ -98,7 +98,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 };
 
 // Helper function to clean up the lede content
-function cleanUpLedeContent (node) {
+function cleanUpLedeContent(node) {
     // Remove all standalone style elements from the given DOM node, because their content is shown by innerText and textContent
     const styleElements = Array.from(node.querySelectorAll('style'));
     styleElements.forEach(style => {
@@ -111,13 +111,18 @@ function cleanUpLedeContent (node) {
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
         const innerText = para.innerText ? para.innerText : para.textContent;
         const text = innerText.trim();
-        return !/^\s*$/.test(text) && text.length >= 50;
+
+        // removing the para with less than 50 characters
+        // regex to check the paragraph if its too short or a brief description
+        const briefDescriptionRegex = /^.{1,100}$/;
+
+        return !briefDescriptionRegex.test(text) && text.length >= 50;
     });
     return parasWithContent;
 }
 
 // Helper function to concatenate paragraphs to fill the balloon
-function fillBalloonString (paras, baseURL, pathPrefix) {
+function fillBalloonString(paras, baseURL, pathPrefix) {
     let cumulativeCharCount = 0;
     let concatenatedText = '';
     // Add enough paras to complete the word count
@@ -149,7 +154,7 @@ function fillBalloonString (paras, baseURL, pathPrefix) {
 }
 
 // Helper function to get the first main image from the given node
-function getImageHTMLFromNode (node, baseURL, pathPrefix) {
+function getImageHTMLFromNode(node, baseURL, pathPrefix) {
     const images = node.querySelectorAll('img');
     let firstImage = null;
     if (images) {
@@ -176,7 +181,7 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
  * @param {Document} doc The document to which to attach the popover stylesheet
  * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
-function attachKiwixPopoverCss (doc, dark) {
+function attachKiwixPopoverCss(doc, dark) {
     const colour = dark && !/invert/i.test(params.cssTheme) ? 'darkgray' : 'black';
     const backgroundColour = dark && !/invert/i.test(params.cssTheme) ? '#111' : '#ebf4fb';
     const borderColour = dark ? 'darkslategray' : 'skyblue';
@@ -237,8 +242,8 @@ function attachKiwixPopoverCss (doc, dark) {
             -webkit-touch-callout: none !important;
         }
         `,
-    // The id of the style element for easy manipulation
-    'kiwixtooltipstylesheet');
+        // The id of the style element for easy manipulation
+        'kiwixtooltipstylesheet');
 }
 
 /**
@@ -250,14 +255,14 @@ function attachKiwixPopoverCss (doc, dark) {
  * @param {ZIMArchive} archive The archive from which the popover information is extracted
  * @returns {Promise<div>} A Promise for the attached popover div or undefined if the popover is not attached
  */
-function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
+function populateKiwixPopoverDiv(ev, link, state, dark, archive) {
     // Do not show popover if the user has initiated an article load (set in filterClickEvent)
     if (link.articleisloading || link.popoverisloading) return Promise.resolve();
     const linkHref = link.getAttribute('href');
     // Do not show popover if there is no href or with certain landing pages
     if (!linkHref || /^wikivoyage/i.test(archive.file.name) &&
-      (state.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
-      state.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
+        (state.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
+            state.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
         return Promise.resolve();
     }
     link.popoverisloading = true;
@@ -326,7 +331,7 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
  * @param {Event} event The event which has fired this popover action
  * @returns {Object} An object containing the popover div and the arrow span elements
  */
-function createNewKiwixPopoverCointainer (win, anchor, event) {
+function createNewKiwixPopoverCointainer(win, anchor, event) {
     const div = document.createElement('div');
     const linkHref = anchor.getAttribute('href');
     const currentDocument = win.document;
@@ -418,7 +423,7 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
  * @param {Element} popover The containing element of the popover (div)
  * @param {Document} doc The doucment on which to operate
  */
-function addEventListenersToPopoverIcons (anchor, popover, doc) {
+function addEventListenersToPopoverIcons(anchor, popover, doc) {
     const breakout = function (e) {
         // Adding the newcontainer property to the anchor will be cauught by the filterClickEvent function and will open in new tab
         anchor.newcontainer = true;
@@ -438,7 +443,7 @@ function addEventListenersToPopoverIcons (anchor, popover, doc) {
  * Remove any preview popover DIVs found in the given document
  * @param {Document} doc The document from which to remove any popovers
  */
-function removeKiwixPopoverDivs (doc) {
+function removeKiwixPopoverDivs(doc) {
     const divs = doc.getElementsByClassName('kiwixtooltip');
     // Timeout is set to allow for a delay before removing popovers - so user can hover the popover itself to prevent it from closing,
     // or so that links and buttons in the popover can be clicked
@@ -466,7 +471,7 @@ function removeKiwixPopoverDivs (doc) {
  * Closes the specified popover div, with fadeout effect, and removes it from the DOM
  * @param {Element} div The div to close
  */
-function closePopover (div) {
+function closePopover(div) {
     div.style.opacity = '0';
     // Timeout allows the animation to complete before removing the div
     setTimeout(function () {
