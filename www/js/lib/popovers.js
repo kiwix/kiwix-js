@@ -111,7 +111,12 @@ function cleanUpLedeContent (node) {
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
         const innerText = para.innerText ? para.innerText : para.textContent;
         const text = innerText.trim();
-        return !/^\s*$/.test(text) && text.length >= 50;
+
+        // removing the para with less than 50 characters
+        // regex to check the paragraph if its too short or a brief description
+        const briefDescriptionRegex = /^.{1,100}$/;
+
+        return !briefDescriptionRegex.test(text) && text.length >= 50;
     });
     return parasWithContent;
 }
