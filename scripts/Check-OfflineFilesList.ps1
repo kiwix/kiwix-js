@@ -23,9 +23,7 @@ $ListOfExemptions = (
   'www/js/lib/webpHeroBundle_0.0.2.js',
   'www/js/lib/libzim-asm.dev.js',
   'www/js/lib/libzim-wasm.dev.js',
-  'www/js/lib/libzim-wasm.dev.wasm',
-  'www/js/lib/jquery-3.7.0.slim.js',
-  'www/js/lib/jquery-3.7.0.slim.min.map'
+  'www/js/lib/libzim-wasm.dev.wasm'
 )
 
 # Get the absolute root directory
