@@ -113,7 +113,7 @@ function cleanUpLedeContent (node) {
     // Apply this style-based exclusion filter to remove unwanted paragraphs in the popover
     const paragraphs = Array.from(node.querySelectorAll(`p${notSelector}`));
 
-    // Filter out empty paragraphs or those with less than 50 character
+    // Filter out empty paragraphs or those with less than 50 characters
     const parasWithContent = paragraphs.filter(para => {
         // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
