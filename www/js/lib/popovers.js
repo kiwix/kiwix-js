@@ -104,19 +104,12 @@ function cleanUpLedeContent (node) {
     styleElements.forEach(style => {
         style.parentNode.removeChild(style);
     });
-    const paragraphs = Array.from(node.querySelectorAll('p'));
-    // Filter out empty paragraphs or those with less than 50 characters
+    const paragraphs = Array.from(node.querySelectorAll('p:not(#pcs-edit-section-title-description)'));
     const parasWithContent = paragraphs.filter(para => {
         // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
         const innerText = para.innerText ? para.innerText : para.textContent;
-        const text = innerText.trim();
-
-        // removing the para with less than 50 characters
-        // regex to check the paragraph if its too short or a brief description
-        const briefDescriptionRegex = /^.{1,100}$/;
-
-        return !briefDescriptionRegex.test(text) && text.length >= 50;
+        return innerText.length >= 50;
     });
     return parasWithContent;
 }
