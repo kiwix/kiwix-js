@@ -99,12 +99,21 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 
 // Helper function to clean up the lede content
 function cleanUpLedeContent (node) {
+    // Define an array of exclusion filters
+    // (note .exclude-this-class is a dummy class used as an exmple which will used to exclude classes in future)
+    const exclusionFilters = ['#pcs-edit-section-title-description', '.exclude-this-class'];
+    // Constrct the :not() selector thing
+    const notSelector = exclusionFilters.map(filter => `:not(${filter})`).join('');
+
     // Remove all standalone style elements from the given DOM node, because their content is shown by innerText and textContent
     const styleElements = Array.from(node.querySelectorAll('style'));
     styleElements.forEach(style => {
         style.parentNode.removeChild(style);
     });
-    const paragraphs = Array.from(node.querySelectorAll('p:not(#pcs-edit-section-title-description)'));
+    // Apply this style-based exclusion filter to remove unwanted paragraphs in the popover
+    const paragraphs = Array.from(node.querySelectorAll(`p${notSelector}`));
+
+    // Filter out empty paragraphs or those with less than 50 character
     const parasWithContent = paragraphs.filter(para => {
         // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
