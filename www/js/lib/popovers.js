@@ -102,7 +102,7 @@ function cleanUpLedeContent (node) {
     // Define an array of exclusion filters
     // (note `.exclude-this-class` is a dummy class used as an example for any future exclusion filters)
     const exclusionFilters = ['#pcs-edit-section-title-description', '.exclude-this-class'];
-    // Constrct the :not() selector thing
+    // Construct the `:not()` CSS exclusion selector list
     const notSelector = exclusionFilters.map(filter => `:not(${filter})`).join('');
 
     // Remove all standalone style elements from the given DOM node, because their content is shown by innerText and textContent
