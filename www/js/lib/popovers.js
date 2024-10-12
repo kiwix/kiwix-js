@@ -100,7 +100,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 // Helper function to clean up the lede content
 function cleanUpLedeContent (node) {
     // Define an array of exclusion filters
-    // (note .exclude-this-class is a dummy class used as an exmple which will used to exclude classes in future)
+    // (note `.exclude-this-class` is a dummy class used as an example for any future exclusion filters)
     const exclusionFilters = ['#pcs-edit-section-title-description', '.exclude-this-class'];
     // Constrct the :not() selector thing
     const notSelector = exclusionFilters.map(filter => `:not(${filter})`).join('');
