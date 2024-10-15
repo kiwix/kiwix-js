@@ -22,9 +22,4 @@ sed -i 's|/node_modules\*/|/node_modules/*\
 !/node_modules/bootstrap/dist/js\
 /node_modules/bootstrap/dist/js/*\
 !/node_modules/bootstrap/dist/js/bootstrap.bundle.min.*\
-!/node_modules/jquery\
-/node_modules/jquery/*\
-!/node_modules/jquery/dist\
-/node_modules/jquery/dist/*\
-!/node_modules/jquery/dist/jquery.slim.min.*\
 |' .gitignore
