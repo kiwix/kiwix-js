@@ -1,204 +1,153 @@
 /*
- * LZMA2 definitions
+ * Private includes and definitions
  *
- * Authors: Lasse Collin <lasse.collin@tukaani.org>
- *          Igor Pavlov <http://7-zip.org/>
+ * Author: Lasse Collin <lasse.collin@tukaani.org>
  *
  * This file has been put into the public domain.
  * You can do whatever you want with this file.
  */
 
-#ifndef XZ_LZMA2_H
-#define XZ_LZMA2_H
+#ifndef XZ_PRIVATE_H
+#define XZ_PRIVATE_H
 
-/* Range coder constants */
-#define RC_SHIFT_BITS 8
-#define RC_TOP_BITS 24
-#define RC_TOP_VALUE (1 << RC_TOP_BITS)
-#define RC_BIT_MODEL_TOTAL_BITS 11
-#define RC_BIT_MODEL_TOTAL (1 << RC_BIT_MODEL_TOTAL_BITS)
-#define RC_MOVE_BITS 5
-
-/*
- * Maximum number of position states. A position state is the lowest pb
- * number of bits of the current uncompressed offset. In some places there
- * are different sets of probabilities for different position states.
- */
-#define POS_STATES_MAX (1 << 4)
-
-/*
- * This enum is used to track which LZMA symbols have occurred most recently
- * and in which order. This information is used to predict the next symbol.
- *
- * Symbols:
- *  - Literal: One 8-bit byte
- *  - Match: Repeat a chunk of data at some distance
- *  - Long repeat: Multi-byte match at a recently seen distance
- *  - Short repeat: One-byte repeat at a recently seen distance
- *
- * The symbol names are in from STATE_oldest_older_previous. REP means
- * either short or long repeated match, and NONLIT means any non-literal.
- */
-enum lzma_state {
-	STATE_LIT_LIT,
-	STATE_MATCH_LIT_LIT,
-	STATE_REP_LIT_LIT,
-	STATE_SHORTREP_LIT_LIT,
-	STATE_MATCH_LIT,
-	STATE_REP_LIT,
-	STATE_SHORTREP_LIT,
-	STATE_LIT_MATCH,
-	STATE_LIT_LONGREP,
-	STATE_LIT_SHORTREP,
-	STATE_NONLIT_MATCH,
-	STATE_NONLIT_REP
-};
-
-/* Total number of states */
-#define STATES 12
-
-/* The lowest 7 states indicate that the previous state was a literal. */
-#define LIT_STATES 7
-
-/* Indicate that the latest symbol was a literal. */
-static inline void lzma_state_literal(enum lzma_state *state)
-{
-	if (*state <= STATE_SHORTREP_LIT_LIT)
-		*state = STATE_LIT_LIT;
-	else if (*state <= STATE_LIT_SHORTREP)
-		*state -= 3;
-	else
-		*state -= 6;
-}
-
-/* Indicate that the latest symbol was a match. */
-static inline void lzma_state_match(enum lzma_state *state)
-{
-	*state = *state < LIT_STATES ? STATE_LIT_MATCH : STATE_NONLIT_MATCH;
-}
-
-/* Indicate that the latest state was a long repeated match. */
-static inline void lzma_state_long_rep(enum lzma_state *state)
-{
-	*state = *state < LIT_STATES ? STATE_LIT_LONGREP : STATE_NONLIT_REP;
-}
-
-/* Indicate that the latest symbol was a short match. */
-static inline void lzma_state_short_rep(enum lzma_state *state)
-{
-	*state = *state < LIT_STATES ? STATE_LIT_SHORTREP : STATE_NONLIT_REP;
-}
-
-/* Test if the previous symbol was a literal. */
-static inline bool lzma_state_is_literal(enum lzma_state state)
-{
-	return state < LIT_STATES;
-}
-
-/* Each literal coder is divided in three sections:
- *   - 0x001-0x0FF: Without match byte
- *   - 0x101-0x1FF: With match byte; match bit is 0
- *   - 0x201-0x2FF: With match byte; match bit is 1
- *
- * Match byte is used when the previous LZMA symbol was something else than
- * a literal (that is, it was some kind of match).
- */
-#define LITERAL_CODER_SIZE 0x300
-
-/* Maximum number of literal coders */
-#define LITERAL_CODERS_MAX (1 << 4)
-
-/* Minimum length of a match is two bytes. */
-#define MATCH_LEN_MIN 2
-
-/* Match length is encoded with 4, 5, or 10 bits.
- *
- * Length   Bits
- *  2-9      4 = Choice=0 + 3 bits
- * 10-17     5 = Choice=1 + Choice2=0 + 3 bits
- * 18-273   10 = Choice=1 + Choice2=1 + 8 bits
- */
-#define LEN_LOW_BITS 3
-#define LEN_LOW_SYMBOLS (1 << LEN_LOW_BITS)
-#define LEN_MID_BITS 3
-#define LEN_MID_SYMBOLS (1 << LEN_MID_BITS)
-#define LEN_HIGH_BITS 8
-#define LEN_HIGH_SYMBOLS (1 << LEN_HIGH_BITS)
-#define LEN_SYMBOLS (LEN_LOW_SYMBOLS + LEN_MID_SYMBOLS + LEN_HIGH_SYMBOLS)
-
-/*
- * Maximum length of a match is 273 which is a result of the encoding
- * described above.
- */
-#define MATCH_LEN_MAX (MATCH_LEN_MIN + LEN_SYMBOLS - 1)
-
-/*
- * Different sets of probabilities are used for match distances that have
- * very short match length: Lengths of 2, 3, and 4 bytes have a separate
- * set of probabilities for each length. The matches with longer length
- * use a shared set of probabilities.
- */
-#define DIST_STATES 4
-
-/*
- * Get the index of the appropriate probability array for decoding
- * the distance slot.
- */
-static inline uint32_t lzma_get_dist_state(uint32_t len)
-{
-	return len < DIST_STATES + MATCH_LEN_MIN
-			? len - MATCH_LEN_MIN : DIST_STATES - 1;
-}
-
-/*
- * The highest two bits of a 32-bit match distance are encoded using six bits.
- * This six-bit value is called a distance slot. This way encoding a 32-bit
- * value takes 6-36 bits, larger values taking more bits.
- */
-#define DIST_SLOT_BITS 6
-#define DIST_SLOTS (1 << DIST_SLOT_BITS)
-
-/* Match distances up to 127 are fully encoded using probabilities. Since
- * the highest two bits (distance slot) are always encoded using six bits,
- * the distances 0-3 don't need any additional bits to encode, since the
- * distance slot itself is the same as the actual distance. DIST_MODEL_START
- * indicates the first distance slot where at least one additional bit is
- * needed.
- */
-#define DIST_MODEL_START 4
-
-/*
- * Match distances greater than 127 are encoded in three pieces:
- *   - distance slot: the highest two bits
- *   - direct bits: 2-26 bits below the highest two bits
- *   - alignment bits: four lowest bits
- *
- * Direct bits don't use any probabilities.
- *
- * The distance slot value of 14 is for distances 128-191.
- */
-#define DIST_MODEL_END 14
-
-/* Distance slots that indicate a distance <= 127. */
-#define FULL_DISTANCES_BITS (DIST_MODEL_END / 2)
-#define FULL_DISTANCES (1 << FULL_DISTANCES_BITS)
-
-/*
- * For match distances greater than 127, only the highest two bits and the
- * lowest four bits (alignment) is encoded using probabilities.
- */
-#define ALIGN_BITS 4
-#define ALIGN_SIZE (1 << ALIGN_BITS)
-#define ALIGN_MASK (ALIGN_SIZE - 1)
-
-/* Total number of all probability variables */
-#define PROBS_TOTAL (1846 + LITERAL_CODERS_MAX * LITERAL_CODER_SIZE)
-
-/*
- * LZMA remembers the four most recent match distances. Reusing these
- * distances tends to take less space than re-encoding the actual
- * distance value.
- */
-#define REPS 4
-
+#ifdef __KERNEL__
+#   include <linux/xz.h>
+#   include <linux/kernel.h>
+#   include <asm/unaligned.h>
+    /* XZ_PREBOOT may be defined only via decompress_unxz.c. */
+#   ifndef XZ_PREBOOT
+#       include <linux/slab.h>
+#       include <linux/vmalloc.h>
+#       include <linux/string.h>
+#       ifdef CONFIG_XZ_DEC_X86
+#           define XZ_DEC_X86
+#       endif
+#       ifdef CONFIG_XZ_DEC_POWERPC
+#           define XZ_DEC_POWERPC
+#       endif
+#       ifdef CONFIG_XZ_DEC_IA64
+#           define XZ_DEC_IA64
+#       endif
+#       ifdef CONFIG_XZ_DEC_ARM
+#           define XZ_DEC_ARM
+#       endif
+#       ifdef CONFIG_XZ_DEC_ARMTHUMB
+#           define XZ_DEC_ARMTHUMB
+#       endif
+#       ifdef CONFIG_XZ_DEC_SPARC
+#           define XZ_DEC_SPARC
+#       endif
+#       define memeq(a, b, size) (memcmp(a, b, size) == 0)
+#       define memzero(buf, size) memset(buf, 0, size)
+#   endif
+#   define get_le32(p) le32_to_cpup((const uint32_t *)(p))
+#else
+    /*
+     * For userspace builds, use a separate header to define the required
+     * macros and functions. This makes it easier to adapt the code into
+     * different environments and avoids clutter in the Linux kernel tree.
+     */
+#   include "xz_config.h"
 #endif
+
+/* If no specific decoding mode is requested, enable support for all modes. */
+#if !defined(XZ_DEC_SINGLE) && !defined(XZ_DEC_PREALLOC) && !defined(XZ_DEC_DYNALLOC)
+#   define XZ_DEC_SINGLE
+#   define XZ_DEC_PREALLOC
+#   define XZ_DEC_DYNALLOC
+#endif
+
+/*
+ * The DEC_IS_foo(mode) macros are used in "if" statements. If only some
+ * of the supported modes are enabled, these macros will evaluate to true or
+ * false at compile time and thus allow the compiler to omit unneeded code.
+ */
+#ifdef XZ_DEC_SINGLE
+#   define DEC_IS_SINGLE(mode) ((mode) == XZ_SINGLE)
+#else
+#   define DEC_IS_SINGLE(mode) (false)
+#endif
+
+#ifdef XZ_DEC_PREALLOC
+#   define DEC_IS_PREALLOC(mode) ((mode) == XZ_PREALLOC)
+#else
+#   define DEC_IS_PREALLOC(mode) (false)
+#endif
+
+#ifdef XZ_DEC_DYNALLOC
+#   define DEC_IS_DYNALLOC(mode) ((mode) == XZ_DYNALLOC)
+#else
+#   define DEC_IS_DYNALLOC(mode) (false)
+#endif
+
+#if !defined(XZ_DEC_SINGLE)
+#   define DEC_IS_MULTI(mode) (true)
+#elif defined(XZ_DEC_PREALLOC) || defined(XZ_DEC_DYNALLOC)
+#   define DEC_IS_MULTI(mode) ((mode) != XZ_SINGLE)
+#else
+#   define DEC_IS_MULTI(mode) (false)
+#endif
+
+/*
+ * If any of the BCJ filter decoders are wanted, define XZ_DEC_BCJ.
+ * XZ_DEC_BCJ is used to enable generic support for BCJ decoders.
+ */
+#ifndef XZ_DEC_BCJ
+#   if defined(XZ_DEC_X86) || defined(XZ_DEC_POWERPC) || defined(XZ_DEC_IA64) \
+    || defined(XZ_DEC_ARM) || defined(XZ_DEC_ARMTHUMB) || defined(XZ_DEC_SPARC)
+#       define XZ_DEC_BCJ
+#   endif
+#endif
+
+/*
+ * Allocate memory for LZMA2 decoder. xz_dec_lzma2_reset() must be used
+ * before calling xz_dec_lzma2_run().
+ */
+XZ_EXTERN struct xz_dec_lzma2 *xz_dec_lzma2_create(enum xz_mode mode,
+                                                   uint32_t dict_max);
+
+/*
+ * Decode the LZMA2 properties (one byte) and reset the decoder. Return
+ * XZ_OK on success, XZ_MEMLIMIT_ERROR if the preallocated dictionary is not
+ * big enough, and XZ_OPTIONS_ERROR if props indicate something that this
+ * decoder doesn't support.
+ */
+XZ_EXTERN enum xz_ret xz_dec_lzma2_reset(struct xz_dec_lzma2 *s,
+                                         uint8_t props);
+
+/* Decode raw LZMA2 stream from b->in to b->out. */
+XZ_EXTERN enum xz_ret xz_dec_lzma2_run(struct xz_dec_lzma2 *s,
+                                       struct xz_buf *b);
+
+/* Free the memory allocated for the LZMA2 decoder. */
+XZ_EXTERN void xz_dec_lzma2_end(struct xz_dec_lzma2 *s);
+
+#ifdef XZ_DEC_BCJ
+/*
+ * Allocate memory for BCJ decoders. xz_dec_bcj_reset() must be used before
+ * calling xz_dec_bcj_run().
+ */
+XZ_EXTERN struct xz_dec_bcj *xz_dec_bcj_create(bool single_call);
+
+/*
+ * Decode the Filter ID of a BCJ filter. This implementation doesn't
+ * support custom start offsets, so no decoding of Filter Properties
+ * is needed. Returns XZ_OK if the given Filter ID is supported.
+ * Otherwise XZ_OPTIONS_ERROR is returned.
+ */
+XZ_EXTERN enum xz_ret xz_dec_bcj_reset(struct xz_dec_bcj *s, uint8_t id);
+
+/*
+ * Decode raw BCJ + LZMA2 stream. This must be used only if there actually is
+ * a BCJ filter in the chain. If the chain has only LZMA2, xz_dec_lzma2_run()
+ * must be called directly.
+ */
+XZ_EXTERN enum xz_ret xz_dec_bcj_run(struct xz_dec_bcj *s,
+                                     struct xz_dec_lzma2 *lzma2,
+                                     struct xz_buf *b);
+
+/* Free the memory allocated for the BCJ filters. */
+#define xz_dec_bcj_end(s) kfree(s)
+#endif
+
+#endif /* XZ_PRIVATE_H */
