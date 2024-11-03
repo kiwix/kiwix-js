@@ -940,7 +940,15 @@ function showReturnLink () {
 // Function to switch back to currently loaded page
 function returnToCurrentPage () {
     document.getElementById('liConfigureNav').classList.remove('active');
+    document.getElementById('liAboutNav').classList.remove('active');
     document.getElementById('liHomeNav').classList.add('active');
+
+    document.getElementById('btnHome').classList.add('active-btn');
+    document.getElementById('btnConfigure').classList.remove('active-btn');
+    document.getElementById('btnAbout').classList.remove('active-btn');
+
+    document.getElementById('btnHome').focus();
+
     tabTransitionToSection('home', params.showUIAnimations);
     const welcomeText = document.getElementById('welcomeText');
     welcomeText.style.display = 'none';
@@ -1095,5 +1103,6 @@ export default {
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
     getBrowserLanguage: getBrowserLanguage,
-    returnToCurrentPage: returnToCurrentPage
+    returnToCurrentPage: returnToCurrentPage,
+    fromSection: fromSection
 };
