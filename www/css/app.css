@@ -313,15 +313,20 @@ iframe._invert, iframe._mwInvert {
 /* Change focus styles on top nav-bar buttons (keep border-color for keyboard users) */
 .btn-nav-top:focus {
     background: none;
-    border-color: grey;
-    box-shadow: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 .2rem rgba(0,123,255,.25);
 }
 
-.active-btn {
+/* Note: This one is !important to override the .active > button box-shadow */
+.btn-nav-top:hover {
+    box-shadow: 0 0 0 -.1rem rgba(216,217,219,.8) !important;
+}
+
+.active > button {
     color: #212529 !important;
     background-color: #e2e6ea !important;
     border-color: #dae0e5 !important;
-    box-shadow: 0 0 0 -.1rem rgba(216,217,219,.5) !important;
+    box-shadow: 0 0 0 .2rem rgba(216,217,219,.5) !important;
 }
 
 /* Add missing margin to buttons */

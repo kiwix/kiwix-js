@@ -382,22 +382,6 @@ document.getElementById('btnTop').addEventListener('click', function (event) {
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// Initial page load
-let currentPage = uiUtil.fromSection();
-switch (currentPage) {
-    case 'home':
-        document.getElementById('btnHome').classList.add('active-btn');
-        break;
-    case 'config':
-        document.getElementById('btnConfigure').classList.add('active-btn');
-        break;
-    case 'about':
-        document.getElementById('btnAbout').classList.add('active-btn');
-        break;
-    default:
-        break;
-}
-
 // Top menu :
 document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
@@ -405,11 +389,6 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
-
-    document.getElementById('btnHome').classList.add('active-btn');
-    document.getElementById('btnConfigure').classList.remove('active-btn');
-    document.getElementById('btnAbout').classList.remove('active-btn');
-
     var navbarCollapse = document.querySelector('.navbar-collapse');
     navbarCollapse.classList.remove('show');
     // Show the selected content in the page
@@ -445,11 +424,6 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', 'active');
         document.getElementById('liAboutNav').setAttribute('class', '');
-
-        document.getElementById('btnHome').classList.remove('active-btn');
-        document.getElementById('btnConfigure').classList.add('active-btn');
-        document.getElementById('btnAbout').classList.remove('active-btn');
-
         var navbarCollapse = document.querySelector('.navbar-collapse');
         navbarCollapse.classList.remove('show');
         // Show the selected content in the page
@@ -470,11 +444,6 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', '');
         document.getElementById('liAboutNav').setAttribute('class', 'active');
-
-        document.getElementById('btnHome').classList.remove('active-btn');
-        document.getElementById('btnConfigure').classList.remove('active-btn');
-        document.getElementById('btnAbout').classList.add('active-btn');
-
         var navbarCollapse = document.querySelector('.navbar-collapse');
         navbarCollapse.classList.remove('show');
         // Show the selected content in the page

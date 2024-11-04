@@ -943,10 +943,6 @@ function returnToCurrentPage () {
     document.getElementById('liAboutNav').classList.remove('active');
     document.getElementById('liHomeNav').classList.add('active');
 
-    document.getElementById('btnHome').classList.add('active-btn');
-    document.getElementById('btnConfigure').classList.remove('active-btn');
-    document.getElementById('btnAbout').classList.remove('active-btn');
-
     document.getElementById('btnHome').focus();
 
     tabTransitionToSection('home', params.showUIAnimations);
