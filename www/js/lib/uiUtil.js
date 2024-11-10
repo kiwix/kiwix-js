@@ -942,9 +942,9 @@ function returnToCurrentPage () {
     document.getElementById('liConfigureNav').classList.remove('active');
     document.getElementById('liAboutNav').classList.remove('active');
     document.getElementById('liHomeNav').classList.add('active');
-
     document.getElementById('btnHome').focus();
-
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    navbarCollapse.classList.remove('show');
     tabTransitionToSection('home', params.showUIAnimations);
     const welcomeText = document.getElementById('welcomeText');
     welcomeText.style.display = 'none';

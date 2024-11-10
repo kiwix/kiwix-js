@@ -433,7 +433,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
         uiUtil.checkUpdateStatus(appstate);
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
         setTimeout(resizeIFrame, 400);
-    } 
+    }
 });
 document.getElementById('btnAbout').addEventListener('click', function (event) {
     event.preventDefault();
