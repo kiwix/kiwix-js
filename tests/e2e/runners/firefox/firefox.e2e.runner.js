@@ -2,6 +2,7 @@ import { Builder } from 'selenium-webdriver';
 import firefox from 'selenium-webdriver/firefox.js';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
+import tonedearTests from '../../spec/tonedear.e2e.spec.js';
 import paths from '../../paths.js';
 
 /* eslint-disable camelcase */
@@ -27,6 +28,8 @@ async function loadFirefoxDriver () {
 // so we need to use the second one first
 const driver_for_gutenberg = await loadFirefoxDriver();
 const driver_for_ray_charles = await loadFirefoxDriver();
+const driver_for_tonedear = await loadFirefoxDriver();
 
 await legacyRayCharles.runTests(driver_for_ray_charles);
 await gutenbergRo.runTests(driver_for_gutenberg);
+await tonedearTests.runTests(driver_for_tonedear);
