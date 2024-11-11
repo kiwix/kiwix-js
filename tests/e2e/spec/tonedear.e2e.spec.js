@@ -5,7 +5,6 @@ import { By, until } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
 
-// Get the BrowserStack environment variable
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 const port = BROWSERSTACK ? '8099' : '8080';
 

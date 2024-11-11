@@ -12,6 +12,7 @@ const downloadDir = path.resolve('./tests/');
 export default {
     rayCharlesBaseFile: rayCharlesBaseFile,
     gutenbergRoBaseFile: gutenbergRoBaseFile,
+    // Tonedear file
     tonedearBaseFile: tonedearBaseFile,
     downloadDir: downloadDir
 };

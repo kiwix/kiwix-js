@@ -28,8 +28,8 @@ async function loadFirefoxDriver () {
 // so we need to use the second one first
 const driver_for_gutenberg = await loadFirefoxDriver();
 const driver_for_ray_charles = await loadFirefoxDriver();
-const drive_for_tonedear = await loadFirefoxDriver();
+const driver_for_tonedear = await loadFirefoxDriver();
 
 await legacyRayCharles.runTests(driver_for_ray_charles);
 await gutenbergRo.runTests(driver_for_gutenberg);
-await tonedearTests.runTests(drive_for_tonedear)
+await tonedearTests.runTests(driver_for_tonedear)
