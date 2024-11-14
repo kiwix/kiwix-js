@@ -381,6 +381,7 @@ document.getElementById('btnTop').addEventListener('click', function (event) {
     var articleContent = document.getElementById('articleContent');
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
 // Top menu :
 document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
@@ -413,34 +414,43 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
+
 document.getElementById('btnConfigure').addEventListener('click', function (event) {
     event.preventDefault();
-    // Highlight the selected section in the navbar
-    document.getElementById('liHomeNav').setAttribute('class', '');
-    document.getElementById('liConfigureNav').setAttribute('class', 'active');
-    document.getElementById('liAboutNav').setAttribute('class', '');
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
-    // Show the selected content in the page
-    uiUtil.tabTransitionToSection('config', params.showUIAnimations);
-    refreshAPIStatus();
-    refreshCacheStatus();
-    uiUtil.checkUpdateStatus(appstate);
-    // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-    setTimeout(resizeIFrame, 400);
+    if (uiUtil.fromSection() === 'config') {
+        uiUtil.returnToCurrentPage();
+    } else {
+        // Highlight the selected section in the navbar
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', 'active');
+        document.getElementById('liAboutNav').setAttribute('class', '');
+        var navbarCollapse = document.querySelector('.navbar-collapse');
+        navbarCollapse.classList.remove('show');
+        // Show the selected content in the page
+        uiUtil.tabTransitionToSection('config', params.showUIAnimations);
+        refreshAPIStatus();
+        refreshCacheStatus();
+        uiUtil.checkUpdateStatus(appstate);
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
+    }
 });
 document.getElementById('btnAbout').addEventListener('click', function (event) {
     event.preventDefault();
-    // Highlight the selected section in the navbar
-    document.getElementById('liHomeNav').setAttribute('class', '');
-    document.getElementById('liConfigureNav').setAttribute('class', '');
-    document.getElementById('liAboutNav').setAttribute('class', 'active');
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
-    // Show the selected content in the page
-    uiUtil.tabTransitionToSection('about', params.showUIAnimations);
-    // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-    setTimeout(resizeIFrame, 400);
+    if (uiUtil.fromSection() === 'about') {
+        uiUtil.returnToCurrentPage();
+    } else {
+        // Highlight the selected section in the navbar
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', '');
+        document.getElementById('liAboutNav').setAttribute('class', 'active');
+        var navbarCollapse = document.querySelector('.navbar-collapse');
+        navbarCollapse.classList.remove('show');
+        // Show the selected content in the page
+        uiUtil.tabTransitionToSection('about', params.showUIAnimations);
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
+    }
 });
 document.querySelectorAll('input[name="contentInjectionMode"][type="radio"]').forEach(function (element) {
     element.addEventListener('change', function () {
