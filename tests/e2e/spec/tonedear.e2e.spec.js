@@ -104,6 +104,37 @@ function runTests (driver, modes) {
                 }
             });
 
+            it('Navigate to "Android & iOS App"', async function () {
+                if (!serviceWorkerAPI) {
+                    console.log('\x1b[33m%s\x1b[0m', ' - Following test skipped:');
+                    this.skip();
+                }
+
+                // Switch to iframe if necessary (adjust based on your app's structure)
+                await driver.switchTo().frame('articleContent'); // Adjust this if your app uses a different iframe
+
+                // Wait until the index has loaded
+                await driver.wait(async function () {
+                    const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
+                    return contentAvailable;
+                }, 20000);
+
+                // Locate the Android & iOS App link using a specific XPath
+                const appLink = await driver.wait(until.elementLocated(By.xpath("//ul[contains(@class, 'navbar-nav navbar-right')]/li[1]/a")), 20000); // Adjusted XPath
+
+                // Ensure it's visible before clicking
+                await driver.wait(until.elementIsVisible(appLink), 20000);
+
+                // Click the link to navigate
+                await appLink.click();
+
+                // Optionally, wait for a moment to allow navigation to complete
+                await driver.sleep(1000);
+
+                // Switch back to default content if needed
+                await driver.switchTo().defaultContent();
+            });
+
             it('Verify Android and iOS store images in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {
                 if (!serviceWorkerAPI && mode === 'jquery') {
                     // Restricted mode test for data URIs

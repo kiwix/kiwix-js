@@ -24,11 +24,11 @@ async function loadFirefoxDriver () {
     return driver;
 };
 
-// Preserve the order of loading, because when a user runs these on local machine, the second driver will be on top of and cover the first one
-// so we need to use the second one first
+// Preserve the order of loading, because when a user runs these on local machine, the third driver will be on top of and cover the first one
+// so we need to use the third one first
+const driver_for_tonedear = await loadFirefoxDriver();
 const driver_for_gutenberg = await loadFirefoxDriver();
 const driver_for_ray_charles = await loadFirefoxDriver();
-const driver_for_tonedear = await loadFirefoxDriver();
 
 await legacyRayCharles.runTests(driver_for_ray_charles);
 await gutenbergRo.runTests(driver_for_gutenberg);
