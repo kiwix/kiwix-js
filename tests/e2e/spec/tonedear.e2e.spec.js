@@ -4,6 +4,7 @@
 import { By, until } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
+import fs from 'fs'
 
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 const port = BROWSERSTACK ? '8099' : '8080';
@@ -104,34 +105,34 @@ function runTests (driver, modes) {
                 }
             });
 
-            it('Navigate to "Android & iOS App"', async function () {
-                if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', ' - Following test skipped:');
-                    this.skip();
-                }
+            it('Should navigate from main page to Android & iOS section', async function () {
+                // Switch to the iframe if the content is inside 'articleContent'
+                await driver.switchTo().frame('articleContent');
+                // console.log('Switched to iframe successfully');
 
-                // Switch to iframe if necessary (adjust based on your app's structure)
-                await driver.switchTo().frame('articleContent'); // Adjust this if your app uses a different iframe
-
-                // Wait until the index has loaded
+                // Wait until the link "Android & iOS App" is present in the DOM
                 await driver.wait(async function () {
-                    const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
+                    const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
                     return contentAvailable;
-                }, 20000);
+                }, 10000); // Increased to 10 seconds for more loading time
 
-                // Locate the Android & iOS App link using a specific XPath
-                const appLink = await driver.wait(until.elementLocated(By.xpath("//ul[contains(@class, 'navbar-nav navbar-right')]/li[1]/a")), 20000); // Adjusted XPath
+                // Find the "Android & iOS App" link
+                const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
 
-                // Ensure it's visible before clicking
-                await driver.wait(until.elementIsVisible(appLink), 20000);
+                // Verify that the element is found
+                // console.log('Android & iOS App link found:', androidLink !== null);
 
-                // Click the link to navigate
-                await appLink.click();
+                // Scroll the element into view and click it
+                await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+                await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
+                await androidLink.click();
 
-                // Optionally, wait for a moment to allow navigation to complete
-                await driver.sleep(1000);
+                // Take a screenshot after clicking for debugging
+                await driver.takeScreenshot().then((image) => {
+                    fs.writeFileSync('postClickScreenshot.png', image, 'base64');
+                });
 
-                // Switch back to default content if needed
+                // Switch back to the default content
                 await driver.switchTo().defaultContent();
             });
 
@@ -139,7 +140,7 @@ function runTests (driver, modes) {
                 if (!serviceWorkerAPI && mode === 'jquery') {
                     // Restricted mode test for data URIs
                     const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
-                    const iosImage = await driver.findElement(By.css('img[alt="Download on the App Store"]'));
+                    const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
 
                     // Verify src attribute has changed to a data URI
                     const androidSrc = await androidImage.getAttribute('src');
@@ -166,15 +167,26 @@ function runTests (driver, modes) {
                         const swRegistration = await driver.executeScript('return navigator.serviceWorker.ready');
                         assert.ok(swRegistration, 'Service Worker is registered');
 
-                        console.log('Current URL:', await driver.getCurrentUrl());
+                        // console.log('Current URL:', await driver.getCurrentUrl());
 
+                        // Switch to the iframe that contains the Android and iOS images
+                        const iframe = await driver.findElement(By.id('articleContent'));
+                        await driver.switchTo().frame(iframe);
+
+                        // Wait for images to be visible on the page inside the iframe
                         await driver.wait(async function () {
-                            const images = await driver.findElements(By.css('img[alt="Get it on Google Play"], img[alt="Download on the App Store"]'));
-                            return images.length > 0;
-                        }, 20000, 'No store images found after 10 seconds');
+                            const images = await driver.findElements(By.css('img[alt="Get it on Google Play"], img[alt="Get the iOS app"]'));
+                            if (images.length === 0) return false;
+
+                            // Check if all images are visible
+                            const visibility = await Promise.all(images.map(async (img) => {
+                                return await img.isDisplayed();
+                            }));
+                            return visibility.every((isVisible) => isVisible);
+                        }, 30000, 'No visible store images found after 30 seconds');
 
                         const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
-                        const iosImage = await driver.findElement(By.css('img[alt="Download on the App Store"]'));
+                        const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
 
                         // Wait for images to load and verify dimensions
                         await driver.wait(async function () {
@@ -191,6 +203,9 @@ function runTests (driver, modes) {
 
                         assert.ok(androidWidth > 0 && androidHeight > 0, 'Android image has valid dimensions');
                         assert.ok(iosWidth > 0 && iosHeight > 0, 'iOS image has valid dimensions');
+
+                        // Switch back to the main content after finishing the checks
+                        await driver.switchTo().defaultContent();
                     } catch (err) {
                         // If we still can't find the images, log the page source to help debug
                         console.error('Failed to find store images:', err.message);
