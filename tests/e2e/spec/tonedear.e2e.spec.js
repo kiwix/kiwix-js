@@ -46,7 +46,7 @@ function runTests (driver, modes) {
             this.slow(10000);
 
             it('Load Kiwix JS and verify title', async function () {
-                await driver.get(`http://localhost:${port}/dist/www/index.html?noPrompts=true`);
+                await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
                 await driver.sleep(1300);
                 await driver.navigate().refresh();
                 await driver.sleep(800);
@@ -81,6 +81,14 @@ function runTests (driver, modes) {
                     }
                 } catch (e) {
                     // Do nothing
+                }
+
+                if (mode === 'serviceworker') {
+                    // Disable source verification in SW mode as the dialogue box gave inconsistent test results
+                    const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
+                    if (sourceVerificationCheckbox.isSelected()) {
+                        await sourceVerificationCheckbox.click();
+                    }
                 }
             });
 
