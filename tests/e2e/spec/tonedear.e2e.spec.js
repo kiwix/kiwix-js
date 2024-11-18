@@ -122,7 +122,7 @@ function runTests (driver, modes) {
                 await driver.wait(async function () {
                     const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
                     return contentAvailable;
-                }, 30000); // Increased to 10 seconds for more loading time
+                }, 30000); // Increased to 30 seconds for more loading time
 
                 // Find the "Android & iOS App" link
                 const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
