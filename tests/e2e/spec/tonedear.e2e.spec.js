@@ -191,7 +191,7 @@ function runTests (driver, modes) {
                                 return await img.isDisplayed();
                             }));
                             return visibility.every((isVisible) => isVisible);
-                        }, 30000, 'No visible store images found after 30 seconds');
+                        }, 10000, 'No visible store images found after 10 seconds');
 
                         const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
                         const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
