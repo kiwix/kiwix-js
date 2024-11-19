@@ -128,7 +128,7 @@ function runTests (driver, modes) {
                 const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
 
                 // Verify that the element is found
-                // console.log('Android & iOS App link found:', androidLink !== null);
+                console.log('Android & iOS App link found:', androidLink !== null);
 
                 // Scroll the element into view and click it
                 // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
