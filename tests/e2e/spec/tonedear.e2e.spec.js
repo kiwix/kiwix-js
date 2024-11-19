@@ -131,8 +131,8 @@ function runTests (driver, modes) {
                 // console.log('Android & iOS App link found:', androidLink !== null);
 
                 // Scroll the element into view and click it
-                await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
-                await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
+                // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+                // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
                 await androidLink.click();
 
                 // Take a screenshot after clicking for debugging
