@@ -4,7 +4,6 @@
 import { By, until } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
-import fs from 'fs'
 
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 const port = BROWSERSTACK ? '8099' : '8080';
@@ -113,7 +112,19 @@ function runTests (driver, modes) {
                 }
             });
 
-            it('Should navigate from main page to Android & iOS section', async function () {
+            it('Navigate from main page to Android & iOS section', async function () {
+                // Check for Dialog Box and click any Approve Button in subsequent dialog box
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // console.log('Found active alert modal');
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
+                        await approveButton.click();
+                    }
+                } catch (e) {
+                    // Do nothing
+                }
+
                 // Switch to the iframe if the content is inside 'articleContent'
                 await driver.switchTo().frame('articleContent');
                 // console.log('Switched to iframe successfully');
@@ -127,18 +138,13 @@ function runTests (driver, modes) {
                 // Find the "Android & iOS App" link
                 const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
 
-                // Verify that the element is found
-                // console.log('Android & iOS App link found:', androidLink !== null);
+                // Test that the element is found
+                assert(androidLink !== null, 'Android & iOS App link was not found');
 
                 // Scroll the element into view and click it
                 // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
                 // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
                 await androidLink.click();
-
-                // Take a screenshot after clicking for debugging
-                await driver.takeScreenshot().then((image) => {
-                    fs.writeFileSync('postClickScreenshot.png', image, 'base64');
-                });
 
                 // Switch back to the default content
                 await driver.switchTo().defaultContent();
