@@ -1792,20 +1792,37 @@ async function handleFileDrop (packet) {
 const btnLibrary = document.getElementById('btnLibrary');
 btnLibrary.addEventListener('click', function (e) {
     e.preventDefault();
-
     const libraryContent = document.getElementById('libraryContent');
-    const iframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    try {
-        // eslint-disable-next-line no-new-func
-        Function('try{}catch{}')();
-        iframe.setAttribute('src', params.libraryUrl);
-        uiUtil.tabTransitionToSection('library', params.showUIAnimations);
-        resizeIFrame();
-    } catch (error) {
-        window.open(params.altLibraryUrl, '_blank')
-    }
+    const libraryIframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
+    libraryIframe.src = 'about:blank'; // Empty the iframe
+    const xhr = new XMLHttpRequest();
+    xhr.open('HEAD', params.libraryUrl, true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    // eslint-disable-next-line no-new-func
+                    Function('try{}catch{}')(); // Tests the browser can run code that will be used by the library
+                    libraryIframe.setAttribute('src', params.libraryUrl);
+                    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+                    resizeIFrame();
+                } catch (error) {
+                    console.warn('Browser cannot run code in the library iframe', error);
+                    handleLibraryError(libraryIframe);
+                }
+            } else {
+                console.warn('Library server ' + params.libraryUrl + ' is unreachable...');
+                handleLibraryError(libraryIframe);
+            }
+        }
+    };
+    xhr.onerror = function () {
+        handleLibraryError(libraryIframe);
+    };
+    xhr.send();
+    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+    resizeIFrame();
 });
-
 // Add keyboard activation for library button
 btnLibrary.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
@@ -1813,7 +1830,44 @@ btnLibrary.addEventListener('keydown', function (e) {
         btnLibrary.click();
     }
 });
-
+// Error handler for library iframe
+function handleLibraryError (iframe) {
+    iframe.onload = function () {
+        iframe.onload = null;
+        setTimeout(function () {
+            try {
+                if (!iframe.contentWindow || !iframe.contentWindow.document) {
+                    console.warn('Library server ' + params.altLibraryUrl + ' is unreachable...');
+                    throw new Error('Iframe content not accessible');
+                }
+            } catch (error) {
+                let htmlDoc = '<html><head><title>';
+                htmlDoc += translateUI.t('configure-library-mirrors') || 'Library Mirrors';
+                htmlDoc += '</title></head><body><h1>';
+                htmlDoc += translateUI.t('configure-library-mirrors') || 'Library Mirrors';
+                htmlDoc += '</h1><p style="font-size: large;">'
+                htmlDoc += translateUI.t('configure-library-altlibrary') || 'The library at';
+                htmlDoc += ' ' + params.altLibraryUrl + ' ';
+                htmlDoc += translateUI.t('configure-library-unreachable') || 'appears to be unreachable. Please try one of these mirrors:';
+                htmlDoc += '</p><ul>';
+                params.kiwixDownloadMirrors.forEach(function (mirror) {
+                    htmlDoc += '<li style="font-size: large;" class="console"><a href="' + mirror + '" target="_blank">' + mirror.replace(/^([^/]+\/\/[^/]+).*/, '$1') + '</a></li>';
+                });
+                htmlDoc += '</ul></body></html>';
+                iframe.onload = function () {
+                    iframe.onload = null;
+                    iframe.contentWindow.document.open();
+                    iframe.contentWindow.document.write(htmlDoc);
+                    iframe.contentWindow.document.close();
+                    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+                    resizeIFrame();
+                }
+                iframe.src = 'about:blank';
+            }
+        }, 500); // Adjust the timeout if too long
+    };
+    iframe.setAttribute('src', params.altLibraryUrl);
+};
 // Add event listener to link which allows user to show file selectors
 document.getElementById('selectorsDisplayLink').addEventListener('click', function (e) {
     e.preventDefault();
