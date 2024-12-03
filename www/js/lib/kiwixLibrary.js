@@ -154,7 +154,7 @@ function createBaseHtml () {
 }
 
 // Updates the status message in the iframe with loading indicator
-function updateStatus(frame, message) {
+function updateStatus (frame, message) {
     try {
         const statusElement = frame.contentWindow.document.getElementById('statusMessage');
         if (statusElement) {
@@ -174,7 +174,7 @@ function initializeFrame (frame) {
             frame.contentWindow.document.open();
             frame.contentWindow.document.write(createBaseHtml());
             frame.contentWindow.document.close();
-            resolve();  // Signal that initialization is complete
+            resolve(); // Signal that initialization is complete
         };
     });
 }
