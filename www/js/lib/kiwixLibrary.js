@@ -263,7 +263,7 @@ async function loadLibrary (iframe) {
         } else {
             // For connection errors, show the standard unreachable message
             console.warn('Primary library unreachable:', primaryError);
-            tryingAlternativeMsg = translateUI.t('configure-library-unreahable') ||
+            tryingAlternativeMsg = translateUI.t('configure-library-primary-unreachable') ||
                 '<p class="error-message">Primary server unreachable.</p><p>';
             tryingAlternativeMsg += translateUI.t('configure-library-trying-alternative') ||
                 'Attempting to contact backup server';
