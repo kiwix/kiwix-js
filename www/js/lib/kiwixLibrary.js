@@ -60,7 +60,7 @@ function checkUrl (url) {
 // Creates the base HTML template with a status message area
 function createBaseHtml () {
     const title = translateUI.t('configure-library-connecting') || 'Connecting to Library';
-    return `
+    return `<!DOCTYPE html>
         <html>
             <head>
                 <title>${title}</title>
@@ -256,7 +256,7 @@ async function loadLibrary (iframe) {
             const tryingAlternativeMsg = translateUI.t('configure-library-trying-alternative') ||
                 'Attempting to contact backup server';
             // Show both messages together, maintaining the error styling for the incompatibility message
-            updateStatus(iframe, 
+            updateStatus(iframe,
                 `<p class="error-message">${incompatibilityMsg}</p>
                  <p>${tryingAlternativeMsg} ${params.altLibraryUrl}</p>`);
         } else {
