@@ -26,6 +26,157 @@
 
 import translateUI from './translateUI.js';
 
+// Creates the base HTML template with a status message area
+function createBaseHtml (title) {
+    return `
+        <html>
+            <head>
+                <title>${title}</title>
+                <style>
+                    /* Library loader status display styles */
+                    #statusMessage {
+                        margin: 2em 0;
+                        font-size: 1.2em;
+                        color: #333;
+                    }
+
+                    .status-text {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5em;
+                    }
+
+                    /* Animated loading dots */
+                    .loading-dots {
+                        display: inline-block;
+                        width: 1.5em;
+                        animation: loadingDots 1.5s infinite;
+                        text-align: left;
+                    }
+
+                    @keyframes loadingDots {
+                        0% { content: "."; }
+                        33% { content: ".."; }
+                        66% { content: "..."; }
+                    }
+
+                    /* Mirror list styles */
+                    .mirror-intro {
+                        font-size: 1.2em;
+                        margin: 1.5em 0;
+                    }
+
+                    .mirror-list {
+                        list-style: none;
+                        padding: 0;
+                        margin: 2em 0;
+                    }
+
+                    .mirror-item {
+                        margin: 1em 0;
+                        font-size: 1.2em;
+                    }
+
+                    .mirror-item a {
+                        color: #0066cc;
+                        text-decoration: none;
+                        padding: 0.2em 0;
+                    }
+
+                    .mirror-item a:hover {
+                        text-decoration: underline;
+                    }
+
+                    .error-message {
+                        color: #cc0000;
+                        font-weight: bold;
+                    }
+
+                    /* Responsive adjustments */
+                    @media (max-width: 768px) {
+                        #statusMessage,
+                        .mirror-intro,
+                        .mirror-item {
+                            font-size: 1em;
+                    }
+}                </style>
+            </head>
+            <body>
+                <h1>${title}</h1>
+                <div id="statusMessage"></div>
+                <div id="mirrorList"></div>
+            </body>
+        </html>
+    `;
+}
+
+// Updates the status message in the iframe with loading indicator
+function updateStatus (frame, message) {
+    try {
+        const statusElement = frame.contentWindow.document.getElementById('statusMessage');
+        if (statusElement) {
+            statusElement.innerHTML = `
+                <p class="status-text">
+                    ${message}<span class="loading-dots">...</span>
+                </p>
+            `;
+        }
+    } catch (e) {
+        console.warn('Could not update status:', e);
+    }
+}
+
+// Initialize the iframe with the base template
+function initializeFrame (frame) {
+    const title = translateUI.t('configure-library-loading') || 'Loading Library';
+    frame.src = 'about:blank';
+    frame.onload = () => {
+        frame.onload = null;
+        frame.contentWindow.document.open();
+        frame.contentWindow.document.write(createBaseHtml(title));
+        frame.contentWindow.document.close();
+    };
+}
+
+// Creates HTML content for the mirror list
+function createMirrorListHtml () {
+    const mirrorListText = translateUI.t('configure-library-mirrors') || 'Library Mirrors';
+    const unreachableMsg = translateUI.t('configure-library-unreachable') || 'appears to be unreachable. Please try one of these mirrors:';
+    const altLibraryMsg = translateUI.t('configure-library-altlibrary') || 'The library at';
+
+    let html = `
+        <h2>${mirrorListText}</h2>
+        <p class="mirror-intro">
+            ${altLibraryMsg} ${params.altLibraryUrl} ${unreachableMsg}
+        </p>
+        <ul class="mirror-list">`;
+
+    params.kiwixDownloadMirrors.forEach(mirror => {
+        const domain = mirror.replace(/^([^/]+\/\/[^/]+).*/, '$1');
+        html += `
+            <li class="mirror-item">
+                <a href="${mirror}" target="_blank">${domain}</a>
+            </li>`;
+    });
+    html += '</ul>';
+    return html;
+}
+
+// Displays the mirror list in the iframe
+function showMirrorList (frame) {
+    try {
+        const mirrorListElement = frame.contentWindow.document.getElementById('mirrorList');
+        if (mirrorListElement) {
+            const statusElement = frame.contentWindow.document.getElementById('statusMessage');
+            statusElement.innerHTML = translateUI.t('configure-library-all-unreachable') ||
+                                    'All library servers are currently unreachable.';
+            mirrorListElement.innerHTML = createMirrorListHtml();
+        }
+    } catch (e) {
+        console.warn('Could not show mirror list:', e);
+    }
+}
+
 // Tests if browser can execute code (required for library functionality)
 function canExecuteCode () {
     try {
@@ -57,61 +208,29 @@ function checkUrl (url) {
     });
 }
 
-// Creates HTML content for the mirror list
-function createMirrorListHtml () {
-    const title = translateUI.t('configure-library-mirrors') || 'Library Mirrors';
-    const unreachableMsg = translateUI.t('configure-library-unreachable') || 'appears to be unreachable. Please try one of these mirrors:';
-    const altLibraryMsg = translateUI.t('configure-library-altlibrary') || 'The library at';
-    let html = `
-        <html>
-            <head><title>${title}</title></head>
-            <body>
-                <h1>${title}</h1>
-                <p style="font-size: large;">
-                    ${altLibraryMsg} ${params.altLibraryUrl} ${unreachableMsg}
-                </p>
-                <ul>`;
-    params.kiwixDownloadMirrors.forEach(mirror => {
-        const domain = mirror.replace(/^([^/]+\/\/[^/]+).*/, '$1');
-        html += `
-            <li style="font-size: large;" class="console">
-                <a href="${mirror}" target="_blank">${domain}</a>
-            </li>`;
-    });
-
-    html += '</ul></body></html>';
-    return html;
-}
-
-// Displays the mirror list in the iframe
-function showMirrorList (frame) {
-    const html = createMirrorListHtml();
-    frame.src = 'about:blank';
-    // Write content after iframe loads blank page
-    frame.onload = () => {
-        frame.onload = null;
-        frame.contentWindow.document.open();
-        frame.contentWindow.document.write(html);
-        frame.contentWindow.document.close();
-    };
-}
-
 // Main library loading logic
 async function loadLibrary (iframe) {
-    // Clear existing content
-    iframe.src = 'about:blank';
+    initializeFrame(iframe);
     try {
-        // First check if we can execute code
         if (!canExecuteCode()) {
             throw new Error('Browser cannot execute code');
         }
+
         // Try primary library URL
+        const tryingPrimaryMsg = translateUI.t('configure-library-trying-primary') ||
+            'Attempting to contact primary library server';
+        updateStatus(iframe, tryingPrimaryMsg);
+
         await checkUrl(params.libraryUrl);
         iframe.src = params.libraryUrl;
     } catch (primaryError) {
         console.warn('Primary library unreachable:', primaryError);
         try {
             // Try alternative library URL
+            const tryingAlternativeMsg = translateUI.t('configure-library-trying-alternative') ||
+                'Primary server unreachable. Attempting to contact backup server';
+            updateStatus(iframe, tryingAlternativeMsg);
+
             await checkUrl(params.altLibraryUrl);
             iframe.src = params.altLibraryUrl;
         } catch (alternativeError) {
