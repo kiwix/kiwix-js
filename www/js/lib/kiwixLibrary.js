@@ -248,12 +248,13 @@ async function loadLibrary (iframe) {
         await checkUrl(params.libraryUrl);
         iframe.src = params.libraryUrl;
     } catch (primaryError) {
+        let tryingAlternativeMsg;
         if (primaryError.name === 'BrowserIncompatibilityError') {
             // For browser incompatibility, combine both messages
             console.warn('Browser compatibility check failed: Browser cannot execute code in library iframe');
             const incompatibilityMsg = translateUI.t('configure-library-incompatible') ||
                 'Browser is incompatible with primary library';
-            const tryingAlternativeMsg = translateUI.t('configure-library-trying-alternative') ||
+            tryingAlternativeMsg = translateUI.t('configure-library-trying-alternative') ||
                 'Attempting to contact backup server';
             // Show both messages together, maintaining the error styling for the incompatibility message
             updateStatus(iframe,
@@ -262,8 +263,10 @@ async function loadLibrary (iframe) {
         } else {
             // For connection errors, show the standard unreachable message
             console.warn('Primary library unreachable:', primaryError);
-            const tryingAlternativeMsg = translateUI.t('configure-library-trying-alternative') ||
-                '<p class="error-message">Primary server unreachable.</p><p>Attempting to contact backup server';
+            tryingAlternativeMsg = translateUI.t('configure-library-unreahable') ||
+                '<p class="error-message">Primary server unreachable.</p><p>';
+            tryingAlternativeMsg += translateUI.t('configure-library-trying-alternative') ||
+                'Attempting to contact backup server';
             updateStatus(iframe, tryingAlternativeMsg + ' ' + params.altLibraryUrl + '</p>');
         }
         try {
