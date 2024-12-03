@@ -65,18 +65,17 @@ function createBaseHtml () {
             <head>
                 <title>${title}</title>
                 <style>
-                    /* Library loader status display styles */
-                    #statusMessage {
-                        margin: 2em 0;
-                        font-size: 1.2em;
-                        color: #333;
+                    /* Main heading container */
+                    #mainHeading {
+                        margin: 1em 0;
                     }
-                    .status-text {
+                    .heading-text {
                         display: flex;
                         align-items: center;
                         gap: 0.5em;
+                        font-size: 2em;  /* Make heading prominent */
                     }
-                    /* Animated loading dots */
+                    /* Loading dots animation */
                     .loading-dots span {
                         display: inline-block;
                         animation: loadingDot 1.5s infinite;
@@ -92,6 +91,16 @@ function createBaseHtml () {
                         0%, 20% { opacity: 0; }
                         50% { opacity: 1; }
                         80%, 100% { opacity: 0; }
+                    }
+                    /* Status message styles */
+                    #statusMessage {
+                        margin: 2em 0;
+                        font-size: 1.2em;
+                        color: #333;
+                    }
+                    .error-message {
+                        color: #cc0000;
+                        font-weight: bold;
                     }            }
                     /* Mirror list styles */
                     .mirror-intro {
@@ -130,7 +139,13 @@ function createBaseHtml () {
                 </style>
             </head>
             <body>
-                <h1>${title}</h1>
+                <div id="mainHeading">
+                    <h1 class="heading-text">
+                        ${title}<span class="loading-dots">
+                            <span>.</span><span>.</span><span>.</span>
+                        </span>
+                    </h1>
+                </div>
                 <div id="statusMessage"></div>
                 <div id="mirrorList"></div>
             </body>
@@ -139,17 +154,11 @@ function createBaseHtml () {
 }
 
 // Updates the status message in the iframe with loading indicator
-function updateStatus (frame, message) {
+function updateStatus(frame, message) {
     try {
         const statusElement = frame.contentWindow.document.getElementById('statusMessage');
         if (statusElement) {
-            statusElement.innerHTML = `
-                <p class="status-text">
-                    ${message}<span class="loading-dots">
-                        <span>.</span><span>.</span><span>.</span>
-                    </span>
-                </p>
-            `;
+            statusElement.innerHTML = `<p>${message}</p>`;
         }
     } catch (e) {
         console.warn('Could not update status:', e);
@@ -158,13 +167,16 @@ function updateStatus (frame, message) {
 
 // Initialize the iframe with the base template
 function initializeFrame (frame) {
-    frame.src = 'about:blank';
-    frame.onload = () => {
-        frame.onload = null;
-        frame.contentWindow.document.open();
-        frame.contentWindow.document.write(createBaseHtml());
-        frame.contentWindow.document.close();
-    };
+    return new Promise((resolve) => {
+        frame.src = 'about:blank';
+        frame.onload = () => {
+            frame.onload = null;
+            frame.contentWindow.document.open();
+            frame.contentWindow.document.write(createBaseHtml());
+            frame.contentWindow.document.close();
+            resolve();  // Signal that initialization is complete
+        };
+    });
 }
 
 // Creates HTML content for the mirror list
@@ -195,13 +207,22 @@ function createMirrorListHtml () {
 // Displays the mirror list in the iframe
 function showMirrorList (frame) {
     try {
-        const mirrorListElement = frame.contentWindow.document.getElementById('mirrorList');
-        if (mirrorListElement) {
-            const statusElement = frame.contentWindow.document.getElementById('statusMessage');
+        const doc = frame.contentWindow.document;
+        // Remove the loading heading since we're showing mirrors
+        const mainHeading = doc.getElementById('mainHeading');
+        if (mainHeading) {
+            mainHeading.remove();
+        }
+        // Update status with error message
+        const statusElement = doc.getElementById('statusMessage');
+        const mirrorListElement = doc.getElementById('mirrorList');
+
+        if (statusElement && mirrorListElement) {
             const allUnreachableMsg = translateUI.t('configure-library-all-unreachable') ||
                 'All library servers are currently unreachable.';
-
+            // Show error message in status area
             statusElement.innerHTML = `<p class="error-message">${allUnreachableMsg}</p>`;
+            // Show mirror list
             mirrorListElement.innerHTML = createMirrorListHtml();
         }
     } catch (e) {
@@ -211,18 +232,15 @@ function showMirrorList (frame) {
 
 // Main library loading logic
 async function loadLibrary (iframe) {
-    initializeFrame(iframe);
-
+    await initializeFrame(iframe);
     try {
         if (!canExecuteCode()) {
             throw new Error('Browser cannot execute code');
         }
-
         // Try primary library URL
         const tryingPrimaryMsg = translateUI.t('configure-library-trying-primary') ||
             'Attempting to contact primary library server';
-        updateStatus(iframe, tryingPrimaryMsg);
-
+        updateStatus(iframe, tryingPrimaryMsg + ' ' + params.libraryUrl);
         await checkUrl(params.libraryUrl);
         iframe.src = params.libraryUrl;
     } catch (primaryError) {
@@ -231,9 +249,8 @@ async function loadLibrary (iframe) {
         try {
             // Try alternative library URL
             const tryingAlternativeMsg = translateUI.t('configure-library-trying-alternative') ||
-                'Primary server unreachable. Attempting to contact backup server';
-            updateStatus(iframe, tryingAlternativeMsg);
-
+                '<p class="error-message">Primary server unreachable.</p><p>Attempting to contact backup server';
+            updateStatus(iframe, tryingAlternativeMsg + ' ' + params.altLibraryUrl + '</p>');
             await checkUrl(params.altLibraryUrl);
             iframe.src = params.altLibraryUrl;
         } catch (alternativeError) {
