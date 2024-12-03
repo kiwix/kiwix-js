@@ -66,7 +66,7 @@ document.localeJson = {
       "configure-display-apptheme-info": "[&nbsp;Mostrar artículo con tema seleccionado&nbsp;]",
       "configure-language-selector-default": "Idioma",
       "configure-language-selector-other": "Más pronto...",
-      "configure-library-all-unreachable": "Todos los servidores de la biblioteca están inaalcanzables actualmente.",
+      "configure-library-all-unreachable": "Todos los servidores de la biblioteca están inalcanzables actualmente.",
       "configure-library-altlibrary": "La biblioteca en",
       "configure-library-connecting": "Conectando a la biblioteca",
       "configure-library-incompatible": "Navegador no es compatible con la biblioteca primaria",
