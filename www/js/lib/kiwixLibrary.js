@@ -26,19 +26,26 @@
 
 import translateUI from './translateUI.js';
 
-// Tests if browser can execute code (required for library functionality)
+/**
+ * Tests if browser can execute code required for library.kiwix.org functionality
+ * @returns {boolean} True if the browser can execute required code in the library iframe
+ */
 function canExecuteCode () {
     try {
         // eslint-disable-next-line no-new-func
         Function('try{}catch{}')();
         return true;
     } catch (error) {
-        console.warn('Browser cannot run code in the library iframe', error);
+        console.warn('Browser cannot run required code for ' + params.libraryUrl, error);
         return false;
     }
 }
 
-// Attempts to load a URL and returns a promise
+/**
+ * Attempts to load a URL header and returns a Promise with the result
+ * @param {String} url A URL to check
+ * @returns {Promise} A promise that resolves if the URL is reachable, or rejects with an error
+ */
 function checkUrl (url) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -57,7 +64,10 @@ function checkUrl (url) {
     });
 }
 
-// Creates the base HTML template with a status message area
+/**
+ * Creates the base HTML template with a status message area and loading indicator
+ * @returns {String} The base HTML template
+ */
 function createBaseHtml () {
     const title = translateUI.t('configure-library-connecting') || 'Connecting to Library';
     return `<!DOCTYPE html>
@@ -153,7 +163,11 @@ function createBaseHtml () {
     `;
 }
 
-// Updates the status message in the iframe with loading indicator
+/**
+ * Updates the status message in the iframe with loading indicator
+ * @param {Object} frame The iframe DOM object
+ * @param {String} message The status message to display in the iframe
+ */
 function updateStatus (frame, message) {
     try {
         const statusElement = frame.contentWindow.document.getElementById('statusMessage');
@@ -165,7 +179,11 @@ function updateStatus (frame, message) {
     }
 }
 
-// Initialize the iframe with the base template
+/**
+ * Initialize the iframe with the base template
+ * @param {Objet} frame The iframe DOM object to initialize
+ * @returns {Promise} A promise that resolves when the iframe is initialized
+ */
 function initializeFrame (frame) {
     return new Promise((resolve) => {
         frame.src = 'about:blank';
@@ -179,7 +197,10 @@ function initializeFrame (frame) {
     });
 }
 
-// Creates HTML content for the mirror list
+/**
+ * Creates HTML content for the mirror list
+ * @returns {String} The HTML content for the mirror list
+ */
 function createMirrorListHtml () {
     const mirrorListText = translateUI.t('configure-library-mirrors') || 'Library Mirrors';
     const unreachableMsg = translateUI.t('configure-library-unreachable') || 'appears to be unreachable. Please try one of these mirrors:';
@@ -204,7 +225,10 @@ function createMirrorListHtml () {
     return html;
 }
 
-// Displays the mirror list in the iframe
+/**
+ * Displays the mirror list in the iframe
+ * @param {Object} frame The iframe DOM object in which to display the mirror list
+ */
 function showMirrorList (frame) {
     try {
         const doc = frame.contentWindow.document;
@@ -231,7 +255,10 @@ function showMirrorList (frame) {
     }
 }
 
-// Main library loading logic
+/**
+ * Main library loading logic
+ * @param {Object} iframe The iframe DOM object into which to load the library
+ */
 async function loadLibrary (iframe) {
     await initializeFrame(iframe);
     try {
