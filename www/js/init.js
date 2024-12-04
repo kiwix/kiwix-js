@@ -81,7 +81,7 @@ var params = {};
  * WARNING: Only change these parameters if you know what you are doing
  */
 // The current version number of this app
-params['appVersion'] = '4.1.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+params['appVersion'] = '4.1.2'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
 // The PWA server (for use with the browser extensions in ServiceWorker mode)
 params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
 // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
@@ -124,6 +124,9 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 params['libraryUrl'] = 'https://library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
 params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Alternative Url for iframe (for use with unsupported browsers) that will be loaded to download new zim files
+params['kiwixDownloadMirrors'] = ['https://ftp.fau.de/kiwix/zim/', 'https://mirrors.dotsrc.org/kiwix/zim/',
+    'https://www.mirrorservice.org/sites/download.kiwix.org/zim/', 'https://md.mirrors.hacktegic.com/kiwix-md/zim/',
+    'https://laotzu.ftp.acc.umu.se/mirror/kiwix.org/zim/', 'https://saimei.ftp.acc.umu.se/mirror/kiwix.org/zim/'];
 params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the cache in Cache API
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported

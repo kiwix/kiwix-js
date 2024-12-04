@@ -35,6 +35,7 @@ import popovers from './lib/popovers.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
+import kiwixLibrary from './lib/kiwixLibrary.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -1791,21 +1792,12 @@ async function handleFileDrop (packet) {
 
 const btnLibrary = document.getElementById('btnLibrary');
 btnLibrary.addEventListener('click', function (e) {
-    e.preventDefault();
-
     const libraryContent = document.getElementById('libraryContent');
-    const iframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    try {
-        // eslint-disable-next-line no-new-func
-        Function('try{}catch{}')();
-        iframe.setAttribute('src', params.libraryUrl);
-        uiUtil.tabTransitionToSection('library', params.showUIAnimations);
-        resizeIFrame();
-    } catch (error) {
-        window.open(params.altLibraryUrl, '_blank')
-    }
+    const libraryIframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
+    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+    resizeIFrame();
+    kiwixLibrary.loadLibrary(libraryIframe);
 });
-
 // Add keyboard activation for library button
 btnLibrary.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
