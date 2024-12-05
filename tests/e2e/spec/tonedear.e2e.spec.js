@@ -115,14 +115,22 @@ function runTests (driver, modes) {
             it('Navigate from main page to Android & iOS section', async function () {
                 // Check for Dialog Box and click any Approve Button in subsequent dialog box
                 try {
-                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    const activeAlertModal = await driver.wait(
+                        until.elementLocated(By.css('.modal[style*="display: block"]')),
+                        5000 // wait for 5 seconds
+                    );
                     if (activeAlertModal) {
                         // console.log('Found active alert modal');
                         const approveButton = await driver.findElement(By.id('approveConfirm'));
                         await approveButton.click();
                     }
                 } catch (e) {
-                    // Do nothing
+                    // If dialog box is not found wihtin time limit, continue the test
+                    if (e.name === 'TimeoutError') {
+                        console.log('No modal found, continue the test..')
+                    } else {
+                        throw e;
+                    }
                 }
 
                 // Switch to the iframe if the content is inside 'articleContent'
