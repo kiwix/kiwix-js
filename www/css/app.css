@@ -404,5 +404,9 @@ button {
         min-width: auto;
         margin-bottom: 0.5em;
     }
+
+    .btn-group{
+        height: 100%;
+    }
     
 }
