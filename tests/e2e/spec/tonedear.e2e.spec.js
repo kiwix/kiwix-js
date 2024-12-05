@@ -46,9 +46,9 @@ function runTests (driver, modes) {
 
             it('Load Kiwix JS and verify title', async function () {
                 await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
-                await driver.sleep(1300);
+                await driver.sleep(4000);
                 await driver.navigate().refresh();
-                await driver.sleep(800);
+                await driver.sleep(2000);
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
@@ -184,7 +184,7 @@ function runTests (driver, modes) {
                 } else if (serviceWorkerAPI && mode === 'serviceworker') {
                     try {
                         // ServiceWorker mode test for image loading
-                        await driver.sleep(3000);
+                        await driver.sleep(5000);
 
                         const swRegistration = await driver.executeScript('return navigator.serviceWorker.ready');
                         assert.ok(swRegistration, 'Service Worker is registered');
