@@ -354,48 +354,44 @@ button {
 /* Reduce the size of some elements for small screens */
 @media (max-width: 768px) {
 
-    /* Reduce the height of top menu */
+    /* Adjust navbar dimensions */
     .navbar {
         min-height: 20px !important;
         margin-bottom: 1px !important;
     }
     .navbar-brand {
-        padding-top: 2px !important;
-        padding-bottom: 1px !important;
+        padding: 2px 0 1px !important;
         height: 25px !important;
     }
     .navbar-toggle {
-        padding-top: 2px !important;
-        padding-bottom: 2px !important;
-        margin-top: 2px !important;
-        margin-bottom: 0 !important;
+        padding: 2px !important;
+        margin: 2px 0 0 !important;
     }
     [role=region] > header {
         margin-bottom: 0 !important;
     }
 
-    /* Remove space between search zone and iframe */
     .list-group {
         margin-bottom: 0 !important;
     }
 
-    /* Reduce height of the search field */
-    .form-control {
-        padding-bottom: 5px !important;
-    }
-    #formArticleSearch {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-    }
-    /* Reduce size of the top buttons */
-    .btn-outline-secondary {
-        font-size: 10px !important;
+    .form-control,
+    .btn-outline-secondary,
+    #btnRandomArticle {
+        height: 40px; 
+        line-height: 1.5; 
     }
 
-    /* Reduce size of the bottom buttons */
+    .form-control {
+        padding: 0.375rem 0.75rem;
+    }
+
+    #formArticleSearch {
+        padding: 0.5rem 0;
+    }
+
     .btn-lg, .btn-group-lg > .btn {
-        padding-top: 1px !important;
-        padding-bottom: 1px !important;
+        padding: 1px !important;
         font-size: 16px !important;
     }
 
@@ -404,5 +400,4 @@ button {
         min-width: auto;
         margin-bottom: 0.5em;
     }
-    
 }
