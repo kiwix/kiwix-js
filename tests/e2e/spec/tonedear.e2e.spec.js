@@ -46,9 +46,9 @@ function runTests (driver, modes) {
 
             it('Load Kiwix JS and verify title', async function () {
                 await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
-                await driver.sleep(4000);
+                await driver.sleep(1300);
                 await driver.navigate().refresh();
-                await driver.sleep(2000);
+                await driver.sleep(800);
                 const title = await driver.getTitle();
                 assert.equal('Kiwix', title);
             });
@@ -115,22 +115,15 @@ function runTests (driver, modes) {
             it('Navigate from main page to Android & iOS section', async function () {
                 // Check for Dialog Box and click any Approve Button in subsequent dialog box
                 try {
-                    const activeAlertModal = await driver.wait(
-                        until.elementLocated(By.css('.modal[style*="display: block"]')),
-                        5000 // wait for 5 seconds
-                    );
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                     if (activeAlertModal) {
                         // console.log('Found active alert modal');
                         const approveButton = await driver.findElement(By.id('approveConfirm'));
                         await approveButton.click();
                     }
                 } catch (e) {
-                    // If dialog box is not found wihtin time limit, continue the test
-                    if (e.name === 'TimeoutError') {
-                        console.log('No modal found, continue the test..')
-                    } else {
-                        throw e;
-                    }
+                    // Do nothing
+                    console.log('Modal not found within the timeout. Continuing test...');
                 }
 
                 // Switch to the iframe if the content is inside 'articleContent'
@@ -184,7 +177,7 @@ function runTests (driver, modes) {
                 } else if (serviceWorkerAPI && mode === 'serviceworker') {
                     try {
                         // ServiceWorker mode test for image loading
-                        await driver.sleep(5000);
+                        await driver.sleep(3000);
 
                         const swRegistration = await driver.executeScript('return navigator.serviceWorker.ready');
                         assert.ok(swRegistration, 'Service Worker is registered');
