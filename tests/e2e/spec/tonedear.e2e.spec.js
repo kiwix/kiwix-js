@@ -122,7 +122,7 @@ function runTests (driver, modes) {
                         await approveButton.click();
                     }
                 } catch (e) {
-                    // Do nothing
+                    // show if modal shown or not
                     console.log('Modal not found within the timeout. Continuing test...');
                 }
 
