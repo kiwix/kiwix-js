@@ -46,7 +46,7 @@ viewable (if at all). Our sister app https://pwa.kiwix.org has some further supp
 ## Security
 
 Be sure to get your ZIM archives only from a secure source, such as the official Kiwix library. This is because ZIM archives can run dynamic code in your browser. While
-we do our best to sandbox the ZIM's content, a detemined malicious ZIM could remove the sandbox and redirect the iframe to, say, a phishing Web site. For this reason
+we do our best to sandbox the ZIM's content, a determined malicious ZIM could remove the sandbox and redirect the iframe to, say, a phishing Web site. For this reason
 we now show a Security Warning when you open a ZIM with dynamic content in ServiceWorker mode for the first time. If you do not trust the source of the ZIM, and wish to
 browser static content safely, then open the ZIM first in Restricted Mode before deciding whether to switch to ServiceWorker Mode.
 
@@ -106,7 +106,7 @@ there are two main ways of doing this:
 
 - "ServiceWorker" mode (the default) uses a Service Worker to catch any HTTP request the page may send and reply with content read from
 the ZIM file. It is a generic and clean way of serving content to the browser. It works in any recent browser, but not in older ones.
-Service Workers are currently disabled by Mozilla in Firefox extensions, and in Chromium extensions active content is severly restricted
+Service Workers are currently disabled by Mozilla in Firefox extensions, and in Chromium extensions active content is severely restricted
 for security reasons. In both cases we offer a functional workaround (an offline-first PWA version) as a substitute within the extension;
 - "ServiceWorkerLocal" mode is a restricted ServiceWorker mode that is available only in Chromium extensions running fully locally. Chromium
 extensions running locally block (by design) a lot of dynamic content such as inline JavaScript and `eval`, which means this mode won't work
@@ -115,7 +115,7 @@ will be thrown back to Restricted mode in order to view static content). However
 and should work with most official Kiwix ZIM archives;
 - "Restricted" mode prevents running attached scripts in the iframe, and so is useful for checking the contents of a ZIM before deciding it is safe
 to run. This mode also works in browsers that do not support Service Workers. It parses the DOM to find the HTML tags of the dependencies and
-modifies them to point to content we extract from the ZIM. This mode is compatible with any browser, but becuase it cannot run JavaScript
+modifies them to point to content we extract from the ZIM. This mode is compatible with any browser, but because it cannot run JavaScript
 inside the ZIM file, does not work well (if at all) with ZIMs that depend on dynamic content. If you open a dynamic (including Zimit) archive
 in this mode (or if you are thrown into the mode due to another incompatibility), then we will do our best to display static content, but much
 functionality is likely to be broken. However, Mediawiki-based content (e.g. Wikipedia) works fine in this mode.
@@ -165,7 +165,7 @@ The browser extensions are distributed through the stores of each vendor (see li
 
 Some nightly builds are generated, and should only be used for testing purpose: https://download.kiwix.org/nightly/.
 
-There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/ (unbundled: needs a modern browser that suppors native ES6 modules), and a bundled version for any
+There is a test implementation of the latest code at https://kiwix.github.io/kiwix-js/ (unbundled: needs a modern browser that supports native ES6 modules), and a bundled version for any
 HTML5 browser (>=IE11) at https://kiwix.github.io/kiwix-js/dist/, but these implementations are used for development, and may be buggy, experimental or unstable. A stable PWA version for
 use in the browser extensions is available from https://browser-extension.kiwix.org/current/.
 
