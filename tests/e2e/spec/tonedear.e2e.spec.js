@@ -110,6 +110,12 @@ function runTests (driver, modes) {
                     );
                     await driver.sleep(1300);
                 }
+
+                await driver.wait(
+                    until.elementLocated(By.id('articleContent')),
+                    20000,
+                    'Iframe not loaded'
+                );
             });
 
             it('Navigate from main page to Android & iOS section', async function () {
