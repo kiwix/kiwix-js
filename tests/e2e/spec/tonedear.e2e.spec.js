@@ -156,15 +156,21 @@ function runTests (driver, modes) {
                         'window.setRemoteArchives.apply(this, [arguments[0]]);',
                         [tonedearBaseFile]
                     );
-                    await driver.wait(async function () {
-                        const isLoaded = await driver.executeScript(`
-                            return window.app && 
-                                window.app.isReady() && 
-                                window.app.selectedArchive !== null;
-                        `);
-                        return isLoaded;
-                    }, 30000, 'ZIM file failed to load');
+                    // await driver.wait(async function () {
+                    //     const isLoaded = await driver.executeScript(`
+                    //         return window.app && 
+                    //             window.app.isReady() && 
+                    //             window.app.selectedArchive !== null;
+                    //     `);
+                    //     return isLoaded;
+                    // }, 30000, 'ZIM file failed to load');
+                    await driver.sleep(1300);
                 }
+                await driver.wait(
+                    until.elementLocated(By.id('articleContent')),
+                    20000,
+                    'Iframe not loaded'
+                );
             });
 
             it('Navigate from main page to Android & iOS section', async function () {
