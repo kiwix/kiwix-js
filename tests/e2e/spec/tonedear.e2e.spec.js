@@ -158,8 +158,8 @@ function runTests (driver, modes) {
                     );
                     // await driver.wait(async function () {
                     //     const isLoaded = await driver.executeScript(`
-                    //         return window.app && 
-                    //             window.app.isReady() && 
+                    //         return window.app &&
+                    //             window.app.isReady() &&
                     //             window.app.selectedArchive !== null;
                     //     `);
                     //     return isLoaded;
