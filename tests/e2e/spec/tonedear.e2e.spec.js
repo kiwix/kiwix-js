@@ -142,7 +142,7 @@ function runTests (driver, modes) {
                 let filesLength;
                 const isFileLoaded = await driver.wait(async function () {
                     // check files are loaded
-                    filesLength = await driver.executeScript('return document.getElementById("archiveFiles".files.length');
+                    filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     return filesLength === 1;
                 }, 2000).catch(() => false);
 
