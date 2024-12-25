@@ -36,6 +36,44 @@ function runTests (driver, modes) {
     // Set implicit wait timeout
     driver.manage().setTimeouts({ implicit: 3000 });
 
+    // Perform app reset before tests if we are not running CI
+    if (!process.env.CI) {
+        describe('Reset app', function () {
+            this.timeout(60000);
+            this.slow(10000);
+            it('Click the app reset button and accept warning', async function () {
+                await driver.get('http://localhost:' + port + '/dist/www/index.html');
+                // Pause for 1.3 seconds to allow the app to load
+                await driver.sleep(1300);
+                // Accept any alert dialogue box on opening, e.g. for browsers that do not support the ServiceWorker API
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // console.log('Found active alert modal');
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
+                        await approveButton.click();
+                    }
+                } catch (e) {
+                    // Do nothing
+                }
+                const resetButton = await driver.findElement(By.id('btnReset'));
+                await resetButton.click();
+                // Check for and click any approve button in subsequent dialogue box
+                // E.g. on IE11, a "ServiceWorker unsppoerted" alert will appear
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // console.log('Found active alert modal');
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
+                        await approveButton.click();
+                    }
+                } catch (e) {
+                    // Do nothing
+                }
+            });
+        });
+    }
+
     modes.forEach(function (mode) {
         let serviceWorkerAPI = true;
 
@@ -100,22 +138,33 @@ function runTests (driver, modes) {
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                 await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
 
+                // Wait until till files are loaded
+                let filesLength;
+                const isFileLoaded = await driver.wait(async function () {
+                    // check files are loaded
+                    filesLength = await driver.executeScript('return document.getElementById("archiveFiles".files.length');
+                    return filesLength === 1;
+                }, 2000).catch(() => false);
+
                 if (!BROWSERSTACK) {
-                    await archiveFiles.sendKeys(tonedearBaseFile);
+                    if (!isFileLoaded) await archiveFiles.sendKeys(tonedearBaseFile);
+                    filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     await driver.executeScript('window.setLocalArchiveFromFileSelect();');
+                    assert.equal(1, filesLength, 'File not loaded');
                 } else {
                     await driver.executeScript(
                         'window.setRemoteArchives.apply(this, [arguments[0]]);',
                         [tonedearBaseFile]
                     );
-                    await driver.sleep(1300);
+                    await driver.wait(async function () {
+                        const isLoaded = await driver.executeScript(`
+                            return window.app && 
+                                window.app.isReady() && 
+                                window.app.selectedArchive !== null;
+                        `);
+                        return isLoaded;
+                    }, 30000, 'ZIM file failed to load');
                 }
-
-                await driver.wait(
-                    until.elementLocated(By.id('articleContent')),
-                    20000,
-                    'Iframe not loaded'
-                );
             });
 
             it('Navigate from main page to Android & iOS section', async function () {
