@@ -119,6 +119,47 @@ function runTests (driver, modes) {
                 } catch (e) {
                     // Do nothing
                 }
+                if (mode === 'jquery' || serviceWorkerAPI) {
+                    // Wait until the mode has switched
+                    await driver.sleep(2000);
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                    try {
+                        if (mode === 'serviceworker') {
+                            assert.ok(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.ok(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
+                    } catch (e) {
+                        if (!~modes.indexOf('serviceworker')) {
+                            // We can't switch to serviceworker mode if it is not being tested, so we should fail the test
+                            throw e;
+                        }
+                        // We failed to switch modes, so let's try switching back and switching to this mode again
+                        console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
+                        let otherModeSelector;
+                        await driver.wait(async function () {
+                            otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        }, 5000);
+                        // Click the other mode selector
+                        await otherModeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        // Click the mode selector again
+                        await modeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                        if (mode === 'serviceworker') {
+                            assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
+                    }
+                } else {
+                    // Skip remaining SW mode tests if the browser does not support the SW API
+                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                    await driver.quit();
+                }
 
                 if (mode === 'serviceworker') {
                     // Disable source verification in SW mode as the dialogue box gave inconsistent test results
