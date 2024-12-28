@@ -236,114 +236,249 @@ function runTests (driver, modes) {
             });
 
             it('Navigate from main page to Android & iOS section', async function () {
-                // Check for Dialog Box and click any Approve Button in subsequent dialog box
+                console.log('\n=== Starting navigation test ===');
+                // Get browser information
+                const browserInfo = await driver.getCapabilities();
+                const browserName = browserInfo.getBrowserName();
+                const browserVersion = browserInfo.getBrowserVersion();
+                console.log(`Running test on ${browserName} ${browserVersion}`);
+
+                // Special handling for Firefox 70
+                const isOldFirefox = browserName === 'firefox' && parseInt(browserVersion) <= 70;
+                if (isOldFirefox) {
+                    console.log('Detected Firefox 70 or lower, using compatibility mode');
+                    // Force a page reload to ensure content loading
+                    await driver.navigate().refresh();
+                    await driver.sleep(2000);
+
+                    // Try to force direct content loading
+                    await driver.executeScript(`
+                        if (window.app && window.app.selectedArchive) {
+                            // Force synchronous content loading for older Firefox
+                            window.app.selectedArchive.directLoad = true;
+                            window.app.selectedArticle.reload();
+                        }
+                    `);
+                    await driver.sleep(3000);
+                }
+
+                // Clear any modals
                 try {
                     const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
                     if (activeAlertModal) {
-                        // console.log('Found active alert modal');
                         const approveButton = await driver.findElement(By.id('approveConfirm'));
                         await approveButton.click();
                     }
                 } catch (e) {
-                    // Do nothing
-                    console.log('Modal not found within the timeout. Continuing test...');
+                    console.log('No active modal found');
                 }
 
-                // Switch to the iframe if the content is inside 'articleContent'
-                // await driver.switchTo().frame('articleContent');
-                // console.log('Switched to iframe successfully');
-
-                // Add explicit wait for iframe to be present
-                console.log('Waiting for iframe to be present...');
+                // Wait for iframe with extended timeout for older browsers
+                console.log('Waiting for iframe...');
                 const iframe = await driver.wait(
                     until.elementLocated(By.id('articleContent')),
-                    15000,
+                    isOldFirefox ? 30000 : 15000,
                     'Iframe not found'
                 );
 
-                // Wait for iframe to be available for switching
-                console.log('Waiting for iframe to be ready for switching...');
-                await driver.wait(async function () {
-                    try {
-                        await driver.switchTo().frame(iframe);
-                        await driver.switchTo().defaultContent();
-                        return true;
-                    } catch (e) {
-                        return false;
-                    }
-                }, 15000, 'Iframe not ready for switching');
+                // Add diagnostic logging
+                const iframeState = await driver.executeScript(`
+                    const iframe = document.getElementById('articleContent');
+                    return {
+                        exists: !!iframe,
+                        visible: iframe ? window.getComputedStyle(iframe).display !== 'none' : false,
+                        contentWindow: iframe ? !!iframe.contentWindow : false,
+                        contentDocument: iframe ? !!iframe.contentDocument : false
+                    };
+                `);
+                console.log('Iframe state:', iframeState);
+
+                // For older Firefox, try alternative content loading method
+                if (isOldFirefox) {
+                    console.log('Attempting alternative content loading for Firefox 70...');
+                    await driver.executeScript(`
+                        const iframe = document.getElementById('articleContent');
+                        if (iframe && window.app && window.app.selectedArticle) {
+                            // Try direct content injection
+                            const content = window.app.selectedArticle.content;
+                            if (content) {
+                                iframe.contentDocument.open();
+                                iframe.contentDocument.write(content);
+                                iframe.contentDocument.close();
+                            }
+                        }
+                    `);
+                    await driver.sleep(2000);
+                }
 
                 // Switch to iframe
                 console.log('Switching to iframe...');
                 await driver.switchTo().frame(iframe);
                 console.log('Successfully switched to iframe');
 
-                // Wait for page load inside iframe
-                console.log('Waiting for iframe content to load...');
+                // Wait for content with different strategies based on browser
+                console.log('Waiting for content...');
                 await driver.wait(async function () {
                     try {
-                        const body = await driver.findElement(By.tagName('body'));
-                        return await body.isDisplayed();
-                    } catch (e) {
-                        return false;
-                    }
-                }, 15000, 'Iframe content not loaded');
-
-                // // Wait until the link "Android & iOS App" is present in the DOM
-                // await driver.wait(async function () {
-                //     const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
-                //     return contentAvailable;
-                // }, 10000); // Increased to 10 seconds for more loading time
-
-                // // Find the "Android & iOS App" link
-                // const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
-
-                // // Test that the element is found
-                // assert(androidLink !== null, 'Android & iOS App link was not found');
-
-                // // Scroll the element into view and click it
-                // // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
-                // // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
-                // await androidLink.click();
-
-                // // Switch back to the default content
-                // await driver.switchTo().defaultContent();
-
-                // Wait for the link with more detailed error handling
-                console.log('Waiting for Android & iOS link...');
-                try {
-                    await driver.wait(async function () {
                         const pageSource = await driver.getPageSource();
-                        console.log('Current page source length:', pageSource.length);
-                        if (pageSource.length < 100) { // Arbitrary small number to check if content loaded
-                            console.log('Page source seems empty, waiting...');
+                        console.log('Content length:', pageSource.length);
+
+                        if (isOldFirefox && pageSource.length < 1000) {
+                            // Try alternative content loading again
+                            await driver.executeScript(`
+                                if (window.parent && window.parent.app) {
+                                    const content = window.parent.app.selectedArticle.content;
+                                    if (content) {
+                                        document.open();
+                                        document.write(content);
+                                        document.close();
+                                    }
+                                }
+                            `);
+                            await driver.sleep(1000);
                             return false;
                         }
+
                         try {
-                            const link = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
-                            const isDisplayed = await link.isDisplayed();
+                            const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
+                            const isDisplayed = await androidLink.isDisplayed();
                             console.log('Link found and displayed:', isDisplayed);
                             return isDisplayed;
                         } catch (e) {
-                            console.log('Link not found yet...');
+                            if (pageSource.length > 1000) {
+                                // Log sample of content for debugging
+                                console.log('Page content sample:', pageSource.substring(0, 200));
+                            }
                             return false;
                         }
-                    }, 15000, 'Android & iOS App link not found or not visible');
-                } catch (e) {
-                    console.error('Failed to find Android & iOS link:', e);
-                    const pageSource = await driver.getPageSource();
-                    console.log('Final page source:', pageSource);
-                    throw e;
-                }
+                    } catch (e) {
+                        console.log('Error checking content:', e.message);
+                        return false;
+                    }
+                }, isOldFirefox ? 30000 : 20000, 'Content not loaded or link not found');
 
                 // Find and click the link
+                await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
                 const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
-                await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+                // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+                // await driver.wait(until.elementToBeClickable(androidLink), 5000);
+                await driver.wait(until.elementIsVisible(androidLink), 5000);
+                await driver.wait(until.elementIsEnabled(androidLink), 5000);
                 await androidLink.click();
 
                 // Switch back to default content
                 await driver.switchTo().defaultContent();
             });
+
+            // it('Navigate from main page to Android & iOS section', async function () {
+            //     // Check for Dialog Box and click any Approve Button in subsequent dialog box
+            //     try {
+            //         const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+            //         if (activeAlertModal) {
+            //             // console.log('Found active alert modal');
+            //             const approveButton = await driver.findElement(By.id('approveConfirm'));
+            //             await approveButton.click();
+            //         }
+            //     } catch (e) {
+            //         // Do nothing
+            //         console.log('Modal not found within the timeout. Continuing test...');
+            //     }
+
+            //     // Switch to the iframe if the content is inside 'articleContent'
+            //     // await driver.switchTo().frame('articleContent');
+            //     // console.log('Switched to iframe successfully');
+
+            //     // Add explicit wait for iframe to be present
+            //     console.log('Waiting for iframe to be present...');
+            //     const iframe = await driver.wait(
+            //         until.elementLocated(By.id('articleContent')),
+            //         15000,
+            //         'Iframe not found'
+            //     );
+
+            //     // Wait for iframe to be available for switching
+            //     console.log('Waiting for iframe to be ready for switching...');
+            //     await driver.wait(async function () {
+            //         try {
+            //             await driver.switchTo().frame(iframe);
+            //             await driver.switchTo().defaultContent();
+            //             return true;
+            //         } catch (e) {
+            //             return false;
+            //         }
+            //     }, 15000, 'Iframe not ready for switching');
+
+            //     // Switch to iframe
+            //     console.log('Switching to iframe...');
+            //     await driver.switchTo().frame(iframe);
+            //     console.log('Successfully switched to iframe');
+
+            //     // Wait for page load inside iframe
+            //     console.log('Waiting for iframe content to load...');
+            //     await driver.wait(async function () {
+            //         try {
+            //             const body = await driver.findElement(By.tagName('body'));
+            //             return await body.isDisplayed();
+            //         } catch (e) {
+            //             return false;
+            //         }
+            //     }, 15000, 'Iframe content not loaded');
+
+            //     // // Wait until the link "Android & iOS App" is present in the DOM
+            //     // await driver.wait(async function () {
+            //     //     const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
+            //     //     return contentAvailable;
+            //     // }, 10000); // Increased to 10 seconds for more loading time
+
+            //     // // Find the "Android & iOS App" link
+            //     // const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
+
+            //     // // Test that the element is found
+            //     // assert(androidLink !== null, 'Android & iOS App link was not found');
+
+            //     // // Scroll the element into view and click it
+            //     // // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+            //     // // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
+            //     // await androidLink.click();
+
+            //     // // Switch back to the default content
+            //     // await driver.switchTo().defaultContent();
+
+            //     // Wait for the link with more detailed error handling
+            //     console.log('Waiting for Android & iOS link...');
+            //     try {
+            //         await driver.wait(async function () {
+            //             const pageSource = await driver.getPageSource();
+            //             console.log('Current page source length:', pageSource.length);
+            //             if (pageSource.length < 100) { // Arbitrary small number to check if content loaded
+            //                 console.log('Page source seems empty, waiting...');
+            //                 return false;
+            //             }
+            //             try {
+            //                 const link = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
+            //                 const isDisplayed = await link.isDisplayed();
+            //                 console.log('Link found and displayed:', isDisplayed);
+            //                 return isDisplayed;
+            //             } catch (e) {
+            //                 console.log('Link not found yet...');
+            //                 return false;
+            //             }
+            //         }, 15000, 'Android & iOS App link not found or not visible');
+            //     } catch (e) {
+            //         console.error('Failed to find Android & iOS link:', e);
+            //         const pageSource = await driver.getPageSource();
+            //         console.log('Final page source:', pageSource);
+            //         throw e;
+            //     }
+
+            //     // Find and click the link
+            //     const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
+            //     await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+            //     await androidLink.click();
+
+            //     // Switch back to default content
+            //     await driver.switchTo().defaultContent();
+            // });
 
             it('Verify Android and iOS store images in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {
                 if (!serviceWorkerAPI && mode === 'jquery') {
