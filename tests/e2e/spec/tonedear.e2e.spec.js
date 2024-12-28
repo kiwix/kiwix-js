@@ -206,6 +206,19 @@ function runTests (driver, modes) {
                     //     return isLoaded;
                     // }, 30000, 'ZIM file failed to load');
                     await driver.sleep(1300);
+
+                    // In JQuery mode, the app warns the user that there is active content it cannot run, so we test for this and dismiss
+                    it('Checking active content warning', async function () {
+                        const activeContentWarning = await driver.wait(async function () {
+                            const element = await driver.findElement(By.id('activeContent'));
+                            return await element.isDisplayed();
+                        }, 2000).catch(() => false);
+                        if (mode === 'jquery') {
+                            assert.ok(true, activeContentWarning);
+                        } else {
+                            assert.equal(false, activeContentWarning);
+                        }
+                    });
                 }
                 await driver.wait(
                     until.elementLocated(By.id('articleContent')),
