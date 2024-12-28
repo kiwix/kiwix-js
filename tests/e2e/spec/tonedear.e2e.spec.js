@@ -243,7 +243,7 @@ function runTests (driver, modes) {
 
                 // Switch to the iframe if the content is inside 'articleContent'
                 await driver.switchTo().frame('articleContent');
-                // console.log('Switched to iframe successfully');
+                console.log('Switched to iframe successfully');
 
                 // Wait until the link "Android & iOS App" is present in the DOM
                 await driver.wait(async function () {
