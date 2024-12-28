@@ -176,8 +176,11 @@ function runTests (driver, modes) {
                     this.skip();
                 }
 
+                console.log('\n=== Starting ZIM file loading test ===');
+
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                 await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
+                console.log('Archive files input found and displayed');
 
                 // Wait until till files are loaded
                 let filesLength;
@@ -190,9 +193,14 @@ function runTests (driver, modes) {
                 if (!BROWSERSTACK) {
                     if (!isFileLoaded) await archiveFiles.sendKeys(tonedearBaseFile);
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+
+                    console.log('Local files loaded:', filesLength);
+
                     await driver.executeScript('window.setLocalArchiveFromFileSelect();');
                     assert.equal(1, filesLength, 'File not loaded');
                 } else {
+                    console.log('Loading remote archive:', tonedearBaseFile);
+
                     await driver.executeScript(
                         'window.setRemoteArchives.apply(this, [arguments[0]]);',
                         [tonedearBaseFile]
@@ -242,27 +250,98 @@ function runTests (driver, modes) {
                 }
 
                 // Switch to the iframe if the content is inside 'articleContent'
-                await driver.switchTo().frame('articleContent');
-                console.log('Switched to iframe successfully');
+                // await driver.switchTo().frame('articleContent');
+                // console.log('Switched to iframe successfully');
 
-                // Wait until the link "Android & iOS App" is present in the DOM
+                // Add explicit wait for iframe to be present
+                console.log('Waiting for iframe to be present...');
+                const iframe = await driver.wait(
+                    until.elementLocated(By.id('articleContent')),
+                    15000,
+                    'Iframe not found'
+                );
+
+                // Wait for iframe to be available for switching
+                console.log('Waiting for iframe to be ready for switching...');
                 await driver.wait(async function () {
-                    const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
-                    return contentAvailable;
-                }, 10000); // Increased to 10 seconds for more loading time
+                    try {
+                        await driver.switchTo().frame(iframe);
+                        await driver.switchTo().defaultContent();
+                        return true;
+                    } catch (e) {
+                        return false;
+                    }
+                }, 15000, 'Iframe not ready for switching');
 
-                // Find the "Android & iOS App" link
+                // Switch to iframe
+                console.log('Switching to iframe...');
+                await driver.switchTo().frame(iframe);
+                console.log('Successfully switched to iframe');
+
+                // Wait for page load inside iframe
+                console.log('Waiting for iframe content to load...');
+                await driver.wait(async function () {
+                    try {
+                        const body = await driver.findElement(By.tagName('body'));
+                        return await body.isDisplayed();
+                    } catch (e) {
+                        return false;
+                    }
+                }, 15000, 'Iframe content not loaded');
+
+                // // Wait until the link "Android & iOS App" is present in the DOM
+                // await driver.wait(async function () {
+                //     const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
+                //     return contentAvailable;
+                // }, 10000); // Increased to 10 seconds for more loading time
+
+                // // Find the "Android & iOS App" link
+                // const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
+
+                // // Test that the element is found
+                // assert(androidLink !== null, 'Android & iOS App link was not found');
+
+                // // Scroll the element into view and click it
+                // // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
+                // // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
+                // await androidLink.click();
+
+                // // Switch back to the default content
+                // await driver.switchTo().defaultContent();
+
+                // Wait for the link with more detailed error handling
+                console.log('Waiting for Android & iOS link...');
+                try {
+                    await driver.wait(async function () {
+                        const pageSource = await driver.getPageSource();
+                        console.log('Current page source length:', pageSource.length);
+                        if (pageSource.length < 100) { // Arbitrary small number to check if content loaded
+                            console.log('Page source seems empty, waiting...');
+                            return false;
+                        }
+                        try {
+                            const link = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
+                            const isDisplayed = await link.isDisplayed();
+                            console.log('Link found and displayed:', isDisplayed);
+                            return isDisplayed;
+                        } catch (e) {
+                            console.log('Link not found yet...');
+                            return false;
+                        }
+                    }, 15000, 'Android & iOS App link not found or not visible');
+                } catch (e) {
+                    console.error('Failed to find Android & iOS link:', e);
+                    const pageSource = await driver.getPageSource();
+                    console.log('Final page source:', pageSource);
+                    throw e;
+                }
+
+                // Find and click the link
                 const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
-
-                // Test that the element is found
-                assert(androidLink !== null, 'Android & iOS App link was not found');
-
-                // Scroll the element into view and click it
-                // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
-                // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
+                await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
                 await androidLink.click();
 
-                // Switch back to the default content
+                // Switch back to default content
                 await driver.switchTo().defaultContent();
             });
 
