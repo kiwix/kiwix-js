@@ -282,13 +282,29 @@ function runTests (driver, modes) {
                 );
 
                 // Add diagnostic logging
+                // const iframeState = await driver.executeScript(`
+                //     const iframe = document.getElementById('articleContent');
+                //     return {
+                //         exists: !!iframe,
+                //         visible: iframe ? window.getComputedStyle(iframe).display !== 'none' : false,
+                //         contentWindow: iframe ? !!iframe.contentWindow : false,
+                //         contentDocument: iframe ? !!iframe.contentDocument : false
+                //     };
+                // `);
+                // console.log('Iframe state:', iframeState);
+
                 const iframeState = await driver.executeScript(`
-                    const iframe = document.getElementById('articleContent');
+                    const iframe = document.querySelector('iframe');
+                    if (!iframe) return { exists: false };
+
+                    const rect = iframe.getBoundingClientRect();
                     return {
-                        exists: !!iframe,
-                        visible: iframe ? window.getComputedStyle(iframe).display !== 'none' : false,
-                        contentWindow: iframe ? !!iframe.contentWindow : false,
-                        contentDocument: iframe ? !!iframe.contentDocument : false
+                        exists: true,
+                        visible: iframe.offsetWidth > 0 && iframe.offsetHeight > 0,
+                        display: window.getComputedStyle(iframe).display,
+                        visibility: window.getComputedStyle(iframe).visibility,
+                        position: window.getComputedStyle(iframe).position,
+                        rect: { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
                     };
                 `);
                 console.log('Iframe state:', iframeState);
