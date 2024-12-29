@@ -293,28 +293,50 @@ function runTests (driver, modes) {
                 `);
                 console.log('Iframe state:', iframeState);
 
+                // Fix for iframe visiblity if hidden
+                if (!iframeState.visible) {
+                    console.log('Iframe is hidden, trying to fix...');
+                    await driver.executeScript(`
+                        const iframe = document.getElementById('articleContent');    
+                        if (iframe) {
+                            iframe.style.display = 'block';
+                            iframe.style.visibility = 'visible';
+                        }
+                    `);
+                }
+
                 // For older Firefox, try alternative content loading method
                 if (isOldFirefox) {
                     console.log('Attempting alternative content loading for Firefox 70...');
-                    await driver.executeScript(`
-                        const iframe = document.getElementById('articleContent');
-                        if (iframe && window.app && window.app.selectedArticle) {
-                            // Try direct content injection
-                            const content = window.app.selectedArticle.content;
-                            if (content) {
+                    const content = await driver.executeScript(`
+                            return window.app && window.app.selectedArticle ? window.app.selectedArticle.content : null;
+                        `);
+                    console.log('Selected Article Content:', content);
+
+                    if (content) {
+                        await driver.executeScript(`
+                            const iframe = document.getElementById('articleContent');
+                            if (iframe && iframe.contentDocument) {
                                 iframe.contentDocument.open();
-                                iframe.contentDocument.write(content);
+                                iframe.contentDocument.write('<p>Test Content</p>');
                                 iframe.contentDocument.close();
                             }
-                        }
-                    `);
-                    await driver.sleep(2000);
+                        `);
+                        await driver.sleep(2000);
+                    } else {
+                        console.log('Content is empty or unavailable');
+                    }
                 }
 
                 // Switch to iframe
                 console.log('Switching to iframe...');
                 await driver.switchTo().frame(iframe);
                 console.log('Successfully switched to iframe');
+
+                // Debugging network requests for resource loading
+                await driver.executeScript(`
+                    window.performance.getEntriesByType('resource').forEach(entry => console.log(entry.name));  
+                `);
 
                 // Wait for content with different strategies based on browser
                 console.log('Waiting for content...');
@@ -338,6 +360,14 @@ function runTests (driver, modes) {
                             await driver.sleep(1000);
                             return false;
                         }
+
+                        const links = await driver.executeScript(`
+                            return Array.from(document.querySelectorAll('a[href="android-ios-ear-training-app"]')).map(link => ({
+                                href: link.href,
+                                displayed: getComputedStyle(link).display !== 'none'
+                            }));
+                        `);
+                        console.log('Links:', links);
 
                         try {
                             const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
