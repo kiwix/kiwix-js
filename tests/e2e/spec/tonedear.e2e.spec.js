@@ -301,6 +301,9 @@ function runTests (driver, modes) {
                         if (iframe) {
                             iframe.style.display = 'block';
                             iframe.style.visibility = 'visible';
+                            iframe.height = '100%';
+                            iframe.width = '100%';
+                            console.log('Iframe styles updated to ensure visiblity');
                         }
                     `);
                 }
