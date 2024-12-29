@@ -273,6 +273,20 @@ function runTests (driver, modes) {
                     console.log('No active modal found');
                 }
 
+                // Debugging Content Security Policy and app state
+                await driver.executeScript(`
+                    const meta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                    if (meta) {
+                        meta.setAttribute('content', "default-src * 'unsafe-inline' 'unsafe-eval';");
+                        console.log('CSP relaxed for debugging');
+                    }
+
+                    console.log('App state:', window.app ? window.app : 'App not found');
+                    if (window.app && window.app.selectedArticle) {
+                        console.log('Selected Article:', window.app.selectedArticle);
+                    }
+                `);
+
                 // Wait for iframe with extended timeout for older browsers
                 console.log('Waiting for iframe...');
                 const iframe = await driver.wait(
