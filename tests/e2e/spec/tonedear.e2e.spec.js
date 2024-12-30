@@ -1,5 +1,5 @@
 /* eslint-disable no-undef */
-import { By, until, WebDriver } from 'selenium-webdriver';
+import { By, until } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
 
@@ -122,6 +122,18 @@ function runTests (driver, modes) {
                 await driver.switchTo().frame('articleContent');
                 const androidIosLink = await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
                 await androidIosLink.click();
+
+                // Handle the directory error dialogue if it appears
+                try {
+                    const errorDialog = await driver.wait(until.elementsLocated(By.css('.modal[style*="display: block"]')), 3000);
+                    if (errorDialog) {
+                        const okayButton = await driver.findElement(By.xpath("//button[text()='Okay']"));
+                        await okayButton.click();
+                    }
+                } catch {
+                    // Do Nohting
+                }
+
                 await driver.sleep(1000);
 
                 // Verify we're on the correct page
