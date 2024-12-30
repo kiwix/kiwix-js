@@ -155,54 +155,93 @@ function runTests (driver, modes) {
                     assert.strictEqual(iosDataSnippet, expectedIosSnippet, 'iOS image data matches expected');
                 } else if (serviceWorkerAPI && mode === 'serviceworker') {
                     try {
-                        // ServiceWorker mode test for image loading
-                        await driver.sleep(3000);
+                        // Increased initial wait time for Firefox
+                        await driver.sleep(5000);
 
                         const swRegistration = await driver.executeScript('return navigator.serviceWorker.ready');
                         assert.ok(swRegistration, 'Service Worker is registered');
 
-                        console.log('Current URL:', await driver.getCurrentUrl());
+                        // Wait for iframe to be present and switch to it
+                        const iframe = await driver.wait(
+                            until.elementLocated(By.id('articleContent')),
+                            10000,
+                            'Iframe not found after 10 seconds'
+                        );
+                        // Add explicit wait for iframe to be ready
+                        await driver.wait(
+                            until.elementIsVisible(iframe),
+                            10000,
+                            'Iframe not visible after 10 seconds'
+                        );
 
-                        // Switch to the iframe that contains the Android and iOS images
-                        const iframe = await driver.findElement(By.id('articleContent'));
                         await driver.switchTo().frame(iframe);
 
-                        // Wait for images to be visible on the page inside the iframe
+                        // More robust image location with longer timeout
                         await driver.wait(async function () {
-                            const images = await driver.findElements(By.css('img[alt="Get it on Google Play"], img[alt="Get the iOS app"]'));
-                            if (images.length === 0) return false;
+                            try {
+                                const images = await driver.findElements(
+                                    By.css('img[alt="Get it on Google Play"], img[alt="Get the iOS app"]')
+                                );
+                                if (images.length === 0) return false;
 
-                            // Check if all images are visible
-                            const visibility = await Promise.all(images.map(async (img) => {
-                                return await img.isDisplayed();
-                            }));
-                            return visibility.every((isVisible) => isVisible);
-                        }, 10000, 'No visible store images found after 30 seconds');
+                                // Verify both images are present and visible
+                                for (const img of images) {
+                                    const isDisplayed = await img.isDisplayed();
+                                    const dimensions = await driver.executeScript(
+                                        'return arguments[0].complete && arguments[0].naturalWidth > 0',
+                                        img
+                                    );
+                                    if (!isDisplayed || !dimensions) return false;
+                                }
+                                return true;
+                            } catch (e) {
+                                return false;
+                            }
+                        }, 15000, 'Store images not found or loaded after 15 seconds');
 
+                        // Get and verify individual images
                         const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
                         const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
 
-                        // Wait for images to load and verify dimensions
+                        // Additional verification of image loading
                         await driver.wait(async function () {
-                            const androidLoaded = await driver.executeScript('return arguments[0].complete && arguments[0].naturalWidth > 0 && arguments[0].naturalHeight > 0;', androidImage);
-                            const iosLoaded = await driver.executeScript('return arguments[0].complete && arguments[0].naturalWidth > 0 && arguments[0].naturalHeight > 0;', iosImage);
+                            const androidLoaded = await driver.executeScript(
+                                'return arguments[0].complete && arguments[0].naturalWidth > 0',
+                                androidImage
+                            );
+                            const iosLoaded = await driver.executeScript(
+                                'return arguments[0].complete && arguments[0].naturalWidth > 0',
+                                iosImage
+                            );
                             return androidLoaded && iosLoaded;
-                        }, 5000, 'Images did not load successfully');
+                        }, 10000, 'Images failed to load completely');
 
-                        const androidWidth = await driver.executeScript('return arguments[0].naturalWidth;', androidImage);
-                        const androidHeight = await driver.executeScript('return arguments[0].naturalHeight;', androidImage);
+                        // Verify dimensions
+                        const androidDimensions = await driver.executeScript(
+                            'return {width: arguments[0].naturalWidth, height: arguments[0].naturalHeight}',
+                            androidImage
+                        );
+                        const iosDimensions = await driver.executeScript(
+                            'return {width: arguments[0].naturalWidth, height: arguments[0].naturalHeight}',
+                            iosImage
+                        );
 
-                        const iosWidth = await driver.executeScript('return arguments[0].naturalWidth;', iosImage);
-                        const iosHeight = await driver.executeScript('return arguments[0].naturalHeight;', iosImage);
+                        assert.ok(
+                            androidDimensions.width > 0 && androidDimensions.height > 0,
+                            'Android image has valid dimensions'
+                        );
+                        assert.ok(
+                            iosDimensions.width > 0 && iosDimensions.height > 0,
+                            'iOS image has valid dimensions'
+                        );
 
-                        assert.ok(androidWidth > 0 && androidHeight > 0, 'Android image has valid dimensions');
-                        assert.ok(iosWidth > 0 && iosHeight > 0, 'iOS image has valid dimensions');
-
-                        // Switch back to the main content after finishing the checks
+                        // Switch back to default content
                         await driver.switchTo().defaultContent();
                     } catch (err) {
-                        // If we still can't find the images, log the page source to help debug
-                        console.error('Failed to find store images:', err.message);
+                        console.error('Detailed error:', err);
+                        // Capture page source for debugging
+                        const pageSource = await driver.getPageSource();
+                        console.error('Page source at time of failure:', pageSource);
                         throw err;
                     }
                 }
