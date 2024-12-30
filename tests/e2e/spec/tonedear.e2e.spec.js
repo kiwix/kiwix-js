@@ -187,6 +187,11 @@ function runTests (driver, modes) {
                         throw err;
                     }
                 }
+
+                // Exit if every test has been run and passed
+                if (mode === modes[modes.length - 1]) {
+                    return driver.quit();
+                }
             });
         });
     });
