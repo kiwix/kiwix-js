@@ -143,6 +143,8 @@ function runTests (driver, modes) {
                 assert(androidImage !== null, 'Android app store image is present');
                 assert(iosImage !== null, 'iOS app store image is present');
 
+                console.log('Image founds');
+
                 await driver.switchTo().defaultContent();
             });
         });
