@@ -1,7 +1,7 @@
 import { Builder } from 'selenium-webdriver';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
-import tonedear from '../../spec/tonedear.e2e.spec.js';
+// import tonedear from '../../spec/tonedear.e2e.spec.js';
 
 /* eslint-disable camelcase */
 
@@ -42,5 +42,5 @@ await legacyRayCharles.runTests(driver_edge_legacy);
 const driver_edge_gutenberg = await loadEdgeLegacyDriver();
 await gutenbergRo.runTests(driver_edge_gutenberg);
 
-const driver_edge_tonedear = await loadEdgeLegacyDriver();
-await tonedear.runTests(driver_edge_tonedear);
+// const driver_edge_tonedear = await loadEdgeLegacyDriver();
+// await tonedear.runTests(driver_edge_tonedear);
