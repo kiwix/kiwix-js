@@ -179,6 +179,25 @@ function runTests (driver, modes) {
                             return visibility.every((isVisible) => isVisible);
                         }, 10000, 'No visible store images found after 30 seconds');
 
+                        const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
+                        const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
+
+                        // Wait for images to load and verify dimensions
+                        await driver.wait(async function () {
+                            const androidLoaded = await driver.executeScript('return arguments[0].complete && arguments[0].naturalWidth > 0 && arguments[0].naturalHeight > 0;', androidImage);
+                            const iosLoaded = await driver.executeScript('return arguments[0].complete && arguments[0].naturalWidth > 0 && arguments[0].naturalHeight > 0;', iosImage);
+                            return androidLoaded && iosLoaded;
+                        }, 5000, 'Images did not load successfully');
+
+                        const androidWidth = await driver.executeScript('return arguments[0].naturalWidth;', androidImage);
+                        const androidHeight = await driver.executeScript('return arguments[0].naturalHeight;', androidImage);
+
+                        const iosWidth = await driver.executeScript('return arguments[0].naturalWidth;', iosImage);
+                        const iosHeight = await driver.executeScript('return arguments[0].naturalHeight;', iosImage);
+
+                        assert.ok(androidWidth > 0 && androidHeight > 0, 'Android image has valid dimensions');
+                        assert.ok(iosWidth > 0 && iosHeight > 0, 'iOS image has valid dimensions');
+
                         // Switch back to the main content after finishing the checks
                         await driver.switchTo().defaultContent();
                     } catch (err) {
