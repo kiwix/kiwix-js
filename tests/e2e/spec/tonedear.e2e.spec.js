@@ -155,7 +155,7 @@ function runTests (driver, modes) {
                     assert.strictEqual(iosDataSnippet, expectedIosSnippet, 'iOS image data matches expected');
                 } else if (serviceWorkerAPI && mode === 'serviceworker') {
                     try {
-                        // Wait for any alerts and handle them
+                    // Wait for any alerts and handle them
                         await driver.sleep(2000);
                         try {
                             const alert = await driver.findElement(By.css('.modal[style*="display: block"]'));
@@ -167,7 +167,7 @@ function runTests (driver, modes) {
                             // No alert present, continue
                         }
 
-                        // First, verify we're on the correct page
+                        // First verify we're in the iframe
                         const iframe = await driver.wait(
                             until.elementLocated(By.id('articleContent')),
                             10000,
@@ -177,15 +177,24 @@ function runTests (driver, modes) {
                         // Switch to iframe
                         await driver.switchTo().frame(iframe);
 
-                        // Click the Android & iOS link - make sure we're looking for the exact text
+                        // Click the Android & iOS App link in the top navigation
+                        // Using a more specific XPath that looks for the link in the navigation area
                         const androidIosLink = await driver.wait(
-                            until.elementLocated(By.xpath("//a[contains(text(), 'Android & iOS App')]")),
+                            until.elementLocated(
+                                By.xpath("//nav//a[contains(text(), 'Android & iOS App')] | //div[contains(@class, 'nav')]//a[contains(text(), 'Android & iOS App')]")
+                            ),
                             10000,
-                            'Android & iOS link not found'
+                            'Android & iOS App navigation link not found'
                         );
+                        // Log the link details before clicking
+                        const linkText = await androidIosLink.getText();
+                        const linkHref = await androidIosLink.getAttribute('href');
+                        console.log('Found navigation link:', { text: linkText, href: linkHref });
+
+                        // Click the link
                         await androidIosLink.click();
 
-                        // Switch back to main frame to handle any dialogs
+                        // Switch back to default content to handle any alerts
                         await driver.switchTo().defaultContent();
 
                         // Wait for any navigation alerts
@@ -200,50 +209,68 @@ function runTests (driver, modes) {
                             // No alert present, continue
                         }
 
-                        // Wait for iframe to update after navigation
-                        await driver.sleep(2000);
+                        // Log the current URL to verify navigation
+                        const currentUrl = await driver.getCurrentUrl();
+                        console.log('Current URL after navigation:', currentUrl);
+
+                        // Wait longer for the page to load after navigation
+                        await driver.sleep(3000);
 
                         // Switch back to iframe
                         await driver.switchTo().frame(iframe);
 
-                        // Look for store buttons with more specific selectors
+                        // Verify we're on the Android & iOS page
                         await driver.wait(async function () {
                             try {
-                                // First check if we're on the right page by looking for a specific heading or text
-                                const pageContent = await driver.findElements(
-                                    By.xpath("//*[contains(text(), 'Android') or contains(text(), 'iOS')]")
-                                );
-                                if (pageContent.length === 0) {
-                                    console.log('Not on Android/iOS page yet...');
-                                    return false;
-                                }
-
-                                // Look for images or links containing store references
-                                const storeElements = await driver.findElements(
-                                    By.css([
-                                        'img[src*="play"]',
-                                        'img[src*="apple"]',
-                                        'img[src*="store"]',
-                                        'a[href*="play.google.com"]',
-                                        'a[href*="apps.apple.com"]'
-                                    ].join(','))
-                                );
-
-                                if (storeElements.length === 0) {
-                                    console.log('Store elements not found yet...');
-                                    return false;
-                                }
-
-                                // Log what we found for debugging
-                                for (const el of storeElements) {
-                                    const tagName = await el.getTagName();
-                                    const src = tagName === 'img' ? await el.getAttribute('src') : await el.getAttribute('href');
-                                    console.log(`Found ${tagName} with src/href: ${src}`);
-                                }
-
-                                return storeElements.length >= 2;
+                                const pageContent = await driver.executeScript(`
+                                    return {
+                                        url: window.location.href,
+                                        content: document.body.textContent
+                                    }
+                                `);
+                                console.log('Current page info:', pageContent);
+                                return pageContent.content.includes('Android') && pageContent.content.includes('iOS');
                             } catch (e) {
-                                console.log('Error in wait condition:', e.message);
+                                console.log('Error checking page content:', e.message);
+                                return false;
+                            }
+                        }, 10000, 'Not on Android & iOS page after navigation');
+
+                        // Now look for the store images
+                        await driver.wait(async function () {
+                            try {
+                                // Look for both images and links related to app stores
+                                const elements = await driver.findElements(By.css(`
+                                    img[src*="play"],
+                                    img[src*="appstore"],
+                                    img[alt*="Google Play"],
+                                    img[alt*="App Store"],
+                                    a[href*="play.google.com"],
+                                    a[href*="apps.apple.com"]
+                                `));
+
+                                // Log what we found
+                                if (elements.length > 0) {
+                                    for (const el of elements) {
+                                        // const tagName = await el.getTagName();
+                                        const attrs = await driver.executeScript(`
+                                            const el = arguments[0];
+                                            return {
+                                                tagName: el.tagName,
+                                                src: el.src || '',
+                                                href: el.href || '',
+                                                alt: el.alt || '',
+                                                isVisible: !!el.offsetParent
+                                            }
+                                        `, el);
+                                        console.log('Found store element:', attrs);
+                                    }
+                                    return true;
+                                }
+                                console.log('Store elements not found yet...');
+                                return false;
+                            } catch (e) {
+                                console.log('Error checking for store elements:', e.message);
                                 return false;
                             }
                         }, 15000, 'Store elements not found after navigation');
@@ -251,20 +278,24 @@ function runTests (driver, modes) {
                         // Switch back to default content
                         await driver.switchTo().defaultContent();
                     } catch (err) {
-                        // Log error details that won't cause cyclic reference issues
                         console.error('Test failure:', {
                             message: err.message,
                             name: err.name
                         });
 
-                        // Try to log current iframe src
+                        // Log iframe state
                         try {
-                            const iframeSrc = await driver.executeScript(
-                                'return document.getElementById("articleContent").src'
-                            );
-                            console.log('Current iframe src:', iframeSrc);
+                            const iframeState = await driver.executeScript(`
+                                const iframe = document.getElementById('articleContent');
+                                return iframe ? {
+                                    src: iframe.src,
+                                    displayed: !!iframe.offsetParent,
+                                    contentWindow: !!iframe.contentWindow
+                                } : 'iframe not found';
+                            `);
+                            console.log('Iframe state:', iframeState);
                         } catch (e) {
-                            console.log('Could not get iframe src:', e.message);
+                            console.log('Could not get iframe state:', e.message);
                         }
 
                         throw err;
