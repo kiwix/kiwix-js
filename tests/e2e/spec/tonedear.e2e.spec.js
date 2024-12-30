@@ -137,7 +137,7 @@ function runTests (driver, modes) {
                 await driver.sleep(1000);
 
                 // Verify we're on the correct page
-                const pageContent = await driver.findElement(By.tagName('body')).getText();
+                const pageContent = await driver.findElement(By.css('body')).getText();
                 assert.ok(pageContent.includes('Android') || pageContent.includes('iOS'));
 
                 if (mode === modes[modes.length - 1]) {
