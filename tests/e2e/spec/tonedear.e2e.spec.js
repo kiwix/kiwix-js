@@ -123,22 +123,33 @@ function runTests (driver, modes) {
                 const androidIosLink = await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
                 await androidIosLink.click();
 
-                // Handle the directory error dialogue if it appears
-                try {
-                    const errorDialog = await driver.wait(until.elementsLocated(By.css('.modal[style*="display: block"]')), 3000);
-                    if (errorDialog) {
-                        const okayButton = await driver.findElement(By.xpath("//button[text()='Okay']"));
-                        await okayButton.click();
-                    }
-                } catch {
-                    // Do Nohting
-                }
+                // Switch back to default content before handling dialogs or verifying content
+                // await driver.switchTo().defaultContent();
 
                 await driver.sleep(1000);
 
-                // Verify we're on the correct page
-                const pageContent = await driver.findElement(By.css('body')).getText();
-                assert.ok(pageContent.includes('Android') || pageContent.includes('iOS'));
+                try {
+                    // Verify we're on the correct page with explicit wait
+                    const pageContent = await driver.wait(
+                        async function () {
+                            try {
+                                const content = await driver.findElement(By.tagName('body')).getText();
+                                return content;
+                            } catch (e) {
+                                return false;
+                            }
+                        },
+                        5000,
+                        'Timeout waiting for page content'
+                    );
+                    assert.ok(pageContent.includes('Android') || pageContent.includes('iOS'));
+                } catch (e) {
+                    console.log('Frame verification failed, trying without frame switch');
+                    // If frame verification fails, try verifying without frame switch
+                    await driver.switchTo().defaultContent();
+                    const pageContent = await driver.findElement(By.css('body')).getText();
+                    assert.ok(pageContent.includes('Android') || pageContent.includes('iOS'));
+                }
 
                 if (mode === modes[modes.length - 1]) {
                     return driver.quit();
