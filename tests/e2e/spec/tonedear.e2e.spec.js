@@ -120,50 +120,11 @@ function runTests (driver, modes) {
 
                 await driver.sleep(2000); // Give time for content to load
                 await driver.switchTo().frame('articleContent');
-
-                const maxRetries = 3;
-                let retryCount = 0;
-                let navigationSuccessful = false;
-
-                while (!navigationSuccessful && retryCount < maxRetries) {
-                    try {
-                        const androidIosLink = await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
-                        await androidIosLink.click();
-                        // Switch back to default content to handle any alerts
-                        await driver.switchTo().defaultContent();
-                        // Wait for any potential error dialogs
-                        await driver.sleep(1000);
-                        try {
-                            const errorDialog = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                            if (errorDialog) {
-                                const okayButton = await driver.findElement(By.css('button.btn-primary'));
-                                await okayButton.click();
-                                await driver.sleep(1000);
-                            }
-                        } catch (e) {
-                            // No error dialog found, continue
-                        }
-                        navigationSuccessful = true;
-                    } catch (e) {
-                        retryCount++;
-                        console.log(`Navigation attempt ${retryCount} failed:`, e.message);
-                        // If we failed, try to switch back to default content before retrying
-                        try {
-                            await driver.switchTo().defaultContent();
-                        } catch (frameError) {
-                            // Ignore frame switching errors
-                        }
-                        await driver.sleep(1000);
-                        // Switch back to iframe for next attempt
-                        await driver.switchTo().frame('articleContent');
-                    }
-                }
-
-                if (!navigationSuccessful) {
-                    throw new Error('Failed to navigate to Android & iOS page after ' + maxRetries + ' attempts');
-                }
-
-                // Wait for final navigation to complete
+                const androidIosLink = await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
+                await androidIosLink.click();
+                // Switch back to default content before handling dialogs or verifying content
+                await driver.switchTo().defaultContent();
+                // Wait time
                 await driver.sleep(1000);
             });
 
