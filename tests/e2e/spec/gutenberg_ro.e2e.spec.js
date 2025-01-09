@@ -398,7 +398,7 @@ function runTests (driver, modes) {
 
                 // exit if every test and mode is completed
                 if (mode === modes[modes.length - 1]) {
-                    return driver.quit();
+                    await driver.quit();
                 }
             });
         });
