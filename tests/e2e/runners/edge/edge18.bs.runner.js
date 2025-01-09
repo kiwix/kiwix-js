@@ -36,11 +36,11 @@ async function loadEdgeLegacyDriver () {
     return driver;
 };
 
+const driver_edge_tonedear = await loadEdgeLegacyDriver();
+await tonedear.runTests(driver_edge_tonedear);
+
 const driver_edge_legacy = await loadEdgeLegacyDriver();
 await legacyRayCharles.runTests(driver_edge_legacy);
 
 const driver_edge_gutenberg = await loadEdgeLegacyDriver();
 await gutenbergRo.runTests(driver_edge_gutenberg);
-
-const driver_edge_tonedear = await loadEdgeLegacyDriver();
-await tonedear.runTests(driver_edge_tonedear);
