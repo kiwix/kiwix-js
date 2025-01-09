@@ -37,10 +37,16 @@ async function loadEdgeLegacyDriver () {
 };
 
 const driver_edge_tonedear = await loadEdgeLegacyDriver();
-await tonedear.runTests(driver_edge_tonedear);
-
 const driver_edge_legacy = await loadEdgeLegacyDriver();
-await legacyRayCharles.runTests(driver_edge_legacy);
-
 const driver_edge_gutenberg = await loadEdgeLegacyDriver();
-await gutenbergRo.runTests(driver_edge_gutenberg);
+
+// Run tests in parallel
+await Promise.all([
+    tonedear.runTests(driver_edge_tonedear),
+    legacyRayCharles.runTests(driver_edge_legacy),
+    gutenbergRo.runTests(driver_edge_gutenberg)
+]).then(function () {
+    console.log('All tests have been completed');
+}).catch(function (error) {
+    console.error('An error occurred:', error);
+});
