@@ -2504,7 +2504,7 @@ function handleClickOnReplayLink (ev, anchor) {
                                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                                         var mimetype = fileDirEntry.getMimetype();
                                         uiUtil.displayFileDownloadAlert(zimUrl, true, mimetype, content);
-                                        uiUtil.clearSpinner();
+                                        uiUtil.spinnerDisplay(false);
                                     });
                                 } else {
                                     return uiUtil.systemAlert('We could not find a PDF document at ' + zimUrl, 'PDF not found');
@@ -2543,7 +2543,7 @@ function handleClickOnReplayLink (ev, anchor) {
                             appstate.target = 'window';
                             articleContainer.kiwixType = appstate.target;
                         }
-                        uiUtil.clearSpinner();
+                        uiUtil.spinnerDisplay(false);
                     } else {
                         // Let Replay handle this link
                         anchor.passthrough = true;
