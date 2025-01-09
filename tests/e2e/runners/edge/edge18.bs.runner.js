@@ -17,6 +17,7 @@ const capabilities = {
         localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER,
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
+        idleTimeout: 300,
         seleniumVersion: '4.10.0',
         edge: {
             enablePopups: true
@@ -36,11 +37,12 @@ async function loadEdgeLegacyDriver () {
     return driver;
 };
 
-const driver_edge_tonedear = await loadEdgeLegacyDriver();
-await tonedear.runTests(driver_edge_tonedear);
-
-const driver_edge_legacy = await loadEdgeLegacyDriver();
-await legacyRayCharles.runTests(driver_edge_legacy);
-
-const driver_edge_gutenberg = await loadEdgeLegacyDriver();
-await gutenbergRo.runTests(driver_edge_gutenberg);
+Promise.all([
+    loadEdgeLegacyDriver().then(driver => tonedear.runTests(driver)),
+    loadEdgeLegacyDriver().then(driver => legacyRayCharles.runTests(driver)),
+    loadEdgeLegacyDriver().then(driver => gutenbergRo.runTests(driver))
+]).then(function () {
+    console.log('All tests have been completed!');
+}).catch(function (err) {
+    console.error('Error running tests:', err);
+});
