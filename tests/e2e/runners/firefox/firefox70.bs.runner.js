@@ -1,6 +1,6 @@
 import { Builder } from 'selenium-webdriver';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
-// import tonedear from '../../spec/tonedear.e2e.spec.js';
+import tonedear from '../../spec/tonedear.e2e.spec.js';
 /* eslint-disable camelcase */
 
 // Input capabilities
@@ -32,11 +32,11 @@ async function loadFirefoxDriver () {
 };
 
 const driver_gutenberg_fx = await loadFirefoxDriver();
-// const driver_tonedear_fx = await loadFirefoxDriver();
+const driver_tonedear_fx = await loadFirefoxDriver();
 
 // Run test in SW mode only
 console.log('\x1b[33m%s\x1b[0m', 'Running Gutenberg and Tonedear tests in ServiceWorker mode only for this browser version');
 console.log(' ');
 
 await gutenbergRo.runTests(driver_gutenberg_fx, ['serviceworker']);
-// await tonedear.runTests(driver_tonedear_fx, ['serviceworker']);
+await tonedear.runTests(driver_tonedear_fx, ['serviceworker']);
