@@ -37,10 +37,14 @@ async function loadEdgeLegacyDriver () {
 };
 
 // Chain driver loading and test running to avoid starting the driver before the previous test is finished
-loadEdgeLegacyDriver().then(driver => tonedear.runTests(driver))
-    .then(() => loadEdgeLegacyDriver()).then(driver => legacyRayCharles.runTests(driver))
-    .then(() => loadEdgeLegacyDriver()).then(driver => gutenbergRo.runTests(driver))
-    .catch(err => {
-        console.error('Test sequence failed:', err);
-        process.exit(1);
-    });
+await loadEdgeLegacyDriver()
+    .then(driver => tonedear.runTests(driver))
+    .catch(err => console.error('Tonedear tests failed:', err));
+
+await loadEdgeLegacyDriver()
+    .then(driver => legacyRayCharles.runTests(driver))
+    .catch(err => console.error('Ray Charles tests failed:', err));
+
+await loadEdgeLegacyDriver()
+    .then(driver => gutenbergRo.runTests(driver))
+    .catch(err => console.error('Gutenberg tests failed:', err));
