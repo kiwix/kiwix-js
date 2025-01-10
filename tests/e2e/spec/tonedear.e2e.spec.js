@@ -160,7 +160,7 @@ function runTests (driver, modes, keepDriver) {
                         const swRegistration = await driver.executeScript('return navigator.serviceWorker.ready');
                         assert.ok(swRegistration, 'Service Worker is registered');
 
-                        console.log('Current URL:', await driver.getCurrentUrl());
+                        // console.log('Current URL:', await driver.getCurrentUrl());
 
                         // Switch to the iframe that contains the Android and iOS images
                         const iframe = await driver.findElement(By.id('articleContent'));
