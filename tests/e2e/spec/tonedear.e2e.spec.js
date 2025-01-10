@@ -11,9 +11,10 @@ const tonedearBaseFile = BROWSERSTACK ? '/tests/zims/tonedear/tonedear.com_en_20
  * Run the tests
  * @param {WebDriver} driver Selenium WebDriver object
  * @param {Array} modes Array of modes to run the tests in
+ * @param {boolean} keepDriver Whether to keep the driver open after the tests have run
  * @returns {Promise<void>} A Promise for the completion of the tests
  */
-function runTests (driver, modes) {
+function runTests (driver, modes, keepDriver) {
     let browserName, browserVersion;
     driver.getCapabilities().then(function (caps) {
         browserName = caps.get('browserName');
@@ -70,7 +71,7 @@ function runTests (driver, modes) {
 
                 if (mode === 'serviceworker' && !serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
-                    await driver.quit();
+                    if (!keepDriver) await driver.quit();
                     return;
                 }
 
@@ -206,7 +207,7 @@ function runTests (driver, modes) {
                 }
 
                 // exit if every test and mode is completed
-                if (mode === modes[modes.length - 1]) {
+                if (mode === modes[modes.length - 1] && !keepDriver) {
                     await driver.quit();
                 }
             });
