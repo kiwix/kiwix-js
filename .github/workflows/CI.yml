@@ -114,40 +114,40 @@ jobs:
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx http-server --silent -p 8099 &
 
-      # - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
-      #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-      #   env:
-      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      #   run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
+      - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/firefox/firefox56.bs.runner.js
 
-      # - name: Run BrowserStack tests on  Firefox 70 / Win10
-      #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-      #   env:
-      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      #   run: npx mocha tests/e2e/runners/firefox/firefox70.bs.runner.js
+      - name: Run BrowserStack tests on  Firefox 70 / Win10
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/firefox/firefox70.bs.runner.js
 
-      # - name: Run BrowserStack tests on Chrome 58 / Mojave
-      #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-      #   env:
-      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      #   run: npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
+      - name: Run BrowserStack tests on Chrome 58 / Mojave
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/chrome/chrome58.bs.runner.js
       
-      # - name: Run BrowserStack tests on Chrome 60 / Mojave
-      #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-      #   env:
-      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      #   run: npx mocha tests/e2e/runners/chrome/chrome60.bs.runner.js
+      - name: Run BrowserStack tests on Chrome 60 / Mojave
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/chrome/chrome60.bs.runner.js
 
-      # - name: Run BrowserStack tests on Safari 14 / Big Sur
-      #   if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-      #   env:
-      #     BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-      #     BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-      #   run: npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
+      - name: Run BrowserStack tests on Safari 14 / Big Sur
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: npx mocha tests/e2e/runners/safari/safari14.bs.runner.js
 
       # [DEV] Test on Edge18 are bit flaky, so we are retrying 2 times
       - name: Run BrowserStack tests on Edge Legacy 18 / Win10
