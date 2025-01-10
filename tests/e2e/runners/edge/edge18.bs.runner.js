@@ -18,6 +18,8 @@ const capabilities = {
         userName: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
         seleniumVersion: '4.10.0',
+        idleTimeout: 300, // Increase idle timeout to 5 minutes
+        sessionTimeout: 600, // Set session timeout to 10 minutes
         edge: {
             enablePopups: true
         }
