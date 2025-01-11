@@ -1,31 +1,20 @@
-/**
- * tonedear.e2e.spec.js : End-to-end tests
- */
+/* eslint-disable no-undef */
 import { By, until } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
 
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 const port = BROWSERSTACK ? '8099' : '8080';
+const tonedearBaseFile = BROWSERSTACK ? '/tests/zims/tonedear/tonedear.com_en_2024-09.zim' : paths.tonedearBaseFile;
 
-// Set the archive to load
-let tonedearBaseFile = paths.tonedearBaseFile;
-if (BROWSERSTACK) {
-    tonedearBaseFile = '/tests/zims/tonedear/tonedear.com_en_2024-09.zim';
-}
-
-/* global describe, it */
 /**
  * Run the tests
  * @param {WebDriver} driver Selenium WebDriver object
- * @param {array} modes Array of modes to run the tests in ['jquery', 'serviceworker']
+ * @param {Array} modes Array of modes to run the tests in
+ * @param {boolean} keepDriver Whether to keep the driver open after the tests have run
+ * @returns {Promise<void>} A Promise for the completion of the tests
  */
-function runTests (driver, modes) {
-    // Set default modes if not provided
-    if (!modes) {
-        modes = ['jquery', 'serviceworker'];
-    }
-
+function runTests (driver, modes, keepDriver) {
     let browserName, browserVersion;
     driver.getCapabilities().then(function (caps) {
         browserName = caps.get('browserName');
@@ -33,18 +22,21 @@ function runTests (driver, modes) {
         console.log('\nRunning Tonedear tests on: ' + browserName + ' ' + browserVersion);
     });
 
-    // Set implicit wait timeout
+    // Set the implicit wait to 3 seconds
     driver.manage().setTimeouts({ implicit: 3000 });
 
-    modes.forEach(function (mode) {
-        let serviceWorkerAPI = true;
+    // Run in both jquery and serviceworker modes by default
+    if (!modes) {
+        modes = ['jquery', 'serviceworker'];
+    }
 
-        // eslint-disable-next-line no-undef
-        describe('Tonedear Test Suite ' + (mode === 'jquery' ? '[JQuery mode]' : '[SW mode]'), function () {
+    modes.forEach(function (mode) {
+        const serviceWorkerAPI = true;
+        describe('Tonedear test ' + (mode === 'jquery' ? '[JQuery mode]' : '[SW mode]'), function () {
             this.timeout(60000);
             this.slow(10000);
 
-            it('Load Kiwix JS and verify title', async function () {
+            it('Load Kiwix JS and check title', async function () {
                 await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
                 await driver.sleep(1300);
                 await driver.navigate().refresh();
@@ -54,101 +46,74 @@ function runTests (driver, modes) {
             });
 
             it('Switch to ' + mode + ' mode', async function () {
-                const modeSelector = await driver.wait(
-                    until.elementLocated(By.id(mode + 'ModeRadio'))
-                );
-                await driver.executeScript(
-                    'var el=arguments[0]; el.scrollIntoView(true); setTimeout(function() {el.click();}, 50); return el.offsetParent;',
-                    modeSelector
-                );
+                const modeSelector = await driver.wait(until.elementLocated(By.id(mode + 'ModeRadio')));
+                await driver.wait(async function () {
+                    const elementIsVisible = await driver.executeScript(
+                        'var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;',
+                        modeSelector
+                    );
+                    return elementIsVisible;
+                }, 5000);
                 await driver.sleep(1300);
 
-                try {
-                    const activeAlertModal = await driver.findElement(
-                        By.css('.modal[style*="display: block"]')
-                    );
-                    if (activeAlertModal) {
-                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel'))
-                            .getText()
-                            .then(function (alertText) {
-                                return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
-                            });
-                        const approveButton = await driver.wait(
-                            until.elementLocated(By.id('approveConfirm'))
-                        );
-                        await approveButton.click();
-                    }
-                } catch (e) {
-                    // Do nothing
+                if (mode === 'serviceworker' && !serviceWorkerAPI) {
+                    console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
+                    if (!keepDriver) await driver.quit();
+                    return;
                 }
 
+                // Disable source verification in SW mode
                 if (mode === 'serviceworker') {
-                    // Disable source verification in SW mode as the dialogue box gave inconsistent test results
                     const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
-                    if (sourceVerificationCheckbox.isSelected()) {
+                    if (await sourceVerificationCheckbox.isSelected()) {
                         await sourceVerificationCheckbox.click();
                     }
                 }
             });
 
-            it('Load Tonedear archive and verify content', async function () {
-                if (!serviceWorkerAPI) {
+            it('Load Tonedear archive', async function () {
+                if (!serviceWorkerAPI && mode === 'serviceworker') {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    this.skip();
+                    return;
                 }
 
-                const archiveFiles = await driver.findElement(By.id('archiveFiles'));
-                await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
-
                 if (!BROWSERSTACK) {
+                    const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     await archiveFiles.sendKeys(tonedearBaseFile);
                     await driver.executeScript('window.setLocalArchiveFromFileSelect();');
+                    const filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
+                    assert.equal(1, filesLength);
                 } else {
-                    await driver.executeScript(
-                        'window.setRemoteArchives.apply(this, [arguments[0]]);',
-                        [tonedearBaseFile]
-                    );
+                    await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', [tonedearBaseFile]);
                     await driver.sleep(1300);
+                }
+
+                // Handle security alert if it appears
+                try {
+                    const securityAlert = await driver.wait(until.elementLocated(By.css('.modal[style*="display: block"]')), 3000);
+                    if (securityAlert) {
+                        const trustSourceButton = await driver.findElement(By.xpath("//button[contains(text(), 'Trust Source')]"));
+                        await trustSourceButton.click();
+                    }
+                } catch (e) {
+                    // No security alert found, continue with test
                 }
             });
 
-            it('Navigate from main page to Android & iOS section', async function () {
-                // Check for Dialog Box and click any Approve Button in subsequent dialog box
-                try {
-                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                    if (activeAlertModal) {
-                        // console.log('Found active alert modal');
-                        const approveButton = await driver.findElement(By.id('approveConfirm'));
-                        await approveButton.click();
-                    }
-                } catch (e) {
-                    // Do nothing
-                    console.log('Modal not found within the timeout. Continuing test...');
+            it('Navigate to Android & iOS section', async function () {
+                if (!serviceWorkerAPI && mode === 'serviceworker') {
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
+                    return;
                 }
 
-                // Switch to the iframe if the content is inside 'articleContent'
+                await driver.sleep(2000); // Give time for content to load
                 await driver.switchTo().frame('articleContent');
-                // console.log('Switched to iframe successfully');
-
-                // Wait until the link "Android & iOS App" is present in the DOM
-                await driver.wait(async function () {
-                    const contentAvailable = await driver.executeScript('return document.querySelector(\'a[href="android-ios-ear-training-app"]\') !== null;');
-                    return contentAvailable;
-                }, 10000); // Increased to 10 seconds for more loading time
-
-                // Find the "Android & iOS App" link
-                const androidLink = await driver.findElement(By.css('a[href="android-ios-ear-training-app"]'));
-
-                // Test that the element is found
-                assert(androidLink !== null, 'Android & iOS App link was not found');
-
-                // Scroll the element into view and click it
-                // await driver.executeScript('arguments[0].scrollIntoView(true);', androidLink);
-                // await driver.wait(until.elementIsVisible(androidLink), 10000); // Wait until it's visible
-                await androidLink.click();
-
-                // Switch back to the default content
+                const androidIosLink = await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
+                await androidIosLink.click();
+                // Switch back to default content before handling dialogs or verifying content
                 await driver.switchTo().defaultContent();
+                // Wait time
+                await driver.sleep(1000);
             });
 
             it('Verify Android and iOS store images in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {
@@ -198,7 +163,7 @@ function runTests (driver, modes) {
                                 return await img.isDisplayed();
                             }));
                             return visibility.every((isVisible) => isVisible);
-                        }, 30000, 'No visible store images found after 30 seconds');
+                        }, 10000, 'No visible store images found after 30 seconds');
 
                         const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
                         const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
@@ -226,6 +191,11 @@ function runTests (driver, modes) {
                         console.error('Failed to find store images:', err.message);
                         throw err;
                     }
+                }
+
+                // exit if every test and mode is completed
+                if (mode === modes[modes.length - 1] && !keepDriver) {
+                    await driver.quit();
                 }
             });
         });
