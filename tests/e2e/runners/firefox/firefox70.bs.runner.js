@@ -38,5 +38,7 @@ const driver_tonedear_fx = await loadFirefoxDriver();
 console.log('\x1b[33m%s\x1b[0m', 'Running Gutenberg and Tonedear tests in ServiceWorker mode only for this browser version');
 console.log(' ');
 
-await gutenbergRo.runTests(driver_gutenberg_fx, ['serviceworker']);
-await tonedear.runTests(driver_tonedear_fx, ['serviceworker']);
+await gutenbergRo.runTests(driver_gutenberg_fx);
+// Skipping Tonedear tests in SW mode for Firefox 70 due to unsupported navigation issues
+// Reason-> Because the browsers below Firefox 77 does not support the replaceAll method, which is used in the Zimit
+await tonedear.runTests(driver_tonedear_fx, ['jquery']);

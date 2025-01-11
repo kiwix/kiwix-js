@@ -31,7 +31,7 @@ function runTests (driver, modes, keepDriver) {
     }
 
     modes.forEach(function (mode) {
-        let serviceWorkerAPI = true;
+        const serviceWorkerAPI = true;
         describe('Tonedear test ' + (mode === 'jquery' ? '[JQuery mode]' : '[SW mode]'), function () {
             this.timeout(60000);
             this.slow(10000);
@@ -55,19 +55,6 @@ function runTests (driver, modes, keepDriver) {
                     return elementIsVisible;
                 }, 5000);
                 await driver.sleep(1300);
-
-                try {
-                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                    if (activeAlertModal) {
-                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
-                            return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
-                        });
-                        const approveButton = await driver.wait(until.elementLocated(By.id('approveConfirm')));
-                        await approveButton.click();
-                    }
-                } catch (e) {
-                    // Do nothing
-                }
 
                 if (mode === 'serviceworker' && !serviceWorkerAPI) {
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
