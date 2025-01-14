@@ -31,6 +31,7 @@
 var params = {};
 // We need to turn off source verification so that the test files can be loaded normally without interruption
 params['sourceVerification'] = false;
+// Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
 // eslint-disable-next-line no-unused-vars
 var webpMachine = false;
 
@@ -79,9 +80,12 @@ if (typeof window === 'undefined') {
     webP.src = 'data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACyAgCdASoCAAIALmk0mk0iIiIiIgBoSygABc6WWgAA/veff/0PP8bA//LwYAAA';
 })(function (support) {
     if (!support) {
-        webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
+        // Note we set the location of this to be the directory where scripts reside **after bundling**
+        var webpScript = document.createElement('script');
+        webpScript.onload = function () {
+            webpMachine = new webpHero.WebpMachine({ useCanvasElements: true });
+        }
+        webpScript.src = '../../www/js/lib/webpHeroBundle_0.0.2.js';
+        document.head.appendChild(webpScript);
     }
 });
-
-// Export for ES modules
-export default {};
