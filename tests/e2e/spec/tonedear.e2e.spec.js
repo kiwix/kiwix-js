@@ -87,17 +87,6 @@ function runTests (driver, modes, keepDriver) {
                     await driver.executeScript('var files = arguments[0]; window.setRemoteArchives.apply(this, files);', [tonedearBaseFile]);
                     await driver.sleep(1300);
                 }
-
-                // Handle security alert if it appears
-                try {
-                    const securityAlert = await driver.wait(until.elementLocated(By.css('.modal[style*="display: block"]')), 3000);
-                    if (securityAlert) {
-                        const trustSourceButton = await driver.findElement(By.xpath("//button[contains(text(), 'Trust Source')]"));
-                        await trustSourceButton.click();
-                    }
-                } catch (e) {
-                    // No security alert found, continue with test
-                }
             });
 
             it('Navigate to Android & iOS section', async function () {
