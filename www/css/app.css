@@ -372,6 +372,36 @@ button {
         font-size: 10px !important;
     }
 
+    /* margin between search button and result text */
+    #formArticleSearch > .container {
+        margin-top: 0rem;
+        margin-bottom: 0.2rem;
+    }
+
+    /* Form Article */
+    #formArticleSearch .form-control {
+        height: 31px !important;
+        padding: 2px 8px !important;
+        font-size: 14px !important;
+        margin-right: 4px;
+    }
+
+    /* Random button */
+    .btn-outline-secondary {
+        height: 30px !important;
+        padding: 2px 8px !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+    }
+
+    /* search button */
+    #formArticleSearch .btn {
+        height: 30px !important;
+        padding: 2px 8px !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+    }
+
     /* Reduce size of the bottom buttons */
     .btn-lg, .btn-group-lg > .btn {
         padding-top: 1px !important;
