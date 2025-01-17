@@ -386,14 +386,6 @@ button {
         margin-right: 4px;
     }
 
-    /* Random button */
-    .btn-outline-secondary {
-        height: 30px !important;
-        padding: 2px 8px !important;
-        font-size: 14px !important;
-        line-height: 1.5 !important;
-    }
-
     /* search button */
     #formArticleSearch .btn {
         height: 30px !important;
