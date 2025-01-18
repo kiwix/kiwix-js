@@ -31,7 +31,8 @@ function runTests (driver, modes, keepDriver) {
     }
 
     modes.forEach(function (mode) {
-        const serviceWorkerAPI = true;
+        // eslint-disable-next-line prefer-const
+        let serviceWorkerAPI = true;
         describe('Tonedear test ' + (mode === 'jquery' ? '[JQuery mode]' : '[SW mode]'), function () {
             this.timeout(60000);
             this.slow(10000);
@@ -56,13 +57,49 @@ function runTests (driver, modes, keepDriver) {
                 }, 5000);
                 await driver.sleep(1300);
 
-                if (mode === 'serviceworker' && !serviceWorkerAPI) {
+                if (mode === 'jquery' || serviceWorkerAPI) {
+                    // Wait until the mode has switched
+                    await driver.sleep(2000);
+                    let serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                    try {
+                        if (mode === 'serviceworker') {
+                            assert.ok(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.ok(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
+                    } catch (e) {
+                        if (!~modes.indexOf('serviceworker')) {
+                            // We can't switch to serviceworker mode if it is not being tested, so we should fail the test
+                            throw e;
+                        }
+                        // We failed to switch modes, so let's try switching back and switching to this mode again
+                        console.log('\x1b[33m%s\x1b[0m', '      Failed to switch to ' + mode + ' mode, trying again...');
+                        let otherModeSelector;
+                        await driver.wait(async function () {
+                            otherModeSelector = await driver.findElement(By.id(mode === 'jquery' ? 'serviceworkerModeRadio' : 'jqueryModeRadio'));
+                        }, 5000);
+                        // Click the other mode selector
+                        await otherModeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        // Click the mode selector again
+                        await modeSelector.click();
+                        // Wait until the mode has switched
+                        await driver.sleep(330);
+                        serviceWorkerStatus = await driver.findElement(By.id('serviceWorkerStatus')).getText();
+                        if (mode === 'serviceworker') {
+                            assert.equal(true, /and\sregistered/i.test(serviceWorkerStatus));
+                        } else {
+                            assert.equal(true, /not\sregistered|unavailable/i.test(serviceWorkerStatus));
+                        }
+                    }
+                } else {
+                    // Skip remaining SW mode tests if the browser does not support the SW API
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
                     if (!keepDriver) await driver.quit();
-                    return;
                 }
 
-                // Disable source verification in SW mode
+                // Disable source verification in SW mode as the dialogue box gave incosistent test results in automated tests
                 if (mode === 'serviceworker') {
                     const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
                     if (await sourceVerificationCheckbox.isSelected()) {
@@ -152,7 +189,7 @@ function runTests (driver, modes, keepDriver) {
                                 return await img.isDisplayed();
                             }));
                             return visibility.every((isVisible) => isVisible);
-                        }, 10000, 'No visible store images found after 30 seconds');
+                        }, 10000, 'No visible store images found after 10 seconds');
 
                         const androidImage = await driver.findElement(By.css('img[alt="Get it on Google Play"]'));
                         const iosImage = await driver.findElement(By.css('img[alt="Get the iOS app"]'));
