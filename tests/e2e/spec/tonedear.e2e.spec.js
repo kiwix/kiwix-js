@@ -31,7 +31,6 @@ function runTests (driver, modes, keepDriver) {
     }
 
     modes.forEach(function (mode) {
-        // eslint-disable-next-line prefer-const
         let serviceWorkerAPI = true;
         describe('Tonedear test ' + (mode === 'jquery' ? '[JQuery mode]' : '[SW mode]'), function () {
             this.timeout(60000);
@@ -56,6 +55,21 @@ function runTests (driver, modes, keepDriver) {
                     return elementIsVisible;
                 }, 5000);
                 await driver.sleep(1300);
+
+                // Check for and click any approve button in dialogue box
+                try {
+                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
+                    if (activeAlertModal) {
+                        // Check if ServiceWorker mode API is supported
+                        serviceWorkerAPI = await driver.findElement(By.id('modalLabel')).getText().then(function (alertText) {
+                            return !/ServiceWorker\sAPI\snot\savailable/i.test(alertText);
+                        });
+                    }
+                    const approveButton = await driver.wait(until.elementLocated(By.id('approveConfirm')));
+                    await approveButton.click();
+                } catch (e) {
+                    // Do nothing
+                }
 
                 if (mode === 'jquery' || serviceWorkerAPI) {
                     // Wait until the mode has switched
@@ -97,6 +111,7 @@ function runTests (driver, modes, keepDriver) {
                     // Skip remaining SW mode tests if the browser does not support the SW API
                     console.log('\x1b[33m%s\x1b[0m', '      Skipping SW mode tests because browser does not support API');
                     if (!keepDriver) await driver.quit();
+                    return;
                 }
 
                 // Disable source verification in SW mode as the dialogue box gave incosistent test results in automated tests
