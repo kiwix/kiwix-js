@@ -55,23 +55,23 @@ before(async function () {
 });
 
 describe('Environment', function () {
-    it('Mocha Test should be properly configured', function () {
+    it('Configure Mocha Test', function () {
         expect('test').to.equal('test');
     });
 
-    it('should have loaded archive files', function () {
+    it('Load archive files', function () {
         expect(zimArchiveFiles && zimArchiveFiles[0] && zimArchiveFiles[0].size > 0).to.be.true;
     });
 });
 
 describe('Utils', function () {
-    it('should correctly read an IEEE_754 float from 4 bytes', function () {
+    it('Correctly read an IEEE_754 float from 4 bytes', function () {
         const byteArray = new Uint8Array([194, 237, 64, 0]);
         const float = util.readFloatFrom4Bytes(byteArray, 0);
         expect(float).to.equal(-118.625);
     });
 
-    it('should handle upper/lower case variations', function () {
+    it('Handle upper/lower case variation', function () {
         const testCases = [
             { input: 'téléphone', expected: 'Téléphone', description: 'The first letter should be uppercase' },
             { input: 'Paris', expected: 'paris', description: 'The first letter should be lowercase' },
@@ -91,7 +91,7 @@ describe('Utils', function () {
         });
     });
 
-    it('should remove parameters from URLs', function () {
+    it('Remove parameters from URLs', function () {
         const baseUrl = "A/Che cosa e l'amore?.html";
         const testUrls = [
             "A/Che%20cosa%20e%20l'amore%3F.html?param1=toto&param2=titi",
@@ -110,20 +110,20 @@ describe('Utils', function () {
 });
 
 describe('ZIM initialization', function () {
-    it('should set archive as ready', function () {
+    it('Set archive as ready', function () {
         expect(localZimArchive.isReady()).to.be.true;
     });
 });
 
 describe('ZIM metadata', function () {
-    it('should read ZIM language', async function () {
+    it('Read ZIM language', async function () {
         const language = await new Promise(resolve => {
             localZimArchive.getMetadata('Language', resolve);
         });
         expect(language).to.equal('eng');
     });
 
-    it('should handle missing metadata', async function () {
+    it('Handle missing metadata', async function () {
         const result = await new Promise(resolve => {
             localZimArchive.getMetadata('zzz', resolve);
         });
@@ -132,7 +132,7 @@ describe('ZIM metadata', function () {
 });
 
 describe('ZIM directory entry search and read', function () {
-    it('should DirEntry.fromStringId "A Fool for You"', async function () {
+    it('DirEntry.fromStringId "A Fool for You"', async function () {
         const aFoolForYouDirEntry = zimDirEntry.DirEntry.fromStringId(
             localZimArchive.file,
             '5856|7|A|0|2|A_Fool_for_You.html|A Fool for You|false|undefined'
@@ -147,7 +147,7 @@ describe('ZIM directory entry search and read', function () {
         expect(normalizedArticle).to.match(/^.*<h1[^>]*>A Fool for You<\/h1>/);
     });
 
-    it('should findDirEntriesWithPrefix "A"', async function () {
+    it('FindDirEntriesWithPrefix "A"', async function () {
         const dirEntryList = await new Promise(resolve => {
             localZimArchive.findDirEntriesWithPrefix({ prefix: 'A', size: 5 }, resolve, true);
         });
@@ -156,7 +156,7 @@ describe('ZIM directory entry search and read', function () {
         expect(dirEntryList[0].getTitleOrUrl()).to.equal('A Fool for You');
     });
 
-    it('should findDirEntriesWithPrefix "a"', async function () {
+    it('FindDirEntriesWithPrefix "a"', async function () {
         const dirEntryList = await new Promise(resolve => {
             localZimArchive.findDirEntriesWithPrefix({ prefix: 'a', size: 5 }, resolve, true);
         });
@@ -165,7 +165,7 @@ describe('ZIM directory entry search and read', function () {
         expect(dirEntryList[0].getTitleOrUrl()).to.equal('A Fool for You');
     });
 
-    it('should findDirEntriesWithPrefix "blues brothers"', async function () {
+    it('FindDirEntriesWithPrefix "blues brothers"', async function () {
         const dirEntryList = await new Promise(resolve => {
             localZimArchive.findDirEntriesWithPrefix({ prefix: 'blues brothers', size: 5 }, resolve, true);
         });
@@ -174,7 +174,7 @@ describe('ZIM directory entry search and read', function () {
         expect(dirEntryList[0].getTitleOrUrl()).to.equal('Blues Brothers (film)');
     });
 
-    it('should correctly redirect article "(The Night Time Is) The Right Time" to "Night Time Is the Right Time"', async function () {
+    it('Redirect article "(The Night Time Is) The Right Time" to "Night Time Is the Right Time"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/(The_Night_Time_Is)_The_Right_Time.html');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.isRedirect()).to.be.true;
@@ -189,7 +189,7 @@ describe('ZIM directory entry search and read', function () {
         expect(resolvedDirEntry.getTitleOrUrl()).to.equal('Night Time Is the Right Time');
     });
 
-    it('should correctly redirect article "Raelettes"  to "The Raelettes"', async function () {
+    it('Redirect article "Raelettes"  to "The Raelettes"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/Raelettes.html');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.isRedirect()).to.be.true;
@@ -204,7 +204,7 @@ describe('ZIM directory entry search and read', function () {
         expect(resolvedDirEntry.getTitleOrUrl()).to.equal('The Raelettes');
     });
 
-    it('should correctly redirect article "Bein Green" to "Bein\' Green"', async function () {
+    it('Redirect article "Bein Green" to "Bein\' Green"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/Bein_Green.html');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.isRedirect()).to.be.true;
@@ -219,7 +219,7 @@ describe('ZIM directory entry search and read', function () {
         expect(resolvedDirEntry.getTitleOrUrl()).to.equal("Bein' Green");
     });
 
-    it('should correctly redirect article "America, the Beautiful" to "America the Beautiful"', async function () {
+    it('Redirect article "America, the Beautiful" to "America the Beautiful"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/America,_the_Beautiful.html');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.isRedirect()).to.be.true;
@@ -234,7 +234,7 @@ describe('ZIM directory entry search and read', function () {
         expect(resolvedDirEntry.getTitleOrUrl()).to.equal('America the Beautiful');
     });
 
-    it('should load image "m/RayCharles_AManAndHisSoul.jpg"', async function () {
+    it('Load image "m/RayCharles_AManAndHisSoul.jpg"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('I/m/RayCharles_AManAndHisSoul.jpg');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.namespace + '/' + dirEntry.url).to.equal('I/m/RayCharles_AManAndHisSoul.jpg');
@@ -249,7 +249,7 @@ describe('ZIM directory entry search and read', function () {
         expect(data.slice(0, beginning.length).toString()).to.equal(beginning.toString());
     });
 
-    it('should load stylesheet "-/s/style.css"', async function () {
+    it('Load stylesheet "-/s/style.css"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('-/s/style.css');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.namespace + '/' + dirEntry.url).to.equal('-/s/style.css');
@@ -265,7 +265,7 @@ describe('ZIM directory entry search and read', function () {
         expect(parsedData.slice(0, beginning.length)).to.equal(beginning);
     });
 
-    it('should load javascript "-/j/local.js"', async function () {
+    it('Load javascript "-/j/local.js"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('-/j/local.js');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.namespace + '/' + dirEntry.url).to.equal('-/j/local.js');
@@ -281,7 +281,7 @@ describe('ZIM directory entry search and read', function () {
         expect(parsedData.slice(0, beginning.length)).to.equal(beginning);
     });
 
-    it('should load split article "A/Ray_Charles.html"', async function () {
+    it('Load split article "A/Ray_Charles.html"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/Ray_Charles.html');
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.namespace + '/' + dirEntry.url).to.equal('A/Ray_Charles.html');
@@ -299,7 +299,7 @@ describe('ZIM directory entry search and read', function () {
 });
 
 describe('Zim random and main articles', function () {
-    it('should find a random article', async function () {
+    it('Find a random article', async function () {
         const dirEntry = await new Promise(resolve => {
             localZimArchive.getRandomDirEntry(resolve);
         });
@@ -308,7 +308,7 @@ describe('Zim random and main articles', function () {
         expect(dirEntry.getTitleOrUrl()).to.not.be.null;
     });
 
-    it('should find the main article', async function () {
+    it('Find the main article', async function () {
         const dirEntry = await new Promise(resolve => {
             localZimArchive.getMainPageDirEntry(resolve);
         });
