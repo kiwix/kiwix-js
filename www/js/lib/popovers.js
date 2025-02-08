@@ -340,9 +340,10 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     const linkHref = anchor.getAttribute('href');
     const currentDocument = win.document;
     div.popoverisloading = true;
-    const zoomSupported = 'zoom' in currentDocument.documentElement.style && !isSafari();
+    const zoomSupported = 'zoom' in currentDocument.documentElement.style;
     const zoomIsSet = zoomSupported && currentDocument.documentElement.style.zoom;
-    let zoomFactor = zoomIsSet ? currentDocument.documentElement.style.zoom : 1;
+    // We initially exempt Safari, becasue the zoom factor is only applied to horizontal positioning, and we'll deal with that later
+    let zoomFactor = zoomIsSet && !isSafari() ? currentDocument.documentElement.style.zoom : 1;
     // Account for zoom when calculating available screen width
     const screenWidth = (win.innerWidth - 40) / zoomFactor;
     const screenHeight = document.documentElement.clientHeight;
@@ -425,7 +426,7 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     const adjustedScrollY = win.scrollY / zoomFactor;
     if (isSafari()) {
         // We have to reinstate zoomFactor as it is only applied to horizontal positioning in Safari
-        zoomFactor = params.relativeFontSize / 100;
+        zoomFactor = zoomIsSet ? currentDocument.documentElement.style.zoom : 1;
     }
     divRectX = divRectX / zoomFactor;
     triangleX = triangleX / zoomFactor;
