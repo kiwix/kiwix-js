@@ -1,0 +1,24 @@
+{
+  "all": true,
+  "include": [
+    "www/js/lib/**/*.js"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "coverage/**",
+    "tests/**"
+  ],
+  "reporter": [
+    "text",
+    "lcov"
+  ],
+  "sourceMap": true,
+  "instrument": false,
+  "require": [
+    "@babel/register"
+  ],
+  "branches": 70,
+  "lines": 70,
+  "functions": 70,
+  "statements": 70
+}

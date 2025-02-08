@@ -15,7 +15,8 @@ import { default as jQuery } from 'jquery';
 
 // Initialize params before anything else
 globalThis.params = {
-    sourceVerification: false
+    sourceVerification: false,
+    keyPrefix: 'kiwix-js-'
 };
 
 // Create JSDOM instance
@@ -165,7 +166,6 @@ globalThis.expect = expect;
 globalThis.assert = assert;
 globalThis.sinon = sinon;
 
-// Add custom test helpers
 globalThis.createTestElement = (html) => {
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -191,7 +191,6 @@ document.createElement = (tagName) => {
     return element;
 };
 
-// Add necessary DOM APIs that might be missing
 if (!window.requestAnimationFrame) {
     window.requestAnimationFrame = function (callback) {
         return setTimeout(callback, 0);
@@ -225,3 +224,35 @@ if (!window.localStorage) {
         }
     };
 }
+
+// Adding mock DOM elements for uiUtil.js
+const header = document.createElement('div');
+header.id = 'top';
+header.style.height = '50px';
+header.style.marginBottom = '10px';
+
+const footer = document.createElement('div');
+footer.id = 'footer';
+footer.style.height = '30px';
+footer.style.marginTop = '10px';
+
+const activeContent = document.createElement('div');
+activeContent.id = 'activeContent';
+
+const articleContainer = document.createElement('div');
+articleContainer.id = 'articleContent';
+
+// Append elements to the document body
+document.body.appendChild(header);
+document.body.appendChild(footer);
+document.body.appendChild(activeContent);
+document.body.appendChild(articleContainer);
+
+// Mocking getComputedStyle for the test environment
+window.getComputedStyle = (element) => {
+    return {
+        height: element.style.height || '0px',
+        marginTop: element.style.marginTop || '0px',
+        marginBottom: element.style.marginBottom || '0px'
+    };
+};
