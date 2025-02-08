@@ -185,9 +185,9 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
  * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
 function attachKiwixPopoverCss (doc, dark) {
-    const colour = dark && !/invert/i.test(params.cssTheme) ? 'darkgray' : 'black';
-    const backgroundColour = dark && !/invert/i.test(params.cssTheme) ? '#111' : '#ebf4fb';
-    const borderColour = dark ? 'darkslategray' : 'skyblue';
+    const colour = dark && !/invert/i.test(params.cssTheme) ? 'lightgray' : 'black';
+    const backgroundColour = dark && !/invert/i.test(params.cssTheme) ? '#121e1e' : '#ebf4fb';
+    const borderColour = 'skyblue !important';
     const cssLink = document.createElement('link');
     doc.head.appendChild(cssLink);
     // DEV: Firefox OS blocks loading stylesheet files into iframe DOM content even if it is same origin, so we are forced to insert a style element instead
@@ -211,6 +211,7 @@ function attachKiwixPopoverCss (doc, dark) {
             /* add fade-in transition */
             opacity: 0;
             transition: opacity 0.3s;
+            z-index: 2;
         }
         
         .kiwixtooltip img {
@@ -339,12 +340,16 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     const linkHref = anchor.getAttribute('href');
     const currentDocument = win.document;
     div.popoverisloading = true;
-    const screenWidth = win.innerWidth - 40;
+    const zoomSupported = 'zoom' in currentDocument.documentElement.style && !isSafari();
+    const zoomIsSet = zoomSupported && currentDocument.documentElement.style.zoom;
+    let zoomFactor = zoomIsSet ? currentDocument.documentElement.style.zoom : 1;
+    // Account for zoom when calculating available screen width
+    const screenWidth = (win.innerWidth - 40) / zoomFactor;
     const screenHeight = document.documentElement.clientHeight;
     let margin = 40;
-    let divWidth = 512;
-    if (screenWidth <= divWidth) {
-        divWidth = screenWidth;
+    // Base width scaled by zoom factor
+    const divWidth = Math.min(512, screenWidth);
+    if (screenWidth <= 512) {
         margin = 10;
     }
     // Check if we have restricted screen height
@@ -360,38 +365,55 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     // DEV: We need to insert the div into the target document before we can obtain its computed dimensions accurately
     currentDocument.body.appendChild(div);
     // Calculate the position of the link that is being hovered
-    const linkRect = anchor.getBoundingClientRect();
+    const rect = anchor.getBoundingClientRect();
+    const linkRect = {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+        width: rect.width
+    };
+    // Note that since Chromium 128 getBoundingClientRect() now returns zoom-adjusted values, but if this is the case,
+    // then currentCSSZoom will be defined as well, so we can adjust for this. Note that UWP also requires adjustment.
+    if (/UWP/.test(params.appType) || 'MSBlobBuilder' in window || anchor.currentCSSZoom || isSafari()) {
+        linkRect.top = linkRect.top / zoomFactor;
+        linkRect.bottom = linkRect.bottom / zoomFactor;
+        linkRect.left = linkRect.left / zoomFactor;
+        linkRect.right = linkRect.right / zoomFactor;
+        linkRect.width = linkRect.width / zoomFactor;
+    }
     // Initially position the div 20px above the link
+    const spacing = 20;
     let triangleDirection = 'top';
-    const divOffsetHeight = div.offsetHeight + 20;
+    const divOffsetHeight = div.offsetHeight + spacing;
     let divRectY = linkRect.top - divOffsetHeight;
     let triangleY = divHeight + 6;
     // If we're less than half margin from the top, move the div below the link
     if (divRectY < margin / 2) {
         triangleDirection = 'bottom';
-        divRectY = linkRect.bottom + 20;
+        divRectY = linkRect.bottom + spacing;
         triangleY = -16;
     }
     // Position it horizontally in relation to the pointer position
     let divRectX, triangleX;
     if (event.type === 'touchstart') {
         divRectX = event.touches[0].clientX - divWidth / 2;
-        triangleX = event.touches[0].clientX - divRectX - 20;
+        triangleX = event.touches[0].clientX - divRectX - spacing;
     } else if (event.type === 'focus') {
-        divRectX = linkRect.left + linkRect.width / 2 - divWidth / 2;
-        triangleX = linkRect.left + linkRect.width / 2 - divRectX - 20;
+        divRectX = linkRect.left * zoomFactor + linkRect.width / 2 - divWidth / 2;
+        triangleX = linkRect.left * zoomFactor + linkRect.width / 2 - divRectX - spacing;
     } else {
         divRectX = event.clientX - divWidth / 2;
-        triangleX = event.clientX - divRectX - 20;
+        triangleX = event.clientX - divRectX - spacing;
     }
     // If right edge of div is greater than margin from the right side of window, shift it to margin
-    if (divRectX + divWidth > screenWidth - margin) {
+    if (divRectX + divWidth * zoomFactor > screenWidth - margin) {
         triangleX += divRectX;
-        divRectX = screenWidth - divWidth - margin;
+        divRectX = screenWidth - divWidth * zoomFactor - margin;
         triangleX -= divRectX;
     }
     // If we're less than margin to the left, shift it to margin px from left
-    if (divRectX < margin) {
+    if (divRectX * zoomFactor < margin) {
         triangleX += divRectX;
         divRectX = margin;
         triangleX -= divRectX;
@@ -399,13 +421,21 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     // Adjust triangleX if necessary
     if (triangleX < 10) triangleX = 10;
     if (triangleX > divWidth - 10) triangleX = divWidth - 10;
+    // Adjust positions to take into account the font zoom factor
+    const adjustedScrollY = win.scrollY / zoomFactor;
+    if (isSafari()) {
+        // We have to reinstate zoomFactor as it is only applied to horizontal positioning in Safari
+        zoomFactor = params.relativeFontSize / 100;
+    }
+    divRectX = divRectX / zoomFactor;
+    triangleX = triangleX / zoomFactor;
     // Now set the calculated x and y positions
-    div.style.top = divRectY + win.scrollY + 'px';
+    div.style.top = divRectY + adjustedScrollY + 'px';
     div.style.left = divRectX + 'px';
     div.style.opacity = '1';
     // Now create the arrow span element. Note that we cannot attach it yet as we need to populate the div first
     // and doing so will overwrite the innerHTML of the div
-    const triangleColour = getComputedStyle(div).borderColor; // Same as border colour of div
+    const triangleColour = getComputedStyle(div).borderBottomColor; // Same as border colour of div (UWP needs specific border colour)
     const span = document.createElement('span');
     span.style.cssText = `
         width: 0;
@@ -419,6 +449,12 @@ function createNewKiwixPopoverCointainer (win, anchor, event) {
     `;
     return { div: div, span: span };
 }
+
+function isSafari () {
+    return typeof navigator !== 'undefined' &&
+        /^((?!chrome|android).)*safari/i.test(navigator.userAgent) &&
+        CSS.supports('-webkit-backdrop-filter', 'blur(1px)');
+};
 
 /**
  * Adds event listeners to the popover's control icons
