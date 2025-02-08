@@ -2,19 +2,6 @@
 
 /* global params */
 
-// creating a safer way to acces params for test-unit-coverage
-
-const getKeyPrefix = () => {
-    if (typeof globalThis !== 'undefined' && globalThis.params && globalThis.params.keyPrefix) {
-        return globalThis.params.keyPrefix;
-    }
-    if (typeof window !== 'undefined' && window.params && window.params.keyPrefix) {
-        return window.params.keyPrefix;
-    }
-    // Fallback default prefix
-    return 'kiwix-js-';
-};
-
 var regexpCookieKeysToMigrate = new RegExp([
     'hideActiveContentWarning', 'showUIAnimations', 'appTheme', 'useCache',
     'contentInjectionMode', 'listOfArchives', 'lastSelectedArchive'
@@ -35,7 +22,7 @@ var deprecatedKeys = [
  * It is set in init.js because it is needed early in app loading
  * @type {String}
  */
-var keyPrefix = getKeyPrefix();
+var keyPrefix = params.keyPrefix;
 
 // Tests for available Storage APIs (document.cookie or localStorage) and returns the best available of these
 function getBestAvailableStorageAPI () {

@@ -1,15 +1,12 @@
 {
-  "all": false,
+  "all": true,
   "include": [
-    "www/js/lib/**/*.js",
-    "tests/unit/js/**/*.js"
+    "src/**/*.js"
   ],
   "exclude": [
-    "node_modules/**",
-    "coverage/**",
-    "dist/**",
-    "tests/e2e/**",
-    "tests/unit/spec/**/*.test.js"
+    "**/*.test.js",
+    "tests/**",
+    "node_modules/**"
   ],
   "reporter": [
     "text",
@@ -19,13 +16,5 @@
   "branches": 70,
   "lines": 70,
   "functions": 70,
-  "statements": 70,
-  "cache": true,
-  "esModules": true,
-  "sourceMap": true,
-  "instrument": true,
-  "require": [
-    "@babel/register"
-  ],
-  "extends": "@istanbuljs/nyc-config-babel"
+  "statements": 70
 }
