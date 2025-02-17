@@ -53,9 +53,12 @@ const ASSETS_CACHE = 'kiwixjs-assetsCache';
 /**
  * A global object for storing app state
  *
- * @type Object
- */
-var appstate = {};
+ * @type Object */
+var appstate = {
+    isLoadingArticle: false,
+    isLoadingAsset: false,
+    loadingMessage: ''
+};
 
 /**
  * @type ZIMArchive | null
@@ -123,6 +126,32 @@ uiUtil.applyAppTheme(params.appTheme);
 // Whenever the system theme changes, call applyAppTheme function
 darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
+}
+
+// When article starts Loading, update the appstate to show that its loading
+// It will add a message to let user's know what's happening
+
+function startLoadingArticle (message) {
+    appstate.isLoadingArticle = true;
+    appstate.loadingMessage = message;
+    uiUtil.spinnerDisplay(true, message);
+}
+function stopLoadingArticle () {
+    appstate.isLoadingArticle = false;
+    appstate.loadingMessage = '';
+    uiUtil.spinnerDisplay(false);
+}
+
+// Similarly for assests
+function startLoadingAsset (message) {
+    appstate.isLoadingAsset = true;
+    appstate.loadingMessage = message;
+    uiUtil.spinnerDisplay(true, message);
+}
+function stopLoadingAsset () {
+    appstate.isLoadingAsset = false;
+    appstate.loadingMessage = '';
+    uiUtil.spinnerDisplay(false);
 }
 
 /**
@@ -2106,7 +2135,7 @@ function readArticle (dirEntry) {
     // Show the spinner with a loading message
     var message = dirEntry.url.match(/(?:^|\/)([^/]{1,13})[^/]*?$/);
     message = message ? message[1] + '...' : '...';
-    uiUtil.spinnerDisplay(true, (translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
+    startLoadingArticle((translateUI.t('spinner-loading') || 'Loading') + ' ' + message);
 
     if (params.contentInjectionMode === 'serviceworker') {
         // In ServiceWorker mode, we simply set the iframe src.
@@ -2122,12 +2151,16 @@ function readArticle (dirEntry) {
         articleLoader();
 
         if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
+            // Stop Loading the Article if the article isn't expected to be shown
+            stopLoadingArticle();
             return;
         }
 
         if (selectedArchive.zimType === 'zimit' && !appstate.isReplayWorkerAvailable) {
             if (window.location.protocol === 'chrome-extension:') {
                 // Zimit archives contain content that is blocked in a local Chromium extension (on every page), so we must fall back to jQuery mode
+                // Stop Loading if isn't supported
+                stopLoadingArticle();
                 return handleUnsupportedReplayWorker(dirEntry);
             }
             var archiveName = selectedArchive.file.name.replace(/\.zim\w{0,2}$/i, '');
@@ -2141,6 +2174,7 @@ function readArticle (dirEntry) {
             zimitMessageChannel.port1.onmessage = function (event) {
                 if (event.data.error) {
                     console.error('Reading Zimit archives in ServiceWorker mode is not supported in this browser', event.data.error);
+                    stopLoadingArticle();
                     return handleUnsupportedReplayWorker(dirEntry);
                 } else if (event.data.success) {
                     // console.debug(event.data.success);
@@ -2184,6 +2218,7 @@ function readArticle (dirEntry) {
                     return selectedArchive.getDirEntryByPath(fileDirEntry.zimitRedirect).then(readArticle);
                 } else {
                     displayArticleContentInIframe(fileDirEntry, content);
+                    stopLoadingArticle();
                 }
             });
         }
@@ -3019,6 +3054,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             }
             // Get the image URL
             var imageUrl = image.getAttribute('data-kiwixurl');
+            // Start Loading the imaeg and update appstate
+            startLoadingAsset('Loading Image: ' + imageUrl);
             // Decode any WebP images that are encoded as dataURIs
             if (/^data:image\/webp/i.test(imageUrl)) {
                 uiUtil.feedNodeWithDataURI(image, 'src', imageUrl, 'image/webp');
@@ -3031,6 +3068,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                     var mimetype = dirEntry.getMimetype();
                     uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function () {
+                        stopLoadingAsset();
                         images.busy = false;
                         if (srcsetArr.length) {
                             // We need to process each image in the srcset
@@ -3072,6 +3110,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     });
                 });
             }).catch(function (e) {
+                stopLoadingAsset();
                 console.error('could not find DirEntry for image:' + url, e);
                 images.busy = false;
                 extractImage();
@@ -3185,6 +3224,14 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
 }
 
+function updateUI () {
+    if (appstate.isLoadingArticle || appstate.isLoadingAsset) {
+        uiUtil.spinnerDisplay(true, appstate.loadingMessage);
+    } else {
+        uiUtil.spinnerDisplay(false);
+    }
+}
+
 /**
  * Displays a message to the user that a style or other asset is being cached
  * @param {String} title The title of the file to display in the caching message block
@@ -3233,17 +3280,18 @@ function pushBrowserHistoryState (title, titleSearch) {
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
 function goToArticle (path, download, contentType) {
-    uiUtil.spinnerDisplay(true);
+    startLoadingArticle((translateUI.t('spinner-loading') || 'Loading') + ' ' + path);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
-            uiUtil.spinnerDisplay(false);
+            stopLoadingArticle();
             uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
                 translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
             download = true;
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                 uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
+                stopLoadingArticle();
             });
         } else {
             params.isLandingPage = false;
@@ -3252,6 +3300,7 @@ function goToArticle (path, download, contentType) {
             readArticle(dirEntry);
         }
     }).catch(function (e) {
+        stopLoadingArticle();
         uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
             translateUI.t('dialog-article-readerror-title') || 'Error reading article');
     });
