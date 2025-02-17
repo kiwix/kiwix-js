@@ -172,6 +172,43 @@ function slideAway (e) {
     }
 }
 
+/*
+  * Returns a list of headings from an article
+    * @param {String} the page for which table of cotents needs to be listed
+    * @returns {List} a list of all headings as objects
+*/
+function TableOfContents (articleDoc) {
+    this.doc = articleDoc;
+    this.headings = this.doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+    this.getHeadingObjects = function () {
+        var headings = [];
+        for (var i = 0; i < this.headings.length; i++) {
+            var element = this.headings[i];
+            var obj = {};
+
+            if (element.id) {
+                obj.id = element.id;
+            } else {
+                // generating custom id if id attribute is not present in element
+                var generatedId = element.textContent
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-');
+                obj.id = 'pph-' + i + '-' + generatedId;
+                element.id = obj.id; // to target the element
+            }
+            obj.index = i;
+            obj.textContent = element.textContent;
+            obj.tagName = element.tagName;
+            headings.push(obj);
+        }
+        return headings;
+    };
+}
+
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
  *
@@ -1083,6 +1120,7 @@ export default {
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
+    TOC: TableOfContents,
     removeUrlParameters: removeUrlParameters,
     displayActiveContentWarning: displayActiveContentWarning,
     displayFileDownloadAlert: displayFileDownloadAlert,
