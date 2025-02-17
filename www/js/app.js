@@ -35,6 +35,7 @@ import popovers from './lib/popovers.js';
 import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
+import kiwixLibrary from './lib/kiwixLibrary.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -410,6 +411,7 @@ document.getElementById('btnTop').addEventListener('click', function (event) {
     var articleContent = document.getElementById('articleContent');
     articleContent.contentWindow.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
 // Top menu :
 document.getElementById('btnHome').addEventListener('click', function (event) {
     // Highlight the selected section in the navbar
@@ -442,34 +444,43 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
     setTimeout(resizeIFrame, 400);
 });
+
 document.getElementById('btnConfigure').addEventListener('click', function (event) {
     event.preventDefault();
-    // Highlight the selected section in the navbar
-    document.getElementById('liHomeNav').setAttribute('class', '');
-    document.getElementById('liConfigureNav').setAttribute('class', 'active');
-    document.getElementById('liAboutNav').setAttribute('class', '');
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
-    // Show the selected content in the page
-    uiUtil.tabTransitionToSection('config', params.showUIAnimations);
-    refreshAPIStatus();
-    refreshCacheStatus();
-    uiUtil.checkUpdateStatus(appstate);
-    // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-    setTimeout(resizeIFrame, 400);
+    if (uiUtil.fromSection() === 'config') {
+        uiUtil.returnToCurrentPage();
+    } else {
+        // Highlight the selected section in the navbar
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', 'active');
+        document.getElementById('liAboutNav').setAttribute('class', '');
+        var navbarCollapse = document.querySelector('.navbar-collapse');
+        navbarCollapse.classList.remove('show');
+        // Show the selected content in the page
+        uiUtil.tabTransitionToSection('config', params.showUIAnimations);
+        refreshAPIStatus();
+        refreshCacheStatus();
+        uiUtil.checkUpdateStatus(appstate);
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
+    }
 });
 document.getElementById('btnAbout').addEventListener('click', function (event) {
     event.preventDefault();
-    // Highlight the selected section in the navbar
-    document.getElementById('liHomeNav').setAttribute('class', '');
-    document.getElementById('liConfigureNav').setAttribute('class', '');
-    document.getElementById('liAboutNav').setAttribute('class', 'active');
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
-    // Show the selected content in the page
-    uiUtil.tabTransitionToSection('about', params.showUIAnimations);
-    // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
-    setTimeout(resizeIFrame, 400);
+    if (uiUtil.fromSection() === 'about') {
+        uiUtil.returnToCurrentPage();
+    } else {
+        // Highlight the selected section in the navbar
+        document.getElementById('liHomeNav').setAttribute('class', '');
+        document.getElementById('liConfigureNav').setAttribute('class', '');
+        document.getElementById('liAboutNav').setAttribute('class', 'active');
+        var navbarCollapse = document.querySelector('.navbar-collapse');
+        navbarCollapse.classList.remove('show');
+        // Show the selected content in the page
+        uiUtil.tabTransitionToSection('about', params.showUIAnimations);
+        // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
+        setTimeout(resizeIFrame, 400);
+    }
 });
 document.querySelectorAll('input[name="contentInjectionMode"][type="radio"]').forEach(function (element) {
     element.addEventListener('change', function () {
@@ -1810,21 +1821,12 @@ async function handleFileDrop (packet) {
 
 const btnLibrary = document.getElementById('btnLibrary');
 btnLibrary.addEventListener('click', function (e) {
-    e.preventDefault();
-
     const libraryContent = document.getElementById('libraryContent');
-    const iframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
-    try {
-        // eslint-disable-next-line no-new-func
-        Function('try{}catch{}')();
-        iframe.setAttribute('src', params.libraryUrl);
-        uiUtil.tabTransitionToSection('library', params.showUIAnimations);
-        resizeIFrame();
-    } catch (error) {
-        window.open(params.altLibraryUrl, '_blank')
-    }
+    const libraryIframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
+    uiUtil.tabTransitionToSection('library', params.showUIAnimations);
+    resizeIFrame();
+    kiwixLibrary.loadLibrary(libraryIframe);
 });
-
 // Add keyboard activation for library button
 btnLibrary.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
@@ -1891,6 +1893,8 @@ async function archiveReadyCallback (archive) {
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
+    // This is used for testing: if the noPrompts flag is set, we skip the source verification
+    if (params.noPrompts) params.sourceVerification = false;
     if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')) {
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {
@@ -2537,7 +2541,7 @@ function handleClickOnReplayLink (ev, anchor) {
                                     selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                                         var mimetype = fileDirEntry.getMimetype();
                                         uiUtil.displayFileDownloadAlert(zimUrl, true, mimetype, content);
-                                        uiUtil.clearSpinner();
+                                        uiUtil.spinnerDisplay(false);
                                     });
                                 } else {
                                     return uiUtil.systemAlert('We could not find a PDF document at ' + zimUrl, 'PDF not found');
@@ -2576,7 +2580,7 @@ function handleClickOnReplayLink (ev, anchor) {
                             appstate.target = 'window';
                             articleContainer.kiwixType = appstate.target;
                         }
-                        uiUtil.clearSpinner();
+                        uiUtil.spinnerDisplay(false);
                     } else {
                         // Let Replay handle this link
                         anchor.passthrough = true;

@@ -69,7 +69,8 @@
 }
 
 .form-control {
-    margin-top: 2px;
+    margin-top: 3px;
+    margin-right: 4px;
 }
 
 #articleList {
@@ -95,7 +96,8 @@
 }
 
 #formArticleSearch {
-    padding-top: 1rem;
+    padding-top: 20px;
+    padding-bottom: 0px;
 }
 
 #configuration {
@@ -310,6 +312,26 @@ iframe._invert, iframe._mwInvert {
     color: #337ab7;
 }
 
+/* Change focus styles on top nav-bar buttons (keep border-color for keyboard users) */
+.btn-nav-top:focus {
+    background: none;
+    border-color: #80bdff !important;
+    box-shadow: 0 0 0 .2rem rgba(0,123,255,.25) !important;
+}
+
+/* Note: This one is !important to override the .active > button box-shadow */
+.btn-nav-top:hover {
+    background-color: #e2e6ea !important;
+    box-shadow: 0 0 0 -.1rem rgba(216,217,219,.8) !important;
+}
+
+.active > button {
+    color: #212529 !important;
+    background-color: #e2e6ea !important;
+    border-color: #dae0e5 !important;
+    box-shadow: 0 0 0 .2rem rgba(216,217,219,.5) !important;
+}
+
 /* Add missing margin to buttons */
 button {
     margin: 2px;
@@ -372,17 +394,43 @@ button {
         font-size: 10px !important;
     }
 
+    /* margin between search button and result text */
+    #formArticleSearch > .container {
+        margin-top: 0rem;
+        margin-bottom: 0.2rem;
+    }
+
+    /* Article Form */
+    #formArticleSearch .form-control {
+        height: 31px ;
+        padding: 2px 8px ;
+        font-size: 13px ;
+        margin-right: 4px;
+    }
+
+    /* search button */
+    #formArticleSearch .btn {
+        height: 30px ;
+        padding: 2px 10px ;
+        font-size: 14px ;
+        line-height: 1.5 ;
+    }
+
     /* Reduce size of the bottom buttons */
     .btn-lg, .btn-group-lg > .btn {
-        padding-top: 1px !important;
-        padding-bottom: 1px !important;
-        font-size: 16px !important;
+        padding-top: 1px ;
+        padding-bottom: 1px ;
+        font-size: 16px ;
     }
 
     #archiveList {
         width: 100%;
         min-width: auto;
         margin-bottom: 0.5em;
+    }
+
+    .btn-group{
+        height: 100%;
     }
     
 }
