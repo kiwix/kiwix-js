@@ -27,11 +27,22 @@
 const MAX_CACHE_SIZE = 4000;
 
 /**
+ * Block sizes for different types of content (in bytes)
+ * @constant
+ * @type {Object}
+ */
+const BLOCK_SIZES = {
+    SMALL: 1024,    // 1KB for small files (e.g., icons, small text)
+    MEDIUM: 4096,   // 4KB for medium files (default)
+    LARGE: 16384    // 16KB for large files (e.g., images)
+};
+
+/**
  * The maximum blocksize to read or store via the block cache (bytes)
  * @constant
  * @type {Number}
  */
-const BLOCK_SIZE = 4096;
+const BLOCK_SIZE = BLOCK_SIZES.MEDIUM;  // Default block size
 
 /**
  * A Block Cache employing a Least Recently Used caching strategy
@@ -117,8 +128,19 @@ var cache = new LRUCache();
 // var misses = 0;
 
 /**
+ * Determines the appropriate block size based on the requested range size
+ * @param {Number} rangeSize The size of the data being requested
+ * @returns {Number} The appropriate block size to use
+ */
+function getBlockSize(rangeSize) {
+    if (rangeSize <= BLOCK_SIZES.SMALL * 2) return BLOCK_SIZES.SMALL;
+    if (rangeSize >= BLOCK_SIZES.LARGE) return BLOCK_SIZES.LARGE;
+    return BLOCK_SIZES.MEDIUM;
+}
+
+/**
  * Read a certain byte range in the given file, breaking the range into chunks that go through the cache
- * If a read of more than BLOCK_SIZE * 2 (bytes) is requested, do not use the cache
+ * Uses adaptive block sizing based on the requested range size
  * @param {Object} file The requested ZIM archive to read from
  * @param {Number} begin The byte from which to start reading
  * @param {Number} end The byte at which to stop reading (end will not be read)
@@ -126,13 +148,17 @@ var cache = new LRUCache();
  *     or from the ZIM archive
  */
 var read = function (file, begin, end) {
+    const rangeSize = end - begin;
+    const blockSize = getBlockSize(rangeSize);
+    
     // Read large chunks bypassing the block cache because we would have to
     // stitch together too many blocks and would clog the cache
-    if (end - begin > BLOCK_SIZE * 2) return file._readSplitSlice(begin, end);
+    if (rangeSize > blockSize * 2) return file._readSplitSlice(begin, end);
+    
     var readRequests = [];
     var blocks = {};
     // Look for the requested data in the blocks: we may need to stitch together data from two or more blocks
-    for (var id = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; id < end; id += BLOCK_SIZE) {
+    for (var id = Math.floor(begin / blockSize) * blockSize; id < end; id += blockSize) {
         var block = cache.get(file.id + ':' + id);
         if (block === undefined) {
             // Data not in cache, so read from archive
@@ -141,7 +167,7 @@ var read = function (file, begin, end) {
             // DEV: This is a self-calling function, i.e. the function is called with an argument of <id> which then
             // becomes the <offset> parameter
             readRequests.push(function (offset) {
-                return file._readSplitSlice(offset, offset + BLOCK_SIZE).then(function (result) {
+                return file._readSplitSlice(offset, offset + blockSize).then(function (result) {
                     cache.store(file.id + ':' + offset, result);
                     blocks[offset] = result;
                 });
@@ -164,9 +190,9 @@ var read = function (file, begin, end) {
         var result = new Uint8Array(end - begin);
         var pos = 0;
         // Stitch together the data parts in the right order
-        for (var i = Math.floor(begin / BLOCK_SIZE) * BLOCK_SIZE; i < end; i += BLOCK_SIZE) {
+        for (var i = Math.floor(begin / blockSize) * blockSize; i < end; i += blockSize) {
             var b = Math.max(i, begin) - i;
-            var e = Math.min(end, i + BLOCK_SIZE) - i;
+            var e = Math.min(end, i + blockSize) - i;
             if (blocks[i].subarray) result.set(blocks[i].subarray(b, e), pos);
             pos += e - b;
         }
