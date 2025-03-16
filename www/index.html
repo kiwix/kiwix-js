@@ -104,22 +104,38 @@
 
                 </nav>
 
-                <form id="formArticleSearch">
+                <form id="formArticleSearch" role="search" aria-label="Search articles">
                     <div class="container">
                         <div class="row">
                             <span class="col-10">
                                 <span class="input-group">
-                                    <input type="search" data-i18n-tip="home-prefix-tip" title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type." id="prefix" placeholder="Search..." class="form-control" />
+                                    <input type="search" 
+                                        data-i18n-tip="home-prefix-tip" 
+                                        title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type." 
+                                        id="prefix" 
+                                        placeholder="Search..." 
+                                        class="form-control"
+                                        aria-label="Search articles"
+                                        aria-describedby="searchHelp" />
+                                    <span id="searchHelp" class="sr-only">Type to search articles. Results will appear as you type.</span>
                                     <button type="button" data-i18n-tip="home-search" title="Search" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
                                 </span>
                             </span>
                             <span class="col-2">
                                 <span class="btn-group">
-                                    <button type="button" data-i18n-tip="home-btn-random-tip" title="Select a random article to display" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
+                                    <button type="button" 
+                                        data-i18n-tip="home-btn-random-tip" 
+                                        title="Select a random article to display" 
+                                        class="btn btn-outline-secondary" 
+                                        id="btnRandomArticle"
+                                        aria-label="Show random article">
+                                        <i class="fas fa-random" aria-hidden="true"></i>
+                                    </button>
                                 </span>
                             </span>
                         </div>
                     </div>
+                    <div id="searchResults" role="region" aria-live="polite" aria-atomic="true"></div>
                 </form>
             </header>
             
