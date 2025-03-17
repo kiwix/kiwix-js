@@ -16,7 +16,6 @@
     "del-dist": "del-cli dist",
     "test": "mocha --experimental-modules --node-option experimental-specifier-resolution=node --require @babel/register --require tests/unit/setup.js 'tests/unit/spec/**/*.test.js'",
     "test-unit": "mocha --experimental-modules --node-option experimental-specifier-resolution=node --require @babel/register --require tests/unit/setup.js 'tests/unit/spec/**/*.test.js'",
-    "test-unit-watch": "mocha --experimental-modules --node-option experimental-specifier-resolution=node --watch --require @babel/register --require tests/unit/setup.js 'tests/unit/spec/**/*.test.js'",
     "test-unit-coverage": "nyc --experimental-modules --node-option experimental-specifier-resolution=node mocha --require @babel/register --require tests/unit/setup.js 'tests/unit/spec/**/*.test.js'",
     "web-server": "http-server -p 8080 .",
     "test-e2e": "npm run test-e2e-firefox && npm run test-e2e-chrome && npm run test-e2e-edge && npm run test-e2e-iemode",

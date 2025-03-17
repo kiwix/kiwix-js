@@ -1,6 +1,6 @@
 /* eslint-disable no-useless-constructor */
 /**
- * init.js : Configuration for the library require.js
+ * init.js : Global configuration of the app
  * This file handles the dependencies between javascript libraries, for the unit tests
  *
  * Copyright 2013-2014 Mossroy and contributors
