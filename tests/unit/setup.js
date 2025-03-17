@@ -4,7 +4,7 @@
  * Mocha test environment setup
  *
  * This file configures the test environment for Mocha tests,
- * including any global setup, hooks, or configuration needed
+ * including any global setup, hooks or configuration needed
  * before running the tests.
  */
 
@@ -33,7 +33,7 @@ const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
 const { window } = dom;
 const { document } = window;
 
-// Define self (used in web workers and browser environments)
+// Define self
 globalThis.self = globalThis;
 window.self = window;
 
@@ -120,7 +120,7 @@ class Worker {
     }
 
     terminate () {
-        // Cleanup logic if needed
+        // If needed then cleanup logic will be added
     }
 }
 
