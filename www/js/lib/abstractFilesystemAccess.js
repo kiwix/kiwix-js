@@ -241,7 +241,8 @@ function loadPreviousZimFile () {
     setTimeout(() => {
         if (window.params.isFileSystemApiSupported || window.params.isWebkitDirApiSupported) {
             const filenames = settingsStore.getItem('zimFilenames');
-            if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
+            const selectedFile = settingsStore.getItem('previousZimFileName') || ''; 
+            if (filenames) updateZimDropdownOptions(filenames.split('|'), selectedFile);
         }
     }, 200);
 }
