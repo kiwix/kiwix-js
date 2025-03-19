@@ -3228,6 +3228,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
 }
 
+// eslint-disable-next-line no-unused-vars
 function updateUI () {
     if (appstate.isLoadingArticle || appstate.isLoadingAsset) {
         uiUtil.spinnerDisplay(true, appstate.loadingMessage);
