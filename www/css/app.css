@@ -84,10 +84,13 @@
 #articleListWithHeader {
     position: absolute;
     top: 0;
-    left: 5%;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
     padding-left: 12px;
     padding-right: 12px;
-    background: lightblue;
+    background-color: var(--background-color-base);
     z-index: 1;
 }
 
@@ -137,11 +140,6 @@ iframe {
     padding: 6px 12px;
     cursor: pointer;
 }
-
-.dark .custom-file-upload {
-    border: 2px solid darkslategray;
-}
-
 
 /* App theme: dark */
 
@@ -398,14 +396,6 @@ body.dark .modal-body {
 .dark #articleList a.hover {
     background-color: var(--background-color-interactive--hover);
     color: var(--color-progressive--hover);
-}
-
-#articleListWithHeader {
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: base;
 }
 
 .dark #articleListWithHeader {
