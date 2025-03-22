@@ -52,7 +52,7 @@ jobs:
         run: npm ci
 
       - name: Unit tests (Linux)
-        run: npm run test-unit-browsers
+        run: npm run test-unit
 
       - name: Test a full build of the app
         run: npm run build
@@ -179,17 +179,7 @@ jobs:
         run: npm run build-min
 
       - name: Unit tests (Windows)
-        run: |
-          $AggregateExitCode = 0
-          npm run test-unit-edge
-          $AggregateExitCode += $LastExitCode
-          npm run test-unit-firefox
-          $AggregateExitCode += $LastExitCode
-          if ($AggregateExitCode -ne 0) {
-            echo " "
-            Write-Error "Number of failed tests: $AggregateExitCode"
-          }
-          exit $AggregateExitCode
+        run: npm run test-unit
 
       - name: End-to-end tests on Edge Chromium (Windows)
         env:
