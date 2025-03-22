@@ -104,7 +104,7 @@
 
                 </nav>
 
-                <form id="formArticleSearch">
+                <form id="formArticleSearch" role="search" aria-label="Search articles">
                     <div class="container">
                         <div class="row">
                             <span class="col-10">
@@ -774,8 +774,8 @@
 
                 <!-- List of articles matching the typed prefix -->
                 <div id="articleListWithHeader" style="display: none;" class="container">
-                    <span id="articleListHeaderMessage"></span>
-                    <div id="articleList" class="list-group">
+                    <span id="articleListHeaderMessage" aria-live="polite"></span>
+                    <div id="articleList" class="list-group" role="listbox">
                     </div>
                 </div>
                 <!-- Bootstrap alert box -->
