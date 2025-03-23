@@ -11,19 +11,8 @@ functions that the rest of the app relies on. End-to-end tests are designed to t
 
 Unit tests are implemented using Mocha.
 
-You can run the Unit tests with npm on Chrome with `npm test` in your terminal. Before running the tests, if you didn't already, you will need to fetch
-development dependencies (see "[Build system and setup](./CONTRIBUTING.md#build-system-and-setup)"). If testing this way,
-make sure that `http-server` is not already running, because another copy is launched for these tests, and the ports may conflict. If running tests in parallel like this produces
-unexpected results (some tests might be too slow and assert before they have completed correctly), then you can run individual tests in headless mode with
-`npm run test-unit-firefox`, `npm run test-unit-edge`, etc. (see `package.json` for full list of scripts). Note that browsers need to be available in standard locations for this
-to work: they won't be fetched or installed by the script.
-
-We currently use [TestCafé](https://testcafe.io/) to run the Unit tests in headless browsers in GitHub actions. If you want to run this locally, you can find out which browsers it
-knows about by running `npx testcafe --list-browsers` (it may take some time to discover local browsers).
-
-When you run `npm test`, it will run the tests visually, not headless. The individual browser tests (e.g. `npm run test-unit-chrome`) are run headless. If you want to run these
-individual tests visually, not headless, it's easiest simply to open `tests/index.html` in the respective browser, and this allows you to debug. If you really want to do it from the
-commandline, then you'll need, e.g., `npx testcafe chrome ./tests/initTestCafe.js --app "http-server --silent -p 8080 ."` (adapt the browser as necessary).
+You can run the Unit tests in a NodeJS environment with `npm test` in your terminal. Before running the tests, if you didn't already,
+you will need to fetch development dependencies (see "[Build system and setup](./CONTRIBUTING.md#build-system-and-setup)").
 
 ## End-to-end tests
 
