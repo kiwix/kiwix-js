@@ -256,13 +256,9 @@ function runTests (driver, modes, keepDriver) {
                 // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
                 assert.equal('This Little Girl of Mine', text);
                 // Scroll the element into view and navigate to it
-                await driver.wait(async function () {
-                    const elementIsVisible = await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
-                    // console.log('Element is visible: ' + elementIsVisible);
-                    return elementIsVisible;
-                }, 10000);
-                // Pause for 1 second to allow article to load
-                await driver.sleep(1300);
+                await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
+                // Pause for 2 seconds to allow article to load
+                await driver.sleep(2000);
                 let elementText = '';
                 try {
                     // Find the mwYw element in JavaScript and get its content
@@ -308,7 +304,7 @@ function runTests (driver, modes, keepDriver) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     this.skip();
                 }
-                await driver.switchTo().defaultContent();
+                // await driver.switchTo().defaultContent();
                 const prefix = await driver.findElement(By.id('prefix'));
                 // Search by setting the value of the prefix element using JavaScript
                 await driver.executeScript('arguments[0].value = "Ray"; document.getElementById("searchArticles").click();', prefix);
