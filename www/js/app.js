@@ -2018,8 +2018,8 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         // inside double quotes (in the final HTML string), given that dirEntryStringId may contain bare apostrophes
         // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( )
         var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
-            articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-                '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
+        articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
+            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
     }
 
     // innerHTML required for this line
