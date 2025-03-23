@@ -234,12 +234,13 @@ html.dark {
     background: var(--background-color-neutral);
 }
 
-/* Overriding body color as unable to find main color(red maroon mix) yet (for maintainer) */
+/* Body and main elements dark theme */
 html.dark body,
 html.dark [role=region],
 html.dark .container-fluid,
 html.dark #mainContent {
     background-color: var(--background-color-neutral);
+    color: var(--color-base);
 }
 
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, 
@@ -265,33 +266,23 @@ html.dark #mainContent {
 }
 
 /* Navigation buttons */
-html.dark body .btn-light.btn-nav-top,
-html.dark header .btn-light.btn-nav-top,
-body.dark .btn-light.btn-nav-top {
+.dark .btn-light.btn-nav-top {
     background-color: var(--background-color-interactive);
     color: var(--color-base);
     border-color: var(--border-color-subtle);
 }
 
-
-/* Hover for navigation buttons */
 .dark .btn-light.btn-nav-top:hover {
     background-color: var(--background-color-interactive--hover) !important;
     border-color: var(--border-color-interactive--hover) !important;
 }
 
-/* Active state for navigation buttons */
-html.dark body .btn-light.btn-nav-top:active,
-html.dark body .btn-light.btn-nav-top.active,
-html.dark header .btn-light.btn-nav-top:active,
-html.dark header .btn-light.btn-nav-top.active,
-body.dark .btn-light.btn-nav-top:active,
-body.dark .btn-light.btn-nav-top.active {
+.dark .btn-light.btn-nav-top:active,
+.dark .btn-light.btn-nav-top.active {
     background-color: var(--background-color-interactive--active);
     border-color: var(--border-color-interactive--active);
 }
 
-/* Navbar collapse background */
 .dark .navbar-collapse {
     background-color: var(--background-color-neutral);
 }
@@ -300,20 +291,13 @@ body.dark .btn-light.btn-nav-top.active {
     filter: invert(1) hue-rotate(180deg);
 }
 
-.dark body {
-    background: var(--background-color-base);
-    color: var(--color-base);
-}
-
 .dark .card {
     background-color: var(--background-color-neutral);
     border-color: var(--border-color-subtle);
     color: var(--color-base);
 }
 
-html.dark body .modal-content,
-html.dark #mainContent .modal-content,
-body.dark .modal-content {
+.dark .modal-content {
     background: var(--background-color-neutral);
 }
 
@@ -321,12 +305,8 @@ body.dark .modal-content {
     border: 2px solid var(--border-color-base);
 }
 
-html.dark body .modal-title, 
-html.dark body .modal-body,
-html.dark #mainContent .modal-title, 
-html.dark #mainContent .modal-body,
-body.dark .modal-title, 
-body.dark .modal-body {
+.dark .modal-title, 
+.dark .modal-body {
     color: var(--color-base);
 }
 
@@ -413,45 +393,25 @@ body.dark .modal-body {
     color: var(--color-base);
 }
 
-/* Iframe that contains the ZIM content */
+/* Iframe that contain the ZIM content */
 .dark .articleIFrame {
     background-color: var(--background-color-neutral);
 }
 
-/* Adjust the filter for the iframe content */
+/* Iframe content */
 .dark iframe:not(._invert):not(._mwInvert) {
-    filter: invert(1) hue-rotate(180deg);
-}
-
-/* Image inversion */
-.dark iframe:not(._invert):not(._mwInvert) img {
-    filter: invert(1) hue-rotate(180deg);
-}
-
-html.dark body iframe,
-html.dark .container-fluid iframe,
-html.dark #mainContent iframe {
     filter: invert(87%) hue-rotate(180deg);
     background-color: white;
 }
 
 /* Image inversion inside iframe */
-html.dark body iframe img,
-html.dark .container-fluid iframe img,
-html.dark #mainContent iframe img {
+.dark iframe:not(._invert):not(._mwInvert) img {
     filter: invert(1) hue-rotate(180deg);
-}
-
-/* Body for iframe content */
-html.dark body #mainContent,
-html.dark .container-fluid #mainContent {
-    background-color: var(--background-color-neutral);
 }
 
 /* End of app theme: dark */
 
 /* Content themes: _invert, _mwInvert */
-
 iframe._invert, iframe._mwInvert {
     filter: invert(1) hue-rotate(180deg);
 }
