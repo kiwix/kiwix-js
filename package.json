@@ -58,7 +58,6 @@
     "jsdom": "^25.0.1",
     "mocha": "^10.8.2",
     "nyc": "^17.1.0",
-    "qunit": "^2.19.4",
     "rollup": "^4.5.0",
     "rollup-plugin-copy": "^3.4.0",
     "selenium-webdriver": "^4.11.1",
