@@ -55,7 +55,7 @@ const ASSETS_CACHE = 'kiwixjs-assetsCache';
  * A global object for storing app state
  *
  * @type Object */
-var appstate = {
+const appstate = {
     isLoadingArticle: false,
     isLoadingAsset: false,
     loadingMessage: ''
@@ -3058,8 +3058,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             }
             // Get the image URL
             var imageUrl = image.getAttribute('data-kiwixurl');
-            // Start Loading the imaeg and update appstate
-            startLoadingAsset('Loading Image: ' + imageUrl);
+            // Start Loading the image and update appstate
+            startLoadingAsset((translateUI.t('spinner-loading-image') || 'Loading Image: ') + imageUrl);
             // Decode any WebP images that are encoded as dataURIs
             if (/^data:image\/webp/i.test(imageUrl)) {
                 uiUtil.feedNodeWithDataURI(image, 'src', imageUrl, 'image/webp');
@@ -3225,15 +3225,6 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                     });
                 });
             });
-    }
-}
-
-// eslint-disable-next-line no-unused-vars
-function updateUI () {
-    if (appstate.isLoadingArticle || appstate.isLoadingAsset) {
-        uiUtil.spinnerDisplay(true, appstate.loadingMessage);
-    } else {
-        uiUtil.spinnerDisplay(false);
     }
 }
 
