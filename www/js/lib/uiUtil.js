@@ -1071,6 +1071,28 @@ function getBrowserLanguage () {
 }
 
 /**
+ * Prints the content of the article iframe instead of the whole page
+ */
+
+function printArticleContent () {
+    const iframe = document.getElementById("articleContent");
+    if (iframe && iframe.contentWindow) {
+        // Print only the iframe content
+        iframe.contentWindow.print(); 
+        // Testing in the console, will be removed
+        console.log("Printing article iframe content");
+    } else {
+        console.error("No article iframe found!");
+    }
+}
+
+function handlePrintEvent(event) {
+    event.preventDefault(); // Prevent default behavior (Ctrl + P)
+    printArticleContent();
+}
+
+
+/**
  * Functions and classes exposed by this module
  */
 export default {
@@ -1100,5 +1122,7 @@ export default {
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
     getBrowserLanguage: getBrowserLanguage,
     returnToCurrentPage: returnToCurrentPage,
-    fromSection: fromSection
+    fromSection: fromSection,
+    handlePrintEvent: handlePrintEvent,
+    printArticleContent: printArticleContent,
 };
