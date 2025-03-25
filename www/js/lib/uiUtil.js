@@ -1079,8 +1079,6 @@ function printArticleContent () {
     if (iframe && iframe.contentWindow) {
         // Print only the iframe content
         iframe.contentWindow.print(); 
-        // Testing in the console, will be removed
-        console.log("Printing article iframe content");
     } else {
         console.error("No article iframe found!");
     }
