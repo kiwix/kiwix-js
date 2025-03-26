@@ -9,6 +9,9 @@ import terser from '@rollup/plugin-terser';
 import { minify } from 'terser';
 // import styles from "@ironkinoko/rollup-plugin-styles";
 
+/* global process */
+/* eslint-disable no-unused-vars */
+
 const config = {
     // The entry point for the bundler
     input: 'www/js/app.js',

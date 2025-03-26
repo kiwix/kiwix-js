@@ -19,14 +19,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-// eslint-disable-next-line no-unused-vars
+
+/* eslint-disable camelcase, one-var, prefer-const, no-unused-vars */
+/* global describe, it, process */
+
 import { By, Key, WebDriver, until } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import paths from '../paths.js';
-
-/* eslint-disable camelcase, one-var, prefer-const */
-/* global describe, it */
 
 // Get the BrowserStack environment variable
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;

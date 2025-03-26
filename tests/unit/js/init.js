@@ -24,7 +24,7 @@
 
 'use strict';
 
-/* global webpHero */
+/* global webpHero, global */
 
 // Define global params needed for tests to run on existing app code
 // eslint-disable-next-line no-unused-vars

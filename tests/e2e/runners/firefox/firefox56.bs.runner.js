@@ -2,6 +2,7 @@ import { Builder } from 'selenium-webdriver';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 
 /* eslint-disable camelcase */
+/* global process */
 
 // Input capabilities
 const capabilities = {

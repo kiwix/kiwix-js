@@ -6,6 +6,7 @@ import tonedearTests from '../../spec/tonedear.e2e.spec.js';
 import paths from '../../paths.js';
 
 /* eslint-disable camelcase */
+/* global process */
 
 async function loadFirefoxDriver () {
     const options = new firefox.Options();
