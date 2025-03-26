@@ -4,7 +4,6 @@ import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import tonedear from '../../spec/tonedear.e2e.spec.js'
 import paths from '../../paths.js';
 
-/* eslint-disable camelcase */
 /* global process */
 
 // Input capabilities
