@@ -412,13 +412,8 @@ html.dark #mainContent {
 html.dark body iframe,
 html.dark .container-fluid iframe,
 html.dark #mainContent iframe {
-    filter: invert(92%) hue-rotate(180deg);
+    filter: invert(94%) hue-rotate(180deg);
     background-color: white;
-}
-
-/* Image inversion inside iframe */
-.dark iframe:not(._invert):not(._mwInvert) img {
-    filter: invert(1) hue-rotate(180deg);
 }
 
 /* End of app theme: dark */
