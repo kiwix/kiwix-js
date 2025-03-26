@@ -1,5 +1,5 @@
 /* eslint-disable no-prototype-builtins */
-/* eslint-disable import/no-named-default */
+
 /**
  * Mocha test environment setup
  *
@@ -110,6 +110,7 @@ class Worker {
         this.onerror = null;
     }
 
+    // eslint-disable-next-line no-unused-vars
     postMessage (msg) {
         // Implement any worker simulation logic here if needed
         if (this.onmessage) {

@@ -3,7 +3,7 @@ import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import tonedear from '../../spec/tonedear.e2e.spec.js';
 
-/* eslint-disable camelcase */
+/* global process */
 
 // Input capabilities
 const capabilities = {

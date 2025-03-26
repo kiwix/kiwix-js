@@ -3,7 +3,8 @@ import { Options } from 'selenium-webdriver/edge.js';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import tonedearTests from '../../spec/tonedear.e2e.spec.js';
-/* eslint-disable camelcase */
+
+/* global process */
 
 async function loadMSEdgeDriver () {
     const options = new Options();

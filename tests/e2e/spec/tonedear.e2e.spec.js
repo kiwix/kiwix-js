@@ -1,7 +1,10 @@
-/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+
 import { By, until } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
+
+/* global describe, it, process */
 
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
 const port = BROWSERSTACK ? '8099' : '8080';

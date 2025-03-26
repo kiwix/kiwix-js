@@ -677,7 +677,8 @@ ZIMArchive.prototype.getMetadata = function (key, callback) {
 ZIMArchive.prototype.addMetadataToZIMFile = function (key) {
     var that = this;
     var lcaseKey = key.toLocaleLowerCase();
-    return new Promise(function (resolve, reject) {
+    // eslint-disable-next-line no-unused-vars
+    return new Promise(function (resolve, _reject) {
         that.getMetadata(key, function (data) {
             data = data || '';
             that[lcaseKey] = data;
