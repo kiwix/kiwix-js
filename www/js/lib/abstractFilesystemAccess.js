@@ -104,6 +104,7 @@ function updateZimDropdownOptions (files, selectedFile) {
     // as other function will handle the dropdown UI updates
     if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
 
+    const DROPDOWN_SIZE = 10;
     const select = document.getElementById('archiveList');
     const options = [];
     let count = 0;
@@ -122,6 +123,8 @@ function updateZimDropdownOptions (files, selectedFile) {
         }
     });
     select.value = selectedFile;
+    // Set the size of the dropdown to the number of files or the DROPDOWN_SIZE, whichever is smaller
+    select.size = (files.length < DROPDOWN_SIZE ? files.length : DROPDOWN_SIZE) + 1; // +1 to account for the placeholder option
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
     document.getElementById('numberOfFilesCount').innerText = count.toString();
