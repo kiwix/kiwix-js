@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-/* globals params, appstate, caches, assetsCache */
+/* globals params, appstate, assetsCache */
 
 'use strict';
 import settingsStore from './settingsStore.js';
@@ -68,7 +68,7 @@ function test (callback) {
                 var item = window.localStorage.length;
                 assetsCache.capability = assetsCache.capability + '|localStorage';
             } catch (err) {
-                console.log('localStorage is not supported');
+                console.warn('localStorage is not supported', err);
             }
         }
         console.log('Setting storage type to ' + assetsCache.capability.match(/^[^|]+/)[0]);
@@ -188,7 +188,7 @@ function idxDB (keyOrCommand, valueOrCallback, callback) {
     // Open (or create) the database
     var open = indexedDB.open(CACHEIDB, 1);
 
-    open.onerror = function (e) {
+    open.onerror = function () {
         // Suppress error reporting if testing (older versions of Firefox support indexedDB but cannot use it with
         // the file:// protocol, so will report an error)
         if (assetsCache.capability !== 'test') {
@@ -228,14 +228,14 @@ function idxDB (keyOrCommand, valueOrCallback, callback) {
             processData = value !== null ? store.put(value, keyOrCommand) : store.get(keyOrCommand);
         }
         // Call the callback with the result
-        processData.onsuccess = function (e) {
+        processData.onsuccess = function () {
             if (keyOrCommand === 'delete') {
                 rtnFn(true);
             } else {
                 rtnFn(processData.result);
             }
         };
-        processData.onerror = function (e) {
+        processData.onerror = function () {
             console.error('IndexedDB command failed: ' + processData.error);
             rtnFn(false);
         };
@@ -579,6 +579,7 @@ function clear (items, callback) {
             result = 'assetsCache';
         }
         // Delete and reinitialize assetsCache
+        // eslint-disable-next-line no-global-assign
         assetsCache = new Map();
         assetsCache.capability = capability;
         // Loose test here ensures we clear localStorage even if it wasn't being used in this session

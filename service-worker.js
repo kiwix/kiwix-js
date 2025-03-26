@@ -25,8 +25,6 @@
 
 /* global chrome */
 
-/* eslint-disable prefer-const */
-
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will
@@ -541,7 +539,7 @@ function cacheAndReturnResponseForAsset (event, response) {
  *     Zimit requests may be for a range of bytes, in fact video (at least) is stored as a blob, so the appropriate response will just be a normal 200.
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM (urlObjectOrString, range, expectedHeaders) {
+function fetchUrlFromZIM (urlObjectOrString, range/*, expectedHeaders*/) {
     return new Promise(function (resolve, reject) {
         var pathname = typeof urlObjectOrString === 'string' ? urlObjectOrString : urlObjectOrString.pathname;
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
