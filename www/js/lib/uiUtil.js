@@ -171,6 +171,157 @@ function slideAway (e) {
     }
 }
 
+/*
+  * Returns a list of headings from an article
+    * @param {String} the page for which table of cotents needs to be listed
+    * @returns {List} a list of all headings as objects
+*/
+function HeadingsTOC (articleDoc) {
+    this.doc = articleDoc;
+    this.headings = this.doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+    this.getHeadingObjects = function () {
+        var headings = [];
+        for (var i = 0; i < this.headings.length; i++) {
+            var element = this.headings[i];
+            var obj = {};
+
+            if (element.id) {
+                obj.id = element.id;
+            } else {
+                // generating custom id if id attribute is not present in element
+                var generatedId = element.textContent
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-');
+                obj.id = 'pph-' + i + '-' + generatedId;
+                element.id = obj.id; // to target the element
+            }
+            obj.index = i;
+            obj.textContent = element.textContent;
+            obj.tagName = element.tagName;
+            headings.push(obj);
+        }
+        return headings;
+    };
+}
+
+/*
+    * Setup table of contents and display the list when the dropup button is clicked
+    * @param {List} a list of all headings as objects
+    * @returns {void}
+*/
+// Inject table of contents list into dropup element and scroll selection into view
+function setUpTOC () {
+    // var iframe = document.getElementById('articleContent');
+    var innerDoc = articleContainer.contentDocument;
+    var tableOfContents = new HeadingsTOC(innerDoc);
+    var headings = tableOfContents.getHeadingObjects();
+
+    var dropupHtml = '';
+    headings.forEach(function (heading) {
+        if (/^h1$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="font-size:' + 18 + 'px;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h2$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="margin-top:6px;margin-left:6px;font-size:' + 16 + 'px;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h3$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="margin-left:12px;font-weight:350;font-size:' + 14 + 'px;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h4$/i.test(heading.tagName)) {
+            dropupHtml += '<li style="margin-left:16px;font-weight:300;font-size:' + 12 + 'px;"><a style="color: black;" href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        }
+        // Skip smaller headings (if there are any) to avoid making list too long
+    });
+    var ToCList = document.getElementById('ToCList');
+    ToCList.style.maxHeight = ~~(window.innerHeight * 0.75) + 'px';
+    ToCList.innerHTML = dropupHtml;
+    Array.from(ToCList.getElementsByTagName('a'))
+        .forEach(function (listElement) {
+            listElement.addEventListener('click', function () {
+                var sectionEle = innerDoc.getElementById(this.dataset.headingId)
+
+                var sectionsToOpen = getParentSections(sectionEle); // get all parents which are 'section' or 'details'
+                openSection(sectionsToOpen); // open all parents
+                // why..? because if the section is inside a details element, it will be closed by default
+
+                sectionEle.scrollIntoView();
+
+                // highlighting the section
+                sectionEle.style.backgroundColor = '#bdd1e5';
+                setTimeout(function () {
+                    sectionEle.style.backgroundColor = '';
+                }, 400);
+                sectionEle.style.transition = 'background-color 300ms ease-out';
+            });
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const dropup = document.getElementById('dropup');
+    dropup.setAttribute('tabindex', '0');
+    const ToCList = document.getElementById('ToCList');
+
+    // close TOC when 'click' is not on dropup or TOCList
+    articleContainer.addEventListener('load', function () {
+        const innerDoc = articleContainer.contentDocument || articleContainer.contentWindow.document;
+        // Add click event listener inside the iframe
+        innerDoc.addEventListener('click', function () {
+            closeTOC(); // Close TOC when clicking inside the iframe
+        });
+    });
+    document.addEventListener('click', function (event) {
+        if (!dropup.contains(event.target) && !ToCList.contains(event.target)) {
+            closeTOC();
+        }
+    });
+    dropup.addEventListener('click', function () {
+        const isVisible = getComputedStyle(ToCList).display !== 'none';
+        if (isVisible) {
+            ToCList.style.display = 'none';
+        } else {
+            setUpTOC();
+            ToCList.style.display = 'flex';
+            ToCList.style.flexDirection = 'column';
+        }
+    });
+});
+
+function closeTOC () {
+    const ToCList = document.getElementById('ToCList');
+    ToCList.style.display = 'none';
+}
+
+// get all parent elements which are 'section' or 'details'
+function getParentSections (element) {
+    const parents = [];
+    let currentElement = element;
+    while (currentElement) {
+        if (currentElement.matches('section, details')) {
+            parents.push(currentElement);
+        }
+        currentElement = currentElement.parentElement;
+    }
+    return parents;
+};
+
+// Function to open a specific section and all its parent sections
+function openSection (sectionsToOpen) {
+    if (!sectionsToOpen) return;
+    sectionsToOpen.forEach(section => {
+        if (section.tagName === 'DETAILS') {
+            section.setAttribute('open', '');
+        } else if (section.tagName === 'SECTION') {
+            section.style.display = '';
+            Array.from(section.children).forEach(child => {
+                if (!/SUMMARY|H\d/.test(child.tagName)) {
+                    child.style.display = '';
+                }
+            });
+        }
+    });
+};
+
 /**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
  *
@@ -1084,6 +1235,7 @@ export default {
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
+    setUpTOC: setUpTOC,
     removeUrlParameters: removeUrlParameters,
     displayActiveContentWarning: displayActiveContentWarning,
     displayFileDownloadAlert: displayFileDownloadAlert,
