@@ -76,6 +76,11 @@ jobs:
           fi
           exit $failed
 
+      - name: Run ESLint
+        run: |
+          cd ./www
+          eslint . --ext .js
+      
       - name: End-to-end tests on Chrome (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
