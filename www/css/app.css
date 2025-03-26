@@ -90,7 +90,7 @@
     margin-right: auto;
     padding-left: 12px;
     padding-right: 12px;
-    background-color: var(--background-color-base);
+    background-color: var(--background-color-neutral);
     z-index: 1;
 }
 
@@ -240,12 +240,12 @@ html.dark [role=region],
 html.dark .container-fluid,
 html.dark #mainContent {
     background-color: var(--background-color-neutral);
-    color: var(--color-base);
+    color: var(--color-neutral);
 }
 
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, 
 .dark #articleListWithHeader, .dark #alertBoxHeader, .dark footer:not([class=_light]) {
-    color: var(--color-base);
+    color: var(--color-neutral);
     background-color: var(--background-color-neutral);
 }
 
@@ -257,18 +257,18 @@ html.dark #mainContent {
 
 /* Navbar brand (Kiwix) text */
 .dark .navbar-brand {
-    color: var(--color-base);
+    color: var(--color-neutral);
 }
 
 .dark .navbar-toggler {
-    color: var(--color-base);
-    border-color: var(--border-color-base);
+    color: var(--color-neutral);
+    border-color: var(--border-color-neutral);
 }
 
 /* Navigation buttons */
 .dark .btn-light.btn-nav-top {
     background-color: var(--background-color-interactive);
-    color: var(--color-base);
+    color: var(--color-neutral);
     border-color: var(--border-color-subtle);
 }
 
@@ -294,7 +294,7 @@ html.dark #mainContent {
 .dark .card {
     background-color: var(--background-color-neutral);
     border-color: var(--border-color-subtle);
-    color: var(--color-base);
+    color: var(--color-nuetral);
 }
 
 .dark .modal-content {
@@ -302,12 +302,12 @@ html.dark #mainContent {
 }
 
 .dark .custom-file-upload {
-    border: 2px solid var(--border-color-base);
+    border: 2px solid var(--border-color-neutral);
 }
 
 .dark .modal-title, 
 .dark .modal-body {
-    color: var(--color-base);
+    color: var(--color-neutral);
 }
 
 .dark .btn {
@@ -323,7 +323,7 @@ html.dark #mainContent {
 
 .dark .form-control {
     background-color: var(--background-color-interactive);
-    color: var(--color-base);
+    color: var(--color-neutral);
     border-color: var(--border-color-base);
 }
 
@@ -337,7 +337,7 @@ html.dark #mainContent {
 
 .dark select.form-control option {
     background-color: var(--background-color-neutral);
-    color: var(--color-base);
+    color: var(--color-neutral);
 }
 
 /* Selected option in the dropdown */
@@ -353,16 +353,16 @@ html.dark #mainContent {
 /* Dropdown when open */
 .dark select.form-control:focus {
     background-color: var(--background-color-interactive);
-    color: var(--color-base);
+    color: var(--color-neutral);
     border-color: var(--border-color-progressive--focus);
-    box-shadow: 0 0 0 0.1rem var(--box-shadow-color-base);
+    box-shadow: 0 0 0 0.1rem var(--box-shadow-color-neutral);
 }
 
 /* Search results*/
 .dark #articleList,
 .dark .list-group-item {
     background-color: var(--background-color-neutral);
-    color: var(--color-base);
+    color: var(--color-neutral);
     border-color: var(--border-color-subtle);
 }
 
@@ -378,6 +378,7 @@ html.dark #mainContent {
     color: var(--color-progressive--hover);
 }
 
+/* Area showing no of results for search */
 .dark #articleListWithHeader {
     background-color: var(--background-color-base);
 }
@@ -390,7 +391,7 @@ html.dark #mainContent {
 /* Article content */
 .dark #articleContent {
     background-color: var(--background-color-neutral);
-    color: var(--color-base);
+    color: var(--color-neutral);
 }
 
 /* Iframe that contain the ZIM content */
@@ -400,21 +401,22 @@ html.dark #mainContent {
 
 /* Iframe content */
 .dark iframe:not(._invert):not(._mwInvert) {
-    filter: invert(87%) hue-rotate(180deg);
-    background-color: white;
+    filter: invert(1) hue-rotate(180deg);
 }
 
-/* Image inversion inside iframe */
+/* Image inversion */
 .dark iframe:not(._invert):not(._mwInvert) img {
     filter: invert(1) hue-rotate(180deg);
 }
 
-/* End of app theme: dark */
-
-/* Content themes: _invert, _mwInvert */
-iframe._invert, iframe._mwInvert {
-    filter: invert(1) hue-rotate(180deg);
+html.dark body iframe,
+html.dark .container-fluid iframe,
+html.dark #mainContent iframe {
+    filter: invert(87%) hue-rotate(180deg);
+    background-color: white;
 }
+
+/* End of app theme: dark */
 
 /* End of content themes */
 
