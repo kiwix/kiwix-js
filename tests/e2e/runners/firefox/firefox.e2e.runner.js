@@ -11,7 +11,7 @@ async function loadFirefoxDriver () {
     const options = new firefox.Options();
     // Run it headless if the environment variable GITHUB_ACTIONS is set
     if (process.env.GITHUB_ACTIONS) {
-        options.headless();
+        options.addArguments('--headless'); // Explicitly set headless mode
     }
     options.setPreference('browser.download.folderList', 2);
     options.setPreference('browser.download.dir', paths.downloadDir);
