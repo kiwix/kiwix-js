@@ -239,13 +239,20 @@ function runTests (driver, modes, keepDriver) {
                 }
 
                 // console.log('FilesLength outer: ' + filesLength);
-                // Switch to iframe and check that the index contains the specified article
+                // Wait until the iframe is present and available
+                await driver.wait(async function () {
+                    const iframe = await driver.findElement(By.id('articleContent'));
+                    return iframe !== null;
+                }, 6000, 'Iframe with id "articleContent" was not found');
+
+                // Switch to the iframe
                 await driver.switchTo().frame('articleContent');
-                // Wait until the index has loaded
+
+                // Wait until the index has loaded inside the iframe
                 await driver.wait(async function () {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
-                    return contentAvailable;
-                }, 6000);
+                    return contentAvailable !== null;
+                }, 6000, 'Content inside iframe did not load');
 
                 // Locate the article link and get its text
                 const text = await driver.wait(async function () {
