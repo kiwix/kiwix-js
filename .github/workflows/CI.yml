@@ -185,6 +185,10 @@ jobs:
       - name: Unit tests (Windows)
         run: npm run test-unit
 
+      - name: Run ESLint
+        run: |
+          npx eslint
+      
       - name: End-to-end tests on Edge Chromium (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
