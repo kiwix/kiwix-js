@@ -246,30 +246,36 @@ function runTests (driver, modes, keepDriver) {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
                     return contentAvailable;
                 }, 6000);
-                // const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
-                // const text = await articleLink.getText();
-                let articleLink;
+
+                // Locate the article link and get its text
                 const text = await driver.wait(async function () {
-                    articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                    const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
                     return await articleLink.getText();
                 }, 6000);
-                // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
+
+                // Assert that the text matches the expected value
                 assert.equal('This Little Girl of Mine', text);
+
+                // Re-locate the article link just before interacting with it to avoid stale reference
+                const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+
                 // Scroll the element into view and navigate to it
                 await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
-                // Pause for 2 seconds to allow article to load
+
+                // Pause for 2 seconds to allow the article to load
                 await driver.sleep(2000);
+
+                // Check the content of the loaded article
                 let elementText = '';
                 try {
-                    // Find the mwYw element in JavaScript and get its content
                     elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
                 } catch (e) {
-                    // We probably got a NoSuchFrameError on Safari, so try selecting it with a different method
+                    // Handle cases where the frame or element is not accessible
                     await driver.switchTo().defaultContent();
                     elementText = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mwYw").textContent;');
                 }
-                // console.log('Element text: ' + elementText);
-                // Check that the article title is correct
+
+                // Assert that the article content matches the expected value
                 assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
                 await driver.switchTo().defaultContent();
             });
