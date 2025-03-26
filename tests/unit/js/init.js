@@ -1,4 +1,3 @@
-/* eslint-disable no-useless-constructor */
 /**
  * init.js : Global configuration of the app
  * This file handles the dependencies between javascript libraries, for the unit tests
@@ -27,7 +26,6 @@
 /* global webpHero, global */
 
 // Define global params needed for tests to run on existing app code
-// eslint-disable-next-line no-unused-vars
 var params = {};
 // We need to turn off source verification so that the test files can be loaded normally without interruption
 params['sourceVerification'] = false;

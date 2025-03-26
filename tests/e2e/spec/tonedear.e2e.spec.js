@@ -1,4 +1,4 @@
-/* eslint-disable no-undef, no-unused-vars */
+/* eslint-disable no-unused-vars */
 
 import { By, until } from 'selenium-webdriver';
 import assert from 'assert';

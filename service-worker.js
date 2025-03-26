@@ -25,8 +25,6 @@
 
 /* global chrome */
 
-/* eslint-disable prefer-const */
-
 /**
  * App version number - ENSURE IT MATCHES VALUE IN init.js
  * DEV: Changing this will cause the browser to recognize that the Service Worker has changed, and it will

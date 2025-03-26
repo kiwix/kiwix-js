@@ -22,7 +22,6 @@
 
 'use strict';
 
-/* eslint-disable indent */
 /* global webpMachine, webpHero, params */
 
 import util from './util.js';

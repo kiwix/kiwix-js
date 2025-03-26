@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-/* eslint-disable camelcase, one-var, prefer-const, no-unused-vars */
+/* eslint-disable no-unused-vars */
 /* global describe, it, process */
 
 import { By, Key, WebDriver, until } from 'selenium-webdriver';

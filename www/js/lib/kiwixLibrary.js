@@ -31,8 +31,7 @@ import translateUI from './translateUI.js';
  * @returns {boolean} True if the browser can execute required code in the library iframe
  */
 function canExecuteCode () {
-    try {
-        // eslint-disable-next-line no-new-func
+    try {         
         Function('try{}catch{}')();
         return true;
     } catch (error) {
