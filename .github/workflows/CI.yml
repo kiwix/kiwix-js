@@ -78,8 +78,7 @@ jobs:
 
       - name: Run ESLint
         run: |
-          cd ./www
-          eslint . --ext .js
+          npx eslint
       
       - name: End-to-end tests on Chrome (Linux)
         env:
