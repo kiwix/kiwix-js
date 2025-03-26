@@ -184,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
     resizeIFrame();
     abstractFilesystemAccess.loadPreviousZimFile();
+    handlePrintButton();
 });
 window.addEventListener('resize', resizeIFrame);
 
@@ -3336,19 +3337,19 @@ function goToMainArticle () {
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+function handlePrintButton() {
     // Attach print function to button
-    const printBtn = document.getElementById("printButton");
+    const printBtn = document.getElementById('printButton');
     if (printBtn) {
-        printBtn.addEventListener("click", uiUtil.handlePrintEvent);
+        printBtn.addEventListener('click', uiUtil.handlePrintEvent);
     }
 
     // Attach print function to Ctrl + P
-    document.addEventListener("keydown", function (event) {
-        if ((event.ctrlKey || event.metaKey) && event.key === "p") {
+    document.addEventListener('keydown', function (event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
             uiUtil.handlePrintEvent(event);
         }
     });
-});
+};
 
 export default {};

@@ -1075,17 +1075,18 @@ function getBrowserLanguage () {
  */
 
 function printArticleContent () {
-    const iframe = document.getElementById("articleContent");
+    const iframe = document.getElementById('articleContent');
     if (iframe && iframe.contentWindow) {
         // Print only the iframe content
         iframe.contentWindow.print(); 
     } else {
-        console.error("No article iframe found!");
+        console.error('No article iframe found!');
     }
 }
 
 function handlePrintEvent(event) {
-    event.preventDefault(); // Prevent default behavior (Ctrl + P)
+    // Prevent and override default behavior when using the (Ctrl + P) function
+    event.preventDefault(); 
     printArticleContent();
 }
 
@@ -1122,5 +1123,5 @@ export default {
     returnToCurrentPage: returnToCurrentPage,
     fromSection: fromSection,
     handlePrintEvent: handlePrintEvent,
-    printArticleContent: printArticleContent,
+    printArticleContent: printArticleContent
 };

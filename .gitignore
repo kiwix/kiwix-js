@@ -62,4 +62,3 @@ www-ghdeploy
 /.vscode/
 scripts/github_token
 .prettierrc
-.github/workflows/

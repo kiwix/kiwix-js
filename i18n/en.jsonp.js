@@ -9,6 +9,7 @@ document.localeJson = {
       "home-search": "Search",
       "home-welcome-text": "Once you have loaded a ZIM archive, you can search its contents using the above search field.",
       "home-btn-random-tip": "Select a random article to display",
+      "home-btn-print-tip": "Print the article",
       "home-btn-random": "Random",
       "home-btn-back": "Back",
       "home-btn-fileselect": "Select ZIM file(s)",
