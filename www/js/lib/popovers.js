@@ -464,7 +464,7 @@ function isSafari () {
  * @param {Document} doc The doucment on which to operate
  */
 function addEventListenersToPopoverIcons (anchor, popover, doc) {
-    const breakout = function (e) {
+    const breakout = function () {
         // Adding the newcontainer property to the anchor will be cauught by the filterClickEvent function and will open in new tab
         anchor.newcontainer = true;
         anchor.click();

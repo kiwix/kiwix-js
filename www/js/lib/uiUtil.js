@@ -576,6 +576,8 @@ function displayFileDownloadAlert (title, download, contentType, content) {
                 window.navigator.msSaveBlob(blob, filename);
                 e.preventDefault();
             });
+        } else {
+            console.error('Error downloading file: ' + err);
         }
     }
     spinnerDisplay(false);
