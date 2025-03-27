@@ -19,14 +19,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
-// eslint-disable-next-line no-unused-vars
+
+/* eslint-disable no-unused-vars */
+/* global describe, it, process */
+
 import { By, Key, WebDriver, until } from 'selenium-webdriver';
 // import firefox from 'selenium-webdriver/firefox.js';
 import assert from 'assert';
 import paths from '../paths.js';
-
-/* eslint-disable camelcase, one-var, prefer-const */
-/* global describe, it */
 
 // Get the BrowserStack environment variable
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
@@ -239,37 +239,50 @@ function runTests (driver, modes, keepDriver) {
                 }
 
                 // console.log('FilesLength outer: ' + filesLength);
-                // Switch to iframe and check that the index contains the specified article
+                // Wait until the iframe is present and available
+                await driver.wait(async function () {
+                    const iframe = await driver.findElement(By.id('articleContent'));
+                    return iframe !== null;
+                }, 6000, 'Iframe with id "articleContent" was not found');
+
+                // Switch to the iframe
                 await driver.switchTo().frame('articleContent');
-                // Wait until the index has loaded
+
+                // Wait until the index has loaded inside the iframe
                 await driver.wait(async function () {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
-                    return contentAvailable;
-                }, 6000);
-                // const articleLink = await driver.wait(until.elementLocated(By.xpath('/html/body/div/div/ul/li[77]/a[2]')));
-                // const text = await articleLink.getText();
-                let articleLink;
+                    return contentAvailable !== null;
+                }, 6000, 'Content inside iframe did not load');
+
+                // Locate the article link and get its text
                 const text = await driver.wait(async function () {
-                    articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                    const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
                     return await articleLink.getText();
                 }, 6000);
-                // const articleLink = await driver.findElement(By.linkText('This Little Girl of Mine'));
+
+                // Assert that the text matches the expected value
                 assert.equal('This Little Girl of Mine', text);
+
+                // Re-locate the article link just before interacting with it to avoid stale reference
+                const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+
                 // Scroll the element into view and navigate to it
                 await driver.executeScript('var el=arguments[0]; el.scrollIntoView(true); setTimeout(function () {el.click();}, 50); return el.offsetParent;', articleLink);
-                // Pause for 2 seconds to allow article to load
+
+                // Pause for 2 seconds to allow the article to load
                 await driver.sleep(2000);
+
+                // Check the content of the loaded article
                 let elementText = '';
                 try {
-                    // Find the mwYw element in JavaScript and get its content
                     elementText = await driver.executeScript('return document.getElementById("mwYw").textContent;');
                 } catch (e) {
-                    // We probably got a NoSuchFrameError on Safari, so try selecting it with a different method
+                    // Handle cases where the frame or element is not accessible
                     await driver.switchTo().defaultContent();
                     elementText = await driver.executeScript('var iframeDoc = document.getElementById("articleContent").contentDocument; return iframeDoc.getElementById("mwYw").textContent;');
                 }
-                // console.log('Element text: ' + elementText);
-                // Check that the article title is correct
+
+                // Assert that the article content matches the expected value
                 assert.equal('Instrumentation by the Ray Charles Orchestra', elementText);
                 await driver.switchTo().defaultContent();
             });

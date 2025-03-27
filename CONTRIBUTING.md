@@ -85,8 +85,8 @@ _You must test your code yourself before asking for review, like this_:
 * _You **must** test your fix in both "Restricted" and "ServiceWorker" modes_ (under Compatibility settings). You will be astonished the number of times a new contributor tells us
   that their fix is working, but we discover they only applied the fix in one of these two modes. Don't be **that** contributor!
 * Unit tests, which test for regressions with basic app functions, are run automatically with GitHub Actions on each PR and push to a PR. If one of these tests fails, you will want
-  to debug. First, see if you can also see the failure by running the tests with `npm test`, which should run the tests in all your installed browsers. To address any issues
-  identified, see [TESTS](./TESTS.md) so you can debug;
+  to debug. First, see if you can also see the failure by running the tests with `npm test`, which will run the tests in the NodeJS environment.
+  To address any issues identified, see [TESTS](./TESTS.md) so you can debug;
 * End-to-end (e2e) tests are also run on GitHub Actions when you push to your PR. These test typical user actions in a headless browser. Tests are currently enabled for latest
   Firefox, Edge, Chrome in Linux and Windows, and in IE Mode on Windows (this is the equivalent to testing on Internet Explorer 11). You can run these tests yourself in a
   non-headless browser with `npm run tests-e2e-firefox`, `npm run tests-e2e-iemode`, etc. For more information, see [TESTS](./TESTS.md). For IE Mode, you will need to have the Edge

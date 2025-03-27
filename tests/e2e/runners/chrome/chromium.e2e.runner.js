@@ -5,7 +5,7 @@ import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import tonedearTests from '../../spec/tonedear.e2e.spec.js';
 import paths from '../../paths.js';
 
-/* eslint-disable camelcase */
+/* global process */
 
 async function loadChromiumDriver () {
     const options = new Options();

@@ -24,8 +24,6 @@
 
 'use strict';
 
-/* eslint-disable eqeqeq */
-
 var utf8 = {};
 
 /**

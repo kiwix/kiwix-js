@@ -26,8 +26,8 @@ import assert from 'assert';
 import paths from '../paths.js';
 import fs from 'fs';
 
-/* eslint-disable camelcase */
-/* global describe, it */
+/* global describe, it, process */
+/* eslint-disable no-unused-vars */
 
 // Get the BrowserStack environment variable
 const BROWSERSTACK = !!process.env.BROWSERSTACK_LOCAL_IDENTIFIER;
