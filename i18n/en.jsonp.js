@@ -1,4 +1,3 @@
-/* eslint-disable quote-props, quotes, indent */
 document.localeJson = {
   "en": {
     "translation": {
