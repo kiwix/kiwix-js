@@ -498,7 +498,7 @@ document.getElementById('libzimModeSelect').addEventListener('change', function 
     window.location.reload();
 });
 
-document.getElementById('useLibzim').addEventListener('click', function (e) {
+document.getElementById('useLibzim').addEventListener('click', function () {
     settingsStore.setItem('useLibzim', !params.useLibzim);
     window.location.reload();
 });
@@ -534,7 +534,8 @@ document.getElementById('serviceworkerLocalModeRadio').addEventListener('click',
 });
 
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
-document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === ('serviceworker' || 'serviceworkerlocal') ? 'block' : 'none';
+document.getElementById('enableSourceVerificationCheckBox').style.display = (params.contentInjectionMode === 'serviceworker' || 
+    params.contentInjectionMode === 'serviceworkerlocal') ? 'block' : 'none';
 
 document.getElementById('enableSourceVerification').addEventListener('change', function () {
     params.sourceVerification = this.checked;
@@ -1053,9 +1054,10 @@ async function handleMessageChannelByLibzim (event) {
             // We have a redirect to follow
             // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
             // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
-
+            // eslint-disable-next-line no-unused-vars
             const dirEntry = await new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value)));
             if (dirEntry.redirect) {
+                // eslint-disable-next-line no-unused-vars
                 const redirect = await new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v)));
                 const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url })
                 const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
@@ -1070,6 +1072,7 @@ async function handleMessageChannelByLibzim (event) {
     } catch (error) {
         const message = { action: 'giveContent', title: title, content: new Uint8Array(), mimetype: '' };
         messagePort.postMessage(message);
+        console.error('Error while handling messageChannel', error);
     }
 }
 
@@ -1281,6 +1284,7 @@ function isMessageChannelAvailable () {
         var dummyMessageChannel = new MessageChannel();
         if (dummyMessageChannel) return true;
     } catch (e) {
+        console.warn(e);
         return false;
     }
     return false;
@@ -1792,7 +1796,7 @@ async function handleFileDrop (packet) {
 }
 
 const btnLibrary = document.getElementById('btnLibrary');
-btnLibrary.addEventListener('click', function (e) {
+btnLibrary.addEventListener('click', function () {
     const libraryContent = document.getElementById('libraryContent');
     const libraryIframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
     uiUtil.tabTransitionToSection('library', params.showUIAnimations);
@@ -2748,6 +2752,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // If we couldn't get it, reconstruct it from the archive's zimitPrefix
         zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
         zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
+        // eslint-disable-next-line no-unused-vars
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
             var newBlock = match;
             var assetUrl = relAssetUrl;

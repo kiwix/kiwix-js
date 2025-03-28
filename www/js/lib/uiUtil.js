@@ -22,7 +22,6 @@
 
 'use strict';
 
-/* eslint-disable indent */
 /* global webpMachine, webpHero, params */
 
 import util from './util.js';
@@ -576,6 +575,8 @@ function displayFileDownloadAlert (title, download, contentType, content) {
                 window.navigator.msSaveBlob(blob, filename);
                 e.preventDefault();
             });
+        } else {
+            console.error('Error downloading file: ' + err);
         }
     }
     spinnerDisplay(false);
