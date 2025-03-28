@@ -29,6 +29,12 @@ import cache from './cache.js';
 import translateUI from './translateUI.js';
 import settingsStore from './settingsStore.js';
 
+/**
+ * The maximum size of the dropdown for the zim file selection
+ * @type {number}
+ */
+const DROPDOWN_SIZE = 10;
+
 function StorageFirefoxOS (storage) {
     this._storage = storage;
     this.storageName = storage.storageName;
@@ -105,7 +111,6 @@ function updateZimDropdownOptions (files, selectedFile) {
     // as other function will handle the dropdown UI updates
     if (isFireFoxOsNativeFileApiAvailable) return // do nothing let other function handle it
 
-    const DROPDOWN_SIZE = 10;
     const select = document.getElementById('archiveList');
     const options = [];
     let count = 0;
