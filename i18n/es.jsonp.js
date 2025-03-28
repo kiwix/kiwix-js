@@ -8,7 +8,7 @@ document.localeJson = {
       "home-search": "Buscar",
       "home-welcome-text": "Una vez que haya cargado un archivo ZIM, puede buscar en el contenido usando el campo de búsqueda arriba.",
       "home-btn-random-tip": "Mostrar un artículo al azar",
-      "home-btn-print-tip":"Imprimir el artículo",
+      "home-btn-print-tip": "Imprimir el artículo",
       "home-btn-random": "Aleatorio",
       "home-btn-back": "Atrás",
       "home-btn-fileselect": "Seleccione archivo(s) ZIM",
