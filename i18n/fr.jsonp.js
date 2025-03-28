@@ -30,7 +30,7 @@ document.localeJson = {
       "configure-download-instructions": "Cette application a besoin d'un fichier ZIM pour fonctionner.<br />Pour des instructions complètes, veuillez consulter la section",
       "configure-select-instructions": "Veuillez sélectionner ou glisser-déposer un fichier .zim (ou tous les .zimaa, .zimab etc. dans le cas d'un fichier ZIM découpé)&nbsp;:",
       "configure-select-file-instructions": "Veuillez sélectionner l'archive que vous souhaitez utiliser&nbsp;:",
-      "configure-select-file-first-option": "Sélectionner une archive...",
+      "configure-select-file-first-option": "Sélectionner fichier ou dossier...",
       "configure-selectordisplay": "Glisser-déposer un nouveau fichier ZIM, ou",
       "configure-selectordisplay-link": "afficher le sélecteur de fichiers",
       "configure-static-content": "Seuls les ZIM avec un contenu statique (de type Wiki) sont pris en charge en mode Restreint.<br />",
