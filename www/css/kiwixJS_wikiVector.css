@@ -476,7 +476,7 @@ tr + tr > .navbox-list {
 
 .oo-ui-popupWidget-footer .oo-ui-buttonElement-button {
 	background-image: none !important;
-	background: transparent !important;
+	background-color: transparent !important;
 	text-shadow: none !important;
 }
 
