@@ -33,7 +33,7 @@ jobs:
   tests-linux:
     # We want to run on external PRs, but not on our own internal PRs as they'll be run by the push to the branch
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
@@ -76,6 +76,10 @@ jobs:
           fi
           exit $failed
 
+      - name: Run ESLint
+        run: |
+          npx eslint
+      
       - name: End-to-end tests on Chrome (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
@@ -181,6 +185,10 @@ jobs:
       - name: Unit tests (Windows)
         run: npm run test-unit
 
+      - name: Run ESLint
+        run: |
+          npx eslint
+      
       - name: End-to-end tests on Edge Chromium (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}

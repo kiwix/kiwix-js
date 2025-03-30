@@ -497,7 +497,7 @@ document.getElementById('libzimModeSelect').addEventListener('change', function 
     window.location.reload();
 });
 
-document.getElementById('useLibzim').addEventListener('click', function (e) {
+document.getElementById('useLibzim').addEventListener('click', function () {
     settingsStore.setItem('useLibzim', !params.useLibzim);
     window.location.reload();
 });
@@ -533,7 +533,8 @@ document.getElementById('serviceworkerLocalModeRadio').addEventListener('click',
 });
 
 // Source verification is only makes sense in SW mode as doing the same in jQuery mode is redundant.
-document.getElementById('enableSourceVerificationCheckBox').style.display = params.contentInjectionMode === ('serviceworker' || 'serviceworkerlocal') ? 'block' : 'none';
+document.getElementById('enableSourceVerificationCheckBox').style.display = (params.contentInjectionMode === 'serviceworker' || 
+    params.contentInjectionMode === 'serviceworkerlocal') ? 'block' : 'none';
 
 document.getElementById('enableSourceVerification').addEventListener('change', function () {
     params.sourceVerification = this.checked;
@@ -1052,9 +1053,10 @@ async function handleMessageChannelByLibzim (event) {
             // We have a redirect to follow
             // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
             // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
-
+            // eslint-disable-next-line no-unused-vars
             const dirEntry = await new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value)));
             if (dirEntry.redirect) {
+                // eslint-disable-next-line no-unused-vars
                 const redirect = await new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v)));
                 const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url })
                 const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
@@ -1069,6 +1071,7 @@ async function handleMessageChannelByLibzim (event) {
     } catch (error) {
         const message = { action: 'giveContent', title: title, content: new Uint8Array(), mimetype: '' };
         messagePort.postMessage(message);
+        console.error('Error while handling messageChannel', error);
     }
 }
 
@@ -1280,6 +1283,7 @@ function isMessageChannelAvailable () {
         var dummyMessageChannel = new MessageChannel();
         if (dummyMessageChannel) return true;
     } catch (e) {
+        console.warn(e);
         return false;
     }
     return false;
@@ -1791,7 +1795,7 @@ async function handleFileDrop (packet) {
 }
 
 const btnLibrary = document.getElementById('btnLibrary');
-btnLibrary.addEventListener('click', function (e) {
+btnLibrary.addEventListener('click', function () {
     const libraryContent = document.getElementById('libraryContent');
     const libraryIframe = libraryContent.contentWindow.document.getElementById('libraryIframe');
     uiUtil.tabTransitionToSection('library', params.showUIAnimations);
@@ -2019,7 +2023,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( )
         var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-            '" class="list-group-item">' + dirEntry.getTitleOrUrl() + '</a>';
+            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
     }
 
     // innerHTML required for this line
@@ -2041,12 +2045,25 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 /**
  * Handles the click on the title of an article in search results
  * @param {Event} event The click event to handle
- * @returns {Boolean} Always returns false for JQuery event handling
  */
 function handleTitleClick (event) {
-    var dirEntryId = decodeURIComponent(event.target.getAttribute('dirEntryId'));
+    event.preventDefault();
+    // User may have clicked on a child element of the list item if it contains HTML (for example, italics),
+    // so we may need to find the closest list item
+    let target = event.target;
+    if (target.className !== 'list-group-item') {
+        console.warn('User clicked on child element of list item, looking for parent...');
+        while (target && target.className !== 'list-group-item') {
+            target = target.parentNode;
+        }
+        if (!target) {
+            // No list item found, so we can't do anything
+            console.warn('No list item could be found for clicked event!');
+            return;
+        }
+    }
+    var dirEntryId = decodeURIComponent(target.getAttribute('dirEntryId'));
     findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
-    return false;
 }
 
 /**
@@ -2734,6 +2751,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // If we couldn't get it, reconstruct it from the archive's zimitPrefix
         zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
         zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
+        // eslint-disable-next-line no-unused-vars
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
             var newBlock = match;
             var assetUrl = relAssetUrl;

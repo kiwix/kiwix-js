@@ -87,6 +87,7 @@ StorageFirefoxOS.prototype.scanForArchives = function () {
  * @param path Path where to look for files
  * @return {DOMCursor} Cursor of files found in given path
  */
+// eslint-disable-next-line no-unused-vars
 StorageFirefoxOS.prototype.enumerate = function (path) {
     return this._storage.enumerate();
 };
@@ -342,6 +343,7 @@ async function handleFolderOrFileDropViaWebkit (event) {
  */
 async function getFilesFromReader (reader) {
     const files = [];
+    // eslint-disable-next-line no-unused-vars
     const promise = new Promise(function (resolve, _reject) {
         reader.readEntries(function (entries) {
             resolve(entries);
@@ -352,6 +354,7 @@ async function getFilesFromReader (reader) {
     for (let index = 0; index < entries.length; index++) {
         const fileOrDir = entries[index];
         if (fileOrDir.isFile) {
+            // eslint-disable-next-line no-unused-vars
             const filePromise = await new Promise(function (resolve, _reject) {
                 fileOrDir.file(function (file) {
                     resolve(file);

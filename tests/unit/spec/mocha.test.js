@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 /* eslint-disable no-undef */
 // Converted Test from test.js file
 import { expect } from 'chai';
