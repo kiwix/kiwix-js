@@ -3341,4 +3341,12 @@ function goToMainArticle () {
     });
 }
 
+document.getElementById('printButton').addEventListener('click', uiUtil.handlePrintEvent);
+// Attach print function to Ctrl + P
+document.addEventListener('keydown', function (event) {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'p') {
+        uiUtil.handlePrintEvent(event);
+    }
+});
+
 export default {};
