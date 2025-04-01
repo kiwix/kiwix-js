@@ -29,6 +29,12 @@ import cache from './cache.js';
 import translateUI from './translateUI.js';
 import settingsStore from './settingsStore.js';
 
+/**
+ * The maximum size of the dropdown for the zim file selection
+ * @type {number}
+ */
+const DROPDOWN_SIZE = 10;
+
 function StorageFirefoxOS (storage) {
     this._storage = storage;
     this.storageName = storage.storageName;
@@ -108,11 +114,11 @@ function updateZimDropdownOptions (files, selectedFile) {
     const select = document.getElementById('archiveList');
     const options = [];
     let count = 0;
-    select.innerHTML = '';
+
+    // Reset the dropdown to empty, when there are files to show
+    // The placeholder is shown in the HTML when there are no files
     if (files.length !== 0) {
-        const placeholderOption = new Option(translateUI.t('configure-select-file-first-option'), '');
-        placeholderOption.disabled = true;
-        select.appendChild(placeholderOption);
+        select.innerHTML = '';
     };
     // Create a new option for each fileName or for the zimaa part of a split archive
     files.forEach((fileName) => {
@@ -123,6 +129,8 @@ function updateZimDropdownOptions (files, selectedFile) {
         }
     });
     select.value = selectedFile;
+    // Set the size of the dropdown to the number of files or the DROPDOWN_SIZE, whichever is smaller
+    select.size = (files.length < DROPDOWN_SIZE ? files.length : DROPDOWN_SIZE);
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
     document.getElementById('numberOfFilesCount').innerText = count.toString();
@@ -242,7 +250,8 @@ function loadPreviousZimFile () {
     setTimeout(() => {
         if (window.params.isFileSystemApiSupported || window.params.isWebkitDirApiSupported) {
             const filenames = settingsStore.getItem('zimFilenames');
-            if (filenames) updateZimDropdownOptions(filenames.split('|'), '');
+            const selectedFile = settingsStore.getItem('previousZimFileName') || ''; 
+            if (filenames) updateZimDropdownOptions(filenames.split('|'), selectedFile);
         }
     }, 200);
 }
