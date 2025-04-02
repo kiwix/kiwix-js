@@ -126,6 +126,15 @@ darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
 }
 
+// Vector Dark theme update
+function updateThemeOptions() {
+    const vectorOption = document.getElementById('theme-vector-option');
+    if (vectorOption) {
+        vectorOption.disabled = !params.isWikimediaZim;
+        vectorOption.title = params.isWikimediaZim ? "" : "Vector style only available for Wikimedia ZIMs";
+    }
+}
+
 /**
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
@@ -1852,6 +1861,8 @@ async function archiveReadyCallback (archive) {
     }
     // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
+    updateThemeOptions(); 
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');

@@ -565,7 +565,7 @@
                                         <option data-i18n="configure-display-themeoption-dark-apponly" value="dark">Dark (app only)</option>
                                         <option data-i18n="configure-display-themeoption-dark-invert" value="dark_invert">Dark (generic invert)</option>
                                         <option data-i18n="configure-display-themeoption-dark-mwinvert" value="dark_mwInvert">Dark (wikimedia invert)*</option>
-                                        <option data-i18n="configure-display-themeoption-dark-wikivector" value="dark_wikiVector">Dark (Wikipedia Vector)</option>
+                                        <option data-i18n="configure-display-themeoption-dark-wikivector" id="theme-vector-option" title="Vector style only available for Wikimedia ZIMs" value="dark_wikiVector">Dark (Wikipedia Vector)*</option>
                                         <option data-i18n="configure-display-themeoption-auto-apponly" class="auto" value="auto">Auto (app only)</option>
                                         <option data-i18n="configure-display-themeoption-auto-invert" class="auto" value="auto_invert">Auto (generic invert)</option>
                                         <option data-i18n="configure-display-themeoption-auto-mwinvert" class="auto" value="auto_mwInvert">Auto (wikimedia invert)*</option>
@@ -773,6 +773,11 @@
                     Once you have loaded a ZIM archive, you can search its contents using the above search field.
                 </div>
 
+                <!-- Theme Fallback Notification -->
+                <div id="themeFallbackAlert" style="display:none;" class="kiwix-alert alert alert-info alert-dismissible fade show">
+                    <button type="button" class="close" data-hide="alert">&times;</button>
+                    <span id="themeFallbackMessage">Vector style is not supported for this ZIM. Switched to standard dark mode.</span>
+                </div>
                 <!-- List of articles matching the typed prefix -->
                 <div id="articleListWithHeader" style="display: none;" class="container">
                     <span id="articleListHeaderMessage" aria-live="polite"></span>
@@ -815,6 +820,20 @@
     <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="js/init.js"></script>
     <script type="module" defer src="js/app.js"></script>
+    <script>
+    // Update theme options based on ZIM type
+    function updateThemeOptions() {
+        const vectorOption = document.getElementById('theme-vector-option');
+        if (vectorOption && typeof params !== 'undefined') {
+            vectorOption.disabled = !params.isWikimediaZim;
+            vectorOption.title = params.isWikimediaZim ? "" : "Vector style only available for Wikimedia ZIMs";
+        }
+    }
+    // Initialize the theme option when ZIM loads and when the theme dropdown is clicked
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('appThemeSelect')?.addEventListener('click', updateThemeOptions);
+    });
+    </script>
     <!-- <script type="text/javascript" defer src="js/bundle.js"></script> -->
 </body>
 </html>
