@@ -857,6 +857,10 @@ function applyAppTheme (theme) {
     var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
     var contentTheme = theme.replace(/^[^_]*/, '');
+    // Revert to '_invert' or default dark theme if trying to use '_wikiVector' on non-Wikimedia ZIMs
+    if (contentTheme === '_wikiVector' && !params.isWikimediaZim) {
+        contentTheme = '_invert';
+    }
     var htmlEl = document.querySelector('html');
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';

@@ -126,6 +126,36 @@ darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
 }
 
+// Vector Dark theme update the Dropdown UI State
+function updateThemeOptions() {
+    const vectorOption = document.getElementById('theme-vector-option');
+    if (vectorOption) {
+        // Only disable if a ZIM is loaded and it's not a Wikimedia ZIM
+        const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
+        vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
+        vectorOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Vector style only available for Wikimedia ZIMs";
+    }
+}
+
+// Explicit check when zim is loaded
+function handleThemeFallback() {
+    // Get the current theme
+    const currentTheme = document.getElementById('appThemeSelect')?.value || 
+                        settingsStore.getItem('appTheme') || 
+                        'light';
+    // Check if Vector theme is selected but the ZIM isn't Wikimedia
+    if (currentTheme.includes('_wikiVector') && !params.isWikimediaZim) {
+        const baseTheme = currentTheme.replace(/_.*$/, '');
+        // We are replacing the vector theme with the invert
+        const newTheme = baseTheme + '_invert';
+        // Update dropdown
+        const themeSelect = document.getElementById('appThemeSelect');
+        if (themeSelect) themeSelect.value = newTheme;
+        uiUtil.applyAppTheme(newTheme);
+        updateThemeOptions();
+    }
+}
+
 /**
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
@@ -1852,6 +1882,9 @@ async function archiveReadyCallback (archive) {
     }
     // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
+    updateThemeOptions(); 
+    handleThemeFallback();
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
