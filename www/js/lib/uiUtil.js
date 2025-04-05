@@ -860,10 +860,6 @@ function applyAppTheme (theme) {
     // Revert to '_invert' or default dark theme if trying to use '_wikiVector' on non-Wikimedia ZIMs
     if (contentTheme === '_wikiVector' && !params.isWikimediaZim) {
         contentTheme = '_invert';
-    // For verification will comment it out later if its not needed
-    console.log("Vector style not supported for this ZIM. Using standard dark mode.");
-    // We are notifying the user that the style won't work on non wikipedia zim
-    systemAlert("Vector style is not supported for this ZIM. Switched to standard dark mode.");
     }
     var htmlEl = document.querySelector('html');
     var footer = document.querySelector('footer');
