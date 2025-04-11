@@ -116,6 +116,7 @@ const precacheFiles = [
     'www/css/app.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
+    'www/css/kiwixJS_wikiVector.css',
     'www/css/transition.css',
     'www/img/icons/kiwix-256.png',
     'www/img/icons/kiwix-32.png',
