@@ -424,8 +424,8 @@ button {
     }
 
     #archiveList {
-        width: 290px !important;
-        max-width: 290px !important;
+        width: 290px;
+        max-width: 290px ;
         box-sizing: border-box;
         min-width: auto;
         margin-bottom: 0.5em;
