@@ -446,7 +446,9 @@ button {
     }
 
     #archiveList {
-        width: 100%;
+        width: 290px;
+        max-width: 290px ;
+        box-sizing: border-box;
         min-width: auto;
         margin-bottom: 0.5em;
     }
@@ -454,5 +456,44 @@ button {
     .btn-group{
         height: 100%;
     }
-    
+  
+    /* Dropdown for mobile screens */
+    #archiveList option {
+        white-space: normal;
+        word-wrap: break-word;
+        max-width: 100px;
+        display: inline-block;
+    }
+
+    /* Language Dropdown */
+    .dropdown {
+        width: 100%;
+        padding: 4px;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    .dropdown select {
+        width: 270px;
+        max-width: 300px;
+        box-sizing: border-box;
+    }
+
+    .dropdown select option {
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    /* Theme switch Dropdown */
+    #appThemeSelect {
+          max-width: 300px;
+          width: 260px;
+          box-sizing: border-box;
+    }
+      
+    /* For long options */
+    #appThemeSelect option {
+        white-space: normal;
+        word-wrap: break-word;
+    }
 }
