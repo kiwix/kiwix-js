@@ -20,7 +20,6 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-
 [role=region] {
     top: 0;
     right: 0;
@@ -424,16 +423,16 @@ button {
         font-size: 16px ;
     }
 
-    .btn-group{
-        height: 100%;
-    }
-
     #archiveList {
         width: 290px !important;
         max-width: 290px !important;
         box-sizing: border-box;
         min-width: auto;
         margin-bottom: 0.5em;
+    }
+
+    .btn-group{
+        height: 100%;
     }
   
     /* Dropdown for mobile screens */
