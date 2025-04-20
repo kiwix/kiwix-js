@@ -423,24 +423,34 @@ button {
         font-size: 16px ;
     }
 
-    #archiveList {
-        width: 290px;
-        max-width: 290px ;
-        box-sizing: border-box;
-        min-width: auto;
-        margin-bottom: 0.5em;
-    }
-
     .btn-group{
         height: 100%;
     }
-  
+
+    select {
+      max-width: 100px;
+      overflow-x: auto;
+      font-size: 10px;
+    }
+
+    #archiveList {
+        width: 290px;
+        max-width: 290px;
+        box-sizing: border-box;
+        min-width: auto;
+        margin-bottom: 0.5em;
+        /* font-size: 18px; */
+    }
+
     /* Dropdown for mobile screens */
     #archiveList option {
         white-space: normal;
-        word-wrap: break-word;
-        max-width: 100px;
-        display: inline-block;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        text-overflow: ellipsis;
+        padding-right: 1rem;
+        max-width: 50px;
+        font-size: 10px;
     }
 
     /* Language Dropdown */
@@ -475,3 +485,8 @@ button {
         word-wrap: break-word;
     }
 }
+
+select::-webkit-scrollbar {
+  width: 6px;
+}
+
