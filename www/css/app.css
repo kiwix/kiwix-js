@@ -188,6 +188,36 @@ iframe {
     color: #FFFFFF !important;
 }
 
+/* Dark mode dropdown when expanded */
+.dark #archiveList {
+    background-color: #fff;
+}
+
+.dark #archiveList option {
+    background-color: #fff;
+    color: #000;
+    border-bottom: 1px solid #ddd;
+}
+
+.dark #archiveList[size] {
+    background-color: #fff;
+    color: #000;
+    border-color: #fff;
+}
+
+/* Selected option in dropdown */
+.dark #archiveList[size] option:checked {
+    background-color: #57534e;
+    color: #fff;
+}
+
+/* Highlighted option in dropdown */
+.dark #archiveList[size] option:focus,
+.dark #archiveList[size] option:hover {
+    background-color: #78716c;
+    color: #fff;
+}
+
 /* End of app theme: dark */
 
 /* Content themes: _invert, _mwInvert */
