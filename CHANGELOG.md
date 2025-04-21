@@ -4,6 +4,35 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Kiwix JS v4.2.0
+
+Released on *TODO*
+
+* FEATURE: Added a Table of Contents display and bottom toolbar button
+* ENHANCEMENT: Config and Info menus can now be "unclicked" to return to the currently open article
+* ENHANCEMENT: Created a new library loader with fallback to mirror sources if Kiwix library is down
+* ENHANCEMENT: Make Kiwix search results accessible for screen readers
+* ENHANCEMENT: When a folder is picked, show up to 10 archives in the file select area
+* FIX: Failure to set expected article in ServiceWorker Mode
+* FIX: Sizing of random button on home page
+* FIX: Sizing of search bar on narrow screens
+* FIX: Improved popover placement and style support
+* FIX: Handle user clicking on child element of list item
+* FIX: Correctly specify conditions for WASM usage instead of ASM fallback
+* FIX: Properly select file in archive dropdown on refresh
+* FIX: Dark theme display of dropdowns and folders
+* UPDATE: Removed display of brief article description in popovers
+* INFO: Typos and minor inaccuracies in app info
+* DEV: Change incorrect function calls to spinner
+* DEV: Added a small automated UI test for a small Zimit2 archive
+* DEV: Converted QUnit tests to Mocha Unit tests
+* DEV: Clean up and separate Unit tests and E2E tests
+* DEV: Add ESLint tests and improve stability of E2E tests
+* DEV: Bump javascript-libzim to v0.7
+* DEV: Build compact code by default to avoid style deoptimization warning on building for production
+* DEV: Bump Vite to v6.2.6
+* DEV: Various security updates
+
 ## Kiwix JS v4.1.0
 
 Released on *2024-07-15*
