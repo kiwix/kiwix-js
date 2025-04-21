@@ -480,29 +480,28 @@ button {
     }
 
     select {
-      max-width: 100px;
+      max-width: 100%;
       overflow-x: auto;
-      font-size: 10px;
+      /* font-size: 10px; */
     }
-
+     
     #archiveList {
         width: 290px;
         max-width: 290px;
         box-sizing: border-box;
         min-width: auto;
+        /* overflow-x: auto; */
         margin-bottom: 0.5em;
         /* font-size: 18px; */
     }
 
     /* Dropdown for mobile screens */
     #archiveList option {
-        white-space: normal;
-        word-break: break-word;
-        overflow-wrap: break-word;
+        white-space: nowrap;
+        overflow: hidden;
         text-overflow: ellipsis;
-        padding-right: 1rem;
-        max-width: 50px;
-        font-size: 10px;
+        max-width: 100%;
+        font-size: 13px;
     }
 
     /* Language Dropdown */
