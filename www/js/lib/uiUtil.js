@@ -913,11 +913,53 @@ function applyAppTheme (theme) {
         // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
         var prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname).replace(/\/[^/]*$/, '');
         if (doc) {
+            // Make sure content is hidden while loading if in dark mode
+            var htmlEl = document.querySelector('html');
+            var isDark = htmlEl.classList.contains('dark') || 
+                        iframe.classList.contains('_invert') || 
+                        iframe.classList.contains('_wikiVector');
+
+            // Add a blocking style to prevent content from showing before stylesheet loads
+            if (isDark && doc) {
+                // Add inline style to both html and body
+                if (doc.documentElement) {
+                    doc.documentElement.style.backgroundColor = '#4d7c0f';
+                }
+                
+                if (doc.body) {
+                    doc.body.style.backgroundColor = '#4d7c0f';
+                    doc.body.classList.add('content-loading');
+                }
+                
+                // Add a style element with higher priority
+                var blockStyle = doc.createElement('style');
+                blockStyle.textContent = 'html, body { background-color: #4d7c0f !important; }';
+                blockStyle.id = 'temp-dark-style';
+                doc.head.appendChild(blockStyle);
+            }
+
             var link = doc.createElement('link');
             link.setAttribute('id', 'kiwixJSTheme');
             link.setAttribute('rel', 'stylesheet');
             link.setAttribute('type', 'text/css');
             link.setAttribute('href', prefix + '/css/kiwixJS' + contentTheme + '.css');
+
+            // To remove loading class
+            link.onload = function() {
+            if (isDark && doc && doc.body) {
+                // Give time for styles to be applied
+                setTimeout(function() {
+                    // Show content but keep the background color
+                    doc.body.classList.remove('content-loading');
+                    
+                    // Remove temporary blocking style only after stylesheet is loaded
+                    var tempStyle = doc.getElementById('temp-dark-style');
+                    if (tempStyle) {
+                        tempStyle.parentNode.removeChild(tempStyle);
+                    }
+                }, 500);
+              }
+            };
             doc.head.appendChild(link);
         }
     }

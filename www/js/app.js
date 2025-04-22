@@ -2162,6 +2162,57 @@ function readArticle (dirEntry) {
         return;
     }
 
+    // Hide content during loading if using dark theme
+    var htmlEl = document.querySelector('html');
+    var isDark = htmlEl.classList.contains('dark') || 
+                 articleContainer.classList.contains('_invert') || 
+                 articleContainer.classList.contains('_wikiVector');
+    
+    // Modify iframe directly to prevent white flash
+    if (isDark) {
+        // Set background color on the iframe itself
+        articleContainer.style.backgroundColor = '#0f766e';
+        
+        // Try to inject styles directly into the iframe
+        try {
+            if (articleContainer.contentDocument && articleContainer.contentDocument.head) {
+                var style = articleContainer.contentDocument.createElement('style');
+                style.textContent = 'html, body { background-color: #0e7490 !important; }';
+                articleContainer.contentDocument.head.appendChild(style);
+            }
+        } catch (e) {
+            console.log('Could not inject styles into iframe yet:', e);
+        }
+        
+        // Add listener to handle iframe load events
+        articleContainer.addEventListener('load', function() {
+            // Inject styles immediately on load
+            try {
+                var iframeDoc = articleContainer.contentDocument;
+                if (iframeDoc) {
+                    // Add style directly to prevent flash
+                    var style = iframeDoc.createElement('style');
+                    style.textContent = 'html, body { background-color: #0f766e !important; }';
+                    
+                    if (iframeDoc.head) {
+                        iframeDoc.head.appendChild(style);
+                    }
+                    
+                    if (iframeDoc.body) {
+                        iframeDoc.body.classList.add('content-loading');
+                        iframeDoc.body.style.backgroundColor = '#0f766e';
+                    }
+                    
+                    if (iframeDoc.documentElement) {
+                        iframeDoc.documentElement.style.backgroundColor = '#0f766e';
+                    }
+                }
+            } catch (e) {
+                console.log('Could not access iframe document:', e);
+            }
+        }, true);
+    }
+
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
     // Only update for appstate.expectedArticleURLToBeDisplayed.
@@ -2262,6 +2313,18 @@ function readArticle (dirEntry) {
  * Selects the iframe to which to attach the onload event, and attaches it
  */
 function articleLoader () {
+    // Get the currnet theme information
+    var htmlEl = document.querySelector('html');
+    var isDark = htmlEl.classList.contains('dark') || 
+                 articleContainer.classList.contains('_invert') || 
+                 articleContainer.classList.contains('_wikiVector');
+    
+    // Hide content if using dark theme (add content-loading class)
+    var doc = articleContainer.contentDocument;
+    if (isDark && doc && doc.body) {
+        doc.body.classList.add('content-loading');
+    }
+
     if (selectedArchive.zimType === 'zimit') {
         var doc = articleContainer.contentDocument || null;
         if (doc) {
@@ -2359,6 +2422,37 @@ function articleLoadedSW (iframeArticleContent) {
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
+    
+    // Check if dark theme is being used and remove loading class if present
+    var htmlEl = document.querySelector('html');
+    var isDark = htmlEl.classList.contains('dark') || 
+                 articleContainer.classList.contains('_invert') || 
+                 articleContainer.classList.contains('_wikiVector');
+    
+    if (isDark) {
+        var doc = iframeArticleContent.contentDocument;
+        if (doc) {
+            // Make sure stylesheet is fully loaded first
+            var kiwixStylesheet = doc.getElementById('kiwixJSTheme');
+            
+            if (kiwixStylesheet && kiwixStylesheet.sheet) {
+                // If stylesheet is loaded, show content
+                setTimeout(function() {
+                    if (doc.body) {
+                        doc.body.classList.remove('content-loading');
+                    }
+                }, 500);
+            } else {
+                // If no stylesheet then wait for it to load
+                setTimeout(function() {
+                    if (doc.body) {
+                        doc.body.classList.remove('content-loading');
+                    }
+                }, 1000);
+            }
+        }
+    }
+
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
         var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
@@ -2773,6 +2867,24 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
         return;
     }
+
+    // Check for dark mode
+    var iframe = document.getElementById('articleContent');
+    var htmlEl = document.querySelector('html');
+    var isDark = htmlEl.classList.contains('dark') || 
+                 iframe.classList.contains('_invert') || 
+                 iframe.classList.contains('_wikiVector');
+    
+    // Add dark mode style if needed (before injecting content)
+    if (isDark) {
+        iframe.style.backgroundColor = '#121212';
+        
+        // Add style to the content before injecting it
+        if (htmlArticle.indexOf('<head>') !== -1) {
+            htmlArticle = htmlArticle.replace('<head>', '<head><style id="kiwixDarkModeLoader">body { visibility: hidden !important; } html { background-color: #121212 !important; }</style>');
+        }
+    }
+
     // Display Bootstrap warning alert if the landing page contains active content
     if (!params.hideActiveContentWarning && params.isLandingPage) {
         if (regexpActiveContent.test(htmlArticle) || /zimit/.test(selectedArchive.zimType)) {
@@ -2891,6 +3003,17 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
         document.getElementById('articleListWithHeader').style.display = 'none';
         document.getElementById('prefix').value = '';
+
+        // Remove the dark mode style after a delay
+        setTimeout(function() {
+            var doc = iframeArticleContent.contentDocument;
+            if (doc) {
+                var style = doc.getElementById('kiwixDarkModeLoader');
+                if (style) {
+                    style.parentNode.removeChild(style);
+                }
+            }
+        }, 100);
 
         var iframeContentDocument = iframeArticleContent.contentDocument;
         if (!iframeContentDocument && window.location.protocol === 'file:') {
