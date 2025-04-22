@@ -2326,7 +2326,7 @@ function articleLoader () {
     }
 
     if (selectedArchive.zimType === 'zimit') {
-        var doc = articleContainer.contentDocument || null;
+        doc = articleContainer.contentDocument || null;
         if (doc) {
             var replayIframe = doc.getElementById('replay_iframe');
             if (replayIframe) {
@@ -2455,7 +2455,7 @@ function articleLoadedSW (iframeArticleContent) {
 
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
-        var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
+        doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
         var docBody = doc ? doc.getElementsByTagName('body') : null;
         docBody = docBody ? docBody[0] : null;
         if (docBody) {

@@ -914,7 +914,7 @@ function applyAppTheme (theme) {
         var prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname).replace(/\/[^/]*$/, '');
         if (doc) {
             // Make sure content is hidden while loading if in dark mode
-            var htmlEl = document.querySelector('html');
+            htmlEl = document.querySelector('html');
             var isDark = htmlEl.classList.contains('dark') || 
                         iframe.classList.contains('_invert') || 
                         iframe.classList.contains('_wikiVector');
