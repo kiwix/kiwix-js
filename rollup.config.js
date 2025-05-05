@@ -89,7 +89,7 @@ if (process.env.BUILD === 'production') {
                             // Alter remaining lib references
                                 .replace(/([\\/])js[\\/]lib/g, '$1js')
                             // Remove unneeded ASM/WASM binaries
-                                .replace(/["']www[\\/]js[\\/].*dec.*js["'],\s*/g, '')
+                                .replace(/['"]www[\\/]js[\\/].*dec.*js['"],\s*/g, '')
                         );
                         return result.code;
                     }

@@ -95,7 +95,7 @@ var instantiateDecoder = function (instance) {
 };
 
 // Select asm or wasm conditionally
-if ('WebAssembly' in self && 'Fetch' in self) {
+if ('WebAssembly' in self && 'fetch' in self) {
     console.debug('Instantiating WASM zstandard decoder');
     ZSTDMachineType = 'WASM';
 } else {
