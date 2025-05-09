@@ -853,6 +853,13 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
  */
 function applyAppTheme (theme) {
+    // Validate the theme parameter to prevent XSS
+    // Only allow specific valid theme formats
+    if (!theme.match(/^(light|dark|auto)(_invert|_mwInvert|_wikiVector)?$/)) {
+        console.error('Invalid theme format:', theme);
+        theme = 'light';
+    }
+
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
     var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
@@ -881,19 +888,28 @@ function applyAppTheme (theme) {
     footer.classList.add(contentTheme || '_light');
     // Embed a reference to applied theme, so we can remove it generically in the future
     htmlEl.dataset.theme = appTheme + contentTheme;
+    
+    // Safely handle help element IDs
+    var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    var safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    
     // Hide any previously displayed help
-    var oldHelp = document.getElementById(oldContentTheme.replace(/_/, '') + '-help');
+    var oldHelp = document.getElementById(safeOldContentTheme.replace(/_/, '') + '-help');
     if (oldHelp) oldHelp.style.display = 'none';
     // Show any specific help for selected contentTheme
-    var help = document.getElementById(contentTheme.replace(/_/, '') + '-help');
+    var help = document.getElementById(safeContentTheme.replace(/_/, '') + '-help');
     if (help) help.style.display = 'block';
     // Remove the contentTheme for auto themes whenever system is in light mode
     if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
     // Hide any previously displayed description for auto themes
     var oldDescription = document.getElementById('kiwix-auto-description');
     if (oldDescription) oldDescription.style.display = 'none';
+    
+    // Safely handle description element IDs
+    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');
+    
     // Show description for auto themes
-    var description = document.getElementById('kiwix-' + theme.replace(/_.*$/, '') + '-description');
+    var description = document.getElementById('kiwix-' + safeThemeBase + '-description');
     if (description) description.style.display = 'block';
     // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
     if (oldContentTheme && oldContentTheme !== contentTheme) {
@@ -942,7 +958,8 @@ function applyAppTheme (theme) {
             link.setAttribute('id', 'kiwixJSTheme');
             link.setAttribute('rel', 'stylesheet');
             link.setAttribute('type', 'text/css');
-            link.setAttribute('href', prefix + '/css/kiwixJS' + contentTheme + '.css');
+            var safeContentThemeForURL = contentTheme.replace(/[^a-zA-Z0-9_-]/g, '');
+            link.setAttribute('href', prefix + '/css/kiwixJS' + safeContentThemeForURL + '.css');
 
             // To remove loading class
             link.onload = function() {

@@ -2186,26 +2186,13 @@ function readArticle (dirEntry) {
         
         // Add listener to handle iframe load events
         articleContainer.addEventListener('load', function() {
-            // Inject styles immediately on load
             try {
                 var iframeDoc = articleContainer.contentDocument;
                 if (iframeDoc) {
-                    // Add style directly to prevent flash
                     var style = iframeDoc.createElement('style');
                     style.textContent = 'html, body { background-color: #0f766e !important; }';
-                    
-                    if (iframeDoc.head) {
-                        iframeDoc.head.appendChild(style);
-                    }
-                    
-                    if (iframeDoc.body) {
-                        iframeDoc.body.classList.add('content-loading');
-                        iframeDoc.body.style.backgroundColor = '#0f766e';
-                    }
-                    
-                    if (iframeDoc.documentElement) {
-                        iframeDoc.documentElement.style.backgroundColor = '#0f766e';
-                    }
+                    if (iframeDoc.head) iframeDoc.head.appendChild(style);
+                    if (iframeDoc.body) iframeDoc.body.style.backgroundColor = '#0f766e';
                 }
             } catch (e) {
                 console.log('Could not access iframe document:', e);
