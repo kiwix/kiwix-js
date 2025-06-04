@@ -61,7 +61,7 @@
     "nyc": "^17.1.0",
     "rollup": "^4.5.0",
     "rollup-plugin-copy": "^3.4.0",
-    "selenium-webdriver": "^4.30.0",
+    "selenium-webdriver": "^4.33.0",
     "sinon": "^19.0.2",
     "start-server-and-test": "^2.0.0",
     "vite": "^6.3.4"

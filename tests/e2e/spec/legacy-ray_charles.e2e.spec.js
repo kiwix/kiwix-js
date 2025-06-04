@@ -252,7 +252,7 @@ function runTests (driver, modes, keepDriver) {
                 await driver.wait(async function () {
                     const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
                     return contentAvailable !== null;
-                }, 6000, 'Content inside iframe did not load');
+                }, 10000, 'Content inside iframe did not load');
 
                 // Locate the article link and get its text
                 const text = await driver.wait(async function () {
