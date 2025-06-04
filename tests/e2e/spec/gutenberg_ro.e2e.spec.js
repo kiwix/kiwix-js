@@ -285,15 +285,33 @@ function runTests (driver, modes, keepDriver) {
                 
                 const languageSelect = new Select(languageSelectElement);
                 
+                // First, verify the initial English title
+                const initialTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                assert.equal(initialTitle, 'Project Gutenberg Library', 'Initial title should be in English');
+                
                 // Select French (index 1)
                 await languageSelect.selectByIndex(1);
-                await driver.sleep(1000); // Wait for language change to take effect
-                const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                
+                // Wait for the language change to take effect and verify the title changed to French
+                await driver.wait(async function () {
+                    const currentTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    return currentTitle === 'Bibliothèque du projet Gutenberg';
+                }, 5000, 'Title should change to French within 5 seconds');
+                
+                const frenchTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                assert.equal(frenchTitle, 'Bibliothèque du projet Gutenberg', 'Title should be in French after language change');
                 
                 // Revert back to English (index 0)
                 await languageSelect.selectByIndex(0);
-                await driver.sleep(500); // Wait for language change to take effect
-                assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
+                
+                // Wait for the language change back to English and verify
+                await driver.wait(async function () {
+                    const currentTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    return currentTitle === 'Project Gutenberg Library';
+                }, 5000, 'Title should change back to English within 5 seconds');
+                
+                const finalTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                assert.equal(finalTitle, 'Project Gutenberg Library', 'Title should be back to English after reverting language');
             });
 
             it('Primary Search Autocomplete', async function () {
