@@ -8,14 +8,34 @@ import tonedearTests from '../../spec/tonedear.e2e.spec.js';
 
 async function loadMSEdgeDriver () {
     const options = new Options();
+    
     // Run it headless if the environment variable GITHUB_ACTIONS is set
     if (process.env.GITHUB_ACTIONS) {
         options.addArguments('--headless=new');
     }
-    const driver = await new Builder(options)
+    
+    // Disable Edge promotional content and notifications
+    options.addArguments('--disable-features=msEdgeGuidedSwitch');
+    options.addArguments('--disable-features=msEdgeDiscoverNavigationInfo');
+    options.addArguments('--disable-features=msEdgeSidebarButton');
+    options.addArguments('--disable-features=msEdgeCopilot');
+    options.addArguments('--no-first-run');
+    options.addArguments('--disable-popup-blocking');
+    options.addArguments('--disable-notifications');
+    options.addArguments('--disable-infobars');
+    
+    // Set preferences to minimize interruptions
+    options.setUserPreferences({
+        'profile.default_content_setting_values.notifications': 2,
+        'profile.default_content_settings.popups': 0,
+        'browser.edge_tips_enabled': false
+    });
+    
+    const driver = await new Builder()
         .forBrowser('MicrosoftEdge')
         .setEdgeOptions(options)
         .build();
+    
     return driver;
 };
 
