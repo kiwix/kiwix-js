@@ -277,7 +277,10 @@ function runTests (driver, modes, keepDriver) {
                 
                 // Scroll the element into view to ensure it's visible in headless mode
                 await driver.executeScript('arguments[0].scrollIntoView({behavior: "instant", block: "center"});', languageSelectElement);
-                await driver.sleep(500); // Give time for scroll to complete
+                await driver.wait(async function () {
+                    const rect = await driver.executeScript('return arguments[0].getBoundingClientRect();', languageSelectElement);
+                    return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+                }, 3000, 'Element should be scrolled into view within 3 seconds');
                 
                 const languageSelect = new Select(languageSelectElement);
                 
