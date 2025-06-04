@@ -194,10 +194,6 @@ function runTests (driver, modes, keepDriver) {
 
             // Loads the ZIM archive for the mode if the mode is not skipped
             it('Load Modern zim file', async function () {
-                if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
-                }
                 // Wait until files have loaded
                 var filesLength;
                 const isFileLoaded = await driver.wait(async function () {
@@ -251,7 +247,7 @@ function runTests (driver, modes, keepDriver) {
             it('Sorting books by name', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 // We switch to default Content and back to Iframe because the If we are retrying the test
                 // It will make sure reset the iframe
@@ -270,7 +266,7 @@ function runTests (driver, modes, keepDriver) {
             it('Change Language', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 // Use proper Select class to interact with the language dropdown
                 const languageSelectElement = await driver.wait(until.elementLocated(By.id('l10nselect')), 1500);
@@ -376,7 +372,7 @@ function runTests (driver, modes, keepDriver) {
             it('Author search Autocomplete', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
                 await filter.sendKeys('Mihai Eminescu');
@@ -387,7 +383,7 @@ function runTests (driver, modes, keepDriver) {
             it('Author search Results', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 // search by author name and press enter to apply the filter
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
