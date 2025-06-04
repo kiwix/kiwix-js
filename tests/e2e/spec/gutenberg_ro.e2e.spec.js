@@ -21,7 +21,7 @@
  */
 
 // eslint-disable-next-line no-unused-vars
-import { By, Key, until, WebDriver } from 'selenium-webdriver';
+import { By, Key, until, WebDriver, Select } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
 import fs from 'fs';
@@ -272,12 +272,16 @@ function runTests (driver, modes, keepDriver) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
-                // click on the language dropdown and select option French
-                const languageOptions = await driver.wait(until.elementsLocated(By.xpath('//*[@id="l10nselect"]/option')), 1500);
-                await languageOptions[1].click();
+                // Use proper Select class to interact with the language dropdown
+                const languageSelectElement = await driver.wait(until.elementLocated(By.id('l10nselect')), 1500);
+                const languageSelect = new Select(languageSelectElement);
+                
+                // Select French (index 1)
+                await languageSelect.selectByIndex(1);
                 const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
-                // revert back the language to English
-                await languageOptions[0].click();
+                
+                // Revert back to English (index 0)
+                await languageSelect.selectByIndex(0);
                 assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
             });
 
