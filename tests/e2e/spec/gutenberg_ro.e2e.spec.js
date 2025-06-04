@@ -21,7 +21,7 @@
  */
 
 // eslint-disable-next-line no-unused-vars
-import { By, Key, until, WebDriver } from 'selenium-webdriver';
+import { By, Key, until, WebDriver, Select } from 'selenium-webdriver';
 import assert from 'assert';
 import paths from '../paths.js';
 import fs from 'fs';
@@ -194,10 +194,6 @@ function runTests (driver, modes, keepDriver) {
 
             // Loads the ZIM archive for the mode if the mode is not skipped
             it('Load Modern zim file', async function () {
-                if (!serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
-                }
                 // Wait until files have loaded
                 var filesLength;
                 const isFileLoaded = await driver.wait(async function () {
@@ -251,7 +247,7 @@ function runTests (driver, modes, keepDriver) {
             it('Sorting books by name', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 // We switch to default Content and back to Iframe because the If we are retrying the test
                 // It will make sure reset the iframe
@@ -270,15 +266,51 @@ function runTests (driver, modes, keepDriver) {
             it('Change Language', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
-                // click on the language dropdown and select option French
-                const languageOptions = await driver.wait(until.elementsLocated(By.xpath('//*[@id="l10nselect"]/option')), 1500);
-                await languageOptions[1].click();
-                const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
-                // revert back the language to English
-                await languageOptions[0].click();
-                assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
+                // Use proper Select class to interact with the language dropdown
+                const languageSelectElement = await driver.wait(until.elementLocated(By.id('l10nselect')), 1500);
+                
+                // Wait for the select element to be visible and interactable
+                await driver.wait(until.elementIsVisible(languageSelectElement), 3000);
+                await driver.wait(until.elementIsEnabled(languageSelectElement), 3000);
+                
+                // Scroll the element into view to ensure it's visible in headless mode
+                await driver.executeScript('arguments[0].scrollIntoView({behavior: "instant", block: "center"});', languageSelectElement);
+                await driver.wait(async function () {
+                    const rect = await driver.executeScript('return arguments[0].getBoundingClientRect();', languageSelectElement);
+                    return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+                }, 3000, 'Element should be scrolled into view within 3 seconds');
+                
+                const languageSelect = new Select(languageSelectElement);
+                
+                // First, verify the initial English title
+                const initialTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                assert.equal(initialTitle, 'Project Gutenberg Library', 'Initial title should be in English');
+                
+                // Select French (index 1)
+                await languageSelect.selectByIndex(1);
+                
+                // Wait for the language change to take effect and verify the title changed to French
+                await driver.wait(async function () {
+                    const currentTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    return currentTitle === 'Bibliothèque du projet Gutenberg';
+                }, 5000, 'Title should change to French within 5 seconds');
+                
+                const frenchTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                assert.equal(frenchTitle, 'Bibliothèque du projet Gutenberg', 'Title should be in French after language change');
+                
+                // Revert back to English (index 0)
+                await languageSelect.selectByIndex(0);
+                
+                // Wait for the language change back to English and verify
+                await driver.wait(async function () {
+                    const currentTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                    return currentTitle === 'Project Gutenberg Library';
+                }, 5000, 'Title should change back to English within 5 seconds');
+                
+                const finalTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
+                assert.equal(finalTitle, 'Project Gutenberg Library', 'Title should be back to English after reverting language');
             });
 
             it('Primary Search Autocomplete', async function () {
@@ -343,7 +375,7 @@ function runTests (driver, modes, keepDriver) {
             it('Author search Autocomplete', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
                 await filter.sendKeys('Mihai Eminescu');
@@ -354,7 +386,7 @@ function runTests (driver, modes, keepDriver) {
             it('Author search Results', async function () {
                 if (isJqueryMode) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    return;
+                    this.skip();
                 }
                 // search by author name and press enter to apply the filter
                 const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
