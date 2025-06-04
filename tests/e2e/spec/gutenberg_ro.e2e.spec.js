@@ -274,14 +274,25 @@ function runTests (driver, modes, keepDriver) {
                 }
                 // Use proper Select class to interact with the language dropdown
                 const languageSelectElement = await driver.wait(until.elementLocated(By.id('l10nselect')), 1500);
+                
+                // Wait for the select element to be visible and interactable
+                await driver.wait(until.elementIsVisible(languageSelectElement), 3000);
+                await driver.wait(until.elementIsEnabled(languageSelectElement), 3000);
+                
+                // Scroll the element into view to ensure it's visible in headless mode
+                await driver.executeScript('arguments[0].scrollIntoView({behavior: "instant", block: "center"});', languageSelectElement);
+                await driver.sleep(500); // Give time for scroll to complete
+                
                 const languageSelect = new Select(languageSelectElement);
                 
                 // Select French (index 1)
                 await languageSelect.selectByIndex(1);
+                await driver.sleep(1000); // Wait for language change to take effect
                 const mainTitle = await driver.findElement(By.xpath('//*[@class="main_title"]/h1')).getText();
                 
                 // Revert back to English (index 0)
                 await languageSelect.selectByIndex(0);
+                await driver.sleep(500); // Wait for language change to take effect
                 assert.equal(mainTitle, 'Bibliothèque du projet Gutenberg');
             });
 
