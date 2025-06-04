@@ -939,17 +939,17 @@ function applyAppTheme (theme) {
             if (isDark && doc) {
                 // Add inline style to both html and body
                 if (doc.documentElement) {
-                    doc.documentElement.style.backgroundColor = '#4d7c0f';
+                    doc.documentElement.style.backgroundColor = '#e5e5e5';
                 }
                 
                 if (doc.body) {
-                    doc.body.style.backgroundColor = '#4d7c0f';
+                    doc.body.style.backgroundColor = '#e5e5e5';
                     doc.body.classList.add('content-loading');
                 }
                 
                 // Add a style element with higher priority
                 var blockStyle = doc.createElement('style');
-                blockStyle.textContent = 'html, body { background-color: #4d7c0f !important; }';
+                blockStyle.textContent = 'html, body { background-color: #e5e5e5 !important; }';
                 blockStyle.id = 'temp-dark-style';
                 doc.head.appendChild(blockStyle);
             }

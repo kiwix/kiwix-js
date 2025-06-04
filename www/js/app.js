@@ -2171,13 +2171,13 @@ function readArticle (dirEntry) {
     // Modify iframe directly to prevent white flash
     if (isDark) {
         // Set background color on the iframe itself
-        articleContainer.style.backgroundColor = '#0f766e';
+        articleContainer.style.backgroundColor = '#e5e5e5';
         
         // Try to inject styles directly into the iframe
         try {
             if (articleContainer.contentDocument && articleContainer.contentDocument.head) {
                 var style = articleContainer.contentDocument.createElement('style');
-                style.textContent = 'html, body { background-color: #0e7490 !important; }';
+                style.textContent = 'html, body { background-color: #e5e5e5 !important; }';
                 articleContainer.contentDocument.head.appendChild(style);
             }
         } catch (e) {
@@ -2190,9 +2190,9 @@ function readArticle (dirEntry) {
                 var iframeDoc = articleContainer.contentDocument;
                 if (iframeDoc) {
                     var style = iframeDoc.createElement('style');
-                    style.textContent = 'html, body { background-color: #0f766e !important; }';
+                    style.textContent = 'html, body { background-color: #e5e5e5 !important; }';
                     if (iframeDoc.head) iframeDoc.head.appendChild(style);
-                    if (iframeDoc.body) iframeDoc.body.style.backgroundColor = '#0f766e';
+                    if (iframeDoc.body) iframeDoc.body.style.backgroundColor = '#e5e5e5';
                 }
             } catch (e) {
                 console.log('Could not access iframe document:', e);
@@ -2864,11 +2864,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     
     // Add dark mode style if needed (before injecting content)
     if (isDark) {
-        iframe.style.backgroundColor = '#121212';
+        iframe.style.backgroundColor = '#e5e5e5';
         
         // Add style to the content before injecting it
         if (htmlArticle.indexOf('<head>') !== -1) {
-            htmlArticle = htmlArticle.replace('<head>', '<head><style id="kiwixDarkModeLoader">body { visibility: hidden !important; } html { background-color: #121212 !important; }</style>');
+            htmlArticle = htmlArticle.replace('<head>', '<head><style id="kiwixDarkModeLoader">body { visibility: hidden !important; } html { background-color: #e5e5e5 !important; }</style>');
         }
     }
 

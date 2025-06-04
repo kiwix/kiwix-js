@@ -497,7 +497,7 @@ body.content-loading {
 .dark #articleContainer,
 iframe._invert,
 iframe._wikiVector {
-    background-color: #1a2e05 !important;
+    background-color: #e5e5e5 !important;
 }
 
 /*  Iframe document should have same background color */
@@ -510,6 +510,6 @@ iframe._wikiVector::before {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #1a2e05 !important;
+    background-color: #e5e5e5 !important;
     z-index: 9999;
 }
