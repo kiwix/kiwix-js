@@ -853,6 +853,13 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
  */
 function applyAppTheme (theme) {
+    // Validate the theme parameter to prevent XSS
+    // Only allow specific valid theme formats
+    if (!theme.match(/^(light|dark|auto)(_invert|_mwInvert|_wikiVector)?$/)) {
+        console.error('Invalid theme format:', theme);
+        theme = 'light';
+    }
+
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
     var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
@@ -881,19 +888,28 @@ function applyAppTheme (theme) {
     footer.classList.add(contentTheme || '_light');
     // Embed a reference to applied theme, so we can remove it generically in the future
     htmlEl.dataset.theme = appTheme + contentTheme;
+    
+    // Safely handle help element IDs
+    var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    var safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    
     // Hide any previously displayed help
-    var oldHelp = document.getElementById(oldContentTheme.replace(/_/, '') + '-help');
+    var oldHelp = document.getElementById(safeOldContentTheme.replace(/_/, '') + '-help');
     if (oldHelp) oldHelp.style.display = 'none';
     // Show any specific help for selected contentTheme
-    var help = document.getElementById(contentTheme.replace(/_/, '') + '-help');
+    var help = document.getElementById(safeContentTheme.replace(/_/, '') + '-help');
     if (help) help.style.display = 'block';
     // Remove the contentTheme for auto themes whenever system is in light mode
     if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
     // Hide any previously displayed description for auto themes
     var oldDescription = document.getElementById('kiwix-auto-description');
     if (oldDescription) oldDescription.style.display = 'none';
+    
+    // Safely handle description element IDs
+    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');
+    
     // Show description for auto themes
-    var description = document.getElementById('kiwix-' + theme.replace(/_.*$/, '') + '-description');
+    var description = document.getElementById('kiwix-' + safeThemeBase + '-description');
     if (description) description.style.display = 'block';
     // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
     if (oldContentTheme && oldContentTheme !== contentTheme) {
@@ -913,11 +929,54 @@ function applyAppTheme (theme) {
         // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
         var prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname).replace(/\/[^/]*$/, '');
         if (doc) {
+            // Make sure content is hidden while loading if in dark mode
+            htmlEl = document.querySelector('html');
+            var isDark = htmlEl.classList.contains('dark') || 
+                        iframe.classList.contains('_invert') || 
+                        iframe.classList.contains('_wikiVector');
+
+            // Add a blocking style to prevent content from showing before stylesheet loads
+            if (isDark && doc) {
+                // Add inline style to both html and body
+                if (doc.documentElement) {
+                    doc.documentElement.style.backgroundColor = '#4d7c0f';
+                }
+                
+                if (doc.body) {
+                    doc.body.style.backgroundColor = '#4d7c0f';
+                    doc.body.classList.add('content-loading');
+                }
+                
+                // Add a style element with higher priority
+                var blockStyle = doc.createElement('style');
+                blockStyle.textContent = 'html, body { background-color: #4d7c0f !important; }';
+                blockStyle.id = 'temp-dark-style';
+                doc.head.appendChild(blockStyle);
+            }
+
             var link = doc.createElement('link');
             link.setAttribute('id', 'kiwixJSTheme');
             link.setAttribute('rel', 'stylesheet');
             link.setAttribute('type', 'text/css');
-            link.setAttribute('href', prefix + '/css/kiwixJS' + contentTheme + '.css');
+            var safeContentThemeForURL = contentTheme.replace(/[^a-zA-Z0-9_-]/g, '');
+            link.setAttribute('href', prefix + '/css/kiwixJS' + safeContentThemeForURL + '.css');
+
+            // To remove loading class
+            link.onload = function() {
+            if (isDark && doc && doc.body) {
+                // Give time for styles to be applied
+                setTimeout(function() {
+                    // Show content but keep the background color
+                    doc.body.classList.remove('content-loading');
+                    
+                    // Remove temporary blocking style only after stylesheet is loaded
+                    var tempStyle = doc.getElementById('temp-dark-style');
+                    if (tempStyle) {
+                        tempStyle.parentNode.removeChild(tempStyle);
+                    }
+                }, 500);
+              }
+            };
             doc.head.appendChild(link);
         }
     }
