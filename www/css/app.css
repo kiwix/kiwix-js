@@ -84,10 +84,7 @@
 #articleListWithHeader {
     position: absolute;
     top: 0;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
+    left: 5%;
     padding-left: 12px;
     padding-right: 12px;
     background: lightblue;
@@ -148,25 +145,6 @@ iframe {
 
 /* App theme: dark */
 
-/* Dark dropdown styles for homepage */
-.dark select.form-control {
-    background-color: #fff;
-}
-
-.dark select.form-control option {
-    background-color: #000;
-    color: #e0e0e0;
-}
-
-/* Selected option */
-.dark select.form-control option:checked {
-    background-color: #333;
-}
-
-.dark select.form-control option:hover {
-    background-color: #222;
-}
-
 .dark header, .dark #cachingAssets, .dark #about, .dark #configuration, .dark #welcomeText, .dark #articleListWithHeader,
 .dark #alertBoxHeader, .dark footer:not([class=_light]), .dark img {
     filter: invert(1) hue-rotate(180deg);
@@ -186,36 +164,6 @@ iframe {
 
 .dark .modal-title, .dark .modal-body{
     color: #FFFFFF !important;
-}
-
-/* Dark mode dropdown when expanded */
-.dark #archiveList {
-    background-color: #fff;
-}
-
-.dark #archiveList option {
-    background-color: #fff;
-    color: #000;
-    border-bottom: 1px solid #ddd;
-}
-
-.dark #archiveList[size] {
-    background-color: #fff;
-    color: #000;
-    border-color: #fff;
-}
-
-/* Selected option in dropdown */
-.dark #archiveList[size] option:checked {
-    background-color: #57534e;
-    color: #fff;
-}
-
-/* Highlighted option in dropdown */
-.dark #archiveList[size] option:focus,
-.dark #archiveList[size] option:hover {
-    background-color: #78716c;
-    color: #fff;
 }
 
 /* End of app theme: dark */
@@ -485,31 +433,4 @@ button {
         height: 100%;
     }
     
-}
-
-/* Prevent white flash in dark mode */
-body.content-loading {
-    visibility: hidden !important;
-}
-
-/* Set default dark background for the entire iframe */
-.dark iframe,
-.dark #articleContainer,
-iframe._invert,
-iframe._wikiVector {
-    background-color: #1a2e05 !important;
-}
-
-/*  Iframe document should have same background color */
-.dark iframe::before,
-iframe._invert::before,
-iframe._wikiVector::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #1a2e05 !important;
-    z-index: 9999;
 }

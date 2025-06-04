@@ -20,8 +20,7 @@ const config = {
             }
         ]
     ],
-    exclude: ['node_modules/**'],
-    compact: true // Force compacting for large files
+    exclude: ['node_modules/**']
 };
 
 export default config;
