@@ -2023,7 +2023,10 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( )
         var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
+            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>' +
+            // Add dirEntry.snippet if it exists, otherwise add an empty string
+            (dirEntry.snippet ? '<span class="list-group-item">' +
+            dirEntry.snippet + '</span>' : '');   
     }
 
     // innerHTML required for this line

@@ -477,30 +477,47 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
     // We give ourselves an overhead in caclulating the results needed, because full-text search will return some results already found
     // var resultsNeeded = Math.floor(params.maxSearchResultsSize - dirEntries.length / 2);
     var resultsNeeded = params.maxSearchResultsSize;
-    return this.callLibzimWorker({ action: 'search', text: search.prefix, numResults: resultsNeeded }).then(function (results) {
-        if (results) {
+    return this.callLibzimWorker({ action: 'searchWithSnippets', text: search.prefix, numResults: resultsNeeded }).then(function (returned) {
+        if (returned) {
             var dirEntryPaths = [];
             var fullTextPaths = [];
+            var snippets = [];
             // Collect all the found paths for the dirEntries
             for (var i = 0; i < dirEntries.length; i++) {
                 dirEntryPaths.push(dirEntries[i].namespace + '/' + dirEntries[i].url);
             }
             // Collect all the paths for full text search, pruning as we go
             var path;
-            for (var j = 0; j < results.entries.length; j++) {
+            var snippet;
+            for (var j = 0; j < returned.results.length; j++) {
                 search.scanCount++;
-                path = results.entries[j].path;
+                path = returned.results[j].path;
+                snippet = returned.results[j].snippet;
                 // Full-text search result paths are missing the namespace in Type 1 ZIMs, so we add it back
                 path = cns === 'C' ? cns + '/' + path : path;
-                if (~dirEntryPaths.indexOf(path)) continue;
+                // If the path is already in the dirEntries, we do not need to add it again
+                if (~dirEntryPaths.indexOf(path)) {
+                    // Add the snippet to the existing DirEntry
+                    for (var k = 0; k < dirEntries.length; k++) {
+                        if (dirEntries[k].namespace + '/' + dirEntries[k].url === path) {
+                            dirEntries[k].snippet = snippet;
+                            break;
+                        }
+                    }
+                    // We do not need to add it again, so we continue
+                    continue;
+                }
                 fullTextPaths.push(path);
+                snippets.push(snippet);
             }
             var promisesForDirEntries = [];
-            for (var k = 0; k < fullTextPaths.length; k++) {
+            for (k = 0; k < fullTextPaths.length; k++) {
                 promisesForDirEntries.push(that.getDirEntryByPath(fullTextPaths[k]));
             }
             return Promise.all(promisesForDirEntries).then(function (fullTextDirEntries) {
                 for (var l = 0; l < fullTextDirEntries.length; l++) {
+                    // Add snippet to the new DirEntry
+                    fullTextDirEntries[l].snippet = snippets[l];
                     dirEntries.push(fullTextDirEntries[l]);
                 }
                 return dirEntries;
