@@ -2010,37 +2010,103 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         );
     }
 
+    var toggleSnippet = function (e, that) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent triggering the article link        
+        var header = that;
+        var targetId = header.getAttribute('data-target');
+        var content = document.getElementById(targetId);
+        // var indicator = header.querySelector('.snippet-indicator');
+        var isExpanded = header.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+            // Collapse
+            content.classList.add('collapsed');
+            header.setAttribute('aria-expanded', 'false');
+        } else {
+            // Expand
+            content.classList.remove('collapsed');
+            header.setAttribute('aria-expanded', 'true');
+        }
+    };
+
     articleListHeaderMessageDiv.textContent = message;
 
     var articleListDiv = document.getElementById('articleList');
     var articleListDivHtml = '';
     var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
+    var dirEntry;
+    // Build only the article links first
     for (var i = 0; i < listLength; i++) {
-        var dirEntry = dirEntryArray[i];
-        // NB We use encodeURIComponent rather than encodeURI here because we know that any question marks in the title are not querystrings,
-        // and should be encoded [kiwix-js #806]. DEV: be very careful if you edit the dirEntryId attribute below, because the contents must be
-        // inside double quotes (in the final HTML string), given that dirEntryStringId may contain bare apostrophes
-        // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( )
+        dirEntry = dirEntryArray[i];
         var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>' +
-            // Add dirEntry.snippet if it exists, otherwise add an empty string
-            (dirEntry.snippet ? '<span class="list-group-item">' +
-            dirEntry.snippet + '</span>' : '');   
+            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
     }
 
-    // innerHTML required for this line
+    // Set the innerHTML once
     articleListDiv.innerHTML = articleListDivHtml;
+
+    // Now add snippets and event listeners in a single loop
+    var articleLinks = articleListDiv.querySelectorAll('a[dirEntryId]');
+    for (i = 0; i < listLength; i++) {
+        dirEntry = dirEntryArray[i];
+        
+        // Add snippet if it exists
+        if (dirEntry.snippet && articleLinks[i]) {
+            var snippetId = 'snippet-' + i;
+            
+            // Create snippet container
+            var snippetContainer = document.createElement('div');
+            snippetContainer.className = 'snippet-container';
+            
+            // Create and populate snippet header
+            var snippetHeader = document.createElement('div');
+            snippetHeader.className = 'snippet-header';
+            snippetHeader.tabIndex = 0;
+            snippetHeader.setAttribute('data-target', snippetId);
+            snippetHeader.setAttribute('aria-expanded', 'false');
+            
+            var indicator = document.createElement('span');
+            indicator.className = 'snippet-indicator';
+            indicator.textContent = '▶';
+            
+            var preview = document.createElement('span');
+            preview.className = 'snippet-preview';
+            preview.innerHTML = dirEntry.snippet.substring(0, 80) + '...';
+            
+            snippetHeader.appendChild(indicator);
+            snippetHeader.appendChild(preview);
+            
+            // Create snippet content
+            var content = document.createElement('div');
+            content.id = snippetId;
+            content.className = 'snippet-content collapsed';
+            content.innerHTML = dirEntry.snippet;
+            
+            // Assemble and insert
+            snippetContainer.appendChild(snippetHeader);
+            snippetContainer.appendChild(content);
+            
+            // Insert after the article link
+            articleLinks[i].parentNode.insertBefore(snippetContainer, articleLinks[i].nextSibling);
+        }
+    }
+
     // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
     // and prevents this event from firing; note that touch also triggers mousedown
-    document.querySelectorAll('#articleList a').forEach(function (link) {
-        link.addEventListener('mousedown', function (e) {
-            // Cancel search immediately
-            appstate.search.status = 'cancelled';
-            handleTitleClick(e);
-            return false;
+    document.querySelectorAll('#articleList a, .snippet-header').forEach(function (element) {
+        element.addEventListener('mousedown', function (e) {
+            if (element.classList.contains('snippet-header')) {
+                // Handle snippet toggle
+                toggleSnippet(e, this);
+            } else {
+                // Handle article link
+                appstate.search.status = 'cancelled';
+                handleTitleClick(e);
+            }
         });
     });
+
     if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
 }
