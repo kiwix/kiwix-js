@@ -399,7 +399,7 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
 ZIMArchive.prototype.getContentNamespace = function () {
     if (this.isReady()) {
         var ver = this.file.minorVersion;
-        // DEV: There are currently only two defined values for minorVersion in the OpenZIM specification
+        // DEV: There are currently only three defined values for minorVersion in the OpenZIM specification
         // If this changes, adapt the error checking and return values
         if (ver > 3) {
             console.error('Unknown ZIM minor version: ' + ver + '! Assuming content namespace is C.');
@@ -512,7 +512,7 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
                 snippets.push(snippet);
             }
             var promisesForDirEntries = [];
-            for (k = 0; k < fullTextPaths.length; k++) {
+            for (let k = 0; k < fullTextPaths.length; k++) {
                 promisesForDirEntries.push(that.getDirEntryByPath(fullTextPaths[k]));
             }
             return Promise.all(promisesForDirEntries).then(function (fullTextDirEntries) {

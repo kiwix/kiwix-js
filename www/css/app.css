@@ -94,7 +94,7 @@
     z-index: 1;
 }
 
-/* Article list item followed by .snipped-containe */
+/* Article list item followed by .snippet-container */
 #articleList a.list-group-item:has(+ .snippet-container) {
     padding-bottom: 5px;
 }
