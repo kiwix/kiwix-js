@@ -62,12 +62,18 @@ self.addEventListener('message', function(e) {
         var numResults = e.data.numResults || 50;
         var entries = Module[action](text, numResults);
         console.debug('Found nb results = ' + entries.size(), entries);
-        var serializedEntries = [];
+        var serializedResults = [];
         for (var i=0; i<entries.size(); i++) {
             var entry = entries.get(i);
-            serializedEntries.push({path: entry.getPath()});
+            serializedResults.push({
+                path: entry.getPath(),
+                title: entry.getTitle(),
+                snippet: null,
+                score: null,
+                wordCount: null
+            });
         }
-        outgoingMessagePort.postMessage({ entries: serializedEntries });
+        outgoingMessagePort.postMessage({ results: serializedResults });
     } 
     // NEW: Enhanced full-text search with content snippets
     else if (action === 'searchWithSnippets') {
