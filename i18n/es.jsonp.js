@@ -63,6 +63,8 @@ document.localeJson = {
       "configure-display-apptheme-auto-description": "&emsp;(Temas automáticos se adaptan al modo oscuro/claro de su dispositivo.)",
       "configure-display-apptheme-mwinvert-description": "* Implementa soluciones específicas para ZIMs de Wikimedia. Pruebe la opción genérica si hay errores de visualización con otros ZIMs.",
       "configure-display-apptheme-info": "[&nbsp;Mostrar artículo con tema seleccionado&nbsp;]",
+      "configure-display-libzimsearchtype": "<b>Agregar fragmentos a la búsqueda de texto completo libzim</b> (si están disponibles)",
+      "configure-display-libzimsearchtype-tip": "Si está marcado, usa la búsqueda de texto completo libzim con vistas previas de fragmentos si están disponibles, de lo contrario solo obtiene títulos de texto completo. Pase el cursor, haga clic o presione enter en el teclado para expandir el fragmento.",
       "configure-language-selector-default": "Idioma",
       "configure-language-selector-other": "Más pronto...",
       "configure-library-all-unreachable": "Todos los servidores de la biblioteca están inalcanzables actualmente.",

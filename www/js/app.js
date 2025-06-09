@@ -285,30 +285,38 @@ prefixElement.addEventListener('keydown', function (e) {
         document.getElementById('articleContent').focus();
         keyPressHandled = true;
     }
-    // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
+        // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
     // IE11 produces "Down" instead of "ArrowDown" and "Up" instead of "ArrowUp"
-    if (/^((Arrow)?Down|(Arrow)?Up|Enter)$/.test(e.key)) {
-        // User pressed Down arrow or Up arrow or Enter
+    if (/^((Arrow)?(Down|Up|Left|Right)|Enter)$/.test(e.key)) {
+        // User pressed Down arrow, Up arrow, Left arrow, Right arrow, or Enter
         e.preventDefault();
         e.stopPropagation();
         // This is needed to prevent processing in the keyup event : https://stackoverflow.com/questions/9951274
         keyPressHandled = true;
         var activeElement = document.querySelector('#articleList .hover') || document.querySelector('#articleList a');
         if (!activeElement) return;
-        // If user presses Enter, read the dirEntry
-        if (/Enter/.test(e.key)) {
-            if (activeElement.classList.contains('hover')) {
+        // If user presses Enter or Right arrow, read the dirEntry or open snippet
+        if (/Enter|Right|Left/.test(e.key)) {
+            if (activeElement.classList.contains('hover') &&  !activeElement.classList.contains('snippet-container')) {
                 var dirEntryId = activeElement.getAttribute('dirEntryId');
                 findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
+                return;
+            } else if (activeElement.classList.contains('snippet-container')) {
+                // Open the snippet container
+                uiUtil.toggleSnippet(activeElement);
                 return;
             }
         }
         // If user presses ArrowDown...
-        // (NB selection is limited to five possibilities by regex above)
+        // (NB selection is limited to arrow keys and Enter by regex above)
         if (/Down/.test(e.key)) {
             if (activeElement.classList.contains('hover')) {
                 activeElement.classList.remove('hover');
+                if (activeElement.firstElementChild) activeElement.firstElementChild.classList.remove('hover');
                 activeElement = activeElement.nextElementSibling || activeElement;
+                if (activeElement.classList.contains('snippet-container')) {
+                    activeElement.firstElementChild.classList.add('hover');
+                }
                 var nextElement = activeElement.nextElementSibling || activeElement;
                 if (!uiUtil.isElementInView(nextElement, true)) nextElement.scrollIntoView(false);
             }
@@ -316,7 +324,11 @@ prefixElement.addEventListener('keydown', function (e) {
         // If user presses ArrowUp...
         if (/Up/.test(e.key)) {
             activeElement.classList.remove('hover');
+            if (activeElement.firstElementChild) activeElement.firstElementChild.classList.remove('hover');
             activeElement = activeElement.previousElementSibling || activeElement;
+            if (activeElement.classList.contains('snippet-container')) {
+                activeElement.firstElementChild.classList.add('hover');
+            }
             var previousElement = activeElement.previousElementSibling || activeElement;
             if (!uiUtil.isElementInView(previousElement, true)) previousElement.scrollIntoView();
             if (previousElement === activeElement) document.getElementById('top').scrollIntoView();
@@ -500,6 +512,11 @@ document.getElementById('libzimModeSelect').addEventListener('change', function 
 document.getElementById('useLibzim').addEventListener('click', function () {
     settingsStore.setItem('useLibzim', !params.useLibzim);
     window.location.reload();
+});
+
+document.getElementById('libzimSearchType').addEventListener('change', function (e) {
+    params.libzimSearchType = e.target.checked ? 'searchWithSnippets' : 'search';
+    settingsStore.setItem('libzimSearchType', params.libzimSearchType, Infinity);
 });
 
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
@@ -2015,55 +2032,33 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     var articleListDiv = document.getElementById('articleList');
     var articleListDivHtml = '';
     var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
+    var dirEntry;
+    // Build only the article links first
     for (var i = 0; i < listLength; i++) {
-        var dirEntry = dirEntryArray[i];
-        // NB We use encodeURIComponent rather than encodeURI here because we know that any question marks in the title are not querystrings,
-        // and should be encoded [kiwix-js #806]. DEV: be very careful if you edit the dirEntryId attribute below, because the contents must be
-        // inside double quotes (in the final HTML string), given that dirEntryStringId may contain bare apostrophes
-        // Info: encodeURIComponent encodes all characters except  A-Z a-z 0-9 - _ . ! ~ * ' ( )
+        dirEntry = dirEntryArray[i];
         var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
+        var title = dirEntry.title || dirEntry.getTitleOrUrl();
+        // Make title bold if entry has a snippet
+        if (dirEntry.snippet) {
+            title = '<strong>' + title + '</strong>';
+        }
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
+            '" class="list-group-item" role="option">' + title + '</a>';
     }
 
-    // innerHTML required for this line
+
+    // Set the innerHTML once
     articleListDiv.innerHTML = articleListDivHtml;
-    // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
-    // and prevents this event from firing; note that touch also triggers mousedown
-    document.querySelectorAll('#articleList a').forEach(function (link) {
-        link.addEventListener('mousedown', function (e) {
-            // Cancel search immediately
-            appstate.search.status = 'cancelled';
-            handleTitleClick(e);
-            return false;
-        });
-    });
+
+    // Now add snippets and event listeners in a single loop
+    var articleLinks = articleListDiv.querySelectorAll('a[dirEntryId]');
+    uiUtil.createSnippetElements(dirEntryArray, articleLinks, listLength);
+
+    // Add event listeners to article links
+    uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);
+
     if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
-}
-
-/**
- * Handles the click on the title of an article in search results
- * @param {Event} event The click event to handle
- */
-function handleTitleClick (event) {
-    event.preventDefault();
-    // User may have clicked on a child element of the list item if it contains HTML (for example, italics),
-    // so we may need to find the closest list item
-    let target = event.target;
-    if (target.className !== 'list-group-item') {
-        console.warn('User clicked on child element of list item, looking for parent...');
-        while (target && target.className !== 'list-group-item') {
-            target = target.parentNode;
-        }
-        if (!target) {
-            // No list item found, so we can't do anything
-            console.warn('No list item could be found for clicked event!');
-            return;
-        }
-    }
-    var dirEntryId = decodeURIComponent(target.getAttribute('dirEntryId'));
-    findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
 }
 
 /**
