@@ -303,7 +303,7 @@ prefixElement.addEventListener('keydown', function (e) {
                 return;
             } else if (activeElement.classList.contains('snippet-container')) {
                 // Open the snippet container
-                toggleSnippet(null, activeElement);
+                toggleSnippet(activeElement);
                 return;
             }
         }
@@ -2087,11 +2087,11 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
     // and prevents this event from firing; note that touch also triggers mousedown
-    document.querySelectorAll('#articleList a, .snippet-header').forEach(function (element) {
+    document.querySelectorAll('#articleList a, .snippet-container').forEach(function (element) {
         element.addEventListener('mousedown', function (e) {
-            if (element.classList.contains('snippet-header')) {
+            if (element.classList.contains('snippet-container')) {
                 // Handle snippet toggle
-                toggleSnippet(e, this);
+                toggleSnippet(element, e);
             } else {
                 // Handle article link
                 appstate.search.status = 'cancelled';
@@ -2104,15 +2104,18 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     document.getElementById('articleListWithHeader').style.display = '';
 }
 
-function toggleSnippet(e, that) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation(); // Prevent triggering the article link        
+/**
+ * Expands or collapses fulltext search snippet content when the header is selected
+ * @param {Element} ele The container element that was selected 
+ * @param {Event} ev The event to handle or null if called programmatically  
+*/
+function toggleSnippet(ele, ev) {
+    if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation(); // Prevent triggering the article link        
     }
-    var header = that;
-    var targetId = header.getAttribute('data-target');
-    var content = targetId ? document.getElementById(targetId) : header.children[1]; // Snippet content
-    // var indicator = header.querySelector('.snippet-indicator');
+    var header = ele.children[0]; // Snippet header
+    var content = ele.children[1]; // Snippet content
     var isExpanded = header.getAttribute('aria-expanded') === 'true';
     if (isExpanded) {
         // Collapse
