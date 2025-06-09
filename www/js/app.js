@@ -285,18 +285,18 @@ prefixElement.addEventListener('keydown', function (e) {
         document.getElementById('articleContent').focus();
         keyPressHandled = true;
     }
-    // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
+        // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
     // IE11 produces "Down" instead of "ArrowDown" and "Up" instead of "ArrowUp"
-    if (/^((Arrow)?Down|(Arrow)?Up|Enter)$/.test(e.key)) {
-        // User pressed Down arrow or Up arrow or Enter
+    if (/^((Arrow)?(Down|Up|Left|Right)|Enter)$/.test(e.key)) {
+        // User pressed Down arrow, Up arrow, Left arrow, Right arrow, or Enter
         e.preventDefault();
         e.stopPropagation();
         // This is needed to prevent processing in the keyup event : https://stackoverflow.com/questions/9951274
         keyPressHandled = true;
         var activeElement = document.querySelector('#articleList .hover') || document.querySelector('#articleList a');
         if (!activeElement) return;
-        // If user presses Enter, read the dirEntry
-        if (/Enter/.test(e.key)) {
+        // If user presses Enter or Right arrow, read the dirEntry or open snippet
+        if (/Enter|Right|Left/.test(e.key)) {
             if (activeElement.classList.contains('hover') &&  !activeElement.classList.contains('snippet-container')) {
                 var dirEntryId = activeElement.getAttribute('dirEntryId');
                 findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
@@ -308,7 +308,7 @@ prefixElement.addEventListener('keydown', function (e) {
             }
         }
         // If user presses ArrowDown...
-        // (NB selection is limited to five possibilities by regex above)
+        // (NB selection is limited to arrow keys and Enter by regex above)
         if (/Down/.test(e.key)) {
             if (activeElement.classList.contains('hover')) {
                 activeElement.classList.remove('hover');
