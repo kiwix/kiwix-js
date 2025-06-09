@@ -514,6 +514,11 @@ document.getElementById('useLibzim').addEventListener('click', function () {
     window.location.reload();
 });
 
+document.getElementById('libzimSearchType').addEventListener('change', function (e) {
+    params.libzimSearchType = e.target.checked ? 'searchWithSnippets' : 'search';
+    settingsStore.setItem('libzimSearchType', params.libzimSearchType, Infinity);
+});
+
 document.getElementById('disableDragAndDropCheck').addEventListener('change', function () {
     params.disableDragAndDrop = !!this.checked;
     settingsStore.setItem('disableDragAndDrop', params.disableDragAndDrop, Infinity);
