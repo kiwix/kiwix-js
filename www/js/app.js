@@ -297,9 +297,13 @@ prefixElement.addEventListener('keydown', function (e) {
         if (!activeElement) return;
         // If user presses Enter, read the dirEntry
         if (/Enter/.test(e.key)) {
-            if (activeElement.classList.contains('hover')) {
+            if (activeElement.classList.contains('hover') &&  !activeElement.classList.contains('snippet-container')) {
                 var dirEntryId = activeElement.getAttribute('dirEntryId');
                 findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
+                return;
+            } else if (activeElement.classList.contains('snippet-container')) {
+                // Open the snippet container
+                toggleSnippet(null, activeElement);
                 return;
             }
         }
@@ -308,7 +312,11 @@ prefixElement.addEventListener('keydown', function (e) {
         if (/Down/.test(e.key)) {
             if (activeElement.classList.contains('hover')) {
                 activeElement.classList.remove('hover');
+                if (activeElement.firstElementChild) activeElement.firstElementChild.classList.remove('hover');
                 activeElement = activeElement.nextElementSibling || activeElement;
+                if (activeElement.classList.contains('snippet-container')) {
+                    activeElement.firstElementChild.classList.add('hover');
+                }
                 var nextElement = activeElement.nextElementSibling || activeElement;
                 if (!uiUtil.isElementInView(nextElement, true)) nextElement.scrollIntoView(false);
             }
@@ -316,7 +324,11 @@ prefixElement.addEventListener('keydown', function (e) {
         // If user presses ArrowUp...
         if (/Up/.test(e.key)) {
             activeElement.classList.remove('hover');
+            if (activeElement.firstElementChild) activeElement.firstElementChild.classList.remove('hover');
             activeElement = activeElement.previousElementSibling || activeElement;
+            if (activeElement.classList.contains('snippet-container')) {
+                activeElement.firstElementChild.classList.add('hover');
+            }
             var previousElement = activeElement.previousElementSibling || activeElement;
             if (!uiUtil.isElementInView(previousElement, true)) previousElement.scrollIntoView();
             if (previousElement === activeElement) document.getElementById('top').scrollIntoView();
@@ -2010,25 +2022,6 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         );
     }
 
-    var toggleSnippet = function (e, that) {
-        e.preventDefault();
-        e.stopPropagation(); // Prevent triggering the article link        
-        var header = that;
-        var targetId = header.getAttribute('data-target');
-        var content = document.getElementById(targetId);
-        // var indicator = header.querySelector('.snippet-indicator');
-        var isExpanded = header.getAttribute('aria-expanded') === 'true';
-        if (isExpanded) {
-            // Collapse
-            content.classList.add('collapsed');
-            header.setAttribute('aria-expanded', 'false');
-        } else {
-            // Expand
-            content.classList.remove('collapsed');
-            header.setAttribute('aria-expanded', 'true');
-        }
-    };
-
     articleListHeaderMessageDiv.textContent = message;
 
     var articleListDiv = document.getElementById('articleList');
@@ -2109,6 +2102,27 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
+}
+
+function toggleSnippet(e, that) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent triggering the article link        
+    }
+    var header = that;
+    var targetId = header.getAttribute('data-target');
+    var content = targetId ? document.getElementById(targetId) : header.children[1]; // Snippet content
+    // var indicator = header.querySelector('.snippet-indicator');
+    var isExpanded = header.getAttribute('aria-expanded') === 'true';
+    if (isExpanded) {
+        // Collapse
+        content.classList.add('collapsed');
+        header.setAttribute('aria-expanded', 'false');
+    } else {
+        // Expand
+        content.classList.remove('collapsed');
+        header.setAttribute('aria-expanded', 'true');
+    }
 }
 
 /**

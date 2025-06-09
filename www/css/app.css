@@ -99,7 +99,7 @@
     padding-bottom: 5px;
 }
 
-#articleList a:hover, #articleList a.hover {
+#articleList a:hover, #articleList a.hover, div.snippet-header.hover {
     background: lightblue;
 }
 
