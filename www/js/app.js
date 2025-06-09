@@ -2037,58 +2037,22 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     for (var i = 0; i < listLength; i++) {
         dirEntry = dirEntryArray[i];
         var dirEntryStringId = encodeURIComponent(dirEntry.toStringId());
+        var title = dirEntry.title || dirEntry.getTitleOrUrl();
+        // Make title bold if entry has a snippet
+        if (dirEntry.snippet) {
+            title = '<strong>' + title + '</strong>';
+        }
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-            '" class="list-group-item" role="option">' + dirEntry.getTitleOrUrl() + '</a>';
+            '" class="list-group-item" role="option">' + title + '</a>';
     }
+
 
     // Set the innerHTML once
     articleListDiv.innerHTML = articleListDivHtml;
 
     // Now add snippets and event listeners in a single loop
     var articleLinks = articleListDiv.querySelectorAll('a[dirEntryId]');
-    for (i = 0; i < listLength; i++) {
-        dirEntry = dirEntryArray[i];
-        
-        // Add snippet if it exists
-        if (dirEntry.snippet && articleLinks[i]) {
-            var snippetId = 'snippet-' + i;
-            
-            // Create snippet container
-            var snippetContainer = document.createElement('div');
-            snippetContainer.className = 'snippet-container';
-            
-            // Create and populate snippet header
-            var snippetHeader = document.createElement('div');
-            snippetHeader.className = 'snippet-header';
-            snippetHeader.tabIndex = 0;
-            snippetHeader.setAttribute('data-target', snippetId);
-            snippetHeader.setAttribute('aria-expanded', 'false');
-            
-            var indicator = document.createElement('span');
-            indicator.className = 'snippet-indicator';
-            indicator.textContent = '▶';
-            
-            var preview = document.createElement('span');
-            preview.className = 'snippet-preview';
-            preview.innerHTML = dirEntry.snippet.substring(0, 80) + '...';
-            
-            snippetHeader.appendChild(indicator);
-            snippetHeader.appendChild(preview);
-            
-            // Create snippet content
-            var content = document.createElement('div');
-            content.id = snippetId;
-            content.className = 'snippet-content collapsed';
-            content.innerHTML = dirEntry.snippet;
-            
-            // Assemble and insert
-            snippetContainer.appendChild(snippetHeader);
-            snippetContainer.appendChild(content);
-            
-            // Insert after the article link
-            articleLinks[i].parentNode.insertBefore(snippetContainer, articleLinks[i].nextSibling);
-        }
-    }
+    uiUtil.createSnippetElements(dirEntryArray, articleLinks, listLength);
 
     // Add event listeners to article links
     uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);

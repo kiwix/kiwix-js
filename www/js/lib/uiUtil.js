@@ -1097,6 +1097,58 @@ function handleTitleClick(event, findDirEntryCallback) {
 }
 
 /**
+ * Creates and inserts snippet elements for search results
+ * @param {Array} entriesArray Array of directory entries
+ * @param {NodeList} links The article link elements  
+ * @param {Number} length Number of items to process
+ */
+function createSnippetElements(entriesArray, links, length) {
+    for (var i = 0; i < length; i++) {
+        var dirEntry = entriesArray[i];
+        
+        // Add snippet if it exists
+        if (dirEntry.snippet && links[i]) {
+            var snippetId = 'snippet-' + i;
+            
+            // Create snippet container
+            var snippetContainer = document.createElement('div');
+            snippetContainer.className = 'snippet-container';
+            
+            // Create and populate snippet header
+            var snippetHeader = document.createElement('div');
+            snippetHeader.className = 'snippet-header';
+            snippetHeader.tabIndex = 0;
+            snippetHeader.setAttribute('data-target', snippetId);
+            snippetHeader.setAttribute('aria-expanded', 'false');
+            
+            var indicator = document.createElement('span');
+            indicator.className = 'snippet-indicator';
+            indicator.textContent = '▶';
+            
+            var preview = document.createElement('span');
+            preview.className = 'snippet-preview';
+            preview.innerHTML = dirEntry.snippet.substring(0, 80) + '...';
+            
+            snippetHeader.appendChild(indicator);
+            snippetHeader.appendChild(preview);
+            
+            // Create snippet content
+            var content = document.createElement('div');
+            content.id = snippetId;
+            content.className = 'snippet-content collapsed';
+            content.innerHTML = dirEntry.snippet;
+            
+            // Assemble and insert
+            snippetContainer.appendChild(snippetHeader);
+            snippetContainer.appendChild(content);
+            
+            // Insert after the article link
+            links[i].parentNode.insertBefore(snippetContainer, links[i].nextSibling);
+        }
+    }
+}
+
+/**
  * Expands or collapses fulltext search snippet content when the header is selected
  * @param {Element} ele The container element that was selected 
  * @param {Event} ev The event to handle or null if called programmatically  
@@ -1216,6 +1268,7 @@ export default {
     returnToCurrentPage: returnToCurrentPage,
     fromSection: fromSection,
     handleTitleClick: handleTitleClick,
+    createSnippetElements: createSnippetElements,
     toggleSnippet: toggleSnippet,
     attachArticleListEventListeners: attachArticleListEventListeners
 };
