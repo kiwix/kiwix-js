@@ -2103,6 +2103,44 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
                 handleTitleClick(e);
             }
         });
+        // Add hover functionality for snippet containers with delay
+        if (element.classList.contains('snippet-container')) {
+            var hoverTimeout;
+            element.addEventListener('mouseenter', function (e) {
+                // Clear any existing timeout
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                }
+                // Set a delay before expanding (e.g., 300ms)
+                hoverTimeout = setTimeout(function() {
+                    // Safety check: ensure the element still has the expected children
+                    if (element.children.length < 2) return;
+                    
+                    var header = element.children[0];
+                    var content = element.children[1];
+                    var isExpanded = header.getAttribute('aria-expanded') === 'true';
+                    // Only expand if not already expanded
+                    if (!isExpanded) {
+                        content.classList.remove('collapsed');
+                        header.setAttribute('aria-expanded', 'true');
+                    }
+                }, 400);
+            });
+            element.addEventListener('mouseleave', function (e) {
+                // Clear the timeout if user leaves before delay completes
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                    hoverTimeout = null;
+                }
+                // Safety check: ensure the element still has the expected children
+                if (element.children.length < 2) return;                
+                // Always collapse on mouse leave
+                // var header = element.children[0];
+                // var content = element.children[1];
+                // content.classList.add('collapsed');
+                // header.setAttribute('aria-expanded', 'false');
+            });
+        }
     });
 
     if (!stillSearching) uiUtil.spinnerDisplay(false);
