@@ -401,7 +401,7 @@ ZIMArchive.prototype.getContentNamespace = function () {
         var ver = this.file.minorVersion;
         // DEV: There are currently only two defined values for minorVersion in the OpenZIM specification
         // If this changes, adapt the error checking and return values
-        if (ver > 2) {
+        if (ver > 3) {
             console.error('Unknown ZIM minor version: ' + ver + '! Assuming content namespace is C.');
         }
         return ver === 0 ? 'A' : 'C';
