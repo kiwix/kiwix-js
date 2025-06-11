@@ -9,10 +9,12 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 Released on *TODO*
 
 * FEATURE: Added a Table of Contents display and bottom toolbar button
+* FEATURE: Added snippets support when doing a fulltext search
 * ENHANCEMENT: Config and Info menus can now be "unclicked" to return to the currently open article
 * ENHANCEMENT: Created a new library loader with fallback to mirror sources if Kiwix library is down
 * ENHANCEMENT: Make Kiwix search results accessible for screen readers
 * ENHANCEMENT: When a folder is picked, show up to 10 archives in the file select area
+* ENHANCEMENT: Improved keyboard navigation of fulltext search list
 * FIX: Failure to set expected article in ServiceWorker Mode
 * FIX: Sizing of random button on home page
 * FIX: Sizing of search bar on narrow screens
@@ -28,7 +30,7 @@ Released on *TODO*
 * DEV: Converted QUnit tests to Mocha Unit tests
 * DEV: Clean up and separate Unit tests and E2E tests
 * DEV: Add ESLint tests and improve stability of E2E tests
-* DEV: Bump javascript-libzim to v0.7
+* DEV: Bump javascript-libzim to v0.9 with support for suggestions and snippets
 * DEV: Build compact code by default to avoid style deoptimization warning on building for production
 * DEV: Bump Vite to v6.2.6
 * DEV: Various security updates
