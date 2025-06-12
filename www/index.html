@@ -577,6 +577,12 @@
                                     <p data-i18n="configure-display-apptheme-wikivector-description" id="wikiVector-help" class="appThemeInfo form-text text-muted">* Only applies to Wikimedia ZIMs. Falls back to generic inversion when other archives are loaded.</p>
                                     <a data-i18n="configure-display-apptheme-info" id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with applied theme&nbsp;]</a>
                                 </div>
+                                <div class="checkbox" id="libzimSearchTypeCheckBox">
+                                    <label data-i18n-tip="configure-display-libzimsearchtype-tip" title="If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.">
+                                        <input type="checkbox" name="libzimSearchType" id="libzimSearchType" checked>
+                                        <span data-i18n="configure-display-libzimsearchtype"><b>Add snippets to libzim fulltext search</b> (if available)</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -724,7 +730,7 @@
                                         <span data-i18n="configure-expert-enable-source-verification-check-box"><strong>Enable source verification of new files</strong> (<i>recommended</i>: you will only be prompted the first time you open a ZIM)</span>
                                     </label>
                                 </div>
-                                <div class="checkbox" id="">
+                                <div class="checkbox" id="useLibzimCheckBox">
                                     <label data-i18n-tip="configure-expert-useLibzim-tip" title="Uses the selected version of libzim to access the ZIM contents (ServiceWorker mode only).">
                                         <input type="checkbox" name="useLibzim" id="useLibzim">
                                         <span><strong data-i18n="configure-expert-useLibzim">Use libzim for loading zim</strong> (<i data-i18n="configure-expert-useLibzim-warning">uses unstable libzim API for reading ZIM</i>)</span>

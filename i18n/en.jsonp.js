@@ -63,6 +63,8 @@ document.localeJson = {
       "configure-display-apptheme-auto-description": "&emsp;(Auto themes match the dark/light mode of your device.)",
       "configure-display-apptheme-mwinvert-description": "* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.",
       "configure-display-apptheme-info": "[&nbsp;Show article with applied theme&nbsp;]",
+      "configure-display-libzimsearchtype": "<b>Add snippets to libzim fulltext search</b> (if available)",
+      "configure-display-libzimsearchtype-tip": "If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.",
       "configure-language-selector-default": "Language",
       "configure-language-selector-other": "More soon...",
       "configure-library-all-unreachable": "All library servers are currently unreachable.",

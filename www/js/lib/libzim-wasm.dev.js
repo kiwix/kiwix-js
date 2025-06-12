@@ -23,7 +23,7 @@ var Module = typeof Module != 'undefined' ? Module : {};
  * It is concatenated with postjs_file_api.js during the Emscripten build process (see Makefile)
  * to create a complete web worker script that can be used with WebAssembly or asm.js builds.
  * 
- * Supported actions: getEntryByPath, search, suggest, getArticleCount, init
+ * Supported actions: getEntryByPath, search, searchWithSnippets, suggest, getArticleCount, init
  */
 
 self.addEventListener('message', function(e) {
@@ -56,18 +56,60 @@ self.addEventListener('message', function(e) {
             outgoingMessagePort.postMessage({ content: new Uint8Array(), mimetype: 'unknown', isRedirect: false});
         }
     } 
-    // Full-text search across ZIM archive content
+    // Full-text search across ZIM archive content (basic version - paths only)
     else if (action === 'search') {
         var text = e.data.text;
         var numResults = e.data.numResults || 50;
         var entries = Module[action](text, numResults);
         console.debug('Found nb results = ' + entries.size(), entries);
-        var serializedEntries = [];
+        var serializedResults = [];
         for (var i=0; i<entries.size(); i++) {
             var entry = entries.get(i);
-            serializedEntries.push({path: entry.getPath()});
+            serializedResults.push({
+                path: entry.getPath(),
+                title: entry.getTitle(),
+                snippet: null,
+                score: null,
+                wordCount: null
+            });
         }
-        outgoingMessagePort.postMessage({ entries: serializedEntries });
+        outgoingMessagePort.postMessage({ results: serializedResults });
+    } 
+    // NEW: Enhanced full-text search with content snippets
+    else if (action === 'searchWithSnippets') {
+        var text = e.data.text;
+        var numResults = e.data.numResults || 50;
+        try {
+            var searchResults = Module['searchWithSnippets'](text, numResults);
+            console.debug('Found nb search results with snippets = ' + searchResults.size(), searchResults);
+            var serializedResults = [];
+            for (var i=0; i<searchResults.size(); i++) {
+                var result = searchResults.get(i);
+                try {
+                    serializedResults.push({
+                        path: result.getPath(),
+                        title: result.getTitle(),
+                        snippet: result.getSnippet(),
+                        score: result.getScore(),
+                        wordCount: result.getWordCount()
+                    });
+                } catch (error) {
+                    console.warn('Error processing search result ' + i + ':', error);
+                    // Include basic info even if snippet extraction fails
+                    serializedResults.push({
+                        path: result.getPath() || '',
+                        title: result.getTitle() || '',
+                        snippet: '',
+                        score: 0,
+                        wordCount: 0
+                    });
+                }
+            }
+            outgoingMessagePort.postMessage({ results: serializedResults });
+        } catch (error) {
+            console.error('searchWithSnippets error:', error);
+            outgoingMessagePort.postMessage({ results: [], error: error.message });
+        }
     } 
     // Title-based suggestions for autocomplete (faster than full-text search)
     else if (action === 'suggest') {
@@ -122,7 +164,6 @@ self.addEventListener('message', function(e) {
 
         // File continues in postjs_file_api.js - handles invalid actions and closes the event listener
         // Between prejs and postjs: Emscripten injects the compiled WebAssembly/asm.js Module code and bindings
-
 
 // Sometimes an existing Module object exists with properties
 // meant to overwrite the default module functionality. Here
@@ -232,6 +273,7 @@ readAsync = (filename, onload, onerror, binary = true) => {
 
   process.on('uncaughtException', (ex) => {
     // suppress ExitStatus exceptions from showing an error
+    dbg(`node: uncaughtException: ${ex}`)
     if (ex !== 'unwind' && !(ex instanceof ExitStatus) && !(ex.context instanceof ExitStatus)) {
       throw ex;
     }
@@ -534,6 +576,7 @@ var wasmTable;
 // Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
 function writeStackCookie() {
   var max = _emscripten_stack_get_end();
+  dbg(`writeStackCookie: ${ptrToString(max)}`);
   assert((max & 3) == 0);
   // If the stack ends at address zero we write our cookies 4 bytes into the
   // stack.  This prevents interference with SAFE_HEAP and ASAN which also
@@ -553,6 +596,7 @@ function writeStackCookie() {
 function checkStackCookie() {
   if (ABORT) return;
   var max = _emscripten_stack_get_end();
+  dbg(`checkStackCookie: ${ptrToString(max)}`);
   // See writeStackCookie().
   if (max == 0) {
     max += 4;
@@ -1012,6 +1056,7 @@ function createWasm() {
     }
   }
 
+  dbg('asynchronously preparing wasm');
   instantiateAsync(wasmBinary, wasmBinaryFile, info, receiveInstantiationResult);
   return {}; // no exports yet; we'll fill them in later
 }
@@ -1107,6 +1152,33 @@ function unexportedRuntimeSymbol(sym) {
       }
     });
   }
+}
+
+var runtimeDebug = true; // Switch to false at runtime to disable logging at the right times
+
+var printObjectList = [];
+
+function prettyPrint(arg) {
+  if (typeof arg == 'undefined') return '!UNDEFINED!';
+  if (typeof arg == 'boolean') arg = arg + 0;
+  if (!arg) return arg;
+  var index = printObjectList.indexOf(arg);
+  if (index >= 0) return '<' + arg + '|' + index + '>';
+  if (arg.toString() == '[object HTMLImageElement]') {
+    return arg + '\n\n';
+  }
+  if (arg.byteLength) {
+    return '{' + Array.prototype.slice.call(arg, 0, Math.min(arg.length, 400)) + '}';
+  }
+  if (typeof arg == 'function') {
+    return '<function>';
+  } else if (typeof arg == 'object') {
+    printObjectList.push(arg);
+    return '<' + arg + '|' + (printObjectList.length-1) + '>';
+  } else if (typeof arg == 'number') {
+    if (arg > 0) return ptrToString(arg) + ' (' + arg + ')';
+  }
+  return arg;
 }
 
 // Used by XXXXX_DEBUG settings to output debug messages.
@@ -1476,6 +1548,7 @@ function dbg(text) {
       }
       info.set_rethrown(false);
       exceptionCaught.push(info);
+      dbg('__cxa_begin_catch ' + [ptrToString(ptr), 'stack', exceptionCaught]);
       ___cxa_increment_exception_refcount(info.excPtr);
       return info.get_exception_ptr();
     }
@@ -1491,10 +1564,12 @@ function dbg(text) {
       // Call destructor if one is registered then clear it.
       var info = exceptionCaught.pop();
   
+      dbg('__cxa_end_catch popped ' + [info, exceptionLast, 'stack', exceptionCaught]);
       ___cxa_decrement_exception_refcount(info.excPtr);
       exceptionLast = 0; // XXX in decRef?
     }
 
+  
   
   /** @constructor */
   function ExceptionInfo(excPtr) {
@@ -1537,6 +1612,7 @@ function dbg(text) {
   
       // Initialize native structure fields. Should be called once after allocated.
       this.init = function(type, destructor) {
+        dbg('ExceptionInfo init: ' + [type, destructor]);
         this.set_adjusted_ptr(0);
         this.set_type(type);
         this.set_destructor(destructor);
@@ -1568,6 +1644,7 @@ function dbg(text) {
     }
   
   function ___resumeException(ptr) {
+      dbg("__resumeException " + [ptrToString(ptr), exceptionLast]);
       if (!exceptionLast) { 
         exceptionLast = new CppException(ptr);
       }
@@ -1598,6 +1675,7 @@ function dbg(text) {
       }
   
       // can_catch receives a **, add indirection
+      dbg("__cxa_find_matching_catch on " + ptrToString(thrown));
       // The different catch blocks are denoted by different types.
       // Due to inheritance, those types may not precisely match the
       // type of the thrown object. Find one which matches, and
@@ -1612,6 +1690,7 @@ function dbg(text) {
         }
         var adjusted_ptr_addr = info.ptr + 16;
         if (___cxa_can_catch(caughtType, thrownType, adjusted_ptr_addr)) {
+          dbg("  __cxa_find_matching_catch found " + [ptrToString(info.get_adjusted_ptr()), caughtType]);
           setTempRet0(caughtType);
           return thrown;
         }
@@ -1640,6 +1719,8 @@ function dbg(text) {
         info.set_caught(false);
         uncaughtExceptionCount++;
       }
+      dbg('__cxa_rethrow, popped ' +
+        [ptrToString(ptr), exceptionLast, 'stack', exceptionCaught]);
       exceptionLast = new CppException(ptr);
       throw exceptionLast;
     }
@@ -1657,6 +1738,7 @@ function dbg(text) {
   
   
   function ___cxa_throw(ptr, type, destructor) {
+      dbg('__cxa_throw: ' + [ptrToString(ptr), type, ptrToString(destructor)]);
       var info = new ExceptionInfo(ptr);
       // Initialize ExceptionInfo content after it was allocated in __cxa_allocate_exception.
       info.init(type, destructor);
@@ -6397,6 +6479,7 @@ function dbg(text) {
   function emscripten_realloc_buffer(size) {
       var b = wasmMemory.buffer;
       var pages = (size - b.byteLength + 65535) >>> 16;
+      dbg(`emscripten_resize_heap: ${size} (+${size - b.byteLength} bytes / ${pages} pages)`);
       try {
         // round size grow request up to wasm page size (fixed 64KB per spec)
         wasmMemory.grow(pages); // .grow() takes a delta compared to the previous size
@@ -7005,6 +7088,7 @@ function dbg(text) {
 
   
   function _proc_exit(code) {
+      dbg(`proc_exit: ${code}`);
       EXITSTATUS = code;
       if (!keepRuntimeAlive()) {
         if (Module['onExit']) Module['onExit'](code);
@@ -7034,6 +7118,7 @@ function dbg(text) {
       // 2. "unwind", which is thrown by emscripten_unwind_to_js_event_loop() and others
       //    that wish to return to JS event loop.
       if (e instanceof ExitStatus || e == 'unwind') {
+        dbg(`handleException: unwinding: EXITSTATUS=${EXITSTATUS}`);
         return EXITSTATUS;
       }
       checkStackCookie();
@@ -7858,6 +7943,7 @@ var unexportedSymbols = [
   'setTempRet0',
   'writeStackCookie',
   'checkStackCookie',
+  'prettyPrint',
   'ptrToString',
   'zeroMemory',
   'exitJS',
@@ -8104,6 +8190,7 @@ function stackCheckInit() {
 function run(args = arguments_) {
 
   if (runDependencies > 0) {
+    dbg('run() called, but dependencies remain, so not running');
     return;
   }
 
@@ -8113,6 +8200,7 @@ function run(args = arguments_) {
 
   // a preRun added a dependency, run will be called later
   if (runDependencies > 0) {
+    dbg('run() called, but dependencies remain, so not running');
     return;
   }
 

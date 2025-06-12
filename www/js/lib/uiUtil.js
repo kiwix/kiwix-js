@@ -1135,6 +1135,171 @@ function getBrowserLanguage () {
 }
 
 /**
+ * Handles the click on the title of an article in search results
+ * @param {Event} event The click event to handle
+ * @param {Function} findDirEntryCallback Callback to find and launch article
+ */
+function handleTitleClick(event, findDirEntryCallback) {
+    event.preventDefault();
+    // User may have clicked on a child element of the list item if it contains HTML (for example, italics),
+    // so we may need to find the closest list item
+    let target = event.target;
+    if (!/list-group-item/.test(target.className)) {
+        console.warn('User clicked on child element of list item, looking for parent...');
+        while (target && !/list-group-item/.test(target.className)) {
+            target = target.parentNode;
+        }
+        if (!target) {
+            // No list item found, so we can't do anything
+            console.warn('No list item could be found for clicked event!');
+            return;
+        }
+    }
+    var dirEntryId = decodeURIComponent(target.getAttribute('dirEntryId'));
+    findDirEntryCallback(dirEntryId);
+}
+
+/**
+ * Creates and inserts snippet elements for search results
+ * @param {Array} entriesArray Array of directory entries
+ * @param {NodeList} links The article link elements  
+ * @param {Number} length Number of items to process
+ */
+function createSnippetElements(entriesArray, links, length) {
+    for (var i = 0; i < length; i++) {
+        var dirEntry = entriesArray[i];
+        
+        // Add snippet if it exists
+        if (dirEntry.snippet && links[i]) {
+            var snippetId = 'snippet-' + i;
+            
+            // Create snippet container
+            var snippetContainer = document.createElement('div');
+            snippetContainer.className = 'snippet-container';
+            
+            // Create and populate snippet header
+            var snippetHeader = document.createElement('div');
+            snippetHeader.className = 'snippet-header';
+            snippetHeader.tabIndex = 0;
+            snippetHeader.setAttribute('data-target', snippetId);
+            snippetHeader.setAttribute('aria-expanded', 'false');
+            
+            var indicator = document.createElement('span');
+            indicator.className = 'snippet-indicator';
+            indicator.textContent = '▶';
+            
+            var preview = document.createElement('span');
+            preview.className = 'snippet-preview';
+            preview.innerHTML = dirEntry.snippet.substring(0, 80) + '...';
+            
+            snippetHeader.appendChild(indicator);
+            snippetHeader.appendChild(preview);
+            
+            // Create snippet content
+            var content = document.createElement('div');
+            content.id = snippetId;
+            content.className = 'snippet-content collapsed';
+            content.innerHTML = dirEntry.snippet;
+            
+            // Assemble and insert
+            snippetContainer.appendChild(snippetHeader);
+            snippetContainer.appendChild(content);
+            
+            // Insert after the article link
+            links[i].parentNode.insertBefore(snippetContainer, links[i].nextSibling);
+        }
+    }
+}
+
+/**
+ * Expands or collapses fulltext search snippet content when the header is selected
+ * @param {Element} ele The container element that was selected 
+ * @param {Event} ev The event to handle or null if called programmatically  
+*/
+function toggleSnippet (ele, ev) {
+    if (ev) {
+        ev.preventDefault();
+        ev.stopPropagation(); // Prevent triggering the article link        
+    }
+    var header = ele.children[0]; // Snippet header
+    var content = ele.children[1]; // Snippet content
+    var isExpanded = header.getAttribute('aria-expanded') === 'true';
+    if (isExpanded) {
+        // Collapse
+        content.classList.add('collapsed');
+        header.setAttribute('aria-expanded', 'false');
+    } else {
+        // Expand
+        content.classList.remove('collapsed');
+        header.setAttribute('aria-expanded', 'true');
+    }
+}
+
+/**
+ * Attaches event listeners to article list and snippet container elements
+ * @param {Function} findDirEntryCallback Function to find and launch article by dirEntryId
+ * @param {Object} appstate App state object containing search status
+ */
+function attachArticleListEventListeners(findDirEntryCallback, appstate) {
+    // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
+    // and prevents this event from firing; note that touch also triggers mousedown
+    document.querySelectorAll('#articleList a, .snippet-container').forEach(function (element) {
+        element.addEventListener('mousedown', function (e) {
+            if (element.classList.contains('snippet-container')) {
+                // Handle snippet toggle
+                toggleSnippet(element, e);
+            } else {
+                // Handle article link
+                appstate.search.status = 'cancelled';
+                handleTitleClick(e, findDirEntryCallback);
+            }
+        });
+        
+        // Add hover functionality for snippet containers with delay
+        if (element.classList.contains('snippet-container')) {
+            var hoverTimeout;
+            element.addEventListener('mouseenter', function () {
+                // Clear any existing timeout
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                }
+                // Set a delay before expanding (e.g., 300ms)
+                hoverTimeout = setTimeout(function() {
+                    // Safety check: ensure the element still has the expected children
+                    if (element.children.length < 2) return;
+                    
+                    var header = element.children[0];
+                    var content = element.children[1];
+                    var isExpanded = header.getAttribute('aria-expanded') === 'true';
+                    // Only expand if not already expanded
+                    if (!isExpanded) {
+                        content.classList.remove('collapsed');
+                        header.setAttribute('aria-expanded', 'true');
+                    }
+                }, 400);
+            });
+            
+            element.addEventListener('mouseleave', function () {
+                // Clear the timeout if user leaves before delay completes
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                    hoverTimeout = null;
+                }
+                // Safety check: ensure the element still has the expected children
+                if (element.children.length < 2) return;
+                
+                // Always collapse on mouse leave
+                // var header = element.children[0];
+                // var content = element.children[1];
+                // content.classList.add('collapsed');
+                // header.setAttribute('aria-expanded', 'false');
+            });
+        }
+    });
+}
+
+
+/**
  * Functions and classes exposed by this module
  */
 export default {
@@ -1164,5 +1329,9 @@ export default {
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
     getBrowserLanguage: getBrowserLanguage,
     returnToCurrentPage: returnToCurrentPage,
-    fromSection: fromSection
+    fromSection: fromSection,
+    handleTitleClick: handleTitleClick,
+    createSnippetElements: createSnippetElements,
+    toggleSnippet: toggleSnippet,
+    attachArticleListEventListeners: attachArticleListEventListeners
 };
