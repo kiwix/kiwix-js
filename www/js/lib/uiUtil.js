@@ -172,6 +172,175 @@ function slideAway (e) {
 }
 
 /**
+ * Extracts a list of headings from an article and provides methods to interact with them.
+ *
+ * @class
+ * @param {Document} articleDoc The document object of the article from which headings are to be extracted.
+ */
+function HeadingsTOC (articleDoc) {
+    this.doc = articleDoc;
+    this.headings = this.doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+    this.getHeadingObjects = function () {
+        const headings = [];
+        for (let i = 0; i < this.headings.length; i++) {
+            const element = this.headings[i];
+            const obj = {};
+
+            if (element.id) {
+                obj.id = element.id;
+            } else {
+                // generating custom id if id attribute is not present in element
+                const generatedId = element.textContent
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-');
+                obj.id = 'pph-' + i + '-' + generatedId;
+                element.id = obj.id; // to target the element
+            }
+            obj.index = i;
+            obj.textContent = element.textContent;
+            obj.tagName = element.tagName;
+            headings.push(obj);
+        }
+        return headings;
+    };
+}
+
+/**
+    * Sets up table of contents (TOC) by extracting all headings from the article.
+    * Adds click handlers to scroll to sections and highlight them.
+    *
+    * @returns {void}
+*/
+function setUpTOC () {
+    const innerDoc = articleContainer ? (articleContainer.contentDocument || articleContainer.contentWindow.document) : null;
+
+    if (!innerDoc) {
+        console.warn('null articleContainer');
+        return;
+    }
+
+    const tableOfContents = new HeadingsTOC(innerDoc);
+    const headings = tableOfContents.getHeadingObjects();
+
+    let dropupHtml = '';
+    headings.forEach(function (heading) {
+        if (/^h1$/i.test(heading.tagName)) {
+            dropupHtml += '<li class="toc-item-h1" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h2$/i.test(heading.tagName)) {
+            dropupHtml += '<li class="toc-item-h2" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h3$/i.test(heading.tagName)) {
+            dropupHtml += '<li class="toc-item-h3" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        } else if (/^h4$/i.test(heading.tagName)) {
+            dropupHtml += '<li class="toc-item-h4" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
+        }
+        // Skip smaller headings (if there are any) to avoid making list too long
+    });
+    const ToCList = document.getElementById('ToCList');
+    ToCList.style.maxHeight = ~~(window.innerHeight * 0.75) + 'px';
+    ToCList.innerHTML = dropupHtml;
+    Array.from(ToCList.getElementsByTagName('a'))
+        .forEach(function (listElement) {
+            listElement.addEventListener('click', function () {
+                const sectionEle = innerDoc.getElementById(this.dataset.headingId)
+
+                const sectionsToOpen = getParentSections(sectionEle); // get all parents which are 'section' or 'details'
+                openSection(sectionsToOpen); // open all parents
+                // why..? because if the section is inside a details element, it will be closed by default
+
+                sectionEle.scrollIntoView();
+
+                // highlighting the section
+                sectionEle.style.backgroundColor = '#bdd1e5';
+                setTimeout(function () {
+                    sectionEle.style.backgroundColor = '';
+                }, 2000);
+                sectionEle.style.transition = 'background-color 300ms ease-out';
+            }
+        );
+    });
+}
+
+// Event listeners to handle interactions with dropup button and TOCList
+document.addEventListener('DOMContentLoaded', function () {
+    const dropup = document.getElementById('dropup');
+    dropup.setAttribute('tabindex', '0'); // dropup focusable with the keyboard
+    const ToCList = document.getElementById('ToCList');
+
+    // to close TOC when clicking inside the iframe
+    const onContainerLoad = function () {
+        const innerDoc = articleContainer.contentDocument || articleContainer.contentWindow.document;
+        innerDoc.addEventListener('click', function () {
+            closeTOC();
+        });
+    };
+    articleContainer.removeEventListener('load', onContainerLoad);
+    articleContainer.addEventListener('load', onContainerLoad);
+
+    // to close toc when user clicks outside of it
+    const documentClickHandler = function (event) {
+        if (!dropup.contains(event.target) && !ToCList.contains(event.target)) {
+            closeTOC();
+        }
+    }
+    document.removeEventListener('click', documentClickHandler);
+    document.addEventListener('click', documentClickHandler);
+
+    // handling clicks on dropup separately
+    const dropupClickHandler = function () {
+        const isVisible = getComputedStyle(ToCList).display !== 'none';
+        if (isVisible) {
+            ToCList.style.display = 'none';
+        } else {
+            setUpTOC();
+            ToCList.style.display = 'flex';
+            ToCList.style.flexDirection = 'column';
+        }
+    };
+    dropup.removeEventListener('click', dropupClickHandler);
+    dropup.addEventListener('click', dropupClickHandler);
+});
+
+function closeTOC () {
+    console.log('pp closeTOC called')
+    const ToCList = document.getElementById('ToCList');
+    ToCList.style.display = 'none';
+}
+
+// get all parent elements which are 'section' or 'details'
+function getParentSections (element) {
+    const parents = [];
+    let currentElement = element;
+    while (currentElement) {
+        if (/section|details/i.test(currentElement.tagName)) {
+            parents.push(currentElement);
+        }
+        currentElement = currentElement.parentElement;
+    }
+    return parents;
+};
+
+// Function to open a specific section and all its parent sections
+function openSection (sectionsToOpen) {
+    if (!sectionsToOpen) return;
+    sectionsToOpen.forEach(section => {
+        if (section.tagName === 'DETAILS') {
+            section.setAttribute('open', '');
+        } else if (section.tagName === 'SECTION') {
+            section.style.display = '';
+            Array.from(section.children).forEach(child => {
+                if (!/SUMMARY|H\d/.test(child.tagName)) {
+                    child.style.display = '';
+                }
+            });
+        }
+    });
+};
+
+/**
  * Displays a Bootstrap alert or confirm dialog box depending on the options provided
  *
  * @param {String} message The alert message(can be formatted using HTML) to display in the body of the modal.
@@ -1249,6 +1418,7 @@ export default {
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
+    setUpTOC: setUpTOC,
     removeUrlParameters: removeUrlParameters,
     displayActiveContentWarning: displayActiveContentWarning,
     displayFileDownloadAlert: displayFileDownloadAlert,
