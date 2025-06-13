@@ -63,6 +63,7 @@ document.localeJson = {
       "configure-display-themeoption-auto-mwinvert": "Auto (wikimedia invert)",
       "configure-display-apptheme-auto-description": "&emsp;(Auto themes match the dark/light mode of your device.)",
       "configure-display-apptheme-mwinvert-description": "* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.",
+      "configure-display-apptheme-wikivector-description": "* Only applies to Wikimedia ZIMs. Falls back to generic inversion when other archives are loaded.",
       "configure-display-apptheme-info": "[&nbsp;Show article with applied theme&nbsp;]",
       "configure-display-libzimsearchtype": "<b>Add snippets to libzim fulltext search</b> (if available)",
       "configure-display-libzimsearchtype-tip": "If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.",
