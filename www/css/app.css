@@ -551,29 +551,3 @@ button {
     
 }
 
-/* Prevent white flash in dark mode */
-body.content-loading {
-    visibility: hidden !important;
-}
-
-/* Set default dark background for the entire iframe */
-.dark iframe,
-.dark #articleContainer,
-iframe._invert,
-iframe._wikiVector {
-    background-color: #e5e5e5 !important;
-}
-
-/*  Iframe document should have same background color */
-.dark iframe::before,
-iframe._invert::before,
-iframe._wikiVector::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #e5e5e5 !important;
-    z-index: 9999;
-}
