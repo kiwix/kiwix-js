@@ -57,6 +57,7 @@ document.localeJson = {
       "configure-display-themeoption-dark-apponly": "Sombre (application uniquement)",
       "configure-display-themeoption-dark-invert": "Sombre (inversion générique)",
       "configure-display-themeoption-dark-mwinvert": "Sombre (inversion Wikimédia)",
+      "configure-display-themeoption-dark-wikivector": "Sombre (vector de Wikipédia)",
       "configure-display-themeoption-auto-apponly": "Automatique (application uniquement)",
       "configure-display-themeoption-auto-invert": "Automatique (inversion générique)",
       "configure-display-themeoption-auto-mwinvert": "Automatique (inversion Wikimédia)",
