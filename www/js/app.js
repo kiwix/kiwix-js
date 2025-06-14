@@ -3289,6 +3289,9 @@ function pushBrowserHistoryState (title, titleSearch) {
     window.history.pushState(stateObj, stateLabel, urlParameters);
 }
 
+// Setup table of contents and display the list when the dropup button is clicked
+uiUtil.setUpTOC();
+
 /**
  * Extracts the content of the given article pathname, or a downloadable file, from the ZIM
  *

@@ -385,6 +385,57 @@ iframe._invert, iframe._mwInvert {
     font-weight: bold;
 }
 
+.btn-group.btn-block {
+    padding-left: 5%;
+}
+
+.dropdown-menu.flex-container {
+    overflow-y:auto;
+    padding: 2px 4px;
+    position: absolute;
+    margin: 0 !important;
+}
+
+/* to fix its alignment with other buttons */
+.dropup button{
+    padding-top: 12px;
+}
+@media (max-width:768px) {
+    .dropup button{
+        padding-top: 0px;
+    }
+}
+
+#ToCList{
+    line-height: 1.7;
+}
+
+#ToCList a {
+    display: block;
+}
+
+.toc-item-h1{
+    font-size: 18px;
+}
+
+.toc-item-h2{
+    font-size: 16px;
+    margin-top:6px;
+    margin-left:6px;
+}
+
+.toc-item-h3{
+    font-size: 14px;
+    margin-left:12px;
+    font-weight:350;
+}
+
+.toc-item-h4{
+    font-size: 12px;
+    margin-left:16px;
+    font-weight:300;
+}
+
 .container {
     margin-bottom: 1.5em;
 }
