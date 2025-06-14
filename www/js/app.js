@@ -126,6 +126,50 @@ darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
 }
 
+// Vector Dark theme update the Dropdown UI State
+function updateThemeOptions() {
+    const vectorOption = document.getElementById('theme-vector-option');
+    if (vectorOption) {
+        // Only disable if a ZIM is loaded and it's not a Wikimedia ZIM
+        const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
+        vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
+        vectorOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Vector style only available for Wikimedia ZIMs";
+
+        // Check that dropdown matches actual theme
+        const currentTheme = document.getElementById('appThemeSelect')?.value;
+        if (currentTheme && currentTheme.includes('_wikiVector') && !params.isWikimediaZim) {
+            // If somehow Vector is selected for non Wikimedia ZIM then correct it
+            handleThemeFallback();
+        }
+    }
+}
+
+function handleThemeFallback() {
+    const themeSelect = document.getElementById('appThemeSelect');
+    if (!themeSelect) return;
+    const currentTheme = themeSelect.value || settingsStore.getItem('appTheme') || 'light';
+    
+    // When switching to Wikimedia ZIM
+    if (params.isWikimediaZim) {
+        // If current theme is invert then try to restore Vector if it was previously used
+        if (currentTheme.includes('_invert')) {
+            const baseTheme = currentTheme.replace('_invert', '_wikiVector');
+            if (themeSelect.querySelector(`option[value="${baseTheme}"]`)) {
+                themeSelect.value = baseTheme;
+                uiUtil.applyAppTheme(baseTheme);
+            }
+        }
+    } 
+
+    // When switching from Wikimedia ZIM
+    else if (currentTheme.includes('_wikiVector')) {
+        const newTheme = currentTheme.replace('_wikiVector', '_invert');
+        themeSelect.value = newTheme;
+        uiUtil.applyAppTheme(newTheme);
+    }
+    updateThemeOptions();
+}
+
 /**
  * Resize the IFrame height, so that it fills the whole available height in the window
  */
@@ -1868,6 +1912,9 @@ async function archiveReadyCallback (archive) {
     }
     // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
+    updateThemeOptions(); 
+    handleThemeFallback();
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
@@ -2306,6 +2353,7 @@ function articleLoadedSW (iframeArticleContent) {
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
+    
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
         var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
@@ -2720,6 +2768,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
         return;
     }
+
     // Display Bootstrap warning alert if the landing page contains active content
     if (!params.hideActiveContentWarning && params.isLandingPage) {
         if (regexpActiveContent.test(htmlArticle) || /zimit/.test(selectedArchive.zimType)) {

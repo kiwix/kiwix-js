@@ -1,0 +1,1247 @@
+:root {
+	--default-text-color: 240, 240, 240;
+	--default-main-color: 24, 24, 24;
+	--default-accent-color: 38, 38, 38;
+	--default-header-background-color: 74, 74, 74;
+	--default-redlink-color: 255, 51, 51;
+	--default-important-button-color: 51, 102, 204;
+	--default-unvisited-link-color: 107, 162, 250;
+	--default-visited-link-color: 115, 102, 255;
+	--default-timestamp-link-color: 200, 200, 200;
+	--default-negative-color: 255, 37, 37;
+	--default-positive-color: 41, 202, 44;
+	--default-diff-added-color: 128, 193, 255;
+	--default-diff-deleted-color: 251, 200, 80;
+	--default-accented-border-color: 170, 170, 170;
+	--background-color-interactive-subtle: rgb(var(--accent-color, var(--default-accent-color)));
+}
+
+:not(
+    .legend-color,
+    .legend-content,
+    body,
+    .diffchange,
+    [role="img"] *,
+    .vjs-control,
+    .vjs-control *,
+    .mw-tmh-player *,
+    .minerva-icon,
+    .cdx-table *,
+    .kiwixtooltip,
+    .kiwixtooltip *
+) {
+    box-shadow: none !important;
+    background-color: transparent !important;
+}
+
+/* popover code */
+.kiwixtooltip,
+.kiwixtooltip > div,
+.kiwixtooltip > div > div
+{
+    background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+    color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.kiwixtooltip > div > div[style*="background: black"] {
+    background: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+    opacity: 1 !important;
+}
+
+.kiwixtooltip > span[style*="border-bottom"] {
+    border-bottom-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.kiwixtooltip p,
+.kiwixtooltip b,
+.kiwixtooltip a,
+.kiwixtooltip sup {
+    color: rgb(var(--text-color, var(--default-text-color))) !important;
+    background-color: transparent !important;
+}
+
+.kiwixtooltip a {
+    color: rgb(var(--unvisited-link-color, var(--default-unvisited-link-color))) !important;
+}
+.kiwixtooltip a:visited {
+    color: rgb(var(--visited-link-color, var(--default-visited-link-color))) !important;
+}
+
+* {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+body.mediawiki {
+	background-image: none !important;
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+body.mediawiki.skin-vector-2022 {
+	background-color: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+td,
+tr {
+	background: transparent !important;
+}
+
+th {
+	background-color: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+ul {
+	list-style-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="5" height="13"><circle cx="2.5" cy="9" r="2.5" fill="%23ffffff"/></svg>');
+}
+
+.vector-header-container {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border-bottom: 2px solid rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+.vector-sticky-header {
+	border: none !important;
+}
+
+.vector-menu-portal h3 {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.vector-dropdown-label::after,
+.mw-interlanguage-selector::after {
+	filter: brightness(0) invert(1) !important;
+}
+
+.vector-icon {
+	background-color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.vector-page-toolbar-container {
+	box-shadow: 0 1px rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+.vector-sticky-pinned-container::after {
+	background: linear-gradient(
+		rgba(var(--main-color, var(--default-main-color)), 0),
+		rgb(var(--main-color, var(--default-main-color)))
+	) !important;
+}
+
+.vector-dropdown-content {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border: 1px solid rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+.cdx-search-input input,
+.cdx-search-input button {
+	border-width: 2px !important;
+}
+
+.uls-menu {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+body.skin-vector-2022 .mw-logo-container {
+	filter: invert(1) !important;
+}
+
+.mw-body {
+	color: rgb(var(--text-color, var(--default-text-color)));
+	background-color: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+#mw-page-base {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	background-image: none;
+}
+
+body:not(.skin-vector-2022) #mw-panel {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+body:not(.skin-vector-2022) .vector-menu-tabs li {
+	background-image: linear-gradient(
+		to bottom,
+		rgb(var(--accent-color, var(--default-accent-color))),
+		rgb(var(--main-color, var(--default-main-color)))
+	);
+}
+
+body:not(.skin-vector-2022) .vector-menu-tabs .selected {
+	background-image: linear-gradient(
+		to bottom,
+		rgb(var(--accent-color, var(--default-accent-color))),
+		rgb(var(--main-color, var(--default-main-color)))
+	);
+}
+
+body.skin-vector-2022 .vector-menu-tabs .selected span {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.vector-menu-tabs .selected a,
+.vector-menu-tabs .selected a:visited {
+	color: rgb(var(--text-color, var(--default-text-color)));
+}
+
+.vector-menu-tabs .new a,
+.vector-menu-tabs .new a:visited,
+.vector-menu-tabs .new a *,
+.vector-menu-tabs .new a:visited * {
+	color: rgb(var(--redlink-color, var(--default-redlink-color))) !important;
+}
+
+a.new:visited,
+a.new,
+#p-personal a.new,
+#p.personal a.new:visited,
+a.new:visited *,
+a.new * {
+	color: rgb(var(--redlink-color, var(--default-redlink-color))) !important;
+}
+
+.mw-ui-icon::before {
+	filter: brightness(0) saturate(100%) invert(1) !important;
+}
+
+.oo-ui-icon-tray,
+.mw-ui-icon-tray::before,
+.oo-ui-icon-tray::after,
+.oo-ui-icon-bell,
+.mw-ui-icon-bell::before,
+.oo-ui-icon-bell::after {
+	filter: invert(1) !important;
+}
+
+#pt-notifications-alert .mw-echo-notifications-badge.mw-echo-notifications-badge-all-read,
+#pt-notifications-notice .mw-echo-notifications-badge.mw-echo-notifications-badge-all-read {
+	opacity: 1;
+}
+
+#editpage-specialchars a {
+	background-color: rgb(var(--main-color, var(--default-main-color))) !important;
+	border: none;
+}
+
+body:not(.skin-vector-2022) #searchInput {
+	background-color: rgb(var(--main-color, var(--default-main-color))) !important;
+	border: 2px solid #a2a9b1;
+	color: rgb(var(--text-color, var(--default-text-color)));
+	border-radius: 6px;
+}
+
+body.skin-vector-2022 #simpleSearch .cdx-text-input__icon {
+	background-color: rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+#searchButton {
+	display: none;
+	visibility: hidden;
+}
+
+.toc,
+.toccolours {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.tocnumber {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.infobox th {
+	background-color: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+}
+
+.infobox th[scope="row"],
+.infobox th.infobox-label {
+	background-color: transparent !important;
+}
+
+.infobox-subheader,
+.infobox-header {
+	background-color: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+	border: none;
+}
+
+.navbox,
+.catlinks,
+.thumbinner,
+table.ambox,
+table {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.navbox-list,
+table:not(
+		.box-Multiple_issues,
+		.box-Citation_style,
+		.box-Advert,
+		.box-Underlinked,
+		.box-POV,
+		.ambox-protection,
+		.ambox-move,
+		.ambox-content,
+		.ambox-style,
+		.ambox-delete,
+		.ambox-speedy,
+		.ambox-notice
+	) {
+	border-color: rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+.navbox th,
+.navbox-title,
+.navbox-group,
+.navbox-abovebelow,
+.navbox-subgroup {
+	background-color: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+}
+
+.navbox-even {
+	background-color: transparent !important;
+}
+
+tr + tr > .navbox-abovebelow,
+tr + tr > .navbox-group,
+tr + tr > .navbox-image,
+tr + tr > .navbox-list {
+	border-top: 1px solid rgb(var(--text-color, var(--default-text-color)));
+}
+
+.wikitable > tr > th,
+.wikitable > * > tr > th {
+	background-color: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+}
+
+.mp-box {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+	border-color: rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+.mp-h2 {
+	background-color: rgb(var(--header-background-color, var(--default-header-background-color))) !important;
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mw-footer li {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.fmbox,
+.tmbox,
+.cmbox,
+.ambox,
+.imbox,
+.ombox,
+.mbox,
+.dmbox,
+.asbox,
+.sistersitebox,
+.wikitable,
+.infobox,
+.documentation,
+.documentation-metadata,
+.mw-advancedSearch-fieldContainer .oo-ui-labelElement > .oo-ui-fieldsetLayout-header > .oo-ui-labelElement-label,
+.client-js .fmbox,
+.client-js .tmbox,
+.client-js .cmbox,
+.client-js .ambox,
+.client-js .imbox,
+.client-js .ombox,
+.client-js .mbox,
+.client-js .dmbox,
+.client-js .asbox {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.asbox,
+.dmbox {
+	border: 1px solid rgb(var(--text-color, var(--default-text-color)));
+}
+
+.mw-advancedSearch-namespace-selection,
+.mw-advancedSearch-fieldContainer {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-wiki-logo {
+	filter: drop-shadow(0 0 1000vw white) !important;
+}
+
+.branding-box img,
+.minerva-footer-logo img {
+	content: url(https://upload.wikimedia.org/wikipedia/commons/e/eb/WikilogoText_White.svg) !important;
+}
+
+.wikipediauserbox span,
+.wikipediauserbox td {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.wikipediauserbox {
+	border-color: rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+.mwe-math-fallback-image-inline,
+.mwe-math-fallback-image-display,
+.oo-ui-indicatorElement-indicator,
+.oo-ui-iconElement-icon {
+	filter: brightness(0) invert(1);
+}
+
+.oo-ui-menuSelectWidget {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.oo-ui-toolbar-bar,
+.oo-ui-toolbar-bar > * {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.oo-ui-toolbar-bar .oo-ui-indicatorElement-indicator,
+.oo-ui-toolbar-bar .oo-ui-iconElement-icon {
+	background-color: transparent !important;
+}
+
+.mw-notification,
+.mw-notification :not(.oo-ui-iconElement-icon, .oo-ui-indicatorElement-indicator) {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.oo-ui-windowManager-modal > .oo-ui-dialog {
+	background-color: rgba(var(--accent-color, var(--default-accent-color)), 0.5) !important;
+}
+
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame *:not(a) {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame .oo-ui-iconElement-icon,
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame .oo-ui-indicatorElement-indicator {
+	background-color: transparent !important;
+}
+
+.ve-ui-toolbar-saveButton {
+	background-color: rgb(var(--important-button-color, var(--default-important-button-color))) !important;
+}
+
+.ve-ui-toolbar-saveButton * {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+	background-color: rgb(var(--important-button-color, var(--default-important-button-color))) !important;
+}
+
+.oo-ui-processDialog-actions-safe
+	.oo-ui-widget-enabled.oo-ui-iconElement:not(.oo-ui-labelElement)
+	> .oo-ui-buttonElement-button {
+	background-color: transparent !important;
+}
+
+.oo-ui-processDialog-actions-other .oo-ui-labelElement-label {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.oo-ui-processDialog-actions-other .oo-ui-buttonElement-button,
+.oo-ui-processDialog-actions-other .oo-ui-buttonElement-button * {
+	background-color: transparent !important;
+}
+
+.oo-ui-windowManager-modal
+	> .oo-ui-dialog
+	> .oo-ui-window-frame
+	.oo-ui-processDialog-actions-primary
+	.oo-ui-labelElement-label,
+.oo-ui-windowManager-modal
+	> .oo-ui-dialog
+	> .oo-ui-window-frame
+	.oo-ui-processDialog-actions-primary
+	.oo-ui-buttonElement-button {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+	background-color: rgb(var(--important-button-color, var(--default-important-button-color))) !important;
+}
+
+.oo-ui-popupWidget-footer .oo-ui-buttonElement-button {
+	background-image: none !important;
+	background-color: transparent !important;
+	text-shadow: none !important;
+}
+
+#ooui-4 {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+#wpSave {
+	background-color: rgb(var(--important-button-color, var(--default-important-button-color))) !important;
+}
+
+.cx-campaign-contributionsmenu {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.cx-campaign-contributionsmenu *::marker {
+	filter: brightness(0) saturate(100%) invert(1) !important;
+}
+
+.oo-ui-popupWidget-popup {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.oo-ui-popupWidget-anchor {
+	filter: brightness(0) saturate(100%) invert(1) !important;
+}
+
+body:not(.skin-vector-2022) .vector-menu-content-list {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.rt-tooltip {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.rt-tail::after {
+	background: linear-gradient(
+		to top right,
+		rgb(var(--text-color, var(--default-text-color))) 50%,
+		rgba(0, 0, 0, 0) 50%
+	);
+	bottom: 0;
+	left: 0;
+}
+
+.suggestions {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.cnotice,
+.centralNotice {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border: 1px solid #aaaaaa !important;
+}
+
+.ambox table.ambox {
+	border: none !important;
+}
+
+.mbox-text-span::marker,
+.mbox-text-span {
+	list-style-image: unset !important;
+}
+
+.references-drawer {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border: 1px solid rgb(var(--text-color, var(--default-text-color)));
+}
+
+.image-details {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.overlay {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.overlay.media-viewer {
+	background: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+.mw-widget-calendarWidget {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-widget-calendarWidget-header {
+	border-bottom: 1px solid rgb(var(--text-color, var(--default-text-color)));
+}
+
+.mw-widget-calendarWidget-item:hover {
+	background: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+.ui-widget {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.ui-widget .ui-widget-header {
+	background: rgb(var(--main-color, var(--default-main-color))) !important;
+	border: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.select2-dropdown--below {
+	background: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+.select2-results > ul > li ul > li:hover {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.select2-results {
+	line-height: 1.7em !important;
+}
+
+.submitButtonProxy {
+	border-radius: 3px;
+	border: 1px solid;
+}
+
+.ui-widget fieldset {
+	border: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+#p-personal ul {
+	padding-left: 0;
+}
+
+a,
+a > *,
+.oo-ui-toolbar-bar > a:visited > * {
+	color: rgb(var(--unvisited-link-color, var(--default-unvisited-link-color))) !important;
+}
+
+a:visited,
+a:visited > *,
+.oo-ui-toolbar-bar > a:visited > * {
+	color: rgb(var(--visited-link-color, var(--default-visited-link-color))) !important;
+}
+
+.mw-helplink.mw-helplink {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mw-helplink-icon {
+	background-color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.diff-addedline .diffchange {
+	background: rgb(var(--diff-added-color, var(--default-diff-added-color)));
+	color: black !important;
+}
+
+.diff-deletedline .diffchange {
+	background: rgb(var(--diff-deleted-color, var(--default-diff-deleted-color)));
+	color: black !important;
+}
+
+.keyboard-key {
+	background-image: none !important;
+}
+
+.thumbimage:not(.video-js) {
+	background-color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mw-mmv-above-fold {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-mmv-image-metadata {
+	background-color: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+.client-js .ambox .ambox-learn-more::before {
+	background: none !important;
+}
+
+#language-settings-dialog {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.uls-sub-panel {
+	border-top: none !important;
+}
+
+.oo-ui-toolGroup-tools {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+#mw-fr-reviewnotice {
+	margin: 1em;
+}
+
+#mw-fr-reviewnotice div {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+#mw-fr-reviewform > fieldset {
+	border: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.ace_tooltip,
+.ace_search {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.ace-tm .ace_marker-layer .ace_selection {
+	background-color: #444444 !important;
+}
+
+#mw-fr-revisiontag,
+#mw-fr-revisiondetails {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+#mw-fr-submit-accept {
+	background-color: rgb(var(--positive-color, var(--default-positive-color))) !important;
+	cursor: pointer !important;
+}
+
+#mw-fr-submit-reject,
+#mw-fr-submit-unaccept {
+	background-color: rgb(var(--negative-color, var(--default-negative-color))) !important;
+	cursor: pointer !important;
+}
+
+.tipsy-inner {
+	background-color: rgb(var(--main-color, var(--default-main-color))) !important;
+}
+
+#mw-mf-page-left {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-parser-output .task-center-header {
+	background: transparent !important;
+	border: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mw-parser-output .job-description-title,
+.mw-parser-output .job-description-experience {
+	background: transparent !important;
+}
+
+.ext-discussiontools-ui-replyWidget-scrollback-bottom > a,
+.ext-discussiontools-ui-replyWidget-scrollback-top > a {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.ve-ui-findAndReplaceDialog-findResult,
+.ve-ui-findAndReplaceDialog-findResult-focused {
+	opacity: 0.4 !important;
+}
+
+.ve-ce-surface-selections-findResult-focused > div {
+	background: #fff21e !important;
+}
+
+.ve-ce-surface-selection > div {
+	background: #1e90ff !important;
+}
+
+.oo-ui-pendingElement-pending,
+.cdx-lookup--pending {
+	background-image: linear-gradient(
+		135deg,
+		rgb(var(--main-color, var(--default-main-color))) 25%,
+		transparent 25%,
+		transparent 50%,
+		rgb(var(--main-color, var(--default-main-color))) 50%,
+		rgb(var(--main-color, var(--default-main-color))) 75%,
+		transparent 75%,
+		transparent
+	) !important;
+}
+
+.mw-plusminus-pos {
+	color: rgb(var(--positive-color, var(--default-positive-color))) !important;
+}
+
+.mw-plusminus-neg {
+	color: rgb(var(--negative-color, var(--default-negative-color))) !important;
+}
+
+.mw-plusminus-null {
+	color: #bbbbbb !important;
+}
+
+.SCPopupIE,
+.SCPopup {
+	border: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.ext-growthExperiments-CPopper__popover,
+#mentee-filters-form,
+.cdx-menu {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.ext-related-articles-card-list h3::after {
+	background-image: none !important;
+}
+
+.ext-related-articles-card-list .ext-related-articles-card {
+	border: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.toggle-list__list {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	box-shadow: 0 5px 17px 0 rgba(var(--text-color, var(--default-text-color)), 0.2), 0 0 1px #999 !important;
+}
+
+.notifications-overlay.navigation-drawer {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	box-shadow: -5px 0 5px 0 rgba(var(--text-color, var(--default-text-color)), 0.35) !important;
+	border-left: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.header-container.header-chrome {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border-bottom: 1px solid rgb(var(--text-color, var(--default-text-color)));
+	box-shadow: 0 0 5px 0 rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.overlay.search-overlay {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.list-thumb-none {
+	filter: invert() !important;
+	opacity: 0.85 !important;
+}
+
+.overlay-footer-container {
+	border: none !important;
+}
+
+label.mw-ui-icon-with-label-desktop,
+a.mw-ui-icon-with-label-desktop,
+a.mw-ui-icon-with-label-desktop:visited {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.overlay.overlay-issues {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.vector-menu-dropdown .vector-menu-heading::after {
+	filter: brightness(0) saturate(100%) invert() !important;
+}
+
+.minerva-icon {
+	filter: brightness(0) saturate(100%) invert();
+}
+
+.minerva-notifications ul {
+	list-style-image: none !important;
+}
+
+.toc-title-icon,
+.toc-title-state-icon {
+	filter: brightness(0) saturate(100%) invert() !important;
+}
+
+#mp-topbanner {
+	background-image: linear-gradient(
+			to right,
+			rgb(var(--main-color, var(--default-main-color))) 20%,
+			70%,
+			rgba(var(--main-color, var(--default-main-color)), 0),
+			rgba(var(--main-color, var(--default-main-color)), 0)
+		),
+		url("https://upload.wikimedia.org/wikipedia/commons/e/e3/Wikipedia_logo_letters_banner.svg") !important;
+	background-size: cover !important;
+}
+
+#mp-welcomecount {
+	text-align: left !important;
+}
+
+#mp-welcome {
+	padding-left: 0 !important;
+}
+
+.navpopup {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.popup_menu {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mwe-popups:not(.flipped-y):not(.flipped-x-y) .mwe-popups-container {
+	border-top: var(--pointer-height) solid rgb(var(--text-color, var(--default-text-color))) !important;
+	padding-top: 0 !important;
+}
+
+.mwe-popups.flipped-y .mwe-popups-container,
+.mwe-popups.flipped-x-y .mwe-popups-container {
+	border-bottom: var(--pointer-height) solid rgb(var(--text-color, var(--default-text-color))) !important;
+	padding-bottom: 0 !important;
+}
+
+.mwe-popups-container {
+    background-color: inherit !important;
+    color: inherit !important;
+}
+
+.mwe-popups-extract {
+    color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mwe-popups-extract::after {
+    background: linear-gradient(
+        to bottom, 
+        rgba(var(--accent-color, var(--default-accent-color)), 0), 
+        rgb(var(--accent-color, var(--default-accent-color))) 100%
+    ) !important;
+}
+
+.mwe-popups-title {
+    color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mwe-popups {
+    background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+    border: 1px solid rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+    color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mwe-popups .mwe-popups-extract[dir="ltr"]::after {
+	background-image: linear-gradient(
+		to right,
+		rgba(var(--accent-color, var(--default-accent-color)), 0),
+		rgb(var(--accent-color, var(--default-accent-color))) 50%
+	) !important;
+}
+
+.popups-icon {
+    filter: brightness(0) invert(1) !important;
+}
+
+.mwe-popups-extract * {
+	color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.cs1-visible-error,
+.cs1-visible-error :not(a) {
+	color: rgb(var(--redlink-color, var(--default-redlink-color))) !important;
+}
+
+.mw-mmv-permission-box .mw-mmv-permission-text .mw-mmv-permission-text-fader {
+	background-image: linear-gradient(
+		to bottom,
+		rgba(var(--main-color, var(--default-main-color)), 0) 0%,
+		rgb(var(--main-color, var(--default-main-color))) 100%
+	) !important;
+}
+
+.mw-mmv-title-para .mw-mmv-ttf-ellipsis::before {
+	background-image: linear-gradient(
+		to right,
+		rgba(var(--accent-color, var(--default-accent-color)), 0) 0%,
+		rgb(var(--accent-color, var(--default-accent-color))) 100%
+	) !important;
+}
+
+.mw-mmv-title-para .mw-mmv-ttf-ellipsis {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-mmv-stripe-button .cdx-button__icon {
+	display: none !important;
+}
+
+.ve-ui-mwTransclusionOutlineTemplateWidget-sticky {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border-bottom: 1px solid rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.ve-ui-expandableContent-fade {
+	background: linear-gradient(
+		to right,
+		rgba(var(--accent-color, var(--default-accent-color)), 0) 0,
+		rgb(var(--accent-color, var(--default-accent-color))) 90%
+	);
+}
+
+.video-js .vjs-control-bar {
+	background-color: rgba(var(--main-color, var(--default-main-color)), 0.7) !important;
+}
+
+.vjs-control > .vjs-slider > .vjs-play-progress > .vjs-time-tooltip,
+.vjs-menu-content > .vjs-menu-item.vjs-selected > span {
+	color: #000 !important;
+}
+
+#mw-wikilove-overlay {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.archive-top-result {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.ve-ce-mwReferenceNode span.mw-reflink-text {
+	color: transparent !important;
+}
+
+a.user-blocked-temp,
+a.user-blocked-indef {
+	opacity: 1 !important;
+}
+
+.cn-closeButton,
+#cnotice-toggle-icon {
+	filter: invert() !important;
+}
+
+#centralNotice,
+#centralNotice > * {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-mmv-pre-image .mw-mmv-icon {
+	background-color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+kbd.button {
+	background: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border: 1px solid rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
+
+.ext-discussiontools-init-timestamplink,
+.ext-discussiontools-init-timestamplink:visited,
+.ext-discussiontools-init-timestamplink:active {
+	color: rgb(var(--timestamp-link-color, var(--default-timestamp-link-color))) !important;
+}
+
+.ext-discussiontools-init-targetcomment {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+	border: 1px dashed rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.ext-discussiontools-init-highlight {
+	mix-blend-mode: lighten !important;
+}
+
+div.flaggedrevs_short {
+	position: unset !important;
+}
+
+.cdx-info-chip {
+	gap: 0 !important;
+}
+
+div.flaggedrevs_short,
+div.flaggedrevs_short_basic {
+	flex-wrap: wrap !important;
+}
+
+#mw-fr-revisiondetails-wrapper {
+	width: 100% !important;
+}
+
+.flaggedrevs-icon {
+	filter: invert() !important;
+}
+
+#mw-fr-revision-details {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.cdx-fr-css-icon-review--status--pending {
+	background-color: rgb(var(--text-color, var(--default-text-color))) !important;
+}
+
+.mw-highlight button {
+	background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+/* ===================== */
+/*  Syntax highlighting  */
+/* ===================== */
+
+/* Uses preset colors because otherwise custom formatting might break everything */
+
+.mw-highlight pre {
+	background-color: rgb(var(--default-accent-color)) !important;
+}
+
+.mw-highlight pre * {
+	color: rgb(var(--default-text-color)) !important;
+}
+
+.mw-content-ltr.mw-highlight-lines pre,
+.mw-content-ltr.content .mw-highlight-lines pre {
+	box-shadow: inset 2.75em 0 0 rgb(47, 47, 47) !important;
+}
+
+td.linenos .special,
+span.linenos.special {
+	background-color: rgb(60, 60, 60) !important;
+}
+
+.mw-highlight .hll {
+	background-color: rgb(30, 30, 30) !important;
+}
+
+.mw-highlight .c,
+.mw-highlight .ch,
+.mw-highlight .cm,
+.mw-highlight .cpf,
+.mw-highlight .c1,
+.mw-highlight .cs {
+	color: #4a8888 !important;
+}
+
+.mw-highlight .k,
+.mw-highlight .kc,
+.mw-highlight .kd,
+.mw-highlight .kn,
+.mw-highlight .kp,
+.mw-highlight .kr,
+.mw-highlight .nb,
+.mw-highlight .nt,
+.mw-highlight .sx,
+.mw-highlight .bp {
+	color: #008000 !important;
+}
+
+.mw-highlight .s,
+.mw-highlight .sa,
+.mw-highlight .sb,
+.mw-highlight .sc,
+.mw-highlight .sd,
+.mw-highlight .sh,
+.mw-highlight .dl,
+.mw-highlight .s1,
+.mw-highlight .s2 {
+	color: #c84848 !important;
+}
+
+.mw-highlight .o,
+.mw-highlight .m,
+.mw-highlight .mb,
+.mw-highlight .mf,
+.mw-highlight .mh,
+.mw-highlight .mi,
+.mw-highlight .mo,
+.mw-highlight .il {
+	color: #d0d0ff !important;
+}
+
+.mw-highlight .nd,
+.mw-highlight .ow {
+	color: #cf41f7 !important;
+}
+
+.mw-highlight .si,
+.mw-highlight .sr {
+	color: #ff4b92 !important;
+}
+
+.mw-highlight .nc,
+.mw-highlight .nf,
+.mw-highlight .nn,
+.mw-highlight .fm {
+	color: #7c7cff !important;
+}
+
+.mw-highlight .kt {
+	color: #e1ff8f !important;
+}
+
+.mw-highlight .na {
+	color: #9ec200 !important;
+}
+
+.mw-highlight .cp {
+	color: #ff8f00 !important;
+}
+
+.mw-highlight .no {
+	color: #dd0000 !important;
+}
+
+.mw-highlight .nv,
+.mw-highlight .ss,
+.mw-highlight .vc,
+.mw-highlight .vg,
+.mw-highlight .vi,
+.mw-highlight .vm {
+	color: #8d8cb5 !important;
+}
+
+.mw-highlight .gd,
+.mw-highlight .gr,
+.mw-highlight .ne {
+	color: #ff0000 !important;
+}
+
+.mw-highlight .gi {
+	color: #00a800 !important;
+}
+
+.mw-highlight .gu {
+	color: #ff00ff !important;
+}
+
+.mw-highlight .gh,
+.mw-highlight .gp {
+	color: #4b91ff !important;
+}
+
+.mw-highlight .gt {
+	color: #1960ff !important;
+}
+
+.mw-highlight .nl {
+	color: #ffff00 !important;
+}
+
+.mw-highlight .go,
+.mw-highlight .ni {
+	color: #bbbbbb !important;
+}
+
+.mw-highlight .se {
+	color: #ff3c00 !important;
+}
+
+/* Override code starts here */
+.mw-body-content,
+.mw-parser-output,
+.mw-parser-output > *,
+#content,
+#bodyContent,
+#mw-content-text,
+.references,
+.reflist,
+.reflist li,
+.reflist a,
+.citations,
+.citation,
+.reference,
+ul.references,
+ol.references,
+div.reflist,
+div.references {
+    background-color: rgb(var(--accent-color, var(--default-accent-color))) !important;
+}
+
+.mw-body-content *,
+.mw-parser-output * {
+    background-color: inherit !important;
+}
+
+/* Overriding the Wikipedia footer */
+div[style*="background-image:linear-gradient"] {
+    background-image: linear-gradient(
+        180deg, 
+        rgb(var(--accent-color, var(--default-accent-color))),
+        rgb(var(--main-color, var(--default-main-color)))
+    ) !important;
+    border-top-color: rgb(var(--accented-border-color, var(--default-accented-border-color))) !important;
+}
