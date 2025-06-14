@@ -6,7 +6,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v4.2.0
 
-Released on *TODO*
+Released on *2024-06-15*
 
 * FEATURE: Added a Table of Contents display and bottom toolbar button
 * FEATURE: Added snippets support when doing a fulltext search
