@@ -63,7 +63,7 @@ document.localeJson = {
       "configure-display-themeoption-auto-mwinvert": "Automatique (inversion Wikimédia)",
       "configure-display-apptheme-auto-description": "&emsp;(Les thèmes automatiques s'adaptent au mode sombre/clair de votre appareil.)",
       "configure-display-apptheme-mwinvert-description": "* Implémente des solutions spécifiques aux ZIM de Wikimédia. Essayez l'option générique si vous rencontrez des problèmes d'affichage avec d'autres ZIM.",
-      "configure-display-apptheme-wikivector-description": "* S’applique uniquement aux ZIMs de Wikimedia. Revient à l’inversion générique lorsque d’autres archives sont chargées.",
+      "configure-display-apptheme-wikivector-description": "* S’applique uniquement aux ZIMs de Wikimédia. Revient à l’inversion générique lorsque d’autres archives sont chargées.",
       "configure-display-apptheme-info": "[&nbsp;Afficher l'article avec le thème sélectionné&nbsp;]",
       "configure-display-libzimsearchtype": "<b>Ajouter des extraits à la recherche en texte intégral libzim</b> (si disponible)",
       "configure-display-libzimsearchtype-tip": "Si coché, utilise la recherche en texte intégral libzim avec des aperçus d'extraits si disponibles, sinon obtient seulement les titres en texte intégral. Survolez, cliquez ou appuyez sur Entrée au clavier pour développer l'extrait.",
