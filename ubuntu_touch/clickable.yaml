@@ -1,0 +1,40 @@
+clickable_minimum_required: 8.0.0
+framework: ubuntu-sdk-20.04
+template: custom
+arch: [all]
+build_home: /tmp
+
+# Files/directories to ignore during packaging
+ignore:
+  - "*.woff"
+  - "*.woff2"
+  - "*.map"
+  - webextension
+  - manifest.webapp
+  - backgroundscript.js
+
+# Custom build commands (if needed)
+build: |
+  echo "Building Kiwix Ubuntu Touch app"
+  echo "Removing woff font files..."
+  rm -f www/fonts/*.woff*
+  echo "Removing webextension files..."
+  rm -rf webextension
+  echo "Removing manifest.webapp..."
+  rm -f manifest.webapp
+  echo "Build preparation complete"
+
+# Optional: Set environment variables for the build
+# env_vars:
+#   - MY_VAR=value
+
+# If you need specific dependencies
+# dependencies_host:
+#   - package-name
+
+# If you need to run custom scripts
+# scripts:
+#   build: ./custom-build.sh
+
+# You can also specify the container image if needed
+# container: "clickable/ubuntu-touch:20.04-amd64"
