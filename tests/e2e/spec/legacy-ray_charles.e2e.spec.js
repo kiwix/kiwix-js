@@ -344,11 +344,8 @@ function runTests (driver, modes, keepDriver) {
                         return false;
                     }
                 }, 15000, 'Ray Charles search result not found within timeout');
-                // Now select the result by sending the enter key - ensure focus is on the search field first
-                const prefixField = await driver.findElement(By.id('prefix'));
-                await prefixField.click(); // Ensure focus
-                await driver.sleep(100); // Brief pause to ensure focus is set
-                await prefixField.sendKeys(Key.ENTER);
+                // Now select the result by clicking the search button instead of sending enter
+                await driver.findElement(By.id('searchArticles')).click();
                 // Check if that worked, and if search result still visible, try with a click instead
                 try {
                     const resultElement = await driver.findElement(By.css('.list-group-item:nth-child(4)'));
