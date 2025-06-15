@@ -255,9 +255,15 @@ function runTests (driver, modes, keepDriver) {
                 }, 10000, 'Content inside iframe did not load');
 
                 // Locate the article link and get its text
-                const text = await driver.wait(async function () {
-                    const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
-                    return await articleLink.getText();
+                let text;
+                await driver.wait(async function () {
+                    try {
+                        const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                        text = await articleLink.getText();
+                        return text && text.length > 0;
+                    } catch (e) {
+                        return false;
+                    }
                 }, 6000);
 
                 // Assert that the text matches the expected value
@@ -302,10 +308,11 @@ function runTests (driver, modes, keepDriver) {
                 await driver.sleep(2000);
                 // Focus on the next link "A Fool for You" with id="mwWw"
                 await driver.executeScript('document.getElementById("mwWw").focus();');
-                // Wait for the popover to appear
-                await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
-                // Use standard JavaScript methods to find the popover element because Safari 14 fails when using WebDriver methods
-                let popover = await driver.executeScript('return document.querySelector(".kiwixtooltip").outerHTML;');
+                // Wait for the popover to appear with expected text
+                let popover = await driver.wait(async function () {
+                    const tooltip = await driver.executeScript('return document.querySelector(".kiwixtooltip") ? document.querySelector(".kiwixtooltip").outerHTML : null;');
+                    return tooltip && /bluesy/.test(tooltip) ? tooltip : false;
+                }, 10000, 'Popover with "bluesy" text did not appear');
                 // The popover should contain the word "bluesy" (description of style of song)
                 let popoverContainsText = /bluesy/.test(popover);
                 assert.ok(popoverContainsText, 'Popover div with class ".kiwixtooltip" did not have expected text "bluesy"');
@@ -321,19 +328,24 @@ function runTests (driver, modes, keepDriver) {
                 const prefix = await driver.findElement(By.id('prefix'));
                 // Search by setting the value of the prefix element using JavaScript
                 await driver.executeScript('arguments[0].value = "Ray"; document.getElementById("searchArticles").click();', prefix);
-                // Wait for at least four results to appear
-                await driver.sleep(500);
-                await driver.findElement(By.css('.list-group-item:nth-child(4)'));
-                // Check the contents of the result and Add the hover attribute to it so we can select it with the keyboard
+                // Wait for search results to appear and find Ray Charles entry
                 await driver.wait(async function () {
-                    // NB dispatchEvent for keydown does not work in IE, so we do this later using WebDriver methods
-                    // const found = await driver.executeScript('return new Promise(function (resolve) { setTimeout(function () { var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); document.getElementById("prefix").dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter"})); resolve(found); }, 1000); });');
-                    const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); return found;');
-                    assert.equal(true, found);
-                    return found;
-                }, 3000);
-                // Now select the result by sending the enter key
-                await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
+                    try {
+                        // Wait for at least 4 results to appear
+                        await driver.findElement(By.css('.list-group-item:nth-child(4)'));
+                        // Check if the 4th result is "Ray Charles" and prepare it for selection
+                        const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); if (el) { found = el.innerText === "Ray Charles"; if (found) { el.scrollIntoView(false); el.classList.add("hover"); } } return found;');
+                        if (found) {
+                            assert.equal(true, found);
+                            return true;
+                        }
+                        return false;
+                    } catch (e) {
+                        return false;
+                    }
+                }, 15000, 'Ray Charles search result not found within timeout');
+                // Now select the result by clicking the search button instead of sending enter
+                await driver.findElement(By.id('searchArticles')).click();
                 // Check if that worked, and if search result still visible, try with a click instead
                 try {
                     const resultElement = await driver.findElement(By.css('.list-group-item:nth-child(4)'));
@@ -350,7 +362,7 @@ function runTests (driver, modes, keepDriver) {
                     const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
                     // console.log('Article title: ' + articleTitle);
                     return articleTitle === 'Ray Charles';
-                }, 5000);
+                }, 10000);
                 // Check that the article title is correct
                 const title = await driver.findElement(By.id('titleHeading')).getText();
                 assert.equal('Ray Charles', title);

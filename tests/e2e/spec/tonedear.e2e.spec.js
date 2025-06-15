@@ -151,6 +151,8 @@ function runTests (driver, modes, keepDriver) {
                 }
 
                 await driver.sleep(2000); // Give time for content to load
+                // Wait for the iframe to be available before switching to it
+                await driver.wait(until.elementLocated(By.id('articleContent')), 5000);
                 await driver.switchTo().frame('articleContent');
                 const androidIosLink = await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000);
                 await androidIosLink.click();
