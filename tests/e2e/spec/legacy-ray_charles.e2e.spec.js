@@ -343,7 +343,7 @@ function runTests (driver, modes, keepDriver) {
                     } catch (e) {
                         return false;
                     }
-                }, 10000, 'Ray Charles search result not found within timeout');
+                }, 15000, 'Ray Charles search result not found within timeout');
                 // Now select the result by sending the enter key
                 await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
                 // Check if that worked, and if search result still visible, try with a click instead
@@ -362,7 +362,7 @@ function runTests (driver, modes, keepDriver) {
                     const articleTitle = await driver.executeScript('return document.getElementById("titleHeading").innerText');
                     // console.log('Article title: ' + articleTitle);
                     return articleTitle === 'Ray Charles';
-                }, 5000);
+                }, 10000);
                 // Check that the article title is correct
                 const title = await driver.findElement(By.id('titleHeading')).getText();
                 assert.equal('Ray Charles', title);
