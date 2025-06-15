@@ -31,7 +31,7 @@ rm -f "$BASEDIR/tmp/manifest.webapp"
 
 # Build using Clickable
 echo "Building with Clickable..."
-clickable build --arch=all
+clickable build
 
 # Find the generated click file and move it to the build directory
 CLICK_FILE=$(find "$BASEDIR/tmp" -name "*.click" -type f | head -1)
@@ -40,5 +40,9 @@ if [ -n "$CLICK_FILE" ]; then
     echo "Successfully created $BASEDIR/build/kiwix-ubuntu-touch-$VERSION.click"
 else
     echo "Error: No .click file was generated"
+    echo "Checking for any click files in the directory:"
+    find "$BASEDIR/tmp" -name "*.click" -type f
+    echo "Directory contents:"
+    ls -la "$BASEDIR/tmp"
     exit 1
 fi
