@@ -27,13 +27,9 @@ cp "$BASEDIR/ubuntu_touch/clickable.yaml" "$BASEDIR/tmp/"
 echo "Clickable version:"
 clickable --version
 
-# Show the clickable.yaml we're using
-echo "Using clickable.yaml:"
-cat clickable.yaml
-
-# Build with Clickable (using --yes to auto-accept any prompts)
-echo "Building with Clickable..."
-clickable build --yes
+# Build with Clickable using the pure builder
+echo "Building with Clickable (pure builder for web apps)..."
+clickable build
 
 # Find the generated click file
 CLICK_FILE=$(find "$BASEDIR/tmp" -name "*.click" -type f | head -1)
@@ -43,14 +39,7 @@ if [ -n "$CLICK_FILE" ]; then
     echo "Successfully created $BASEDIR/build/kiwix-ubuntu-touch-$VERSION.click"
 else
     echo "Error: No .click file was generated"
-    echo "Searching for click files in the build area:"
-    find "$BASEDIR" -name "*.click" -type f 2>/dev/null
     echo "Contents of tmp directory:"
     ls -la "$BASEDIR/tmp"
-    
-    # Check if clickable generated files in a subdirectory
-    echo "Looking for any clickable build output:"
-    find "$BASEDIR/tmp" -type f -name "*.click" -o -name "*click*" 2>/dev/null
-    
     exit 1
 fi
