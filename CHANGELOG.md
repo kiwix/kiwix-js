@@ -24,6 +24,7 @@ Released on *2024-06-15*
 * FIX: Properly select file in archive dropdown on refresh
 * FIX: Dark theme display of dropdowns and folders
 * UPDATE: Removed display of brief article description in popovers
+* UPDATE: Use latest manifest v3 format for v3 extension
 * INFO: Typos and minor inaccuracies in app info
 * DEV: Change incorrect function calls to spinner
 * DEV: Added a small automated UI test for a small Zimit2 archive
