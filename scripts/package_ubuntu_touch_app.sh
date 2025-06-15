@@ -23,12 +23,6 @@ echo "Packaging .click application for Ubuntu Touch using Clickable, version $VE
 # Copy the clickable.yaml configuration file to the tmp directory
 cp "$BASEDIR/ubuntu_touch/clickable.yaml" "$BASEDIR/tmp/"
 
-# We need to remove the *.woff* files because click considers they are forbidden binaries
-rm -f "$BASEDIR/tmp/www/fonts"/*.woff*
-# We need to remove these files because they're not needed for Ubuntu Touch
-rm -rf "$BASEDIR/tmp/webextension"
-rm -f "$BASEDIR/tmp/manifest.webapp"
-
 # Show clickable version for debugging
 echo "Clickable version:"
 clickable --version
@@ -37,42 +31,26 @@ clickable --version
 echo "Using clickable.yaml:"
 cat clickable.yaml
 
-# Try building with Clickable
+# Build with Clickable (using --yes to auto-accept any prompts)
 echo "Building with Clickable..."
-if clickable build; then
-    echo "Clickable build succeeded"
-else
-    echo "Clickable build failed with exit code $?"
-    echo "Attempting fallback method..."
-    
-    # Fallback: try with --output-dir
-    if clickable build --output-dir="$BASEDIR/build"; then
-        echo "Clickable build with output-dir succeeded"
-    else
-        echo "Clickable build failed completely"
-        echo "Directory listing after failed build:"
-        ls -la
-        exit 1
-    fi
-fi
+clickable build --yes
 
-# Find the generated click file and move it to the build directory
+# Find the generated click file
 CLICK_FILE=$(find "$BASEDIR/tmp" -name "*.click" -type f | head -1)
-if [ -z "$CLICK_FILE" ]; then
-    # Check in potential subdirectories
-    CLICK_FILE=$(find "$BASEDIR" -name "*.click" -type f | head -1)
-fi
 
 if [ -n "$CLICK_FILE" ]; then
     mv "$CLICK_FILE" "$BASEDIR/build/kiwix-ubuntu-touch-$VERSION.click"
     echo "Successfully created $BASEDIR/build/kiwix-ubuntu-touch-$VERSION.click"
 else
     echo "Error: No .click file was generated"
-    echo "Searching for any click files in the entire build area:"
-    find "$BASEDIR" -name "*.click" -type f
-    echo "Directory contents of tmp:"
+    echo "Searching for click files in the build area:"
+    find "$BASEDIR" -name "*.click" -type f 2>/dev/null
+    echo "Contents of tmp directory:"
     ls -la "$BASEDIR/tmp"
-    echo "Directory contents of build:"
-    ls -la "$BASEDIR/build" 2>/dev/null || echo "Build directory doesn't exist"
+    
+    # Check if clickable generated files in a subdirectory
+    echo "Looking for any clickable build output:"
+    find "$BASEDIR/tmp" -type f -name "*.click" -o -name "*click*" 2>/dev/null
+    
     exit 1
 fi

@@ -1,5 +1,6 @@
 clickable_minimum_required: 8.0.0
 framework: ubuntu-sdk-20.04
+builder: pure
 
 ignore:
   - "*.woff"
@@ -8,3 +9,12 @@ ignore:
   - webextension
   - manifest.webapp
   - backgroundscript.js
+
+prebuild: |
+  echo "Removing woff font files..."
+  rm -f www/fonts/*.woff* || true
+  echo "Removing webextension files..."
+  rm -rf webextension || true
+  echo "Removing manifest.webapp..."
+  rm -f manifest.webapp || true
+  echo "Prebuild cleanup complete"
