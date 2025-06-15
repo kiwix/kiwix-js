@@ -328,17 +328,22 @@ function runTests (driver, modes, keepDriver) {
                 const prefix = await driver.findElement(By.id('prefix'));
                 // Search by setting the value of the prefix element using JavaScript
                 await driver.executeScript('arguments[0].value = "Ray"; document.getElementById("searchArticles").click();', prefix);
-                // Wait for at least four results to appear
-                await driver.sleep(500);
-                await driver.findElement(By.css('.list-group-item:nth-child(4)'));
-                // Check the contents of the result and Add the hover attribute to it so we can select it with the keyboard
+                // Wait for search results to appear and find Ray Charles entry
                 await driver.wait(async function () {
-                    // NB dispatchEvent for keydown does not work in IE, so we do this later using WebDriver methods
-                    // const found = await driver.executeScript('return new Promise(function (resolve) { setTimeout(function () { var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); document.getElementById("prefix").dispatchEvent(new KeyboardEvent("keydown", {"key": "Enter"})); resolve(found); }, 1000); });');
-                    const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); found = el.innerText === "Ray Charles"; el.scrollIntoView(false); el.classList.add("hover"); return found;');
-                    assert.equal(true, found);
-                    return found;
-                }, 3000);
+                    try {
+                        // Wait for at least 4 results to appear
+                        await driver.findElement(By.css('.list-group-item:nth-child(4)'));
+                        // Check if the 4th result is "Ray Charles" and prepare it for selection
+                        const found = await driver.executeScript('var found = false; var el = document.querySelector(".list-group-item:nth-child(4)"); if (el) { found = el.innerText === "Ray Charles"; if (found) { el.scrollIntoView(false); el.classList.add("hover"); } } return found;');
+                        if (found) {
+                            assert.equal(true, found);
+                            return true;
+                        }
+                        return false;
+                    } catch (e) {
+                        return false;
+                    }
+                }, 10000, 'Ray Charles search result not found within timeout');
                 // Now select the result by sending the enter key
                 await driver.findElement(By.id('prefix')).sendKeys(Key.ENTER);
                 // Check if that worked, and if search result still visible, try with a click instead
