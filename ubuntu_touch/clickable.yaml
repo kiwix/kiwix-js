@@ -1,8 +1,6 @@
 clickable_minimum_required: 8.0.0
 framework: ubuntu-sdk-20.04
-template: custom
 
-# Files/directories to ignore during packaging
 ignore:
   - "*.woff"
   - "*.woff2"
@@ -10,17 +8,3 @@ ignore:
   - webextension
   - manifest.webapp
   - backgroundscript.js
-
-# Custom build commands (if needed)
-build: |
-  echo "Building Kiwix Ubuntu Touch app"
-  echo "Removing woff font files..."
-  rm -f www/fonts/*.woff*
-  echo "Removing webextension files..."
-  rm -rf webextension
-  echo "Removing manifest.webapp..."
-  rm -f manifest.webapp
-  echo "Build preparation complete"
-
-# For architecture-independent packages, we don't need to specify arch
-# Clickable will determine this from the manifest.json "architecture": "all"
