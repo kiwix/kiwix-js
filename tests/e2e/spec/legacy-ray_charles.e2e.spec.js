@@ -255,9 +255,15 @@ function runTests (driver, modes, keepDriver) {
                 }, 10000, 'Content inside iframe did not load');
 
                 // Locate the article link and get its text
-                const text = await driver.wait(async function () {
-                    const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
-                    return await articleLink.getText();
+                let text;
+                await driver.wait(async function () {
+                    try {
+                        const articleLink = await driver.findElement(By.xpath('/html/body/div/div/ul/li[77]/a[2]'));
+                        text = await articleLink.getText();
+                        return text && text.length > 0;
+                    } catch (e) {
+                        return false;
+                    }
                 }, 6000);
 
                 // Assert that the text matches the expected value
@@ -302,10 +308,11 @@ function runTests (driver, modes, keepDriver) {
                 await driver.sleep(2000);
                 // Focus on the next link "A Fool for You" with id="mwWw"
                 await driver.executeScript('document.getElementById("mwWw").focus();');
-                // Wait for the popover to appear
-                await driver.sleep(2500); // DEV: Adjust this delay if failing on older, slower browsers
-                // Use standard JavaScript methods to find the popover element because Safari 14 fails when using WebDriver methods
-                let popover = await driver.executeScript('return document.querySelector(".kiwixtooltip").outerHTML;');
+                // Wait for the popover to appear with expected text
+                let popover = await driver.wait(async function () {
+                    const tooltip = await driver.executeScript('return document.querySelector(".kiwixtooltip") ? document.querySelector(".kiwixtooltip").outerHTML : null;');
+                    return tooltip && /bluesy/.test(tooltip) ? tooltip : false;
+                }, 10000, 'Popover with "bluesy" text did not appear');
                 // The popover should contain the word "bluesy" (description of style of song)
                 let popoverContainsText = /bluesy/.test(popover);
                 assert.ok(popoverContainsText, 'Popover div with class ".kiwixtooltip" did not have expected text "bluesy"');
