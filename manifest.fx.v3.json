@@ -1,6 +1,7 @@
 {
     "manifest_version": 3,
     "name": "__MSG_extensionName__",
+    "short_name": "Kiwix JS",
     "version": "4.2.0",
 
     "description": "__MSG_extensionDescription__",
@@ -28,7 +29,8 @@
     },
 
     "background": {
-        "scripts": ["backgroundscript.js"]
+        "scripts": ["backgroundscript.js"],
+        "service_worker": "service-worker.js"
     },
 
     "content_security_policy": {
