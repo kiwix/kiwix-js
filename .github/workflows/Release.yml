@@ -68,11 +68,12 @@ jobs:
           cp -rf ./ubuntu_touch dist/ubuntu_touch
 
       # Set up the environment
-      - name: Setup environment
+      - name: Setup Clickable for Ubuntu Touch
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get --yes install ./scripts/ubuntu_touch_packages/*.deb
+          sudo apt-get install -y python3-pip
+          pip3 install clickable-ut
 
       # Runs the build scripts
       - name: Run the build scripts to make extensions and packages
