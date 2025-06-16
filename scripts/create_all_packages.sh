@@ -63,7 +63,7 @@ cp -r www i18n _locales manifest.json manifest.webapp LICENSE-GPLv3.txt service-
 # Remove unwanted files (this line should not be necessary if building from dist/)
 rm -f tmp/www/js/lib/libzim-*dev.*
 
-# Replace the version number everywhere
+# Replace the version number everywhere (but NOT in manifest.json yet - we'll do that after copying Ubuntu Touch files)
 # But Chrome would only accept a numeric version number : if it's not, we only use the prefix in manifest.json
 regexpNumericVersion='^[0-9\.]+$'
 sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
@@ -111,8 +111,14 @@ pwd & ls -l build
 # Package for Firefox OS
 echo -e "\nPacking for Firefox OS..."
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
+
+# Copy Ubuntu Touch files and fix the manifest version
+echo -e "\nPreparing Ubuntu Touch package..."
 cp -f ubuntu_touch/* tmp/
+# Replace version in the Ubuntu Touch manifest.json (which now has the correct framework)
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
+echo "Ubuntu Touch manifest.json after version replacement:"
+cat tmp/manifest.json
 echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 echo -e "\nThe following apps have been built:"
