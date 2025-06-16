@@ -34,6 +34,7 @@ Released on *2024-06-15*
 * DEV: Bump javascript-libzim to v0.9 with support for suggestions and snippets
 * DEV: Build compact code by default to avoid style deoptimization warning on building for production
 * DEV: Bump Vite to v6.2.6
+* DEV: Build Ubuntu Touch app with `ubuntu-sdk-20.04`
 * DEV: Various security updates
 
 ## Kiwix JS v4.1.0
