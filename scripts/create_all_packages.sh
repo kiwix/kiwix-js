@@ -92,7 +92,7 @@ cp manifest.v2.json tmp/manifest.json
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION_FOR_MOZILLA_MANIFEST/" tmp/manifest.json
 echo "Manifest version for Firefox MV2 extension:"
 cat tmp/manifest.json
-echo -e "\nPacking for Firefox MV2..."
+echo -e "\n** Packing for Firefox MV2... **"
 scripts/package_firefox_extension.sh -m 2 $DRYRUN $TAG -v $VERSION
 
 # Package for Firefox MV3
@@ -103,22 +103,24 @@ sed -i -E "s/browserAction/action/" tmp/backgroundscript.js
 sed -i -E "s/$VERSION_TO_REPLACE/$MAJOR_NUMERIC_VERSION/" tmp/manifest.json
 echo "Manifest version for Firefox MV3 extension:"
 cat tmp/manifest.json
-echo -e "\nPacking for Firefox MV3..."
+echo -e "\n** Packing for Firefox MV3... **"
 scripts/package_firefox_extension.sh -m 3 $DRYRUN $TAG -v $VERSION
 echo "The following extensions have been built so far:"
 pwd & ls -l build
 
 # Package for Firefox OS
-echo -e "\nPacking for Firefox OS..."
+echo -e "\n** Packing for Firefox OS... **"
 scripts/package_firefoxos_app.sh $DRYRUN $TAG -v $VERSION
 
 # Copy Ubuntu Touch files and fix the manifest version
-echo -e "\nPreparing Ubuntu Touch package..."
+echo -e "\n** Preparing Ubuntu Touch package... **"
 cp -f ubuntu_touch/* tmp/
 # Replace version in the Ubuntu Touch manifest.json (which now has the correct framework)
 sed -i -E "s/$VERSION_TO_REPLACE/$VERSION/" tmp/manifest.json
 echo "Ubuntu Touch manifest.json after version replacement:"
 cat tmp/manifest.json
+echo "Ubuntu Touch kiwix.apparmor file:"
+cat tmp/kiwix.apparmor
 echo ""
 scripts/package_ubuntu_touch_app.sh $DRYRUN $TAG -v $VERSION
 echo -e "\nThe following apps have been built:"
