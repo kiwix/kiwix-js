@@ -10,6 +10,7 @@ Released on *2024-06-15*
 
 * FEATURE: Added a Table of Contents display and bottom toolbar button
 * FEATURE: Added snippets support when doing a fulltext search
+* ENHANCEMENT: New Dark theme based on Wikipedia Vector
 * ENHANCEMENT: Config and Info menus can now be "unclicked" to return to the currently open article
 * ENHANCEMENT: Created a new library loader with fallback to mirror sources if Kiwix library is down
 * ENHANCEMENT: Make Kiwix search results accessible for screen readers
