@@ -2093,8 +2093,12 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         if (dirEntry.snippet) {
             title = '<strong>' + title + '</strong>';
         }
+        let classAttribute = 'list-group-item';
+        if (i === 0) {
+            classAttribute += ' hover';
+        }
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
-            '" class="list-group-item" role="option">' + title + '</a>';
+            '" class="' + classAttribute + '" role="option">' + title + '</a>';
     }
 
 
