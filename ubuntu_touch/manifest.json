@@ -4,7 +4,7 @@
   "architecture": "all",
   "maintainer": "Kiwix team <contact+ubuntutouch@kiwix.org>",
   "framework": "ubuntu-sdk-20.04",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "title": "Kiwix",
   "hooks": {
     "kiwix": {
