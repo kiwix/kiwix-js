@@ -2932,12 +2932,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 
-        parseAnchorsJQuery();
-        loadImagesJQuery();
         // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
         // NB : if javascript is properly handled in jQuery mode in the future, this call should be removed
         // and noscript tags should be ignored
         loadNoScriptTags();
+        parseAnchorsJQuery();
+        loadImagesJQuery();
         // loadJavaScriptJQuery();
         loadCSSJQuery();
         insertMediaBlobsJQuery();
@@ -3157,10 +3157,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // For each noscript tag, we replace it with its content, so that the browser interprets it
         var noscriptTags = iframeArticleContent.contentDocument.querySelectorAll('noscript');
         Array.prototype.forEach.call(noscriptTags, function (noscriptTag) {
-            var content = noscriptTag.textContent;
-            var replacementNode = iframeArticleContent.contentDocument.createElement('script');
-            replacementNode.text = content;
-            noscriptTag.parentNode.replaceChild(replacementNode, noscriptTag);
+            noscriptTag.outerHTML = noscriptTag.innerHTML;
         });
     }
 
