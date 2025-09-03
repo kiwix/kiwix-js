@@ -4,9 +4,10 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Interim PWA v4.2.1
+## Interim PWA v4.2.2
 
 * FIX: Enter key in search results
+* FIX: Noscript is now properly handled in Restricted mode 
 * DEV: Updates to tmp and form-data
 
 ## Kiwix JS v4.2.0
