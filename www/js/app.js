@@ -3154,13 +3154,23 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
 
     function loadNoScriptTags () {
-        // For each noscript tag, we replace it with its content, so that the browser interprets it
+        // For each noscript tag, we replace it with its HTML content, so that the browser interprets it
         var noscriptTags = iframeArticleContent.contentDocument.querySelectorAll('noscript');
         Array.prototype.forEach.call(noscriptTags, function (noscriptTag) {
-            var content = noscriptTag.textContent;
-            var replacementNode = iframeArticleContent.contentDocument.createElement('script');
-            replacementNode.text = content;
-            noscriptTag.parentNode.replaceChild(replacementNode, noscriptTag);
+            var content = noscriptTag.innerHTML; // Use innerHTML to get HTML content, not textContent
+            if (content.trim()) {
+                // Create a temporary div to parse the HTML content
+                var tempDiv = iframeArticleContent.contentDocument.createElement('div');
+                tempDiv.innerHTML = content;
+                
+                // Insert each child element from the noscript content
+                var parent = noscriptTag.parentNode;
+                while (tempDiv.firstChild) {
+                    parent.insertBefore(tempDiv.firstChild, noscriptTag);
+                }
+            }
+            // Remove the original noscript tag
+            noscriptTag.parentNode.removeChild(noscriptTag);
         });
     }
 
