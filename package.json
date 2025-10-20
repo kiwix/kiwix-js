@@ -63,6 +63,6 @@
     "rollup-plugin-copy": "^3.4.0",
     "selenium-webdriver": "^4.37.0",
     "sinon": "^19.0.2",
-    "vite": "^6.3.6"
+    "vite": "^6.4.1"
   }
 }
