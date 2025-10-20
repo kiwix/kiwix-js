@@ -19,10 +19,10 @@
     "test-unit-coverage": "nyc --experimental-modules --node-option experimental-specifier-resolution=node mocha --require @babel/register --require tests/unit/setup.js 'tests/unit/spec/**/*.test.js'",
     "web-server": "http-server -p 8080 .",
     "test-e2e": "npm run test-e2e-firefox && npm run test-e2e-chrome && npm run test-e2e-edge && npm run test-e2e-iemode",
-    "test-e2e-firefox": "node tests/e2e/start-server-and-run-tests.js \"npx mocha ./tests/e2e/runners/firefox/firefox.e2e.runner.js\"",
-    "test-e2e-chrome": "node tests/e2e/start-server-and-run-tests.js \"npx mocha ./tests/e2e/runners/chrome/chromium.e2e.runner.js\"",
-    "test-e2e-edge": "node tests/e2e/start-server-and-run-tests.js \"npx mocha ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js\"",
-    "test-e2e-iemode": "node tests/e2e/start-server-and-run-tests.js \"npx mocha ./tests/e2e/runners/edge/ieMode.e2e.runner.js\""
+    "test-e2e-firefox": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/firefox/firefox.e2e.runner.js\"",
+    "test-e2e-chrome": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/chrome/chromium.e2e.runner.js\"",
+    "test-e2e-edge": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js\"",
+    "test-e2e-iemode": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/edge/ieMode.e2e.runner.js\""
   },
   "engines": {
     "node": ">=18.18.0"
