@@ -9,7 +9,8 @@
 
 import { spawn, spawnSync } from 'child_process';
 import http from 'http';
-import { existsSync } from 'fs';
+import { existsSync, statSync, readdirSync } from 'fs';
+import { join } from 'path';
 
 const PORT = 8080;
 const MAX_WAIT_TIME = 30000; // 30 seconds
@@ -20,16 +21,89 @@ if (!testCommand) {
     process.exit(1);
 }
 
-// Detect where www/index.html is located relative to current directory
+// Recursively get the newest modification time in a directory
+function getNewestMtime(dir) {
+    let newest = statSync(dir).mtime;
+
+    try {
+        const entries = readdirSync(dir, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = join(dir, entry.name);
+            if (entry.isDirectory()) {
+                const dirMtime = getNewestMtime(fullPath);
+                if (dirMtime > newest) newest = dirMtime;
+            } else {
+                const fileMtime = statSync(fullPath).mtime;
+                if (fileMtime > newest) newest = fileMtime;
+            }
+        }
+    } catch (err) {
+        // Skip if we can't read directory
+    }
+
+    return newest;
+}
+
+// Check if source files are newer than the build
+function checkBuildFreshness() {
+    try {
+        // Get the build time from the dist/www directory
+        if (!existsSync('dist/www')) {
+            return true; // Can't check, skip
+        }
+        const buildTime = statSync('dist/www').mtime;
+
+        // Check key source locations
+        const sourceDirs = ['www', 'service-worker.js'];
+
+        for (const source of sourceDirs) {
+            if (existsSync(source)) {
+                const sourceTime = statSync(source).isDirectory()
+                    ? getNewestMtime(source)
+                    : statSync(source).mtime;
+
+                if (sourceTime > buildTime) {
+                    console.warn('\n⚠️  WARNING: Source files have been modified since the last build!');
+                    console.warn(`   Location: ${source}`);
+                    console.warn('   Your tests may not reflect your latest code changes.');
+                    console.warn('   Run "npm run build-src" to rebuild before testing.\n');
+                    return false;
+                }
+            }
+        }
+        return true;
+    } catch (err) {
+        // If we can't check (missing files, etc.), skip the check
+        return true;
+    }
+}
+
+// Detect where www/index.html is located and verify build exists
 function detectIndexPath() {
-    // Always look for www/index.html in current working directory
-    if (existsSync('www/index.html')) {
-        console.log('Running tests against: ./www/index.html (current directory)');
+    // Check if we're in the root directory (has both www/ and dist/)
+    if (existsSync('www/index.html') && existsSync('dist')) {
+        // Verify the build exists
+        if (!existsSync('dist/www/index.html')) {
+            console.error('Error: Build not found at dist/www/index.html');
+            console.error('Please build the app first with: npm run build-src (or npm run build)');
+            console.error('The e2e tests require the built version in dist/');
+            process.exit(1);
+        }
+
+        // Check if build is stale
+        checkBuildFreshness();
+
+        console.log('Running tests against: ./dist/www/index.html (built version)');
+        return '/dist/www/index.html';
+    }
+    // Check if we're in the dist directory
+    if (existsSync('www/index.html') && !existsSync('dist')) {
+        console.log('Running tests against: ./www/index.html (built version in dist)');
         return '/www/index.html';
     }
-    // Fallback
-    console.error('Error: Could not find www/index.html in current directory');
-    console.error('Make sure you run tests from the correct directory (root or dist)');
+    // Fallback - couldn't determine location
+    console.error('Error: Could not find www/index.html in expected location');
+    console.error('Make sure you run tests from the project root (after building) or from the dist directory');
     process.exit(1);
 }
 
