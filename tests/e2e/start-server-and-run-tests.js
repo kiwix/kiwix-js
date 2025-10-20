@@ -93,10 +93,17 @@ async function waitForServer() {
 function startServer() {
     return new Promise((resolve, reject) => {
         console.log('Starting http-server...');
-        serverProcess = spawn('npx', ['http-server', '-p', PORT.toString()], {
+        const spawnOptions = {
             stdio: ['ignore', 'pipe', 'pipe'],
             shell: true
-        });
+        };
+
+        // On Linux/macOS, create a new process group so we can kill all children
+        if (process.platform !== 'win32') {
+            spawnOptions.detached = true;
+        }
+
+        serverProcess = spawn('npx', ['http-server', '-p', PORT.toString()], spawnOptions);
 
         let serverStarted = false;
 
@@ -186,19 +193,40 @@ function stopServer() {
                 resolve();
             }
         } else {
-            serverProcess.kill('SIGTERM');
+            // On Linux/macOS, kill the process group to ensure all children are killed
+            let resolved = false;
+
+            try {
+                // Kill the entire process group (negative PID)
+                process.kill(-serverProcess.pid, 'SIGTERM');
+            } catch (err) {
+                // If process group kill fails, try killing just the process
+                serverProcess.kill('SIGTERM');
+            }
 
             // Wait for process to exit
             serverProcess.once('exit', () => {
-                console.log('Server stopped');
-                resolve();
+                if (!resolved) {
+                    resolved = true;
+                    console.log('Server stopped');
+                    // Give the OS a moment to release the port
+                    setTimeout(() => resolve(), 500);
+                }
             });
 
             // Force kill after 2 seconds if still running
             setTimeout(() => {
-                if (serverProcess && !serverProcess.killed) {
-                    serverProcess.kill('SIGKILL');
-                    resolve();
+                if (!resolved) {
+                    try {
+                        process.kill(-serverProcess.pid, 'SIGKILL');
+                    } catch (err) {
+                        if (serverProcess && !serverProcess.killed) {
+                            serverProcess.kill('SIGKILL');
+                        }
+                    }
+                    resolved = true;
+                    console.log('Server force-stopped');
+                    setTimeout(() => resolve(), 500);
                 }
             }, 2000);
         }
