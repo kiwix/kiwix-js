@@ -117,7 +117,7 @@ if (ZSTDMachineType === 'WASM') {
         params.decompressorAPI.assemblerMachineType = ZSTDMachineType;
         instantiateDecoder(inst);
     }).catch(function (err) {
-        console.warn('Could not load the WASM, falling back to ASM', err);
+        console.warn('Could not load the WASM, falling back to ASM', err.message || err);
         ZSTDMachineType = 'ASM';
         loadASM();
     });
