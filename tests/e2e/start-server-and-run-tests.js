@@ -199,7 +199,7 @@ function stopServer() {
             try {
                 // Kill the entire process group (negative PID)
                 process.kill(-serverProcess.pid, 'SIGTERM');
-            } catch (err) {
+            } catch {
                 // If process group kill fails, try killing just the process
                 serverProcess.kill('SIGTERM');
             }
@@ -219,7 +219,7 @@ function stopServer() {
                 if (!resolved) {
                     try {
                         process.kill(-serverProcess.pid, 'SIGKILL');
-                    } catch (err) {
+                    } catch {
                         if (serverProcess && !serverProcess.killed) {
                             serverProcess.kill('SIGKILL');
                         }
