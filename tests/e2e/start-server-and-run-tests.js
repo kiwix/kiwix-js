@@ -5,10 +5,11 @@
  * Starts http-server, waits for it to be ready, runs tests, then cleanly shuts down
  */
 
+/* global process */
+
 import { spawn, spawnSync } from 'child_process';
 import http from 'http';
 import { existsSync } from 'fs';
-import { join } from 'path';
 
 const PORT = 8080;
 const MAX_WAIT_TIME = 30000; // 30 seconds
