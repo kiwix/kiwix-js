@@ -37,7 +37,7 @@ function getNewestMtime(dir) {
                 if (fileMtime > newest) newest = fileMtime;
             }
         }
-    } catch (err) {
+    } catch {
         // Skip if we can't read directory
     }
 
@@ -72,7 +72,7 @@ function checkBuildFreshness() {
             }
         }
         return true;
-    } catch (err) {
+    } catch {
         // If we can't check (missing files, etc.), skip the check
         return true;
     }
