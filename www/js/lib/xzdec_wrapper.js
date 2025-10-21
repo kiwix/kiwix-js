@@ -66,7 +66,7 @@ if (XZMachineType === 'WASM') {
         params.decompressorAPI.assemblerMachineType = XZMachineType;
         xzdec = instance;
     }).catch(function (err) {
-        console.warn('WASM xz decoder failed to load, falling back to ASM', err);
+        console.warn('WASM xz decoder failed to load, falling back to ASM because:', err.message || err);
         XZMachineType = 'ASM';
         loadASM();
     });
