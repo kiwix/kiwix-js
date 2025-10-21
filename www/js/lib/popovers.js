@@ -40,6 +40,12 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     const uriComponent = uiUtil.removeUrlParameters(href);
     const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
+    
+    // Check if we're using libzim backend
+    if (params.useLibzim) {
+        return getArticleLedeWithLibzim(zimURL, articleDocument, archive);
+    }
+    
     const promiseForArticle = function (dirEntry) {
         // Wrap legacy callback-based code in a Promise
         return new Promise((resolve, reject) => {
@@ -96,6 +102,70 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         throw new Error('Could not get Directory Entry for ' + zimURL, err);
     });
 };
+
+/**
+ * Parses a linked article using libzim backend to extract the first main paragraph (the 'lede') and first
+ * main image (if any). This function is used when params.useLibzim is true.
+ * @param {String} zimURL The ZIM URL of the article to preview
+ * @param {Document} articleDocument The DOM of the currently loaded article
+ * @param {ZIMArchive} archive The archive from which to extract the lede
+ * @returns {Promise<String>} A Promise for the linked article's lede HTML including first main image URL if any
+ */
+function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
+    return archive.callLibzimWorker({ action: 'getEntryByPath', path: zimURL }).then(function (ret) {
+        if (ret === null) {
+            throw new Error('Could not get Directory Entry for ' + zimURL);
+        }
+        
+        // Handle redirects
+        if (ret.mimetype === 'unknown') {
+            // This is a redirect, we need to follow it
+            return archive.getMainPageDirEntry().then(function (dirEntry) {
+                if (dirEntry.redirect) {
+                    return archive.resolveRedirect(dirEntry, function (reDirEntry) {
+                        return archive.callLibzimWorker({ action: 'getEntryByPath', path: reDirEntry.namespace + '/' + reDirEntry.url });
+                    });
+                }
+                throw new Error('Could not resolve redirect for ' + zimURL);
+            });
+        }
+        
+        // Process the content - convert Uint8Array to UTF-8 string if needed
+        const htmlArticle = ret.content instanceof Uint8Array ? archive.getUtf8FromData(ret.content) : ret.content;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlArticle, 'text/html');
+        const articleBody = doc.body;
+        
+        if (articleBody) {
+            // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
+            const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
+            const docUrl = new URL(articleDocument.location.href);
+            const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+            
+            // Clean up the lede content
+            const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
+            // Concatenate paragraphs to fill the balloon
+            let balloonString = '';
+            if (nonEmptyParagraphs.length > 0) {
+                balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
+            }
+            // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
+            if (balloonString && params.contentInjectionMode === 'serviceworker') {
+                const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
+                if (imageHTML) {
+                    balloonString = imageHTML + balloonString;
+                }
+            }
+            if (!balloonString) {
+                throw new Error('No article lede or image');
+            } else {
+                return balloonString;
+            }
+        } else {
+            throw new Error('No article body found');
+        }
+    });
+}
 
 // Helper function to clean up the lede content
 function cleanUpLedeContent (node) {
