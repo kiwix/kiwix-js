@@ -114,7 +114,8 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
 function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
     return archive.callLibzimWorker({ action: 'getEntryByPath', path: zimURL }).then(function (ret) {
         if (ret === null) {
-            throw new Error('Could not get Directory Entry for ' + zimURL);
+            // Entry doesn't exist - return empty string to gracefully handle missing content
+            return '';
         }
         
         // Handle redirects
@@ -138,6 +139,9 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
         }
         
         // Process the content - convert Uint8Array to UTF-8 string if needed
+        if (!ret || !ret.content) {
+            throw new Error('No content found for ' + zimURL);
+        }
         const htmlArticle = ret.content instanceof Uint8Array ? archive.getUtf8FromData(ret.content) : ret.content;
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlArticle, 'text/html');
