@@ -152,7 +152,7 @@ function slideAway (e) {
         }
         if (e.type === 'touchend') {
             delta = Math.abs(oldTouchY - e.changedTouches[0].screenY);
-            if (delta > articleContainer.contentWindow.innerHeight / 1.5) {
+            if (delta > 50) {
                 hideOrShow();
             }
         } else if (e.type === 'wheel') {

@@ -278,8 +278,12 @@ function runTests (driver, modes, keepDriver) {
                 // Scroll the element into view to ensure it's visible in headless mode
                 await driver.executeScript('arguments[0].scrollIntoView({behavior: "instant", block: "center"});', languageSelectElement);
                 await driver.wait(async function () {
-                    const rect = await driver.executeScript('return arguments[0].getBoundingClientRect();', languageSelectElement);
-                    return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);
+                    const isInViewport = await driver.executeScript(
+                        'var rect = arguments[0].getBoundingClientRect(); ' +
+                        'return rect.top >= 0 && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight);',
+                        languageSelectElement
+                    );
+                    return isInViewport;
                 }, 3000, 'Element should be scrolled into view within 3 seconds');
                 
                 const languageSelect = new Select(languageSelectElement);
