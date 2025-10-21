@@ -120,13 +120,20 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
         // Handle redirects
         if (ret.mimetype === 'unknown') {
             // This is a redirect, we need to follow it
-            return archive.getMainPageDirEntry().then(function (dirEntry) {
-                if (dirEntry.redirect) {
-                    return archive.resolveRedirect(dirEntry, function (reDirEntry) {
-                        return archive.callLibzimWorker({ action: 'getEntryByPath', path: reDirEntry.namespace + '/' + reDirEntry.url });
-                    });
-                }
-                throw new Error('Could not resolve redirect for ' + zimURL);
+            return new Promise((resolve, reject) => {
+                archive.getMainPageDirEntry(function (dirEntry) {
+                    if (dirEntry && dirEntry.redirect) {
+                        archive.resolveRedirect(dirEntry, function (reDirEntry) {
+                            if (reDirEntry) {
+                                archive.callLibzimWorker({ action: 'getEntryByPath', path: reDirEntry.namespace + '/' + reDirEntry.url }).then(resolve).catch(reject);
+                            } else {
+                                reject(new Error('Could not resolve redirect for ' + zimURL));
+                            }
+                        });
+                    } else {
+                        reject(new Error('Could not resolve redirect for ' + zimURL));
+                    }
+                });
             });
         }
         
