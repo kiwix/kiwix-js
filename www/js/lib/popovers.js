@@ -26,6 +26,23 @@
 
 import uiUtil from './uiUtil.js';
 
+// Helper function to extract correct base URL from articleDocument.location.href
+// This is needed for libzim because state.baseUrl is stale and never gets updated
+function extractBaseUrlFromLocation(locationHref) {
+    const url = new URL(locationHref);
+    const pathname = url.pathname;
+    
+    // Extract the base path from the current location
+    // For example: /path/to/zimfile.zim/A/Article -> /path/to/zimfile.zim/
+    const zimMatch = pathname.match(/^(.+\.zim[^\/]*)\//);
+    if (zimMatch) {
+        return zimMatch[1] + '/';
+    }
+    
+    // Fallback: return the pathname up to the last slash
+    return pathname.replace(/\/[^\/]*$/, '/');
+}
+
 /**
  * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
  * main image (if any). This function currently only parses Wikimedia articles. It returns an HTML string, formatted
@@ -38,13 +55,20 @@ import uiUtil from './uiUtil.js';
  */
 function getArticleLede (href, baseUrl, articleDocument, archive) {
     const uriComponent = uiUtil.removeUrlParameters(href);
-    const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
-    console.debug('Previewing ' + zimURL);
     
     // Check if we're using libzim backend
     if (params.useLibzim) {
+        // For libzim, extract correct base URL from articleDocument.location.href
+        // because state.baseUrl is stale and never gets updated with libzim
+        const correctBaseUrl = extractBaseUrlFromLocation(articleDocument.location.href);
+        const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, correctBaseUrl);
+        console.debug('Previewing ' + zimURL + ' (libzim with corrected base URL)');
         return getArticleLedeWithLibzim(zimURL, articleDocument, archive);
     }
+    
+    // Standard backend - use the provided baseUrl
+    const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
+    console.debug('Previewing ' + zimURL);
     
     const promiseForArticle = function (dirEntry) {
         // Wrap legacy callback-based code in a Promise
@@ -92,17 +116,36 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
     return archive.callLibzimWorker({ 
         action: 'getEntryByPath', 
         path: zimURL,
-        follow: true  // Let libzim handle redirects automatically
+        follow: false  // Don't follow redirects automatically so we can detect them
     }).then(function (ret) {
-        // Process the content - convert Uint8Array to UTF-8 string if needed
-        if (!ret || !ret.content) {
-            throw new Error('No content found for ' + zimURL);
+        // Check if this is a redirect
+        if (ret.isRedirect) {
+            // It's a redirect, get the content from the redirect target
+            return archive.callLibzimWorker({ 
+                action: 'getEntryByPath', 
+                path: ret.redirectPath,
+                follow: false
+            }).then(function (finalRet) {
+                if (!finalRet || !finalRet.content) {
+                    throw new Error('No content found for redirect: ' + zimURL);
+                }
+                const htmlArticle = finalRet.content instanceof Uint8Array ? 
+                    archive.getUtf8FromData(finalRet.content) : finalRet.content;
+                
+                // Use the redirect path as the final path for proper base URL calculation
+                return parseArticleContentForBalloon(htmlArticle, ret.redirectPath, articleDocument);
+            });
+        } else {
+            // No redirect, process the content normally
+            if (!ret || !ret.content) {
+                throw new Error('No content found for ' + zimURL);
+            }
+            const htmlArticle = ret.content instanceof Uint8Array ? 
+                archive.getUtf8FromData(ret.content) : ret.content;
+            
+            // Use the original zimURL as the path
+            return parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument);
         }
-        const htmlArticle = ret.content instanceof Uint8Array ? 
-            archive.getUtf8FromData(ret.content) : ret.content;
-        
-        // Use the same helper function as the standard backend
-        return parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument);
     });
 }
 
