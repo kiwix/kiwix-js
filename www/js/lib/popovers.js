@@ -34,13 +34,13 @@ function extractBaseUrlFromLocation(locationHref) {
     
     // Extract the base path from the current location
     // For example: /path/to/zimfile.zim/A/Article -> /path/to/zimfile.zim/
-    const zimMatch = pathname.match(/^(.+\.zim[^\/]*)\//);
+    const zimMatch = pathname.match(/^(.+\.zim[^/]*)\//);
     if (zimMatch) {
         return zimMatch[1] + '/';
     }
     
     // Fallback: return the pathname up to the last slash
-    return pathname.replace(/\/[^\/]*$/, '/');
+    return pathname.replace(/\/[^/]*$/, '/');
 }
 
 /**
