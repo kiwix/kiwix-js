@@ -51,35 +51,12 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         return new Promise((resolve, reject) => {
             // As we're reading Wikipedia articles, we can assume that they are UTF-8 encoded HTML data
             archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlArticle, 'text/html');
-                const articleBody = doc.body;
-                if (articleBody) {
-                    // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-                    const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
-                    const docUrl = new URL(articleDocument.location.href);
-                    const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
-                    // Clean up the lede content
-                    const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
-                    // Concatenate paragraphs to fill the balloon
-                    let balloonString = '';
-                    if (nonEmptyParagraphs.length > 0) {
-                        balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
-                    }
-                    // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
-                    if (balloonString && params.contentInjectionMode === 'serviceworker') {
-                        const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
-                        if (imageHTML) {
-                            balloonString = imageHTML + balloonString;
-                        }
-                    }
-                    if (!balloonString) {
-                        reject(new Error('No article lede or image'));
-                    } else {
-                        resolve(balloonString);
-                    }
-                } else {
-                    reject(new Error('No article body found'));
+                try {
+                    const zimURL = fileDirEntry.namespace + '/' + fileDirEntry.url;
+                    const balloonString = parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument);
+                    resolve(balloonString);
+                } catch (error) {
+                    reject(error);
                 }
             });
         });
@@ -112,70 +89,57 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
  * @returns {Promise<String>} A Promise for the linked article's lede HTML including first main image URL if any
  */
 function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
-    return archive.callLibzimWorker({ action: 'getEntryByPath', path: zimURL }).then(function (ret) {
-        if (ret === null) {
-            // Entry doesn't exist - return empty string to gracefully handle missing content
-            return '';
-        }
-        
-        // Handle redirects
-        if (ret.mimetype === 'unknown') {
-            // This is a redirect, we need to follow it
-            return new Promise((resolve, reject) => {
-                archive.getMainPageDirEntry(function (dirEntry) {
-                    if (dirEntry && dirEntry.redirect) {
-                        archive.resolveRedirect(dirEntry, function (reDirEntry) {
-                            if (reDirEntry) {
-                                archive.callLibzimWorker({ action: 'getEntryByPath', path: reDirEntry.namespace + '/' + reDirEntry.url }).then(resolve).catch(reject);
-                            } else {
-                                reject(new Error('Could not resolve redirect for ' + zimURL));
-                            }
-                        });
-                    } else {
-                        reject(new Error('Could not resolve redirect for ' + zimURL));
-                    }
-                });
-            });
-        }
-        
+    return archive.callLibzimWorker({ 
+        action: 'getEntryByPath', 
+        path: zimURL,
+        follow: true  // Let libzim handle redirects automatically
+    }).then(function (ret) {
         // Process the content - convert Uint8Array to UTF-8 string if needed
         if (!ret || !ret.content) {
             throw new Error('No content found for ' + zimURL);
         }
-        const htmlArticle = ret.content instanceof Uint8Array ? archive.getUtf8FromData(ret.content) : ret.content;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlArticle, 'text/html');
-        const articleBody = doc.body;
+        const htmlArticle = ret.content instanceof Uint8Array ? 
+            archive.getUtf8FromData(ret.content) : ret.content;
         
-        if (articleBody) {
-            // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-            const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
-            const docUrl = new URL(articleDocument.location.href);
-            const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
-            
-            // Clean up the lede content
-            const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
-            // Concatenate paragraphs to fill the balloon
-            let balloonString = '';
-            if (nonEmptyParagraphs.length > 0) {
-                balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
-            }
-            // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
-            if (balloonString && params.contentInjectionMode === 'serviceworker') {
-                const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
-                if (imageHTML) {
-                    balloonString = imageHTML + balloonString;
-                }
-            }
-            if (!balloonString) {
-                throw new Error('No article lede or image');
-            } else {
-                return balloonString;
-            }
-        } else {
-            throw new Error('No article body found');
-        }
+        // Use the same helper function as the standard backend
+        return parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument);
     });
+}
+
+// Helper function to parse article content and create balloon
+function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlArticle, 'text/html');
+    const articleBody = doc.body;
+    
+    if (articleBody) {
+        // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
+        const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
+        const docUrl = new URL(articleDocument.location.href);
+        const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+        
+        // Clean up the lede content
+        const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
+        // Concatenate paragraphs to fill the balloon
+        let balloonString = '';
+        if (nonEmptyParagraphs.length > 0) {
+            balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
+        }
+        // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
+        if (balloonString && params.contentInjectionMode === 'serviceworker') {
+            const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
+            if (imageHTML) {
+                balloonString = imageHTML + balloonString;
+            }
+        }
+        if (!balloonString) {
+            throw new Error('No article lede or image');
+        } else {
+            return balloonString;
+        }
+    } else {
+        throw new Error('No article body found');
+    }
 }
 
 // Helper function to clean up the lede content
