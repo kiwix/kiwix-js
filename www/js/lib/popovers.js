@@ -26,22 +26,6 @@
 
 import uiUtil from './uiUtil.js';
 
-// Helper function to extract correct base URL from articleDocument.location.href
-// This is needed for libzim because state.baseUrl is stale and never gets updated
-function extractBaseUrlFromLocation(locationHref) {
-    const url = new URL(locationHref);
-    const pathname = url.pathname;
-    
-    // Extract the base path from the current location
-    // For example: /path/to/zimfile.zim/A/Article -> /path/to/zimfile.zim/
-    const zimMatch = pathname.match(/^(.+\.zim[^/]*)\//);
-    if (zimMatch) {
-        return zimMatch[1] + '/';
-    }
-    
-    // Fallback: return the pathname up to the last slash
-    return pathname.replace(/\/[^/]*$/, '/');
-}
 
 /**
  * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
@@ -58,11 +42,39 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     
     // Check if we're using libzim backend
     if (params.useLibzim) {
-        // For libzim, extract correct base URL from articleDocument.location.href
-        // because state.baseUrl is stale and never gets updated with libzim
-        const correctBaseUrl = extractBaseUrlFromLocation(articleDocument.location.href);
-        const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, correctBaseUrl);
-        console.debug('Previewing ' + zimURL + ' (libzim with corrected base URL)');
+        // Extract ZIM-internal path from absolute URL like /path/to/file.zim/C/Article
+        let zimURL;
+        
+        // Check if href is an absolute URL containing the ZIM file path
+        if (href.includes('.zim/')) {
+            // Extract ZIM-internal path using regex match
+            const zimPathMatch = href.match(/\.zim[^/]*\/(.*)$/);
+            if (zimPathMatch && zimPathMatch[1]) {
+                zimURL = zimPathMatch[1];
+                zimURL = zimURL.replace(/[?#].*$/, '');
+            } else {
+                // Fallback if match fails
+                zimURL = href.replace(/^.*?\.zim[^/]*\//, '');
+                zimURL = zimURL.replace(/[?#].*$/, '');
+            }
+        } else {
+            // Handle relative URLs by resolving against current article's path
+            const currentLocation = articleDocument.location.href;
+            let currentZimPath = '';
+            
+            if (currentLocation.includes('.zim/')) {
+                const currentPathMatch = currentLocation.match(/\.zim[^/]*\/(.*)$/);
+                if (currentPathMatch && currentPathMatch[1]) {
+                    currentZimPath = currentPathMatch[1];
+                    currentZimPath = currentZimPath.replace(/[?#].*$/, '');
+                }
+            }
+            
+            const baseZimPath = currentZimPath.replace(/[^/]+$/, '');
+            zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseZimPath);
+        }
+        
+        console.debug('Previewing ' + zimURL + ' (libzim)');
         return getArticleLedeWithLibzim(zimURL, articleDocument, archive);
     }
     
@@ -159,7 +171,7 @@ function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
         // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
         const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
         const docUrl = new URL(articleDocument.location.href);
-        const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+        const rootRelativePathPrefix = docUrl.pathname.replace(/(.*\.zim[^/]*\/).*$/i, '$1');
         
         // Clean up the lede content
         const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
@@ -201,13 +213,13 @@ function cleanUpLedeContent (node) {
     // Apply this style-based exclusion filter to remove unwanted paragraphs in the popover
     const paragraphs = Array.from(node.querySelectorAll(`p${notSelector}`));
 
-    // Filter out empty paragraphs or those with less than 50 characters
+    // Filter out empty paragraphs
     const parasWithContent = paragraphs.filter(para => {
         // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
         const innerText = para.innerText ? para.innerText : para.textContent;
         const text = innerText.trim();
-        return !/^\s*$/.test(text) && text.length >= 50;
+        return !/^\s*$/.test(text) && text.length > 0;
     });
     return parasWithContent;
 }
