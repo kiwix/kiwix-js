@@ -1030,7 +1030,6 @@ function applyAppTheme (theme) {
         console.error('Invalid theme format:', theme);
         theme = 'light';
     }
-
     // Store the base theme (light/dark/auto) to reconstruct the final theme string if fallback occurs
     var baseTheme = theme.replace(/_.*$/, '');
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
@@ -1135,9 +1134,13 @@ function applyAppTheme (theme) {
                     if (!doc.documentElement.classList.contains('skin-theme-clientpref-night')) {
                         doc.documentElement.classList.add('skin-theme-clientpref-night');
                     }
-                    doc.documentElement.classList.remove('skin-theme-clientpref-os');
+                    doc.documentElement.classList.remove('skin-theme-clientpref-os', 'skin-theme-clientpref-day');
                 } else {
-                    // Light mode (or auto with light OS): remove all native theme classes (defaults to light)
+                    // Light mode (or auto with light OS): explicitly set day theme
+                    // Add day class first, then remove other theme classes to minimize flash when switching
+                    if (!doc.documentElement.classList.contains('skin-theme-clientpref-day')) {
+                        doc.documentElement.classList.add('skin-theme-clientpref-day');
+                    }
                     doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os');
                 }
                 // Do NOT add contentTheme class to iframe for native themes - the ZIM handles styling internally
