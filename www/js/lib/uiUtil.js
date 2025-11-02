@@ -1051,14 +1051,17 @@ function applyAppTheme (theme) {
     const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
-    var oldAppTheme = oldTheme.replace(/_.*$/, '');
     var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
-    // Remove oldAppTheme and oldContentTheme
-    if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
+    // Remove both possible app theme classes to ensure clean state
+    // (The old theme might have been 'auto' which could have resolved to either 'dark' or 'light')
+    htmlEl.classList.remove('dark', 'light');
     // A missing contentTheme implies _light
     footer.classList.remove(oldContentTheme || '_light');
     // Apply new appTheme (NB it will not be added twice if it's already there)
-    if (appTheme) htmlEl.classList.add(appTheme);
+    // Note: 'light' is the default state, so we only add a class for 'dark'
+    if (appTheme === 'dark') {
+        htmlEl.classList.add('dark');
+    }
     // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
     // is not dark (but we want it applied when the content is dark or inverted)
     // For _wikimediaNative, apply appropriate footer class based on resolved appTheme
