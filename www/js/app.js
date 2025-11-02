@@ -126,48 +126,39 @@ darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
 }
 
-// Vector Dark theme update the Dropdown UI State
+// Update theme dropdown options based on loaded ZIM type
 function updateThemeOptions() {
-    const vectorOption = document.getElementById('theme-vector-option');
-    if (vectorOption) {
-        // Only disable if a ZIM is loaded and it's not a Wikimedia ZIM
-        const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
-        vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
-        vectorOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Vector style only available for Wikimedia ZIMs";
-
-        // Check that dropdown matches actual theme
-        const currentTheme = document.getElementById('appThemeSelect')?.value;
-        if (currentTheme && currentTheme.includes('_wikiVector') && !params.isWikimediaZim) {
-            // If somehow Vector is selected for non Wikimedia ZIM then correct it
-            handleThemeFallback();
-        }
-    }
-}
-
-function handleThemeFallback() {
     const themeSelect = document.getElementById('appThemeSelect');
     if (!themeSelect) return;
-    const currentTheme = themeSelect.value || settingsStore.getItem('appTheme') || 'light';
-    
-    // When switching to Wikimedia ZIM
-    if (params.isWikimediaZim) {
-        // If current theme is invert then try to restore Vector if it was previously used
-        if (currentTheme.includes('_invert')) {
-            const baseTheme = currentTheme.replace('_invert', '_wikiVector');
-            if (themeSelect.querySelector(`option[value="${baseTheme}"]`)) {
-                themeSelect.value = baseTheme;
-                uiUtil.applyAppTheme(baseTheme);
-            }
-        }
-    } 
 
-    // When switching from Wikimedia ZIM
-    else if (currentTheme.includes('_wikiVector')) {
-        const newTheme = currentTheme.replace('_wikiVector', '_invert');
-        themeSelect.value = newTheme;
-        uiUtil.applyAppTheme(newTheme);
+    const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
+    const vectorOption = document.getElementById('theme-vector-option');
+    const nativeOption = document.getElementById('theme-native-option');
+    const nativeAutoOption = document.getElementById('theme-native-auto-option');
+
+    // Enable/disable Wikimedia-specific theme options based on ZIM type
+    if (vectorOption) {
+        vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
+        vectorOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Vector style only available for Wikimedia ZIMs";
     }
-    updateThemeOptions();
+    if (nativeOption) {
+        nativeOption.disabled = zimLoaded && !params.isWikimediaZim;
+        nativeOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";
+    }
+    if (nativeAutoOption) {
+        nativeAutoOption.disabled = zimLoaded && !params.isWikimediaZim;
+        nativeAutoOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";
+    }
+
+    // Apply the theme and let applyAppTheme handle any necessary fallbacks
+    const actualTheme = uiUtil.applyAppTheme(params.appTheme);
+
+    // Sync the dropdown if a fallback occurred
+    if (actualTheme !== params.appTheme) {
+        themeSelect.value = actualTheme;
+        params.appTheme = actualTheme;
+        settingsStore.setItem('appTheme', actualTheme, Infinity);
+    }
 }
 
 /**
@@ -652,9 +643,18 @@ document.getElementById('reopenLastArchiveCheck').addEventListener('change', fun
     settingsStore.setItem('reopenLastArchive', params.reopenLastArchive, Infinity);
 });
 document.getElementById('appThemeSelect').addEventListener('change', function (e) {
-    params.appTheme = e.target.value;
-    settingsStore.setItem('appTheme', params.appTheme, Infinity);
-    uiUtil.applyAppTheme(params.appTheme);
+    var requestedTheme = e.target.value;
+    var actualTheme = uiUtil.applyAppTheme(requestedTheme);
+
+    // Sync dropdown and params if a fallback occurred
+    if (actualTheme !== requestedTheme) {
+        e.target.value = actualTheme;
+        params.appTheme = actualTheme;
+        settingsStore.setItem('appTheme', actualTheme, Infinity);
+    } else {
+        params.appTheme = requestedTheme;
+        settingsStore.setItem('appTheme', requestedTheme, Infinity);
+    }
     refreshCacheStatus();
 });
 document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
@@ -1900,8 +1900,7 @@ async function archiveReadyCallback (archive) {
     // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
     params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
-    updateThemeOptions(); 
-    handleThemeFallback();
+    updateThemeOptions();
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
@@ -2340,7 +2339,14 @@ function articleLoadedSW (iframeArticleContent) {
     document.getElementById('cachingAssets').style.display = 'none';
     uiUtil.spinnerDisplay(false);
     // Set the requested appTheme
-    uiUtil.applyAppTheme(params.appTheme);
+    var actualTheme = uiUtil.applyAppTheme(params.appTheme);
+    // Sync dropdown if a fallback occurred (e.g., native theme not available)
+    if (actualTheme !== params.appTheme) {
+        var themeSelect = document.getElementById('appThemeSelect');
+        if (themeSelect) themeSelect.value = actualTheme;
+        params.appTheme = actualTheme;
+        settingsStore.setItem('appTheme', actualTheme, Infinity);
+    }
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
@@ -2910,7 +2916,14 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         }
 
         // Set the requested appTheme
-        uiUtil.applyAppTheme(params.appTheme);
+        var actualTheme = uiUtil.applyAppTheme(params.appTheme);
+        // Sync dropdown if a fallback occurred (e.g., native theme not available)
+        if (actualTheme !== params.appTheme) {
+            var themeSelect = document.getElementById('appThemeSelect');
+            if (themeSelect) themeSelect.value = actualTheme;
+            params.appTheme = actualTheme;
+            settingsStore.setItem('appTheme', actualTheme, Infinity);
+        }
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 
