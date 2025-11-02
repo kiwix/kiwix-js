@@ -573,8 +573,6 @@ function determineCanvasElementsWorkaround () {
  * @param {String} id An optional id to add to the style element
  */
 function replaceCSSLinkWithInlineCSS (link, cssContent, id) {
-    console.debug('[replaceCSSLinkWithInlineCSS] Creating style element with id:', id);
-    console.debug('[replaceCSSLinkWithInlineCSS] CSS content preview:', cssContent.substring(0, 200));
     var cssElement = document.createElement('style');
     if (id) {
         cssElement.id = id;
@@ -594,7 +592,6 @@ function replaceCSSLinkWithInlineCSS (link, cssContent, id) {
         cssElement.disabled = disabledAttributeValue;
     }
     link.parentNode.replaceChild(cssElement, link);
-    console.debug('[replaceCSSLinkWithInlineCSS] Style element created and attached to DOM');
 }
 
 /**
@@ -1113,7 +1110,6 @@ function applyAppTheme (theme) {
 
     // Handle native Wikimedia theme
     if (contentTheme === '_wikimediaNative') {
-        console.debug('[applyAppTheme] Handling _wikimediaNative. appTheme:', appTheme, '| baseTheme:', baseTheme);
         // Remove any existing _wikimediaNative class from iframe/library (in case it was added before)
         if (iframe.classList.contains('_wikimediaNative')) {
             iframe.classList.remove('_wikimediaNative');
@@ -1122,9 +1118,7 @@ function applyAppTheme (theme) {
             library.classList.remove('_wikimediaNative');
         }
         if (doc && doc.documentElement) {
-            console.debug('[applyAppTheme] doc and doc.documentElement exist, checking for native theme support');
             var hasNativeTheme = detectNativeZIMThemeSupport(doc);
-            console.debug('[applyAppTheme] hasNativeTheme:', hasNativeTheme);
             if (hasNativeTheme) {
                 // Remove any fallback theme classes that might have been applied on a previous article
                 if (iframe.classList.contains('_mwInvert')) {
@@ -1155,42 +1149,34 @@ function applyAppTheme (theme) {
                 // We only track it in the app HTML element via dataset.theme
             } else {
                 // Native theme not detected, fall back to _mwInvert (only if in dark mode)
-                console.debug('[applyAppTheme] Native theme NOT detected, falling back. appTheme:', appTheme);
                 if (appTheme === 'dark') {
                     contentTheme = '_mwInvert';
-                    console.debug('[applyAppTheme] Fallback to _mwInvert (dark mode)');
                 } else {
                     // Light mode: no content theme needed
                     contentTheme = null;
-                    console.debug('[applyAppTheme] Fallback to null (light mode)');
                 }
                 // Continue to apply _mwInvert or null below
             }
         } else {
             // No document available, fall back to _mwInvert (only if in dark mode)
-            console.debug('[applyAppTheme] No document available! Falling back. appTheme:', appTheme);
+            console.warn('[applyAppTheme] No document available! Falling back. appTheme:', appTheme);
             if (appTheme === 'dark') {
                 contentTheme = '_mwInvert';
-                console.debug('[applyAppTheme] Fallback to _mwInvert (dark mode, no doc)');
             } else {
                 // Light mode: no content theme needed
                 contentTheme = null;
-                console.debug('[applyAppTheme] Fallback to null (light mode, no doc)');
             }
         }
     }
 
     // Apply the requested ContentTheme (if not already attached) - skip for _wikimediaNative as it uses native classes
     if (contentTheme && contentTheme !== '_wikimediaNative' && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
-        console.debug('[applyAppTheme] Applying content theme:', contentTheme);
-        console.debug('[applyAppTheme] kiwixJSSheet exists:', !!kiwixJSSheet, '| already has this theme:', kiwixJSSheet ? kiwixJSSheet.href : 'N/A');
         // Remove native Wikimedia theme classes if present, to prevent conflicts with invert themes
         if (doc && doc.documentElement) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os');
         }
         iframe.classList.add(contentTheme);
         library.classList.add(contentTheme);
-        console.debug('[applyAppTheme] Added contentTheme class to iframe and library');
         // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
         // subdirectory, then relative links injected into the article will not work as expected)
         // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
@@ -1204,7 +1190,6 @@ function applyAppTheme (theme) {
             var stylesheetPath = prefix + '/css/kiwixJS' + safeContentThemeForURL + '.css';
             link.setAttribute('href', stylesheetPath);
             doc.head.appendChild(link);
-            console.debug('[applyAppTheme] Injected stylesheet:', stylesheetPath);
         } else {
             console.warn('[applyAppTheme] No doc available, cannot inject stylesheet for contentTheme:', contentTheme);
         }

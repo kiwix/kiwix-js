@@ -2386,7 +2386,6 @@ function attachPopoverTriggerEvents (win) {
     // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
     // Only use dark popover colors for non-invert dark themes like _wikimediaNative
     const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
-    console.debug('[attachPopoverTriggerEvents] actualTheme:', actualTheme, '| isDarkTheme:', isDarkTheme, '| usesDarkPopoverColors:', usesDarkPopoverColors);
     popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColors);
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
@@ -2903,17 +2902,13 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         }
 
         // Set the requested appTheme - applyAppTheme will handle fallbacks silently
-        console.debug('[readArticle] About to apply theme. params.isLandingPage:', params.isLandingPage, '| params.appTheme:', params.appTheme);
         uiUtil.applyAppTheme(params.appTheme);
-        const appliedTheme = document.querySelector('html').dataset.theme || params.appTheme;
-        console.debug('[readArticle] Theme applied. dataset.theme:', appliedTheme, '| params.isLandingPage:', params.isLandingPage);
         // Re-attach popover CSS with correct dark/light theme after theme is applied
         if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && iframeArticleContent.contentDocument) {
             const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
             const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
             // For invert-based themes, keep popover colors light since the CSS filter inverts them
             const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
-            console.debug('[After applyAppTheme] Re-attaching popover CSS - actualTheme:', actualTheme, '| isDarkTheme:', isDarkTheme, '| usesDarkPopoverColors:', usesDarkPopoverColors, '| params.isLandingPage:', params.isLandingPage);
             popovers.attachKiwixPopoverCss(iframeArticleContent.contentDocument, usesDarkPopoverColors);
         }
         // Allow back/forward in browser history
