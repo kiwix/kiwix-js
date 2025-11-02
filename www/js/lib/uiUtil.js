@@ -1098,11 +1098,26 @@ function applyAppTheme (theme) {
         }
         // Clean up native Wikimedia theme classes if we're switching away from _wikimediaNative
         if (oldContentTheme === '_wikimediaNative' && doc && doc.documentElement) {
-            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os');
+            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
     }
 
-    // Handle native Wikimedia theme
+    // Helper function to apply native Wikimedia theme classes
+    var applyNativeWikimediaTheme = function(doc, appTheme) {
+        if (appTheme === 'dark') {
+            // Dark mode: force night theme
+            if (!doc.documentElement.classList.contains('skin-theme-clientpref-night')) {
+                doc.documentElement.classList.add('skin-theme-clientpref-night');
+            }
+            doc.documentElement.classList.remove('skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+        } else {
+            // Light mode: remove all classes then explicitly set day theme
+            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+            doc.documentElement.classList.add('skin-theme-clientpref-day');
+        }
+    };
+
+    // Handle native Wikimedia theme for _wikimediaNative content theme
     if (contentTheme === '_wikimediaNative') {
         // Remove any existing _wikimediaNative class from iframe/library (in case it was added before)
         if (iframe.classList.contains('_wikimediaNative')) {
@@ -1126,23 +1141,8 @@ function applyAppTheme (theme) {
                     kiwixJSSheet.disabled = true;
                     kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
                 }
-                // Apply native Wikimedia theme classes based on resolved app theme (not base theme)
-                // For auto themes, appTheme is already resolved to 'dark' or 'light' based on OS preference
-                if (appTheme === 'dark') {
-                    // Dark mode (or auto with dark OS): force night theme
-                    // Add night class first, then remove OS class to minimize flash when switching from light OS to dark theme
-                    if (!doc.documentElement.classList.contains('skin-theme-clientpref-night')) {
-                        doc.documentElement.classList.add('skin-theme-clientpref-night');
-                    }
-                    doc.documentElement.classList.remove('skin-theme-clientpref-os', 'skin-theme-clientpref-day');
-                } else {
-                    // Light mode (or auto with light OS): explicitly set day theme
-                    // Add day class first, then remove other theme classes to minimize flash when switching
-                    if (!doc.documentElement.classList.contains('skin-theme-clientpref-day')) {
-                        doc.documentElement.classList.add('skin-theme-clientpref-day');
-                    }
-                    doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os');
-                }
+                // Apply native Wikimedia theme classes
+                applyNativeWikimediaTheme(doc, appTheme);
                 // Do NOT add contentTheme class to iframe for native themes - the ZIM handles styling internally
                 // We only track it in the app HTML element via dataset.theme
             } else {
@@ -1167,11 +1167,20 @@ function applyAppTheme (theme) {
         }
     }
 
+    // Handle plain light/dark themes on Wikimedia ZIMs (no content theme suffix)
+    // Apply native theme classes if ZIM supports it, to override OS preference
+    if (!contentTheme && params.isWikimediaZim && doc && doc.documentElement) {
+        var zimHasNativeTheme = detectNativeZIMThemeSupport(doc);
+        if (zimHasNativeTheme) {
+            applyNativeWikimediaTheme(doc, appTheme);
+        }
+    }
+
     // Apply the requested ContentTheme (if not already attached) - skip for _wikimediaNative as it uses native classes
     if (contentTheme && contentTheme !== '_wikimediaNative' && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
         // Remove native Wikimedia theme classes if present, to prevent conflicts with invert themes
         if (doc && doc.documentElement) {
-            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os');
+            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
         iframe.classList.add(contentTheme);
         library.classList.add(contentTheme);
