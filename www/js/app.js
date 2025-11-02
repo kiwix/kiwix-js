@@ -134,7 +134,6 @@ function updateThemeOptions() {
     const vectorOption = document.getElementById('theme-vector-option');
     const nativeOption = document.getElementById('theme-native-option');
     const nativeAutoOption = document.getElementById('theme-native-auto-option');
-
     // Enable/disable Wikimedia-specific theme options based on ZIM type
     if (vectorOption) {
         vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
@@ -148,7 +147,6 @@ function updateThemeOptions() {
         nativeAutoOption.disabled = zimLoaded && !params.isWikimediaZim;
         nativeAutoOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";
     }
-
     // Apply the theme - applyAppTheme will handle fallbacks silently without changing user's preference
     uiUtil.applyAppTheme(params.appTheme);
 }
