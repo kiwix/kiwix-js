@@ -185,7 +185,7 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
  * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
 function attachKiwixPopoverCss (doc, dark) {
-    // Remove any existing popover stylesheet to ensure colors are updated
+    // Remove any existing popover stylesheet to ensure colours are updated
     const existingStylesheet = doc.getElementById('kiwixtooltipstylesheet');
     if (existingStylesheet) {
         // Log a preview of the existing CSS content being removed
