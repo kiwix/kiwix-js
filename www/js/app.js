@@ -2320,6 +2320,8 @@ function articleLoadedSW (iframeArticleContent) {
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
+    document.getElementById('articleContent').style.display = '';
+    console.debug('Article unhidden');
     
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
@@ -2679,6 +2681,12 @@ function handleMessageChannelMessage (event) {
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
+                    // Hide article while loading to avoid flash of incorrect theme, but only if the request is from our own iframe
+                    // (not from a new window/tab the user opened)
+                    if (event.data.requestingFrameType === 'nested' && document.getElementById('articleContent')) {
+                        articleContainer.style.display = 'none';
+                        console.debug('Article hidden while loading to avoid flash of incorrect theme');
+                    }
                     // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
                     // or simply `html`, so this has to be as generic as possible
                     if (/\bx?html/i.test(mimetype)) {
