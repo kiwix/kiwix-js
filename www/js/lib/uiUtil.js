@@ -1192,10 +1192,9 @@ function applyAppTheme (theme) {
         showReturnLink();
     }
     // Return the actual theme applied (which may differ from the requested theme if fallback occurred)
-    var actualTheme = baseTheme + contentTheme;
+    var actualTheme = appTheme + contentTheme;
     // Embed a reference to the ACTUAL applied theme (after fallbacks), so we can remove it generically in the future
-    // Use baseTheme (not appTheme) to preserve auto responsiveness to OS theme changes
-    htmlEl.dataset.theme = baseTheme + contentTheme;
+    htmlEl.dataset.theme = actualTheme;
     // Log theme application details for developers (only visible with verbose logging)
     console.debug('[applyAppTheme] Requested:', theme, '| Applied:', actualTheme,
         '| Base:', baseTheme, '| App:', appTheme, '| Content:', contentTheme || 'none',
