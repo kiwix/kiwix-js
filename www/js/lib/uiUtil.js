@@ -1101,22 +1101,6 @@ function applyAppTheme (theme) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
     }
-
-    // Helper function to apply native Wikimedia theme classes
-    var applyNativeWikimediaTheme = function(doc, appTheme) {
-        if (appTheme === 'dark') {
-            // Dark mode: force night theme
-            if (!doc.documentElement.classList.contains('skin-theme-clientpref-night')) {
-                doc.documentElement.classList.add('skin-theme-clientpref-night');
-            }
-            doc.documentElement.classList.remove('skin-theme-clientpref-os', 'skin-theme-clientpref-day');
-        } else {
-            // Light mode: remove all classes then explicitly set day theme
-            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
-            doc.documentElement.classList.add('skin-theme-clientpref-day');
-        }
-    };
-
     // Handle native Wikimedia theme for _wikimediaNative content theme
     if (contentTheme === '_wikimediaNative') {
         // Remove any existing _wikimediaNative class from iframe/library (in case it was added before)
@@ -1218,6 +1202,21 @@ function applyAppTheme (theme) {
         '| Base:', baseTheme, '| App:', appTheme, '| Content:', contentTheme || 'none',
         '| Fallback:', requestedContentTheme !== contentTheme);
     return actualTheme;
+}
+
+// Helper function to apply native Wikimedia theme classes
+function applyNativeWikimediaTheme(doc, appTheme) {
+    if (appTheme === 'dark') {
+        // Dark mode: force night theme
+        if (!doc.documentElement.classList.contains('skin-theme-clientpref-night')) {
+            doc.documentElement.classList.add('skin-theme-clientpref-night');
+        }
+        doc.documentElement.classList.remove('skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+    } else {
+        // Light mode: remove all classes then explicitly set day theme
+        doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+        doc.documentElement.classList.add('skin-theme-clientpref-day');
+    }
 }
 
 // Determines whether the user has requested a dark theme based on preference and browser settings
