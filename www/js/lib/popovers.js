@@ -185,11 +185,34 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
  * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
 function attachKiwixPopoverCss (doc, dark) {
-    const colour = dark && !/invert/i.test(params.cssTheme) ? 'lightgray' : 'black';
-    const backgroundColour = dark && !/invert/i.test(params.cssTheme) ? '#121e1e' : '#ebf4fb';
+    console.debug('[attachKiwixPopoverCss] ===== START =====');
+    console.debug('[attachKiwixPopoverCss] dark parameter:', dark);
+    console.debug('[attachKiwixPopoverCss] Document title:', doc.title);
+
+    // Check all existing stylesheets in the document before removal
+    const allStylesheets = Array.from(doc.querySelectorAll('style[id="kiwixtooltipstylesheet"]'));
+    console.debug('[attachKiwixPopoverCss] Found', allStylesheets.length, 'existing kiwixtooltipstylesheet elements');
+
+    // Remove any existing popover stylesheet to ensure colors are updated
+    const existingStylesheet = doc.getElementById('kiwixtooltipstylesheet');
+    if (existingStylesheet) {
+        console.debug('[attachKiwixPopoverCss] Removing existing stylesheet');
+        // Log a preview of the existing CSS content being removed
+        const existingContent = existingStylesheet.textContent || existingStylesheet.innerHTML;
+        console.debug('[attachKiwixPopoverCss] Existing CSS preview:', existingContent.substring(0, 150));
+        existingStylesheet.parentNode.removeChild(existingStylesheet);
+        console.debug('[attachKiwixPopoverCss] Existing stylesheet removed from DOM');
+    } else {
+        console.debug('[attachKiwixPopoverCss] No existing stylesheet found');
+    }
+
+    const colour = dark ? 'lightgray' : 'black';
+    const backgroundColour = dark ? '#121e1e' : '#ebf4fb';
+    console.debug('[attachKiwixPopoverCss] Using colours - text:', colour, 'background:', backgroundColour);
     const borderColour = 'skyblue !important';
     const cssLink = document.createElement('link');
     doc.head.appendChild(cssLink);
+    console.debug('[attachKiwixPopoverCss] Creating new CSS via replaceCSSLinkWithInlineCSS');
     // DEV: Firefox OS blocks loading stylesheet files into iframe DOM content even if it is same origin, so we are forced to insert a style element instead
     uiUtil.replaceCSSLinkWithInlineCSS(cssLink, `
         .kiwixtooltip {
@@ -248,6 +271,24 @@ function attachKiwixPopoverCss (doc, dark) {
         `,
     // The id of the style element for easy manipulation
     'kiwixtooltipstylesheet');
+
+    // Verify the stylesheet was actually created and attached
+    setTimeout(() => {
+        const verifyStylesheet = doc.getElementById('kiwixtooltipstylesheet');
+        if (verifyStylesheet) {
+            const verifyContent = verifyStylesheet.textContent || verifyStylesheet.innerHTML;
+            console.debug('[attachKiwixPopoverCss] VERIFICATION: Stylesheet exists in DOM');
+            console.debug('[attachKiwixPopoverCss] VERIFICATION: CSS preview:', verifyContent.substring(0, 150));
+            // Extract the actual color values from the CSS
+            const colorMatch = verifyContent.match(/color:\s*([^;]+);/);
+            const bgMatch = verifyContent.match(/background:\s*([^;]+);/);
+            console.debug('[attachKiwixPopoverCss] VERIFICATION: Actual color in CSS:', colorMatch ? colorMatch[1] : 'NOT FOUND');
+            console.debug('[attachKiwixPopoverCss] VERIFICATION: Actual background in CSS:', bgMatch ? bgMatch[1] : 'NOT FOUND');
+        } else {
+            console.error('[attachKiwixPopoverCss] VERIFICATION FAILED: Stylesheet NOT found in DOM!');
+        }
+        console.debug('[attachKiwixPopoverCss] ===== END =====');
+    }, 0);
 }
 
 /**
@@ -298,7 +339,7 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
             div.style.alignItems = '';
             div.style.display = 'block';
             const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
-            const backgroundColour = dark && !/invert/i.test(params.appTheme) ? 'black' : '#ebf4fb';
+            const backgroundColour = dark ? 'black' : '#ebf4fb';
             // DEV: Most style declarations in this div only work properly inline. If added in stylesheet, even with !important, the positioning goes awry
             // (appears to be a timing issue related to the reservation of space given that the div is inserted dynamically).
             div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${div.style.height};">

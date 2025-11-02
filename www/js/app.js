@@ -150,15 +150,8 @@ function updateThemeOptions() {
         nativeAutoOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";
     }
 
-    // Apply the theme and let applyAppTheme handle any necessary fallbacks
-    const actualTheme = uiUtil.applyAppTheme(params.appTheme);
-
-    // Sync the dropdown if a fallback occurred
-    if (actualTheme !== params.appTheme) {
-        themeSelect.value = actualTheme;
-        params.appTheme = actualTheme;
-        settingsStore.setItem('appTheme', actualTheme, Infinity);
-    }
+    // Apply the theme - applyAppTheme will handle fallbacks silently without changing user's preference
+    uiUtil.applyAppTheme(params.appTheme);
 }
 
 /**
@@ -643,18 +636,10 @@ document.getElementById('reopenLastArchiveCheck').addEventListener('change', fun
     settingsStore.setItem('reopenLastArchive', params.reopenLastArchive, Infinity);
 });
 document.getElementById('appThemeSelect').addEventListener('change', function (e) {
-    var requestedTheme = e.target.value;
-    var actualTheme = uiUtil.applyAppTheme(requestedTheme);
-
-    // Sync dropdown and params if a fallback occurred
-    if (actualTheme !== requestedTheme) {
-        e.target.value = actualTheme;
-        params.appTheme = actualTheme;
-        settingsStore.setItem('appTheme', actualTheme, Infinity);
-    } else {
-        params.appTheme = requestedTheme;
-        settingsStore.setItem('appTheme', requestedTheme, Infinity);
-    }
+    params.appTheme = e.target.value;
+    settingsStore.setItem('appTheme', params.appTheme, Infinity);
+    // Apply the theme - applyAppTheme will handle fallbacks silently
+    uiUtil.applyAppTheme(params.appTheme);
     refreshCacheStatus();
 });
 document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
@@ -2338,15 +2323,8 @@ function articleLoadedSW (iframeArticleContent) {
     document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
     document.getElementById('cachingAssets').style.display = 'none';
     uiUtil.spinnerDisplay(false);
-    // Set the requested appTheme
-    var actualTheme = uiUtil.applyAppTheme(params.appTheme);
-    // Sync dropdown if a fallback occurred (e.g., native theme not available)
-    if (actualTheme !== params.appTheme) {
-        var themeSelect = document.getElementById('appThemeSelect');
-        if (themeSelect) themeSelect.value = actualTheme;
-        params.appTheme = actualTheme;
-        settingsStore.setItem('appTheme', actualTheme, Infinity);
-    }
+    // Set the requested appTheme - applyAppTheme will handle fallbacks silently
+    uiUtil.applyAppTheme(params.appTheme);
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
@@ -2402,7 +2380,14 @@ function attachPopoverTriggerEvents (win) {
         return;
     }
     // Attach the popover CSS to the current article document
-    popovers.attachKiwixPopoverCss(iframeDoc);
+    // Get the actual applied theme (including fallbacks) from the dataset
+    const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
+    const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
+    // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
+    // Only use dark popover colors for non-invert dark themes like _wikimediaNative
+    const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
+    console.debug('[attachPopoverTriggerEvents] actualTheme:', actualTheme, '| isDarkTheme:', isDarkTheme, '| usesDarkPopoverColors:', usesDarkPopoverColors);
+    popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColors);
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
@@ -2467,10 +2452,12 @@ function handlePopoverEvents (ev) {
     if (!divIsHovered) {
         // Prevent text selection while popover is open in modern browsers
         anchor.style.userSelect = 'none';
-        // Resolve the true app theme
-        const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
+        // Resolve the true app theme - for invert themes, use light colors since CSS filter inverts them
+        const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
+        const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
+        const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
         // Get and populate the popover corresponding to the hovered or focused link
-        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
+        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, usesDarkPopoverColors, selectedArchive);
     }
     const outHandler = function (e) {
         setTimeout(function () {
@@ -2915,14 +2902,19 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             docBody.addEventListener('drop', handleIframeDrop);
         }
 
-        // Set the requested appTheme
-        var actualTheme = uiUtil.applyAppTheme(params.appTheme);
-        // Sync dropdown if a fallback occurred (e.g., native theme not available)
-        if (actualTheme !== params.appTheme) {
-            var themeSelect = document.getElementById('appThemeSelect');
-            if (themeSelect) themeSelect.value = actualTheme;
-            params.appTheme = actualTheme;
-            settingsStore.setItem('appTheme', actualTheme, Infinity);
+        // Set the requested appTheme - applyAppTheme will handle fallbacks silently
+        console.debug('[readArticle] About to apply theme. params.isLandingPage:', params.isLandingPage, '| params.appTheme:', params.appTheme);
+        uiUtil.applyAppTheme(params.appTheme);
+        const appliedTheme = document.querySelector('html').dataset.theme || params.appTheme;
+        console.debug('[readArticle] Theme applied. dataset.theme:', appliedTheme, '| params.isLandingPage:', params.isLandingPage);
+        // Re-attach popover CSS with correct dark/light theme after theme is applied
+        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && iframeArticleContent.contentDocument) {
+            const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
+            const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
+            // For invert-based themes, keep popover colors light since the CSS filter inverts them
+            const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
+            console.debug('[After applyAppTheme] Re-attaching popover CSS - actualTheme:', actualTheme, '| isDarkTheme:', isDarkTheme, '| usesDarkPopoverColors:', usesDarkPopoverColors, '| params.isLandingPage:', params.isLandingPage);
+            popovers.attachKiwixPopoverCss(iframeArticleContent.contentDocument, usesDarkPopoverColors);
         }
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
