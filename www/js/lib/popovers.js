@@ -188,7 +188,6 @@ function attachKiwixPopoverCss (doc, dark) {
     // Remove any existing popover stylesheet to ensure colours are updated
     const existingStylesheet = doc.getElementById('kiwixtooltipstylesheet');
     if (existingStylesheet) {
-        // Log a preview of the existing CSS content being removed
         existingStylesheet.parentNode.removeChild(existingStylesheet);
     }
     const colour = dark ? 'lightgray' : 'black';
