@@ -130,7 +130,6 @@ darkPreference.onchange = function () {
 function updateThemeOptions() {
     const themeSelect = document.getElementById('appThemeSelect');
     if (!themeSelect) return;
-
     const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
     const vectorOption = document.getElementById('theme-vector-option');
     const nativeOption = document.getElementById('theme-native-option');

@@ -1038,7 +1038,6 @@ function applyAppTheme (theme) {
     // Get contentTheme from chosen theme
     var contentTheme = theme.replace(/^[^_]*/, '');
     var requestedContentTheme = contentTheme; // Store original request for comparison
-
     // Revert to '_invert' or default dark theme if trying to use '_wikiVector' on non-Wikimedia ZIMs
     if (contentTheme === '_wikiVector' && !params.isWikimediaZim) {
         contentTheme = '_invert';
@@ -1073,11 +1072,9 @@ function applyAppTheme (theme) {
         footerTheme = appTheme === 'dark' ? '_mwInvert' : '_light';
     }
     footer.classList.add(footerTheme || '_light');
-
     // Safely handle help element IDs
     var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
     var safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9-]/g, '');
-    
     // Hide any previously displayed help
     var oldHelp = document.getElementById(safeOldContentTheme.replace(/_/, '') + '-help');
     if (oldHelp) oldHelp.style.display = 'none';
@@ -1086,11 +1083,9 @@ function applyAppTheme (theme) {
     if (help) help.style.display = 'block';
     // Hide any previously displayed description for auto themes
     var oldDescription = document.getElementById('kiwix-auto-description');
-    if (oldDescription) oldDescription.style.display = 'none';
-    
+    if (oldDescription) oldDescription.style.display = 'none';    
     // Safely handle description element IDs
-    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');
-    
+    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');    
     // Show description for auto themes
     var description = document.getElementById('kiwix-' + safeThemeBase + '-description');
     if (description) description.style.display = 'block';
@@ -1201,7 +1196,6 @@ function applyAppTheme (theme) {
         !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
         showReturnLink();
     }
-
     // Return the actual theme applied (which may differ from the requested theme if fallback occurred)
     var actualTheme = baseTheme + contentTheme;
     // Embed a reference to the ACTUAL applied theme (after fallbacks), so we can remove it generically in the future
