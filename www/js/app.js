@@ -1101,43 +1101,42 @@ function initServiceWorkerMessaging () {
  *
  * @param {Event} event The event object of the message channel
  */
-async function handleMessageChannelByLibzim (event) {
+function handleMessageChannelByLibzim (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     const title = event.data.title;
     const messagePort = event.ports[0];
-    try {
-        const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title })
+    selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title, follow: true }).then(function (ret) {
         if (ret === null) {
             console.error('Title ' + title + ' not found in archive.');
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
             return;
         }
-
-        if (ret.mimetype === 'unknown') {
-            // We have a redirect to follow
-            // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
-            // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
-            // eslint-disable-next-line no-unused-vars
-            const dirEntry = await new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value)));
-            if (dirEntry.redirect) {
-                // eslint-disable-next-line no-unused-vars
-                const redirect = await new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v)));
-                const ret = await selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url })
-                const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
-                messagePort.postMessage(message);
-                return;
-            }
-        }
-
+        // if (ret.mimetype === 'unknown') {
+        //     // We have a redirect to follow
+        //     // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
+        //     // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
+        //     // eslint-disable-next-line no-unused-vars
+        //     return new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value))).then(function (dirEntry) {
+        //         if (dirEntry.redirect) {
+        //             // eslint-disable-next-line no-unused-vars
+        //             return new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v))).then(function (redirect) {
+        //                 return selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url }).then(function (ret) {
+        //                     const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
+        //                     messagePort.postMessage(message);
+        //                 });
+        //             });
+        //         }
+        //     });
+        // }
         // Let's send the content to the ServiceWorker
         const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
         messagePort.postMessage(message);
-    } catch (error) {
+    }).catch(function (error) {
         const message = { action: 'giveContent', title: title, content: new Uint8Array(), mimetype: '' };
         messagePort.postMessage(message);
         console.error('Error while handling messageChannel', error);
-    }
+    });
 }
 
 /**
