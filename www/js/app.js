@@ -131,14 +131,9 @@ function updateThemeOptions() {
     const themeSelect = document.getElementById('appThemeSelect');
     if (!themeSelect) return;
     const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
-    const vectorOption = document.getElementById('theme-vector-option');
     const nativeOption = document.getElementById('theme-native-option');
     const nativeAutoOption = document.getElementById('theme-native-auto-option');
     // Enable/disable Wikimedia-specific theme options based on ZIM type
-    if (vectorOption) {
-        vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
-        vectorOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Vector style only available for Wikimedia ZIMs";
-    }
     if (nativeOption) {
         nativeOption.disabled = zimLoaded && !params.isWikimediaZim;
         nativeOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";

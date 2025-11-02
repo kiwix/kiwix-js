@@ -1014,19 +1014,19 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  *
  * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
  * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
- * Current themes are: light, dark, dark_invert, dark_mwInvert, dark_wikiVector, dark_wikimediaNative, but code below is written for extensibility
+ * Current themes are: light, dark, dark_invert, dark_mwInvert, dark_wikimediaNative, but code below is written for extensibility
  * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
  * For each contentTheme (except _wikimediaNative), a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
  * The _wikimediaNative theme is an exception: it uses the ZIM's built-in theme system via native CSS classes
  * A rule may additionally be needed in app.css for full implementation of contentTheme
  *
- * @param {String} theme The theme to apply (light|dark|auto[_invert|_mwInvert|_wikiVector|_wikimediaNative])
+ * @param {String} theme The theme to apply (light|dark|auto[_invert|_mwInvert|_wikimediaNative])
  * @returns {String} The actual theme applied (may differ from requested theme if fallback occurred)
  */
 function applyAppTheme (theme) {
     // Validate the theme parameter to prevent XSS
     // Only allow specific valid theme formats
-    if (!theme.match(/^(light|dark|auto)(_invert|_mwInvert|_wikiVector|_wikimediaNative)?$/)) {
+    if (!theme.match(/^(light|dark|auto)(_invert|_mwInvert|_wikimediaNative)?$/)) {
         console.error('Invalid theme format:', theme);
         theme = 'light';
     }
@@ -1037,10 +1037,6 @@ function applyAppTheme (theme) {
     // Get contentTheme from chosen theme
     var contentTheme = theme.replace(/^[^_]*/, '');
     var requestedContentTheme = contentTheme; // Store original request for comparison
-    // Revert to '_invert' or default dark theme if trying to use '_wikiVector' on non-Wikimedia ZIMs
-    if (contentTheme === '_wikiVector' && !params.isWikimediaZim) {
-        contentTheme = '_invert';
-    }
     // Fallback for _wikimediaNative: check if native theme is available, otherwise fall back
     if (contentTheme === '_wikimediaNative') {
         if (!params.isWikimediaZim) {
