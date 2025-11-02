@@ -1014,12 +1014,12 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
  *
  * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
  * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
- * Current themes are: light, dark, dark_invert, dark_mwInvert but code below is written for extensibility
+ * Current themes are: light, dark, dark_invert, dark_mwInvert, dark_wikiVector, but code below is written for extensibility
  * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
  * For each contentTheme, a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
  * A rule may additionally be needed in app.css for full implementation of contentTheme
  *
- * @param {String} theme The theme to apply (light|dark[_invert|_mwInvert]|auto[_invert|_mwInvert])
+ * @param {String} theme The theme to apply (light|dark|auto[_invert|_mwInvert|_wikiVector])
  */
 function applyAppTheme (theme) {
     // Validate the theme parameter to prevent XSS
@@ -1126,6 +1126,30 @@ function showReturnLink () {
     var viewArticle = document.getElementById('viewArticle');
     viewArticle.style.display = 'block';
     viewArticle.addEventListener('click', returnToCurrentPage);
+}
+
+/**
+ * Detects whether the currently loaded Wikimedia article uses Wikimedia's native automatic theme system
+ * @param {Document} zimDocument The document of the currently loaded ZIM article
+ */
+function detectNativeZIMThemeSupport (zimDocument) {
+    var usesProvidedWikimediaTheme = false;
+    if (params.isWikimediaZim) {
+        var htmlElement = zimDocument.documentElement;
+        if (htmlElement) {
+            // First check if we've already detected and marked this article
+            if (htmlElement.hasAttribute('data-kiwix-has-skin-theme-clientpref')) {
+                usesProvidedWikimediaTheme = htmlElement.getAttribute('data-kiwix-has-skin-theme-clientpref') === 'true';
+            } else if (htmlElement.classList) {
+                // Initial detection: check if the html element has one of the theme preference classes
+                usesProvidedWikimediaTheme = htmlElement.classList.contains('skin-theme-clientpref-night') ||
+                    htmlElement.classList.contains('skin-theme-clientpref-os');
+                // Remember this detection for subsequent theme switches on the same article
+                htmlElement.setAttribute('data-kiwix-has-skin-theme-clientpref', usesProvidedWikimediaTheme ? 'true' : 'false');
+            }
+        }
+        console.log('[Theme Detection] Article uses Wikimedia\'s auto theme system:', usesProvidedWikimediaTheme);
+    }
 }
 
 // Function to switch back to currently loaded page
