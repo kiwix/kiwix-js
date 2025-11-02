@@ -1112,23 +1112,6 @@ function handleMessageChannelByLibzim (event) {
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
             return;
         }
-        // if (ret.mimetype === 'unknown') {
-        //     // We have a redirect to follow
-        //     // this is still a bit flawed, as we do not check if it's a redirect or the file doesn't exist
-        //     // We have no way to know if the file exists or not, so we have to assume it does and its just a redirect
-        //     // eslint-disable-next-line no-unused-vars
-        //     return new Promise((resolve, _reject) => selectedArchive.getMainPageDirEntry((value) => resolve(value))).then(function (dirEntry) {
-        //         if (dirEntry.redirect) {
-        //             // eslint-disable-next-line no-unused-vars
-        //             return new Promise((resolve, _reject) => selectedArchive.resolveRedirect(dirEntry, (v) => resolve(v))).then(function (redirect) {
-        //                 return selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: redirect.namespace + '/' + redirect.url }).then(function (ret) {
-        //                     const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
-        //                     messagePort.postMessage(message);
-        //                 });
-        //             });
-        //         }
-        //     });
-        // }
         // Let's send the content to the ServiceWorker
         const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
         messagePort.postMessage(message);
