@@ -103,13 +103,13 @@ params['assetsCache'] = getSetting('assetsCache') !== false;
 // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
 params['appCache'] = getSetting('appCache') !== false;
 // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-params['appTheme'] = getSetting('appTheme') || 'light'; // Currently implemented: light|dark_invert|dark_mwInvert|dark_wikimediaNative|auto_invert|auto_mwInvert|auto_wikimediaNative
+params['appTheme'] = getSetting('appTheme') || 'auto_wikimediaNative'; // Currently implemented: light|dark_wikimediaNative|auto_wikimediaNative|dark_invert|dark_mwInvert
 // Migrate old "app only" theme settings to the best available theme with smart fallbacks
 if (params['appTheme'] === 'dark') {
     params['appTheme'] = 'dark_wikimediaNative';
     setSetting('appTheme', params['appTheme']);
 }
-if (params['appTheme'] === 'auto') {
+if (/auto/.test(params['appTheme'])) {
     params['appTheme'] = 'auto_wikimediaNative';
     setSetting('appTheme', params['appTheme']);
 }
