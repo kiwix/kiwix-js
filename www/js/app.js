@@ -2357,12 +2357,13 @@ function attachPopoverTriggerEvents (win) {
     }
     // Attach the popover CSS to the current article document
     // Get the actual applied theme (including fallbacks) from the dataset
-    const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
-    const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
+    const kiwixJSTheme = iframeDoc.getElementById('kiwixJSTheme');
+    let usesDarkPopoverColours = true;
     // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
-    // Only use dark popover colors for non-invert dark themes like _wikimediaNative
-    const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
-    popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColors);
+    if (kiwixJSTheme) {
+        usesDarkPopoverColours = !/invert/i.test(kiwixJSTheme.href);
+    }
+    popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColours);
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
