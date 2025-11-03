@@ -109,9 +109,9 @@ const archiveFiles = document.getElementById('archiveFiles');
 // Unique identifier of the article expected to be displayed
 appstate.expectedArticleURLToBeDisplayed = '';
 
-// define and store dark preference for matchMedia
+// Define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
-// if 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
+// If 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
 if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
     var optionsToBeRemoved = document.getElementById('appThemeSelect').querySelectorAll('.auto');
     for (var i = 0; i < optionsToBeRemoved.length; i++) {
@@ -123,26 +123,6 @@ uiUtil.applyAppTheme(params.appTheme);
 
 // Whenever the system theme changes, call applyAppTheme function
 darkPreference.onchange = function () {
-    uiUtil.applyAppTheme(params.appTheme);
-}
-
-// Update theme dropdown options based on loaded ZIM type
-function updateThemeOptions() {
-    const themeSelect = document.getElementById('appThemeSelect');
-    if (!themeSelect) return;
-    const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
-    const nativeOption = document.getElementById('theme-native-option');
-    const nativeAutoOption = document.getElementById('theme-native-auto-option');
-    // Enable/disable Wikimedia-specific theme options based on ZIM type
-    if (nativeOption) {
-        nativeOption.disabled = zimLoaded && !params.isWikimediaZim;
-        nativeOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";
-    }
-    if (nativeAutoOption) {
-        nativeAutoOption.disabled = zimLoaded && !params.isWikimediaZim;
-        nativeAutoOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Native theme only available for Wikimedia ZIMs";
-    }
-    // Apply the theme - applyAppTheme will handle fallbacks silently without changing user's preference
     uiUtil.applyAppTheme(params.appTheme);
 }
 
@@ -1877,7 +1857,6 @@ async function archiveReadyCallback (archive) {
     // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
     params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
-    updateThemeOptions();
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
