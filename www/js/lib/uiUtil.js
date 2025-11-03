@@ -1050,6 +1050,16 @@ function applyAppTheme (theme) {
     htmlEl.dataset.theme = theme;
     var iframe = document.getElementById('articleContent');
     const library = document.getElementById('libraryContent');
+
+    // Start with a clean slate
+    iframe.classList.remove('_wikimediaNative');
+    iframe.classList.remove('_mwInvert');
+    iframe.classList.remove('_invert');
+    library.classList.remove('_wikimediaNative');
+    library.classList.remove('_mwInvert');
+    library.classList.remove('_invert');
+        
+    // Process old theme to remove any previously applied classes
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
     var oldAppTheme = oldTheme ? isDarkTheme(oldTheme) ? 'dark' : 'light' : null;
@@ -1108,24 +1118,10 @@ function applyAppTheme (theme) {
 
     // Handle native Wikimedia theme for _wikimediaNative content theme
     if (contentTheme === '_wikimediaNative') {
-        // Remove any existing _wikimediaNative or _invert class from iframe/library (in case it was added before)
-        iframe.classList.remove('_wikimediaNative');
-        iframe.classList.remove('_mwInvert');
-        iframe.classList.remove('_invert');
-        library.classList.remove('_wikimediaNative');
-        library.classList.remove('_mwInvert');
-        library.classList.remove('_invert');
         // Check if the ZIM supports native themes
         if (doc && doc.documentElement) {
             var hasNativeTheme = detectNativeZIMThemeSupport(doc);
             if (hasNativeTheme) {
-                // Remove any fallback theme classes that might have been applied on a previous article
-                if (iframe.classList.contains('_mwInvert')) {
-                    iframe.classList.remove('_mwInvert');
-                }
-                if (library.classList.contains('_mwInvert')) {
-                    library.classList.remove('_mwInvert');
-                }
                 // Remove any fallback stylesheet that was injected
                 if (kiwixJSSheet && kiwixJSSheet.href && kiwixJSSheet.href.includes('kiwixJS_mwInvert.css')) {
                     kiwixJSSheet.disabled = true;

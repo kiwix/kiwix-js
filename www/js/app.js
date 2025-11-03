@@ -1859,7 +1859,7 @@ async function archiveReadyCallback (archive) {
     }
     // This flag will be reset each time a new archive is loaded
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
-    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
+    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|mdwiki|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
@@ -2356,12 +2356,14 @@ function attachPopoverTriggerEvents (win) {
         return;
     }
     // Attach the popover CSS to the current article document
-    // Get the actual applied theme (including fallbacks) from the dataset
+    // Find out if we have an applied dark theme from the html css
+    const isDarkTheme = document.querySelector('html').classList.contains('dark');
+    // Now check if we're using an inversion-based theme
     const kiwixJSTheme = iframeDoc.getElementById('kiwixJSTheme');
-    let usesDarkPopoverColours = true;
+    let usesDarkPopoverColours = isDarkTheme;
     // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
     if (kiwixJSTheme) {
-        usesDarkPopoverColours = !/invert/i.test(kiwixJSTheme.href);
+        usesDarkPopoverColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
     }
     popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColours);
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
@@ -2428,12 +2430,17 @@ function handlePopoverEvents (ev) {
     if (!divIsHovered) {
         // Prevent text selection while popover is open in modern browsers
         anchor.style.userSelect = 'none';
-        // Resolve the true app theme - for invert themes, use light colors since CSS filter inverts them
-        const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
-        const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
-        const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
+        // Find out if we have an applied dark theme from the html css
+        const isDarkTheme = document.querySelector('html').classList.contains('dark');
+        // Now check if we're using an inversion-based theme
+        const kiwixJSTheme = iframeDoc.getElementById('kiwixJSTheme');
+        let usesDarkPopoverColours = isDarkTheme;
+        // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
+        if (kiwixJSTheme) {
+            usesDarkPopoverColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
+        }
         // Get and populate the popover corresponding to the hovered or focused link
-        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, usesDarkPopoverColors, selectedArchive);
+        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, usesDarkPopoverColours, selectedArchive);
     }
     const outHandler = function (e) {
         setTimeout(function () {

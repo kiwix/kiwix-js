@@ -302,7 +302,14 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
-            const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
+            // Get the actual applied theme (including fallbacks) from the dataset
+            const kiwixJSTheme = currentDocument.getElementById('kiwixJSTheme');
+            let isDarkInverted = dark;
+            // For invert-based themes (_invert, _mwInvert), we need to load a different breakout icon
+            if (kiwixJSTheme) {
+                isDarkInverted = /invert/i.test(kiwixJSTheme.href);
+            }
+            const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (isDarkInverted ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
             const backgroundColour = dark ? 'black' : '#ebf4fb';
             // DEV: Most style declarations in this div only work properly inline. If added in stylesheet, even with !important, the positioning goes awry
             // (appears to be a timing issue related to the reservation of space given that the div is inserted dynamically).
