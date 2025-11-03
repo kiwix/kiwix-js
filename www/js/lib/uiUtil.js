@@ -1051,10 +1051,10 @@ function applyAppTheme (theme) {
     const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
+    var oldAppTheme = oldTheme.replace(/_.*$/, '');
     var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
-    // Remove both possible app theme classes to ensure clean state
-    // (The old theme might have been 'auto' which could have resolved to either 'dark' or 'light')
-    htmlEl.classList.remove('dark', 'light');
+    // Remove oldAppTheme and oldContentTheme
+    if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
     // A missing contentTheme implies _light
     footer.classList.remove(oldContentTheme || '_light');
     // Apply new appTheme (NB it will not be added twice if it's already there)
@@ -1067,6 +1067,7 @@ function applyAppTheme (theme) {
     footer.classList.add(contentTheme || '_light');
     // Embed a reference to applied theme, so we can remove it generically in the future
     htmlEl.dataset.theme = appTheme + contentTheme;
+
     // Safely handle help element IDs
     var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
     var safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9-]/g, '');
