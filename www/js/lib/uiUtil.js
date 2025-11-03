@@ -305,7 +305,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function closeTOC () {
-    console.log('pp closeTOC called')
     const ToCList = document.getElementById('ToCList');
     ToCList.style.display = 'none';
 }
@@ -1047,6 +1046,8 @@ function applyAppTheme (theme) {
     var htmlEl = document.querySelector('html');
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
+    // Embed a reference to new requested theme, so we can remove it generically in the future
+    htmlEl.dataset.theme = theme;
     var iframe = document.getElementById('articleContent');
     const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
@@ -1061,22 +1062,22 @@ function applyAppTheme (theme) {
     // Note: 'light' is the default state, so we only add a class for 'dark'
     if (appTheme === 'dark') {
         htmlEl.classList.add('dark');
+    } else {
+        htmlEl.classList.remove('dark');
     }
     // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
     // is not dark (but we want it applied when the content is dark or inverted)
     footer.classList.add(contentTheme || '_light');
-    // Embed a reference to applied theme, so we can remove it generically in the future
-    htmlEl.dataset.theme = appTheme + contentTheme;
-
+    
     // Safely handle help element IDs
     var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
-    var safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    var safeContentTheme = requestedContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
 
     // Hide any previously displayed help
-    var oldHelp = document.getElementById(safeOldContentTheme.replace(/_/, '') + '-help');
+    var oldHelp = document.getElementById(safeOldContentTheme + '-help');
     if (oldHelp) oldHelp.style.display = 'none';
     // Show any specific help for selected contentTheme
-    var help = document.getElementById(safeContentTheme.replace(/_/, '') + '-help');
+    var help = document.getElementById(safeContentTheme + '-help');
     if (help) help.style.display = 'block';
     // Remove the contentTheme for auto themes whenever system is in light mode
     if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
@@ -1246,8 +1247,7 @@ function detectNativeZIMThemeSupport (zimDocument) {
                 hasProvidedWikimediaTheme = htmlElement.getAttribute('data-kiwix-has-skin-theme-clientpref') === 'true';
             } else if (htmlElement.classList) {
                 // Initial detection: check if the html element has one of the theme preference classes
-                hasProvidedWikimediaTheme = htmlElement.classList.contains('skin-theme-clientpref-night') ||
-                    htmlElement.classList.contains('skin-theme-clientpref-os');
+                hasProvidedWikimediaTheme = /skin-theme-clientpref/.test(htmlElement.classList);
                 // Remember this detection for subsequent theme switches on the same article
                 htmlElement.setAttribute('data-kiwix-has-skin-theme-clientpref', hasProvidedWikimediaTheme ? 'true' : 'false');
             }

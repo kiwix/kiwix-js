@@ -124,6 +124,7 @@ uiUtil.applyAppTheme(params.appTheme);
 // Whenever the system theme changes, call applyAppTheme function
 darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
+    refreshCacheStatus();
 }
 
 /**
