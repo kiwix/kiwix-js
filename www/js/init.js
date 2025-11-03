@@ -284,7 +284,7 @@ if (/PWA_launch=/.test(window.location.search)) {
     // Set a flag to prevent further processing in app.js
     params.abort = true;
 } else {
-    // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
+    // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtil.js.
     // eslint-disable-next-line no-unused-vars
     var webpMachine = false;
 

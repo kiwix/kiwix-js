@@ -1052,10 +1052,12 @@ function applyAppTheme (theme) {
     const library = document.getElementById('libraryContent');
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
-    var oldAppTheme = oldTheme.replace(/_.*$/, '');
+    var oldAppTheme = oldTheme ? isDarkTheme(oldTheme) ? 'dark' : 'light' : null;
     var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
     // Remove oldAppTheme and oldContentTheme
-    if (oldAppTheme) htmlEl.classList.remove(oldAppTheme);
+    if (oldAppTheme) {
+        htmlEl.classList.remove(oldAppTheme);
+    }
     // A missing contentTheme implies _light
     footer.classList.remove(oldContentTheme || '_light');
     // Apply new appTheme (NB it will not be added twice if it's already there)
@@ -1106,13 +1108,14 @@ function applyAppTheme (theme) {
 
     // Handle native Wikimedia theme for _wikimediaNative content theme
     if (contentTheme === '_wikimediaNative') {
-        // Remove any existing _wikimediaNative class from iframe/library (in case it was added before)
-        if (iframe.classList.contains('_wikimediaNative')) {
-            iframe.classList.remove('_wikimediaNative');
-        }
-        if (library.classList.contains('_wikimediaNative')) {
-            library.classList.remove('_wikimediaNative');
-        }
+        // Remove any existing _wikimediaNative or _invert class from iframe/library (in case it was added before)
+        iframe.classList.remove('_wikimediaNative');
+        iframe.classList.remove('_mwInvert');
+        iframe.classList.remove('_invert');
+        library.classList.remove('_wikimediaNative');
+        library.classList.remove('_mwInvert');
+        library.classList.remove('_invert');
+        // Check if the ZIM supports native themes
         if (doc && doc.documentElement) {
             var hasNativeTheme = detectNativeZIMThemeSupport(doc);
             if (hasNativeTheme) {

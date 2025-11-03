@@ -120,6 +120,7 @@ if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
 }
 // Apply previously stored appTheme
 uiUtil.applyAppTheme(params.appTheme);
+refreshCacheStatus();
 
 // Whenever the system theme changes, call applyAppTheme function
 darkPreference.onchange = function () {
