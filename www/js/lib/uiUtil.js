@@ -1249,8 +1249,8 @@ function detectNativeZIMThemeSupport (zimDocument) {
             if (htmlElement.hasAttribute('data-kiwix-has-skin-theme-clientpref')) {
                 hasProvidedWikimediaTheme = htmlElement.getAttribute('data-kiwix-has-skin-theme-clientpref') === 'true';
             } else if (htmlElement.classList) {
-                // Initial detection: check if the html element has one of the theme preference classes
-                hasProvidedWikimediaTheme = /skin-theme-clientpref/.test(htmlElement.classList);
+                // Initial detection: check if the html element has one of the dark colour scheme preference classes
+                hasProvidedWikimediaTheme = /skin-theme-clientpref-(os|night)/.test(htmlElement.classList);
                 // Remember this detection for subsequent theme switches on the same article
                 htmlElement.setAttribute('data-kiwix-has-skin-theme-clientpref', hasProvidedWikimediaTheme ? 'true' : 'false');
             }
