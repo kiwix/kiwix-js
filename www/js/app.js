@@ -937,10 +937,11 @@ function refreshCacheStatus () {
     // Update radio buttons and checkbox
     document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
     // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
+    const docElement = document.documentElement;
     if (params.appCache) {
-        document.documentElement.style.removeProperty('background');
+        docElement.style.removeProperty('background');
     } else {
-        document.documentElement.style.background = /^dark/.test(document.documentElement.dataset.theme) ? '#300000' : 'mistyrose';
+        docElement.style.background = /dark/.test(docElement.classList) ? '#300000' : 'mistyrose';
     }
     // Hide or show the jqueryCompatibility info
     document.getElementById('jqueryCompatibility').style.display = params.contentInjectionMode === 'jquery' ? '' : 'none';
