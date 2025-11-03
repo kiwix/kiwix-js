@@ -1064,24 +1064,25 @@ function applyAppTheme (theme) {
     }
     // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
     // is not dark (but we want it applied when the content is dark or inverted)
-    // For _wikimediaNative, apply appropriate footer class based on resolved appTheme
-    var footerTheme = contentTheme;
-    if (contentTheme === '_wikimediaNative') {
-        footerTheme = appTheme === 'dark' ? '_mwInvert' : '_light';
-    }
-    footer.classList.add(footerTheme || '_light');
+    footer.classList.add(contentTheme || '_light');
+    // Embed a reference to applied theme, so we can remove it generically in the future
+    htmlEl.dataset.theme = appTheme + contentTheme;
     // Safely handle help element IDs
     var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
     var safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+
     // Hide any previously displayed help
     var oldHelp = document.getElementById(safeOldContentTheme.replace(/_/, '') + '-help');
     if (oldHelp) oldHelp.style.display = 'none';
     // Show any specific help for selected contentTheme
     var help = document.getElementById(safeContentTheme.replace(/_/, '') + '-help');
     if (help) help.style.display = 'block';
+    // Remove the contentTheme for auto themes whenever system is in light mode
+    if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
     // Hide any previously displayed description for auto themes
     var oldDescription = document.getElementById('kiwix-auto-description');
-    if (oldDescription) oldDescription.style.display = 'none';    
+    if (oldDescription) oldDescription.style.display = 'none';
+
     // Safely handle description element IDs
     var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');    
     // Show description for auto themes
@@ -1100,6 +1101,7 @@ function applyAppTheme (theme) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
     }
+
     // Handle native Wikimedia theme for _wikimediaNative content theme
     if (contentTheme === '_wikimediaNative') {
         // Remove any existing _wikimediaNative class from iframe/library (in case it was added before)
