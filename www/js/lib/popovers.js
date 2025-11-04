@@ -133,9 +133,17 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
         // Check if this is a redirect
         if (ret.isRedirect) {
             // It's a redirect, get the content from the redirect target
+            let redirectPath = ret.redirectPath;
+            
+            // Add namespace if missing (libzim sometimes returns paths without namespace)
+            if (!redirectPath.includes('/') && zimURL.includes('/')) {
+                const namespace = zimURL.substring(0, zimURL.indexOf('/') + 1);
+                redirectPath = namespace + redirectPath;
+            }
+            
             return archive.callLibzimWorker({ 
                 action: 'getEntryByPath', 
-                path: ret.redirectPath,
+                path: redirectPath,
                 follow: false
             }).then(function (finalRet) {
                 if (!finalRet || !finalRet.content) {
@@ -144,8 +152,7 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
                 const htmlArticle = finalRet.content instanceof Uint8Array ? 
                     archive.getUtf8FromData(finalRet.content) : finalRet.content;
                 
-                // Use the redirect path as the final path for proper base URL calculation
-                return parseArticleContentForBalloon(htmlArticle, ret.redirectPath, articleDocument);
+                        return parseArticleContentForBalloon(htmlArticle, redirectPath, articleDocument);
             });
         } else {
             // No redirect, process the content normally
@@ -169,7 +176,8 @@ function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
     
     if (articleBody) {
         // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-        const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
+        // Note: balloonBaseURL must be in decoded form for deriveZimUrlFromRelativeUrl (see uiUtil.js line 615)
+        const balloonBaseURL = zimURL.replace(/[^/]+$/, '');
         const docUrl = new URL(articleDocument.location.href);
         const rootRelativePathPrefix = docUrl.pathname.replace(/(.*\.zim[^/]*\/).*$/i, '$1');
         
@@ -273,7 +281,8 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
     }
     if (firstImage) {
         // Calculate root relative URL of image
-        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), baseURL));
+        const imageSrc = firstImage.getAttribute('src');
+        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(imageSrc, baseURL));
         firstImage.src = pathPrefix + imageZimURL;
         return firstImage.outerHTML;
     }
