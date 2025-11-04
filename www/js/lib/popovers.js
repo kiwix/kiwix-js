@@ -176,7 +176,7 @@ function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
     
     if (articleBody) {
         // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-        // Note: balloonBaseURL must be in decoded form for deriveZimUrlFromRelativeUrl (see uiUtil.js line 615)
+        // Keep baseURL decoded - deriveZimUrlFromRelativeUrl expects decoded paths, not encoded ones
         const balloonBaseURL = zimURL.replace(/[^/]+$/, '');
         const docUrl = new URL(articleDocument.location.href);
         const rootRelativePathPrefix = docUrl.pathname.replace(/(.*\.zim[^/]*\/).*$/i, '$1');
