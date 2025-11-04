@@ -1046,8 +1046,6 @@ function applyAppTheme (theme) {
     var htmlEl = document.querySelector('html');
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
-    // Embed a reference to new requested theme, so we can remove it generically in the future
-    htmlEl.dataset.theme = theme;
     var iframe = document.getElementById('articleContent');
     const library = document.getElementById('libraryContent');
 
@@ -1196,6 +1194,8 @@ function applyAppTheme (theme) {
     }
     // Return the actual theme applied (which may differ from the requested theme if fallback occurred)
     var actualTheme = appTheme + contentTheme;
+    // Embed a reference to new requested theme, so we can remove it generically in the future
+    htmlEl.dataset.theme = actualTheme;
     // Log theme application details for developers (only visible with verbose logging)
     console.debug('[applyAppTheme] Requested:', theme, '| Applied:', actualTheme,
         '| Base:', baseTheme, '| App:', appTheme, '| Content:', contentTheme || 'none',

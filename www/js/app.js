@@ -2355,17 +2355,11 @@ function attachPopoverTriggerEvents (win) {
     if (!iframeDoc || !appstate.wikimediaZimLoaded || !params.showPopoverPreviews || !('matches' in Element.prototype)) {
         return;
     }
-    // Attach the popover CSS to the current article document
-    // Find out if we have an applied dark theme from the html css
-    const isDarkTheme = document.querySelector('html').classList.contains('dark');
-    // Now check if we're using an inversion-based theme
-    const kiwixJSTheme = iframeDoc.getElementById('kiwixJSTheme');
-    let usesDarkPopoverColours = isDarkTheme;
-    // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
-    if (kiwixJSTheme) {
-        usesDarkPopoverColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
+    // Attach popover CSS with correct dark/light theme after theme is applied
+    if (appstate.wikimediaZimLoaded && params.showPopoverPreviews) {
+        let usesDarkPopoverColours = determinePopoverColours(iframeDoc);
+        popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColours);
     }
-    popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColours);
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
@@ -2375,6 +2369,20 @@ function attachPopoverTriggerEvents (win) {
     } else {
         win.addEventListener('pointerdown', evokePopoverEvents, true);
     }
+}
+
+// Helper function to determine required popover colours
+function determinePopoverColours (articleDoc) {
+    // Find out if we have an applied dark theme from the html css
+    const isDarkTheme = /dark/.test(document.documentElement.dataset.theme);
+    // Now check if we're using an inversion-based theme
+    const kiwixJSTheme = articleDoc.getElementById('kiwixJSTheme');
+    let requiredColours = isDarkTheme;
+    // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
+    if (kiwixJSTheme) {
+        requiredColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
+    }
+    return requiredColours;
 }
 
 // Throttle for the popover event handler to prevent multiple activations with mouse movement
@@ -2430,15 +2438,7 @@ function handlePopoverEvents (ev) {
     if (!divIsHovered) {
         // Prevent text selection while popover is open in modern browsers
         anchor.style.userSelect = 'none';
-        // Find out if we have an applied dark theme from the html css
-        const isDarkTheme = document.querySelector('html').classList.contains('dark');
-        // Now check if we're using an inversion-based theme
-        const kiwixJSTheme = iframeDoc.getElementById('kiwixJSTheme');
-        let usesDarkPopoverColours = isDarkTheme;
-        // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
-        if (kiwixJSTheme) {
-            usesDarkPopoverColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
-        }
+        let usesDarkPopoverColours = determinePopoverColours(iframeDoc);
         // Get and populate the popover corresponding to the hovered or focused link
         popovers.populateKiwixPopoverDiv(ev, anchor, appstate, usesDarkPopoverColours, selectedArchive);
     }
@@ -2893,14 +2893,6 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
         // Set the requested appTheme - applyAppTheme will handle fallbacks silently
         uiUtil.applyAppTheme(params.appTheme);
-        // Re-attach popover CSS with correct dark/light theme after theme is applied
-        if (appstate.wikimediaZimLoaded && params.showPopoverPreviews && iframeArticleContent.contentDocument) {
-            const actualTheme = document.querySelector('html').dataset.theme || params.appTheme;
-            const isDarkTheme = uiUtil.isDarkTheme(actualTheme);
-            // For invert-based themes, keep popover colors light since the CSS filter inverts them
-            const usesDarkPopoverColors = isDarkTheme && !/_(invert|mwInvert)/.test(actualTheme);
-            popovers.attachKiwixPopoverCss(iframeArticleContent.contentDocument, usesDarkPopoverColors);
-        }
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 
@@ -2910,6 +2902,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         loadImagesJQuery();
         loadCSSJQuery();
         insertMediaBlobsJQuery();
+        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
         // Jump to any anchor parameter
         if (anchorParameter) {
             var target = iframeContentDocument.getElementById(anchorParameter);
@@ -3037,7 +3030,6 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 // so the anchor will be erased form the DOM when the new article is loaded
             });
         });
-        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
     }
 
     function loadImagesJQuery () {
