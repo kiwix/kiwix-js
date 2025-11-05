@@ -125,6 +125,7 @@ refreshCacheStatus();
 // Whenever the system theme changes, call applyAppTheme function
 darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
+    attachPopoverTriggerEvents(articleWindow);
     refreshCacheStatus();
 }
 
@@ -614,7 +615,12 @@ document.getElementById('appThemeSelect').addEventListener('change', function (e
     settingsStore.setItem('appTheme', params.appTheme, Infinity);
     // Apply the theme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
+    attachPopoverTriggerEvents(articleWindow);
     refreshCacheStatus();
+});
+document.getElementById('viewArticle').addEventListener('click', function () {
+    // Due to theme changes we have to reload the current article rather than just unhiding it
+    goToArticle(appstate.expectedArticleURLToBeDisplayed);
 });
 document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
     if (e.target.checked) {
