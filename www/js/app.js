@@ -1866,7 +1866,7 @@ async function archiveReadyCallback (archive) {
     }
     // These flags will be reset each time a new archive is loaded
     // This parameter is used to decide when to display popovers, and for specific wikipedia code manipulation
-    appstate.isWikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
     // This parameter is used for styles
     params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|mdwiki|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
