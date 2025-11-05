@@ -109,7 +109,7 @@ if (params['appTheme'] === 'dark') {
     params['appTheme'] = 'dark_wikimediaNative';
     setSetting('appTheme', params['appTheme']);
 }
-if (/auto/.test(params['appTheme'])) {
+if (params['appTheme'] == 'auto') {
     params['appTheme'] = 'auto_wikimediaNative';
     setSetting('appTheme', params['appTheme']);
 }

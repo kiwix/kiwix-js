@@ -620,6 +620,7 @@ document.getElementById('appThemeSelect').addEventListener('change', function (e
 });
 document.getElementById('viewArticle').addEventListener('click', function () {
     // Due to theme changes we have to reload the current article rather than just unhiding it
+    uiUtil.returnToCurrentPage();
     goToArticle(appstate.expectedArticleURLToBeDisplayed);
 });
 document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
@@ -1863,8 +1864,10 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
-    // This flag will be reset each time a new archive is loaded
-    appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    // These flags will be reset each time a new archive is loaded
+    // This parameter is used to decide when to display popovers, and for specific wikipedia code manipulation
+    appstate.isWikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
+    // This parameter is used for styles
     params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|mdwiki|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {

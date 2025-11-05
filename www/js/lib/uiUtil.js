@@ -1029,8 +1029,6 @@ function applyAppTheme (theme) {
         console.error('Invalid theme format:', theme);
         theme = 'light';
     }
-    // Store the base theme (light/dark/auto) to reconstruct the final theme string if fallback occurs
-    var baseTheme = theme.replace(/_.*$/, '');
     // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
     var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
     // Get contentTheme from chosen theme
@@ -1056,7 +1054,7 @@ function applyAppTheme (theme) {
     library.classList.remove('_wikimediaNative');
     library.classList.remove('_mwInvert');
     library.classList.remove('_invert');
-        
+
     // Process old theme to remove any previously applied classes
     var doc = iframe.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
@@ -1096,7 +1094,7 @@ function applyAppTheme (theme) {
     if (oldDescription) oldDescription.style.display = 'none';
 
     // Safely handle description element IDs
-    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');    
+    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');
     // Show description for auto themes
     var description = document.getElementById('kiwix-' + safeThemeBase + '-description');
     if (description) description.style.display = 'block';
@@ -1198,7 +1196,7 @@ function applyAppTheme (theme) {
     htmlEl.dataset.theme = actualTheme;
     // Log theme application details for developers (only visible with verbose logging)
     console.debug('[applyAppTheme] Requested:', theme, '| Applied:', actualTheme,
-        '| Base:', baseTheme, '| App:', appTheme, '| Content:', contentTheme || 'none',
+        '| App:', appTheme, '| Content:', contentTheme || 'none',
         '| Fallback:', requestedContentTheme !== contentTheme);
     return actualTheme;
 }
@@ -1227,7 +1225,6 @@ function isDarkTheme (theme) {
 function showReturnLink () {
     var viewArticle = document.getElementById('viewArticle');
     viewArticle.style.display = 'block';
-    viewArticle.addEventListener('click', returnToCurrentPage);
 }
 
 /**

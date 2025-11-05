@@ -564,14 +564,13 @@ function fetchUrlFromZIM (urlObjectOrString, range, event/*, expectedHeaders*/) 
         // This tells us whether the fetch request came from an iframe ('nested'), a top-level window ('top-level'),
         // or another context. We pass this info to the app so it knows whether to hide the articleContainer
         // to prevent theme flash (only needed for its own iframe, not for new windows/tabs users open).
-        var requestingFrameType = 'unknown';
         var getRequestingFrameType = event && event.clientId
             ? self.clients.get(event.clientId).then(function(client) {
-                if (client) requestingFrameType = client.frameType;
+                return client ? client.frameType : 'unknown';
               }).catch(function() {
-                // Client not found, keep default 'unknown'
+                return 'unknown';
               })
-            : Promise.resolve();
+            : Promise.resolve('unknown');
 
         var messageListener = function (msgPortEvent) {
             if (msgPortEvent.data.action === 'giveContent') {
@@ -648,7 +647,7 @@ function fetchUrlFromZIM (urlObjectOrString, range, event/*, expectedHeaders*/) 
         // Wait for requestingFrameType to be resolved (it's async), then send messages to all app clients
         // Note: we iterate over 'clientList' (all top-level app windows), but send them info about the
         // 'requestingFrameType' (which client made the original fetch request - could be iframe or new window)
-        getRequestingFrameType.then(function () {
+        getRequestingFrameType.then(function (requestingFrameType) {
             self.clients.matchAll().then(function (clientList) {
                 clientList.forEach(function (client) {
                     if (client.frameType !== 'top-level') return;
