@@ -103,7 +103,12 @@ params['assetsCache'] = getSetting('assetsCache') !== false;
 // Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
 params['appCache'] = getSetting('appCache') !== false;
 // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
-params['appTheme'] = getSetting('appTheme') || 'light'; // Currently implemented: light|dark|dark_invert|dark_mwInvert|auto|auto_invert|auto_mwInvert|
+params['appTheme'] = getSetting('appTheme') || 'light'; // Currently implemented: light|dark_wikimediaNative|auto_wikimediaNative|dark_invert|dark_mwInvert
+// Migrate old "app only" dark and deprecated auto theme settings to the best available theme with smart fallbacks
+if (/^dark$|^auto(?!_wikimediaNative)/.test(params['appTheme'])) {
+    params['appTheme'] = 'auto_wikimediaNative';
+    setSetting('appTheme', params['appTheme']);
+}
 // A global parameter to turn on/off the use of Keyboard HOME Key to focus search bar
 params['useHomeKeyToFocusSearchBar'] = getSetting('useHomeKeyToFocusSearchBar') === true;
 // A global parameter to turn on/off opening external links in new tab (for ServiceWorker mode)
@@ -275,7 +280,7 @@ if (/PWA_launch=/.test(window.location.search)) {
     // Set a flag to prevent further processing in app.js
     params.abort = true;
 } else {
-    // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
+    // Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtil.js.
     // eslint-disable-next-line no-unused-vars
     var webpMachine = false;
 

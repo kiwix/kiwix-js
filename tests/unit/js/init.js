@@ -29,7 +29,7 @@
 var params = {};
 // We need to turn off source verification so that the test files can be loaded normally without interruption
 params['sourceVerification'] = false;
-// Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtils.js.
+// Test if WebP is natively supported, and if not, load a webpMachine instance. This is used in uiUtil.js.
 // eslint-disable-next-line no-unused-vars
 var webpMachine = false;
 

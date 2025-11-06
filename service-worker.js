@@ -116,7 +116,6 @@ const precacheFiles = [
     'www/css/app.css',
     'www/css/kiwixJS_invert.css',
     'www/css/kiwixJS_mwInvert.css',
-    'www/css/kiwixJS_wikiVector.css',
     'www/css/transition.css',
     'www/img/icons/kiwix-256.png',
     'www/img/icons/kiwix-32.png',
@@ -310,7 +309,7 @@ self.addEventListener('fetch', function (event) {
                 strippedUrl = urlObject.pathname;
                 if (cache === ASSETS_CACHE && regexpZIMUrlWithNamespace.test(strippedUrl)) {
                     const range = modRequestOrResponse.headers.get('range');
-                    return fetchUrlFromZIM(urlObject, range).then(function (response) {
+                    return fetchUrlFromZIM(urlObject, range, event).then(function (response) {
                         return cacheAndReturnResponseForAsset(event, response);
                     }).catch(function (msgPortData) {
                         console.error('Invalid message received from app.js for ' + strippedUrl, msgPortData);
@@ -454,7 +453,7 @@ function zimitResolver (event) {
         console.debug('[SW] Filtering content of load.js', rqUrl);
         // First we have to get the contents of load.js from the ZIM, because it is a common name, and there is no way to be sure
         // that the request will be for the Zimit load.js
-        return fetchUrlFromZIM(new URL(rqUrl)).then(function (response) {
+        return fetchUrlFromZIM(new URL(rqUrl), null, event).then(function (response) {
             // The response was found in the ZIM so we respond with it
             // Clone the response before reading its body
             var clonedResponse = response.clone();
@@ -540,7 +539,7 @@ function cacheAndReturnResponseForAsset (event, response) {
  *     Zimit requests may be for a range of bytes, in fact video (at least) is stored as a blob, so the appropriate response will just be a normal 200.
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function fetchUrlFromZIM (urlObjectOrString, range/*, expectedHeaders*/) {
+function fetchUrlFromZIM (urlObjectOrString, range, event/*, expectedHeaders*/) {
     return new Promise(function (resolve, reject) {
         var pathname = typeof urlObjectOrString === 'string' ? urlObjectOrString : urlObjectOrString.pathname;
         // Note that titles may contain bare question marks or hashes, so we must use only the pathname without any URL parameters.
@@ -560,6 +559,18 @@ function fetchUrlFromZIM (urlObjectOrString, range/*, expectedHeaders*/) {
         var zimName = prefix.replace(/\/$/, '');
 
         // console.debug('[SW] Asking app.js for ' + titleWithNameSpace + ' from ' + zimName + '...');
+
+        // Get the requesting client's frameType if available
+        // This tells us whether the fetch request came from an iframe ('nested'), a top-level window ('top-level'),
+        // or another context. We pass this info to the app so it knows whether to hide the articleContainer
+        // to prevent theme flash (only needed for its own iframe, not for new windows/tabs users open).
+        var getRequestingFrameType = event && event.clientId
+            ? self.clients.get(event.clientId).then(function(client) {
+                return client ? client.frameType : 'unknown';
+              }).catch(function() {
+                return 'unknown';
+              })
+            : Promise.resolve('unknown');
 
         var messageListener = function (msgPortEvent) {
             if (msgPortEvent.data.action === 'giveContent') {
@@ -633,20 +644,25 @@ function fetchUrlFromZIM (urlObjectOrString, range/*, expectedHeaders*/) {
                 reject(msgPortEvent.data, titleWithNameSpace);
             }
         };
-        // Get all the clients currently being controlled and send them a message
-        self.clients.matchAll().then(function (clientList) {
-            clientList.forEach(function (client) {
-                if (client.frameType !== 'top-level') return;
-                // Let's instantiate a new messageChannel, to allow app.js to give us the content
-                var messageChannel = new MessageChannel();
-                messageChannel.port1.onmessage = messageListener;
-                client.postMessage({
-                    action: 'askForContent',
-                    title: titleWithNameSpace,
-                    search: uriComponent,
-                    anchorTarget: anchorTarget,
-                    zimFileName: zimName
-                }, [messageChannel.port2]);
+        // Wait for requestingFrameType to be resolved (it's async), then send messages to all app clients
+        // Note: we iterate over 'clientList' (all top-level app windows), but send them info about the
+        // 'requestingFrameType' (which client made the original fetch request - could be iframe or new window)
+        getRequestingFrameType.then(function (requestingFrameType) {
+            self.clients.matchAll().then(function (clientList) {
+                clientList.forEach(function (client) {
+                    if (client.frameType !== 'top-level') return;
+                    // Let's instantiate a new messageChannel, to allow app.js to give us the content
+                    var messageChannel = new MessageChannel();
+                    messageChannel.port1.onmessage = messageListener;
+                    client.postMessage({
+                        action: 'askForContent',
+                        title: titleWithNameSpace,
+                        search: uriComponent,
+                        anchorTarget: anchorTarget,
+                        zimFileName: zimName,
+                        requestingFrameType: requestingFrameType
+                    }, [messageChannel.port2]);
+                });
             });
         });
     });

@@ -109,9 +109,9 @@ const archiveFiles = document.getElementById('archiveFiles');
 // Unique identifier of the article expected to be displayed
 appstate.expectedArticleURLToBeDisplayed = '';
 
-// define and store dark preference for matchMedia
+// Define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
-// if 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
+// If 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
 if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
     var optionsToBeRemoved = document.getElementById('appThemeSelect').querySelectorAll('.auto');
     for (var i = 0; i < optionsToBeRemoved.length; i++) {
@@ -120,54 +120,13 @@ if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
 }
 // Apply previously stored appTheme
 uiUtil.applyAppTheme(params.appTheme);
+refreshCacheStatus();
 
 // Whenever the system theme changes, call applyAppTheme function
 darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
-}
-
-// Vector Dark theme update the Dropdown UI State
-function updateThemeOptions() {
-    const vectorOption = document.getElementById('theme-vector-option');
-    if (vectorOption) {
-        // Only disable if a ZIM is loaded and it's not a Wikimedia ZIM
-        const zimLoaded = selectedArchive && selectedArchive.file && selectedArchive.file.name;
-        vectorOption.disabled = zimLoaded && !params.isWikimediaZim;
-        vectorOption.title = (!zimLoaded || params.isWikimediaZim) ? "" : "Vector style only available for Wikimedia ZIMs";
-
-        // Check that dropdown matches actual theme
-        const currentTheme = document.getElementById('appThemeSelect')?.value;
-        if (currentTheme && currentTheme.includes('_wikiVector') && !params.isWikimediaZim) {
-            // If somehow Vector is selected for non Wikimedia ZIM then correct it
-            handleThemeFallback();
-        }
-    }
-}
-
-function handleThemeFallback() {
-    const themeSelect = document.getElementById('appThemeSelect');
-    if (!themeSelect) return;
-    const currentTheme = themeSelect.value || settingsStore.getItem('appTheme') || 'light';
-    
-    // When switching to Wikimedia ZIM
-    if (params.isWikimediaZim) {
-        // If current theme is invert then try to restore Vector if it was previously used
-        if (currentTheme.includes('_invert')) {
-            const baseTheme = currentTheme.replace('_invert', '_wikiVector');
-            if (themeSelect.querySelector(`option[value="${baseTheme}"]`)) {
-                themeSelect.value = baseTheme;
-                uiUtil.applyAppTheme(baseTheme);
-            }
-        }
-    } 
-
-    // When switching from Wikimedia ZIM
-    else if (currentTheme.includes('_wikiVector')) {
-        const newTheme = currentTheme.replace('_wikiVector', '_invert');
-        themeSelect.value = newTheme;
-        uiUtil.applyAppTheme(newTheme);
-    }
-    updateThemeOptions();
+    attachPopoverTriggerEvents(articleWindow);
+    refreshCacheStatus();
 }
 
 /**
@@ -654,8 +613,27 @@ document.getElementById('reopenLastArchiveCheck').addEventListener('change', fun
 document.getElementById('appThemeSelect').addEventListener('change', function (e) {
     params.appTheme = e.target.value;
     settingsStore.setItem('appTheme', params.appTheme, Infinity);
+    // Apply the theme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
+    attachPopoverTriggerEvents(articleWindow);
     refreshCacheStatus();
+});
+document.getElementById('btnColourScheme').addEventListener('click', function () {
+    if (uiUtil.isDarkTheme(params.appTheme)) {
+        params.appTheme = 'light';
+    } else {
+        params.appTheme = 'dark_wikimediaNative';
+    }
+    settingsStore.setItem('appTheme', params.appTheme, Infinity);
+    uiUtil.applyAppTheme(params.appTheme);
+    document.getElementById('appThemeSelect').value = params.appTheme;
+    attachPopoverTriggerEvents(articleWindow);
+    refreshCacheStatus();
+});
+document.getElementById('viewArticle').addEventListener('click', function () {
+    // Due to theme changes we have to reload the current article rather than just unhiding it
+    uiUtil.returnToCurrentPage();
+    goToArticle(appstate.expectedArticleURLToBeDisplayed);
 });
 document.getElementById('cachedAssetsModeRadioTrue').addEventListener('change', function (e) {
     if (e.target.checked) {
@@ -980,10 +958,11 @@ function refreshCacheStatus () {
     // Update radio buttons and checkbox
     document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
     // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
+    const docElement = document.documentElement;
     if (params.appCache) {
-        document.documentElement.style.removeProperty('background');
+        docElement.style.removeProperty('background');
     } else {
-        document.documentElement.style.background = /^dark/.test(document.documentElement.dataset.theme) ? '#300000' : 'mistyrose';
+        docElement.style.background = /dark/.test(docElement.classList) ? '#300000' : 'mistyrose';
     }
     // Hide or show the jqueryCompatibility info
     document.getElementById('jqueryCompatibility').style.display = params.contentInjectionMode === 'jquery' ? '' : 'none';
@@ -1897,11 +1876,11 @@ async function archiveReadyCallback (archive) {
             params.originalContentInjectionMode = null;
         }
     }
-    // This flag will be reset each time a new archive is loaded
+    // These flags will be reset each time a new archive is loaded
+    // This parameter is used to decide when to display popovers, and for specific wikipedia code manipulation
     appstate.wikimediaZimLoaded = /wikipedia|wikivoyage|mdwiki|wiktionary/i.test(archive.file.name);
-    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
-    updateThemeOptions(); 
-    handleThemeFallback();
+    // This parameter is used for styles
+    params.isWikimediaZim = /wikipedia|wikimedia|wikivoyage|mdwiki|wiktionary|wikibooks|wikiquote|wikisource|wikinews|wikiversity/i.test(archive.file.name);
     // Set contentInjectionMode to serviceWorker when opening a new archive in case the user switched to Restricted Mode/jquery Mode when opening the previous archive
     if (params.contentInjectionMode === 'jquery') {
         params.contentInjectionMode = settingsStore.getItem('contentInjectionMode');
@@ -2339,11 +2318,13 @@ function articleLoadedSW (iframeArticleContent) {
     document.getElementById('cachingAssets').textContent = translateUI.t('spinner-caching-assets') || 'Caching assets...';
     document.getElementById('cachingAssets').style.display = 'none';
     uiUtil.spinnerDisplay(false);
-    // Set the requested appTheme
+    // Set the requested appTheme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
+    document.getElementById('articleContent').style.display = '';
+    console.debug('<- Article unhidden ->');
     
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
@@ -2395,8 +2376,11 @@ function attachPopoverTriggerEvents (win) {
     if (!iframeDoc || !appstate.wikimediaZimLoaded || !params.showPopoverPreviews || !('matches' in Element.prototype)) {
         return;
     }
-    // Attach the popover CSS to the current article document
-    popovers.attachKiwixPopoverCss(iframeDoc);
+    // Attach popover CSS with correct dark/light theme after theme is applied
+    if (appstate.wikimediaZimLoaded && params.showPopoverPreviews) {
+        let usesDarkPopoverColours = determinePopoverColours(iframeDoc);
+        popovers.attachKiwixPopoverCss(iframeDoc, usesDarkPopoverColours);
+    }
     // Add event listeners to the iframe window to check when anchors are hovered, focused or touched
     win.addEventListener('mouseover', evokePopoverEvents, true);
     win.addEventListener('focus', evokePopoverEvents, true);
@@ -2406,6 +2390,20 @@ function attachPopoverTriggerEvents (win) {
     } else {
         win.addEventListener('pointerdown', evokePopoverEvents, true);
     }
+}
+
+// Helper function to determine required popover colours
+function determinePopoverColours (articleDoc) {
+    // Find out if we have an applied dark theme from the html css
+    const isDarkTheme = /dark/.test(document.documentElement.dataset.theme);
+    // Now check if we're using an inversion-based theme
+    const kiwixJSTheme = articleDoc.getElementById('kiwixJSTheme');
+    let requiredColours = isDarkTheme;
+    // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
+    if (kiwixJSTheme) {
+        requiredColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
+    }
+    return requiredColours;
 }
 
 // Throttle for the popover event handler to prevent multiple activations with mouse movement
@@ -2461,10 +2459,9 @@ function handlePopoverEvents (ev) {
     if (!divIsHovered) {
         // Prevent text selection while popover is open in modern browsers
         anchor.style.userSelect = 'none';
-        // Resolve the true app theme
-        const isDarkTheme = uiUtil.isDarkTheme(params.appTheme);
+        let usesDarkPopoverColours = determinePopoverColours(iframeDoc);
         // Get and populate the popover corresponding to the hovered or focused link
-        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, isDarkTheme, selectedArchive);
+        popovers.populateKiwixPopoverDiv(ev, anchor, appstate, usesDarkPopoverColours, selectedArchive);
     }
     const outHandler = function (e) {
         setTimeout(function () {
@@ -2695,6 +2692,12 @@ function handleMessageChannelMessage (event) {
                     window.timeout = setTimeout(function () {
                         uiUtil.spinnerDisplay(false);
                     }, 1000);
+                    // Hide article while loading to avoid flash of incorrect theme, but only if the request is from our own iframe
+                    // (not from a new window/tab the user opened)
+                    if (event.data.requestingFrameType === 'nested' && /\bx?html/.test(mimetype)) {
+                        articleContainer.style.display = 'none';
+                        console.debug('-> Article hidden to avoid FOIT <-');
+                    }
                     // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
                     // or simply `html`, so this has to be as generic as possible
                     if (/\bx?html/i.test(mimetype)) {
@@ -2909,7 +2912,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             docBody.addEventListener('drop', handleIframeDrop);
         }
 
-        // Set the requested appTheme
+        // Set the requested appTheme - applyAppTheme will handle fallbacks silently
         uiUtil.applyAppTheme(params.appTheme);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
@@ -2920,6 +2923,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         loadImagesJQuery();
         loadCSSJQuery();
         insertMediaBlobsJQuery();
+        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
         // Jump to any anchor parameter
         if (anchorParameter) {
             var target = iframeContentDocument.getElementById(anchorParameter);
@@ -3047,7 +3051,6 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 // so the anchor will be erased form the DOM when the new article is loaded
             });
         });
-        attachPopoverTriggerEvents(iframeArticleContent.contentWindow);
     }
 
     function loadImagesJQuery () {

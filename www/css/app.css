@@ -29,7 +29,7 @@
     overflow-x: hidden;
 }
 [role=region] > header {
-     margin-bottom: 1rem;
+     margin-bottom: 12px;
      text-align: center;
 }
 [role=region] > header > h1 {
@@ -163,8 +163,8 @@
 }
 
 #formArticleSearch {
-    padding-top: 20px;
-    padding-bottom: 0px;
+    padding-top: 0.5em;
+    padding-bottom: 0;
 }
 
 #configuration {
@@ -437,7 +437,7 @@ iframe._invert, iframe._mwInvert {
 }
 
 .container {
-    margin-bottom: 1.5em;
+    margin-bottom: 0.5em;
 }
 
 .card {
@@ -596,8 +596,13 @@ button {
         margin-bottom: 0.5em;
     }
 
+    .col-3 {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
     .btn-group{
-        height: 100%;
+        height: 32px;
     }
     
 }

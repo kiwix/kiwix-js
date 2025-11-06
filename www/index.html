@@ -107,13 +107,16 @@
                 <form id="formArticleSearch" role="search" aria-label="Search articles">
                     <div class="container">
                         <div class="row">
-                            <span class="col-10">
+                            <span class="col-9">
                                 <span class="input-group">
                                     <input type="search" data-i18n-tip="home-prefix-tip" title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type." id="prefix" placeholder="Search..." class="form-control" autocomplete="off" />
                                     <button type="button" data-i18n-tip="home-search" title="Search" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
                                 </span>
                             </span>
-                            <span class="col-2">
+                            <span class="col-3">
+                                <span class="btn-group">
+                                    <button type="button" data-i18n-tip="home-btn-colourscheme-tip" title="Switch dark and light themes" class="btn btn-outline-secondary" id="btnColourScheme"><i class="fas fa-moon"></i></button>
+                                </span>
                                 <span class="btn-group">
                                     <button type="button" data-i18n-tip="home-btn-random-tip" title="Select a random article to display" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
                                 </span>
@@ -564,17 +567,14 @@
                                     </label>
                                     <select class="form-control" id="appThemeSelect">
                                         <option data-i18n="configure-display-themeoption-light" value="light">Light</option>
-                                        <option data-i18n="configure-display-themeoption-dark-apponly" value="dark">Dark (app only)</option>
+                                        <option data-i18n="configure-display-themeoption-dark-wikimedianative" value="dark_wikimediaNative">Dark</option>
+                                        <option data-i18n="configure-display-themeoption-auto-wikimedianative" class="auto" value="auto_wikimediaNative">Auto</option>
+                                        <option data-i18n="configure-display-themeoption-dark-mwinvert" value="dark_mwInvert">Dark (wikimedia invert)</option>
                                         <option data-i18n="configure-display-themeoption-dark-invert" value="dark_invert">Dark (generic invert)</option>
-                                        <option data-i18n="configure-display-themeoption-dark-mwinvert" value="dark_mwInvert">Dark (wikimedia invert)*</option>
-                                        <option data-i18n="configure-display-themeoption-dark-wikivector" id="theme-vector-option" title="Vector style only available for Wikimedia ZIMs" value="dark_wikiVector">Dark (Wikipedia Vector)*</option>
-                                        <option data-i18n="configure-display-themeoption-auto-apponly" class="auto" value="auto">Auto (app only)</option>
-                                        <option data-i18n="configure-display-themeoption-auto-invert" class="auto" value="auto_invert">Auto (generic invert)</option>
-                                        <option data-i18n="configure-display-themeoption-auto-mwinvert" class="auto" value="auto_mwInvert">Auto (wikimedia invert)*</option>
                                     </select>
                                     <p data-i18n="configure-display-apptheme-auto-description" class="text-muted" id="kiwix-auto-description" style="margin-bottom: 0;">&emsp;(Auto themes match the dark/light mode of your device.)</p>
                                     <p data-i18n="configure-display-apptheme-mwinvert-description" id="mwInvert-help" class="appThemeInfo form-text text-muted">* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.</p>
-                                    <p data-i18n="configure-display-apptheme-wikivector-description" id="wikiVector-help" class="appThemeInfo form-text text-muted">* Only applies to Wikimedia ZIMs. Falls back to generic inversion when other archives are loaded.</p>
+                                    <p data-i18n="configure-display-apptheme-wikimedianative-description" id="wikimediaNative-help" class="appThemeInfo form-text text-muted">* Uses the ZIM's built-in dark theme (for Wikimedia ZIMs with native theme support). Falls back to inversion if not available.</p>
                                     <a data-i18n="configure-display-apptheme-info" id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with applied theme&nbsp;]</a>
                                 </div>
                                 <div class="checkbox" id="libzimSearchTypeCheckBox">

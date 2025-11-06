@@ -185,8 +185,13 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
  * @param {Boolean} dark An optional parameter to adjust the background colour for dark themes (generally not needed for inversion-based themes)
  */
 function attachKiwixPopoverCss (doc, dark) {
-    const colour = dark && !/invert/i.test(params.cssTheme) ? 'lightgray' : 'black';
-    const backgroundColour = dark && !/invert/i.test(params.cssTheme) ? '#121e1e' : '#ebf4fb';
+    // Remove any existing popover stylesheet to ensure colours are updated
+    const existingStylesheet = doc.getElementById('kiwixtooltipstylesheet');
+    if (existingStylesheet) {
+        existingStylesheet.parentNode.removeChild(existingStylesheet);
+    }
+    const colour = dark ? 'lightgray' : 'black';
+    const backgroundColour = dark ? '#121e1e' : '#ebf4fb';
     const borderColour = 'skyblue !important';
     const cssLink = document.createElement('link');
     doc.head.appendChild(cssLink);
@@ -297,8 +302,15 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
             div.style.justifyContent = '';
             div.style.alignItems = '';
             div.style.display = 'block';
-            const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (dark ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
-            const backgroundColour = dark && !/invert/i.test(params.appTheme) ? 'black' : '#ebf4fb';
+            // Get the actual applied theme (including fallbacks) from the dataset
+            const kiwixJSTheme = currentDocument.getElementById('kiwixJSTheme');
+            let isDarkInverted = dark;
+            // For invert-based themes (_invert, _mwInvert), we need to load a different breakout icon
+            if (kiwixJSTheme) {
+                isDarkInverted = /invert/i.test(kiwixJSTheme.href);
+            }
+            const breakoutIconFile = window.location.pathname.replace(/\/[^/]*$/, '') + (isDarkInverted ? '/img/icons/new_window_white.svg' : '/img/icons/new_window_black.svg');
+            const backgroundColour = dark ? 'black' : '#ebf4fb';
             // DEV: Most style declarations in this div only work properly inline. If added in stylesheet, even with !important, the positioning goes awry
             // (appears to be a timing issue related to the reservation of space given that the div is inserted dynamically).
             div.innerHTML = `<div style="position: relative; overflow: hidden; height: ${div.style.height};">
