@@ -7,6 +7,7 @@ document.localeJson = {
       "home": "Home",
       "home-search": "Search",
       "home-welcome-text": "Once you have loaded a ZIM archive, you can search its contents using the above search field.",
+      "home-btn-colourscheme-tip": "Switch dark and light themes",
       "home-btn-random-tip": "Select a random article to display",
       "home-btn-random": "Random",
       "home-btn-back": "Back",

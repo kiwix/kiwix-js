@@ -618,6 +618,18 @@ document.getElementById('appThemeSelect').addEventListener('change', function (e
     attachPopoverTriggerEvents(articleWindow);
     refreshCacheStatus();
 });
+document.getElementById('btnColourScheme').addEventListener('click', function () {
+    if (uiUtil.isDarkTheme(params.appTheme)) {
+        params.appTheme = 'light';
+    } else {
+        params.appTheme = 'dark_wikimediaNative';
+    }
+    settingsStore.setItem('appTheme', params.appTheme, Infinity);
+    uiUtil.applyAppTheme(params.appTheme);
+    document.getElementById('appThemeSelect').value = params.appTheme;
+    attachPopoverTriggerEvents(articleWindow);
+    refreshCacheStatus();
+});
 document.getElementById('viewArticle').addEventListener('click', function () {
     // Due to theme changes we have to reload the current article rather than just unhiding it
     uiUtil.returnToCurrentPage();

@@ -1170,7 +1170,7 @@ function applyAppTheme (theme) {
         // subdirectory, then relative links injected into the article will not work as expected)
         // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
         var prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname).replace(/\/[^/]*$/, '');
-        if (doc) {
+        if (doc && doc.head) {
             var link = doc.createElement('link');
             link.setAttribute('id', 'kiwixJSTheme');
             link.setAttribute('rel', 'stylesheet');
@@ -1189,6 +1189,22 @@ function applyAppTheme (theme) {
         // Check if the document contains a meta element with name="description"
         !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
         showReturnLink();
+    }
+    // Update the colour scheme button icon to reflect current theme
+    // Note: Font Awesome may have converted <i> to <svg>, so we check for both
+    var btnIcon = document.querySelector('#btnColourScheme svg') || document.querySelector('#btnColourScheme i');
+    if (btnIcon) {
+        if (appTheme === 'dark') {
+            btnIcon.classList.remove('fa-moon');
+            btnIcon.classList.add('fa-sun');
+            // Update SVG data-icon attribute if it's an SVG element
+            if (btnIcon.tagName === 'svg') btnIcon.setAttribute('data-icon', 'sun');
+        } else {
+            btnIcon.classList.remove('fa-sun');
+            btnIcon.classList.add('fa-moon');
+            // Update SVG data-icon attribute if it's an SVG element
+            if (btnIcon.tagName === 'svg') btnIcon.setAttribute('data-icon', 'moon');
+        }
     }
     // Return the actual theme applied (which may differ from the requested theme if fallback occurred)
     var actualTheme = appTheme + contentTheme;
