@@ -4,11 +4,21 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Interim PWA v4.2.2
+## Kiwix JS v4.3.0
 
-* FIX: Enter key in search results
-* FIX: Noscript is now properly handled in Restricted mode 
+Released on *TODO*
+
+* FEATURE: Added a dark/light theme button in the toolbar for quickly switching between colour schemes 
+* FEATURE: Added support for new ZIMs with built-in native Wikimedia dark theme
+* UPDATE: Make the esearch bar thinner so it occupies less screen real estate
+* FIX: Enter key can now be used to select first entry in search results
+* FIX: Gesture detection for sliding away toolbars on short pages
+* FIX: Noscript is now properly handled in Restricted mode
+* FIX: Update testing framework and fix several reliability issues in test script 
+* FIX: Follow redirects correctly when using libzim to load articles and resources
 * DEV: Updates to tmp and form-data
+* DEV: Improve build script
+* DEV: Bump Vite to v6.4.1
 
 ## Kiwix JS v4.2.0
 
