@@ -1191,19 +1191,22 @@ function applyAppTheme (theme) {
         showReturnLink();
     }
     // Update the colour scheme button icon to reflect current theme
-    // Note: Font Awesome may have converted <i> to <svg>, so we check for both
+    // Note: Font Awesome converts <i> to <svg> and uses data-icon attribute
+    // We check for SVG first (modern browsers + IE11), then fall back to <i> (if SVG conversion disabled)
     var btnIcon = document.querySelector('#btnColourScheme svg') || document.querySelector('#btnColourScheme i');
     if (btnIcon) {
-        if (appTheme === 'dark') {
-            btnIcon.classList.remove('fa-moon');
-            btnIcon.classList.add('fa-sun');
-            // Update SVG data-icon attribute if it's an SVG element
-            if (btnIcon.tagName === 'svg') btnIcon.setAttribute('data-icon', 'sun');
+        if (btnIcon.tagName === 'svg' || btnIcon.tagName === 'SVG') {
+            // SVG element: update data-icon attribute (works in all browsers including IE11)
+            btnIcon.setAttribute('data-icon', appTheme === 'dark' ? 'sun' : 'moon');
         } else {
-            btnIcon.classList.remove('fa-sun');
-            btnIcon.classList.add('fa-moon');
-            // Update SVG data-icon attribute if it's an SVG element
-            if (btnIcon.tagName === 'svg') btnIcon.setAttribute('data-icon', 'moon');
+            // <i> element: update classes (only if Font Awesome SVG conversion is disabled)
+            if (appTheme === 'dark') {
+                btnIcon.classList.remove('fa-moon');
+                btnIcon.classList.add('fa-sun');
+            } else {
+                btnIcon.classList.remove('fa-sun');
+                btnIcon.classList.add('fa-moon');
+            }
         }
     }
     // Return the actual theme applied (which may differ from the requested theme if fallback occurred)
