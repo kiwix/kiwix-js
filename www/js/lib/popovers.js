@@ -28,6 +28,20 @@ import uiUtil from './uiUtil.js';
 
 
 /**
+ * Decodes a ZIM path to handle encoded slashes in nested article names
+ * @param {String} path The path to decode
+ * @returns {String} The decoded path, or original if decoding fails
+ */
+function decodeZimPath(path) {
+    try {
+        return decodeURIComponent(path);
+    } catch (e) {
+        console.warn('Failed to decode ZIM path:', path, e);
+        return path;
+    }
+}
+
+/**
  * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
  * main image (if any). This function currently only parses Wikimedia articles. It returns an HTML string, formatted
  * for display in a popover
@@ -52,10 +66,12 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
             if (zimPathMatch && zimPathMatch[1]) {
                 zimURL = zimPathMatch[1];
                 zimURL = zimURL.replace(/[?#].*$/, '');
+                zimURL = decodeZimPath(zimURL);
             } else {
                 // Fallback if match fails
                 zimURL = href.replace(/^.*?\.zim[^/]*\//, '');
                 zimURL = zimURL.replace(/[?#].*$/, '');
+                zimURL = decodeZimPath(zimURL);
             }
         } else {
             // Handle relative URLs by resolving against current article's path
@@ -67,6 +83,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
                 if (currentPathMatch && currentPathMatch[1]) {
                     currentZimPath = currentPathMatch[1];
                     currentZimPath = currentZimPath.replace(/[?#].*$/, '');
+                    currentZimPath = decodeZimPath(currentZimPath);
                 }
             }
             
@@ -135,8 +152,9 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
             // It's a redirect, get the content from the redirect target
             let redirectPath = ret.redirectPath;
             
-            // Add namespace if missing (libzim sometimes returns paths without namespace)
-            if (!redirectPath.includes('/') && zimURL.includes('/')) {
+            // Preserve namespace from original request if redirect path lacks one
+            const hasNamespace = /^[A-Z]\//i.test(redirectPath);
+            if (!hasNamespace && zimURL.includes('/')) {
                 const namespace = zimURL.substring(0, zimURL.indexOf('/') + 1);
                 redirectPath = namespace + redirectPath;
             }
@@ -176,7 +194,6 @@ function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
     
     if (articleBody) {
         // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-        // Don't encode the base URL - deriveZimUrlFromRelativeUrl needs it in decoded form
         const balloonBaseURL = zimURL.replace(/[^/]+$/, '');
         const docUrl = new URL(articleDocument.location.href);
         const rootRelativePathPrefix = docUrl.pathname.replace(/(.*\.zim[^/]*\/).*$/i, '$1');
@@ -280,7 +297,6 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
         }
     }
     if (firstImage) {
-        // Calculate root relative URL of image
         const imageSrc = firstImage.getAttribute('src');
         const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(imageSrc, baseURL));
         firstImage.src = pathPrefix + imageZimURL;
