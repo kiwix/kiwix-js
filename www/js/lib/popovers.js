@@ -32,15 +32,6 @@ const regexpZimPath = /\.zim\w?\w?\/(.*)$/i;
 const regexpZIMUrlWithNamespace = /^[-ABCIJMUVWX]\//;
 
 /**
- * Decodes a ZIM path to handle encoded slashes in nested article names
- * @param {String} path The path to decode
- * @returns {String} The decoded path
- */
-function decodeZimPath(path) {
-    return decodeURIComponent(path);
-}
-
-/**
  * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
  * main image (if any). This function currently only parses Wikimedia articles. It returns an HTML string, formatted
  * for display in a popover
@@ -63,7 +54,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         if (zimPathMatch && zimPathMatch[1]) {
             zimURL = zimPathMatch[1];
             zimURL = zimURL.replace(/[?#].*$/, '');
-            zimURL = decodeZimPath(zimURL);
+            zimURL = decodeURIComponent(zimURL);
         } else {
             // Handle relative URLs by resolving against current article's path
             const currentLocation = articleDocument.location.href;
@@ -73,7 +64,7 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
             if (currentPathMatch && currentPathMatch[1]) {
                 currentZimPath = currentPathMatch[1];
                 currentZimPath = currentZimPath.replace(/[?#].*$/, '');
-                currentZimPath = decodeZimPath(currentZimPath);
+                currentZimPath = decodeURIComponent(currentZimPath);
             }
             
             const baseZimPath = currentZimPath.replace(/[^/]+$/, '');
