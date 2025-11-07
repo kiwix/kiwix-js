@@ -1505,6 +1505,8 @@ window.onpopstate = function (event) {
     }
 };
 
+const comboArchiveList = document.getElementById('archiveList');
+
 /**
  * Populate the drop-down list of archives with the given list
  * @param {Array.<String>} archiveDirectories
@@ -1513,7 +1515,6 @@ function populateDropDownListOfArchives (archiveDirectories) {
     document.getElementById('scanningForArchives').style.display = 'none';
     document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('rescanButtonAndText').style.display = '';
-    var comboArchiveList = document.getElementById('archiveList');
     comboArchiveList.options.length = 0;
     for (var i = 0; i < archiveDirectories.length; i++) {
         var archiveDirectory = archiveDirectories[i];
@@ -1527,7 +1528,6 @@ function populateDropDownListOfArchives (archiveDirectories) {
     }
     // Store the list of archives in the Settings Store, to avoid rescanning at each start
     settingsStore.setItem('listOfArchives', archiveDirectories.join('|'), Infinity);
-    document.getElementById('archiveList').addEventListener('change', setLocalArchiveFromArchiveList);
     if (comboArchiveList.options.length > 0) {
         var lastSelectedArchive = settingsStore.getItem('lastSelectedArchive');
         if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== '') {
@@ -1551,11 +1551,29 @@ function populateDropDownListOfArchives (archiveDirectories) {
     }
 }
 
+comboArchiveList.addEventListener('change', setLocalArchiveFromArchiveList);
+comboArchiveList.addEventListener('click', function (e) {
+    // Esnsure the clicked item is selected in the dropdown
+    if (e.target.value) comboArchiveList.value = e.target.value;
+    // Only accept the click if there is one archive in the list
+    if (comboArchiveList.length === 1) setLocalArchiveFromArchiveList(e);
+});
+comboArchiveList.addEventListener('mousedown', function () {
+    // Unselect any selected option so that the user can select the same option again
+    if (comboArchiveList.length > 1 && ~comboArchiveList.selectedIndex) comboArchiveList.selectedIndex = -1;
+});
+
+let selectFired = false;
+
 /**
  * Sets the localArchive from the selected archive in the drop-down list
  */
-function setLocalArchiveFromArchiveList () {
-    var archiveDirectory = document.getElementById('archiveList').value;
+function setLocalArchiveFromArchiveList (list) {
+    if (selectFired) return;
+    // If nothing was selected, user will have to click again
+    if (!list.target.value) return;
+    selectFired = true;
+    var archiveDirectory = list.target.value;
     if (archiveDirectory && archiveDirectory.length > 0) {
         // Now, try to find which DeviceStorage has been selected by the user
         // It is the prefix of the archive directory
