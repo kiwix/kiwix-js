@@ -26,6 +26,11 @@
 
 import uiUtil from './uiUtil.js';
 
+// Regex to extract the ZIM-internal path after the ZIM file extension (including split ZIMs like .zimaa, .zimab, etc.)
+const regexpZimPath = /\.zim\w?\w?\/(.*)$/i;
+// Regex to detect ZIM URLs with valid namespace
+const regexpZIMUrlWithNamespace = /^[-ABCIJMUVWX]\//;
+
 /**
  * Parses a linked article in a loaded document in order to extract the first main paragraph (the 'lede') and first
  * main image (if any). This function currently only parses Wikimedia articles. It returns an HTML string, formatted
@@ -38,42 +43,53 @@ import uiUtil from './uiUtil.js';
  */
 function getArticleLede (href, baseUrl, articleDocument, archive) {
     const uriComponent = uiUtil.removeUrlParameters(href);
+    
+    // Check if we're using libzim backend
+    if (params.useLibzim) {
+        // Extract ZIM-internal path from absolute URL like /path/to/file.zim/C/Article
+        let zimURL;
+        
+        // Check if href is an absolute URL containing the ZIM file path
+        const zimPathMatch = href.match(regexpZimPath);
+        if (zimPathMatch && zimPathMatch[1]) {
+            zimURL = zimPathMatch[1];
+            zimURL = zimURL.replace(/[?#].*$/, '');
+            zimURL = decodeURIComponent(zimURL);
+        } else {
+            // Handle relative URLs by resolving against current article's path
+            const currentLocation = articleDocument.location.href;
+            let currentZimPath = '';
+            
+            const currentPathMatch = currentLocation.match(regexpZimPath);
+            if (currentPathMatch && currentPathMatch[1]) {
+                currentZimPath = currentPathMatch[1];
+                currentZimPath = currentZimPath.replace(/[?#].*$/, '');
+                currentZimPath = decodeURIComponent(currentZimPath);
+            }
+            
+            const baseZimPath = currentZimPath.replace(/[^/]+$/, '');
+            zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseZimPath);
+        }
+        
+        console.debug('Previewing ' + zimURL + ' (libzim)');
+        return getArticleLedeWithLibzim(zimURL, articleDocument, archive);
+    }
+    
+    // Standard backend - use the provided baseUrl
     const zimURL = uiUtil.deriveZimUrlFromRelativeUrl(uriComponent, baseUrl);
     console.debug('Previewing ' + zimURL);
+    
     const promiseForArticle = function (dirEntry) {
         // Wrap legacy callback-based code in a Promise
         return new Promise((resolve, reject) => {
             // As we're reading Wikipedia articles, we can assume that they are UTF-8 encoded HTML data
             archive.readUtf8File(dirEntry, function (fileDirEntry, htmlArticle) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlArticle, 'text/html');
-                const articleBody = doc.body;
-                if (articleBody) {
-                    // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-                    const balloonBaseURL = encodeURI(fileDirEntry.namespace + '/' + fileDirEntry.url.replace(/[^/]+$/, ''));
-                    const docUrl = new URL(articleDocument.location.href);
-                    const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
-                    // Clean up the lede content
-                    const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
-                    // Concatenate paragraphs to fill the balloon
-                    let balloonString = '';
-                    if (nonEmptyParagraphs.length > 0) {
-                        balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
-                    }
-                    // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
-                    if (balloonString && params.contentInjectionMode === 'serviceworker') {
-                        const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
-                        if (imageHTML) {
-                            balloonString = imageHTML + balloonString;
-                        }
-                    }
-                    if (!balloonString) {
-                        reject(new Error('No article lede or image'));
-                    } else {
-                        resolve(balloonString);
-                    }
-                } else {
-                    reject(new Error('No article body found'));
+                try {
+                    const zimURL = fileDirEntry.namespace + '/' + fileDirEntry.url;
+                    const balloonString = parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument);
+                    resolve(balloonString);
+                } catch (error) {
+                    reject(error);
                 }
             });
         });
@@ -97,6 +113,94 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
     });
 };
 
+/**
+ * Parses a linked article using libzim backend to extract the first main paragraph (the 'lede') and first
+ * main image (if any). This function is used when params.useLibzim is true.
+ * @param {String} zimURL The ZIM URL of the article to preview
+ * @param {Document} articleDocument The DOM of the currently loaded article
+ * @param {ZIMArchive} archive The archive from which to extract the lede
+ * @returns {Promise<String>} A Promise for the linked article's lede HTML including first main image URL if any
+ */
+function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
+    return archive.callLibzimWorker({ 
+        action: 'getEntryByPath', 
+        path: zimURL,
+        follow: false  // Don't follow redirects automatically so we can detect them
+    }).then(function (ret) {
+        // Check if this is a redirect
+        if (ret.isRedirect) {
+            // It's a redirect, get the content from the redirect target
+            let redirectPath = ret.redirectPath;
+            
+            // Preserve namespace from original request if redirect path lacks one
+            if (!regexpZIMUrlWithNamespace.test(redirectPath) && zimURL.includes('/')) {
+                const namespace = zimURL.substring(0, zimURL.indexOf('/') + 1);
+                redirectPath = namespace + redirectPath;
+            }
+            
+            return archive.callLibzimWorker({ 
+                action: 'getEntryByPath', 
+                path: redirectPath,
+                follow: false
+            }).then(function (finalRet) {
+                if (!finalRet || !finalRet.content) {
+                    throw new Error('No content found for redirect: ' + zimURL);
+                }
+                const htmlArticle = finalRet.content instanceof Uint8Array ? 
+                    archive.getUtf8FromData(finalRet.content) : finalRet.content;
+                
+                return parseArticleContentForBalloon(htmlArticle, redirectPath, articleDocument);
+            });
+        } else {
+            // No redirect, process the content normally
+            if (!ret || !ret.content) {
+                throw new Error('No content found for ' + zimURL);
+            }
+            const htmlArticle = ret.content instanceof Uint8Array ? 
+                archive.getUtf8FromData(ret.content) : ret.content;
+            
+            // Use the original zimURL as the path
+            return parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument);
+        }
+    });
+}
+
+// Helper function to parse article content and create balloon
+function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlArticle, 'text/html');
+    const articleBody = doc.body;
+    
+    if (articleBody) {
+        // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
+        const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
+        const docUrl = new URL(articleDocument.location.href);
+        const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
+        
+        // Clean up the lede content
+        const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
+        // Concatenate paragraphs to fill the balloon
+        let balloonString = '';
+        if (nonEmptyParagraphs.length > 0) {
+            balloonString = fillBalloonString(nonEmptyParagraphs, balloonBaseURL, rootRelativePathPrefix);
+        }
+        // If we have a lede, we can now add an image to the balloon, but only if we are in ServiceWorker mode
+        if (balloonString && params.contentInjectionMode === 'serviceworker') {
+            const imageHTML = getImageHTMLFromNode(articleBody, balloonBaseURL, rootRelativePathPrefix);
+            if (imageHTML) {
+                balloonString = imageHTML + balloonString;
+            }
+        }
+        if (!balloonString) {
+            throw new Error('No article lede or image');
+        } else {
+            return balloonString;
+        }
+    } else {
+        throw new Error('No article body found');
+    }
+}
+
 // Helper function to clean up the lede content
 function cleanUpLedeContent (node) {
     // Define an array of exclusion filters
@@ -113,7 +217,7 @@ function cleanUpLedeContent (node) {
     // Apply this style-based exclusion filter to remove unwanted paragraphs in the popover
     const paragraphs = Array.from(node.querySelectorAll(`p${notSelector}`));
 
-    // Filter out empty paragraphs or those with less than 50 characters
+    // Filter out empty paragraphs
     const parasWithContent = paragraphs.filter(para => {
         // DEV: Note that innerText is not supported in Firefox OS, so we need to use textContent as a fallback
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
@@ -173,7 +277,8 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
     }
     if (firstImage) {
         // Calculate root relative URL of image
-        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(firstImage.getAttribute('src'), baseURL));
+        const imageSrc = firstImage.getAttribute('src');
+        const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(imageSrc, baseURL));
         firstImage.src = pathPrefix + imageZimURL;
         return firstImage.outerHTML;
     }
