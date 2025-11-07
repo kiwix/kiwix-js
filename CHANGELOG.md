@@ -17,8 +17,8 @@ Released on *TODO*
 * FIX: Noscript is now properly handled in Restricted mode
 * FIX: Update testing framework and fix several reliability issues in test script 
 * FIX: Follow redirects correctly when using libzim to load articles and resources
-* DEV: Updates to tmp and form-data
 * DEV: Improve build script
+* DEV: Updates to tmp and form-data
 * DEV: Bump Vite to v6.4.1
 
 ## Kiwix JS v4.2.0
