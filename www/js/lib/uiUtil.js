@@ -272,10 +272,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // to close TOC when clicking inside the iframe
     const onContainerLoad = function () {
+        if (!articleContainer.contentDocument && !articleContainer.contentWindow) return;
         const innerDoc = articleContainer.contentDocument || articleContainer.contentWindow.document;
-        innerDoc.addEventListener('click', function () {
-            closeTOC();
-        });
+        if (innerDoc) {
+            innerDoc.addEventListener('click', function () {
+                closeTOC();
+            });
+        }
     };
     articleContainer.removeEventListener('load', onContainerLoad);
     articleContainer.addEventListener('load', onContainerLoad);
@@ -1044,19 +1047,15 @@ function applyAppTheme (theme) {
     var htmlEl = document.querySelector('html');
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
-    var iframe = document.getElementById('articleContent');
     const library = document.getElementById('libraryContent');
 
     // Start with a clean slate
-    iframe.classList.remove('_wikimediaNative');
-    iframe.classList.remove('_mwInvert');
-    iframe.classList.remove('_invert');
     library.classList.remove('_wikimediaNative');
     library.classList.remove('_mwInvert');
     library.classList.remove('_invert');
 
     // Process old theme to remove any previously applied classes
-    var doc = iframe.contentDocument;
+    var doc = articleContainer.contentDocument;
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
     var oldAppTheme = oldTheme ? isDarkTheme(oldTheme) ? 'dark' : 'light' : null;
     var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
@@ -1100,7 +1099,7 @@ function applyAppTheme (theme) {
     if (description) description.style.display = 'block';
     // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
     if (oldContentTheme && oldContentTheme !== contentTheme) {
-        iframe.classList.remove(oldContentTheme);
+        articleContainer.classList.remove(oldContentTheme);
         library.classList.remove(oldContentTheme);
         if (kiwixJSSheet) {
             kiwixJSSheet.disabled = true;
@@ -1164,7 +1163,7 @@ function applyAppTheme (theme) {
         if (doc && doc.documentElement) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
-        iframe.classList.add(contentTheme);
+        articleContainer.classList.add(contentTheme);
         library.classList.add(contentTheme);
         // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
         // subdirectory, then relative links injected into the article will not work as expected)

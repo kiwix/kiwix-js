@@ -281,6 +281,10 @@ self.addEventListener('fetch', function (event) {
     var rqUrl = event.request.url;
     // Filter out requests that do not match the scope of the Service Worker
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
+    // Filter dark stylesheet requests transformed by wombat.js
+    if (/\.zim.*\/www\/(?:js\/(?:lib\/)?darkreader\.min\.js|css\/kiwixJS_(?:ms)?invert\.css)/.test(rqUrl)) {
+        rqUrl = rqUrl.replace(/^([^:]+:\/\/[^/]+(?:[^/]|\/(?![^/]+\.zim\/))+)(?:[^/]|\/(?!www\/))+/, '$1');
+    }
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;

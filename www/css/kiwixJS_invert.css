@@ -28,6 +28,10 @@
 
 img,
 video,
-canvas {
+canvas,
+[style*="background-image:"],
+[style*="background-image :"],
+[style*="background: url("],
+[style*="background:url("] {
     filter: invert(1) hue-rotate(180deg);
 }

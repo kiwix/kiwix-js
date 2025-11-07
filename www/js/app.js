@@ -2227,6 +2227,7 @@ function readArticle (dirEntry) {
  */
 function articleLoader () {
     if (selectedArchive.zimType === 'zimit') {
+        articleContainer.onload = function () {};
         var doc = articleContainer.contentDocument || null;
         if (doc) {
             var replayIframe = doc.getElementById('replay_iframe');
