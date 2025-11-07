@@ -10,6 +10,7 @@ Released on *TODO*
 
 * FEATURE: Added a dark/light theme button in the toolbar for quickly switching between colour schemes 
 * FEATURE: Added support for new ZIMs with built-in native Wikimedia dark theme
+* FEATURE: Popovers now work when experimental libzim back end is enabled (in Configuration)
 * UPDATE: Make the esearch bar thinner so it occupies less screen real estate
 * FIX: Enter key can now be used to select first entry in search results
 * FIX: Gesture detection for sliding away toolbars on short pages
