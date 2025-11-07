@@ -26,19 +26,18 @@
 
 import uiUtil from './uiUtil.js';
 
+// Regex to extract the ZIM-internal path after the ZIM file extension (including split ZIMs like .zimaa, .zimab, etc.)
+const regexpZimPath = /\.zim\w?\w?\/(.*)$/i;
+// Regex to detect ZIM URLs with valid namespace
+const regexpZIMUrlWithNamespace = /^[-ABCIJMUVWX]\//;
 
 /**
  * Decodes a ZIM path to handle encoded slashes in nested article names
  * @param {String} path The path to decode
- * @returns {String} The decoded path, or original if decoding fails
+ * @returns {String} The decoded path
  */
 function decodeZimPath(path) {
-    try {
-        return decodeURIComponent(path);
-    } catch (e) {
-        console.warn('Failed to decode ZIM path:', path, e);
-        return path;
-    }
+    return decodeURIComponent(path);
 }
 
 /**
@@ -60,31 +59,21 @@ function getArticleLede (href, baseUrl, articleDocument, archive) {
         let zimURL;
         
         // Check if href is an absolute URL containing the ZIM file path
-        if (href.includes('.zim/')) {
-            // Extract ZIM-internal path using regex match
-            const zimPathMatch = href.match(/\.zim[^/]*\/(.*)$/);
-            if (zimPathMatch && zimPathMatch[1]) {
-                zimURL = zimPathMatch[1];
-                zimURL = zimURL.replace(/[?#].*$/, '');
-                zimURL = decodeZimPath(zimURL);
-            } else {
-                // Fallback if match fails
-                zimURL = href.replace(/^.*?\.zim[^/]*\//, '');
-                zimURL = zimURL.replace(/[?#].*$/, '');
-                zimURL = decodeZimPath(zimURL);
-            }
+        const zimPathMatch = href.match(regexpZimPath);
+        if (zimPathMatch && zimPathMatch[1]) {
+            zimURL = zimPathMatch[1];
+            zimURL = zimURL.replace(/[?#].*$/, '');
+            zimURL = decodeZimPath(zimURL);
         } else {
             // Handle relative URLs by resolving against current article's path
             const currentLocation = articleDocument.location.href;
             let currentZimPath = '';
             
-            if (currentLocation.includes('.zim/')) {
-                const currentPathMatch = currentLocation.match(/\.zim[^/]*\/(.*)$/);
-                if (currentPathMatch && currentPathMatch[1]) {
-                    currentZimPath = currentPathMatch[1];
-                    currentZimPath = currentZimPath.replace(/[?#].*$/, '');
-                    currentZimPath = decodeZimPath(currentZimPath);
-                }
+            const currentPathMatch = currentLocation.match(regexpZimPath);
+            if (currentPathMatch && currentPathMatch[1]) {
+                currentZimPath = currentPathMatch[1];
+                currentZimPath = currentZimPath.replace(/[?#].*$/, '');
+                currentZimPath = decodeZimPath(currentZimPath);
             }
             
             const baseZimPath = currentZimPath.replace(/[^/]+$/, '');
@@ -153,8 +142,7 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
             let redirectPath = ret.redirectPath;
             
             // Preserve namespace from original request if redirect path lacks one
-            const hasNamespace = /^[A-Z]\//i.test(redirectPath);
-            if (!hasNamespace && zimURL.includes('/')) {
+            if (!regexpZIMUrlWithNamespace.test(redirectPath) && zimURL.includes('/')) {
                 const namespace = zimURL.substring(0, zimURL.indexOf('/') + 1);
                 redirectPath = namespace + redirectPath;
             }
@@ -170,7 +158,7 @@ function getArticleLedeWithLibzim (zimURL, articleDocument, archive) {
                 const htmlArticle = finalRet.content instanceof Uint8Array ? 
                     archive.getUtf8FromData(finalRet.content) : finalRet.content;
                 
-                        return parseArticleContentForBalloon(htmlArticle, redirectPath, articleDocument);
+                return parseArticleContentForBalloon(htmlArticle, redirectPath, articleDocument);
             });
         } else {
             // No redirect, process the content normally
@@ -194,9 +182,9 @@ function parseArticleContentForBalloon(htmlArticle, zimURL, articleDocument) {
     
     if (articleBody) {
         // Establish the popup balloon's base URL and the absolute path for calculating the ZIM URL of links and images
-        const balloonBaseURL = zimURL.replace(/[^/]+$/, '');
+        const balloonBaseURL = encodeURI(zimURL.replace(/[^/]+$/, ''));
         const docUrl = new URL(articleDocument.location.href);
-        const rootRelativePathPrefix = docUrl.pathname.replace(/(.*\.zim[^/]*\/).*$/i, '$1');
+        const rootRelativePathPrefix = docUrl.pathname.replace(/([^.]\.zim\w?\w?\/).+$/i, '$1');
         
         // Clean up the lede content
         const nonEmptyParagraphs = cleanUpLedeContent(articleBody);
@@ -244,7 +232,7 @@ function cleanUpLedeContent (node) {
         // The reason we prefer innerText is that it strips out hidden text and unnecessary whitespace, which is not the case with textContent
         const innerText = para.innerText ? para.innerText : para.textContent;
         const text = innerText.trim();
-        return !/^\s*$/.test(text) && text.length > 0;
+        return !/^\s*$/.test(text) && text.length >= 50;
     });
     return parasWithContent;
 }
@@ -297,6 +285,7 @@ function getImageHTMLFromNode (node, baseURL, pathPrefix) {
         }
     }
     if (firstImage) {
+        // Calculate root relative URL of image
         const imageSrc = firstImage.getAttribute('src');
         const imageZimURL = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(imageSrc, baseURL));
         firstImage.src = pathPrefix + imageZimURL;
