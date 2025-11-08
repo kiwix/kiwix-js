@@ -282,8 +282,15 @@ self.addEventListener('fetch', function (event) {
     // Filter out requests that do not match the scope of the Service Worker
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
     // Filter dark stylesheet requests transformed by wombat.js
-    if (/\.zim.*\/www\/(?:js\/(?:lib\/)?darkreader\.min\.js|css\/kiwixJS_(?:ms)?invert\.css)/.test(rqUrl)) {
-        rqUrl = rqUrl.replace(/^([^:]+:\/\/[^/]+(?:[^/]|\/(?![^/]+\.zim\/))+)(?:[^/]|\/(?!www\/))+/, '$1');
+    // Only check for transformation if URL contains both .zim and /www/ to avoid unnecessary regex processing
+    if (rqUrl.indexOf('.zim') !== -1 && rqUrl.indexOf('/www/') !== -1) {
+        if (/(?:darkreader\.min\.js|kiwixJS_(?:ms)?invert\.css)$/.test(rqUrl)) {
+            // Extract the base URL up to and including the ZIM name
+            var zimMatch = rqUrl.match(/^([^:]+:\/\/[^/]+\/[^/]+\.zim\w?\w?)\//);
+            if (zimMatch) {
+                rqUrl = zimMatch[1] + '/www/' + rqUrl.split('/').pop();
+            }
+        }
     }
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
