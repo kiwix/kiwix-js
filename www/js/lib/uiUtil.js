@@ -1064,7 +1064,10 @@ function cleanupOldContentTheme(oldTheme, oldContentTheme, doc, articleContent) 
 
             // Clean up native Wikimedia theme classes if we're switching away from _wikimediaNative
             if (oldContentTheme === '_wikimediaNative' && doc.documentElement) {
-                doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+                // Remove classes one at a time for IE11 compatibility
+                doc.documentElement.classList.remove('skin-theme-clientpref-night');
+                doc.documentElement.classList.remove('skin-theme-clientpref-os');
+                doc.documentElement.classList.remove('skin-theme-clientpref-day');
             }
         }
 
@@ -1079,7 +1082,10 @@ function cleanupOldContentTheme(oldTheme, oldContentTheme, doc, articleContent) 
                     outerSheet.parentNode.removeChild(outerSheet);
                 }
                 if (oldContentTheme === '_wikimediaNative' && outerDoc.documentElement) {
-                    outerDoc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+                    // Remove classes one at a time for IE11 compatibility
+                    outerDoc.documentElement.classList.remove('skin-theme-clientpref-night');
+                    outerDoc.documentElement.classList.remove('skin-theme-clientpref-os');
+                    outerDoc.documentElement.classList.remove('skin-theme-clientpref-day');
                 }
             }
         }
@@ -1186,7 +1192,10 @@ function applyInvertContentTheme(contentTheme, doc, articleContent) {
     if (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css')) {
         // Remove native Wikimedia theme classes if present, to prevent conflicts with invert themes
         if (doc && doc.documentElement) {
-            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+            // Remove classes one at a time for IE11 compatibility
+            doc.documentElement.classList.remove('skin-theme-clientpref-night');
+            doc.documentElement.classList.remove('skin-theme-clientpref-os');
+            doc.documentElement.classList.remove('skin-theme-clientpref-day');
         }
         if (articleContent) {
             articleContent.classList.add(contentTheme);
@@ -1265,7 +1274,10 @@ function applyAppTheme (theme) {
     const articleContent = document.getElementById('articleContent');
 
     // Start with a clean slate
-    library.classList.remove('_wikimediaNative', '_mwInvert', '_invert');
+    // Remove classes one at a time for IE11 compatibility
+    library.classList.remove('_wikimediaNative');
+    library.classList.remove('_mwInvert');
+    library.classList.remove('_invert');
 
     // Get article document
     var doc = getArticleDocument();
@@ -1346,10 +1358,15 @@ function applyNativeWikimediaTheme(doc, appTheme) {
         if (!doc.documentElement.classList.contains('skin-theme-clientpref-night')) {
             doc.documentElement.classList.add('skin-theme-clientpref-night');
         }
-        doc.documentElement.classList.remove('skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+        // Remove classes one at a time for IE11 compatibility
+        doc.documentElement.classList.remove('skin-theme-clientpref-os');
+        doc.documentElement.classList.remove('skin-theme-clientpref-day');
     } else {
         // Light mode: remove all classes then explicitly set day theme
-        doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+        // Remove classes one at a time for IE11 compatibility
+        doc.documentElement.classList.remove('skin-theme-clientpref-night');
+        doc.documentElement.classList.remove('skin-theme-clientpref-os');
+        doc.documentElement.classList.remove('skin-theme-clientpref-day');
         doc.documentElement.classList.add('skin-theme-clientpref-day');
     }
 }
