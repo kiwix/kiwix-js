@@ -283,13 +283,10 @@ self.addEventListener('fetch', function (event) {
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
     // Filter dark stylesheet requests transformed by wombat.js
     // Only check for transformation if URL contains both .zim and /www/ to avoid unnecessary regex processing
-    if (rqUrl.indexOf('.zim') !== -1 && rqUrl.indexOf('/www/') !== -1) {
+    if (~rqUrl.indexOf('.zim') && ~rqUrl.indexOf('/www/')) {
         if (/(?:darkreader\.min\.js|kiwixJS_(?:ms)?invert\.css)$/.test(rqUrl)) {
             // Extract the base URL up to and including the ZIM name
-            var zimMatch = rqUrl.match(/^([^:]+:\/\/[^/]+\/[^/]+\.zim\w?\w?)\//);
-            if (zimMatch) {
-                rqUrl = zimMatch[1] + '/www/' + rqUrl.split('/').pop();
-            }
+            rqUrl = rqUrl.replace(/^([^:]+:\/\/[^/]+(?:[^/]|\/(?![^/]+\.zim\/))+)(?:[^/]|\/(?!www\/))+/, '$1');
         }
     }
     var urlObject = new URL(rqUrl);
