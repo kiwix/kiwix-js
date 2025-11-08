@@ -2324,7 +2324,11 @@ function articleLoadedSW (iframeArticleContent) {
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
-    document.getElementById('articleContent').style.display = '';
+    // Clear the failsafe timer since content is now shown
+    if (appstate.contentHiddenFailsafe) {
+        clearTimeout(appstate.contentHiddenFailsafe);
+        appstate.contentHiddenFailsafe = null;
+    }
     console.debug('<- Article unhidden ->');
     
     // Deflect drag-and-drop of ZIM file on the iframe to Config
@@ -2698,6 +2702,14 @@ function handleMessageChannelMessage (event) {
                     if (event.data.requestingFrameType === 'nested' && /\bx?html/.test(mimetype)) {
                         articleContainer.style.display = 'none';
                         console.debug('-> Article hidden to avoid FOIT <-');
+                        // Set a failsafe timeout to ensure content is always shown even if articleLoadedSW doesn't fire
+                        if (appstate.contentHiddenFailsafe) clearTimeout(appstate.contentHiddenFailsafe);
+                        appstate.contentHiddenFailsafe = setTimeout(function () {
+                            if (articleContainer.style.display === 'none') {
+                                console.warn('[contentHiddenFailsafe] Forcing content to show after timeout');
+                                articleContainer.style.display = '';
+                            }
+                        }, 3000);
                     }
                     // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
                     // or simply `html`, so this has to be as generic as possible
