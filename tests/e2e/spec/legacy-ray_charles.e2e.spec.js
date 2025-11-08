@@ -312,8 +312,8 @@ function runTests (driver, modes, keepDriver) {
                 }
                 // Switch to iframe
                 await driver.switchTo().frame('articleContent');
-                // Focus on the link "Hallelujah" with id="mwVw"
-                let link = await driver.findElement(By.id('mwVw'));
+                // Wait for and focus on the link "Hallelujah" with id="mwVw"
+                let link = await driver.wait(until.elementLocated(By.id('mwVw')), 5000, 'Link element mwVw not found');
                 await driver.executeScript('arguments[0].focus();', link);
                 await driver.sleep(2000);
                 // Focus on the next link "A Fool for You" with id="mwWw"
