@@ -2584,22 +2584,22 @@ function handleClickOnReplayLink (ev, anchor) {
                     // Handle middle-clicks and ctrl-clicks
                     if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
                         var encodedTitle = encodeURIComponent(dirEntry.getTitleOrUrl());
-                        var articleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
+                        var thisArticleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
                             params.windowOpener === 'tab' ? '_blank' : encodedTitle,
                             params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null
                         );
                         // Conditional, because opening a new window can be blocked by the browser
-                        if (articleContainer) {
+                        if (thisArticleContainer) {
                             appstate.target = 'window';
-                            articleContainer.kiwixType = appstate.target;
+                            thisArticleContainer.kiwixType = appstate.target;
                         }
                         uiUtil.spinnerDisplay(false);
                     } else {
                         // Let Replay handle this link
                         anchor.passthrough = true;
-                        articleContainer = document.getElementById('articleContent');
+                        thisArticleContainer = document.getElementById('articleContent');
                         appstate.target = 'iframe';
-                        articleContainer.kiwixType = appstate.target;
+                        thisArticleContainer.kiwixType = appstate.target;
                         if (selectedArchive.zimType === 'zimit2') {
                             // Since we know the URL works, normalize the href (this is needed for zimit2 relative links)
                             // NB We mustn't do this for zimit classic because it breaks wombat rewriting of absolute links!

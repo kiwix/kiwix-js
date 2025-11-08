@@ -1056,6 +1056,10 @@ function applyAppTheme (theme) {
 
     // Process old theme to remove any previously applied classes
     var doc = articleContainer.contentDocument;
+    // Get the correct article container to operate on
+    if (doc && doc.getElementById('replay_iframe')) {
+        doc = doc.getElementById('replay_iframe').contentDocument;
+    }
     var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
     var oldAppTheme = oldTheme ? isDarkTheme(oldTheme) ? 'dark' : 'light' : null;
     var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
