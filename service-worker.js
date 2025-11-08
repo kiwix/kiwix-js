@@ -521,6 +521,7 @@ function zimitResolver (event, rqUrl) {
         var rtnRequest;
         try {
             rtnRequest = new Request(rqUrl, event.request);
+        // eslint-disable-next-line no-unused-vars
         } catch (e) { // Parameter required for Chrome 58 compatibility - optional catch binding (catch {}) is ES2019+
             rtnRequest = event.request;
         }
