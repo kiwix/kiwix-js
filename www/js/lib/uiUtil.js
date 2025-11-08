@@ -1033,7 +1033,9 @@ function parseTheme(theme) {
  * @returns {Document} The article document or null
  */
 function getArticleDocument() {
-    var doc = articleContainer.contentDocument;
+    // Always get a fresh reference to articleContent to avoid issues with mutable articleContainer
+    var container = document.getElementById('articleContent');
+    var doc = container ? container.contentDocument : null;
     // Get the correct article container to operate on
     if (doc && doc.getElementById('replay_iframe')) {
         doc = doc.getElementById('replay_iframe').contentDocument;
@@ -1046,24 +1048,47 @@ function getArticleDocument() {
  * @param {String} oldTheme The previous theme that was applied
  * @param {String} oldContentTheme The previous content theme
  * @param {Document} doc The article document
+ * @param {HTMLElement} articleContent The articleContent iframe element
  */
-function cleanupOldContentTheme(oldTheme, oldContentTheme, doc) {
+function cleanupOldContentTheme(oldTheme, oldContentTheme, doc, articleContent) {
     const library = document.getElementById('libraryContent');
 
-    if (oldContentTheme && doc) {
-        const kiwixJSSheet = doc.getElementById('kiwixJSTheme');
-        if (kiwixJSSheet) {
-            kiwixJSSheet.disabled = true;
-            kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
+    if (oldContentTheme) {
+        // Clean up stylesheet from current document
+        if (doc) {
+            const kiwixJSSheet = doc.getElementById('kiwixJSTheme');
+            if (kiwixJSSheet) {
+                kiwixJSSheet.disabled = true;
+                kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
+            }
+
+            // Clean up native Wikimedia theme classes if we're switching away from _wikimediaNative
+            if (oldContentTheme === '_wikimediaNative' && doc.documentElement) {
+                doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+            }
         }
 
-        articleContainer.classList.remove(oldContentTheme);
+        // Also check and clean up from outer articleContent iframe (in case we switched from regular to replay ZIM)
+        if (articleContent && articleContent.contentDocument) {
+            var outerDoc = articleContent.contentDocument;
+            // Only clean if this is a different document than the one we already processed
+            if (outerDoc !== doc) {
+                var outerSheet = outerDoc.getElementById('kiwixJSTheme');
+                if (outerSheet) {
+                    outerSheet.disabled = true;
+                    outerSheet.parentNode.removeChild(outerSheet);
+                }
+                if (oldContentTheme === '_wikimediaNative' && outerDoc.documentElement) {
+                    outerDoc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
+                }
+            }
+        }
+
+        // Clean up classes from articleContent iframe and library
+        if (articleContent) {
+            articleContent.classList.remove(oldContentTheme);
+        }
         library.classList.remove(oldContentTheme);
-
-        // Clean up native Wikimedia theme classes if we're switching away from _wikimediaNative
-        if (oldContentTheme === '_wikimediaNative' && doc.documentElement) {
-            doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
-        }
     }
 }
 
@@ -1151,8 +1176,9 @@ function injectContentThemeStylesheet(contentTheme, doc) {
  * Applies an invert-style content theme (not _wikimediaNative)
  * @param {String} contentTheme The content theme to apply
  * @param {Document} doc The article document
+ * @param {HTMLElement} articleContent The articleContent iframe element
  */
-function applyInvertContentTheme(contentTheme, doc) {
+function applyInvertContentTheme(contentTheme, doc, articleContent) {
     const library = document.getElementById('libraryContent');
     const kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') : null;
 
@@ -1162,7 +1188,9 @@ function applyInvertContentTheme(contentTheme, doc) {
         if (doc && doc.documentElement) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
-        articleContainer.classList.add(contentTheme);
+        if (articleContent) {
+            articleContent.classList.add(contentTheme);
+        }
         library.classList.add(contentTheme);
         injectContentThemeStylesheet(contentTheme, doc);
     }
@@ -1233,6 +1261,8 @@ function applyAppTheme (theme) {
     var footer = document.querySelector('footer');
     var oldTheme = htmlEl.dataset.theme || '';
     const library = document.getElementById('libraryContent');
+    // Get a fresh reference to articleContent to avoid issues with mutable articleContainer
+    const articleContent = document.getElementById('articleContent');
 
     // Start with a clean slate
     library.classList.remove('_wikimediaNative', '_mwInvert', '_invert');
@@ -1269,7 +1299,7 @@ function applyAppTheme (theme) {
 
     // Clean up old content theme if switching themes
     if (oldContentTheme && oldContentTheme !== contentTheme) {
-        cleanupOldContentTheme(oldTheme, oldContentTheme, doc);
+        cleanupOldContentTheme(oldTheme, oldContentTheme, doc, articleContent);
     }
 
     // Resolve content theme (handles _wikimediaNative fallbacks)
@@ -1288,7 +1318,7 @@ function applyAppTheme (theme) {
         }
     } else if (contentTheme && contentTheme !== '_wikimediaNative') {
         // Apply invert-style content theme
-        applyInvertContentTheme(contentTheme, doc);
+        applyInvertContentTheme(contentTheme, doc, articleContent);
     }
 
     // Show return link if in Config
