@@ -1012,188 +1012,167 @@ function tabTransitionToSection (toSection, isAnimationRequired = false) {
 }
 
 /**
- * Applies the requested app and content theme
- *
- * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
- * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
- * Current themes are: light, dark, dark_invert, dark_mwInvert, dark_wikimediaNative, but code below is written for extensibility
- * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
- * For each contentTheme (except _wikimediaNative), a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
- * The _wikimediaNative theme is an exception: it uses the ZIM's built-in theme system via native CSS classes
- * A rule may additionally be needed in app.css for full implementation of contentTheme
- *
- * @param {String} theme The theme to apply (light|dark|auto[_invert|_mwInvert|_wikimediaNative])
- * @returns {String} The actual theme applied (may differ from requested theme if fallback occurred)
+ * Parses and validates a theme string
+ * @param {String} theme The theme to parse
+ * @returns {Object} Object containing appTheme, contentTheme, and requestedContentTheme
  */
-function applyAppTheme (theme) {
-    // Validate the theme parameter to prevent XSS
-    // Only allow specific valid theme formats
+function parseTheme(theme) {
     if (!theme.match(/^(light|dark|auto)(_invert|_mwInvert|_wikimediaNative)?$/)) {
         console.error('Invalid theme format:', theme);
         theme = 'light';
     }
-    // Resolve the app theme from the matchMedia preference (for auto themes) or from the theme string
-    var appTheme = isDarkTheme(theme) ? 'dark' : 'light';
-    // Get contentTheme from chosen theme
-    var contentTheme = theme.replace(/^[^_]*/, '');
-    var requestedContentTheme = contentTheme; // Store original request for comparison
-    // Fallback for _wikimediaNative: check if native theme is available, otherwise fall back
-    if (contentTheme === '_wikimediaNative') {
-        if (!params.isWikimediaZim) {
-            // Not a Wikimedia ZIM at all, fall back to _invert
-            contentTheme = '_invert';
-        }
-    }
-    var htmlEl = document.querySelector('html');
-    var footer = document.querySelector('footer');
-    var oldTheme = htmlEl.dataset.theme || '';
-    const library = document.getElementById('libraryContent');
 
-    // Start with a clean slate
-    library.classList.remove('_wikimediaNative');
-    library.classList.remove('_mwInvert');
-    library.classList.remove('_invert');
+    const appTheme = isDarkTheme(theme) ? 'dark' : 'light';
+    const contentTheme = theme.replace(/^[^_]*/, '');
 
-    // Process old theme to remove any previously applied classes
+    return { appTheme: appTheme, contentTheme: contentTheme, requestedContentTheme: contentTheme };
+}
+
+/**
+ * Gets the article document, handling replay_iframe if present
+ * @returns {Document} The article document or null
+ */
+function getArticleDocument() {
     var doc = articleContainer.contentDocument;
     // Get the correct article container to operate on
     if (doc && doc.getElementById('replay_iframe')) {
         doc = doc.getElementById('replay_iframe').contentDocument;
     }
-    var kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') || null : null;
-    var oldAppTheme = oldTheme ? isDarkTheme(oldTheme) ? 'dark' : 'light' : null;
-    var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
-    // Remove oldAppTheme and oldContentTheme
-    if (oldAppTheme) {
-        htmlEl.classList.remove(oldAppTheme);
-    }
-    // A missing contentTheme implies _light
-    footer.classList.remove(oldContentTheme || '_light');
-    // Apply new appTheme (NB it will not be added twice if it's already there)
-    // Note: 'light' is the default state, so we only add a class for 'dark'
-    if (appTheme === 'dark') {
-        htmlEl.classList.add('dark');
-    } else {
-        htmlEl.classList.remove('dark');
-    }
-    // We also add the contentTheme to the footer to avoid dark css rule being applied to footer when content
-    // is not dark (but we want it applied when the content is dark or inverted)
-    footer.classList.add(contentTheme || '_light');
-    
-    // Safely handle help element IDs
-    var safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
-    var safeContentTheme = requestedContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    return doc;
+}
 
-    // Hide any previously displayed help
-    var oldHelp = document.getElementById(safeOldContentTheme + '-help');
-    if (oldHelp) oldHelp.style.display = 'none';
-    // Show any specific help for selected contentTheme
-    var help = document.getElementById(safeContentTheme + '-help');
-    if (help) help.style.display = 'block';
-    // Remove the contentTheme for auto themes whenever system is in light mode
-    if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
-    // Hide any previously displayed description for auto themes
-    var oldDescription = document.getElementById('kiwix-auto-description');
-    if (oldDescription) oldDescription.style.display = 'none';
+/**
+ * Cleans up previously applied theme classes and stylesheets
+ * @param {String} oldTheme The previous theme that was applied
+ * @param {String} oldContentTheme The previous content theme
+ * @param {Document} doc The article document
+ */
+function cleanupOldContentTheme(oldTheme, oldContentTheme, doc) {
+    const library = document.getElementById('libraryContent');
 
-    // Safely handle description element IDs
-    var safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');
-    // Show description for auto themes
-    var description = document.getElementById('kiwix-' + safeThemeBase + '-description');
-    if (description) description.style.display = 'block';
-    // If there is no ContentTheme or we are applying a different ContentTheme, remove any previously applied ContentTheme
-    if (oldContentTheme && oldContentTheme !== contentTheme) {
-        articleContainer.classList.remove(oldContentTheme);
-        library.classList.remove(oldContentTheme);
+    if (oldContentTheme && doc) {
+        const kiwixJSSheet = doc.getElementById('kiwixJSTheme');
         if (kiwixJSSheet) {
             kiwixJSSheet.disabled = true;
             kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
         }
+
+        articleContainer.classList.remove(oldContentTheme);
+        library.classList.remove(oldContentTheme);
+
         // Clean up native Wikimedia theme classes if we're switching away from _wikimediaNative
-        if (oldContentTheme === '_wikimediaNative' && doc && doc.documentElement) {
+        if (oldContentTheme === '_wikimediaNative' && doc.documentElement) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
     }
+}
 
-    // Handle native Wikimedia theme for _wikimediaNative content theme
+/**
+ * Resolves the content theme, handling fallbacks for _wikimediaNative
+ * @param {String} contentTheme The requested content theme
+ * @param {String} appTheme The app theme (light or dark)
+ * @param {Document} doc The article document
+ * @returns {String|null} The resolved content theme or null
+ */
+function resolveContentTheme(contentTheme, appTheme, doc) {
+    // Handle _wikimediaNative fallback
     if (contentTheme === '_wikimediaNative') {
-        // Check if the ZIM supports native themes
+        if (!params.isWikimediaZim) {
+            return '_invert';
+        }
+
         if (doc && doc.documentElement) {
-            var hasNativeTheme = detectNativeZIMThemeSupport(doc);
+            const hasNativeTheme = detectNativeZIMThemeSupport(doc);
             if (hasNativeTheme) {
-                // Remove any fallback stylesheet that was injected
-                if (kiwixJSSheet && kiwixJSSheet.href && kiwixJSSheet.href.includes('kiwixJS_mwInvert.css')) {
-                    kiwixJSSheet.disabled = true;
-                    kiwixJSSheet.parentNode.removeChild(kiwixJSSheet);
-                }
-                // Apply native Wikimedia theme classes
-                applyNativeWikimediaTheme(doc, appTheme);
-                // Do NOT add contentTheme class to iframe for native themes - the ZIM handles styling internally
-                // We only track it in the app HTML element via dataset.theme
-            } else {
-                // Native theme not detected, fall back to _mwInvert (only if in dark mode)
-                if (appTheme === 'dark') {
-                    contentTheme = '_mwInvert';
-                } else {
-                    // Light mode: no content theme needed
-                    contentTheme = null;
-                }
-                // Continue to apply _mwInvert or null below
+                return '_wikimediaNative';
             }
-        } else {
-            // No document available, fall back to _mwInvert (only if in dark mode)
-            console.warn('[applyAppTheme] No document available! Falling back. appTheme:', appTheme);
-            if (appTheme === 'dark') {
-                contentTheme = '_mwInvert';
-            } else {
-                // Light mode: no content theme needed
-                contentTheme = null;
-            }
+            return appTheme === 'dark' ? '_mwInvert' : null;
         }
+
+        console.warn('[resolveContentTheme] No document available! Falling back. appTheme:', appTheme);
+        return appTheme === 'dark' ? '_mwInvert' : null;
     }
 
-    // Handle plain light/dark themes on Wikimedia ZIMs (no content theme suffix)
-    // Apply native theme classes if ZIM supports it, to override OS preference
-    if (!contentTheme && params.isWikimediaZim && doc && doc.documentElement) {
-        var zimHasNativeTheme = detectNativeZIMThemeSupport(doc);
-        if (zimHasNativeTheme) {
-            applyNativeWikimediaTheme(doc, appTheme);
-        }
+    return contentTheme;
+}
+
+/**
+ * Updates help text and description visibility based on the theme
+ * @param {String} theme The full theme string
+ * @param {String} requestedContentTheme The requested content theme
+ * @param {String} oldContentTheme The previous content theme
+ */
+function updateThemeUI(theme, requestedContentTheme, oldContentTheme) {
+    const safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    const safeContentTheme = requestedContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+
+    // Update help text
+    const oldHelp = document.getElementById(safeOldContentTheme + '-help');
+    if (oldHelp) oldHelp.style.display = 'none';
+
+    const help = document.getElementById(safeContentTheme + '-help');
+    if (help) help.style.display = 'block';
+
+    // Update description
+    const oldDescription = document.getElementById('kiwix-auto-description');
+    if (oldDescription) oldDescription.style.display = 'none';
+
+    const safeThemeBase = theme.replace(/_.*$/, '').replace(/[^a-zA-Z0-9-]/g, '');
+    const description = document.getElementById('kiwix-' + safeThemeBase + '-description');
+    if (description) description.style.display = 'block';
+}
+
+/**
+ * Injects a content theme stylesheet into the article document
+ * @param {String} contentTheme The content theme to apply
+ * @param {Document} doc The article document
+ */
+function injectContentThemeStylesheet(contentTheme, doc) {
+    if (!doc || !doc.head) {
+        console.warn('[injectContentThemeStylesheet] No doc available, cannot inject stylesheet for contentTheme:', contentTheme);
+        return;
     }
 
-    // Apply the requested ContentTheme (if not already attached) - skip for _wikimediaNative as it uses native classes
-    if (contentTheme && contentTheme !== '_wikimediaNative' && (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css'))) {
+    const prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname)
+        .replace(/\/[^/]*$/, '');
+
+    const link = doc.createElement('link');
+    link.setAttribute('id', 'kiwixJSTheme');
+    link.setAttribute('rel', 'stylesheet');
+    link.setAttribute('type', 'text/css');
+
+    const safeContentTheme = contentTheme.replace(/[^a-zA-Z0-9_-]/g, '');
+    link.setAttribute('href', prefix + '/css/kiwixJS' + safeContentTheme + '.css');
+
+    doc.head.appendChild(link);
+}
+
+/**
+ * Applies an invert-style content theme (not _wikimediaNative)
+ * @param {String} contentTheme The content theme to apply
+ * @param {Document} doc The article document
+ */
+function applyInvertContentTheme(contentTheme, doc) {
+    const library = document.getElementById('libraryContent');
+    const kiwixJSSheet = doc ? doc.getElementById('kiwixJSTheme') : null;
+
+    // Check if we need to inject the stylesheet
+    if (!kiwixJSSheet || !~kiwixJSSheet.href.search('kiwixJS' + contentTheme + '.css')) {
         // Remove native Wikimedia theme classes if present, to prevent conflicts with invert themes
         if (doc && doc.documentElement) {
             doc.documentElement.classList.remove('skin-theme-clientpref-night', 'skin-theme-clientpref-os', 'skin-theme-clientpref-day');
         }
         articleContainer.classList.add(contentTheme);
         library.classList.add(contentTheme);
-        // Use an absolute reference because Service Worker needs this (if an article loaded in SW mode is in a ZIM
-        // subdirectory, then relative links injected into the article will not work as expected)
-        // Note that location.pathname returns the path plus the filename, but is useful because it removes any query string
-        var prefix = (window.location.protocol + '//' + window.location.host + window.location.pathname).replace(/\/[^/]*$/, '');
-        if (doc && doc.head) {
-            var link = doc.createElement('link');
-            link.setAttribute('id', 'kiwixJSTheme');
-            link.setAttribute('rel', 'stylesheet');
-            link.setAttribute('type', 'text/css');
-            var safeContentThemeForURL = contentTheme.replace(/[^a-zA-Z0-9_-]/g, '');
-            var stylesheetPath = prefix + '/css/kiwixJS' + safeContentThemeForURL + '.css';
-            link.setAttribute('href', stylesheetPath);
-            doc.head.appendChild(link);
-        } else {
-            console.warn('[applyAppTheme] No doc available, cannot inject stylesheet for contentTheme:', contentTheme);
-        }
+        injectContentThemeStylesheet(contentTheme, doc);
     }
-    // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
-    // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
-    if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
-        // Check if the document contains a meta element with name="description"
-        !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
-        showReturnLink();
-    }
-    // Update the colour scheme button icon to reflect current theme
+}
+
+/**
+ * Updates the colour scheme button icon to reflect the current theme
+ * @param {String} appTheme The app theme (light or dark)
+ */
+function updateColourSchemeButton(appTheme) {
     // Note: Font Awesome converts <i> to <svg> and uses data-icon attribute
     // We check for SVG first (modern browsers + IE11), then fall back to <i> (if SVG conversion disabled)
     var btnIcon = document.querySelector('#btnColourScheme svg') || document.querySelector('#btnColourScheme i');
@@ -1212,14 +1191,121 @@ function applyAppTheme (theme) {
             }
         }
     }
-    // Return the actual theme applied (which may differ from the requested theme if fallback occurred)
-    var actualTheme = appTheme + contentTheme;
-    // Embed a reference to new requested theme, so we can remove it generically in the future
+}
+
+/**
+ * Shows the return link if we're in Config and a real document is loaded
+ * @param {Document} doc The article document
+ */
+function showReturnLinkIfConfigActive(doc) {
+    // If we are in Config and a real document has been loaded already, expose return link so user can see the result of the change
+    // DEV: The Placeholder string below matches the dummy article.html that is loaded before any articles are loaded
+    if (document.getElementById('liConfigureNav').classList.contains('active') && doc &&
+        // Check if the document contains a meta element with name="description"
+        !(doc.querySelector('meta[content="Placeholder for injecting an article into the iframe or window"]'))) {
+        showReturnLink();
+    }
+}
+
+/**
+ * Applies the requested app and content theme
+ *
+ * A <theme> string consists of two parts, the appTheme (theme to apply to the app shell only), and an optional
+ * contentTheme beginning with an underscore: e.g. 'dark_invert' = 'dark' (appTheme) + '_invert' (contentTheme)
+ * Current themes are: light, dark, dark_invert, dark_mwInvert, dark_wikimediaNative, but code below is written for extensibility
+ * For each appTheme (except the default 'light'), a corresponding set of rules must be present in app.css
+ * For each contentTheme (except _wikimediaNative), a stylesheet must be provided in www/css that is named 'kiwixJS' + contentTheme
+ * The _wikimediaNative theme is an exception: it uses the ZIM's built-in theme system via native CSS classes
+ * A rule may additionally be needed in app.css for full implementation of contentTheme
+ *
+ * @param {String} theme The theme to apply (light|dark|auto[_invert|_mwInvert|_wikimediaNative])
+ * @returns {String} The actual theme applied (may differ from requested theme if fallback occurred)
+ */
+function applyAppTheme (theme) {
+    // Parse and validate theme
+    var parsed = parseTheme(theme);
+    var appTheme = parsed.appTheme;
+    var contentTheme = parsed.contentTheme;
+    var requestedContentTheme = parsed.requestedContentTheme;
+
+    // Get DOM elements
+    var htmlEl = document.querySelector('html');
+    var footer = document.querySelector('footer');
+    var oldTheme = htmlEl.dataset.theme || '';
+    const library = document.getElementById('libraryContent');
+
+    // Start with a clean slate
+    library.classList.remove('_wikimediaNative', '_mwInvert', '_invert');
+
+    // Get article document
+    var doc = getArticleDocument();
+
+    // Process old theme
+    var oldAppTheme = oldTheme ? isDarkTheme(oldTheme) ? 'dark' : 'light' : null;
+    var oldContentTheme = oldTheme.replace(/^[^_]*/, '');
+
+    // Remove old app theme
+    if (oldAppTheme) {
+        htmlEl.classList.remove(oldAppTheme);
+    }
+    footer.classList.remove(oldContentTheme || '_light');
+
+    // Apply new app theme
+    // Note: 'light' is the default state, so we only add a class for 'dark'
+    if (appTheme === 'dark') {
+        htmlEl.classList.add('dark');
+    } else {
+        htmlEl.classList.remove('dark');
+    }
+
+    // Add contentTheme to footer to avoid dark CSS rule being applied when content is not dark
+    footer.classList.add(contentTheme || '_light');
+
+    // Update help text and descriptions
+    updateThemeUI(theme, requestedContentTheme, oldContentTheme);
+
+    // Remove the contentTheme for auto themes whenever system is in light mode
+    if (/^auto/.test(theme) && appTheme === 'light') contentTheme = null;
+
+    // Clean up old content theme if switching themes
+    if (oldContentTheme && oldContentTheme !== contentTheme) {
+        cleanupOldContentTheme(oldTheme, oldContentTheme, doc);
+    }
+
+    // Resolve content theme (handles _wikimediaNative fallbacks)
+    contentTheme = resolveContentTheme(contentTheme, appTheme, doc);
+
+    // Apply content theme based on type
+    if (contentTheme === '_wikimediaNative' && doc && doc.documentElement) {
+        // Apply native Wikimedia theme
+        applyNativeWikimediaTheme(doc, appTheme);
+    } else if (!contentTheme && params.isWikimediaZim && doc && doc.documentElement) {
+        // Handle plain light/dark themes on Wikimedia ZIMs (no content theme suffix)
+        // Apply native theme classes if ZIM supports it, to override OS preference
+        var zimHasNativeTheme = detectNativeZIMThemeSupport(doc);
+        if (zimHasNativeTheme) {
+            applyNativeWikimediaTheme(doc, appTheme);
+        }
+    } else if (contentTheme && contentTheme !== '_wikimediaNative') {
+        // Apply invert-style content theme
+        applyInvertContentTheme(contentTheme, doc);
+    }
+
+    // Show return link if in Config
+    showReturnLinkIfConfigActive(doc);
+
+    // Update colour scheme button
+    updateColourSchemeButton(appTheme);
+
+    // Return the actual theme applied
+    var actualTheme = appTheme + (contentTheme || '');
     htmlEl.dataset.theme = actualTheme;
-    // Log theme application details for developers (only visible with verbose logging)
+
+    // Log theme application details for developers
     console.debug('[applyAppTheme] Requested:', theme, '| Applied:', actualTheme,
         '| App:', appTheme, '| Content:', contentTheme || 'none',
-        '| Fallback:', requestedContentTheme !== contentTheme);
+        '| Fallback:', requestedContentTheme !== (contentTheme || ''));
+
     return actualTheme;
 }
 
