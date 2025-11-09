@@ -2237,6 +2237,7 @@ function readArticle (dirEntry) {
  */
 function articleLoader () {
     if (selectedArchive.zimType === 'zimit') {
+        // Clear any previous onload handler to prevent unwanted behavior for Zimit-type archives
         articleContainer.onload = function () {};
         var doc = articleContainer.contentDocument || null;
         if (doc) {
@@ -2417,7 +2418,7 @@ function determinePopoverColours (articleDoc) {
     const isDarkTheme = /dark/.test(document.documentElement.dataset.theme);
     const kiwixJSTheme = articleDoc.getElementById('kiwixJSTheme');
     let requiredColours = isDarkTheme;
-    // For invert-based themes, keep popover colors light since CSS filter inverts them
+    // For invert-based themes, keep popover colours light since CSS filter inverts them
     if (kiwixJSTheme) {
         requiredColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
     }

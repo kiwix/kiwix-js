@@ -1133,15 +1133,18 @@ function resolveContentTheme(contentTheme, appTheme, doc) {
  * @param {String} oldContentTheme The previous content theme
  */
 function updateThemeUI(theme, requestedContentTheme, oldContentTheme) {
-    const safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
-    const safeContentTheme = requestedContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+    // Update help text only if we have valid theme values
+    if (oldContentTheme) {
+        const safeOldContentTheme = oldContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+        const oldHelp = document.getElementById(safeOldContentTheme + '-help');
+        if (oldHelp) oldHelp.style.display = 'none';
+    }
 
-    // Update help text
-    const oldHelp = document.getElementById(safeOldContentTheme + '-help');
-    if (oldHelp) oldHelp.style.display = 'none';
-
-    const help = document.getElementById(safeContentTheme + '-help');
-    if (help) help.style.display = 'block';
+    if (requestedContentTheme) {
+        const safeContentTheme = requestedContentTheme.replace(/[^a-zA-Z0-9-]/g, '');
+        const help = document.getElementById(safeContentTheme + '-help');
+        if (help) help.style.display = 'block';
+    }
 
     // Update description
     const oldDescription = document.getElementById('kiwix-auto-description');
@@ -1244,9 +1247,10 @@ function showReturnLinkIfConfigActive(doc) {
 }
 
 /**
- * Calculates relative luminance of a color using WCAG formula
- * @param {String} rgbString RGB or RGBA color string (e.g., "rgb(255, 255, 255)" or "rgba(0, 0, 0, 0.5)")
- * @returns {Number|null} Luminance value between 0 and 1, or null if parsing fails or color is transparent
+ * Calculates relative luminance of a colour using WCAG formula
+ * @param {String} rgbString RGB or RGBA colour string from getComputedStyle() (e.g., "rgb(255, 255, 255)" or "rgba(0, 0, 0, 0.5)")
+ *     Note: getComputedStyle() always returns colours in rgb/rgba format, regardless of how they were originally specified
+ * @returns {Number|null} Luminance value between 0 and 1, or null if parsing fails or colour is transparent
  */
 function getLuminance (rgbString) {
     var match = rgbString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
@@ -1271,7 +1275,7 @@ function getLuminance (rgbString) {
 
 /**
  * Detects whether the content in a document appears to be dark-themed by analyzing
- * the luminance of background and text colors of key content elements
+ * the luminance of background and text colours of key content elements
  *
  * @param {Document} doc The document to analyze
  * @returns {Boolean} True if content appears dark-themed, false otherwise
@@ -1393,7 +1397,7 @@ function applyAppTheme (theme) {
         // Skip only if user explicitly chose an invert-style theme (_invert or _mwInvert)
         // _wikimediaNative is the system default for Wikimedia ZIMs, so we still auto-detect for Zimit
         if (/zimit/.test(params.zimType) && !/_(?:mw)?[Ii]nvert/.test(requestedContentTheme) && doc) {
-            // Force reflow to ensure styles are updated after cleanup
+            // Force synchronous reflow by reading offsetHeight (prevents stale computed styles in subsequent detectDarkContent call)
             if (doc.body) {
                 void doc.body.offsetHeight;
             }
