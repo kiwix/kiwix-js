@@ -8,10 +8,15 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 Released on *TODO*
 
+* FEATURE: Complete overhaul of dark/light theme system with auto-detection of ZIM colour scheme and auto switching
 * FEATURE: Added a dark/light theme button in the toolbar for quickly switching between colour schemes 
-* FEATURE: Added support for new ZIMs with built-in native Wikimedia dark theme
+* FEATURE: Added intelligent theme switching for new ZIMs with built-in native Wikimedia dark theme
+* FEATURE: Added intelligent colour scheme detection and theme support for most Zimit ZIMs (experimental)
 * FEATURE: Popovers now work when experimental libzim back end is enabled (in Configuration)
-* UPDATE: Make the esearch bar thinner so it occupies less screen real estate
+* UPDATE: Popover colours now adapt intelligently to auto-switching of ZIM themes (Wikimedia ZIMs only)
+* UPDATE: Make the search bar thinner so it occupies less screen real estate
+* UPDATE: Added Expert Setting in Configuration to opt out of content theme manipulation (for troubleshooting and testing)
+* FIX: Most inverted images and videos in Zimit ZIMs with applied dark theme
 * FIX: Enter key can now be used to select first entry in search results
 * FIX: Gesture detection for sliding away toolbars on short pages
 * FIX: Noscript is now properly handled in Restricted mode
