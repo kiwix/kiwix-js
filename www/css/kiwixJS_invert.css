@@ -28,6 +28,15 @@
 
 img,
 video,
-canvas {
+canvas,
+iframe[src*="youtube"],
+iframe[src*="vimeo"],
+iframe[src*="video"],
+iframe[class*="video"],
+iframe[id*="video"],
+[style*="background-image:"],
+[style*="background-image :"],
+[style*="background: url("],
+[style*="background:url("] {
     filter: invert(1) hue-rotate(180deg);
 }
