@@ -235,6 +235,9 @@ function runTests (driver, modes, keepDriver) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     return;
                 }
+                // We switch to default Content and back to Iframe in case we are retrying the test
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
                 await driver.switchTo().frame('articleContent');
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
                 await driver.sleep(500);
@@ -249,8 +252,7 @@ function runTests (driver, modes, keepDriver) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     this.skip();
                 }
-                // We switch to default Content and back to Iframe because the If we are retrying the test
-                // It will make sure reset the iframe
+                // We switch to default Content and back to Iframe in case we are retrying the test
                 await driver.switchTo().defaultContent();
                 await driver.switchTo().frame('articleContent');
                 let firstBookName = '';
