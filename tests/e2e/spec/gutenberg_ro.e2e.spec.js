@@ -238,7 +238,6 @@ function runTests (driver, modes, keepDriver) {
                 // We switch to default Content and back to Iframe in case we are retrying the test
                 await driver.switchTo().defaultContent();
                 await driver.switchTo().frame('articleContent');
-                await driver.switchTo().frame('articleContent');
                 await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
                 await driver.sleep(500);
                 // get the text of first result and check if it is the same as expected
