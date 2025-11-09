@@ -34,6 +34,7 @@
  * @property {string} PWAServer - The URL of the PWA server for use with the browser extensions in ServiceWorker mode.
  * @property {string} storeType - A parameter to determine the Settings Store API in use.
  * @property {string} keyPrefix - The key prefix used by the settingsStore.js.
+ * @property {boolean} enableContentTheme - A boolean indicating whether to enable content theme manipulation.
  * @property {boolean} hideActiveContentWarning - A boolean indicating whether to hide the active content warning.
  * @property {boolean} hideExternalLinkWarning - A boolean indicating whether to hide the external link warning.
  * @property {boolean} slideAway - A boolean indicating whether to slide away the header and footer when scrolling.
@@ -91,7 +92,7 @@ params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include
 params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
-// A parameter to enable or disable light/dark content theme manipulation (defaults to true)
+// A parameter to enable or disable light/dark content theme manipulation (defaults to true for best UX)
 params['enableContentTheme'] = getSetting('enableContentTheme') !== false;
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
 params['hideExternalLinkWarning'] = getSetting('hideExternalLinkWarning') === true;
