@@ -105,6 +105,8 @@ document.localeJson = {
       "configure-compatibility-option-jquery-tip": "Ce mode ne permet pas d'exécuter des fichiers ZIM dynamiques. Cependant, les archives ZIM statiques telles que Wikipedia / Wikimedia devraient fonctionner correctement.",
       "configure-expert-settings-title": "Options avancées",
       "configure-expert-panel-header": "Dépannage et développement",
+      "configure-expert-enablecontenttheme": "<strong>Activer la manipulation du thème de contenu</strong> (décocher pour afficher le contenu ZIM sans modifications de thème clair/sombre)",
+      "configure-expert-enablecontenttheme-tip": "Lorsque cette option est activée, le contenu ZIM sera automatiquement ajusté pour correspondre au thème de votre application (clair/sombre). Lorsque désactivée, le contenu ZIM s'affiche exactement tel qu'archivé, sans détection ni ajustements de schéma de couleurs. L'interface de l'application respectera toujours le thème choisi.",
       "configure-expert-hideactivecontentwarning": "<strong>Masquer l'avertissement de contenu actif</strong> (pour les utilisateurs expérimentés)",
       "configure-expert-hideactivecontentwarning-tip": "Un avertissement s'affiche si vous chargez un ZIM qui contient du contenu actif ou dynamique en mode Restreint. Il n'est pas recommandé de désactiver cet avertissement.",
       "configure-expert-hideexternallinkwarning": "<strong>Masquer définitivement l'avertissement \"Ouverture d'un lien externe\".</strong>",

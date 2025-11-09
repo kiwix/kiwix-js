@@ -1381,51 +1381,57 @@ function applyAppTheme (theme) {
         cleanupOldContentTheme(oldContentTheme, doc, articleContent);
     }
 
-    // Resolve content theme (handles _wikimediaNative fallbacks)
-    contentTheme = resolveContentTheme(contentTheme, appTheme, doc);
+    // Skip all content theme manipulation if disabled by user (purist mode)
+    if (!params.enableContentTheme) {
+        contentTheme = null;
+        console.info('[Theme] Content theme manipulation disabled - displaying ZIM content as archived');
+    } else {
+        // Resolve content theme (handles _wikimediaNative fallbacks)
+        contentTheme = resolveContentTheme(contentTheme, appTheme, doc);
 
-    // Auto-detect dark content in Zimit archives to prevent UI/content theme clash
-    // Skip only if user explicitly chose an invert-style theme (_invert or _mwInvert)
-    // _wikimediaNative is the system default for Wikimedia ZIMs, so we still auto-detect for Zimit
-    if (/zimit/.test(params.zimType) && !/_(?:mw)?[Ii]nvert/.test(requestedContentTheme) && doc) {
-        // Force reflow to ensure styles are updated after cleanup
-        if (doc.body) {
-            void doc.body.offsetHeight;
+        // Auto-detect dark content in Zimit archives to prevent UI/content theme clash
+        // Skip only if user explicitly chose an invert-style theme (_invert or _mwInvert)
+        // _wikimediaNative is the system default for Wikimedia ZIMs, so we still auto-detect for Zimit
+        if (/zimit/.test(params.zimType) && !/_(?:mw)?[Ii]nvert/.test(requestedContentTheme) && doc) {
+            // Force reflow to ensure styles are updated after cleanup
+            if (doc.body) {
+                void doc.body.offsetHeight;
+            }
+
+            var contentAppearsDark = detectDarkContent(doc);
+
+            if (contentAppearsDark && appTheme === 'light') {
+                console.info('[Theme Auto-Detect] Zimit content appears dark-themed while app is light, applying _invert');
+                contentTheme = '_invert';
+            } else if (!contentAppearsDark && appTheme === 'dark') {
+                console.info('[Theme Auto-Detect] Zimit content appears light-themed while app is dark, applying _invert');
+                contentTheme = '_invert';
+            } else if (contentAppearsDark && appTheme === 'dark') {
+                // Both are dark - no inversion needed
+                console.info('[Theme Auto-Detect] Zimit content appears dark-themed and app is dark, removing inversion');
+                contentTheme = null;
+            } else if (!contentAppearsDark && appTheme === 'light') {
+                // Both are light - no inversion needed
+                console.info('[Theme Auto-Detect] Zimit content appears light-themed and app is light, removing inversion');
+                contentTheme = null;
+            }
         }
 
-        var contentAppearsDark = detectDarkContent(doc);
-
-        if (contentAppearsDark && appTheme === 'light') {
-            console.info('[Theme Auto-Detect] Zimit content appears dark-themed while app is light, applying _invert');
-            contentTheme = '_invert';
-        } else if (!contentAppearsDark && appTheme === 'dark') {
-            console.info('[Theme Auto-Detect] Zimit content appears light-themed while app is dark, applying _invert');
-            contentTheme = '_invert';
-        } else if (contentAppearsDark && appTheme === 'dark') {
-            // Both are dark - no inversion needed
-            console.info('[Theme Auto-Detect] Zimit content appears dark-themed and app is dark, removing inversion');
-            contentTheme = null;
-        } else if (!contentAppearsDark && appTheme === 'light') {
-            // Both are light - no inversion needed
-            console.info('[Theme Auto-Detect] Zimit content appears light-themed and app is light, removing inversion');
-            contentTheme = null;
-        }
-    }
-
-    // Apply content theme based on type
-    if (contentTheme === '_wikimediaNative' && doc && doc.documentElement) {
-        // Apply native Wikimedia theme
-        applyNativeWikimediaTheme(doc, appTheme);
-    } else if (!contentTheme && params.isWikimediaZim && doc && doc.documentElement) {
-        // Handle plain light/dark themes on Wikimedia ZIMs (no content theme suffix)
-        // Apply native theme classes if ZIM supports it, to override OS preference
-        var zimHasNativeTheme = detectNativeZIMThemeSupport(doc);
-        if (zimHasNativeTheme) {
+        // Apply content theme based on type
+        if (contentTheme === '_wikimediaNative' && doc && doc.documentElement) {
+            // Apply native Wikimedia theme
             applyNativeWikimediaTheme(doc, appTheme);
+        } else if (!contentTheme && params.isWikimediaZim && doc && doc.documentElement) {
+            // Handle plain light/dark themes on Wikimedia ZIMs (no content theme suffix)
+            // Apply native theme classes if ZIM supports it, to override OS preference
+            var zimHasNativeTheme = detectNativeZIMThemeSupport(doc);
+            if (zimHasNativeTheme) {
+                applyNativeWikimediaTheme(doc, appTheme);
+            }
+        } else if (contentTheme && contentTheme !== '_wikimediaNative') {
+            // Apply invert-style content theme
+            applyInvertContentTheme(contentTheme, doc, articleContent);
         }
-    } else if (contentTheme && contentTheme !== '_wikimediaNative') {
-        // Apply invert-style content theme
-        applyInvertContentTheme(contentTheme, doc, articleContent);
     }
 
     // Show return link if in Config

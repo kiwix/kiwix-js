@@ -564,6 +564,16 @@ document.getElementById('enableSourceVerification').addEventListener('change', f
     params.sourceVerification = this.checked;
     settingsStore.setItem('sourceVerification', this.checked, Infinity);
 });
+document.getElementById('enableContentThemeCheck').addEventListener('change', function () {
+    params.enableContentTheme = this.checked;
+    settingsStore.setItem('enableContentTheme', this.checked, Infinity);
+    // Re-apply the current theme to reflect the change
+    if (selectedArchive && appstate.expectedArticleURLToBeDisplayed) {
+        goToArticle(appstate.expectedArticleURLToBeDisplayed);
+    } else {
+        refreshCacheStatus();
+    }
+});
 document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.hideActiveContentWarning = !!this.checked;
@@ -2399,12 +2409,15 @@ function attachPopoverTriggerEvents (win) {
 
 // Helper function to determine required popover colours
 function determinePopoverColours (articleDoc) {
-    // Find out if we have an applied dark theme from the html css
+    // If content theme manipulation is disabled, check ZIM's native theme
+    if (!params.enableContentTheme) {
+        return uiUtil.detectNativeZIMThemeSupport(articleDoc);
+    }
+    // Logic for when theme manipulation is enabled
     const isDarkTheme = /dark/.test(document.documentElement.dataset.theme);
-    // Now check if we're using an inversion-based theme
     const kiwixJSTheme = articleDoc.getElementById('kiwixJSTheme');
     let requiredColours = isDarkTheme;
-    // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
+    // For invert-based themes, keep popover colors light since CSS filter inverts them
     if (kiwixJSTheme) {
         requiredColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
     }

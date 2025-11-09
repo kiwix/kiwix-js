@@ -91,6 +91,8 @@ params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include
 params['storeType'] = getBestAvailableStorageAPI();
 // The key prefix used by the settingsStore.js (see comment there for explanation), but we also need it below
 params['keyPrefix'] = 'kiwixjs-';
+// A parameter to enable or disable light/dark content theme manipulation (defaults to true)
+params['enableContentTheme'] = getSetting('enableContentTheme') !== false;
 params['hideActiveContentWarning'] = getSetting('hideActiveContentWarning') === true;
 params['hideExternalLinkWarning'] = getSetting('hideExternalLinkWarning') === true;
 // A parameter to determine whether to slide away the header and footer when scrolling (defaults to true except on Firefox OS devices which may be buggy with this setting)
@@ -195,6 +197,7 @@ params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCa
 /**
  * Set the State and UI settings associated with parameters defined above
  */
+document.getElementById('enableContentThemeCheck').checked = params.enableContentTheme;
 document.getElementById('hideActiveContentWarningCheck').checked = params.hideActiveContentWarning;
 document.getElementById('hideExternalLinkWarningCheck').checked = params.hideExternalLinkWarning;
 document.getElementById('disableDragAndDropCheck').checked = params.disableDragAndDrop;
