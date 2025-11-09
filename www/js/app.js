@@ -2585,10 +2585,11 @@ function handleClickOnReplayLink (ev, anchor) {
                             params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
                     }
                 } else {
+                    var thisArticleContainer;
                     // Handle middle-clicks and ctrl-clicks
                     if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
                         var encodedTitle = encodeURIComponent(dirEntry.getTitleOrUrl());
-                        var thisArticleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
+                        thisArticleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
                             params.windowOpener === 'tab' ? '_blank' : encodedTitle,
                             params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null
                         );

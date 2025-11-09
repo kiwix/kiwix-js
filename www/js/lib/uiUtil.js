@@ -1045,12 +1045,11 @@ function getArticleDocument() {
 
 /**
  * Cleans up previously applied theme classes and stylesheets
- * @param {String} oldTheme The previous theme that was applied
  * @param {String} oldContentTheme The previous content theme
  * @param {Document} doc The article document
  * @param {HTMLElement} articleContent The articleContent iframe element
  */
-function cleanupOldContentTheme(oldTheme, oldContentTheme, doc, articleContent) {
+function cleanupOldContentTheme(oldContentTheme, doc, articleContent) {
     const library = document.getElementById('libraryContent');
 
     if (oldContentTheme) {
@@ -1379,7 +1378,7 @@ function applyAppTheme (theme) {
 
     // Clean up old content theme if switching themes
     if (oldContentTheme && oldContentTheme !== contentTheme) {
-        cleanupOldContentTheme(oldTheme, oldContentTheme, doc, articleContent);
+        cleanupOldContentTheme(oldContentTheme, doc, articleContent);
     }
 
     // Resolve content theme (handles _wikimediaNative fallbacks)
@@ -1388,7 +1387,7 @@ function applyAppTheme (theme) {
     // Auto-detect dark content in Zimit archives to prevent UI/content theme clash
     // Skip only if user explicitly chose an invert-style theme (_invert or _mwInvert)
     // _wikimediaNative is the system default for Wikimedia ZIMs, so we still auto-detect for Zimit
-    if (/zimit/.test(params.zimType) && !/_(?:m[ws])?[Ii]nvert/.test(requestedContentTheme) && doc) {
+    if (/zimit/.test(params.zimType) && !/_(?:mw)?[Ii]nvert/.test(requestedContentTheme) && doc) {
         // Force reflow to ensure styles are updated after cleanup
         if (doc.body) {
             void doc.body.offsetHeight;

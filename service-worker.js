@@ -284,7 +284,7 @@ self.addEventListener('fetch', function (event) {
     // Filter dark stylesheet requests transformed by wombat.js
     // Only check for transformation if URL contains both .zim and /www/ to avoid unnecessary regex processing
     if (~rqUrl.indexOf('.zim') && ~rqUrl.indexOf('/www/')) {
-        if (/(?:darkreader\.min\.js|kiwixJS_(?:ms)?invert\.css)$/.test(rqUrl)) {
+        if (/(?:darkreader\.min\.js|kiwixJS_(?:mw)?[Ii]nvert\.css)$/.test(rqUrl)) {
             // Extract the base URL up to and including the ZIM name
             rqUrl = rqUrl.replace(/^([^:]+:\/\/[^/]+(?:[^/]|\/(?![^/]+\.zim\/))+)(?:[^/]|\/(?!www\/))+/, '$1');
         }
