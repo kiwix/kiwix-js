@@ -564,6 +564,16 @@ document.getElementById('enableSourceVerification').addEventListener('change', f
     params.sourceVerification = this.checked;
     settingsStore.setItem('sourceVerification', this.checked, Infinity);
 });
+document.getElementById('enableContentThemeCheck').addEventListener('change', function () {
+    params.enableContentTheme = this.checked;
+    settingsStore.setItem('enableContentTheme', this.checked, Infinity);
+    // Re-apply the current theme to reflect the change
+    if (selectedArchive && appstate.expectedArticleURLToBeDisplayed) {
+        goToArticle(appstate.expectedArticleURLToBeDisplayed);
+    } else {
+        refreshCacheStatus();
+    }
+});
 document.querySelectorAll('input[type="checkbox"][name=hideActiveContentWarning]').forEach(function (element) {
     element.addEventListener('change', function () {
         params.hideActiveContentWarning = !!this.checked;
@@ -2227,6 +2237,8 @@ function readArticle (dirEntry) {
  */
 function articleLoader () {
     if (selectedArchive.zimType === 'zimit') {
+        // Clear any previous onload handler to prevent unwanted behavior for Zimit-type archives
+        articleContainer.onload = function () {};
         var doc = articleContainer.contentDocument || null;
         if (doc) {
             var replayIframe = doc.getElementById('replay_iframe');
@@ -2323,7 +2335,11 @@ function articleLoadedSW (iframeArticleContent) {
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
-    document.getElementById('articleContent').style.display = '';
+    // Clear the failsafe timer since content is now shown
+    if (appstate.contentHiddenFailsafe) {
+        clearTimeout(appstate.contentHiddenFailsafe);
+        appstate.contentHiddenFailsafe = null;
+    }
     console.debug('<- Article unhidden ->');
     
     // Deflect drag-and-drop of ZIM file on the iframe to Config
@@ -2394,12 +2410,15 @@ function attachPopoverTriggerEvents (win) {
 
 // Helper function to determine required popover colours
 function determinePopoverColours (articleDoc) {
-    // Find out if we have an applied dark theme from the html css
+    // If content theme manipulation is disabled, check ZIM's native theme
+    if (!params.enableContentTheme) {
+        return uiUtil.detectNativeZIMThemeSupport(articleDoc);
+    }
+    // Logic for when theme manipulation is enabled
     const isDarkTheme = /dark/.test(document.documentElement.dataset.theme);
-    // Now check if we're using an inversion-based theme
     const kiwixJSTheme = articleDoc.getElementById('kiwixJSTheme');
     let requiredColours = isDarkTheme;
-    // For invert-based themes (_invert, _mwInvert), keep popover colors light since the CSS filter inverts them
+    // For invert-based themes, keep popover colours light since CSS filter inverts them
     if (kiwixJSTheme) {
         requiredColours = isDarkTheme && !/invert/i.test(kiwixJSTheme.href);
     }
@@ -2580,25 +2599,26 @@ function handleClickOnReplayLink (ev, anchor) {
                             params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null);
                     }
                 } else {
+                    var thisArticleContainer;
                     // Handle middle-clicks and ctrl-clicks
                     if (ev.ctrlKey || ev.metaKey || ev.button === 1) {
                         var encodedTitle = encodeURIComponent(dirEntry.getTitleOrUrl());
-                        var articleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
+                        thisArticleContainer = window.open(pathToArticleDocumentRoot + zimUrl,
                             params.windowOpener === 'tab' ? '_blank' : encodedTitle,
                             params.windowOpener === 'window' ? 'toolbar=0,location=0,menubar=0,width=800,height=600,resizable=1,scrollbars=1' : null
                         );
                         // Conditional, because opening a new window can be blocked by the browser
-                        if (articleContainer) {
+                        if (thisArticleContainer) {
                             appstate.target = 'window';
-                            articleContainer.kiwixType = appstate.target;
+                            thisArticleContainer.kiwixType = appstate.target;
                         }
                         uiUtil.spinnerDisplay(false);
                     } else {
                         // Let Replay handle this link
                         anchor.passthrough = true;
-                        articleContainer = document.getElementById('articleContent');
+                        thisArticleContainer = document.getElementById('articleContent');
                         appstate.target = 'iframe';
-                        articleContainer.kiwixType = appstate.target;
+                        thisArticleContainer.kiwixType = appstate.target;
                         if (selectedArchive.zimType === 'zimit2') {
                             // Since we know the URL works, normalize the href (this is needed for zimit2 relative links)
                             // NB We mustn't do this for zimit classic because it breaks wombat rewriting of absolute links!
@@ -2697,6 +2717,14 @@ function handleMessageChannelMessage (event) {
                     if (event.data.requestingFrameType === 'nested' && /\bx?html/.test(mimetype)) {
                         articleContainer.style.display = 'none';
                         console.debug('-> Article hidden to avoid FOIT <-');
+                        // Set a failsafe timeout to ensure content is always shown even if articleLoadedSW doesn't fire
+                        if (appstate.contentHiddenFailsafe) clearTimeout(appstate.contentHiddenFailsafe);
+                        appstate.contentHiddenFailsafe = setTimeout(function () {
+                            if (articleContainer.style.display === 'none') {
+                                console.warn('[contentHiddenFailsafe] Forcing content to show after timeout');
+                                articleContainer.style.display = '';
+                            }
+                        }, 3000);
                     }
                     // Test for an HTML or XHTML article: note that some ZIMs have odd MIME type formatting like 'text/html;raw=true',
                     // or simply `html`, so this has to be as generic as possible

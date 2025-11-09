@@ -239,20 +239,26 @@ function runTests (driver, modes, keepDriver) {
                 }
 
                 // console.log('FilesLength outer: ' + filesLength);
-                // Wait until the iframe is present and available
+                // Wait until the iframe is present and has content loaded
                 await driver.wait(async function () {
-                    const iframe = await driver.findElement(By.id('articleContent'));
-                    return iframe !== null;
-                }, 6000, 'Iframe with id "articleContent" was not found');
-
-                // Switch to the iframe
-                await driver.switchTo().frame('articleContent');
-
-                // Wait until the index has loaded inside the iframe
-                await driver.wait(async function () {
-                    const contentAvailable = await driver.executeScript('return document.getElementById("mw-content-text");');
-                    return contentAvailable !== null;
+                    try {
+                        const iframe = await driver.findElement(By.id('articleContent'));
+                        if (!iframe) return false;
+                        // Check from the parent context if the iframe has content before switching to it
+                        const hasContent = await driver.executeScript(
+                            'var iframe = arguments[0]; ' +
+                            'var doc = iframe.contentDocument || iframe.contentWindow.document; ' +
+                            'return doc && doc.getElementById("mw-content-text") !== null;',
+                            iframe
+                        );
+                        return hasContent;
+                    } catch (e) {
+                        return false;
+                    }
                 }, 10000, 'Content inside iframe did not load');
+
+                // Switch to the iframe now that we know it has content
+                await driver.switchTo().frame('articleContent');
 
                 // Locate the article link and get its text
                 let text;
@@ -312,8 +318,8 @@ function runTests (driver, modes, keepDriver) {
                 }
                 // Switch to iframe
                 await driver.switchTo().frame('articleContent');
-                // Focus on the link "Hallelujah" with id="mwVw"
-                let link = await driver.findElement(By.id('mwVw'));
+                // Wait for and focus on the link "Hallelujah" with id="mwVw"
+                let link = await driver.wait(until.elementLocated(By.id('mwVw')), 5000, 'Link element mwVw not found');
                 await driver.executeScript('arguments[0].focus();', link);
                 await driver.sleep(2000);
                 // Focus on the next link "A Fool for You" with id="mwWw"

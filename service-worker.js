@@ -281,6 +281,14 @@ self.addEventListener('fetch', function (event) {
     var rqUrl = event.request.url;
     // Filter out requests that do not match the scope of the Service Worker
     if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
+    // Filter dark stylesheet requests transformed by wombat.js
+    // Only check for transformation if URL contains both .zim and /www/ to avoid unnecessary regex processing
+    if (~rqUrl.indexOf('.zim') && ~rqUrl.indexOf('/www/')) {
+        if (/(?:darkreader\.min\.js|kiwixJS_(?:mw)?[Ii]nvert\.css)$/.test(rqUrl)) {
+            // Extract the base URL up to and including the ZIM name
+            rqUrl = rqUrl.replace(/^([^:]+:\/\/[^/]+(?:[^/]|\/(?![^/]+\.zim\/))+)(?:[^/]|\/(?!www\/))+/, '$1');
+        }
+    }
     var urlObject = new URL(rqUrl);
     // Test the URL with parameters removed
     var strippedUrl = urlObject.pathname;
@@ -298,7 +306,7 @@ self.addEventListener('fetch', function (event) {
         }, function () {
             // The response was not found in the cache so we look for it in the ZIM
             // and add it to the cache if it is an asset type (css or js)
-            return zimitResolver(event).then(function (modRequestOrResponse) {
+            return zimitResolver(event, rqUrl).then(function (modRequestOrResponse) {
                 if (modRequestOrResponse instanceof Response) {
                     // The request was modified by the ReplayWorker and it returned a modified response, so we return it
                     // console.debug('[SW] Returning modified response from ReplayWorker', modRequest);
@@ -442,10 +450,11 @@ function setReplayCollectionAsRoot (prefix, name) {
  * Handles resolving content for Zimit-style ZIM archives
  *
  * @param {FetchEvent} event The FetchEvent to be processed
+ * @param {String} rqUrl Optional URL string to be processed for extraction from the ZIM archive
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
  */
-function zimitResolver (event) {
-    var rqUrl = event.request.url;
+function zimitResolver (event, rqUrl) {
+    rqUrl = rqUrl || event.request.url;
     var zimStem = rqUrl.replace(/^.*?\/([^/]+?)\.zim\w?\w?\/.*/, '$1');
     if (/\/A\/load\.js$/.test(rqUrl)) {
         // If the request is for load.js, we should filter its contents to load the mainUrl, as we don't need the other stuff
@@ -504,7 +513,16 @@ function zimitResolver (event) {
         });
     } else {
         // The loaded ZIM archive is not a Zimit archive, or sw-Zimit is unsupported, so we should just return the request
-        return Promise.resolve(event.request);
+        // If the reqUrl is not the same as event.request.url, we need to modify the request
+        // Note that we can't clone requests with streaming bodies, hence we check for an error and use another method in that case (see https://developer.mozilla.org/en-US/docs/Web/API/Request/clone)
+        var rtnRequest;
+        try {
+            rtnRequest = new Request(rqUrl, event.request);
+        // eslint-disable-next-line no-unused-vars
+        } catch (e) { // Parameter required for Chrome 58 compatibility - optional catch binding (catch {}) is ES2019+
+            rtnRequest = event.request;
+        }
+        return Promise.resolve(rtnRequest);
     }
 }
 
@@ -535,6 +553,7 @@ function cacheAndReturnResponseForAsset (event, response) {
  *
  * @param {URL|String} urlObjectOrString The URL object, or a simple string representation, to be processed for extraction from the ZIM
  * @param {String} range Optional byte range string (mostly used for video or audio streams)
+ * @param {FetchEvent} event The FetchEvent that triggered this function (used to get the clientId for frameType detection)
  * @param {String} expectedHeaders Optional comma-separated list of headers to be expected in the response (for error checking). Note that although
  *     Zimit requests may be for a range of bytes, in fact video (at least) is stored as a blob, so the appropriate response will just be a normal 200.
  * @returns {Promise<Response>} A Promise for the Response, or rejects with the invalid message port data
