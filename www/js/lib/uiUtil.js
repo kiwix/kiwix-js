@@ -1245,6 +1245,32 @@ function showReturnLinkIfConfigActive(doc) {
 }
 
 /**
+ * Calculates relative luminance of a color using WCAG formula
+ * @param {String} rgbString RGB or RGBA color string (e.g., "rgb(255, 255, 255)" or "rgba(0, 0, 0, 0.5)")
+ * @returns {Number|null} Luminance value between 0 and 1, or null if parsing fails or color is transparent
+ */
+function getLuminance (rgbString) {
+    var match = rgbString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (!match) return null;
+
+    // Check for transparent background (alpha = 0)
+    var alpha = match[4] !== undefined ? parseFloat(match[4]) : 1;
+    if (alpha === 0) return null; // Skip transparent backgrounds
+
+    var r = parseInt(match[1]) / 255;
+    var g = parseInt(match[2]) / 255;
+    var b = parseInt(match[3]) / 255;
+
+    // Apply sRGB gamma correction
+    r = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+    g = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+    b = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+
+    // Calculate relative luminance using WCAG formula
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
  * Detects whether the content in a document appears to be dark-themed by analyzing
  * the luminance of background and text colors of key content elements
  *
@@ -1253,32 +1279,6 @@ function showReturnLinkIfConfigActive(doc) {
  */
 function detectDarkContent (doc) {
     if (!doc || !doc.body) return false;
-
-    /**
-     * Calculates relative luminance using WCAG formula
-     * @param {String} rgbString RGB or RGBA color string
-     * @returns {Number|null} Luminance value between 0 and 1, or null if parsing fails
-     */
-    function getLuminance (rgbString) {
-        var match = rgbString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-        if (!match) return null;
-
-        // Check for transparent background (alpha = 0)
-        var alpha = match[4] !== undefined ? parseFloat(match[4]) : 1;
-        if (alpha === 0) return null; // Skip transparent backgrounds
-
-        var r = parseInt(match[1]) / 255;
-        var g = parseInt(match[2]) / 255;
-        var b = parseInt(match[3]) / 255;
-
-        // Apply sRGB gamma correction
-        r = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
-        g = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
-        b = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
-
-        // Calculate relative luminance using WCAG formula
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    }
 
     // Sample multiple key content elements to determine overall theme
     var elementsToCheck = [
@@ -1295,7 +1295,6 @@ function detectDarkContent (doc) {
 
     for (var i = 0; i < elementsToCheck.length; i++) {
         var element = elementsToCheck[i].el;
-        var elementName = elementsToCheck[i].name;
         var styles = doc.defaultView.getComputedStyle(element);
         var bgLuminance = getLuminance(styles.backgroundColor);
         var textLuminance = getLuminance(styles.color);
@@ -1306,15 +1305,11 @@ function detectDarkContent (doc) {
             if (isDark) {
                 darkCount++;
             }
-            // DEBUG: Log each element's detection
-            console.log('[DEBUG detectDarkContent]', elementName, '| bg:', styles.backgroundColor, '(lum:', bgLuminance.toFixed(3) + ')', '| text:', styles.color, '(lum:', textLuminance.toFixed(3) + ')', '| isDark:', isDark);
         }
     }
 
     // Content is dark if majority of sampled elements have dark backgrounds
-    var result = totalCount > 0 && (darkCount / totalCount) >= 0.5;
-    console.log('[DEBUG detectDarkContent] Final: darkCount=' + darkCount + '/' + totalCount + ' → ' + result);
-    return result;
+    return totalCount > 0 && (darkCount / totalCount) >= 0.5;
 }
 
 /**
@@ -1394,24 +1389,12 @@ function applyAppTheme (theme) {
     // Skip only if user explicitly chose an invert-style theme (_invert or _mwInvert)
     // _wikimediaNative is the system default for Wikimedia ZIMs, so we still auto-detect for Zimit
     if (/zimit/.test(params.zimType) && !/_(?:m[ws])?[Ii]nvert/.test(requestedContentTheme) && doc) {
-        // DEBUG: Log state before detection
-        console.log('[DEBUG] Before detection - oldTheme:', oldTheme, '| oldContentTheme:', oldContentTheme);
-        console.log('[DEBUG] contentTheme after resolve:', contentTheme);
-        console.log('[DEBUG] Checking for kiwixJSTheme stylesheet:', doc.getElementById('kiwixJSTheme'));
-
         // Force reflow to ensure styles are updated after cleanup
         if (doc.body) {
             void doc.body.offsetHeight;
         }
 
         var contentAppearsDark = detectDarkContent(doc);
-        console.log('[DEBUG] Detection result - contentAppearsDark:', contentAppearsDark, '| appTheme:', appTheme);
-
-        // Sample a few elements to see actual computed styles
-        if (doc.body) {
-            var bodyStyles = doc.defaultView.getComputedStyle(doc.body);
-            console.log('[DEBUG] Body background:', bodyStyles.backgroundColor, '| Body color:', bodyStyles.color);
-        }
 
         if (contentAppearsDark && appTheme === 'light') {
             console.info('[Theme Auto-Detect] Zimit content appears dark-themed while app is light, applying _invert');
