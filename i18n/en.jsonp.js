@@ -105,6 +105,8 @@ document.localeJson = {
       "configure-compatibility-option-jquery-tip": "This mode cannot run dynamic ZIM files. However, static ZIM archives like Wikipedia / Wikimedia should work fine.",
       "configure-expert-settings-title": "Expert settings",
       "configure-expert-panel-header": "Troubleshooting and development",
+      "configure-expert-enablecontenttheme": "<strong>Enable content theme manipulation</strong> (uncheck to show ZIM content with no dark/light theme overrides)",
+      "configure-expert-enablecontenttheme-tip": "When enabled, ZIM content will be automatically adjusted to match your app theme (dark/light). When disabled, ZIM content is displayed exactly as archived, without colour scheme detection or adjustments. The app shell will still respect your chosen theme.",
       "configure-expert-hideactivecontentwarning": "<strong>Permanently hide active content warning</strong> (for experienced users)",
       "configure-expert-hideactivecontentwarning-tip": "A warning is shown if you load a ZIM that has active or dynamic content while you are in Restricted mode. It is not recommended to disable this warning.",
       "configure-expert-hideexternallinkwarning": "<strong>Permanently hide \"Opening external link\" warning</strong>",
