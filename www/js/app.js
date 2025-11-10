@@ -1547,9 +1547,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
         }
         // Set the localArchive as the last selected (or the first one if it has never been selected)
         // Trigger the change event to load the selected archive via the event handler
-        var changeEvent = new Event('change', { bubbles: true });
-        Object.defineProperty(changeEvent, 'target', { value: comboArchiveList, enumerable: true });
-        comboArchiveList.dispatchEvent(changeEvent);
+        comboArchiveList.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
         uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
             (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
@@ -1570,7 +1568,7 @@ comboArchiveList.addEventListener('click', function (e) {
     // For single archive: the click event directly triggers the handler
     // For multiple archives: ensure the clicked item is selected in the dropdown first
     if (e.target.value) comboArchiveList.value = e.target.value;
-    if (comboArchiveList.length === 1) handleArchiveListChange(e);
+    if (comboArchiveList.length === 1) handleArchiveListChange();
 });
 comboArchiveList.addEventListener('mousedown', function () {
     // Unselect any selected option so that the user can select the same option again
@@ -1582,15 +1580,15 @@ let selectFired = false;
 /**
  * Routes archive selection from dropdown to the appropriate loading mechanism
  * based on which API populated the dropdown
- * @param {Event} event The change/click event from the archive dropdown
  */
-function handleArchiveListChange (event) {
+function handleArchiveListChange () {
     if (selectFired) return;
+    // Get the selected value from the comboArchiveList itself, not from event.target
+    // This handles both native events and synthetic events reliably
+    const selectedValue = comboArchiveList.value;
     // If nothing was selected, user will have to click again
-    if (!event.target.value) return;
+    if (!selectedValue) return;
     selectFired = true;
-
-    const selectedValue = event.target.value;
 
     // PATHWAY 1: Firefox OS DeviceStorage (legacy)
     // Dropdown populated by populateDropDownListOfArchives() with directory paths like "/sdcard/archives"
