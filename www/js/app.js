@@ -2740,8 +2740,8 @@ function handleMessageChannelMessage (event) {
                         appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
                         appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
                     }
-                    // Ensure the article onload event gets attached to the right iframe
-                    articleLoader();
+                        // Ensure the article onload event gets attached to the right iframe
+                        articleLoader();
                 }
                 // Let's send the content to the ServiceWorker
                 var buffer = content.buffer ? content.buffer : content;
