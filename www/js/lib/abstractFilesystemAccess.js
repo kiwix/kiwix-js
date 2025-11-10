@@ -129,8 +129,18 @@ function updateZimDropdownOptions (files, selectedFile) {
         }
     });
     select.value = selectedFile;
+
     // Set the size of the dropdown to the number of files or the DROPDOWN_SIZE, whichever is smaller
-    select.size = (files.length < DROPDOWN_SIZE ? files.length : DROPDOWN_SIZE);
+    const calculatedSize = files.length < DROPDOWN_SIZE ? files.length : DROPDOWN_SIZE;
+    select.size = calculatedSize;
+
+    // For single files, use multiple attribute to display as a listbox instead of dropdown
+    if (count === 1) {
+        select.setAttribute('multiple', '');
+    } else {
+        select.removeAttribute('multiple');
+    }
+
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
     document.getElementById('numberOfFilesCount').innerText = count.toString();
