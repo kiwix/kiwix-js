@@ -1762,7 +1762,7 @@ function displayFileSelect () {
     }
 
     // Note: Archive dropdown selection is handled by the comboArchiveList event listeners
-    // defined above (lines 1565-1575). Those listeners route to handleArchiveListChange()
+    // defined above. Those listeners route to handleArchiveListChange()
     // which dispatches to the appropriate API pathway.
 
     if (params.isFileSystemApiSupported) {
