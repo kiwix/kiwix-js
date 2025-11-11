@@ -115,8 +115,8 @@ const isMobileDevice = /Android/i.test(navigator.userAgent) ||
     /iphone|ipad|ipod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-// Define and store dark preference for matchMedia
-var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
+// Define and store dark preference for matchMedia (global for use in uiUtil.js)
+window.darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
 // If 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
 if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
     var optionsToBeRemoved = document.getElementById('appThemeSelect').querySelectorAll('.auto');
@@ -129,7 +129,7 @@ uiUtil.applyAppTheme(params.appTheme);
 refreshCacheStatus();
 
 // Whenever the system theme changes, call applyAppTheme function
-darkPreference.onchange = function () {
+window.darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
     attachPopoverTriggerEvents(articleWindow);
     refreshCacheStatus();
@@ -648,11 +648,36 @@ document.getElementById('appThemeSelect').addEventListener('change', function (e
     refreshCacheStatus();
 });
 document.getElementById('btnColourScheme').addEventListener('click', function () {
-    if (uiUtil.isDarkTheme(params.appTheme)) {
-        params.appTheme = 'light';
+    // Adaptive cycle based on OS preference to ensure all 3 modes are accessible
+    var baseTheme = params.appTheme.replace(/_.*$/, ''); // Get base theme (light, dark, or auto)
+    var isDark = uiUtil.isDarkTheme(params.appTheme); // Check if currently resolving to dark
+    var osPrefersDark = window.darkPreference.matches; // Use cached MediaQueryList
+    console.debug('[btnColourScheme] Current params.appTheme:', params.appTheme, '| baseTheme:', baseTheme, '| isDark:', isDark, '| osPrefersDark:', osPrefersDark);
+
+    if (baseTheme === 'light') {
+        // From forced light - check if we should go to auto or dark
+        if (!osPrefersDark) {
+            // OS is light (matches current forced mode), so go to auto
+            params.appTheme = 'auto_wikimediaNative';
+        } else {
+            // OS is dark (opposite), so go to dark forced
+            params.appTheme = 'dark_wikimediaNative';
+        }
+    } else if (baseTheme === 'dark') {
+        // From forced dark - check if we should go to auto or light
+        if (osPrefersDark) {
+            // OS is dark (matches current forced mode), so go to auto
+            params.appTheme = 'auto_wikimediaNative';
+        } else {
+            // OS is light (opposite), so go to light forced
+            params.appTheme = 'light';
+        }
     } else {
-        params.appTheme = 'dark_wikimediaNative';
+        // Currently auto -> force the opposite of what auto is showing
+        params.appTheme = isDark ? 'light' : 'dark_wikimediaNative';
     }
+    console.debug('[btnColourScheme] New params.appTheme:', params.appTheme);
+
     settingsStore.setItem('appTheme', params.appTheme, Infinity);
     uiUtil.applyAppTheme(params.appTheme);
     document.getElementById('appThemeSelect').value = params.appTheme;
