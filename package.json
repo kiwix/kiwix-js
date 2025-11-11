@@ -1,7 +1,7 @@
 {
   "name": "kiwix-js",
   "productName": "Kiwix JS",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "Kiwix is an offline reader for content from Wikipedia, TED Talks, Stackexchange, and many other sources.",
   "type": "module",
   "scripts": {
