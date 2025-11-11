@@ -7,7 +7,7 @@ document.localeJson = {
       "home": "Inicio",
       "home-search": "Buscar",
       "home-welcome-text": "Una vez que haya cargado un archivo ZIM, puede buscar en el contenido usando el campo de búsqueda arriba.",
-      "home-btn-colourscheme-tip": "Cambiar entre temas oscuro y claro",
+      "home-btn-colourscheme-tip": "Alternar entre temas claro, oscuro y automático",
       "home-btn-random-tip": "Mostrar un artículo al azar",
       "home-btn-random": "Aleatorio",
       "home-btn-back": "Atrás",
