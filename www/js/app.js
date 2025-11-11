@@ -109,6 +109,12 @@ const archiveFiles = document.getElementById('archiveFiles');
 // Unique identifier of the article expected to be displayed
 appstate.expectedArticleURLToBeDisplayed = '';
 
+// Platform and API detection - performed once at startup to avoid repeated checks
+const isFirefoxOsDeviceStorageAvailable = navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function';
+const isMobileDevice = /Android/i.test(navigator.userAgent) ||
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 // Define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
 // If 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
@@ -586,7 +592,7 @@ document.getElementById('hideExternalLinkWarningCheck').addEventListener('change
 })
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
     params.slideAway = e.target.checked;
-    if (typeof navigator.getDeviceStorages === 'function') {
+    if (isFirefoxOsDeviceStorageAvailable) {
         // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
         uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
                 'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-warning') || 'Warning');
@@ -1443,7 +1449,7 @@ function searchForArchivesInStorage () {
         uiUtil.systemAlert().then(populateDropDownListOfArchives(null));
     });
 }
-if (navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function') {
+if (isFirefoxOsDeviceStorageAvailable) {
     // The method getDeviceStorages is available (FxOS>=1.1)
     storages = Array.from(navigator.getDeviceStorages('sdcard')).map(function (s) {
         return new abstractFilesystemAccess.StorageFirefoxOS(s);
@@ -1546,8 +1552,8 @@ function populateDropDownListOfArchives (archiveDirectories) {
             }
         }
         // Set the localArchive as the last selected (or the first one if it has never been selected)
-        // Trigger the change event to load the selected archive via the event handler
-        comboArchiveList.dispatchEvent(new Event('change', { bubbles: true }));
+        // Call the handler directly for autoload (Firefox OS compatibility)
+        handleArchiveListChange();
     } else {
         uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
             (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
@@ -1591,8 +1597,9 @@ function handleArchiveListChange () {
     selectFired = true;
 
     // PATHWAY 1: Firefox OS DeviceStorage (legacy)
-    // Dropdown populated by populateDropDownListOfArchives() with directory paths like "/sdcard/archives"
-    if (typeof navigator.getDeviceStorages === 'function' && selectedValue.startsWith('/')) {
+    // Dropdown populated by populateDropDownListOfArchives() with directory paths
+    // Paths may be absolute like "/sdcard/archives" or relative (in Simulator or FxOS 1.0)
+    if (isFirefoxOsDeviceStorageAvailable) {
         setLocalArchiveFromDeviceStorage(selectedValue);
         return;
     }
@@ -1688,22 +1695,17 @@ let webKitFileList = null
  * Displays the zone to select files from the archive
  */
 function displayFileSelect () {
-    const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
-    let isPlatformMobilePhone = false;
-    if (/Android/i.test(navigator.userAgent)) isPlatformMobilePhone = true;
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent) || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) isPlatformMobilePhone = true;
-
     console.debug(`File system api is ${params.isFileSystemApiSupported ? '' : 'not '}supported`);
     console.debug(`Webkit directory api ${params.isWebkitDirApiSupported ? '' : 'not '}supported`);
-    console.debug(`Firefox os native file ${isFireFoxOsNativeFileApiAvailable ? '' : 'not '}support api`)
+    console.debug(`Firefox os native file ${isFirefoxOsDeviceStorageAvailable ? '' : 'not '}support api`)
 
     document.getElementById('openLocalFiles').style.display = 'block';
-    if ((params.isFileSystemApiSupported || params.isWebkitDirApiSupported) && !isPlatformMobilePhone) {
+    if ((params.isFileSystemApiSupported || params.isWebkitDirApiSupported) && !isMobileDevice) {
         document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
         document.getElementById('folderSelect').style.display = '';
     }
 
-    if (isFireFoxOsNativeFileApiAvailable) {
+    if (isFirefoxOsDeviceStorageAvailable) {
         useLegacyFilePicker();
         return;
     }
