@@ -6,10 +6,10 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Kiwix JS v4.3.0
 
-Released on *TODO*
+Released on *2025-11-12*
 
 * FEATURE: Complete overhaul of dark/light theme system with auto-detection of ZIM colour scheme and auto switching
-* FEATURE: Added a dark/light theme button in the toolbar for quickly switching between colour schemes 
+* FEATURE: Added a dark/light/auto theme button in the toolbar for quickly switching between colour schemes 
 * FEATURE: Added intelligent theme switching for new ZIMs with built-in native Wikimedia dark theme
 * FEATURE: Added intelligent colour scheme detection and theme support for most Zimit ZIMs (experimental)
 * FEATURE: New directory refresh button for browsers that have File System Access API
