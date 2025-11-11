@@ -1511,6 +1511,12 @@ if (storages !== null && storages.length > 0) {
 // If no autoload API is available and we're not about to jump to the remote extension, we display the file select dialog
 } else if (!willJumpToRemoteExtension) {
     displayFileSelect();
+    // Try to restore the archive list from settings (for browsers without persistent file access)
+    var zimFilenames = settingsStore.getItem('zimFilenames');
+    if (zimFilenames) {
+        var filenames = zimFilenames.split('|');
+        abstractFilesystemAccess.updateZimDropdownOptions(filenames, params.previousZimFileName || '');
+    }
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Archive files are already selected,
         setLocalArchiveFromFileSelect();
@@ -1611,12 +1617,21 @@ comboArchiveList.addEventListener('change', function (e) {
     }
 });
 comboArchiveList.addEventListener('click', function (e) {
-    // Mark that this change was via click
     selectionViaClick = true;
     // For single archive: the click event directly triggers the handler
-    // For multiple archives: ensure the clicked item is selected in the dropdown first
-    if (e.target.value) comboArchiveList.value = e.target.value;
-    if (comboArchiveList.length === 1) handleArchiveListChange();
+    if (comboArchiveList.length === 1) {
+        handleArchiveListChange();
+        return;
+    }
+    // For multiple archives: set the value to trigger change event
+    if (e.target.value) {
+        comboArchiveList.value = e.target.value;
+        // If change event doesn't fire (because value was already set), manually trigger handler
+        if (!selectFired) {
+            handleArchiveListChange();
+            selectionViaClick = false;
+        }
+    }
 });
 comboArchiveList.addEventListener('mousedown', function () {
     // Unselect any selected option so that the user can select the same option again
@@ -1676,13 +1691,16 @@ function handleArchiveListChange () {
         // Files available from legacy File API - extract the selected archive
         const filenameWithoutExtension = selectedValue.replace(/\.zim\w?\w?$/i, '');
         const selectedFiles = [];
-        for (const file of archiveFiles.files) {
+        // Convert FileList to array for IE11 compatibility
+        var filesArray = Array.from(archiveFiles.files);
+        for (var i = 0; i < filesArray.length; i++) {
             // Match files that start with the base name (handles split archives)
-            if (!file.name.indexOf(filenameWithoutExtension)) {
-                selectedFiles.push(file);
+            if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                selectedFiles.push(filesArray[i]);
             }
         }
         if (selectedFiles.length > 0) {
+            comboArchiveList.value = selectedValue;
             setLocalArchiveFromFileList(selectedFiles);
             return;
         }
@@ -1690,10 +1708,13 @@ function handleArchiveListChange () {
 
     // User needs to reselect from file picker if webKitFileList isn't cached
     if (webKitFileList === null) {
-        // No cached file list - save what user clicked and prompt for directory access
+        // No cached file list - save what user clicked and prompt for file/directory access
         pendingSelectedArchive = selectedValue;
         const zimFilenames = settingsStore.getItem('zimFilenames');
-        const element = zimFilenames && zimFilenames.split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
+        // Use archiveFolders (directory picker) only if webkit directory API is supported
+        // Otherwise always use archiveFiles (file picker) for legacy browsers like IE11
+        const element = params.isWebkitDirApiSupported && zimFilenames && zimFilenames.split('|').length > 1
+            ? 'archiveFolders' : 'archiveFiles';
         if ('showPicker' in HTMLInputElement.prototype) {
             document.getElementById(element).showPicker();
         } else {
@@ -1705,6 +1726,7 @@ function handleArchiveListChange () {
 
     // We have a cached webKitFileList - retrieve the selected ZIM
     const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, selectedValue);
+    comboArchiveList.value = selectedValue;
     setLocalArchiveFromFileList(files);
 }
 
@@ -1810,6 +1832,7 @@ function displayFileSelect () {
                 // If user clicked an archive before we had permission (pendingSelectedArchive), load it now
                 if (pendingSelectedArchive) {
                     var selectedFiles = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, pendingSelectedArchive);
+                    comboArchiveList.value = pendingSelectedArchive;
                     pendingSelectedArchive = null; // Clear the pending selection
                     if (selectedFiles && selectedFiles.length > 0) {
                         setLocalArchiveFromFileList(selectedFiles);
@@ -1847,31 +1870,45 @@ function displayFileSelect () {
 function useLegacyFilePicker () {
     // Fallbacks to simple file input with multi file selection
     archiveFiles.addEventListener('change', function (e) {
-        if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
-            // Extract all filenames from selected files
-            const allFilenames = Array.from(e.target.files).map(file => file.name);
-            // updateZimDropdownOptions will filter to show only .zim and .zimaa files
-            // (hiding .zimab, .zimac etc. which are continuation chunks)
-            settingsStore.setItem('zimFilenames', allFilenames.join('|'), Infinity);
-            abstractFilesystemAccess.updateZimDropdownOptions(allFilenames, allFilenames[0]);
+        // Extract all filenames from selected files
+        const allFilenames = Array.from(e.target.files).map(file => file.name);
+        // updateZimDropdownOptions will filter to show only .zim and .zimaa files
+        // (hiding .zimab, .zimac etc. which are continuation chunks)
+        settingsStore.setItem('zimFilenames', allFilenames.join('|'), Infinity);
+        abstractFilesystemAccess.updateZimDropdownOptions(allFilenames, allFilenames[0]);
 
-            // Count unique archives (group by base name without extension)
-            const uniqueArchives = new Set();
-            allFilenames.forEach(filename => {
-                // Strip .zim, .zimaa, .zimab, etc. to get base archive name
-                const baseName = filename.replace(/\.zim\w?\w?$/i, '');
-                uniqueArchives.add(baseName);
-            });
+        // Count unique archives (group by base name without extension)
+        const uniqueArchives = new Set();
+        allFilenames.forEach(filename => {
+            // Strip .zim, .zimaa, .zimab, etc. to get base archive name
+            const baseName = filename.replace(/\.zim\w?\w?$/i, '');
+            uniqueArchives.add(baseName);
+        });
 
-            // Only autoload if it's a single archive (may be split into multiple files)
-            if (uniqueArchives.size === 1) {
-                setLocalArchiveFromFileSelect();
+        // If user clicked an archive before selecting files (pendingSelectedArchive), load it now
+        if (pendingSelectedArchive) {
+            const filenameWithoutExtension = pendingSelectedArchive.replace(/\.zim\w?\w?$/i, '');
+            const selectedFiles = [];
+            // Convert FileList to array for IE11 compatibility
+            var filesArray = Array.from(e.target.files);
+            for (var i = 0; i < filesArray.length; i++) {
+                if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                    selectedFiles.push(filesArray[i]);
+                }
             }
-            // Otherwise, just populate dropdown and wait for user to click
-            return;
+            comboArchiveList.value = pendingSelectedArchive;
+            pendingSelectedArchive = null;
+            if (selectedFiles.length > 0) {
+                setLocalArchiveFromFileList(selectedFiles);
+                return;
+            }
         }
-        // For browsers without webkitdirectory/FSA support, always autoload
-        setLocalArchiveFromFileSelect();
+
+        // Only autoload if it's a single archive (may be split into multiple files)
+        if (uniqueArchives.size === 1) {
+            setLocalArchiveFromFileSelect();
+        }
+        // Otherwise, just populate dropdown and wait for user to click
     });
 }
 
