@@ -1129,6 +1129,13 @@ function handleMessageChannelByLibzim (event) {
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
             return;
         }
+        // Update appstate for HTML content to ensure popovers work correctly
+        if (/\bx?html/i.test(ret.mimetype)) {
+            appstate.baseUrl = encodeURI(title.replace(/[^/]+$/, ''));
+            appstate.expectedArticleURLToBeDisplayed = title;
+        }
+        // Ensure the article onload event gets attached to the right iframe
+        articleLoader();
         // Let's send the content to the ServiceWorker
         const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
         messagePort.postMessage(message);
