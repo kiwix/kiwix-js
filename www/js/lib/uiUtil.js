@@ -1222,7 +1222,8 @@ function updateColourSchemeButton(theme) {
     var btnIcon = document.querySelector('#btnColourScheme svg') || document.querySelector('#btnColourScheme i');
     if (btnIcon) {
         var icon;
-        var osPrefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+        // Use cached darkPreference MediaQueryList (defined in app.js)
+        var osPrefersDark = window.darkPreference.matches;
         // Show icon for the NEXT state (what clicking will do)
         // The adjust icon appears on the forced mode that matches OS preference
         // sun icon = "click to force light", moon icon = "click to force dark", adjust = "click for auto"

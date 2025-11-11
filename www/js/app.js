@@ -115,8 +115,8 @@ const isMobileDevice = /Android/i.test(navigator.userAgent) ||
     /iphone|ipad|ipod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-// Define and store dark preference for matchMedia
-var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
+// Define and store dark preference for matchMedia (global for use in uiUtil.js)
+window.darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
 // If 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
 if (window.matchMedia('(prefers-color-scheme)').media === 'not all') {
     var optionsToBeRemoved = document.getElementById('appThemeSelect').querySelectorAll('.auto');
@@ -129,7 +129,7 @@ uiUtil.applyAppTheme(params.appTheme);
 refreshCacheStatus();
 
 // Whenever the system theme changes, call applyAppTheme function
-darkPreference.onchange = function () {
+window.darkPreference.onchange = function () {
     uiUtil.applyAppTheme(params.appTheme);
     attachPopoverTriggerEvents(articleWindow);
     refreshCacheStatus();
@@ -651,7 +651,7 @@ document.getElementById('btnColourScheme').addEventListener('click', function ()
     // Adaptive cycle based on OS preference to ensure all 3 modes are accessible
     var baseTheme = params.appTheme.replace(/_.*$/, ''); // Get base theme (light, dark, or auto)
     var isDark = uiUtil.isDarkTheme(params.appTheme); // Check if currently resolving to dark
-    var osPrefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    var osPrefersDark = window.darkPreference.matches; // Use cached MediaQueryList
     console.debug('[btnColourScheme] Current params.appTheme:', params.appTheme, '| baseTheme:', baseTheme, '| isDark:', isDark, '| osPrefersDark:', osPrefersDark);
 
     if (baseTheme === 'light') {
