@@ -388,6 +388,19 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
 document.getElementById('btnRescanDeviceStorage').addEventListener('click', function () {
     searchForArchivesInStorage();
 });
+
+// Add refresh functionality for FSA cached directory access
+if (document.getElementById('btnRefreshArchiveList')) {
+    document.getElementById('btnRefreshArchiveList').addEventListener('click', async function () {
+        // Refresh from cached FSA directory handle
+        const refreshed = await abstractFilesystemAccess.refreshCachedDirectoryAccess();
+        if (refreshed) {
+            console.log('Directory listing refreshed from cached access');
+        } else {
+            console.warn('Failed to refresh - no cached directory or permission denied');
+        }
+    });
+}
 // Bottom bar :
 document.getElementById('btnBack').addEventListener('click', function (event) {
     event.preventDefault();
@@ -1470,7 +1483,17 @@ if (storages !== null && storages.length > 0) {
 // which has persistent permissions
 } else if (params.reopenLastArchive && window.showOpenFilePicker && params.previousZimFileName) {
     displayFileSelect();
-    abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName).then(function (files) {
+    // First refresh the directory listing if we have cached directory access
+    abstractFilesystemAccess.refreshCachedDirectoryAccess().then(function (refreshed) {
+        if (refreshed) {
+            console.log('Refreshed directory listing from cached access');
+            // Show refresh button since we have persistent directory access
+            document.getElementById('refreshArchiveButtonContainer').style.display = 'block';
+            document.getElementById('repickFolderInstruction').style.display = 'none';
+        }
+        // Then load the last selected archive (whether or not refresh succeeded)
+        return abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName);
+    }).then(function (files) {
         setLocalArchiveFromFileList(files);
     }).catch(function (err) {
         console.warn(err);
@@ -1742,6 +1765,9 @@ function displayFileSelect () {
             await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi();
             // Clear any stale single file selection (prevents wrong autoload on page refresh)
             archiveFiles.value = null;
+            // Show refresh button now that we have persistent directory access
+            document.getElementById('refreshArchiveButtonContainer').style.display = 'block';
+            document.getElementById('repickFolderInstruction').style.display = 'none';
         });
     }
     if (params.isWebkitDirApiSupported) {

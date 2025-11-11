@@ -142,10 +142,52 @@ function updateZimDropdownOptions (files, selectedFile) {
         select.removeAttribute('multiple');
     }
 
+    // Show the archive selection UI container
+    document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
     document.getElementById('numberOfFilesCount').innerText = count.toString();
     document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
+}
+
+/**
+ * Refreshes the directory listing from a cached directory handle
+ * @returns {Promise<boolean>} True if refresh succeeded, false if no cached directory or permission denied
+ */
+async function refreshCachedDirectoryAccess () {
+    return new Promise((resolve) => {
+        cache.idxDB('zimFiles', async function (fileOrDirHandle) {
+            if (!fileOrDirHandle || fileOrDirHandle.kind !== 'directory') {
+                resolve(false);
+                return;
+            }
+            // Check permission
+            const permission = await fileOrDirHandle.queryPermission();
+            if (permission !== 'granted') {
+                // Try to request permission
+                try {
+                    const newPermission = await fileOrDirHandle.requestPermission();
+                    if (newPermission !== 'granted') {
+                        resolve(false);
+                        return;
+                    }
+                } catch (error) {
+                    resolve(false);
+                    return;
+                }
+            }
+            // Re-scan directory
+            const fileNames = [];
+            for await (const entry of fileOrDirHandle.values()) {
+                if (entry.kind === 'file' && /\.zim\w?\w?$/i.test(entry.name)) {
+                    fileNames.push(entry.name);
+                }
+            }
+            settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
+            updateZimDropdownOptions(fileNames, '');
+            resolve(true);
+        });
+    });
 }
 
 /**
@@ -392,6 +434,7 @@ export default {
     selectDirectoryFromPickerViaFileSystemApi: selectDirectoryFromPickerViaFileSystemApi,
     selectFileFromPickerViaFileSystemApi: selectFileFromPickerViaFileSystemApi,
     getSelectedZimFromCache: getSelectedZimFromCache,
+    refreshCachedDirectoryAccess: refreshCachedDirectoryAccess,
     loadPreviousZimFile: loadPreviousZimFile,
     handleFolderOrFileDropViaWebkit: handleFolderOrFileDropViaWebkit,
     handleFolderOrFileDropViaFileSystemAPI: handleFolderOrFileDropViaFileSystemAPI,

@@ -518,7 +518,12 @@
                             <select id="archiveList" class="form-control">
                                 <option data-i18n="configure-select-file-first-option" value="" disabled selected>Pick a file or folder...</option>
                             </select>
-                            <p><i data-i18n="configure-changed-content-note">(Re-pick folder if there is new content on your device)</i></p>
+                            <div id="refreshArchiveButtonContainer" style="display: none;">
+                                <button type="button" class="btn btn-light" id="btnRefreshArchiveList" title="Refresh the list of archives from the selected folder">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <p id="repickFolderInstruction"><i data-i18n="configure-changed-content-note">(Re-pick folder if there is new content on your device)</i></p>
                             <span id="rescanButtonAndText" style="display: none;">
                                 <button type="button" class="btn btn-light" id="btnRescanDeviceStorage" data-i18n="configure-btn-rescan">Rescan</button>
                                 <p data-i18n="configure-about-rescan-tip">Rescans your SD Cards and internal memory</p>
