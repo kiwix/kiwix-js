@@ -16,6 +16,7 @@ Released on *TODO*
 * FEATURE: Popovers now work when experimental libzim back end is enabled (in Configuration)
 * UPDATE: Major overhall of file/directory picking, loading and launching in all supported APIs
 * UPDATE: Popover colours now adapt intelligently to auto-switching of ZIM themes (Wikimedia ZIMs only)
+* UPDATE: Icons and branding of app
 * UPDATE: Make the search bar thinner so it occupies less screen real estate
 * UPDATE: Added Expert Setting in Configuration to opt out of content theme manipulation (for troubleshooting and testing)
 * FIX: Most inverted images and videos in Zimit ZIMs with applied dark theme
