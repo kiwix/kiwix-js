@@ -1624,7 +1624,8 @@ function handleArchiveListChange () {
     // PATHWAY 3: Webkit Directory API (fallback) or Legacy File Picker
     // User needs to reselect from file picker if webKitFileList isn't cached
     if (webKitFileList === null) {
-        // No cached file list - prompt user to reselect
+        // No cached file list - save what user clicked and prompt for directory access
+        pendingSelectedArchive = selectedValue;
         const zimFilenames = settingsStore.getItem('zimFilenames');
         const element = zimFilenames && zimFilenames.split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
         if ('showPicker' in HTMLInputElement.prototype) {
@@ -1689,7 +1690,9 @@ function setLocalArchiveFromDeviceStorage (archiveDirectory) {
     }
 }
 
-let webKitFileList = null
+let webKitFileList = null;
+// Track pending selection when we need to open directory picker
+let pendingSelectedArchive = null;
 
 /**
  * Displays the zone to select files from the archive
@@ -1718,8 +1721,8 @@ function displayFileSelect () {
         // Handles Folder selection when showDirectoryPicker is supported
         folderSelect.addEventListener('click', async function (e) {
             e.preventDefault();
-            const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
-            if (previousZimFiles.length === 1) setLocalArchiveFromFileList(previousZimFiles);
+            // Just populate the dropdown - let user select which archive to load
+            await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi();
         });
     }
     if (params.isWebkitDirApiSupported) {
@@ -1729,13 +1732,17 @@ function displayFileSelect () {
             var fileList = e.target.files;
             if (fileList) {
                 var foundFiles = abstractFilesystemAccess.selectDirectoryFromPickerViaWebkit(fileList);
-                var selectedZimfile = foundFiles.selectedFile;
                 // This ensures the selected files are stored for use during this session (webKitFileList is a global object)
                 webKitFileList = foundFiles.files;
-                // This will load the old file if the selected folder contains the same file
-                if (selectedZimfile.length !== 0) {
-                    setLocalArchiveFromFileList(selectedZimfile);
+                // If user clicked an archive before we had permission (pendingSelectedArchive), load it now
+                if (pendingSelectedArchive) {
+                    var selectedFiles = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, pendingSelectedArchive);
+                    pendingSelectedArchive = null; // Clear the pending selection
+                    if (selectedFiles && selectedFiles.length > 0) {
+                        setLocalArchiveFromFileList(selectedFiles);
+                    }
                 }
+                // Otherwise just populate the dropdown - let user manually select which archive to load
             }
         })
     }
