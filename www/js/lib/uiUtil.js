@@ -1209,25 +1209,54 @@ function applyInvertContentTheme(contentTheme, doc, articleContent) {
 
 /**
  * Updates the colour scheme button icon to reflect the current theme
- * @param {String} appTheme The app theme (light or dark)
+ * @param {String} theme The full theme string (e.g., 'light', 'dark_wikimediaNative', 'auto_wikimediaNative')
  */
-function updateColourSchemeButton(appTheme) {
+function updateColourSchemeButton(theme) {
+    // Extract base theme (light, dark, or auto)
+    var baseTheme = theme.replace(/_.*$/, '');
+    var isCurrentlyDark = isDarkTheme(theme); // Check if currently resolving to dark (handles auto mode)
+    console.debug('[updateColourSchemeButton] theme:', theme, '| baseTheme:', baseTheme, '| isCurrentlyDark:', isCurrentlyDark);
+
     // Note: Font Awesome converts <i> to <svg> and uses data-icon attribute
     // We check for SVG first (modern browsers + IE11), then fall back to <i> (if SVG conversion disabled)
     var btnIcon = document.querySelector('#btnColourScheme svg') || document.querySelector('#btnColourScheme i');
     if (btnIcon) {
+        var icon;
+        var osPrefersDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+        // Show icon for the NEXT state (what clicking will do)
+        // The adjust icon appears on the forced mode that matches OS preference
+        // sun icon = "click to force light", moon icon = "click to force dark", adjust = "click for auto"
+        if (baseTheme === 'light') {
+            // Currently forced light
+            if (osPrefersDark) {
+                // OS prefers dark, so from light go to dark
+                icon = 'moon';
+            } else {
+                // OS prefers light (matches current), so from light go to auto
+                icon = 'adjust';
+            }
+        } else if (baseTheme === 'dark') {
+            // Currently forced dark
+            if (osPrefersDark) {
+                // OS prefers dark (matches current), so from dark go to auto
+                icon = 'adjust';
+            } else {
+                // OS prefers light, so from dark go to light
+                icon = 'sun';
+            }
+        } else {
+            // Currently auto - show icon for opposite of what auto is showing
+            icon = isCurrentlyDark ? 'sun' : 'moon';
+        }
+        console.debug('[updateColourSchemeButton] Setting icon to:', icon, '| osPrefersDark:', osPrefersDark);
+
         if (btnIcon.tagName === 'svg' || btnIcon.tagName === 'SVG') {
             // SVG element: update data-icon attribute (works in all browsers including IE11)
-            btnIcon.setAttribute('data-icon', appTheme === 'dark' ? 'sun' : 'moon');
+            btnIcon.setAttribute('data-icon', icon);
         } else {
             // <i> element: update classes (only if Font Awesome SVG conversion is disabled)
-            if (appTheme === 'dark') {
-                btnIcon.classList.remove('fa-moon');
-                btnIcon.classList.add('fa-sun');
-            } else {
-                btnIcon.classList.remove('fa-sun');
-                btnIcon.classList.add('fa-moon');
-            }
+            btnIcon.classList.remove('fa-moon', 'fa-sun', 'fa-adjust');
+            btnIcon.classList.add('fa-' + icon);
         }
     }
 }
@@ -1442,7 +1471,7 @@ function applyAppTheme (theme) {
     showReturnLinkIfConfigActive(doc);
 
     // Update colour scheme button
-    updateColourSchemeButton(appTheme);
+    updateColourSchemeButton(theme);
 
     // Return the actual theme applied
     var actualTheme = appTheme + (contentTheme || '');
