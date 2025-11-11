@@ -129,12 +129,66 @@ function updateZimDropdownOptions (files, selectedFile) {
         }
     });
     select.value = selectedFile;
-    // Set the size of the dropdown to the number of files or the DROPDOWN_SIZE, whichever is smaller
-    select.size = (files.length < DROPDOWN_SIZE ? files.length : DROPDOWN_SIZE);
+
+    // Set the size of the dropdown to the number of displayed archives or the DROPDOWN_SIZE, whichever is smaller
+    // Use count (displayed archives) not files.length (total input files including continuation chunks)
+    const calculatedSize = count < DROPDOWN_SIZE ? count : DROPDOWN_SIZE;
+    select.size = calculatedSize;
+
+    // For single files, use multiple attribute to display as a listbox instead of dropdown
+    if (count === 1) {
+        select.setAttribute('multiple', '');
+    } else {
+        select.removeAttribute('multiple');
+    }
+
+    // Show the archive selection UI container
+    document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
     document.getElementById('numberOfFilesCount').innerText = count.toString();
     document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
+}
+
+/**
+ * Refreshes the directory listing from a cached directory handle
+ * @returns {Promise<boolean>} True if refresh succeeded, false if no cached directory or permission denied
+ */
+async function refreshCachedDirectoryAccess () {
+    return new Promise((resolve) => {
+        cache.idxDB('zimFiles', async function (fileOrDirHandle) {
+            if (!fileOrDirHandle || fileOrDirHandle.kind !== 'directory') {
+                resolve(false);
+                return;
+            }
+            // Check permission
+            const permission = await fileOrDirHandle.queryPermission();
+            if (permission !== 'granted') {
+                // Try to request permission
+                try {
+                    const newPermission = await fileOrDirHandle.requestPermission();
+                    if (newPermission !== 'granted') {
+                        resolve(false);
+                        return;
+                    }
+                } catch (error) { // eslint-disable-line no-unused-vars
+                    // Permission denied or error - using catch for flow control
+                    resolve(false);
+                    return;
+                }
+            }
+            // Re-scan directory
+            const fileNames = [];
+            for await (const entry of fileOrDirHandle.values()) {
+                if (entry.kind === 'file' && /\.zim\w?\w?$/i.test(entry.name)) {
+                    fileNames.push(entry.name);
+                }
+            }
+            settingsStore.setItem('zimFilenames', fileNames.join('|'), Infinity);
+            updateZimDropdownOptions(fileNames, '');
+            resolve(true);
+        });
+    });
 }
 
 /**
@@ -381,6 +435,7 @@ export default {
     selectDirectoryFromPickerViaFileSystemApi: selectDirectoryFromPickerViaFileSystemApi,
     selectFileFromPickerViaFileSystemApi: selectFileFromPickerViaFileSystemApi,
     getSelectedZimFromCache: getSelectedZimFromCache,
+    refreshCachedDirectoryAccess: refreshCachedDirectoryAccess,
     loadPreviousZimFile: loadPreviousZimFile,
     handleFolderOrFileDropViaWebkit: handleFolderOrFileDropViaWebkit,
     handleFolderOrFileDropViaFileSystemAPI: handleFolderOrFileDropViaFileSystemAPI,

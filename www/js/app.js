@@ -109,6 +109,12 @@ const archiveFiles = document.getElementById('archiveFiles');
 // Unique identifier of the article expected to be displayed
 appstate.expectedArticleURLToBeDisplayed = '';
 
+// Platform and API detection - performed once at startup to avoid repeated checks
+const isFirefoxOsDeviceStorageAvailable = navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function';
+const isMobileDevice = /Android/i.test(navigator.userAgent) ||
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 // Define and store dark preference for matchMedia
 var darkPreference = window.matchMedia('(prefers-color-scheme:dark)');
 // If 'prefers-color-scheme' is not supported in the browser, then the "auto" options are not displayed to the user
@@ -382,6 +388,19 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
 document.getElementById('btnRescanDeviceStorage').addEventListener('click', function () {
     searchForArchivesInStorage();
 });
+
+// Add refresh functionality for FSA cached directory access
+if (document.getElementById('btnRefreshArchiveList')) {
+    document.getElementById('btnRefreshArchiveList').addEventListener('click', async function () {
+        // Refresh from cached FSA directory handle
+        const refreshed = await abstractFilesystemAccess.refreshCachedDirectoryAccess();
+        if (refreshed) {
+            console.log('Directory listing refreshed from cached access');
+        } else {
+            console.warn('Failed to refresh - no cached directory or permission denied');
+        }
+    });
+}
 // Bottom bar :
 document.getElementById('btnBack').addEventListener('click', function (event) {
     event.preventDefault();
@@ -586,7 +605,7 @@ document.getElementById('hideExternalLinkWarningCheck').addEventListener('change
 })
 document.getElementById('slideAwayCheck').addEventListener('change', function (e) {
     params.slideAway = e.target.checked;
-    if (typeof navigator.getDeviceStorages === 'function') {
+    if (isFirefoxOsDeviceStorageAvailable) {
         // We are in Firefox OS, which may have a bug with this setting turned on - see [kiwix-js #1140]
         uiUtil.systemAlert(translateUI.t('dialog-slideawaycheck-message') || ('This setting may not work correctly on Firefox OS. ' +
                 'If you find that some ZIM links become unresponsive, try turning this setting off.'), translateUI.t('dialog-warning') || 'Warning');
@@ -700,6 +719,14 @@ setTimeout(function () {
 document.getElementById('kiwixLogo').ondragstart = function () { return false; }
 document.getElementById('navigationButtons').ondragstart = function () { return false; }
 
+/**
+ * Resets the CSS Cache (used only in jQuery mode)
+ */
+function resetCssCache () {
+    // Reset the cssCache if an archive is loaded
+    if (selectedArchive) selectedArchive.cssCache = new Map();
+}
+
 // focus search bar (#prefix) if Home key is pressed
 function focusPrefixOnHomeKey (event) {
     // check if home key is pressed
@@ -785,6 +812,7 @@ async function verifyLoadedArchive (archive) {
         document.getElementById('jqueryModeRadio').checked = true;
     }
 }
+
 // switch on/off the feature to use Home Key to focus search bar
 function switchHomeKeyToFocusSearchBar () {
     var iframeContentWindow = document.getElementById('articleContent').contentWindow;
@@ -1101,6 +1129,13 @@ function handleMessageChannelByLibzim (event) {
             messagePort.postMessage({ action: 'giveContent', title: title, content: '' });
             return;
         }
+        // Update appstate for HTML content to ensure popovers work correctly
+        if (/\bx?html/i.test(ret.mimetype)) {
+            appstate.baseUrl = encodeURI(title.replace(/[^/]+$/, ''));
+            appstate.expectedArticleURLToBeDisplayed = title;
+        }
+        // Ensure the article onload event gets attached to the right iframe
+        articleLoader();
         // Let's send the content to the ServiceWorker
         const message = { action: 'giveContent', title: title, content: ret.content, mimetype: ret.mimetype };
         messagePort.postMessage(message);
@@ -1434,7 +1469,7 @@ function searchForArchivesInStorage () {
         uiUtil.systemAlert().then(populateDropDownListOfArchives(null));
     });
 }
-if (navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function') {
+if (isFirefoxOsDeviceStorageAvailable) {
     // The method getDeviceStorages is available (FxOS>=1.1)
     storages = Array.from(navigator.getDeviceStorages('sdcard')).map(function (s) {
         return new abstractFilesystemAccess.StorageFirefoxOS(s);
@@ -1455,7 +1490,17 @@ if (storages !== null && storages.length > 0) {
 // which has persistent permissions
 } else if (params.reopenLastArchive && window.showOpenFilePicker && params.previousZimFileName) {
     displayFileSelect();
-    abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName).then(function (files) {
+    // First refresh the directory listing if we have cached directory access
+    abstractFilesystemAccess.refreshCachedDirectoryAccess().then(function (refreshed) {
+        if (refreshed) {
+            console.log('Refreshed directory listing from cached access');
+            // Show refresh button since we have persistent directory access
+            document.getElementById('refreshArchiveButtonContainer').style.display = 'block';
+            document.getElementById('repickFolderInstruction').style.display = 'none';
+        }
+        // Then load the last selected archive (whether or not refresh succeeded)
+        return abstractFilesystemAccess.getSelectedZimFromCache(params.previousZimFileName);
+    }).then(function (files) {
         setLocalArchiveFromFileList(files);
     }).catch(function (err) {
         console.warn(err);
@@ -1466,6 +1511,12 @@ if (storages !== null && storages.length > 0) {
 // If no autoload API is available and we're not about to jump to the remote extension, we display the file select dialog
 } else if (!willJumpToRemoteExtension) {
     displayFileSelect();
+    // Try to restore the archive list from settings (for browsers without persistent file access)
+    var zimFilenames = settingsStore.getItem('zimFilenames');
+    if (zimFilenames) {
+        var filenames = zimFilenames.split('|');
+        abstractFilesystemAccess.updateZimDropdownOptions(filenames, params.previousZimFileName || '');
+    }
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Archive files are already selected,
         setLocalArchiveFromFileSelect();
@@ -1505,6 +1556,8 @@ window.onpopstate = function (event) {
     }
 };
 
+const comboArchiveList = document.getElementById('archiveList');
+
 /**
  * Populate the drop-down list of archives with the given list
  * @param {Array.<String>} archiveDirectories
@@ -1513,7 +1566,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
     document.getElementById('scanningForArchives').style.display = 'none';
     document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('rescanButtonAndText').style.display = '';
-    var comboArchiveList = document.getElementById('archiveList');
+    document.getElementById('repickFolderInstruction').style.display = 'none';
     comboArchiveList.options.length = 0;
     for (var i = 0; i < archiveDirectories.length; i++) {
         var archiveDirectory = archiveDirectories[i];
@@ -1527,7 +1580,6 @@ function populateDropDownListOfArchives (archiveDirectories) {
     }
     // Store the list of archives in the Settings Store, to avoid rescanning at each start
     settingsStore.setItem('listOfArchives', archiveDirectories.join('|'), Infinity);
-    document.getElementById('archiveList').addEventListener('change', setLocalArchiveFromArchiveList);
     if (comboArchiveList.options.length > 0) {
         var lastSelectedArchive = settingsStore.getItem('lastSelectedArchive');
         if (lastSelectedArchive !== null && lastSelectedArchive !== undefined && lastSelectedArchive !== '') {
@@ -1537,7 +1589,8 @@ function populateDropDownListOfArchives (archiveDirectories) {
             }
         }
         // Set the localArchive as the last selected (or the first one if it has never been selected)
-        setLocalArchiveFromArchiveList();
+        // Call the handler directly for autoload (Firefox OS compatibility)
+        handleArchiveListChange();
     } else {
         uiUtil.systemAlert((translateUI.t('dialog-welcome-message') || 'Welcome to Kiwix! This application needs at least a ZIM file in your SD-card (or internal storage). Please download one and put it on the device (see About section). Also check that your device is not connected to a computer through USB device storage (which often locks the SD-card content)'),
             (translateUI.t('dialog-welcome-title') || 'Welcome')).then(function () {
@@ -1551,11 +1604,137 @@ function populateDropDownListOfArchives (archiveDirectories) {
     }
 }
 
+// Flag to track if selection was made via mouse/click vs keyboard navigation
+var selectionViaClick = false;
+
+// Event listeners for archive dropdown selection
+// These handle the tricky case where users want to reselect the same archive
+comboArchiveList.addEventListener('change', function () {
+    // Only handle change if it was triggered by mouse click, not keyboard navigation
+    if (selectionViaClick) {
+        handleArchiveListChange();
+        selectionViaClick = false;
+    }
+});
+comboArchiveList.addEventListener('click', function (e) {
+    selectionViaClick = true;
+    // For single archive: the click event directly triggers the handler
+    if (comboArchiveList.length === 1) {
+        handleArchiveListChange();
+        return;
+    }
+    // For multiple archives: set the value to trigger change event
+    if (e.target.value) {
+        comboArchiveList.value = e.target.value;
+        // If change event doesn't fire (because value was already set), manually trigger handler
+        if (!selectFired) {
+            handleArchiveListChange();
+            selectionViaClick = false;
+        }
+    }
+});
+comboArchiveList.addEventListener('mousedown', function () {
+    // Unselect any selected option so that the user can select the same option again
+    if (comboArchiveList.length > 1 && ~comboArchiveList.selectedIndex) comboArchiveList.selectedIndex = -1;
+});
+comboArchiveList.addEventListener('keydown', function (e) {
+    // Handle keyboard selection with Enter or Space
+    if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32) {
+        e.preventDefault();
+        handleArchiveListChange();
+    }
+});
+
+let selectFired = false;
+
 /**
- * Sets the localArchive from the selected archive in the drop-down list
+ * Routes archive selection from dropdown to the appropriate loading mechanism
+ * based on which API populated the dropdown
  */
-function setLocalArchiveFromArchiveList () {
-    var archiveDirectory = document.getElementById('archiveList').value;
+function handleArchiveListChange () {
+    if (selectFired) return;
+    // Get the selected value from the comboArchiveList itself, not from event.target
+    // This handles both native events and synthetic events reliably
+    const selectedValue = comboArchiveList.value;
+    // If nothing was selected, user will have to click again
+    if (!selectedValue) return;
+    selectFired = true;
+
+    // PATHWAY 1: Firefox OS DeviceStorage (legacy)
+    // Dropdown populated by populateDropDownListOfArchives() with directory paths
+    // Paths may be absolute like "/sdcard/archives" or relative (in Simulator or FxOS 1.0)
+    if (isFirefoxOsDeviceStorageAvailable) {
+        setLocalArchiveFromDeviceStorage(selectedValue);
+        return;
+    }
+
+    // PATHWAY 2: File System Access API (modern)
+    // Dropdown populated by abstractFilesystemAccess.updateZimDropdownOptions() with filenames
+    if (params.isFileSystemApiSupported) {
+        settingsStore.setItem('previousZimFileName', selectedValue, Infinity);
+        abstractFilesystemAccess.getSelectedZimFromCache(selectedValue).then(function (files) {
+            setLocalArchiveFromFileList(files);
+        }).catch(function (err) {
+            console.error(err);
+            selectFired = false; // Reset on error
+            return uiUtil.systemAlert(
+                translateUI.t('dialog-fielhandle-fail-message') || 'We were unable to retrieve a file handle for the selected archive. Please pick the file or folder again.',
+                translateUI.t('dialog-fielhandle-fail-title') || 'Error retrieving archive'
+            );
+        });
+        return;
+    }
+
+    // PATHWAY 3: Webkit Directory API (fallback) or Legacy File Picker
+    // First check if files are available from legacy File API picker (archiveFiles.files)
+    if (archiveFiles.files && archiveFiles.files.length > 0) {
+        // Files available from legacy File API - extract the selected archive
+        const filenameWithoutExtension = selectedValue.replace(/\.zim\w?\w?$/i, '');
+        const selectedFiles = [];
+        // Convert FileList to array for IE11 compatibility
+        var filesArray = Array.from(archiveFiles.files);
+        for (var i = 0; i < filesArray.length; i++) {
+            // Match files that start with the base name (handles split archives)
+            if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                selectedFiles.push(filesArray[i]);
+            }
+        }
+        if (selectedFiles.length > 0) {
+            comboArchiveList.value = selectedValue;
+            setLocalArchiveFromFileList(selectedFiles);
+            return;
+        }
+    }
+
+    // User needs to reselect from file picker if webKitFileList isn't cached
+    if (webKitFileList === null) {
+        // No cached file list - save what user clicked and prompt for file/directory access
+        pendingSelectedArchive = selectedValue;
+        const zimFilenames = settingsStore.getItem('zimFilenames');
+        // Use archiveFolders (directory picker) only if webkit directory API is supported
+        // Otherwise always use archiveFiles (file picker) for legacy browsers like IE11
+        const element = params.isWebkitDirApiSupported && zimFilenames && zimFilenames.split('|').length > 1
+            ? 'archiveFolders' : 'archiveFiles';
+        if ('showPicker' in HTMLInputElement.prototype) {
+            document.getElementById(element).showPicker();
+        } else {
+            document.getElementById(element).click();
+        }
+        selectFired = false; // Reset so they can try again after picking
+        return;
+    }
+
+    // We have a cached webKitFileList - retrieve the selected ZIM
+    const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, selectedValue);
+    comboArchiveList.value = selectedValue;
+    setLocalArchiveFromFileList(files);
+}
+
+/**
+ * Loads an archive from Firefox OS DeviceStorage (legacy)
+ * @param {String} archiveDirectory The full path to the archive directory
+ */
+function setLocalArchiveFromDeviceStorage (archiveDirectory) {
     if (archiveDirectory && archiveDirectory.length > 0) {
         // Now, try to find which DeviceStorage has been selected by the user
         // It is the prefix of the archive directory
@@ -1572,7 +1751,9 @@ function setLocalArchiveFromArchiveList () {
                 }
             }
             if (selectedStorage === null) {
+                selectFired = false; // Reset on error
                 uiUtil.systemAlert((translateUI.t('dialog-devicestorage-error-message') || 'Unable to find which device storage corresponds to directory') + ' ' + archiveDirectory, 'Error: no matching storage');
+                return;
             }
         } else {
             // This happens when the archiveDirectory is not prefixed by the name of the storage
@@ -1581,94 +1762,60 @@ function setLocalArchiveFromArchiveList () {
             if (storages.length === 1) {
                 selectedStorage = storages[0];
             } else {
+                selectFired = false; // Reset on error
                 uiUtil.systemAlert('Something weird happened with the DeviceStorage API: found a directory without prefix:' + ' ' +
                 archiveDirectory + ', ' + 'but there were' + ' ' + storages.length +
                 ' ' + 'storages found with getDeviceStorages instead of 1', 'Error: unprefixed directory');
+                return;
             }
         }
         settingsStore.setItem('lastSelectedArchive', archiveDirectory, Infinity);
         zimArchiveLoader.loadArchiveFromDeviceStorage(selectedStorage, archiveDirectory, archiveReadyCallback, function (message, label) {
             // callbackError which is called in case of an error
+            selectFired = false; // Reset on error
             uiUtil.systemAlert(message, label);
         });
     }
 }
 
-/**
- * Resets the CSS Cache (used only in jQuery mode)
- */
-function resetCssCache () {
-    // Reset the cssCache if an archive is loaded
-    if (selectedArchive) selectedArchive.cssCache = new Map();
-}
-
-let webKitFileList = null
+let webKitFileList = null;
+// Track pending selection when we need to open directory picker
+let pendingSelectedArchive = null;
 
 /**
  * Displays the zone to select files from the archive
  */
 function displayFileSelect () {
-    const isFireFoxOsNativeFileApiAvailable = typeof navigator.getDeviceStorages === 'function';
-    let isPlatformMobilePhone = false;
-    if (/Android/i.test(navigator.userAgent)) isPlatformMobilePhone = true;
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent) || navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) isPlatformMobilePhone = true;
-
     console.debug(`File system api is ${params.isFileSystemApiSupported ? '' : 'not '}supported`);
     console.debug(`Webkit directory api ${params.isWebkitDirApiSupported ? '' : 'not '}supported`);
-    console.debug(`Firefox os native file ${isFireFoxOsNativeFileApiAvailable ? '' : 'not '}support api`)
+    console.debug(`Firefox os native file ${isFirefoxOsDeviceStorageAvailable ? '' : 'not '}support api`)
 
     document.getElementById('openLocalFiles').style.display = 'block';
-    if ((params.isFileSystemApiSupported || params.isWebkitDirApiSupported) && !isPlatformMobilePhone) {
+    if ((params.isFileSystemApiSupported || params.isWebkitDirApiSupported) && !isMobileDevice) {
         document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
         document.getElementById('folderSelect').style.display = '';
     }
 
-    // Set the main drop zone
-    if (!params.disableDragAndDrop) {
-        // Set a global drop zone, so that whole page is enabled for drag and drop
-        globalDropZone.addEventListener('dragover', handleGlobalDragover);
-        globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
-        globalDropZone.addEventListener('drop', handleFileDrop);
-        globalDropZone.addEventListener('dragenter', handleGlobalDragenter);
-    }
-
-    if (isFireFoxOsNativeFileApiAvailable) {
+    if (isFirefoxOsDeviceStorageAvailable) {
         useLegacyFilePicker();
         return;
     }
 
-    document.getElementById('archiveList').addEventListener('change', function (e) {
-        // handle zim selection from dropdown if multiple files are loaded via webkitdirectory or filesystem api
-        settingsStore.setItem('previousZimFileName', e.target.value, Infinity);
-        if (params.isFileSystemApiSupported) {
-            return abstractFilesystemAccess.getSelectedZimFromCache(e.target.value).then(function (files) {
-                setLocalArchiveFromFileList(files);
-            }).catch(function (err) {
-                console.error(err);
-                return uiUtil.systemAlert(translateUI.t('dialog-fielhandle-fail-message') || 'We were unable to retrieve a file handle for the selected archive. Please pick the file or folder again.',
-                    translateUI.t('dialog-fielhandle-fail-title') || 'Error retrieving archive');
-            });
-        } else {
-            if (webKitFileList === null) {
-                const element = settingsStore.getItem('zimFilenames').split('|').length === 1 ? 'archiveFiles' : 'archiveFolders';
-                if ('showPicker' in HTMLInputElement.prototype) {
-                    document.getElementById(element).showPicker();
-                    return;
-                }
-                document.getElementById(element).click()
-                return;
-            }
-            const files = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, e.target.value);
-            setLocalArchiveFromFileList(files);
-        }
-    });
+    // Note: Archive dropdown selection is handled by the comboArchiveList event listeners
+    // defined above. Those listeners route to handleArchiveListChange()
+    // which dispatches to the appropriate API pathway.
 
     if (params.isFileSystemApiSupported) {
         // Handles Folder selection when showDirectoryPicker is supported
         folderSelect.addEventListener('click', async function (e) {
             e.preventDefault();
-            const previousZimFiles = await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi()
-            if (previousZimFiles.length === 1) setLocalArchiveFromFileList(previousZimFiles);
+            // Just populate the dropdown - let user select which archive to load
+            await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi();
+            // Clear any stale single file selection (prevents wrong autoload on page refresh)
+            archiveFiles.value = null;
+            // Show refresh button now that we have persistent directory access
+            document.getElementById('refreshArchiveButtonContainer').style.display = 'block';
+            document.getElementById('repickFolderInstruction').style.display = 'none';
         });
     }
     if (params.isWebkitDirApiSupported) {
@@ -1678,13 +1825,20 @@ function displayFileSelect () {
             var fileList = e.target.files;
             if (fileList) {
                 var foundFiles = abstractFilesystemAccess.selectDirectoryFromPickerViaWebkit(fileList);
-                var selectedZimfile = foundFiles.selectedFile;
                 // This ensures the selected files are stored for use during this session (webKitFileList is a global object)
                 webKitFileList = foundFiles.files;
-                // This will load the old file if the selected folder contains the same file
-                if (selectedZimfile.length !== 0) {
-                    setLocalArchiveFromFileList(selectedZimfile);
+                // Clear any stale single file selection (prevents wrong autoload on page refresh)
+                archiveFiles.value = null;
+                // If user clicked an archive before we had permission (pendingSelectedArchive), load it now
+                if (pendingSelectedArchive) {
+                    var selectedFiles = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, pendingSelectedArchive);
+                    comboArchiveList.value = pendingSelectedArchive;
+                    pendingSelectedArchive = null; // Clear the pending selection
+                    if (selectedFiles && selectedFiles.length > 0) {
+                        setLocalArchiveFromFileList(selectedFiles);
+                    }
                 }
+                // Otherwise just populate the dropdown - let user manually select which archive to load
             }
         })
     }
@@ -1716,12 +1870,45 @@ function displayFileSelect () {
 function useLegacyFilePicker () {
     // Fallbacks to simple file input with multi file selection
     archiveFiles.addEventListener('change', function (e) {
-        if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
-            const activeFilename = e.target.files[0].name;
-            settingsStore.setItem('zimFilenames', [activeFilename].join('|'), Infinity);
-            abstractFilesystemAccess.updateZimDropdownOptions([activeFilename], activeFilename);
+        // Extract all filenames from selected files
+        const allFilenames = Array.from(e.target.files).map(file => file.name);
+        // updateZimDropdownOptions will filter to show only .zim and .zimaa files
+        // (hiding .zimab, .zimac etc. which are continuation chunks)
+        settingsStore.setItem('zimFilenames', allFilenames.join('|'), Infinity);
+        abstractFilesystemAccess.updateZimDropdownOptions(allFilenames, allFilenames[0]);
+
+        // Count unique archives (group by base name without extension)
+        const uniqueArchives = new Set();
+        allFilenames.forEach(filename => {
+            // Strip .zim, .zimaa, .zimab, etc. to get base archive name
+            const baseName = filename.replace(/\.zim\w?\w?$/i, '');
+            uniqueArchives.add(baseName);
+        });
+
+        // If user clicked an archive before selecting files (pendingSelectedArchive), load it now
+        if (pendingSelectedArchive) {
+            const filenameWithoutExtension = pendingSelectedArchive.replace(/\.zim\w?\w?$/i, '');
+            const selectedFiles = [];
+            // Convert FileList to array for IE11 compatibility
+            var filesArray = Array.from(e.target.files);
+            for (var i = 0; i < filesArray.length; i++) {
+                if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                    selectedFiles.push(filesArray[i]);
+                }
+            }
+            comboArchiveList.value = pendingSelectedArchive;
+            pendingSelectedArchive = null;
+            if (selectedFiles.length > 0) {
+                setLocalArchiveFromFileList(selectedFiles);
+                return;
+            }
         }
-        setLocalArchiveFromFileSelect();
+
+        // Only autoload if it's a single archive (may be split into multiple files)
+        if (uniqueArchives.size === 1) {
+            setLocalArchiveFromFileSelect();
+        }
+        // Otherwise, just populate dropdown and wait for user to click
     });
 }
 
@@ -1736,7 +1923,18 @@ document.getElementById('archiveFilesLbl').addEventListener('keydown', function 
 /** Drag and Drop handling for ZIM files */
 
 // Keep track of entrance event so we only fire the correct leave event
-var enteredElement;
+let enteredElement;
+// Flag to prevent repeatedly switching to Configuration on every dragover event
+let isDraggingFiles = false;
+
+// Set the main drop zone
+if (!params.disableDragAndDrop) {
+    // Set a global drop zone, so that whole page is enabled for drag and drop
+    globalDropZone.addEventListener('dragover', handleGlobalDragover);
+    globalDropZone.addEventListener('dragleave', handleGlobalDragleave);
+    globalDropZone.addEventListener('drop', handleFileDrop);
+    globalDropZone.addEventListener('dragenter', handleGlobalDragenter);
+}
 
 function handleGlobalDragenter (e) {
     e.preventDefault();
@@ -1752,15 +1950,25 @@ function handleGlobalDragover (e) {
         e.dataTransfer.dropEffect = 'link';
         globalDropZone.classList.add('dragging-over');
         globalDropZone.style.border = '3px dashed red';
-        document.getElementById('btnConfigure').click();
+        // Only switch to Configuration once, and only if not already showing Configuration
+        if (!isDraggingFiles) {
+            isDraggingFiles = true;
+            const configDiv = document.getElementById('configuration');
+            // Only click button if Configuration is not currently visible (btnConfigure is a toggle)
+            if (configDiv.style.display === 'none') {
+                document.getElementById('btnConfigure').click();
+            }
+        }
     }
 }
 
 function handleGlobalDragleave (e) {
     e.preventDefault();
-    globalDropZone.style.border = '';
     if (enteredElement === e.target) {
+        globalDropZone.style.border = '';
         globalDropZone.classList.remove('dragging-over');
+        // Reset flag and return to page only when actually leaving
+        isDraggingFiles = false;
         // Only return to page if a ZIM is actually loaded
         if (selectedArchive && selectedArchive.isReady()) {
             uiUtil.returnToCurrentPage();
@@ -1773,7 +1981,15 @@ function handleIframeDragover (e) {
     if (hasType(e.dataTransfer.types, 'Files') && !hasInvalidType(e.dataTransfer.types)) {
         globalDropZone.classList.add('dragging-over');
         e.dataTransfer.dropEffect = 'link';
-        document.getElementById('btnConfigure').click();
+        // Only switch to Configuration once, and only if not already showing Configuration
+        if (!isDraggingFiles) {
+            isDraggingFiles = true;
+            const configDiv = document.getElementById('configuration');
+            // Only click button if Configuration is not currently visible (btnConfigure is a toggle)
+            if (configDiv.style.display === 'none') {
+                document.getElementById('btnConfigure').click();
+            }
+        }
     }
 }
 
@@ -1784,7 +2000,7 @@ function handleIframeDrop (e) {
 
 // Add type check for chromium browsers, since they count images on the same page as files
 function hasInvalidType (typesList) {
-    for (var i = 0; i < typesList.length; i++) {
+    for (let i = 0; i < typesList.length; i++) {
         // Use indexOf() instead of startsWith() for IE11 support. Also, IE11 uses Text instead of text (and so does Opera).
         // This is not comprehensive, but should cover most cases.
         if (typesList[i].indexOf('image') === 0 || typesList[i].indexOf('text') === 0 || typesList[i].indexOf('Text') === 0 || typesList[i].indexOf('video') === 0) {
@@ -1809,6 +2025,8 @@ async function handleFileDrop (packet) {
     packet.preventDefault();
     globalDropZone.style.border = '';
     globalDropZone.classList.remove('dragging-over');
+    // Reset drag flag
+    isDraggingFiles = false;
     var files = packet.dataTransfer.files;
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
@@ -1838,6 +2056,7 @@ btnLibrary.addEventListener('click', function () {
     resizeIFrame();
     kiwixLibrary.loadLibrary(libraryIframe);
 });
+
 // Add keyboard activation for library button
 btnLibrary.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 32) {
@@ -1925,6 +2144,8 @@ async function archiveReadyCallback (archive) {
     // The archive is set: go back to home page to start searching
     document.getElementById('btnHome').click();
     document.getElementById('downloadInstruction').style.display = 'none';
+    // Reset selectFired flag to allow reselecting the same archive
+    selectFired = false;
 }
 
 /**

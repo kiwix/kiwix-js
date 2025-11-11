@@ -373,12 +373,8 @@ function populateKiwixPopoverDiv (ev, link, state, dark, archive) {
     // Do not show popover if the user has initiated an article load (set in filterClickEvent)
     if (link.articleisloading || link.popoverisloading) return Promise.resolve();
     const linkHref = link.getAttribute('href');
-    // Do not show popover if there is no href or with certain landing pages
-    if (!linkHref || /^wikivoyage/i.test(archive.file.name) &&
-      (state.expectedArticleURLToBeDisplayed === archive.landingPageUrl ||
-      state.expectedArticleURLToBeDisplayed === 'A/Wikivoyage:Offline_reader_Expedition/Home_page')) {
-        return Promise.resolve();
-    }
+    // Do not show popover if there is no href
+    if (!linkHref) return Promise.resolve();
     link.popoverisloading = true;
     // Do not display a popover if one is already showing for the current link
     const kiwixPopover = ev.target.ownerDocument.querySelector('.kiwixtooltip');

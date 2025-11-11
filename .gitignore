@@ -62,3 +62,4 @@ www-ghdeploy
 /.vscode/
 scripts/github_token
 .prettierrc
+/.claude
