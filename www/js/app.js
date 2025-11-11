@@ -1598,10 +1598,21 @@ function populateDropDownListOfArchives (archiveDirectories) {
     }
 }
 
+// Flag to track if selection was made via mouse/click vs keyboard navigation
+var selectionViaClick = false;
+
 // Event listeners for archive dropdown selection
 // These handle the tricky case where users want to reselect the same archive
-comboArchiveList.addEventListener('change', handleArchiveListChange);
+comboArchiveList.addEventListener('change', function (e) {
+    // Only handle change if it was triggered by mouse click, not keyboard navigation
+    if (selectionViaClick) {
+        handleArchiveListChange(e);
+        selectionViaClick = false;
+    }
+});
 comboArchiveList.addEventListener('click', function (e) {
+    // Mark that this change was via click
+    selectionViaClick = true;
     // For single archive: the click event directly triggers the handler
     // For multiple archives: ensure the clicked item is selected in the dropdown first
     if (e.target.value) comboArchiveList.value = e.target.value;
@@ -1610,6 +1621,13 @@ comboArchiveList.addEventListener('click', function (e) {
 comboArchiveList.addEventListener('mousedown', function () {
     // Unselect any selected option so that the user can select the same option again
     if (comboArchiveList.length > 1 && ~comboArchiveList.selectedIndex) comboArchiveList.selectedIndex = -1;
+});
+comboArchiveList.addEventListener('keydown', function (e) {
+    // Handle keyboard selection with Enter or Space
+    if (e.key === 'Enter' || e.key === ' ' || e.keyCode === 13 || e.keyCode === 32) {
+        e.preventDefault();
+        handleArchiveListChange();
+    }
 });
 
 let selectFired = false;
