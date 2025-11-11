@@ -8,6 +8,11 @@
     "background_color": "#000",
     "icons": [
         {
+          "src": "www/img/icons/kiwix_favicon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        },
+        {
           "src": "www/img/icons/kiwix-32.png",
           "sizes": "32x32",
           "type": "image/png"
