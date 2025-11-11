@@ -25,6 +25,8 @@ document.localeJson = {
       "configure-changed-content-note": "(Re-pick folder if there is new content on your device)",
       "configure-btn-rescan": "Rescan",
       "configure-about-rescan-tip": "Rescans your SD Cards and internal memory",
+      "configure-btn-refresh": "Refresh",
+      "configure-btn-refresh-tip": "Refresh the list of archives from the selected folder",
       "configure-expert-enable-source-verification-tip": "Warning: Some ZIM archives from untrusted sources could run malicious code in your browser. This can be prevented by using Restricted mode, which cannot run active content from the ZIM. Highly dynamic ZIMs will probably fail in Restricted mode, but ZIMs with largely static content should work. If you trust the source of all of your ZIMs, then disabling this option will use ServiceWorker mode by default, if available.",
       "configure-expert-enable-source-verification-check-box": "<strong>Enable source verification of new files</strong> (<i>recommended</i>: you will only be prompted the first time you open a ZIM)",
       "configure-select-file-numbers": "archive(s) found in selected location. ",

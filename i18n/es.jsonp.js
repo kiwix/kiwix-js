@@ -25,6 +25,8 @@ document.localeJson = {
       "configure-changed-content-note": "(Vuelva a seleccionar carpeta si hay contenido actualizado en su dispositivo)",
       "configure-btn-rescan": "Volver a escanear",
       "configure-about-rescan-tip": "Volver a escanear las tarjetas SD y la memoria interna",
+      "configure-btn-refresh": "Actualizar",
+      "configure-btn-refresh-tip": "Actualizar la lista de archivos de la carpeta seleccionada",
       "configure-expert-enable-source-verification-tip": "Advertencia: Algunos archivos ZIM de fuentes no fiables podrían ejecutar código malicioso en su navegador. Esto puede evitarse utilizando el modo Restringido, que no puede ejecutar contenido activo desde el ZIM. Los ZIM muy dinámicos probablemente fallarán en el modo Restringido, pero los ZIM con contenido mayoritariamente estático deberían funcionar. Si confía en la fuente de todos sus archivos ZIM, puede desactivar esta opción y se utlizará el modo ServiceWorker por defecto (si está disponible).",
       "configure-expert-enable-source-verification-check-box": "<strong>Activar la verificación del origen de los archivos nuevos</strong> (<i>recomendado</i>: Sólo se le pedirá la primera vez que abra un archivo ZIM)",
       "configure-select-file-numbers": "archivo(s) encontrado(s) en la ubicación seleccionada. ",

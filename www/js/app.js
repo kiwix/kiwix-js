@@ -1553,6 +1553,7 @@ function populateDropDownListOfArchives (archiveDirectories) {
     document.getElementById('scanningForArchives').style.display = 'none';
     document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('rescanButtonAndText').style.display = '';
+    document.getElementById('repickFolderInstruction').style.display = 'none';
     comboArchiveList.options.length = 0;
     for (var i = 0; i < archiveDirectories.length; i++) {
         var archiveDirectory = archiveDirectories[i];
