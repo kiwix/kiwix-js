@@ -1622,6 +1622,23 @@ function handleArchiveListChange () {
     }
 
     // PATHWAY 3: Webkit Directory API (fallback) or Legacy File Picker
+    // First check if files are available from legacy File API picker (archiveFiles.files)
+    if (archiveFiles.files && archiveFiles.files.length > 0) {
+        // Files available from legacy File API - extract the selected archive
+        const filenameWithoutExtension = selectedValue.replace(/\.zim\w?\w?$/i, '');
+        const selectedFiles = [];
+        for (const file of archiveFiles.files) {
+            // Match files that start with the base name (handles split archives)
+            if (!file.name.indexOf(filenameWithoutExtension)) {
+                selectedFiles.push(file);
+            }
+        }
+        if (selectedFiles.length > 0) {
+            setLocalArchiveFromFileList(selectedFiles);
+            return;
+        }
+    }
+
     // User needs to reselect from file picker if webKitFileList isn't cached
     if (webKitFileList === null) {
         // No cached file list - save what user clicked and prompt for directory access
@@ -1723,6 +1740,8 @@ function displayFileSelect () {
             e.preventDefault();
             // Just populate the dropdown - let user select which archive to load
             await abstractFilesystemAccess.selectDirectoryFromPickerViaFileSystemApi();
+            // Clear any stale single file selection (prevents wrong autoload on page refresh)
+            archiveFiles.value = null;
         });
     }
     if (params.isWebkitDirApiSupported) {
@@ -1734,6 +1753,8 @@ function displayFileSelect () {
                 var foundFiles = abstractFilesystemAccess.selectDirectoryFromPickerViaWebkit(fileList);
                 // This ensures the selected files are stored for use during this session (webKitFileList is a global object)
                 webKitFileList = foundFiles.files;
+                // Clear any stale single file selection (prevents wrong autoload on page refresh)
+                archiveFiles.value = null;
                 // If user clicked an archive before we had permission (pendingSelectedArchive), load it now
                 if (pendingSelectedArchive) {
                     var selectedFiles = abstractFilesystemAccess.getSelectedZimFromWebkitList(webKitFileList, pendingSelectedArchive);
@@ -1775,10 +1796,29 @@ function useLegacyFilePicker () {
     // Fallbacks to simple file input with multi file selection
     archiveFiles.addEventListener('change', function (e) {
         if (params.isWebkitDirApiSupported || params.isFileSystemApiSupported) {
-            const activeFilename = e.target.files[0].name;
-            settingsStore.setItem('zimFilenames', [activeFilename].join('|'), Infinity);
-            abstractFilesystemAccess.updateZimDropdownOptions([activeFilename], activeFilename);
+            // Extract all filenames from selected files
+            const allFilenames = Array.from(e.target.files).map(file => file.name);
+            // updateZimDropdownOptions will filter to show only .zim and .zimaa files
+            // (hiding .zimab, .zimac etc. which are continuation chunks)
+            settingsStore.setItem('zimFilenames', allFilenames.join('|'), Infinity);
+            abstractFilesystemAccess.updateZimDropdownOptions(allFilenames, allFilenames[0]);
+
+            // Count unique archives (group by base name without extension)
+            const uniqueArchives = new Set();
+            allFilenames.forEach(filename => {
+                // Strip .zim, .zimaa, .zimab, etc. to get base archive name
+                const baseName = filename.replace(/\.zim\w?\w?$/i, '');
+                uniqueArchives.add(baseName);
+            });
+
+            // Only autoload if it's a single archive (may be split into multiple files)
+            if (uniqueArchives.size === 1) {
+                setLocalArchiveFromFileSelect();
+            }
+            // Otherwise, just populate dropdown and wait for user to click
+            return;
         }
+        // For browsers without webkitdirectory/FSA support, always autoload
         setLocalArchiveFromFileSelect();
     });
 }

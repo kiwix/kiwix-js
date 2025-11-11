@@ -130,8 +130,9 @@ function updateZimDropdownOptions (files, selectedFile) {
     });
     select.value = selectedFile;
 
-    // Set the size of the dropdown to the number of files or the DROPDOWN_SIZE, whichever is smaller
-    const calculatedSize = files.length < DROPDOWN_SIZE ? files.length : DROPDOWN_SIZE;
+    // Set the size of the dropdown to the number of displayed archives or the DROPDOWN_SIZE, whichever is smaller
+    // Use count (displayed archives) not files.length (total input files including continuation chunks)
+    const calculatedSize = count < DROPDOWN_SIZE ? count : DROPDOWN_SIZE;
     select.size = calculatedSize;
 
     // For single files, use multiple attribute to display as a listbox instead of dropdown
