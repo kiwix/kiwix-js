@@ -107,7 +107,7 @@ document.localeJson = {
       "configure-compatibility-option-jquery-tip": "Este modo no puede ejecutar archivos ZIM dinámicos. Sin embargo, los archivos ZIM estáticos como Wikipedia / Wikimedia deberían funcionar sin problemas.",
       "configure-expert-settings-title": "Opciones avanzadas",
       "configure-expert-panel-header": "Resolución de problemas y desarrollo",
-      "configure-expert-enablecontenttheme": "<strong>Habilitar adaptación inteligente del esquema de color ZIM si es necesario</strong> (<i>recomendado</i>: desmarcar para usar solo el esquema ZIM original)",
+      "configure-expert-enablecontenttheme": "<strong>Habilitar el ajuste inteligente del esquema de colores del archivo si es necesario</strong> (<i>recomendado</i>: desmarcar para mostrar solo el esquema original del ZIM)",
       "configure-expert-enablecontenttheme-tip": "Cuando está habilitado, el contenido ZIM se adaptará automáticamente para coincidir con el tema de su aplicación (claro/oscuro), incluso cuando se cambia automáticamente. Cuando está deshabilitado, el contenido ZIM se muestra exactamente como fue archivado, sin detección ni ajustes de esquema de color. La interfaz de la aplicación seguirá respetando el tema elegido.",
       "configure-expert-hideactivecontentwarning": "<strong>Ocultar permanentemente la advertencia de contenido activo</strong> (para usuarios experimentados)",
       "configure-expert-hideactivecontentwarning-tip": "Se muestra una advertencia si carga un ZIM que tiene contenido activo o dinámico mientras está en modo Restringido. No se recomienda desactivar esta advertencia.",
