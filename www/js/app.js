@@ -1609,10 +1609,10 @@ var selectionViaClick = false;
 
 // Event listeners for archive dropdown selection
 // These handle the tricky case where users want to reselect the same archive
-comboArchiveList.addEventListener('change', function (e) {
+comboArchiveList.addEventListener('change', function () {
     // Only handle change if it was triggered by mouse click, not keyboard navigation
     if (selectionViaClick) {
-        handleArchiveListChange(e);
+        handleArchiveListChange();
         selectionViaClick = false;
     }
 });
