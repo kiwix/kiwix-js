@@ -171,7 +171,8 @@ async function refreshCachedDirectoryAccess () {
                         resolve(false);
                         return;
                     }
-                } catch (error) {
+                } catch (error) { // eslint-disable-line no-unused-vars
+                    // Permission denied or error - using catch for flow control
                     resolve(false);
                     return;
                 }
