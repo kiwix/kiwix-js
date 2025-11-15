@@ -351,7 +351,7 @@ prefixElement.addEventListener('keydown', function (e) {
 });
 // Search for titles as user types characters
 prefixElement.addEventListener('keyup', function (e) {
-    if (selectedArchive !== null && selectedArchive.isReady()) {
+    if (selectedArchive && selectedArchive.isReady()) {
         // Prevent processing by keyup event if we already handled the keypress in keydown event
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
@@ -446,7 +446,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     var articleContent = document.getElementById('articleContent');
     var articleContentDoc = articleContent ? articleContent.contentDocument : null;
     while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
-    if (selectedArchive !== null && selectedArchive.isReady()) {
+    if (selectedArchive && selectedArchive.isReady()) {
         document.getElementById('welcomeText').style.display = 'none';
         goToMainArticle();
     }
@@ -558,7 +558,7 @@ document.getElementById('disableDragAndDropCheck').addEventListener('change', fu
 // Handle switching from jQuery to serviceWorker modes.
 document.getElementById('serviceworkerModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    if (selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
+    if (selectedArchive && selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
         await verifyLoadedArchive(selectedArchive);
     }
 });
@@ -570,7 +570,7 @@ document.getElementById('jqueryModeRadio').addEventListener('click', function ()
 // Handle switching to serviceWorkerLocal mode for chrome-extension
 document.getElementById('serviceworkerLocalModeRadio').addEventListener('click', async function () {
     document.getElementById('enableSourceVerificationCheckBox').style.display = '';
-    if (selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
+    if (selectedArchive && selectedArchive.isReady() && !(settingsStore.getItem('trustedZimFiles').includes(selectedArchive.file.name)) && params.sourceVerification) {
         await verifyLoadedArchive(selectedArchive);
     }
 });
@@ -2249,7 +2249,7 @@ function onKeyUpPrefix () {
  * @param {String} prefix The string that must appear at the start of any title searched for
  */
 function searchDirEntriesFromPrefix (prefix) {
-    if (selectedArchive !== null && selectedArchive.isReady()) {
+    if (selectedArchive && selectedArchive.isReady()) {
         // Cancel the old search (zimArchive search object will receive this change)
         appstate.search.status = 'cancelled';
         // Initiate a new search object and point appstate.search to it (the zimArchive search object will continue to point to the old object)
@@ -2339,7 +2339,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
  * @param {String} dirEntryId The stringified Directory Entry to parse and launch
  */
 function findDirEntryFromDirEntryIdAndLaunchArticleRead (dirEntryId) {
-    if (selectedArchive.isReady()) {
+    if (selectedArchive && selectedArchive.isReady()) {
         var dirEntry = selectedArchive.parseDirEntryId(dirEntryId);
         // Remove focus from search field to hide keyboard and to allow navigation keys to be used
         document.getElementById('articleContent').contentWindow.focus();
@@ -3588,7 +3588,7 @@ function goToArticle (path, download, contentType) {
 }
 
 function goToRandomArticle () {
-    if (selectedArchive !== null && selectedArchive.isReady()) {
+    if (selectedArchive && selectedArchive.isReady()) {
         document.getElementById('searchingArticles').style.display = '';
         selectedArchive.getRandomDirEntry(function (dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
