@@ -4,6 +4,10 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Interim update Kiwix JS v4.3.1
+
+* CRITICAL UPDATE: Fix failure of Service Worker to discover remote PWA in Chromium extensions
+
 ## Kiwix JS v4.3.0
 
 Released on *2025-11-12*
