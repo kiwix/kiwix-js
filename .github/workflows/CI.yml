@@ -172,9 +172,21 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: windows-latest
     timeout-minutes: 30
+    env:
+      SELENIUM_MANAGER: 'false'
+      IEDRIVER_PATH: 'C:\\tools\\iedriver\\IEDriverServer.exe'
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v4
+
+      - name: Install IEDriver (for IE / Edge IE mode)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          choco install iedriver -y
+          # refreshenv is provided by Chocolatey to update PATH in the current session
+          refreshenv || true
+          Write-Host "IEDriver installed"
 
       - name: Install dependencies
         run: npm ci
