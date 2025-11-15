@@ -283,8 +283,11 @@ self.addEventListener('fetch', function (event) {
     // Only handle GET or POST requests (POST is intended to handle video in Zimit ZIMs)
     if (!/GET|POST/.test(event.request.method)) return;
     var rqUrl = event.request.url;
-    // Filter out requests that do not match the scope of the Service Worker
-    if (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope)) return;
+    // Filter out requests that do not start with the scope of the Service Worker, or that are for a /dist/ subdirectory
+    if (!rqUrl.startsWith(self.registration.scope) || (/\/dist\/(www|[^/]+?\.zim)\//.test(rqUrl) && !/\/dist\//.test(self.registration.scope))) {
+        console.debug('[SW] Ignoring out-of-scope request:', rqUrl);
+        return;
+    }
     // Filter dark stylesheet requests transformed by wombat.js
     // Only check for transformation if URL contains both .zim and /www/ to avoid unnecessary regex processing
     if (~rqUrl.indexOf('.zim') && ~rqUrl.indexOf('/www/')) {
