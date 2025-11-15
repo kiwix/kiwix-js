@@ -183,13 +183,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          # Download IEDriver from Selenium GitHub releases
-          $ieDriverVersion = "4.14.0"
-          $downloadUrl = "https://github.com/SeleniumHQ/selenium/releases/download/selenium-$ieDriverVersion/IEDriverServer_Win32_$ieDriverVersion.0.zip"
+          # Download IEDriver 4.14.0 from Selenium GitHub releases (last version available)
+          $downloadUrl = "https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.14.0/IEDriverServer_x64_4.14.0.zip"
           $downloadPath = "$env:TEMP\IEDriverServer.zip"
           $extractPath = "C:\tools\iedriver"
           
-          Write-Host "Downloading IEDriver $ieDriverVersion..."
+          Write-Host "Downloading IEDriver 4.14.0..."
           Invoke-WebRequest -Uri $downloadUrl -OutFile $downloadPath -UseBasicParsing
           
           Write-Host "Extracting IEDriver..."
