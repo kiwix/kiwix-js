@@ -185,7 +185,7 @@ jobs:
         run: |
           choco install iedriver -y
           # refreshenv is provided by Chocolatey to update PATH in the current session
-          refreshenv || true
+          try { refreshenv } catch { Write-Host "refreshenv not available, PATH will be updated in next step" }
           Write-Host "IEDriver installed"
 
       - name: Install dependencies
