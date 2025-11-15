@@ -183,30 +183,30 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
-          choco install iedriver -y
-          Write-Host "IEDriver installed"
-          # Find and add IEDriver to PATH
-          $ieDriverPath = Get-Command IEDriverServer.exe -ErrorAction SilentlyContinue
-          if ($ieDriverPath) {
-            Write-Host "IEDriver found at: $($ieDriverPath.Source)"
-            $driverDir = Split-Path $ieDriverPath.Source
-            echo "$driverDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-            Write-Host "Added to PATH: $driverDir"
+          # Download IEDriver from Selenium GitHub releases
+          $ieDriverVersion = "4.14.0"
+          $downloadUrl = "https://github.com/SeleniumHQ/selenium/releases/download/selenium-$ieDriverVersion/IEDriverServer_Win32_$ieDriverVersion.0.zip"
+          $downloadPath = "$env:TEMP\IEDriverServer.zip"
+          $extractPath = "C:\tools\iedriver"
+          
+          Write-Host "Downloading IEDriver $ieDriverVersion..."
+          Invoke-WebRequest -Uri $downloadUrl -OutFile $downloadPath -UseBasicParsing
+          
+          Write-Host "Extracting IEDriver..."
+          New-Item -ItemType Directory -Force -Path $extractPath | Out-Null
+          Expand-Archive -Path $downloadPath -DestinationPath $extractPath -Force
+          
+          Write-Host "IEDriver installed at: $extractPath"
+          
+          # Add IEDriver to PATH
+          if (Test-Path "$extractPath\IEDriverServer.exe") {
+            echo "$extractPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            Write-Host "Added to PATH: $extractPath"
+            Write-Host "IEDriver version:"
+            & "$extractPath\IEDriverServer.exe" --version
           } else {
-            Write-Host "IEDriver not found in PATH, checking common locations..."
-            $possiblePaths = @(
-              "C:\tools\iedriver",
-              "C:\ProgramData\chocolatey\lib\iedriver\tools",
-              "C:\ProgramData\chocolatey\bin"
-            )
-            foreach ($path in $possiblePaths) {
-              if (Test-Path "$path\IEDriverServer.exe") {
-                Write-Host "Found IEDriver at: $path"
-                echo "$path" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-                Write-Host "Added to PATH: $path"
-                break
-              }
-            }
+            Write-Error "IEDriverServer.exe not found after extraction!"
+            exit 1
           }
 
       - name: Install dependencies
