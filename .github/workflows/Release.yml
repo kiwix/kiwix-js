@@ -51,12 +51,12 @@ jobs:
       # Set up secret files from encrypted secrets
       - name: Set up secret files and copy needed scripts to dist
         env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+          KIWIX_FILE_UPLOAD_SSH_KEY: ${{ secrets.KIWIX_FILE_UPLOAD_SSH_KEY }}
           CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
         shell: bash
         run: |
           mkdir -p ./dist/scripts
-          echo "$SSH_KEY" > ./dist/scripts/ssh_key
+          echo "$KIWIX_FILE_UPLOAD_SSH_KEY" > ./dist/scripts/ssh_key
           chmod 600 ./dist/scripts/ssh_key
           echo "$CHROME_EXTENSION_KEY" > ./dist/scripts/kiwix-html5.pem
           chmod 600 ./dist/scripts/kiwix-html5.pem
