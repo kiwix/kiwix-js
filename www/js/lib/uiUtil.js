@@ -602,10 +602,18 @@ function replaceCSSLinkWithInlineCSS (link, cssContent, id) {
  * @returns {String} The same URL without its parameters and anchors
  */
 function removeUrlParameters (url) {
+    if (typeof url !== 'string') return url;
     // Remove any querystring
     var strippedUrl = url.replace(/\?[^?]*$/, '');
-    // Remove any anchor parameters - note that we are deliberately excluding entity references, e.g. '&#39;'.
-    strippedUrl = strippedUrl.replace(/#[^#;]*$/, '');
+    // Find the first # character that starts a fragment (not part of a character reference like &#39;)
+    // This correctly handles anchors with semicolons and character references in the URL path
+    var hashIndex = -1;
+    while ((hashIndex = strippedUrl.indexOf('#', hashIndex + 1)) !== -1) {
+        // If # is at the start or not preceded by &, it's a fragment anchor
+        if (hashIndex === 0 || strippedUrl[hashIndex - 1] !== '&') {
+            return strippedUrl.substring(0, hashIndex);
+        }
+    }
     return strippedUrl;
 }
 
