@@ -3303,7 +3303,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         anchorParameter = decodeURIComponent(anchorParameterEncoded);
                     } catch (e) {
                         // If decoding fails (e.g., malformed encoding), use the original value
-                        console.debug('Failed to decode anchor parameter, using original:', anchorParameterEncoded);
+                        console.debug('Failed to decode anchor parameter, using original:', anchorParameterEncoded, e);
                         anchorParameter = anchorParameterEncoded;
                     }
                 }
