@@ -36,26 +36,9 @@
         along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <https://www.gnu.org/licenses/>
 
         -->
-        <!--Adding script before CSS links to solve flash problem-->
-    <script>
-     (function() {
-
-      var theme = localStorage.getItem('kiwixjs-appTheme');
-      if (theme && theme.includes('dark')) {
-      document.documentElement.style.setProperty('background-color', '#1c1c1e', 'important');
-      document.documentElement.classList.add('dark');
-      var observer = new MutationObserver(function(mutations, obs) {
-        if (document.body) {
-          document.body.classList.add('dark');
-          document.body.style.backgroundColor = '#1c1c1e';
-          obs.disconnect();
-        }
-      });
-      observer.observe(document.documentElement, { childList: true });
-    }
-    })();
-</script>
-        
+        <!--Adding external script to solve flash problem-->
+    
+        <script type="text/javascript" src="js/theme-init.js"></script>
         <!-- Bootstrap -->
         <link rel="manifest" href="../manifest.webmanifest" />
         <link href="../node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" media="screen"/>
