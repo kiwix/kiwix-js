@@ -372,13 +372,27 @@ function runTests (driver, modes, keepDriver) {
                     }
                 }, 15000, 'Ray Charles search result not found within timeout');
                 // Now select the result by clicking the search button instead of sending enter
-                // Use JavaScript click to avoid ElementClickInterceptedError in IE11 mode
-                await driver.executeScript('document.getElementById("searchArticles").click();');
+                try {
+                    await driver.findElement(By.id('searchArticles')).click();
+                } catch (e) {
+                    // In IE11 mode, a modal may intercept the click, so dismiss it and fall back to JS click
+                    try {
+                        const approveButton = await driver.findElement(By.id('approveConfirm'));
+                        await approveButton.click();
+                        await driver.sleep(500);
+                    } catch (e2) { /* no modal to dismiss */ }
+                    await driver.executeScript('document.getElementById("searchArticles").click();');
+                }
                 // Check if that worked, and if search result still visible, try with a click instead
                 try {
                     const resultElement = await driver.findElement(By.css('.list-group-item:nth-child(4)'));
                     if (resultElement) {
-                        await driver.executeScript('arguments[0].click();', resultElement);
+                        try {
+                            await resultElement.click();
+                        } catch (e) {
+                            // Fall back to dispatching mousedown for IE11 mode (article list uses mousedown, not click)
+                            await driver.executeScript('arguments[0].dispatchEvent(new MouseEvent("mousedown", {bubbles: true, cancelable: true}));', resultElement);
+                        }
                     }
                 } catch (e) {
                     // Do nothing
