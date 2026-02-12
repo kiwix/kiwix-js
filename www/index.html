@@ -121,6 +121,9 @@
                                 <span class="btn-group">
                                     <button type="button" data-i18n-tip="home-btn-random-tip" title="Select a random article to display" class="btn btn-outline-secondary" id="btnRandomArticle"><i class="fas fa-random"></i></button>
                                 </span>
+                                <span class="btn-group">
+                                    <button type="button" data-i18n-tip="home-btn-history-tip" title="Show article history" class="btn btn-outline-secondary" id="btnShowHistory"><i class="fas fa-history"></i></button>
+                                </span>
                             </span>
                         </div>
                     </div>
@@ -792,6 +795,23 @@
                 </div>
                 <div data-i18n="home-welcome-text" id="welcomeText" class="container">
                     Once you have loaded a ZIM archive, you can search its contents using the above search field.
+                </div>
+
+                <!-- List of article history (accessed by the user) -->
+                <div id="articleHistorySection" style="display: none;" class="container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="margin: 0;">Article History</h4>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnClearHistory" title="Clear history">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnHideHistory" title="Hide history">
+                                <i class="fas fa-chevron-up"></i> Hide
+                            </button>
+                        </div>
+                    </div>
+                    <div id="articleHistoryList" class="list-group" role="listbox">
+                    </div>
                 </div>
 
                 <!-- List of articles matching the typed prefix -->
