@@ -385,6 +385,35 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
     navbarCollapse.classList.remove('show');
 });
 
+// Clickable button for users to see history
+document.getElementById('btnShowHistory').addEventListener('click', function (event) {
+    event.preventDefault();
+    var historySection = document.getElementById('articleHistorySection');
+    var articleListWithHeader = document.getElementById('articleListWithHeader');
+    var welcomeText = document.getElementById('welcomeText');
+    
+    if (historySection.style.display === 'none' || historySection.style.display === '') {
+        historySection.style.display = '';
+        displayArticleHistory();
+        articleListWithHeader.style.display = 'none';
+        welcomeText.style.display = 'none';
+    } else {
+        historySection.style.display = 'none';
+    }
+});
+
+document.getElementById('btnHideHistory').addEventListener('click', function (event) {
+    event.preventDefault();
+    document.getElementById('articleHistorySection').style.display = 'none';
+});
+
+document.getElementById('btnClearHistory').addEventListener('click', function (event) {
+    event.preventDefault();
+    if (confirm('Are you sure you want to clear all article history?')) {
+        clearArticleHistory();
+    }
+});
+
 document.getElementById('btnRescanDeviceStorage').addEventListener('click', function () {
     searchForArchivesInStorage();
 });
@@ -441,6 +470,11 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
     uiUtil.spinnerDisplay(false);
+    // Hide history section when returning to home (user can click history button to show it)
+    var historySection = document.getElementById('articleHistorySection');
+    if (historySection) {
+        historySection.style.display = 'none';
+    }
     // document.getElementById('articleContent').style.display = 'none';
     // Empty and purge the article contents
     var articleContent = document.getElementById('articleContent');
@@ -2331,6 +2365,112 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
+    var historySection = document.getElementById('articleHistorySection');
+    if (historySection) {
+        historySection.style.display = 'none';
+    }
+}
+
+
+//Saving an article to the browsing history
+function saveArticleToHistory (dirEntry) {
+    try {
+        var historyKey = 'kiwix-article-history';
+        var history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        var articleTitle = dirEntry.title || dirEntry.getTitleOrUrl();
+        var dirEntryId = dirEntry.toStringId();
+        var articleUrl = dirEntry.namespace + '/' + dirEntry.url;
+        
+        var historyEntry = {
+            title: articleTitle,
+            dirEntryId: dirEntryId,
+            url: articleUrl,
+            timestamp: Date.now()
+        };
+        
+        history = history.filter(function (entry) {
+            return entry.dirEntryId !== dirEntryId;
+        });
+        
+        history.unshift(historyEntry);
+        
+        if (history.length > 100) {
+            history = history.slice(0, 100);
+        }
+        
+        localStorage.setItem(historyKey, JSON.stringify(history));
+        
+        if (document.getElementById('articleHistorySection') && 
+            document.getElementById('articleHistorySection').style.display !== 'none') {
+            displayArticleHistory();
+        }
+    } catch (e) {
+        console.warn('Failed to save article to history:', e);
+    }
+}
+
+//Load & display the history
+function displayArticleHistory () {
+    try {
+        var historyKey = 'kiwix-article-history';
+        var history = JSON.parse(localStorage.getItem(historyKey) || '[]');
+        var historyList = document.getElementById('articleHistoryList');
+        var historySection = document.getElementById('articleHistorySection');
+        
+        if (!historyList || !historySection) {
+            return;
+        }
+        
+        historyList.innerHTML = '';
+        
+        if (history.length === 0) {
+            historyList.innerHTML = '<div class="list-group-item text-muted">No articles in history yet.</div>';
+            return;
+        }
+        
+        history.forEach(function (entry) {
+            var listItem = document.createElement('a');
+            listItem.href = '#';
+            listItem.className = 'list-group-item';
+            listItem.setAttribute('dirEntryId', encodeURIComponent(entry.dirEntryId));
+            listItem.setAttribute('role', 'option');
+            
+            var title = document.createElement('div');
+            title.textContent = entry.title;
+            title.style.fontWeight = '500';
+            
+            var timestamp = document.createElement('div');
+            timestamp.className = 'text-muted';
+            timestamp.style.fontSize = '0.85em';
+            timestamp.style.marginTop = '4px';
+            var date = new Date(entry.timestamp);
+            timestamp.textContent = date.toLocaleString();
+            
+            listItem.appendChild(title);
+            listItem.appendChild(timestamp);
+            
+            listItem.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                var dirEntryId = decodeURIComponent(listItem.getAttribute('dirEntryId'));
+                findDirEntryFromDirEntryIdAndLaunchArticleRead(dirEntryId);
+            });
+            
+            historyList.appendChild(listItem);
+        });
+    } catch (e) {
+        console.warn('Failed to display article history:', e);
+    }
+}
+
+//Clear the history
+function clearArticleHistory () {
+    try {
+        var historyKey = 'kiwix-article-history';
+        localStorage.removeItem(historyKey);
+        displayArticleHistory();
+    } catch (e) {
+        console.warn('Failed to clear article history:', e);
+    }
 }
 
 /**
@@ -2380,6 +2520,11 @@ function readArticle (dirEntry) {
         console.error('The directory entry for the requested article was not found (null or undefined)');
         uiUtil.spinnerDisplay(false);
         return;
+    }
+
+    // Save article to history (but not for landing pages)
+    if (!params.isLandingPage) {
+        saveArticleToHistory(dirEntry);
     }
 
     // Reset search prefix to allow users to search the same string again if they want to
