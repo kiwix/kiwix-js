@@ -1,49 +1,25 @@
-(function() {
-    // Immediately apply theme background to prevent flash
-    try {
-        var theme = localStorage.getItem('kiwixjs-appTheme');
-        console.log('Theme init: Retrieved theme =', theme); 
-        
-       
-        var bgColor = '#FBEAEA'; 
-        var isDark = false;
-        
-        if (theme && theme.includes('dark')) {
-            bgColor = '#300000';
-            isDark = true;
-            console.log('Theme init: Applying dark theme');
-        } else {
-            console.log('Theme init: Applying light theme');
-        }
-        
-      
-        var html = document.documentElement;
-        html.style.backgroundColor = bgColor;
-        
-        if (isDark) {
-            html.classList.add('dark');
-        }
-        
-       
-        var style = document.createElement('style');
-        style.textContent = 'html, body { background-color: ' + bgColor +';}';
-        document.head.appendChild(style);
-        
-       
-        if (document.body) {
-            document.body.style.backgroundColor = bgColor;
-            if (isDark) {
-                document.body.classList.add('dark');
+// Prevent white flash on reload by applying correct background
+(
+    function () {
+        var storedTheme = localStorage.getItem('kiwixjs-appTheme') || "light";
+        var htmlEl = document.documentElement;
+        if (localStorage.getItem('kiwixjs-appCache') === 'true') {
+            if (storedTheme.includes('dark')) {
+
+                htmlEl.classList.add('dark');
+
             }
-        } else {
-            document.addEventListener('DOMContentLoaded', function() {
-                document.body.style.backgroundColor = bgColor;
-                if (isDark) {
-                    document.body.classList.add('dark');
-                }
-            });
+            else {
+                if (htmlEl.classList.contains('dark')) {
+                    htmlEl.classList.remove('dark');
+                };
+            }
         }
-    } catch (e) {
-        console.error('Theme init error:', e);
+        else {
+            htmlEl.style.backgroundColor =
+                storedTheme.includes('dark')
+                    ? '#300000'
+                    : 'mistyrose';
+        }
     }
-})();
+)();
