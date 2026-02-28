@@ -8,7 +8,9 @@
         try {
             var val = localStorage.getItem(keyPrefix + key);
             if (val !== null) return val;
-        } catch (e) {}
+        } catch {
+    // Ignore errors when localStorage is unavailable
+         }
 
         var match = document.cookie.match(
             new RegExp('(?:^|; )' + encodeURIComponent(key) + '=([^;]*)')
