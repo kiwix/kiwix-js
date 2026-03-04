@@ -59,7 +59,7 @@
     "jsdom": "^25.0.1",
     "mocha": "^11.7.4",
     "nyc": "^17.1.0",
-    "rollup": "^4.5.0",
+    "rollup": "^4.59.0",
     "rollup-plugin-copy": "^3.4.0",
     "selenium-webdriver": "^4.37.0",
     "sinon": "^19.0.2",
