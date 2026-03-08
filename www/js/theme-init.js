@@ -8,9 +8,9 @@
         try {
             var val = localStorage.getItem(keyPrefix + key);
             if (val !== null) return val;
-        } catch {
-    // Ignore errors when localStorage is unavailable
-         }
+        } catch (e) {
+            // Ignore errors when localStorage is unavailable
+        }
 
         var match = document.cookie.match(
             new RegExp('(?:^|; )' + encodeURIComponent(key) + '=([^;]*)')
@@ -29,27 +29,23 @@
 
     var isDark = false;
 
-    if (storedTheme.includes('dark') ) {
+    if (storedTheme.indexOf('dark') !== -1) {
         isDark = true;
-    } else if (  storedTheme.includes('auto')  || storedTheme.includes('auto_wikimediaNative')  ) {
+    } else if (storedTheme.indexOf('auto') !== -1) {
         isDark = prefersDark();
     }
 
     var htmlEl = document.documentElement;
 
-    
-    if ( appCache === null || appCache === 'true') {
+    if (appCache === null || appCache === 'true') {
         if (isDark) {
             htmlEl.classList.add('dark');
         } else {
-            if(htmlEl.classList.contains('dark')){
-                 htmlEl.classList.remove('dark');
+            if (htmlEl.classList.contains('dark')) {
+                htmlEl.classList.remove('dark');
             }
         }
-    }
-
-   
-    else {
+    } else {
         htmlEl.style.backgroundColor =
             isDark ? '#300000' : 'mistyrose';
     }
