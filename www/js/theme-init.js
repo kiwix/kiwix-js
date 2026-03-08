@@ -8,7 +8,7 @@
         try {
             var val = localStorage.getItem(keyPrefix + key);
             if (val !== null) return val;
-        } catch (e) {
+        } catch (e) { // eslint-disable-line no-unused-vars
             // Ignore errors when localStorage is unavailable
         }
 
