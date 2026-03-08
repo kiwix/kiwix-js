@@ -55,14 +55,8 @@ function getBestAvailableStorageAPI () {
     if (kiwixCookieTest && localStorageTest && regexpCookieKeysToMigrate.test(document.cookie)) _migrateStorageSettings();
     // Remove any deprecated keys
     deprecatedKeys.forEach(function (key) {
-        try{
         if (localStorageTest) localStorage.removeItem(keyPrefix + key);
         settingsStore.removeItem(key); // Because this runs before we have returned a store type, this will remove from cookie too
-        }
-        catch (e) {
-            console.warn('Failed to remove deprecated key: ' + key, e);
-        }
-        
     });
     // Note that if this function returns 'none', the cookie implementations below will run anyway. This is because storing a cookie
     // does not cause an exception even if cookies are blocked in some contexts, whereas accessing localStorage may cause an exception
@@ -298,15 +292,9 @@ function _migrateStorageSettings () {
     for (var i = 0; i < cookieKeys.length; i++) {
         if (regexpCookieKeysToMigrate.test(cookieKeys[i])) {
             var migratedKey = keyPrefix + cookieKeys[i];
-            try {
-            
             localStorage.setItem(migratedKey, settingsStore.getItem(cookieKeys[i]));
             settingsStore.removeItem(cookieKeys[i]);
             console.log('- ' + migratedKey);
-            }
-            catch( e ) {
-                console.warn('Failed to migrate key: ' + cookieKeys[i], e);
-            }
         }
     }
     console.log('Migration done.');
