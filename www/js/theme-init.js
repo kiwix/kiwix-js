@@ -40,11 +40,7 @@
     if (appCache === null || appCache === 'true') {
         if (isDark) {
             htmlEl.classList.add('dark');
-        } else {
-            if (htmlEl.classList.contains('dark')) {
-                htmlEl.classList.remove('dark');
-            }
-        }
+        } 
     } else {
         htmlEl.style.backgroundColor =
             isDark ? '#300000' : 'mistyrose';
