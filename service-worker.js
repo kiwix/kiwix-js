@@ -135,6 +135,7 @@ const precacheFiles = [
     'www/topFrame.html',
     'www/js/app.js',
     'www/js/init.js',
+    'www/js/theme-init.js',
     'www/js/lib/abstractFilesystemAccess.js',
     'www/js/lib/arrayFromPolyfill.js',
     'www/js/lib/filecache.js',
