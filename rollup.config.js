@@ -1,4 +1,3 @@
-// rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import babel from '@rollup/plugin-babel';
 import { transformAsync } from '@babel/core';
@@ -6,12 +5,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import terser from '@rollup/plugin-terser';
-import { minify } from 'terser';
 import fixEmptyCatch from './rollup-plugin-fix-empty-catch.js';
-// import styles from "@ironkinoko/rollup-plugin-styles";
 
 /* global process */
-/* eslint-disable no-unused-vars */
 
 const config = {
     // The entry point for the bundler
@@ -26,13 +22,10 @@ const config = {
             exclude: 'node_modules/**',
             babelHelpers: 'bundled'
         }),
-        // Needed to get rid of residual "requires" left in the code by Babel...
         commonjs(),
-        // Resolves references to node_modules packages
         resolve({
             browser: true
         }),
-        // Fix empty catch blocks in libzim files (only for production builds)
         ...(process.env.BUILD === 'production' ? [fixEmptyCatch()] : []),
         // styles({
         //     // mode: 'extract',
