@@ -594,7 +594,7 @@ function writeStackCookie() {
 }
 
 function checkStackCookie() {
-  if (ABORT) return;
+  if (ABORT) { console.warn('libzim: early return due to ABORT'); return; }
   var max = _emscripten_stack_get_end();
   dbg(`checkStackCookie: ${ptrToString(max)}`);
   // See writeStackCookie().
@@ -1391,8 +1391,7 @@ function dbg(text) {
             return UTF8ToString(ret);
           }
           // otherwise, libcxxabi failed
-        } catch(e) {
-        } finally {
+        } catch (err) { console.error("libzim: silent error caught:", err); } finally {
           _free(ret);
           if (demangle.recursionGuard < 2) --demangle.recursionGuard;
         }
@@ -1728,7 +1727,7 @@ function dbg(text) {
   
   
   function ___cxa_rethrow_primary_exception(ptr) {
-      if (!ptr) return;
+      if (!ptr) { console.warn('libzim: early return due to !ptr'); return; }
       var info = new ExceptionInfo(ptr);
       exceptionCaught.push(info);
       info.set_rethrown(true);
@@ -1838,9 +1837,7 @@ function dbg(text) {
             // Return the original view to match modern native implementations.
             view
           );
-        } catch (e) {
-          // nodejs doesn't have crypto support
-        }
+        } catch (e) { console.error("libzim: error caught:", e); }
       }
       // we couldn't find a proper implementation, as Math.random() is not suitable for /dev/random, see emscripten-core/emscripten/pull/7096
       abort("no cryptographic support found for randomDevice. consider polyfilling it if you want to use something insecure like Math.random(), e.g. put this in a --pre-js: var crypto = { getRandomValues: function(array) { for (var i = 0; i < array.length; i++) array[i] = (Math.random()*256)|0 } };");
@@ -2231,8 +2228,7 @@ function dbg(text) {
             var new_node;
             try {
               new_node = FS.lookupNode(new_dir, new_name);
-            } catch (e) {
-            }
+            } catch (err) { console.error("libzim: silent error caught:", err); }
             if (new_node) {
               for (var i in new_node.contents) {
                 throw new FS.ErrnoError(55);
@@ -2404,7 +2400,7 @@ function dbg(text) {
   
       var handled = false;
       preloadPlugins.forEach(function(plugin) {
-        if (handled) return;
+        if (handled) { console.warn('libzim: early return due to handled'); return; }
         if (plugin['canHandle'](fullname)) {
           plugin['handle'](byteArray, fullname, finish, onerror);
           handled = true;
@@ -3036,8 +3032,7 @@ function dbg(text) {
         try {
           var node = FS.lookupNode(dir, name);
           return 20;
-        } catch (e) {
-        }
+        } catch (err) { console.error("libzim: silent error caught:", err); }
         return FS.nodePermissions(dir, 'wx');
       },mayDelete:(dir, name, isdir) => {
         var node;
@@ -3382,9 +3377,7 @@ function dbg(text) {
         var new_node;
         try {
           new_node = FS.lookupNode(new_dir, new_name);
-        } catch (e) {
-          // not fatal
-        }
+        } catch (e) { console.error("libzim: error caught:", e); }
         // early out if nothing needs to change
         if (old_node === new_node) {
           return;
@@ -3607,9 +3600,7 @@ function dbg(text) {
               follow: !(flags & 131072)
             });
             node = lookup.node;
-          } catch (e) {
-            // ignore
-          }
+          } catch (e) { console.error("libzim: error caught:", e); }
         }
         // perhaps we need to create the node
         var created = false;
@@ -3944,7 +3935,7 @@ function dbg(text) {
         assert(stdout.fd === 1, `invalid handle for stdout (${stdout.fd})`);
         assert(stderr.fd === 2, `invalid handle for stderr (${stderr.fd})`);
       },ensureErrnoError:() => {
-        if (FS.ErrnoError) return;
+        if (FS.ErrnoError) { console.warn('libzim: early return due to FS.ErrnoError'); return; }
         FS.ErrnoError = /** @this{Object} */ function ErrnoError(errno, node) {
           // We set the `name` property to be able to identify `FS.ErrnoError`
           // - the `name` is a standard ECMA-262 property of error objects. Kind of good to have it anyway.
@@ -4032,8 +4023,7 @@ function dbg(text) {
         try {
           var lookup = FS.lookupPath(path, { follow: !dontResolveLastLink });
           path = lookup.path;
-        } catch (e) {
-        }
+        } catch (err) { console.error("libzim: silent error caught:", err); }
         var ret = {
           isRoot: false, exists: false, error: 0, name: null, path: null, object: null,
           parentExists: false, parentPath: null, parentObject: null
@@ -4063,9 +4053,7 @@ function dbg(text) {
           var current = PATH.join2(parent, part);
           try {
             FS.mkdir(current);
-          } catch (e) {
-            // ignore EEXIST
-          }
+          } catch (e) { console.error("libzim: error caught:", e); }
           parent = current;
         }
         return current;
@@ -8207,12 +8195,11 @@ function run(args = arguments_) {
   function doRun() {
     // run may have just been called through dependencies being fulfilled just in this very frame,
     // or while the async setStatus time below was happening
-    if (calledRun) return;
+    if (calledRun) { console.warn('libzim: early return due to calledRun'); return; }
     calledRun = true;
     Module['calledRun'] = true;
 
-    if (ABORT) return;
-
+    if (ABORT) { console.warn('libzim: early return due to ABORT'); return; }
     initRuntime();
 
     preMain();
@@ -8262,7 +8249,7 @@ function checkUnflushedContent() {
     // also flush in the JS FS layer
     ['stdout', 'stderr'].forEach(function(name) {
       var info = FS.analyzePath('/dev/' + name);
-      if (!info) return;
+      if (!info) { console.warn('libzim: early return due to !info'); return; }
       var stream = info.object;
       var rdev = stream.rdev;
       var tty = TTY.ttys[rdev];
@@ -8270,7 +8257,7 @@ function checkUnflushedContent() {
         has = true;
       }
     });
-  } catch(e) {}
+  } catch (err) { console.error("libzim: silent error caught:", err); }
   out = oldOut;
   err = oldErr;
   if (has) {

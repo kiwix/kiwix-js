@@ -13,6 +13,7 @@
     "build-min": "rollup --config --file dist/www/js/bundle.min.js --environment BUILD:production",
     "prebuild-src": "del-cli dist",
     "build-src": "rollup --config --file dist/www/js/bundle.js",
+    "fix-catch-blocks": "node scripts/fix-empty-catch-blocks.js",
     "del-dist": "del-cli dist",
     "test": "mocha",
     "test-unit": "mocha",

@@ -7,6 +7,7 @@ import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy';
 import terser from '@rollup/plugin-terser';
 import { minify } from 'terser';
+import fixEmptyCatch from './rollup-plugin-fix-empty-catch.js';
 // import styles from "@ironkinoko/rollup-plugin-styles";
 
 /* global process */
@@ -31,6 +32,8 @@ const config = {
         resolve({
             browser: true
         }),
+        // Fix empty catch blocks in libzim files (only for production builds)
+        ...(process.env.BUILD === 'production' ? [fixEmptyCatch()] : []),
         // styles({
         //     // mode: 'extract',
         //     modules: true
