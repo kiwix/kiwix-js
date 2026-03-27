@@ -173,6 +173,15 @@ describe('ZIM directory entry search and read', function () {
         expect(dirEntryList[0].getTitleOrUrl()).to.equal('Blues Brothers (film)');
     });
 
+    it('FindDirEntriesByTitleRegex /^The Raelettes$/i', async function () {
+        const dirEntryList = await new Promise(resolve => {
+            localZimArchive.findDirEntriesByTitleRegex({ prefix: '/^The Raelettes$/i', size: 5, status: 'init' }, /^The Raelettes$/i, resolve, true);
+        });
+
+        expect(dirEntryList).to.have.length(1);
+        expect(dirEntryList[0].getTitleOrUrl()).to.equal('The Raelettes');
+    });
+
     it('Redirect article "(The Night Time Is) The Right Time" to "Night Time Is the Right Time"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/(The_Night_Time_Is)_The_Right_Time.html');
         expect(dirEntry).to.not.be.null;

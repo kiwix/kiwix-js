@@ -320,8 +320,8 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
     var startArray = [];
     var dirEntries = [];
     search.scanCount = 0;
-    // Launch a full-text search if possible
-    if (LZ) {
+    // Launch a full-text search if possible, unless the caller requested regex title search
+    if (LZ && !search.regex) {
         that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
             // If user initiated a new search, cancel this one
             // In particular, do not set the search status back to 'complete'
@@ -387,6 +387,49 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
         );
     }
     searchNextVariant();
+};
+
+/**
+ * Look for DirEntries whose titles match a regular expression.
+ * This is intentionally limited to title search, since full-text search is term-indexed.
+ *
+ * @param {Object} search The current appstate.search object
+ * @param {RegExp} regex Regular expression to match against title strings
+ * @param {callbackDirEntryList} callback The function to call with the result
+ * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing)
+ */
+ZIMArchive.prototype.findDirEntriesByTitleRegex = function (search, regex, callback, noInterim) {
+    var that = this;
+    var dirEntries = [];
+    var articleCount = this.file.articleCount || this.file.entryCount;
+    var cns = this.getContentNamespace();
+    search.scanCount = 0;
+    search.status = 'interim';
+
+    var addDirEntries = function (index) {
+        if (search.status === 'cancelled' || search.found >= search.size || index >= articleCount) {
+            if (dirEntries.length) {
+                console.debug('Scanned ' + search.scanCount + ' titles with regex "' + regex.source +
+                    '" (found ' + dirEntries.length + ' match' + (dirEntries.length === 1 ? ')' : 'es)'));
+            }
+            return dirEntries;
+        }
+        return that.file.dirEntryByTitleIndex(index).then(function (dirEntry) {
+            search.scanCount++;
+            var title = dirEntry.getTitleOrUrl();
+            if (dirEntry.namespace === cns && regex.test(title)) {
+                dirEntries.push(dirEntry);
+            }
+            return addDirEntries(index + 1);
+        });
+    };
+
+    addDirEntries(0).then(function () {
+        if (search.status === 'cancelled') return callback([], search);
+        search.type = 'regex';
+        search.status = 'complete';
+        callback(dirEntries, search);
+    });
 };
 
 /**
