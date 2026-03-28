@@ -67,7 +67,7 @@ var selectedArchive = null;
 appstate['search'] = {
     prefix: '', // A field to hold the original search string
     status: '', // The status of the search: ''|'init'|'interim'|'cancelled'|'complete'
-    type: '' // The type of the search: 'basic'|'full' (set automatically in search algorithm)
+    type: '' // The type of the search: 'basic'|'full'|'regex' (set automatically in search algorithm)
 };
 
 // A Boolean to store the update status of the PWA version (currently only used with Firefox Extension)
@@ -2248,6 +2248,21 @@ function onKeyUpPrefix () {
  * with a binary search inside the index file)
  * @param {String} prefix The string that must appear at the start of any title searched for
  */
+function parseTitleRegexSearch (prefix) {
+    var regexMatch = /^\/(.+)\/([gimsuy]*)$/.exec(prefix);
+    if (!regexMatch) return null;
+    try {
+        var flags = (regexMatch[2] || 'i').replace(/g/g, '');
+        return {
+            raw: prefix,
+            regex: new RegExp('^' + regexMatch[1], flags)
+        };
+    } catch (err) {
+        console.warn('Invalid title regex search: ' + prefix, err);
+        return null;
+    }
+}
+
 function searchDirEntriesFromPrefix (prefix) {
     if (selectedArchive && selectedArchive.isReady()) {
         // Cancel the old search (zimArchive search object will receive this change)
@@ -2259,7 +2274,15 @@ function searchDirEntriesFromPrefix (prefix) {
         appstate.search = { prefix: prefix, status: 'init', type: '', size: params.maxSearchResultsSize };
         var activeContent = document.getElementById('activeContent');
         if (activeContent) activeContent.style.display = 'none';
-        selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
+        var regexSearch = parseTitleRegexSearch(prefix);
+        if (regexSearch) {
+            appstate.search.regex = true;
+            appstate.search.type = 'regex';
+            selectedArchive.findDirEntriesByTitleRegex(appstate.search, regexSearch.regex, populateListOfArticles, false);
+        } else {
+            appstate.search.regex = false;
+            selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
+        }
     } else {
         uiUtil.spinnerDisplay(false);
         // We have to remove the focus from the search field,

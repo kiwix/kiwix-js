@@ -241,6 +241,11 @@
                         available, look in the API panel at the bottom of the Configuration page after you have loaded a ZIM. If it says "Xapian [fulltext]" then
                         it should be automatically enabled for that ZIM.
                     </p>
+                    <p data-i18n="about-search-para2b">
+                        <b>Regex title search:</b> If you type a pattern in the form <code>/pattern/flags</code>, the app searches article titles using a regular
+                        expression. This is limited to titles only, so it does not apply to full-text search. For example, <code>/^France/</code> matches titles
+                        that start with "France". If the regex is invalid, the app falls back to normal title search.
+                    </p>
                     <p style="text-align: right"><a href="#contents" data-i18n="about-back-contents">↑ Back to Contents</a></p>
                     
                     <h3 id="removeNavbars" data-i18n="about-remove-navbars">Removing navigation bars</h3>
