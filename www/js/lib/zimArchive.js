@@ -396,9 +396,8 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
  * @param {Object} search The current appstate.search object
  * @param {RegExp} regex Regular expression to match against title strings
  * @param {callbackDirEntryList} callback The function to call with the result
- * @param {Boolean} noInterim A flag to prevent callback until all results are ready (used in testing)
  */
-ZIMArchive.prototype.findDirEntriesByTitleRegex = function (search, regex, callback, noInterim) {
+ZIMArchive.prototype.findDirEntriesByTitleRegex = function (search, regex, callback) {
     var that = this;
     var dirEntries = [];
     var articleCount = this.file.articleCount || this.file.entryCount;
