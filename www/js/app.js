@@ -3291,8 +3291,22 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 e.stopPropagation();
                 // Prevent display of any popovers because we're loading a new article
                 anchor.articleisloading = true;
-                anchorParameter = href.match(/#([^#;]+)$/);
-                anchorParameter = anchorParameter ? anchorParameter[1] : '';
+                // Extract anchor from href - match everything after # until end of string
+                // This handles anchors with semicolons, parentheses, and other special characters
+                var anchorMatch = href.match(/#(.+)$/);
+                var anchorParameterEncoded = anchorMatch ? anchorMatch[1] : '';
+                // Decode the anchor to match element IDs on the page.
+                // URLs may be encoded, but IDs are not. Keep the encoded value for the URL.
+                anchorParameter = anchorParameterEncoded;
+                if (anchorParameterEncoded) {
+                    try {
+                        anchorParameter = decodeURIComponent(anchorParameterEncoded);
+                    } catch (e) {
+                        // If decoding fails (e.g., malformed encoding), use the original value
+                        console.debug('Failed to decode anchor parameter, using original:', anchorParameterEncoded, e);
+                        anchorParameter = anchorParameterEncoded;
+                    }
+                }
                 var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
                 var zimRoot = indexRoot.replace(/^.+?\/www\//, '/');
                 var zimUrl = href;
@@ -3301,10 +3315,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 zimUrl = zimUrl.replace(/^\s+|\s+$/g, '');
                 if (/zimit/.test(params.zimType)) {
                     // Deal with root-relative URLs in zimit ZIMs
+                    // Use the encoded anchor for URL manipulation to ensure proper matching
                     if (!zimUrl.indexOf(indexRoot)) { // If begins with indexRoot
-                        zimUrl = zimUrl.replace(indexRoot, '').replace('#' + anchorParameter, '');
+                        zimUrl = zimUrl.replace(indexRoot, '').replace('#' + anchorParameterEncoded, '');
                     } else if (!zimUrl.indexOf(zimRoot)) { // If begins with zimRoot
-                        zimUrl = zimUrl.replace(zimRoot, '').replace('#' + anchorParameter, '');
+                        zimUrl = zimUrl.replace(zimRoot, '').replace('#' + anchorParameterEncoded, '');
                     } else if (/^\//.test(zimUrl)) {
                         zimUrl = zimUrl.replace(/^\//, selectedArchive.zimitPseudoContentNamespace + selectedArchive.zimitPrefix.replace(/^A\//, ''));
                     } else if (!~zimUrl.indexOf(selectedArchive.zimitPseudoContentNamespace)) { // Doesn't begin with pseudoContentNamespace
@@ -3312,7 +3327,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                         // deriveZimUrlFromRelativeUrls strips any querystring and decodes
                         var zimUrlToTransform = zimUrl;
                         zimUrl = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl)) +
-                            href.replace(uriComponent, '').replace('#' + anchorParameter, '');
+                            href.replace(uriComponent, '').replace('#' + anchorParameterEncoded, '');
                         // zimUrlFullEncoding = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(zimUrlToTransform, appstate.baseUrl) +
                         //     href.replace(uriComponent, '').replace('#' + anchorParameter, ''));
                     }
