@@ -27,7 +27,7 @@
 import zimfile from './zimfile.js';
 import zimDirEntry from './zimDirEntry.js';
 import util from './util.js';
-import uiUtil from './uiUtil.js';
+// import uiUtil from './uiUtil.js';
 import utf8 from './utf8.js';
 import translateUI from './translateUI.js';
 
@@ -160,9 +160,9 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         if (params.useLibzim) whenZimReady();
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
                         // Update the API panel
-                        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+                        // uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {
-                        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
+                        // uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
                         console.error('The libzim worker could not be instantiated!', err);
                         that.libzimReady = 'error';
                     });
@@ -181,7 +181,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     } else {
                         params.searchProvider += ': unknown';
                     }
-                    uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
+                    // uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                 }
                 // Set the archive file type ('open', 'zimit' or 'zimit2')
                 return that.addMetadataToZIMFile('Scraper').then(function () {
