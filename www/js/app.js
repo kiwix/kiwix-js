@@ -2273,6 +2273,36 @@ function searchDirEntriesFromPrefix (prefix) {
 }
 
 /**
+ * Compute the Levenshtein (edit) distance between two strings using an iterative DP matrix approach
+ * @param {String} a First string
+ * @param {String} b Second string
+ * @returns {Number} The edit distance between a and b
+ */
+function levenshteinDistance (a, b) {
+    var m = a.length;
+    var n = b.length;
+    var dp = [];
+    var i, j;
+    for (i = 0; i <= m; i++) {
+        dp[i] = new Array(n + 1);
+        dp[i][0] = i;
+    }
+    for (j = 0; j <= n; j++) {
+        dp[0][j] = j;
+    }
+    for (i = 1; i <= m; i++) {
+        for (j = 1; j <= n; j++) {
+            if (a.charAt(i - 1) === b.charAt(j - 1)) {
+                dp[i][j] = dp[i - 1][j - 1];
+            } else {
+                dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+            }
+        }
+    }
+    return dp[m][n];
+}
+
+/**
  * Display the list of articles with the given array of DirEntry
  * @param {Array} dirEntryArray The array of dirEntries returned from the binary search
  * @param {Object} reportingSearch The reporting search object
@@ -2331,6 +2361,53 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
+
+    // "Did you mean…?" suggestions when search returns zero results
+    if (nbDirEntry === 0 && !stillSearching && selectedArchive && selectedArchive.isReady()) {
+        var originalQuery = reportingSearch.prefix;
+        if (originalQuery && originalQuery.length > 0) {
+            var words = originalQuery.trim().split(/\s+/);
+            var suggestionPrefix;
+            if (words.length === 1) {
+                // Single-word query: use first 5 characters as prefix
+                suggestionPrefix = originalQuery.substring(0, 5);
+            } else {
+                // Multi-word query: use the last word (typos most commonly occur at the end)
+                suggestionPrefix = words[words.length - 1];
+            }
+            var suggestionSearchObj = { prefix: suggestionPrefix, status: 'init', type: '', size: 50, found: 0, scanCount: 0 };
+            selectedArchive.findDirEntriesWithPrefixCaseSensitive(suggestionPrefix, suggestionSearchObj,
+                function (result, countReport, interim) {
+                    if (interim) {
+                        suggestionSearchObj.found++;
+                        return;
+                    }
+                    var candidates = result && result.dirEntries ? result.dirEntries : [];
+                    if (candidates.length === 0) return;
+                    // Rank candidates by Levenshtein distance to the original query
+                    var queryLower = originalQuery.toLocaleLowerCase();
+                    var ranked = candidates.map(function (entry) {
+                        var title = entry.title || entry.getTitleOrUrl();
+                        return { entry: entry, title: title, distance: levenshteinDistance(queryLower, title.toLocaleLowerCase()) };
+                    });
+                    ranked.sort(function (a, b) { return a.distance - b.distance; });
+                    var top = ranked.slice(0, 5);
+                    // Build suggestion HTML using the same DOM/rendering patterns as the article list
+                    var suggestionsHtml = '<div style="padding:8px 15px;font-style:italic;">Did you mean\u2026?</div>';
+                    for (var s = 0; s < top.length; s++) {
+                        var sEntry = top[s].entry;
+                        var sDirEntryStringId = encodeURIComponent(sEntry.toStringId());
+                        var sTitle = top[s].title;
+                        suggestionsHtml += '<a href="#" dirEntryId="' + sDirEntryStringId +
+                            '" class="list-group-item" role="option">' + sTitle + '</a>';
+                    }
+                    articleListDiv.innerHTML += suggestionsHtml;
+                    // Re-attach event listeners for the newly added suggestion links
+                    uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);
+                }
+            );
+        }
+    }
 }
 
 /**
