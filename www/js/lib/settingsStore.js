@@ -68,95 +68,10 @@ function getBestAvailableStorageAPI() {
  * Or, if a parameter is supplied, deletes or disables the object
  * @param {String} object Optional name of the object to disable or delete ('cookie', 'localStorage', 'indexedDB', 'cacheAPI')
  */
-// function reset(object) {
-//     // 1. Clear any cookie entries
-//     if (!object || object === 'cookie') {
-//         var regexpCookieKeys = /(?:^|;)\s*([^=]+)=([^;]*)/ig;
-//         var currentCookie = document.cookie;
-//         var foundCrumb = false;
-//         var cookieCrumb = regexpCookieKeys.exec(currentCookie);
-//         while (cookieCrumb !== null) {
-//             // DEV: Note that we don't use the keyPrefix in legacy cookie support
-//             foundCrumb = true;
-//             // This expiry date will cause the browser to delete the cookie crumb on next page refresh
-//             document.cookie = cookieCrumb[1] + '=;expires=Thu, 21 Sep 1979 00:00:01 UTC;';
-//             cookieCrumb = regexpCookieKeys.exec(currentCookie);
-//         }
-//         if (foundCrumb) console.debug('All cookie keys were expired...');
-//     }
 
-//     // 2. Clear any localStorage settings
-//     if (!object || object === 'localStorage') {
-//         if (params.storeType === 'local_storage') {
-//             localStorage.clear();
-//             console.debug('All Local Storage settings were deleted...');
-//         }
-//     }
-
-//     // 3. Clear any IndexedDB databases
-//     if (!object || object === 'indexedDB') {
-//         if (window.indexedDB) {
-//             // Attempt to delete all databases (only works in Chromium-based browsers)
-//             if (indexedDB.databases) {
-//                 var result = 0;
-//                 indexedDB.databases().then(function (dbs) {
-//                     dbs.forEach(function (db) {
-//                         result++;
-//                         indexedDB.deleteDatabase(db.name);
-//                         console.debug('Deleting ' + db.name + '...');
-//                     });
-//                 }).then(function () {
-//                     console.debug('Deleted ' + result + ' indexedDB databases...');
-//                 }).catch(function (err) {
-//                     console.error('Error deleting indexedDB databases', err);
-//                 });
-//             } else {
-//                 // For Firefox, we can only delete databases we know the names of
-//                 var dbNames = [params.cacheIDB, 'collDB'];
-//                 dbNames.forEach(function (dbName) {
-//                     var deleteRequest = indexedDB.deleteDatabase(dbName);
-//                     deleteRequest.onsuccess = function () {
-//                         console.debug('Deleted ' + dbName + '...');
-//                     }
-//                     deleteRequest.onerror = function (ev) {
-//                         console.error('Error deleting ' + dbName + '...', ev);
-//                     }
-//                 });
-//             }
-//         }
-//     }
-
-//     // 4. Clear any Cache API caches
-//     if (!object || object === 'cacheAPI') {
-//         if ('caches' in window) {
-//             // Get all cache names directly from Cache API
-//             caches.keys().then(function (cacheNames) {
-//                 if (cacheNames && cacheNames.length > 0) {
-//                     var deletePromises = cacheNames.map(function (cacheName) {
-//                         console.debug('Deleting cache: ' + cacheName);
-//                         return caches.delete(cacheName);
-//                     });
-
-//                     return Promise.all(deletePromises);
-//                 }
-//             }).then(function () {
-//                 console.debug('All Cache API caches were deleted...');
-//                 // Reload if user performed full reset or if appCache is needed
-//                 if (!object || params.appCache) _reloadApp();
-//             }).catch(function (err) {
-//                 console.error('Error deleting caches:', err);
-//                 // Still reload on error
-//                 if (!object || params.appCache) _reloadApp();
-//             });
-//         } else {
-//             console.debug('Cache API not available');
-//             if (!object || params.appCache) _reloadApp();
-//         }
-//     }
-// }
-function reset(object) {
+function reset (object) {
     // Helper function to handle reload after all operations
-    var shouldReload = function () {
+    var shouldReload = function() {
         return !object || params.appCache;
     };
 
@@ -188,16 +103,21 @@ function reset(object) {
         if (window.indexedDB) {
             if (indexedDB.databases) {
                 indexedDBPromise = indexedDB.databases().then(function (dbs) {
-                    var deletePromises = dbs.map(function (db) {
+                    var deletePromises = dbs.map(function(db) {
+                        if (!db.name) return Promise.resolve(); 
                         console.debug('Deleting ' + db.name + '...');
-                        return new Promise(function (resolve) {
+                        return new Promise(function(resolve) {
                             var req = indexedDB.deleteDatabase(db.name);
                             req.onsuccess = resolve;
-                            req.onerror = resolve; // Resolve even on error
+                            req.onerror = resolve;
+                            req.onblocked = function(ev) { 
+                                console.warn('IDB delete blocked: ' + db.name, ev);
+                                resolve();
+                            };
                         });
                     });
                     return Promise.all(deletePromises);
-                }).then(function () {
+                }).then(function() {
                     console.debug('Deleted all indexedDB databases...');
                 }).catch(function (err) {
                     console.error('Error deleting indexedDB databases', err);
@@ -205,8 +125,9 @@ function reset(object) {
             } else {
                 // For Firefox
                 var dbNames = [params.cacheIDB, 'collDB'];
-                var deletePromises = dbNames.map(function (dbName) {
-                    return new Promise(function (resolve) {
+                var deletePromises = dbNames.map(function(dbName) {
+                    if (!dbName) return Promise.resolve(); 
+                    return new Promise(function(resolve) {
                         var deleteRequest = indexedDB.deleteDatabase(dbName);
                         deleteRequest.onsuccess = function () {
                             console.debug('Deleted ' + dbName + '...');
@@ -214,7 +135,11 @@ function reset(object) {
                         };
                         deleteRequest.onerror = function (ev) {
                             console.error('Error deleting ' + dbName + '...', ev);
-                            resolve(); // Resolve even on error
+                            resolve();
+                        };
+                        deleteRequest.onblocked = function(ev) {
+                            console.warn('IDB delete blocked: ' + dbName, ev);
+                            resolve();
                         };
                     });
                 });
@@ -223,7 +148,7 @@ function reset(object) {
         }
     }
 
-    // 4. Clear any Cache API caches
+    // 4. Clear any Cache API caches - delete ALL caches (no filter)
     var cachePromise = Promise.resolve();
     if (!object || object === 'cacheAPI') {
         if ('caches' in window) {
@@ -246,19 +171,17 @@ function reset(object) {
     }
 
     // Wait for all async operations to complete before reloading
-    Promise.all([indexedDBPromise, cachePromise]).then(function () {
+    Promise.all([indexedDBPromise, cachePromise]).then(function() {
         if (shouldReload()) {
             _reloadApp();
         }
-    }).catch(function (err) {
+    }).catch(function(err) {
         console.error('Error during reset:', err);
         if (shouldReload()) {
             _reloadApp();
         }
     });
 }
-
-
 
 // Gets cache names from Service Worker, as we cannot rely on having them in params.cacheNames
 function getCacheNames(callback) {
