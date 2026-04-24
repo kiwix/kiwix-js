@@ -51,13 +51,13 @@ if [ "${TAG}zz" == "zz" ]; then
             # echo "It might be because this commit id has already been signed : let's look for it in a previous nightly build"
             # FOUND=0
             # FNAME="kiwix-firefox-signed-extension-${VERSION}.xpi"
-            # REMOTE="ci@master.download.kiwix.org:/data/download/nightly/"
-            # for DATE in $(echo "ls -1" | sftp -P 30022 -i ../scripts/ssh_key -o 'StrictHostKeyChecking=no' $REMOTE |grep -E "^\d{4}-\d{2}-\d{2}$"); do
+            # REMOTE="kiwix-js@master.download.kiwix.org:/data/download/nightly/"
+            # for DATE in $(echo "ls -1" | sftp -P 30322 -i ../scripts/ssh_key -o 'StrictHostKeyChecking=no' $REMOTE |grep -E "^\d{4}-\d{2}-\d{2}$"); do
             #     echo "Checking ${DATE}..."
-            #     REMOTEPATH="ci@master.download.kiwix.org:/data/download/nightly/${DATE}"
-            #     FILE=$(echo "ls ${FNAME}" | sftp -P 30022 -i ../scripts/ssh_key -o 'StrictHostKeyChecking=no' $REMOTEPATH 2> /dev/null |grep $FNAME |grep -vE "^sftp")
+            #     REMOTEPATH="kiwix-js@master.download.kiwix.org:/data/download/nightly/${DATE}"
+            #     FILE=$(echo "ls ${FNAME}" | sftp -P 30322 -i ../scripts/ssh_key -o 'StrictHostKeyChecking=no' $REMOTEPATH 2> /dev/null |grep $FNAME |grep -vE "^sftp")
             #     if [ ! -z "$FILE" ]; then
-            #         scp -P 30022 -o StrictHostKeyChecking=no -i ../scripts/ssh_key $REMOTEPATH/$FILE ./
+            #         scp -P 30322 -o StrictHostKeyChecking=no -i ../scripts/ssh_key $REMOTEPATH/$FILE ./
             #         FOUND=1
             #         # We only need the first matching file
             #         break

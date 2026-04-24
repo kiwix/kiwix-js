@@ -51,7 +51,7 @@ jobs:
       # Set up secret files from encrypted secrets
       - name: Set up secret files and copy needed scripts to dist
         env:
-          KIWIX_FILE_UPLOAD_SSH_KEY: ${{ secrets.KIWIX_FILE_UPLOAD_SSH_KEY }}
+          KIWIX_FILE_UPLOAD_SSH_KEY: ${{ secrets.KIWIXJS_FILE_UPLOAD_KEY }}
           CHROME_EXTENSION_KEY: ${{ secrets.CHROME_EXTENSION_KEY }}
         shell: bash
         run: |
