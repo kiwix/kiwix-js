@@ -141,8 +141,8 @@ fi
 if [ -z "${DRYRUN}" ]; then
     # Upload the files on master.download.kiwix.org
     echo -e "\nUploading the files to https://download.kiwix.org/nightly/$CURRENT_DATE/"
-    echo "mkdir /data/download/nightly/$CURRENT_DATE" | sftp -P 30022 -o StrictHostKeyChecking=no -i ./scripts/ssh_key ci@master.download.kiwix.org
-    scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* ci@master.download.kiwix.org:/data/download/nightly/$CURRENT_DATE
+    echo "mkdir /data/download/nightly/$CURRENT_DATE" | sftp -P 30322 -o StrictHostKeyChecking=no -i ./scripts/ssh_key kiwix-js@master.download.kiwix.org
+    scp -P 30322 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/* kiwix-js@master.download.kiwix.org:/data/kiwix/nightly/$CURRENT_DATE
 else
     echo -e "\n[DRYRUN] Would have uploaded these files to https://download.kiwix.org/nightly/$CURRENT_DATE/ :\n"
     ls -l build/*
@@ -151,10 +151,10 @@ fi
 if [ -n "$TAG" ]; then
     if [ -z "${DRYRUN}" ]; then
         echo -e "\nUploading the files to https://download.kiwix.org/release/"
-        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-firefoxos* ci@master.download.kiwix.org:/data/download/release/firefox-os
-        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-ubuntu-touch* ci@master.download.kiwix.org:/data/download/release/ubuntu-touch
-        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome-signed*mv2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/chrome/kiwix-chrome-mv2_$VERSION.zip
-        scp -P 30022 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome-signed*mv2*.zip ci@master.download.kiwix.org:/data/download/release/browsers/edge/kiwix-edge-mv2_$VERSION.zip
+        scp -P 30322 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-firefoxos* kiwix-js@master.download.kiwix.org:/data/kiwix/release/firefox-os
+        scp -P 30322 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-ubuntu-touch* kiwix-js@master.download.kiwix.org:/data/kiwix/release/ubuntu-touch
+        scp -P 30322 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome-signed*mv2*.zip kiwix-js@master.download.kiwix.org:/data/kiwix/release/browsers/chrome/kiwix-chrome-mv2_$VERSION.zip
+        scp -P 30322 -r -p -o StrictHostKeyChecking=no -i ./scripts/ssh_key build/kiwix-chrome-signed*mv2*.zip kiwix-js@master.download.kiwix.org:/data/kiwix/release/browsers/edge/kiwix-edge-mv2_$VERSION.zip
     else
         echo -e "\n[DRRUN] Would have uploaded these files to https://download.kiwix.org/release/ :\n"
         ls -l build/kiwix-firefoxos*
