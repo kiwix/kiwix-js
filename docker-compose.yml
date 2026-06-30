@@ -1,0 +1,6 @@
+services:
+  kiwix-js:
+    image: ghcr.io/kiwix/kiwix-moz-extension:latest
+    ports:
+      - "8080:80"
+    restart: unless-stopped
