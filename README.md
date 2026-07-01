@@ -99,6 +99,29 @@ Chrome or Edge Stores. **_For this reason, the browser will periodically ask you
 If drag-and-drop is difficult, you can instead unzip the extension ZIP into a folder, and note the location. Then select "Load unpacked" and choose  the folder that contains the
 unzipped extension. To unzip the MV2 files with a utility like 7Zip, you will need to change the extension name to `.crx`. On Linux, `unzip` can read them without changing the filename.
 
+## Self-hosting with Docker
+
+Kiwix JS is also published as a container image to the GitHub Container Registry (GHCR) on every release, allowing you to self-host your own instance of the browser-based application available at [browser-extension.kiwix.org](https://browser-extension.kiwix.org).
+
+Clone this repository and use the provided [`docker-compose.yml`](docker-compose.yml) to get started immediately:
+
+```bash
+docker compose up -d
+```
+
+Or pull and run the published container image directly (replace `8080` with your preferred port):
+
+```bash
+docker run -d -p 8080:80 ghcr.io/kiwix/kiwix-moz-extension:latest
+```
+
+Then open `http://localhost:8080` in your browser. With `docker compose`, you can omit `-d` to run in the foreground and view logs. You can also change the host port in [`docker-compose.yml`](docker-compose.yml).
+
+**Important notes:**
+
+- ZIM archives must still be selected manually through the application's file picker. Because Kiwix JS is a web application, it uses browser APIs to access local files, so archives must be available on the machine where the browser is running or via a network mount. If you need to serve ZIM archives over a local network, consider using [kiwix-serve](https://github.com/kiwix/kiwix-tools).
+- When accessed via `localhost`, Kiwix JS runs in full ServiceWorker mode. If served over a LAN without HTTPS, browsers will treat the origin as insecure and the application will fall back to Restricted mode. This mode is generally suitable for reading older archives.
+
 ## Some technical details
 
 Technically, after reading an article from a ZIM file, it is necessary to "inject" the dependencies (images, css, etc). For compatibility reasons,
