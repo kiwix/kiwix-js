@@ -121,6 +121,7 @@ Then open `http://localhost:8080` in your browser. With `docker compose`, you ca
 
 - ZIM archives must still be selected manually through the application's file picker. Because Kiwix JS is a web application, it uses browser APIs to access local files, so archives must be available on the machine where the browser is running or via a network mount. If you need to serve ZIM archives over a local network, consider using [kiwix-serve](https://github.com/kiwix/kiwix-tools).
 - When accessed via `localhost`, Kiwix JS runs in full ServiceWorker mode. If served over a LAN without HTTPS, browsers will treat the origin as insecure and the application will fall back to Restricted mode. This mode is generally suitable for reading older archives.
+- The provided configuration uses the `latest` image tag by default so that new releases can be pulled automatically. For production deployments, you may prefer to pin the image to a specific release tag to ensure reproducible deployments.
 
 ## Some technical details
 
