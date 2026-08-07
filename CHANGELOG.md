@@ -4,9 +4,19 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Interim update Kiwix JS v4.3.1
+## Interim update Kiwix JS v4.3.2
 
 * CRITICAL UPDATE: Fix failure of Service Worker to discover remote PWA in Chromium extensions
+* ENHACEMENT: Prevent glaring white flash on startup by pre-applying dark theme
+* UPDATE: Update javascript-libzim binaries to v0.95
+* UPDATE: Update main library URL so CORS is detected
+* FIX: Typo in URI parameter in settingsStore which prevented state passing between local extension and PWA
+* FIX: Properly clear App Cache and IndexedDB on app reset
+* FIX: Allow more permissive CSP to frame kiwix.org sites in library iframe
+* DEV: Rename SSH key secret, and adapt to new destinations for releases and nightly packages
+* DEV: Fix breaking IE11 test
+* DEV: Add Docker Compose configuration and documentation
+* DEV: Multiple security updates to dependencies
 
 ## Kiwix JS v4.3.0
 
