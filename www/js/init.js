@@ -53,6 +53,7 @@
  * @property {boolean} useCanvasElementsForWebpTranscoding - A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images directly with the canvas elements produced by the WebP polyfill.
  * @property {string} libraryUrl - The URL of the Kiwix library.
  * @property {string} altLibraryUrl - The alternative URL of the Kiwix library in non-supported browsers.
+ * @property {string} altLibraryProbe - The URL of a small image used to test whether altLibraryUrl is reachable.
  * @property {string} cacheAPI - Name of the prefix used to identify the cache in Cache API
  * @property {string} cacheIDB - Name of the Indexed DB database
  * @property {boolean} isFileSystemApiSupported - A boolean indicating whether the FileSystem API is supported.
@@ -132,10 +133,20 @@ params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
 params['libraryUrl'] = 'https://browse.library.kiwix.org/'; // Url for iframe that will be loaded to download new zim files
-params['altLibraryUrl'] = 'https://download.kiwix.org/zim/'; // Alternative Url for iframe (for use with unsupported browsers) that will be loaded to download new zim files
-params['kiwixDownloadMirrors'] = ['https://ftp.fau.de/kiwix/zim/', 'https://mirrors.dotsrc.org/kiwix/zim/',
-    'https://www.mirrorservice.org/sites/download.kiwix.org/zim/', 'https://md.mirrors.hacktegic.com/kiwix-md/zim/',
-    'https://laotzu.ftp.acc.umu.se/mirror/kiwix.org/zim/', 'https://saimei.ftp.acc.umu.se/mirror/kiwix.org/zim/'];
+// Alternative Url for iframe (for use with unsupported browsers) that will be loaded to download new zim files.
+// NB https://download.kiwix.org/zim/ no longer serves a browsable index (it redirects to hub.kiwix.org, which old
+// browsers cannot render), so we point at a mirror that still publishes a traditional file listing [kiwix-js #1461]
+params['altLibraryUrl'] = 'https://ftp.fau.de/kiwix/zim/';
+// A small static image on the same server as altLibraryUrl. That server sends no CORS headers, so we cannot probe it
+// with XMLHttpRequest; image loading is exempt from CORS, so we use this to test reachability instead [kiwix-js #1461].
+// NB if you change the host here, you must also add it to the Content-Security-Policy in index.html
+params['altLibraryProbe'] = 'https://ftp.fau.de/icons/blank.gif';
+// Emergency hardcoded list of mirrors, shown if neither the primary nor the alternative library can be reached
+params['kiwixDownloadMirrors'] = ['https://ftp.fau.de/kiwix/zim/', 'https://dumps.wikimedia.org/kiwix/zim/',
+    'https://mirrors.dotsrc.org/kiwix/zim/', 'https://www.mirrorservice.org/sites/download.kiwix.org/zim/',
+    'https://mirror.accum.se/mirror/kiwix.org/zim/', 'https://ftp.nluug.nl/pub/kiwix/zim/',
+    'https://mirror-sites-fr.mblibrary.info/mirror-sites/download.kiwix.org/zim/',
+    'https://mirror-sites-in.mblibrary.info/mirror-sites/download.kiwix.org/zim/'];
 params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the cache in Cache API
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
