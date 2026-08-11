@@ -294,22 +294,66 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // handling clicks on dropup separately
     const dropupClickHandler = function () {
-        const isVisible = getComputedStyle(ToCList).display !== 'none';
-        if (isVisible) {
-            ToCList.style.display = 'none';
-        } else {
-            setUpTOC();
-            ToCList.style.display = 'flex';
-            ToCList.style.flexDirection = 'column';
-        }
+        setTOCVisible(!tocIsOpen());
     };
     dropup.removeEventListener('click', dropupClickHandler);
     dropup.addEventListener('click', dropupClickHandler);
+
+    // Keyboard handling that Bootstrap's dropdown plugin used to provide for us: Escape closes the
+    // ToC and returns focus to the button, and Up/Down move between entries (wrapping at each end).
+    // NB IE11 reports the legacy key names 'Esc', 'Up' and 'Down', hence the permissive patterns.
+    const dropupKeyHandler = function (event) {
+        if (!tocIsOpen()) return;
+        if (/^Esc/.test(event.key)) {
+            event.preventDefault();
+            closeTOC();
+            dropup.focus();
+        } else if (/^(?:Arrow)?(?:Down|Up)$/.test(event.key)) {
+            const items = Array.from(ToCList.getElementsByTagName('a'));
+            if (!items.length) return;
+            event.preventDefault();
+            const step = /Down$/.test(event.key) ? 1 : -1;
+            const current = items.indexOf(document.activeElement);
+            // Entering the list from the button starts at whichever end matches the direction of travel
+            const next = current === -1 ? (step > 0 ? 0 : items.length - 1)
+                : (current + step + items.length) % items.length;
+            items[next].focus();
+        }
+    };
+    document.removeEventListener('keydown', dropupKeyHandler);
+    document.addEventListener('keydown', dropupKeyHandler);
 });
 
-function closeTOC () {
+/**
+ * Reports whether the Table of Contents dropup is currently open
+ * @returns {Boolean} True if the ToC list is visible
+ */
+function tocIsOpen () {
     const ToCList = document.getElementById('ToCList');
-    ToCList.style.display = 'none';
+    return !!ToCList && getComputedStyle(ToCList).display !== 'none';
+}
+
+/**
+ * Shows or hides the Table of Contents, keeping the dropup button's aria-expanded state in sync.
+ * Bootstrap's dropdown plugin used to maintain that attribute for us, but we no longer load it.
+ * @param {Boolean} visible True to open the ToC, false to close it
+ */
+function setTOCVisible (visible) {
+    const ToCList = document.getElementById('ToCList');
+    const dropup = document.getElementById('dropup');
+    if (!ToCList) return;
+    if (visible) {
+        setUpTOC();
+        ToCList.style.display = 'flex';
+        ToCList.style.flexDirection = 'column';
+    } else {
+        ToCList.style.display = 'none';
+    }
+    if (dropup) dropup.setAttribute('aria-expanded', visible ? 'true' : 'false');
+}
+
+function closeTOC () {
+    setTOCVisible(false);
 }
 
 // get all parent elements which are 'section' or 'details'
@@ -1543,14 +1587,30 @@ function detectNativeZIMThemeSupport (zimDocument) {
     return false;
 }
 
+/**
+ * Opens or closes the collapsible navbar, keeping the toggler's aria-expanded state in sync.
+ * Bootstrap's collapse plugin used to maintain that attribute for us, but we no longer load it,
+ * so every path that opens or closes the navbar must go through this function.
+ * @param {Boolean} [show] True to open the navbar, false to close it; omit to toggle current state
+ */
+function toggleNavbar (show) {
+    var navbarCollapse = document.querySelector('.navbar-collapse');
+    var toggler = document.querySelector('.navbar-toggler');
+    if (!navbarCollapse) return;
+    // NB the second ('force') argument of classList.toggle is unsupported in IE11, so we branch manually
+    var expanded = typeof show === 'undefined' ? !navbarCollapse.classList.contains('show') : !!show;
+    if (expanded) navbarCollapse.classList.add('show');
+    else navbarCollapse.classList.remove('show');
+    if (toggler) toggler.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+}
+
 // Function to switch back to currently loaded page
 function returnToCurrentPage () {
     document.getElementById('liConfigureNav').classList.remove('active');
     document.getElementById('liAboutNav').classList.remove('active');
     document.getElementById('liHomeNav').classList.add('active');
     document.getElementById('btnHome').focus();
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
+    toggleNavbar(false);
     tabTransitionToSection('home', params.showUIAnimations);
     const welcomeText = document.getElementById('welcomeText');
     welcomeText.style.display = 'none';
@@ -1855,6 +1915,7 @@ export default {
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
     setUpTOC: setUpTOC,
+    toggleNavbar: toggleNavbar,
     removeUrlParameters: removeUrlParameters,
     displayActiveContentWarning: displayActiveContentWarning,
     displayFileDownloadAlert: displayFileDownloadAlert,

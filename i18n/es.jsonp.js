@@ -13,6 +13,7 @@ document.localeJson = {
       "home-btn-back": "Atrás",
       "home-btn-fileselect": "Seleccione archivo(s) ZIM",
       "home-btn-forward": "Adelante",
+      "home-btn-navbar-tip": "Mostrar u ocultar el menú de navegación",
       "home-btn-top": "Arriba",
       "home-prefix-placeholder": "Buscar...",
       "home-prefix-tip": "Puede buscar en el contenido de su archivo ZIM usando este campo de búsqueda. Sugerirá títulos de artículos que **empiezan** con las letras que escriba.",

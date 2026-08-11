@@ -90,7 +90,9 @@
                     <a id="appVersion" class="navbar-brand">Kiwix</a>
 
                     <!-- Toggler/collapsible Button -->
-                    <button class="navbar-toggler" type="button">
+                    <button class="navbar-toggler" type="button" aria-expanded="false"
+                        aria-controls="collapsibleNavbar" data-i18n-tip="home-btn-navbar-tip"
+                        title="Show or hide the navigation menu">
                         <i class="fas fa-bars"></i>
                     </button>
 
@@ -823,7 +825,7 @@
                 <div id="navigationButtons" class="btn-group btn-block">
                     <div class="dropup">
                         <button class="btn btn-lg dropdown-toggle col-xs-4" id="dropup"
-                            aria-haspopup="true" aria-expanded="true" style="font-size: 14px;">
+                            aria-haspopup="true" aria-expanded="false" style="font-size: 14px;">
                             <i class="fas fa-list-alt fa-lg"></i>
                         </button>
                         <ul id="ToCList" class="dropdown-menu flex-container"></ul>
