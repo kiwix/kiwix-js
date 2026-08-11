@@ -304,6 +304,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // NB IE11 reports the legacy key names 'Esc', 'Up' and 'Down', hence the permissive patterns.
     const dropupKeyHandler = function (event) {
         if (!tocIsOpen()) return;
+        // Only act on keys aimed at the dropup or its menu, as Bootstrap's delegated handler did.
+        // Without this, an open ToC would swallow the arrow keys for the whole document, and pull
+        // focus back into the menu from wherever the user had tabbed to [kiwix-js #1460]
+        if (!dropup.contains(event.target) && !ToCList.contains(event.target)) return;
         if (/^Esc/.test(event.key)) {
             event.preventDefault();
             closeTOC();

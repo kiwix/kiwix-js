@@ -113,7 +113,8 @@ const run = async () => {
             if (document.activeElement === b) focused = 'dropup';
             else if (document.activeElement) {
                 var idx = Array.prototype.indexOf.call(links, document.activeElement);
-                focused = idx >= 0 ? 'item:' + idx : document.activeElement.tagName;
+                focused = idx >= 0 ? 'item:' + idx
+                    : (document.activeElement.id || document.activeElement.tagName);
             }
             return {
                 aria: b.getAttribute('aria-expanded'),
@@ -130,6 +131,21 @@ const run = async () => {
         await driver.sleep(500);
         t = await tocState();
         check('after open: open and aria-expanded="true"', t.aria === 'true' && t.open, JSON.stringify(t));
+
+        // With the ToC open but focus tabbed away, the arrow keys must NOT be captured: the
+        // handler is on document, so without scoping it would drag focus back into the menu
+        await driver.executeScript("document.getElementById('btnHomeBottom').focus();");
+        await driver.sleep(200);
+        await driver.actions().sendKeys(Key.ARROW_DOWN).perform();
+        await driver.sleep(300);
+        t = await tocState();
+        check('ArrowDown ignored while focus is outside the ToC', t.focused === 'btnHomeBottom', JSON.stringify(t));
+
+        // Escape must likewise be left alone when focus is elsewhere
+        await driver.actions().sendKeys(Key.ESCAPE).perform();
+        await driver.sleep(300);
+        t = await tocState();
+        check('Escape ignored while focus is outside the ToC', t.open && t.aria === 'true', JSON.stringify(t));
 
         // Arrow Down from the button should enter the list at the first item
         await driver.executeScript("document.getElementById('dropup').focus();");
