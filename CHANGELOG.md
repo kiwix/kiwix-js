@@ -11,6 +11,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * FIX: The Table of Contents button no longer reports itself as expanded while its menu is closed
 * DEV: Replaced Bootstrap's collapse and dropdown plugins with native equivalents that keep ARIA state and keyboard navigation in sync
 * DEV: Added an automated accessibility check (`npm run test-e2e-a11y`) and included it in the Windows CI job
+* DEV: Added unit tests for the Firefox OS DeviceStorage archive scan, a path not reachable by the e2e suite
 
 ## Interim update Kiwix JS v4.3.2
 
