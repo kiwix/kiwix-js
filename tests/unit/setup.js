@@ -11,7 +11,6 @@
 import { JSDOM } from 'jsdom';
 import { expect, assert } from 'chai';
 import * as sinon from 'sinon';
-import { default as jQuery } from 'jquery';
 
 // Initialize params before anything else
 globalThis.params = {
@@ -145,21 +144,6 @@ globalThis.webpHero = {
         }
     }
 };
-
-// Setup jQuery
-const $ = jQuery(window);
-Object.defineProperty(globalThis, '$', {
-    value: $,
-    writable: true,
-    enumerable: true,
-    configurable: true
-});
-Object.defineProperty(globalThis, 'jQuery', {
-    value: $,
-    writable: true,
-    enumerable: true,
-    configurable: true
-});
 
 // Setup test utilities
 globalThis.expect = expect;

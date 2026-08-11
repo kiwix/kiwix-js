@@ -401,6 +401,14 @@ if (document.getElementById('btnRefreshArchiveList')) {
         }
     });
 }
+
+// Toggle the collapsible navbar when the hamburger button is clicked. This replaces Bootstrap's
+// data-toggle="collapse" plugin, which is the only Bootstrap JS we still used (and which in turn
+// required jQuery). Everywhere else in the app we already close the navbar with classList alone.
+document.querySelector('.navbar-toggler').addEventListener('click', function () {
+    document.querySelector('.navbar-collapse').classList.toggle('show');
+});
+
 // Bottom bar :
 document.getElementById('btnBack').addEventListener('click', function (event) {
     event.preventDefault();

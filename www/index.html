@@ -56,7 +56,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalLabel">Modal title goes here</h5>
-                        <button type="button" id="modalCloseBtn" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" id="modalCloseBtn" class="close" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -65,12 +65,12 @@
                     </div>
                     <div class="modal-footer justify-content-between" id="modalFooter">
                         <div>
-                            <button type="button" class="btn btn-link" id="hideOption" data-dismiss="modal">Don't ask again</button>
+                            <button type="button" class="btn btn-link" id="hideOption">Don't ask again</button>
                         </div>
                         <div>
-                            <button type="button" class="btn btn-primary" id="approveConfirm" data-dismiss="modal">Confirm</button>
-                            <button type="button" class="btn btn-secondary" id="declineConfirm" data-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="closeMessage" data-dismiss="modal">Okay</button>
+                            <button type="button" class="btn btn-primary" id="approveConfirm">Confirm</button>
+                            <button type="button" class="btn btn-secondary" id="declineConfirm">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="closeMessage">Okay</button>
                         </div>
                     </div>
                 </div>
@@ -90,8 +90,7 @@
                     <a id="appVersion" class="navbar-brand">Kiwix</a>
 
                     <!-- Toggler/collapsible Button -->
-                    <button class="navbar-toggler" type="button" data-toggle="collapse"
-                        data-target=".navbar-collapse">
+                    <button class="navbar-toggler" type="button">
                         <i class="fas fa-bars"></i>
                     </button>
 
@@ -353,7 +352,7 @@
                                 Service Workers.The mode has limitations which
                                 mean that only static content can be displayed, such as that found in Wikipedia / WikiMedia archives and (for now)
                                 Stackexchange. It is a way of inserting articles extracted from the ZIM into the DOM (browser document) by injecting
-                                the content into an iframe or tab. We then use native DOM methods, or sometimes JQuery, to parse the article's HTML
+                                the content into an iframe or tab. We then use native DOM methods to parse the article's HTML
                                 and insert required assets (images, stylesheets, event listeners for hyperlinks, etc.). On old devices, DOM traversal
                                 can be slow, but it is compensated for because we do not extract or run JavaScript assets (which would be technically
                                 extremely complicated). As a result, for WikiMedia archives this mode is usually quite fast. On the downside, ZIMs
@@ -423,8 +422,7 @@
                     <ul>
                         <li>The <a href="https://github.com/zloirock/core-js" target="_blank">core-js library</a>, copyright Sebastian McKenzie and contributors, released under an <a href="https://github.com/babel/babel/blob/main/LICENSE" target="_blank">MIT Licence</a></li>
                         <li>The <a href="https://babeljs.io/" target="_blank">Babel JavaScript compiler</a>, copyright Denis Pushkarev, released under an <a href="https://github.com/zloirock/core-js/blob/master/LICENSE" target="_blank">MIT Licence</a></li>
-                        <li><a href="https://jquery.com/" target="_blank">jQuery</a> 3.7, released under the <a href="https://jquery.org/license" target="_blank">MIT Licence</a></li>
-                        <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap 4</a>, released under an <a href="https://github.com/twbs/bootstrap/blob/master/LICENSE" target="_blank">MIT Licence</a></li>
+                        <li><a href="https://getbootstrap.com/" target="_blank">Bootstrap 4</a> (CSS only), released under an <a href="https://github.com/twbs/bootstrap/blob/master/LICENSE" target="_blank">MIT Licence</a></li>
                         <li><a href="https://github.com/FortAwesome/Font-Awesome" target="_blank">Fontawesome Free</a>, icons licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">CC BY 4.0 Licence</a>, code licensed under a <a href="https://opensource.org/licenses/MIT" target="_blank">MIT Licence</a></li>
                         <li><a href="https://mochajs.org/" target="_blank">Mocha</a>, released under a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons Licence</a></li>
                         <li>Kiwix logo from <a href="https://www.kiwix.org/" target="_blank">kiwix.org</a>, released under the <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank">Creative Commons Attribution Share Alike Licence</a></li>
@@ -824,7 +822,7 @@
                 </div>
                 <div id="navigationButtons" class="btn-group btn-block">
                     <div class="dropup">
-                        <button class="btn btn-lg dropdown-toggle col-xs-4" id="dropup" data-toggle="dropdown"
+                        <button class="btn btn-lg dropdown-toggle col-xs-4" id="dropup"
                             aria-haspopup="true" aria-expanded="true" style="font-size: 14px;">
                             <i class="fas fa-list-alt fa-lg"></i>
                         </button>
@@ -837,11 +835,10 @@
                 </div>
             </footer>
         </section>
-    <!-- Legacy jQuery and Bootstrap are not ES-module-aware, and interact with each other using side-effects, so we are forced to load them globally here.
-        There is code in rollup.config.js which alters these references, and the link reference above, to point to the local destination of the copied modules.
+    <!-- We use Bootstrap for its CSS only (see the stylesheet link above): its modal, dropdown and collapse
+        widgets are all implemented natively in uiUtil.js and app.js, so neither bootstrap.bundle.min.js nor
+        the jQuery it depends on needs to be loaded. See kiwix-js #1233.
     -->
-    <script type="text/javascript" src="../node_modules/jquery/dist/jquery.slim.min.js"></script>
-    <script type="text/javascript" src="../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript" src="js/init.js"></script>
     <script type="module" defer src="js/app.js"></script>
     <!-- <script type="text/javascript" defer src="js/bundle.js"></script> -->
