@@ -4,6 +4,14 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Unreleased
+
+* UPDATE: Removed the jQuery dependency entirely, together with Bootstrap's JavaScript bundle, saving some 150KB of minified JavaScript (Bootstrap is now used for its CSS only)
+* ENHANCEMENT: The navbar toggle button now has a translatable name, so screen readers no longer announce it as an unlabelled button
+* FIX: The Table of Contents button no longer reports itself as expanded while its menu is closed
+* DEV: Replaced Bootstrap's collapse and dropdown plugins with native equivalents that keep ARIA state and keyboard navigation in sync
+* DEV: Added an automated accessibility check (`npm run test-e2e-a11y`) and included it in the Windows CI job
+
 ## Interim update Kiwix JS v4.3.2
 
 * CRITICAL UPDATE: Fix failure of Service Worker to discover remote PWA in Chromium extensions
