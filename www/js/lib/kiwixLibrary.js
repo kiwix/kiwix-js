@@ -102,14 +102,30 @@ function checkUrlByImage (url, timeoutMs) {
 }
 
 /**
+ * Extracts the origin (scheme and host) of a URL, for comparison with another. NB we do this with a regex rather
+ * than the URL constructor because the latter's IE11 polyfill is unreliable
+ * @param {String} url The URL from which to extract the origin
+ * @returns {String} The lowercased origin, or an empty string if the URL has none
+ */
+function getOrigin (url) {
+    const origin = /^[a-z]+:\/\/[^/]+/i.exec(url || '');
+    return origin ? origin[0].toLowerCase() : '';
+}
+
+/**
  * Checks that the alternative (file-index) library is reachable, using the most precise test available to us
  * @returns {Promise} A promise that resolves if the alternative library is reachable, or rejects with an error
  */
 function checkAltLibrary () {
     // Where we have been given a probe image on the same server, we must use it, because the mirrors that still
-    // publish a traditional file index do not send CORS headers, which makes the XHR check useless for them
-    return params.altLibraryProbe ? checkUrlByImage(params.altLibraryProbe, SERVER_TIMEOUT)
-        : checkUrl(params.altLibraryUrl, SERVER_TIMEOUT);
+    // publish a traditional file index do not send CORS headers, which makes the XHR check useless for them.
+    // We require the probe to share the library's origin, so that overriding one of these params without the other
+    // (which can be done from the querystring) cannot make a reachable probe vouch for an unrelated server
+    const libraryOrigin = getOrigin(params.altLibraryUrl);
+    if (libraryOrigin && getOrigin(params.altLibraryProbe) === libraryOrigin) {
+        return checkUrlByImage(params.altLibraryProbe, SERVER_TIMEOUT);
+    }
+    return checkUrl(params.altLibraryUrl, SERVER_TIMEOUT);
 }
 
 /**
