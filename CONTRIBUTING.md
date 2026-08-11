@@ -34,10 +34,10 @@ do a one-time setup before you start coding, like this:
 * Create a personal fork  of Kiwix JS and clone it locally (for more details, see [Kiwix guidelines](https://github.com/kiwix/overview/blob/main/CONTRIBUTING.md));
 * In a Terminal (Bash, PowerShell) run `npm install` in the project's root directory to install development and bundling dependencies;
 * Test the development server by running `npm run serve`. This will open the (unbundled) source code in your browser. **While viewing this, we strongly recommend**
-  **that you go to configuration and turn on the option to Bypass AppCache under "Expert Settings", as this will ensure you are always looking at the latest version**
+  **that you go to configuration and turn on Developer Mode (previously called "Bypass AppCache") under "Expert Settings", as this will ensure you are always looking at the latest version**
   (otherwise the app caches its own code, and you won't see your changes easily). You can exit this server by typing `q` in the Terminal that launched it;
 * Test that bundling works by running `npm run preview`. This should build the app and launch a preview of the production code in a server. Again, we strongly recommend,
-  while here, that you **turn on the Bypass AppCache option**. To exit this server, press `Ctrl-C` in the Terminal that launched it;
+  while here, that you **turn on Developer Mode**. To exit this server, press `Ctrl-C` in the Terminal that launched it;
 * You can build the bundled version without previewing it with `npm run build`. It will be built to the `/dist` directory.
 
 You can use any Integrated Development Environment (IDE) that you wish. If you don't have a preference, we can recommend
@@ -70,7 +70,7 @@ If your PR adds a runtime dependency with `npm install xxx` (as opposed to a dev
 
 Please note that the app caches its own code so that it can run as an offline-first Progressive Web App. This can complicate development, because you may not see your changes,
 even after you refresh the browser. In Configuration, under "Expert settings", you will find a button that allows you to do a full app reset, which will erase the PWA. When
-Service Worker mode is turned on, there is also a checkbox that bypasses the App Cache. You can turn this on if you are frequently changing code and refreshing. Remember to
+Service Worker mode is turned on, there is also a Developer Mode checkbox that bypasses the App Cache. You can turn this on if you are frequently changing code and refreshing. Remember to
 turn it off for final testing. You can manually delete the App Cache in the browser's DevTools (see Application or Storage tabs) and manually delete/unregister the Service Worker.
 We also recommend you disable the browser's built-in cache, using the checkbox in the DevTools Network tab. _In extremis_, you can also turn on the setting (in Chromium browsers)
 under Application -> Service Workers to force the Service Worker to update itself on reload, though this can also force an update on each navigation and can give strange results.
@@ -78,10 +78,10 @@ under Application -> Service Workers to force the Service Worker to update itsel
 _You must test your code yourself before asking for review, like this_:
 
 * If you did the recommended setup above, you can test source code as you develop. Do this by starting the Vite development server with `npm run serve`. You should see a live view
-  in your browser of the rendered source code. If the page looks disordered, and if you turned on the option "Bypass AppCache" as recommended above, then you can simply refresh
-  (Ctrl-R) to re-compose the page (or for a more thorough refresh, open DevTools [F12], and press Ctrl-Shift-R). If you forgot to turn on "Bypass AppCache", you will need to
+  in your browser of the rendered source code. If the page looks disordered, and if you turned on Developer Mode as recommended above, then you can simply refresh
+  (Ctrl-R) to re-compose the page (or for a more thorough refresh, open DevTools [F12], and press Ctrl-Shift-R). If you forgot to turn on Developer Mode, you will need to
   search for it in the disordered display and try to turn it on.
-* When you update code and save it in your IDE, the Vite live view will auto-refresh to show the latest version of your code (but only if "Bypass AppCache" is turned on);
+* When you update code and save it in your IDE, the Vite live view will auto-refresh to show the latest version of your code (but only if Developer Mode is turned on);
 * Once the source code is working as expected, you will need to build the production code and do full UI tests on that. To do this, you can run `npm run preview`, which will build
   the app and open it in the preview server. Note the address in the browser's address bar, and use this address to test in other browsers you have installed. Note that code built
   this way is not minified (though a minified bundle is also built, but not used). This is because testing minified code is not generally useful. However, if you wish to build and
@@ -102,7 +102,7 @@ _You must test your code yourself before asking for review, like this_:
   though in practice this is unlikely. 
 * As an alternative to the Vite server, we also provide [http-server](https://www.npmjs.com/package/http-server), which you can launch by running `npm run web-server` in the root of
   this repository. This does not have Hot Module Replacement, and you will need to refresh the page yourself by doing `Ctrl-Shift-R` with DevTools open. Again, you will only see the
-  latest version of your code if you turn on "Bypass AppCache" and turn off the browser's native caching (see above).
+  latest version of your code if you turn on Developer Mode and turn off the browser's native caching (see above).
 
 If all the tests are working fine in your browsers, you **must finally test the extension versions with production code**. Please note that we are using Manifest V3 for the Chromium
 extensions, and Manifest V2 for the Firefox extension, so there are different instructions for the two browser families:

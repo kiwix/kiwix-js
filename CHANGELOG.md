@@ -16,6 +16,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * DEV: Rename SSH key secret, and adapt to new destinations for releases and nightly packages
 * DEV: Fix breaking IE11 test
 * DEV: Add Docker Compose configuration and documentation
+* DEV: Change "Bypass AppCache" option to "Developer Mode" (same functionality)
 * DEV: Multiple security updates to dependencies
 
 ## Kiwix JS v4.3.0

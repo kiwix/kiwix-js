@@ -1191,8 +1191,8 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Restricted mode!'),
-                (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
+            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Developer Mode" option before switching to Restricted mode!'),
+                (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Developer Mode"')).then(function () {
                 setContentInjectionMode('serviceworker');
             })
             return;
