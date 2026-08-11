@@ -212,8 +212,7 @@ searchArticle.addEventListener('click', function () {
     region.style.overflowY = 'auto';
     // Initiate the search
     searchDirEntriesFromPrefix(prefix);
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
+    uiUtil.toggleNavbar(false);
     document.getElementById('prefix').focus();
     // This flag is set to true in the mousedown event below
     searchArticlesFocused = false;
@@ -381,8 +380,7 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
     document.getElementById('articleListWithHeader').style.display = 'none';
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
+    uiUtil.toggleNavbar(false);
 });
 
 document.getElementById('btnRescanDeviceStorage').addEventListener('click', function () {
@@ -401,6 +399,14 @@ if (document.getElementById('btnRefreshArchiveList')) {
         }
     });
 }
+
+// Toggle the collapsible navbar when the hamburger button is clicked. This replaces Bootstrap's
+// data-toggle="collapse" plugin, which is the only Bootstrap JS we still used (and which in turn
+// required jQuery). uiUtil.toggleNavbar also keeps the button's aria-expanded state in sync.
+document.querySelector('.navbar-toggler').addEventListener('click', function () {
+    uiUtil.toggleNavbar();
+});
+
 // Bottom bar :
 document.getElementById('btnBack').addEventListener('click', function (event) {
     event.preventDefault();
@@ -428,8 +434,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     document.getElementById('liHomeNav').setAttribute('class', 'active');
     document.getElementById('liConfigureNav').setAttribute('class', '');
     document.getElementById('liAboutNav').setAttribute('class', '');
-    var navbarCollapse = document.querySelector('.navbar-collapse');
-    navbarCollapse.classList.remove('show');
+    uiUtil.toggleNavbar(false);
     // Show the selected content in the page
     uiUtil.tabTransitionToSection('home', params.showUIAnimations);
 
@@ -463,8 +468,7 @@ document.getElementById('btnConfigure').addEventListener('click', function (even
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', 'active');
         document.getElementById('liAboutNav').setAttribute('class', '');
-        var navbarCollapse = document.querySelector('.navbar-collapse');
-        navbarCollapse.classList.remove('show');
+        uiUtil.toggleNavbar(false);
         // Show the selected content in the page
         uiUtil.tabTransitionToSection('config', params.showUIAnimations);
         refreshAPIStatus();
@@ -483,8 +487,7 @@ document.getElementById('btnAbout').addEventListener('click', function (event) {
         document.getElementById('liHomeNav').setAttribute('class', '');
         document.getElementById('liConfigureNav').setAttribute('class', '');
         document.getElementById('liAboutNav').setAttribute('class', 'active');
-        var navbarCollapse = document.querySelector('.navbar-collapse');
-        navbarCollapse.classList.remove('show');
+        uiUtil.toggleNavbar(false);
         // Show the selected content in the page
         uiUtil.tabTransitionToSection('about', params.showUIAnimations);
         // Use a timeout of 400ms because uiUtil.applyAnimationToSection uses a timeout of 300ms
@@ -1558,9 +1561,7 @@ window.onpopstate = function (event) {
         document.getElementById('prefix').value = '';
         document.getElementById('welcomeText').style.display = 'none';
         uiUtil.spinnerDisplay(false);
-        // Replacing $('.navbar-collapse').collapse('hide');
-        var navbarCollapse = document.querySelector('.navbar-collapse');
-        navbarCollapse.classList.remove('show');
+        uiUtil.toggleNavbar(false);
         document.getElementById('configuration').style.display = 'none';
         document.getElementById('articleListWithHeader').style.display = 'none';
         // Replacing $('#articleContent').contents().empty();

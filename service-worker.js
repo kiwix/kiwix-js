@@ -154,12 +154,8 @@ const precacheFiles = [
     'www/js/lib/zimArchiveLoader.js',
     'www/js/lib/zimDirEntry.js',
     'www/js/lib/zimfile.js',
-    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
-    'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js.map',
     'node_modules/bootstrap/dist/css/bootstrap.min.css',
-    'node_modules/bootstrap/dist/css/bootstrap.min.css.map',
-    'node_modules/jquery/dist/jquery.slim.min.js',
-    'node_modules/jquery/dist/jquery.slim.min.map'
+    'node_modules/bootstrap/dist/css/bootstrap.min.css.map'
 ];
 
 if ('WebAssembly' in self) {

@@ -221,6 +221,11 @@ jobs:
         run: |
           npx eslint
       
+      # Checks the ARIA state and keyboard handling that Bootstrap's collapse/dropdown plugins
+      # used to provide before they were removed in #1233. Runs on Edge Chromium only.
+      - name: Accessibility checks on Edge Chromium (Windows)
+        run: npm run test-e2e-a11y
+
       - name: End-to-end tests on Edge Chromium (Windows)
         env:
           GITHUB_ACTION: ${{ github.event_name }}

@@ -22,8 +22,6 @@
 
 'use strict';
 
-/* global $ */
-
 import translateUI from './translateUI.js';
 import zimArchive from './zimArchive.js';
 
@@ -65,14 +63,16 @@ function loadArchiveFromFiles (files, callbackReady, callbackError) {
  */
 function scanForArchives (storages, callbackFunction, callbackError) {
     var directories = [];
-    var promises = $.map(storages, function (storage) {
+    // NB storage.scanForArchives() already returns a native Promise, so no jQuery is needed here
+    var promises = storages.map(function (storage) {
         return storage.scanForArchives()
             .then(function (dirs) {
-                $.merge(directories, dirs);
+                // Append in place (as $.merge did), because each storage adds to the same list
+                directories.push.apply(directories, dirs);
                 return true;
             });
     });
-    $.when.apply(null, promises).then(function () {
+    Promise.all(promises).then(function () {
         callbackFunction(directories);
     }).catch(function (error) {
         callbackError((translateUI.t('dialog-scanstorage-error-message') || 'Error scanning your device storage:') + ' ' + error + '. ' +
