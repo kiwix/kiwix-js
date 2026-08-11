@@ -13,6 +13,12 @@ If you intend to contribute code rather than, say, documentation, then you will 
 [GitHub](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/GitHub) and
 [Node Package Manager](https://nodejs.dev/en/learn/an-introduction-to-the-npm-package-manager/) (NPM). Instructions for installing Node/NPM and setting up are below.
 
+## Using AI assistants
+
+We want you in the driving seat. We have no objection to your using an LLM as a pair programmer, to explain unfamiliar parts of the codebase to you, or to review your work before you open a PR. Used that way, it can be a real help. What we ask is that you meet the same standard as any other contributor: you understand every line you are submitting, you can explain and defend it in review, and you have run and [tested it yourself](#testing). If you cannot do that, please do not open the PR. It is unfair to treat us as free testers of code that you do not understand, and it is we who will have to maintain it long after you have moved on.
+
+We prefer clear and concise PR descriptions that demonstrate your understanding of the code, clearly stating the testing you undertook, rather than extensive, AI-produced tables of methods and features.
+
 ## Build system and setup
 
 Kiwix JS prides itself on supporting old frameworks and browsers, while not compromising on performance in modern browsers. Therefore we use a modern bundling
