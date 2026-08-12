@@ -6,6 +6,10 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Unreleased
 
+* FIX: The Library no longer reports "All library servers are currently unreachable" in browsers that cannot run the modern library (e.g. IE11): download.kiwix.org/zim/ stopped serving a file index, so the fallback now uses a mirror that still publishes one
+* FIX: Refreshed the emergency list of download mirrors, removing dead and redirecting entries and adding those currently advertised by the Kiwix catalogue
+* FIX: Corrected obsolete download.kiwix.org links in the About section, including the sample "climate change" archive link, which had become a 404
+* DEV: Library server checks now time out instead of leaving the user watching the loading animation indefinitely
 * UPDATE: Removed the jQuery dependency entirely, together with Bootstrap's JavaScript bundle, saving some 150KB of minified JavaScript (Bootstrap is now used for its CSS only)
 * ENHANCEMENT: The navbar toggle button now has a translatable name, so screen readers no longer announce it as an unlabelled button
 * FIX: The Table of Contents button no longer reports itself as expanded while its menu is closed

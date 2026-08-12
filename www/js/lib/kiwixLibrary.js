@@ -26,6 +26,9 @@
 
 import translateUI from './translateUI.js';
 
+// The number of milliseconds we are prepared to wait for a library server to answer before we give up on it
+const SERVER_TIMEOUT = 10000;
+
 /**
  * Tests if browser can execute code required for library.kiwix.org functionality
  * @returns {boolean} True if the browser can execute required code in the library iframe
@@ -41,14 +44,21 @@ function canExecuteCode () {
 }
 
 /**
- * Attempts to load a URL header and returns a Promise with the result
+ * Attempts to load a URL header and returns a Promise with the result. NB this only works with servers that send
+ * CORS headers: if they do not, the browser blocks the response even when the server answered normally, and we
+ * cannot distinguish that from an unreachable server (see checkUrlByImage below)
  * @param {String} url A URL to check
+ * @param {Number} timeoutMs The number of milliseconds to wait before giving up on the server
  * @returns {Promise} A promise that resolves if the URL is reachable, or rejects with an error
  */
-function checkUrl (url) {
+function checkUrl (url, timeoutMs) {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('HEAD', url, true);
+        // Without this, a server that accepts the connection but never answers would leave the user looking at the
+        // loading animation indefinitely (NB the timeout must be set after open() for IE11)
+        xhr.timeout = timeoutMs;
+        xhr.ontimeout = () => reject(new Error(`Timed out waiting for ${url}`));
         xhr.onreadystatechange = () => {
             if (xhr.readyState === 4) {
                 if (xhr.status >= 200 && xhr.status < 300) {
@@ -61,6 +71,61 @@ function checkUrl (url) {
         xhr.onerror = () => reject(new Error(`Cannot reach ${url}`));
         xhr.send();
     });
+}
+
+/**
+ * Tests whether a server is reachable by loading a small image from it. Unlike XMLHttpRequest, image loading is not
+ * subject to CORS, so this is the only check available to us for the file-index mirrors, none of which send an
+ * Access-Control-Allow-Origin header [kiwix-js #1461]
+ * @param {String} url The URL of a small image on the server we wish to test
+ * @param {Number} timeoutMs The number of milliseconds to wait before giving up on the server
+ * @returns {Promise} A promise that resolves if the image loads, or rejects with an error
+ */
+function checkUrlByImage (url, timeoutMs) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        let settled = false;
+        const settle = (callback, error) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            img.onload = null;
+            img.onerror = null;
+            callback(error);
+        };
+        const timer = setTimeout(() => settle(reject, new Error(`Timed out waiting for ${url}`)), timeoutMs);
+        img.onload = () => settle(resolve);
+        img.onerror = () => settle(reject, new Error(`Cannot reach ${url}`));
+        // Add a unique query so that a cached copy of the image cannot make a server that is now down look reachable
+        img.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 'kiwixprobe=' + Date.now();
+    });
+}
+
+/**
+ * Extracts the origin (scheme and host) of a URL, for comparison with another. NB we do this with a regex rather
+ * than the URL constructor because the latter's IE11 polyfill is unreliable
+ * @param {String} url The URL from which to extract the origin
+ * @returns {String} The lowercased origin, or an empty string if the URL has none
+ */
+function getOrigin (url) {
+    const origin = /^[a-z]+:\/\/[^/]+/i.exec(url || '');
+    return origin ? origin[0].toLowerCase() : '';
+}
+
+/**
+ * Checks that the alternative (file-index) library is reachable, using the most precise test available to us
+ * @returns {Promise} A promise that resolves if the alternative library is reachable, or rejects with an error
+ */
+function checkAltLibrary () {
+    // Where we have been given a probe image on the same server, we must use it, because the mirrors that still
+    // publish a traditional file index do not send CORS headers, which makes the XHR check useless for them.
+    // We require the probe to share the library's origin, so that overriding one of these params without the other
+    // (which can be done from the querystring) cannot make a reachable probe vouch for an unrelated server
+    const libraryOrigin = getOrigin(params.altLibraryUrl);
+    if (libraryOrigin && getOrigin(params.altLibraryProbe) === libraryOrigin) {
+        return checkUrlByImage(params.altLibraryProbe, SERVER_TIMEOUT);
+    }
+    return checkUrl(params.altLibraryUrl, SERVER_TIMEOUT);
 }
 
 /**
@@ -110,7 +175,7 @@ function createBaseHtml () {
                     .error-message {
                         color: #cc0000;
                         font-weight: bold;
-                    }            }
+                    }
                     /* Mirror list styles */
                     .mirror-intro {
                         font-size: 1.2em;
@@ -132,10 +197,6 @@ function createBaseHtml () {
                     }
                     .mirror-item a:hover {
                         text-decoration: underline;
-                    }
-                    .error-message {
-                        color: #cc0000;
-                        font-weight: bold;
                     }
                     /* Responsive adjustments */
                     @media (max-width: 768px) {
@@ -212,7 +273,8 @@ function createMirrorListHtml () {
         </p>
         <ul class="mirror-list">`;
 
-    params.kiwixDownloadMirrors.forEach(mirror => {
+    // Don't offer the alternative library as an alternative, given that we have just failed to reach it
+    params.kiwixDownloadMirrors.filter(mirror => mirror !== params.altLibraryUrl).forEach(mirror => {
         const domain = mirror.replace(/^([^/]+\/\/[^/]+).*/, '$1');
         html += `
             <li class="mirror-item">
@@ -271,7 +333,7 @@ async function loadLibrary (iframe) {
         const tryingPrimaryMsg = translateUI.t('configure-library-trying-primary') ||
             'Attempting to contact primary library server';
         updateStatus(iframe, tryingPrimaryMsg + ' ' + params.libraryUrl);
-        await checkUrl(params.libraryUrl);
+        await checkUrl(params.libraryUrl, SERVER_TIMEOUT);
         iframe.src = params.libraryUrl;
     } catch (primaryError) {
         let tryingAlternativeMsg;
@@ -297,7 +359,7 @@ async function loadLibrary (iframe) {
         }
         try {
             // Try alternative library URL
-            await checkUrl(params.altLibraryUrl);
+            await checkAltLibrary();
             iframe.src = params.altLibraryUrl;
         } catch (alternativeError) {
             console.warn('Alternative library unreachable:', alternativeError);
