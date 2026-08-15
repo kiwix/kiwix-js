@@ -160,24 +160,91 @@ params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets
 params['showPopoverPreviews'] = getSetting('showPopoverPreviews') !== false; // Sets a Boolean defaulting to true indicating whether to show previews of article contents when hovering a ZIM link
 
 /**
+ * Parameters that may be set from the querystring and written to the Settings Store. These are the keys
+ * the app passes between its own contexts (the local code <-> PWA handoff, and settingsStore._reloadApp),
+ * together with the cosmetic settings and the escape hatches DEV needs to break out of a boot loop.
+ * @type {Array<String>}
+ */
+var persistableParams = ['allowInternetAccess', 'contentInjectionMode', 'defaultModeChangeAlertDisplayed',
+    'hideActiveContentWarning', 'appTheme', 'showUIAnimations', 'overrideBrowserLanguage', 'appCache', 'assetsCache'];
+
+/**
+ * Parameters that weaken or bypass security-relevant behaviour, and are only ever needed when developing
+ * or running the test suite. They are honoured in a development context but ignored everywhere else, so
+ * that a crafted link to the production PWA cannot use them to disarm the app.
+ * @type {Array<String>}
+ */
+var devOnlyParams = ['noPrompts', 'sourceVerification', 'PWAServer', 'libraryUrl', 'altLibraryUrl', 'altLibraryProbe'];
+
+/**
+ * Parameters whose value must match a pattern before it will be accepted. The referrerExtensionURL is only
+ * ever meant to hold the URL of the extension that launched this PWA, and it lands in window.location.href
+ * and in an iframe src, so we require it to be an extension URL and nothing else.
+ * @type {Object}
+ */
+var validatedParams = {
+    referrerExtensionURL: /^(?:moz|chrome)-extension:\/\/[^/]/
+};
+
+/**
+ * Keys that must never be copied onto the params object, because assigning them could alter the object's
+ * prototype chain rather than setting a parameter.
+ * @type {Array<String>}
+ */
+var forbiddenParams = ['__proto__', 'constructor', 'prototype'];
+
+/**
+ * Determines whether we are running in a development or test context, i.e. one where the code is served
+ * from the developer's own machine, from the filesystem, or from a packaged extension. Note that this is
+ * deliberately not a test for a secure context: the production PWA is served over https, and it is
+ * precisely the context we do not want to trust with the parameters in devOnlyParams.
+ * @returns {Boolean} True if the app is running from a development or test location
+ */
+function isTrustedContext () {
+    return /^(?:localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname) ||
+        /^(?:file|moz-extension|chrome-extension):$/.test(window.location.protocol);
+}
+
+/**
  * Apply any override parameters that might be in the querystring.
  * This is used for communication between the PWA and any local code (e.g. Firefox Extension), both ways.
  * It is also possible for DEV (or user) to launch the app with certain settings, or to unset potentially
  * problematic settings, by crafting the querystring appropriately.
+ *
+ * Note that only the keys in persistableParams and validatedParams are written to the Settings Store (plus
+ * those in devOnlyParams when we are in a development context). Any other key is applied to the current
+ * page load alone and is deliberately not stored, so that a link cannot make a lasting change to the app's
+ * configuration: DEV keeps the ability to drive any setting from the querystring while debugging, but the
+ * setting reverts as soon as the app is reloaded without it.
  */
 (function overrideParams () {
     var regexpUrlParams = /[?&]([^=]+)=([^&]+)/g;
+    var trustedContext = isTrustedContext();
     var matches = regexpUrlParams.exec(window.location.search);
     while (matches) {
         if (matches[1] && matches[2]) {
             var paramKey = decodeURIComponent(matches[1]);
             var paramVal = decodeURIComponent(matches[2]);
-            if (paramKey !== 'title') {
-                console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
-                // Make values Boolean if 'true'/'false'
-                paramVal = paramVal === 'true' || (paramVal === 'false' ? false : paramVal);
-                setSetting(paramKey, paramVal);
-                params[paramKey] = paramVal;
+            // The title key is a ZIM article path, which is consumed by the router rather than being a setting
+            if (paramKey !== 'title' && !~forbiddenParams.indexOf(paramKey)) {
+                // NB we must use hasOwnProperty here, or a key such as 'toString' would pick up an inherited value
+                var paramPattern = Object.prototype.hasOwnProperty.call(validatedParams, paramKey) ? validatedParams[paramKey] : null;
+                if (~devOnlyParams.indexOf(paramKey) && !trustedContext) {
+                    console.warn('Ignoring querystring parameter "' + paramKey + '": it is only honoured when running from a development or test location');
+                } else if (paramPattern && !paramPattern.test(paramVal)) {
+                    console.warn('Ignoring querystring parameter "' + paramKey + '": the value is not in the expected format');
+                } else {
+                    console.debug('Setting key-pair: ' + paramKey + ':' + paramVal);
+                    // Make values Boolean if 'true'/'false'
+                    paramVal = paramVal === 'true' || (paramVal === 'false' ? false : paramVal);
+                    // NB if we reach here with a devOnlyParams key, we are necessarily in a trusted context (see above)
+                    if (~persistableParams.indexOf(paramKey) || paramPattern || ~devOnlyParams.indexOf(paramKey)) {
+                        setSetting(paramKey, paramVal);
+                    } else {
+                        console.debug('Parameter "' + paramKey + '" applies to this page load only, and will not be stored');
+                    }
+                    params[paramKey] = paramVal;
+                }
             }
         }
         matches = regexpUrlParams.exec(window.location.search);
