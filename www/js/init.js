@@ -195,14 +195,21 @@ var forbiddenParams = ['__proto__', 'constructor', 'prototype'];
 
 /**
  * Determines whether we are running in a development or test context, i.e. one where the code is served
- * from the developer's own machine, from the filesystem, or from a packaged extension. Note that this is
- * deliberately not a test for a secure context: the production PWA is served over https, and it is
- * precisely the context we do not want to trust with the parameters in devOnlyParams.
+ * from the developer's own machine or from the filesystem. Note that this is deliberately not a test for
+ * a secure context: the production PWA is served over https, and it is precisely the context we do not
+ * want to trust with the parameters in devOnlyParams.
+ *
+ * Extension origins are deliberately NOT trusted. Our MV2 manifest has to declare www/index.html in
+ * web_accessible_resources for the PWA to signal a successful launch back to the extension, and MV2 has
+ * no way to restrict which sites may then reach that resource (the "matches" key is MV3 only). Chromium
+ * extension IDs are derived from our signing key, so they are stable and public, which would leave a
+ * crafted link into the extension constructible. The extension <-> PWA handoff is unaffected by this,
+ * because every parameter it passes is in persistableParams or validatedParams rather than devOnlyParams.
  * @returns {Boolean} True if the app is running from a development or test location
  */
 function isTrustedContext () {
     return /^(?:localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname) ||
-        /^(?:file|moz-extension|chrome-extension):$/.test(window.location.protocol);
+        /^file:$/.test(window.location.protocol);
 }
 
 /**

@@ -26,14 +26,16 @@ import { fileURLToPath } from 'url';
 
 const INIT_JS = readFileSync(fileURLToPath(new URL('../../../www/js/init.js', import.meta.url)), 'utf8');
 
-// Origins that isTrustedContext() should reject: the production PWA, and any other host on the network
+// Origins that isTrustedContext() should reject: the production PWA, any other host on the network, and
+// the packaged extensions (our MV2 manifest cannot restrict who may reach its web_accessible_resources,
+// and Chromium extension IDs are stable and public, so an extension URL can be crafted by an attacker)
 const PROD_PWA = 'https://browser-extension.kiwix.org/current/www/index.html';
 const LAN_HOST = 'http://192.168.1.50:8080/www/index.html';
-// Origins it should accept: the dev server and the e2e suite, and the packaged extensions
-const LOCALHOST = 'http://localhost:8080/www/index.html';
-const LOOPBACK_IP = 'http://127.0.0.1:8080/www/index.html';
 const FIREFOX_EXT = 'moz-extension://abc-123/www/index.html';
 const CHROME_EXT = 'chrome-extension://abc-123/www/index.html';
+// Origins it should accept: the dev server and the e2e suite, and the app running from the filesystem
+const LOCALHOST = 'http://localhost:8080/www/index.html';
+const LOOPBACK_IP = 'http://127.0.0.1:8080/www/index.html';
 const FILE_PROTOCOL = 'file:///C:/kiwix-js/www/index.html';
 
 /**
@@ -160,10 +162,31 @@ describe('init.js querystring overrides', function () {
             assert.strictEqual(loadInit(LOCALHOST, '?sourceVerification=false').params.sourceVerification, false);
         });
 
-        it('honours the loopback IP, the extension schemes and the file protocol', function () {
-            [LOOPBACK_IP, FIREFOX_EXT, CHROME_EXT, FILE_PROTOCOL].forEach(function (url) {
+        it('honours the loopback IP and the file protocol', function () {
+            [LOOPBACK_IP, FILE_PROTOCOL].forEach(function (url) {
                 assert.strictEqual(loadInit(url, '?noPrompts=true').params.noPrompts, true, 'should be trusted: ' + url);
             });
+        });
+
+        it('ignores restricted parameters inside a packaged extension', function () {
+            // MV2 cannot restrict which sites may reach www/index.html, and Chromium extension IDs are
+            // derived from our signing key, so a link into the extension can be crafted by a third party
+            [FIREFOX_EXT, CHROME_EXT].forEach(function (url) {
+                const result = loadInit(url, '?sourceVerification=false&noPrompts=true');
+                assert.strictEqual(result.params.sourceVerification, true, 'should not be trusted: ' + url);
+                assert.isUndefined(result.params.noPrompts, 'should not be trusted: ' + url);
+                assertNotStored(result, 'sourceVerification');
+                assertNotStored(result, 'noPrompts');
+            });
+        });
+
+        it('still completes the handoff when the app is running inside an extension', function () {
+            // Only the dev-only parameters are refused there: the handoff keys must keep working, or the
+            // PWA could not hand control back to the local extension code
+            const result = loadInit(FIREFOX_EXT, '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true');
+            assert.strictEqual(result.stored['kiwixjs-allowInternetAccess'], 'false');
+            assert.strictEqual(result.stored['kiwixjs-contentInjectionMode'], 'jquery');
+            assert.strictEqual(result.stored['kiwixjs-defaultModeChangeAlertDisplayed'], 'true');
         });
     });
 
