@@ -4,8 +4,10 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Unreleased
+## Interim update Kiwix JS v4.3.3
 
+* SECURITY: Settings supplied in the app's URL are no longer saved permanently, apart from the few the app passes between its own windows, and source verification can now only be changed in Configuration
+* SECURITY: `noPrompts`, which suppresses dialogues for the automated test suite, now opens an unverified archive in Restricted mode rather than in ServiceWorker mode
 * FIX: The Library no longer reports "All library servers are currently unreachable" in browsers that cannot run the modern library (e.g. IE11): download.kiwix.org/zim/ stopped serving a file index, so the fallback now uses a mirror that still publishes one
 * FIX: Refreshed the emergency list of download mirrors, removing dead and redirecting entries and adding those currently advertised by the Kiwix catalogue
 * FIX: Corrected obsolete download.kiwix.org links in the About section, including the sample "climate change" archive link, which had become a 404
@@ -16,6 +18,8 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * DEV: Replaced Bootstrap's collapse and dropdown plugins with native equivalents that keep ARIA state and keyboard navigation in sync
 * DEV: Added an automated accessibility check (`npm run test-e2e-a11y`) and included it in the Windows CI job
 * DEV: Added unit tests for the Firefox OS DeviceStorage archive scan, a path not reachable by the e2e suite
+* DEV: Added unit tests covering which settings may be supplied in the app's URL, and which of these are validated, refused, or applied for one page load only
+* DEV: E2E tests no longer rely on `noPrompts` to get past source verification, and two ineffective `await`s on checkbox state are fixed
 
 ## Interim update Kiwix JS v4.3.2
 
