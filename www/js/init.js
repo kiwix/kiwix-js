@@ -169,12 +169,24 @@ var persistableParams = ['allowInternetAccess', 'contentInjectionMode', 'default
     'hideActiveContentWarning', 'appTheme', 'showUIAnimations', 'overrideBrowserLanguage', 'appCache', 'assetsCache'];
 
 /**
+ * Parameters that are refused from the querystring on every origin, including a development one. A stored
+ * "off" for source verification survives every later visit, so it is the one setting where following a
+ * single link does lasting harm, and we cannot rely on an origin test to protect it: this app is
+ * self-hostable via the docker-compose.yml in the repository root, so a user's own production instance is
+ * reached at http://localhost:8080, and no origin test can tell that apart from a developer's dev server.
+ * DEV: set this in Configuration, or from the console with
+ * localStorage.setItem('kiwixjs-sourceVerification', 'false') - both persist, so it is a one-time cost.
+ * @type {Array<String>}
+ */
+var neverFromQuerystring = ['sourceVerification'];
+
+/**
  * Parameters that weaken or bypass security-relevant behaviour, and are only ever needed when developing
  * or running the test suite. They are honoured in a development context but ignored everywhere else, so
  * that a crafted link to the production PWA cannot use them to disarm the app.
  * @type {Array<String>}
  */
-var devOnlyParams = ['noPrompts', 'sourceVerification', 'PWAServer', 'libraryUrl', 'altLibraryUrl', 'altLibraryProbe'];
+var devOnlyParams = ['noPrompts', 'PWAServer', 'libraryUrl', 'altLibraryUrl', 'altLibraryProbe'];
 
 /**
  * Parameters whose value must match a pattern before it will be accepted. The referrerExtensionURL is only
@@ -236,7 +248,9 @@ function isTrustedContext () {
             if (paramKey !== 'title' && !~forbiddenParams.indexOf(paramKey)) {
                 // NB we must use hasOwnProperty here, or a key such as 'toString' would pick up an inherited value
                 var paramPattern = Object.prototype.hasOwnProperty.call(validatedParams, paramKey) ? validatedParams[paramKey] : null;
-                if (~devOnlyParams.indexOf(paramKey) && !trustedContext) {
+                if (~neverFromQuerystring.indexOf(paramKey)) {
+                    console.warn('Ignoring querystring parameter "' + paramKey + '": it can only be set in Configuration');
+                } else if (~devOnlyParams.indexOf(paramKey) && !trustedContext) {
                     console.warn('Ignoring querystring parameter "' + paramKey + '": it is only honoured when running from a development or test location');
                 } else if (paramPattern && !paramPattern.test(paramVal)) {
                     console.warn('Ignoring querystring parameter "' + paramKey + '": the value is not in the expected format');

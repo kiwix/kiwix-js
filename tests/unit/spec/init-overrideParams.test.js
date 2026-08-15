@@ -3,15 +3,17 @@
  * Tests for the querystring parameter overrides in www/js/init.js
  *
  * The overrideParams() block decides, for every `?key=value` pair in the querystring, whether it may
- * be applied to params and whether it may be written to the Settings Store. Three behaviours matter:
+ * be applied to params and whether it may be written to the Settings Store. Four behaviours matter:
  *
- *   1. The parameters that weaken app protections (noPrompts, sourceVerification, and the URL-shaped
- *      ones) are honoured only when the app is served from a development or test location. This is the
- *      part that no other test reaches: the e2e suite always drives the app from localhost, which IS a
- *      trusted context, so it would stay green even if the check were removed altogether.
- *   2. The parameters the app passes between its own contexts (the local code <-> PWA handoff) must
+ *   1. sourceVerification is refused from the querystring on every origin, development ones included,
+ *      because a stored "off" persists and the app is self-hostable on localhost via Docker.
+ *   2. The remaining parameters that weaken app protections (noPrompts and the URL-shaped ones) are
+ *      honoured only when the app is served from a development or test location. This is the part that
+ *      no other test reaches: the e2e suite always drives the app from localhost, which IS a trusted
+ *      context, so it would stay green even if the check were removed altogether.
+ *   3. The parameters the app passes between its own contexts (the local code <-> PWA handoff) must
  *      keep working from any origin, including the production PWA.
- *   3. Anything else may be applied for the current page load but must never be stored.
+ *   4. Anything else may be applied for the current page load but must never be stored.
  *
  * init.js is a plain script rather than a module (it is loaded with a <script> tag before app.js), so
  * it cannot be imported. Instead each case evaluates the real file inside a fresh JSDOM window built
@@ -116,7 +118,7 @@ function assertNotStored (result, key) {
 }
 
 describe('init.js querystring overrides', function () {
-    describe('parameters restricted to development and test contexts', function () {
+    describe('parameters refused from the querystring on every origin', function () {
         it('ignores sourceVerification when served from the production PWA', function () {
             const result = loadInit(PROD_PWA, '?sourceVerification=false');
             assert.strictEqual(result.params.sourceVerification, true, 'source verification should still be on');
@@ -125,6 +127,25 @@ describe('init.js querystring overrides', function () {
             assert.include(result.warnings[0], 'sourceVerification');
         });
 
+        it('ignores sourceVerification on localhost, which is not necessarily a development machine', function () {
+            // The app is self-hostable via the docker-compose.yml in the repository root, which publishes it
+            // on port 8080, so localhost may well be an end user's own production instance. No origin test
+            // can tell the two apart, which is why this parameter is refused everywhere rather than gated
+            const result = loadInit(LOCALHOST, '?sourceVerification=false');
+            assert.strictEqual(result.params.sourceVerification, true, 'source verification should still be on');
+            assertNotStored(result, 'sourceVerification');
+        });
+
+        it('ignores sourceVerification on every other trusted origin too', function () {
+            [LOOPBACK_IP, FILE_PROTOCOL, FIREFOX_EXT, CHROME_EXT, LAN_HOST].forEach(function (url) {
+                const result = loadInit(url, '?sourceVerification=false');
+                assert.strictEqual(result.params.sourceVerification, true, 'should be refused at: ' + url);
+                assertNotStored(result, 'sourceVerification');
+            });
+        });
+    });
+
+    describe('parameters restricted to development and test contexts', function () {
         it('ignores noPrompts when served from the production PWA', function () {
             const result = loadInit(PROD_PWA, '?noPrompts=true');
             assert.isUndefined(result.params.noPrompts);
@@ -145,21 +166,11 @@ describe('init.js querystring overrides', function () {
             assertNotStored(result, 'PWAServer');
         });
 
-        it('ignores sourceVerification when served from another host on the network', function () {
-            const result = loadInit(LAN_HOST, '?sourceVerification=false');
-            assert.strictEqual(result.params.sourceVerification, true);
-            assertNotStored(result, 'sourceVerification');
-        });
-
         it('honours noPrompts on localhost, so that the e2e suite keeps working', function () {
             const result = loadInit(LOCALHOST, '?noPrompts=true');
             assert.strictEqual(result.params.noPrompts, true);
             assert.strictEqual(result.stored['kiwixjs-noPrompts'], 'true');
             assert.lengthOf(result.warnings, 0);
-        });
-
-        it('honours sourceVerification on localhost', function () {
-            assert.strictEqual(loadInit(LOCALHOST, '?sourceVerification=false').params.sourceVerification, false);
         });
 
         it('honours the loopback IP and the file protocol', function () {
