@@ -132,6 +132,11 @@ function runTests (driver, modes, keepDriver) {
                     return;
                 }
 
+                // Treat the test archive as already verified, so that loading it does not raise the source
+                // verification dialogue. We set the runtime value rather than passing a querystring parameter,
+                // because a security setting must not be changeable by following a link. NB this must be set
+                // for the BrowserStack path as well, which loads the archive as a remote blob instead
+                await driver.executeScript('params.sourceVerification = false;');
                 if (!BROWSERSTACK) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     await archiveFiles.sendKeys(tonedearBaseFile);

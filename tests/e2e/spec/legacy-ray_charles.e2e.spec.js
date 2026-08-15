@@ -198,7 +198,7 @@ function runTests (driver, modes, keepDriver) {
                 // Disable source verification in SW mode as the dialogue box gave incosistent test results in automated tests
                 if (mode === 'serviceworker') {
                     const sourceVerificationCheckbox = await driver.findElement(By.id('enableSourceVerification'));
-                    if (sourceVerificationCheckbox.isSelected()) {
+                    if (await sourceVerificationCheckbox.isSelected()) {
                         await sourceVerificationCheckbox.click();
                     }
                 }
@@ -211,6 +211,11 @@ function runTests (driver, modes, keepDriver) {
                 const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                 // Unhide the element using JavaScript in case it is hidden
                 await driver.executeScript('arguments[0].style.display = "block";', archiveFiles);
+                // Treat the test archive as already verified, so that loading it does not raise the source
+                // verification dialogue. We set the runtime value rather than passing a querystring parameter,
+                // because a security setting must not be changeable by following a link. NB this must be set
+                // for the BrowserStack path as well, which loads the archive as a remote blob instead
+                await driver.executeScript('params.sourceVerification = false;');
                 if (!BROWSERSTACK) {
                     // We are running tests locally or on GitHub Actions
                     await archiveFiles.sendKeys(rayCharlesAllParts);

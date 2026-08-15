@@ -94,6 +94,10 @@ const run = async () => {
         await archiveFiles.sendKeys(allParts);
         await driver.wait(async () =>
             (await driver.executeScript('return document.getElementById("archiveFiles").files.length')) === 15, 8000);
+        // Treat the test archive as already verified, so that loading it does not raise the source verification
+        // dialogue. We set the runtime value rather than passing a querystring parameter, because a security
+        // setting must not be changeable by following a link
+        await driver.executeScript('params.sourceVerification = false;');
         await driver.executeScript('window.setLocalArchiveFromFileSelect();');
         await driver.wait(async () => {
             try {
