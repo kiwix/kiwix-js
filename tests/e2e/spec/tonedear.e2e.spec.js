@@ -42,9 +42,6 @@ function runTests (driver, modes, keepDriver) {
             it('Load Kiwix JS and check title', async function () {
                 await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
                 await driver.sleep(1300);
-                // Switch off source verification for the test run. This is set in the Settings Store rather than
-                // passed in the querystring, because a security setting must not be changeable by following a link
-                await driver.executeScript('localStorage.setItem("kiwixjs-sourceVerification", "false");');
                 await driver.navigate().refresh();
                 await driver.sleep(800);
                 const title = await driver.getTitle();
@@ -135,13 +132,14 @@ function runTests (driver, modes, keepDriver) {
                     return;
                 }
 
+                // Treat the test archive as already verified, so that loading it does not raise the source
+                // verification dialogue. We set the runtime value rather than passing a querystring parameter,
+                // because a security setting must not be changeable by following a link. NB this must be set
+                // for the BrowserStack path as well, which loads the archive as a remote blob instead
+                await driver.executeScript('params.sourceVerification = false;');
                 if (!BROWSERSTACK) {
                     const archiveFiles = await driver.findElement(By.id('archiveFiles'));
                     await archiveFiles.sendKeys(tonedearBaseFile);
-                    // Treat the test archive as already verified, so that loading it does not raise the source
-                    // verification dialogue. We set the runtime value rather than passing a querystring parameter,
-                    // because a security setting must not be changeable by following a link
-                    await driver.executeScript('params.sourceVerification = false;');
                     await driver.executeScript('window.setLocalArchiveFromFileSelect();');
                     const filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     assert.equal(1, filesLength);
