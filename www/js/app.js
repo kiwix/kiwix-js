@@ -815,7 +815,11 @@ async function verifyLoadedArchive (archive) {
     metadataBox.append(verifyName, verifyCreator, verifyPublisher, verifyScraper);
     verificationBody.append(verificationText, metadataBox, verifyWarning);
 
-    const response = await uiUtil.systemAlert(
+    // When dialogs are suppressed we take the same branch as dismissing this one, i.e. we open the archive in
+    // Restricted mode without granting trust. Suppressing a security question must never be taken as answering
+    // it affirmatively, particularly as params.noPrompts can be set from the querystring in a development
+    // context, and this app is self-hostable on localhost.
+    const response = params.noPrompts ? false : await uiUtil.systemAlert(
         verificationBody.outerHTML,
         translateUI.t('dialog-sourceverification-title') || 'Security alert!',
         true,
@@ -2152,8 +2156,11 @@ async function archiveReadyCallback (archive) {
     if (settingsStore.getItem('trustedZimFiles') === null) {
         settingsStore.setItem('trustedZimFiles', '', Infinity);
     }
-    // This is used for testing: if the noPrompts flag is set, we skip the source verification
-    if (params.noPrompts) params.sourceVerification = false;
+    // NB we deliberately do not switch off source verification when params.noPrompts is set. That flag can be
+    // set from the querystring in a development context, and this app is self-hostable on localhost, so it
+    // must not be able to disable a security control. Instead verifyLoadedArchive() honours noPrompts by
+    // taking the untrusted branch (Restricted mode) without showing the dialog. Tests that need verification
+    // off set sourceVerification in the Settings Store, which init.js reads at boot and no link can write.
     if (params.sourceVerification && (params.contentInjectionMode === 'serviceworker' || params.contentInjectionMode === 'serviceworkerlocal')) {
         // Check if source of the zim file can be trusted.
         if (!(settingsStore.getItem('trustedZimFiles').includes(archive.file.name))) {

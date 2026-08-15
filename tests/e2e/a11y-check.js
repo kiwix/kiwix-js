@@ -44,6 +44,10 @@ const run = async () => {
 
     try {
         await driver.get(BASE);
+        // Switch off source verification for the run. This is set in the Settings Store rather than passed in
+        // the querystring, because a security setting must not be changeable by following a link
+        await driver.executeScript('localStorage.setItem("kiwixjs-sourceVerification", "false");');
+        await driver.navigate().refresh();
         await driver.sleep(2000);
         try {
             await driver.findElement(By.css('.modal[style*="display: block"]'));
@@ -94,6 +98,10 @@ const run = async () => {
         await archiveFiles.sendKeys(allParts);
         await driver.wait(async () =>
             (await driver.executeScript('return document.getElementById("archiveFiles").files.length')) === 15, 8000);
+        // Treat the test archive as already verified, so that loading it does not raise the source verification
+        // dialogue. We set the runtime value rather than passing a querystring parameter, because a security
+        // setting must not be changeable by following a link
+        await driver.executeScript('params.sourceVerification = false;');
         await driver.executeScript('window.setLocalArchiveFromFileSelect();');
         await driver.wait(async () => {
             try {

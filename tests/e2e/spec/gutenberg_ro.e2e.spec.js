@@ -110,6 +110,9 @@ function runTests (driver, modes, keepDriver) {
                 await driver.get('http://localhost:' + port + '/dist/www/index.html?noPrompts=true');
                 // Pause for 1.3 seconds to allow the app to load
                 await driver.sleep(1300);
+                // Switch off source verification for the test run. This is set in the Settings Store rather than
+                // passed in the querystring, because a security setting must not be changeable by following a link
+                await driver.executeScript('localStorage.setItem("kiwixjs-sourceVerification", "false");');
                 // Issue a reload to ensure that the app is in the correct mode
                 await driver.navigate().refresh();
                 // Pause for 800 milliseconds to allow the app to reload
@@ -207,6 +210,10 @@ function runTests (driver, modes, keepDriver) {
                     filesLength = await driver.executeScript('return document.getElementById("archiveFiles").files.length');
                     // In new browsers Files are loaded using the FileSystem API, so we have to set the local archives using JavaScript
                     // which were selected using the file input
+                    // Treat the test archive as already verified, so that loading it does not raise the source
+                    // verification dialogue. We set the runtime value rather than passing a querystring parameter,
+                    // because a security setting must not be changeable by following a link
+                    await driver.executeScript('params.sourceVerification = false;');
                     await driver.executeScript('window.setLocalArchiveFromFileSelect();');
                     // Check that we loaded 1 file
                     assert.equal(1, filesLength);
