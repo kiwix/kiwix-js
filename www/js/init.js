@@ -151,7 +151,11 @@ params['cacheAPI'] = 'kiwix-js'; // Sets name of the prefix used to identify the
 params['cacheIDB'] = 'kiwix-zim'; // Sets name of the Indexed DB database
 params['isFileSystemApiSupported'] = typeof window.showOpenFilePicker === 'function'; // Sets a boolean indicating whether the FileSystem API is supported
 params['isWebkitDirApiSupported'] = 'webkitdirectory' in document.createElement('input'); // Sets a Boolean indicating whether the Webkit Directory API is supported
-params['sourceVerification'] = params.contentInjectionMode === 'serviceworker' ? (getSetting('sourceVerification') === null ? true : getSetting('sourceVerification')) : false; // Sets a boolean indicating weather a user trusts the source of zim files
+// Sets a boolean indicating whether a user trusts the source of zim files. NB the stored mode may be
+// 'serviceworkerlocal' (Chromium extensions run the Service Worker on the extension origin instead of
+// jumping to the PWA), and the trust gate applies in that mode too, so we must not test for an exact
+// match with 'serviceworker' here or the gate would be silently off on every launch in that mode
+params['sourceVerification'] = /^serviceworker/.test(params.contentInjectionMode) ? (getSetting('sourceVerification') === null ? true : getSetting('sourceVerification')) : false;
 params['libzimMode'] = getSetting('libzimMode') || 'wasm'; // Sets a value indicating which libzim mode is selected
 params['useLibzim'] = !!getSetting('useLibzim'); // Sets a value indicating which libzim mode is selected
 params['libzimSearchType'] = getSetting('libzimSearchType') || 'searchWithSnippets'; // Sets a value indicating the type of search to use with libzim (currently 'search' or 'searchWithSnippets')

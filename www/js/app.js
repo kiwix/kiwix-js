@@ -88,8 +88,8 @@ if ((isServiceWorkerAvailable() || isMessageChannelAvailable() && /^(moz|chrome)
     params.contentInjectionMode === 'jquery' && !params.defaultModeChangeAlertDisplayed) {
     // Attempt to upgrade user to ServiceWorker mode
     params.contentInjectionMode = 'serviceworker';
-} else if (params.contentInjectionMode === 'serviceworker') {
-    // User is already in SW mode, so we will never need to display the upgrade alert
+} else if (/^serviceworker/.test(params.contentInjectionMode)) {
+    // User is already in SW mode (or ServiceWorkerLocal mode), so we will never need to display the upgrade alert
     params.defaultModeChangeAlertDisplayed = true;
     settingsStore.setItem('defaultModeChangeAlertDisplayed', true, Infinity);
 }
