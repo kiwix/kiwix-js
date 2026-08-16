@@ -125,10 +125,16 @@ params['disableDragAndDrop'] = getSetting('disableDragAndDrop') === true;
 params['referrerExtensionURL'] = getSetting('referrerExtensionURL');
 // A parameter to keep track of the fact that the user has been informed of the switch to SW mode by default
 params['defaultModeChangeAlertDisplayed'] = getSetting('defaultModeChangeAlertDisplayed');
-// A parameter to set the content injection mode ('jquery' or 'serviceworker') used by this app
-params['contentInjectionMode'] = getSetting('contentInjectionMode') ||
+// The content injection modes the app can actually represent, which are exactly the three radio values in
+// index.html. Used both to validate the querystring parameter below and to sanitize the stored value: any
+// other string leaves the app in a state its own UI cannot show, with no radio lit and the mode matching
+// none of the branches in setContentInjectionMode()
+var contentInjectionModes = /^(?:jquery|serviceworker|serviceworkerlocal)$/;
+// A parameter to set the content injection mode ('jquery', 'serviceworker' or 'serviceworkerlocal') used by this app
+// NB testing the stored value heals anything unrecognized that was written before this validation existed
+params['contentInjectionMode'] = contentInjectionModes.test(getSetting('contentInjectionMode')) ? getSetting('contentInjectionMode')
     // Defaults to serviceworker mode when the API is available
-    (('serviceWorker' in navigator) ? 'serviceworker' : 'jquery');
+    : (('serviceWorker' in navigator) ? 'serviceworker' : 'jquery');
 // A parameter to circumvent anti-fingerprinting technology in browsers that do not support WebP natively by substituting images
 // directly with the canvas elements produced by the WebP polyfill [kiwix-js #835]. NB This is only currently used in jQuery mode.
 params['useCanvasElementsForWebpTranscoding'] = null; // Value is determined in uiUtil.determineCanvasElementsWorkaround(), called when setting the content injection mode
@@ -195,11 +201,14 @@ var devOnlyParams = ['noPrompts', 'PWAServer', 'libraryUrl', 'altLibraryUrl', 'a
 /**
  * Parameters whose value must match a pattern before it will be accepted. The referrerExtensionURL is only
  * ever meant to hold the URL of the extension that launched this PWA, and it lands in window.location.href
- * and in an iframe src, so we require it to be an extension URL and nothing else.
+ * and in an iframe src, so we require it to be an extension URL and nothing else. The contentInjectionMode
+ * is persistable, so an unrecognized value would otherwise be stored and read back on every later launch.
+ * Every querystring the app sends itself uses 'jquery' or 'serviceworker', so the handoff is unaffected.
  * @type {Object}
  */
 var validatedParams = {
-    referrerExtensionURL: /^(?:moz|chrome)-extension:\/\/[^/]/
+    referrerExtensionURL: /^(?:moz|chrome)-extension:\/\/[^/]/,
+    contentInjectionMode: contentInjectionModes
 };
 
 /**

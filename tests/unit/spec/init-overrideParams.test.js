@@ -298,6 +298,48 @@ describe('init.js querystring overrides', function () {
         });
     });
 
+    describe('validation of contentInjectionMode', function () {
+        // The parameter is persistable, so before it was validated any string at all could be stored and
+        // then read back on every later launch. setContentInjectionMode() branches on the three radio
+        // values alone, so anything else leaves the app in a state its own UI cannot show: no radio lit,
+        // and the mode matching none of the branches that switch on it
+        it('accepts each of the three modes the app can represent', function () {
+            ['jquery', 'serviceworker', 'serviceworkerlocal'].forEach(function (mode) {
+                const result = loadInit(PROD_PWA, '?contentInjectionMode=' + mode);
+                assert.strictEqual(result.params.contentInjectionMode, mode);
+                assert.strictEqual(result.stored['kiwixjs-contentInjectionMode'], mode);
+            });
+        });
+
+        it('refuses a mode the app has no branch for, rather than storing it', function () {
+            const result = loadInit(PROD_PWA, '?contentInjectionMode=bogus');
+            assert.strictEqual(result.params.contentInjectionMode, 'serviceworker', 'the default should survive');
+            assertNotStored(result, 'contentInjectionMode');
+            assert.lengthOf(result.warnings, 1);
+            assert.include(result.warnings[0], 'contentInjectionMode');
+        });
+
+        it('refuses a value that merely starts with a real mode', function () {
+            // Without this, 'serviceworkerX' would read back as a trusting mode at the sourceVerification
+            // line, which tests the prefix rather than the whole string
+            const result = loadInit(PROD_PWA, '?contentInjectionMode=serviceworkerX');
+            assert.strictEqual(result.params.contentInjectionMode, 'serviceworker');
+            assertNotStored(result, 'contentInjectionMode');
+        });
+
+        it('heals an unrecognised mode stored before this validation existed', function () {
+            const result = loadInit(PROD_PWA, '', { 'kiwixjs-contentInjectionMode': 'bogus' });
+            assert.strictEqual(result.params.contentInjectionMode, 'serviceworker');
+        });
+
+        it('still reads back a stored mode the app can represent', function () {
+            ['jquery', 'serviceworker', 'serviceworkerlocal'].forEach(function (mode) {
+                const result = loadInit(PROD_PWA, '', { 'kiwixjs-contentInjectionMode': mode });
+                assert.strictEqual(result.params.contentInjectionMode, mode);
+            });
+        });
+    });
+
     describe('parameters that are not in any list', function () {
         it('applies an unrecognised parameter to the current page load but does not store it', function () {
             const result = loadInit(PROD_PWA, '?someExperimentalSetting=42');
