@@ -387,7 +387,16 @@ function runTests (driver, modes, keepDriver) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     this.skip();
                 }
-                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
+                const filter = await driver.wait(
+                    until.elementLocated(By.id('author_filter')),
+                    3000
+                );
+                await driver.wait(
+                    until.elementIsVisible(filter),
+                    1500
+                );
                 await filter.sendKeys('Mihai Eminescu');
                 const searchList = await driver.wait(until.elementsLocated(By.className('ui-menu-item')), 1500);
                 assert.equal(searchList.length, 1);
@@ -399,7 +408,18 @@ function runTests (driver, modes, keepDriver) {
                     this.skip();
                 }
                 // search by author name and press enter to apply the filter
-                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
+                    
+                const filter = await driver.wait(
+                    until.elementLocated(By.id('author_filter')),
+                    3000
+                );
+
+                await driver.wait(
+                    until.elementIsVisible(filter),
+                    1500
+                );
                 await filter.sendKeys(Key.ENTER);
                 const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="books_table"]/tbody')));
                 // revert whatever was typed in the search box and press enter to remove filter
