@@ -1198,11 +1198,21 @@ function setContentInjectionMode (value) {
     var message = '';
     if (value === 'jquery') {
         if (!params.appCache) {
-            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Restricted mode!'),
-                (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
-                setContentInjectionMode('serviceworker');
-            })
-            return;
+            // DEV: In an extension the ServiceWorker API is legitimately absent (Firefox >= 103), but SW mode is still
+            // reachable by handing off to the PWA, so the API test alone must not decide this
+            if (isServiceWorkerAvailable() || /^(moz|chrome)-extension:/i.test(window.location.protocol)) {
+                uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Restricted mode!'),
+                    (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
+                    setContentInjectionMode('serviceworker');
+                })
+                return;
+            }
+            // This browser cannot run any ServiceWorker mode, so Restricted mode is the only mode available and the
+            // bypass has nothing left to bypass. Insisting on it here would give the user a dialogue they cannot
+            // satisfy, and would send us back to SW mode, which is the loop this fix removes [kiwix-js #1465]. So we
+            // turn the bypass off ourselves, exactly as init.js does when it finds the app already in Restricted mode
+            params.appCache = true;
+            document.getElementById('bypassAppCacheCheck').checked = false;
         }
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
@@ -1252,6 +1262,11 @@ function setContentInjectionMode (value) {
             launchBrowserExtensionServiceWorker();
         } else {
             if (!isServiceWorkerAvailable()) {
+                // We have just established that this browser has no ServiceWorker API, so the mode we came from must not
+                // be restored if it was itself a ServiceWorker mode: that would re-enter this branch and re-display the
+                // dialogue below, indefinitely, leaving the app unusable [kiwix-js #1465]. Note this is computed
+                // before the dialogue is shown, because params.oldInjectionMode is overwritten on every mode change
+                var fallbackMode = params.oldInjectionMode && !/^serviceworker/.test(params.oldInjectionMode) ? params.oldInjectionMode : 'jquery';
                 message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
                     '<p>You can continue to use the app in Restricted mode, but note that this mode only works well with ' +
@@ -1264,11 +1279,11 @@ function setContentInjectionMode (value) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                         } else {
-                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                            setContentInjectionMode(fallbackMode);
                         }
                     });
                 } else {
-                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                    setContentInjectionMode(fallbackMode);
                 }
                 return;
             }
