@@ -68,14 +68,16 @@ function elementStub () {
  * Evaluates the real init.js in a JSDOM window created at the given URL, and reports what it did.
  * @param {String} baseUrl The URL the app is served from, which determines whether the context is trusted
  * @param {String} querystring The querystring to apply, including the leading '?'
+ * @param {Object} [seed] Settings already in the Store when the app launches, keyed as they are actually
+ *     held (with the kiwixjs- prefix) and given as strings, which is all the real localStorage can store
  * @returns {Object} An object with the resulting params, the keys written to storage, and any warnings
  */
-function loadInit (baseUrl, querystring) {
+function loadInit (baseUrl, querystring, seed) {
     // runScripts gives us window.eval, which is what runs init.js inside this window rather than in Node
     const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', { url: baseUrl + querystring, runScripts: 'outside-only' });
     const win = dom.window;
     const warnings = [];
-    const stored = {};
+    const stored = Object.assign({}, seed);
     // JSDOM refuses localStorage on the opaque origins of moz-extension: and file:, so supply our own.
     // It stringifies values exactly as the real API does, which is what init.js reads back.
     Object.defineProperty(win, 'localStorage', {
@@ -142,6 +144,40 @@ describe('init.js querystring overrides', function () {
                 assert.strictEqual(result.params.sourceVerification, true, 'should be refused at: ' + url);
                 assertNotStored(result, 'sourceVerification');
             });
+        });
+    });
+
+    describe('the trust gate across content injection modes', function () {
+        // The querystring cannot reach sourceVerification at all, so what matters is that the value the
+        // user set in Configuration is read back on the next launch. It is only meaningful in the modes
+        // that serve ZIM content through a Service Worker, and there are two of those: 'serviceworker',
+        // and the 'serviceworkerlocal' mode that Chromium extensions use to run the Service Worker on the
+        // extension origin rather than jumping to the PWA. The stored mode string is the full one, so an
+        // exact comparison against 'serviceworker' leaves the gate off for every ServiceWorkerLocal launch
+        const SW = { 'kiwixjs-contentInjectionMode': 'serviceworker' };
+        const SW_LOCAL = { 'kiwixjs-contentInjectionMode': 'serviceworkerlocal' };
+        const RESTRICTED = { 'kiwixjs-contentInjectionMode': 'jquery' };
+
+        it('defaults to verifying when nothing has been stored', function () {
+            assert.strictEqual(loadInit(PROD_PWA, '', SW).params.sourceVerification, true);
+        });
+
+        it('verifies in ServiceWorkerLocal mode, where ZIM content is served on the extension origin', function () {
+            assert.strictEqual(loadInit(CHROME_EXT, '', SW_LOCAL).params.sourceVerification, true);
+        });
+
+        it('honours a stored opt-out in both Service Worker modes', function () {
+            [[PROD_PWA, SW], [CHROME_EXT, SW_LOCAL]].forEach(function (testCase) {
+                const seed = Object.assign({ 'kiwixjs-sourceVerification': 'false' }, testCase[1]);
+                assert.strictEqual(loadInit(testCase[0], '', seed).params.sourceVerification, false,
+                    'a deliberate opt-out should survive in mode: ' + testCase[1]['kiwixjs-contentInjectionMode']);
+            });
+        });
+
+        it('leaves verification off in Restricted mode, where it is redundant', function () {
+            // Restricted mode never runs script from the archive, so there is nothing to gate
+            const seed = Object.assign({ 'kiwixjs-sourceVerification': 'true' }, RESTRICTED);
+            assert.strictEqual(loadInit(PROD_PWA, '', seed).params.sourceVerification, false);
         });
     });
 
@@ -259,6 +295,48 @@ describe('init.js querystring overrides', function () {
             const result = loadInit(PROD_PWA, '?referrerExtensionURL=moz-extension%3A%2F%2F%2F..%2Fx');
             assert.isNull(result.params.referrerExtensionURL);
             assertNotStored(result, 'referrerExtensionURL');
+        });
+    });
+
+    describe('validation of contentInjectionMode', function () {
+        // The parameter is persistable, so before it was validated any string at all could be stored and
+        // then read back on every later launch. setContentInjectionMode() branches on the three radio
+        // values alone, so anything else leaves the app in a state its own UI cannot show: no radio lit,
+        // and the mode matching none of the branches that switch on it
+        it('accepts each of the three modes the app can represent', function () {
+            ['jquery', 'serviceworker', 'serviceworkerlocal'].forEach(function (mode) {
+                const result = loadInit(PROD_PWA, '?contentInjectionMode=' + mode);
+                assert.strictEqual(result.params.contentInjectionMode, mode);
+                assert.strictEqual(result.stored['kiwixjs-contentInjectionMode'], mode);
+            });
+        });
+
+        it('refuses a mode the app has no branch for, rather than storing it', function () {
+            const result = loadInit(PROD_PWA, '?contentInjectionMode=bogus');
+            assert.strictEqual(result.params.contentInjectionMode, 'serviceworker', 'the default should survive');
+            assertNotStored(result, 'contentInjectionMode');
+            assert.lengthOf(result.warnings, 1);
+            assert.include(result.warnings[0], 'contentInjectionMode');
+        });
+
+        it('refuses a value that merely starts with a real mode', function () {
+            // Without this, 'serviceworkerX' would read back as a trusting mode at the sourceVerification
+            // line, which tests the prefix rather than the whole string
+            const result = loadInit(PROD_PWA, '?contentInjectionMode=serviceworkerX');
+            assert.strictEqual(result.params.contentInjectionMode, 'serviceworker');
+            assertNotStored(result, 'contentInjectionMode');
+        });
+
+        it('heals an unrecognised mode stored before this validation existed', function () {
+            const result = loadInit(PROD_PWA, '', { 'kiwixjs-contentInjectionMode': 'bogus' });
+            assert.strictEqual(result.params.contentInjectionMode, 'serviceworker');
+        });
+
+        it('still reads back a stored mode the app can represent', function () {
+            ['jquery', 'serviceworker', 'serviceworkerlocal'].forEach(function (mode) {
+                const result = loadInit(PROD_PWA, '', { 'kiwixjs-contentInjectionMode': mode });
+                assert.strictEqual(result.params.contentInjectionMode, mode);
+            });
         });
     });
 
