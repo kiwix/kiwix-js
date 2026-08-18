@@ -520,14 +520,14 @@ document.getElementById('btnReset').addEventListener('click', function () {
     })
 });
 document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
-    if (params.contentInjectionMode !== 'serviceworker') {
-        uiUtil.systemAlert(translateUI.t('dialog-bypassappcachecheck-message') || 'This setting can only be used in ServiceWorker mode!');
-        this.checked = false;
-    } else {
-        params.appCache = !this.checked;
-        settingsStore.setItem('appCache', params.appCache, Infinity);
-        settingsStore.reset('cacheAPI');
-    }
+    // DEV: This setting used to be refused outside ServiceWorker mode, but Restricted mode does not stop the Service
+    // Worker running: it only stops it intercepting requests for ZIM assets, so the app's own code is still served
+    // from APP_CACHE, which is exactly what this setting bypasses. The old guard therefore blocked a bypass that
+    // does work, and left it impossible to turn off once the app had auto-switched to Restricted mode by itself,
+    // as it does when the user declines to trust an archive [kiwix-js #1465]
+    params.appCache = !this.checked;
+    settingsStore.setItem('appCache', params.appCache, Infinity);
+    settingsStore.reset('cacheAPI');
     // This will also send any new values to Service Worker
     refreshCacheStatus();
 });
@@ -970,8 +970,10 @@ function refreshAPIStatus () {
         pwaOriginStatusDiv.innerHTML = (translateUI.t('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
-        // Set visibility of UI elements according to mode
-        document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+        // Set visibility of UI elements. DEV: the question is not which mode we are in, but whether there is a Service
+        // Worker to bypass: this setting works in Restricted mode and in ServiceWorkerLocal mode alike, and does
+        // nothing at all in a browser that has no ServiceWorker API, whatever the mode [kiwix-js #1465]
+        document.getElementById('bypassAppCacheDiv').style.display = isServiceWorkerAvailable() ? 'block' : 'none';
         // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
         if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
     }, 250);
@@ -1197,13 +1199,6 @@ function setContentInjectionMode (value) {
     params.originalContentInjectionMode = null;
     var message = '';
     if (value === 'jquery') {
-        if (!params.appCache) {
-            uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Restricted mode!'),
-                (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
-                setContentInjectionMode('serviceworker');
-            })
-            return;
-        }
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
             message = translateUI.t('dialog-launchlocal-message') || 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +
@@ -1252,6 +1247,11 @@ function setContentInjectionMode (value) {
             launchBrowserExtensionServiceWorker();
         } else {
             if (!isServiceWorkerAvailable()) {
+                // We have just established that this browser has no ServiceWorker API, so the mode we came from must not
+                // be restored if it was itself a ServiceWorker mode: that would re-enter this branch and re-display the
+                // dialogue below, indefinitely, leaving the app unusable [kiwix-js #1465]. Note this is computed
+                // before the dialogue is shown, because params.oldInjectionMode is overwritten on every mode change
+                var fallbackMode = params.oldInjectionMode && !/^serviceworker/.test(params.oldInjectionMode) ? params.oldInjectionMode : 'jquery';
                 message = translateUI.t('dialog-launchpwa-unsupported-message') ||
                     '<p>Unfortunately, your browser does not appear to support ServiceWorker mode, which is now the default for this app.</p>' +
                     '<p>You can continue to use the app in Restricted mode, but note that this mode only works well with ' +
@@ -1264,11 +1264,11 @@ function setContentInjectionMode (value) {
                             var uriParams = '?allowInternetAccess=false&contentInjectionMode=jquery&defaultModeChangeAlertDisplayed=true';
                             window.location.href = params.referrerExtensionURL + '/www/index.html' + uriParams;
                         } else {
-                            setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                            setContentInjectionMode(fallbackMode);
                         }
                     });
                 } else {
-                    setContentInjectionMode(params.oldInjectionMode || 'jquery');
+                    setContentInjectionMode(fallbackMode);
                 }
                 return;
             }

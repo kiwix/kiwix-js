@@ -9,7 +9,11 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * SECURITY: The security prompt regarding the source of an archive now appears consistently in ServiceWorkerLocal mode
 * FIX: The content injection mode is now checked against the modes the app actually supports, so an unrecognised value can no longer leave the app in an invalid state
 * FIX: Users who had already chosen ServiceWorkerLocal mode are no longer shown the mode-change alert they had answered before
+* FIX: In browsers without the ServiceWorker API (e.g. IE11), the "ServiceWorker API not available" dialogue no longer reappears indefinitely when the app starts in ServiceWorker mode: the app now warns once and drops back to Restricted mode
+* FIX: The "Bypass AppCache" setting no longer blocks a switch to Restricted mode, and can now be turned off from Restricted mode: the Service Worker still serves the app's own code in that mode, so the setting applies there too
+* FIX: The "Bypass AppCache" setting is now shown in every mode in which it does something, including Restricted mode and ServiceWorkerLocal mode, and is hidden only in browsers with no ServiceWorker API, where it has no effect
 * DEV: Added unit tests covering the trust setting across the content injection modes, and the validation of the mode value itself
+* DEV: Added e2e tests, run in IE Mode, covering the app's recovery from ServiceWorker mode in a browser that cannot support it
 
 ## Interim update Kiwix JS v4.3.3
 
