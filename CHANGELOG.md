@@ -4,6 +4,13 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Interim update Kiwix JS v4.3.4
+
+* SECURITY: The security prompt regarding the source of an archive now appears consistently in ServiceWorkerLocal mode
+* FIX: The content injection mode is now checked against the modes the app actually supports, so an unrecognised value can no longer leave the app in an invalid state
+* FIX: Users who had already chosen ServiceWorkerLocal mode are no longer shown the mode-change alert they had answered before
+* DEV: Added unit tests covering the trust setting across the content injection modes, and the validation of the mode value itself
+
 ## Interim update Kiwix JS v4.3.3
 
 * SECURITY: Settings supplied in the app's URL are no longer saved permanently, apart from the few the app passes between its own windows, and source verification can now only be changed in Configuration
