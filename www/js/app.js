@@ -520,14 +520,14 @@ document.getElementById('btnReset').addEventListener('click', function () {
     })
 });
 document.getElementById('bypassAppCacheCheck').addEventListener('change', function () {
-    if (params.contentInjectionMode !== 'serviceworker') {
-        uiUtil.systemAlert(translateUI.t('dialog-bypassappcachecheck-message') || 'This setting can only be used in ServiceWorker mode!');
-        this.checked = false;
-    } else {
-        params.appCache = !this.checked;
-        settingsStore.setItem('appCache', params.appCache, Infinity);
-        settingsStore.reset('cacheAPI');
-    }
+    // DEV: This setting used to be refused outside ServiceWorker mode, but Restricted mode does not stop the Service
+    // Worker running: it only stops it intercepting requests for ZIM assets, so the app's own code is still served
+    // from APP_CACHE, which is exactly what this setting bypasses. The old guard therefore blocked a bypass that
+    // does work, and left it impossible to turn off once the app had auto-switched to Restricted mode by itself,
+    // as it does when the user declines to trust an archive [kiwix-js #1465]
+    params.appCache = !this.checked;
+    settingsStore.setItem('appCache', params.appCache, Infinity);
+    settingsStore.reset('cacheAPI');
     // This will also send any new values to Service Worker
     refreshCacheStatus();
 });
@@ -1197,23 +1197,6 @@ function setContentInjectionMode (value) {
     params.originalContentInjectionMode = null;
     var message = '';
     if (value === 'jquery') {
-        if (!params.appCache) {
-            // DEV: In an extension the ServiceWorker API is legitimately absent (Firefox >= 103), but SW mode is still
-            // reachable by handing off to the PWA, so the API test alone must not decide this
-            if (isServiceWorkerAvailable() || /^(moz|chrome)-extension:/i.test(window.location.protocol)) {
-                uiUtil.systemAlert((translateUI.t('dialog-bypassappcache-conflict-message') || 'You must deselect the "Bypass AppCache" option before switching to Restricted mode!'),
-                    (translateUI.t('dialog-bypassappcache-conflict-title') || 'Deselect "Bypass AppCache"')).then(function () {
-                    setContentInjectionMode('serviceworker');
-                })
-                return;
-            }
-            // This browser cannot run any ServiceWorker mode, so Restricted mode is the only mode available and the
-            // bypass has nothing left to bypass. Insisting on it here would give the user a dialogue they cannot
-            // satisfy, and would send us back to SW mode, which is the loop this fix removes [kiwix-js #1465]. So we
-            // turn the bypass off ourselves, exactly as init.js does when it finds the app already in Restricted mode
-            params.appCache = true;
-            document.getElementById('bypassAppCacheCheck').checked = false;
-        }
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
             message = translateUI.t('dialog-launchlocal-message') || 'This will switch to using locally packaged code only. Some configuration settings may be lost.<br/><br/>' +

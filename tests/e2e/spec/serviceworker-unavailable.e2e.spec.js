@@ -5,7 +5,8 @@
  * to show the "ServiceWorker API not available" dialogue in an unbreakable loop: dismissing it restored
  * the mode the app had just rejected, which brought the dialogue straight back, so the app could not be
  * used at all. These tests launch the app in exactly that state and check that it warns the user once,
- * then settles in Restricted mode and stays there.
+ * then settles in Restricted mode and stays there, including when the "Bypass AppCache" setting is on,
+ * which used to block Restricted mode from starting and so produced a second loop of its own.
  *
  * There is nothing to test in a browser that has the ServiceWorker API, so the suite skips itself unless
  * the API is missing. In CI that means it runs in IE Mode, and is skipped everywhere else.
@@ -134,9 +135,10 @@ function runTests (driver, keepDriver) {
             assert.ok(state.searchUsable, 'The app should be usable');
         });
 
-        // Restricted mode refuses to start while "Bypass AppCache" is set, which gave a second loop between
-        // that dialogue and the one above. The bypass is meaningless without a Service Worker to bypass
-        it('Turns off "Bypass AppCache" rather than looping when it blocks the fallback', async function () {
+        // Restricted mode used to refuse to start while "Bypass AppCache" was set, bouncing the app back to
+        // ServiceWorker mode, which gave a second loop between that dialogue and the one above. That block has
+        // been removed, so the setting is simply left as the user set it
+        it('Falls back to Restricted mode without looping when "Bypass AppCache" is set', async function () {
             await launchWith(driver, '?contentInjectionMode=serviceworker&appCache=false');
             const onLaunch = await getAppState(driver);
             assert.ok(onLaunch.bypassAppCacheChecked, 'The launch should have set the AppCache bypass');
@@ -144,7 +146,7 @@ function runTests (driver, keepDriver) {
             const afterDismissal = await getAppState(driver);
             assert.strictEqual(afterDismissal.dialogue, null, 'No further dialogue should be shown');
             assert.strictEqual(afterDismissal.storedMode, 'jquery', 'The app should have settled in Restricted mode');
-            assert.ok(!afterDismissal.bypassAppCacheChecked, 'The AppCache bypass should have been turned off');
+            assert.ok(afterDismissal.bypassAppCacheChecked, 'The AppCache bypass should have been left alone');
         });
 
         after(async function () {
