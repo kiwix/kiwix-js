@@ -970,8 +970,10 @@ function refreshAPIStatus () {
         pwaOriginStatusDiv.innerHTML = (translateUI.t('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
-        // Set visibility of UI elements according to mode
-        document.getElementById('bypassAppCacheDiv').style.display = params.contentInjectionMode === 'serviceworker' ? 'block' : 'none';
+        // Set visibility of UI elements. DEV: the question is not which mode we are in, but whether there is a Service
+        // Worker to bypass: this setting works in Restricted mode and in ServiceWorkerLocal mode alike, and does
+        // nothing at all in a browser that has no ServiceWorker API, whatever the mode [kiwix-js #1465]
+        document.getElementById('bypassAppCacheDiv').style.display = isServiceWorkerAvailable() ? 'block' : 'none';
         // Check to see whether we need to alert the user that we have switched to ServiceWorker mode by default
         if (!params.defaultModeChangeAlertDisplayed) checkAndDisplayInjectionModeChangeAlert();
     }, 250);

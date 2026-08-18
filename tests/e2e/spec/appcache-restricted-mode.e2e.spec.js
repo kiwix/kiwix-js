@@ -40,7 +40,8 @@ const appUrl = 'http://localhost:' + port + '/dist/www/index.html';
 /**
  * Reports the state of the settings this spec manipulates
  * @param {WebDriver} driver Selenium WebDriver object
- * @returns {Promise<Object>} Any visible dialogue, the stored mode and AppCache settings, and the checkbox state
+ * @returns {Promise<Object>} Any visible dialogue, the stored mode and AppCache settings, the checkbox
+ *      state, and whether the setting is offered in the UI at all
  */
 function getAppState (driver) {
     return driver.executeScript(
@@ -49,7 +50,8 @@ function getAppState (driver) {
         '    dialogue: modal && modal.style.display === "block" ? document.getElementById("modalLabel").innerHTML : null,' +
         '    storedMode: localStorage.getItem("kiwixjs-contentInjectionMode"),' +
         '    storedAppCache: localStorage.getItem("kiwixjs-appCache"),' +
-        '    bypassChecked: document.getElementById("bypassAppCacheCheck").checked' +
+        '    bypassChecked: document.getElementById("bypassAppCacheCheck").checked,' +
+        '    bypassOffered: document.getElementById("bypassAppCacheDiv").style.display !== "none"' +
         '};'
     );
 }
@@ -109,6 +111,8 @@ function runTests (driver, keepDriver) {
             assert.strictEqual(afterSwitch.dialogue, null, 'No dialogue should refuse the switch to Restricted mode');
             assert.strictEqual(afterSwitch.storedMode, 'jquery', 'The app should have switched to Restricted mode');
             assert.ok(afterSwitch.bypassChecked, 'The bypass should have been left as the user set it');
+            // The setting used to be hidden outside ServiceWorker mode, which would leave it set but unreachable
+            assert.ok(afterSwitch.bypassOffered, 'The bypass setting should still be offered in Restricted mode');
         });
 
         // Turning the bypass off reloads the app (settingsStore.reset), which also proves the setting persisted
