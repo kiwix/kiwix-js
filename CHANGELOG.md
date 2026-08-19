@@ -6,6 +6,8 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Release Kiwix JS v4.4.0
 
+Released on *TODO* (interim updates below were only to the browser-extension PWA)
+
 * FIX: Tooltips in French no longer show a literal "&nbsp;" before a colon
 * FIX: Follow HTML redirects in Restricted mode
 * DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI
