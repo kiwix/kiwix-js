@@ -2836,9 +2836,8 @@ function handleClickOnReplayLink (ev, anchor) {
                         // If the document is in fact an html redirect, we need to follow it first till we get the underlying PDF document
                         if (/\bx?html\b/.test(mimetype)) {
                             selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, data) {
-                                var redirectURL = data.match(/<meta[^>]*http-equiv="refresh"[^>]*content="[^;]*;url='?([^"']+)/i);
+                                var redirectURL = getMetaRedirectUrl(data);
                                 if (redirectURL) {
-                                    redirectURL = redirectURL[1];
                                     var contentUrl = pseudoNamespace + redirectURL.replace(/^[^/]+\/\//, '');
                                     return readAndDownloadBinaryContent(contentUrl);
                                 } else {
@@ -3029,9 +3028,50 @@ var regexpDownloadLinks = /^.*?\.epub([?#]|$)|^.*?\.pdf([?#]|$)|^.*?\.odt([?#]|$
 var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
 // A regex to find and help transform assets in an article in a Zimit-based archive
 var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
+// A regex to find an HTML redirect stub, i.e. <meta http-equiv="refresh" content="0;url=...">, capturing the content
+// attribute's value in whichever group matches the way it is quoted. The lookahead allows the two attributes to appear
+// in either order
+var regexpMetaRedirect = /<meta\b(?=[^>]*\bhttp-equiv\s*=\s*["']?refresh\b)[^>]*\bcontent\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s">]+))/i;
+// A regex to match the HTML character references that may appear in an attribute value
+var regexpHtmlEntities = /&(?:#(\d+)|#[xX]([\da-fA-F]+)|(amp|apos|quot|lt|gt));/g;
 
 // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
 var anchorParameter;
+// Counts consecutive HTML redirects we have followed, so that a circular chain of redirect stubs cannot loop forever
+var htmlRedirectHops = 0;
+
+/**
+ * Decodes the HTML character references in the given string, as a browser would do before acting on an attribute value
+ * DEV: We deliberately decode with a regex rather than with innerHTML, because the string comes from ZIM content, which
+ * we cannot assume to be trustworthy, and assigning it to innerHTML could cause embedded markup to be parsed
+ *
+ * @param {String} str The string to decode
+ * @returns {String} The decoded string
+ */
+function decodeHtmlEntities (str) {
+    var namedEntities = { amp: '&', apos: "'", quot: '"', lt: '<', gt: '>' };
+    return str.replace(regexpHtmlEntities, function (match, decimal, hex, name) {
+        return name ? namedEntities[name] : String.fromCharCode(parseInt(decimal || hex, decimal ? 10 : 16));
+    });
+}
+
+/**
+ * Extracts the target URL from an HTML redirect stub, i.e. an article whose only content is a meta refresh directive
+ * pointing at the real article
+ *
+ * @param {String} html The HTML of the article to test for a redirect
+ * @returns {String|null} The URL the article redirects to, or null if it does not declare one
+ */
+function getMetaRedirectUrl (html) {
+    var meta = html.match(regexpMetaRedirect);
+    if (!meta) return null;
+    // Only one of the three alternatives can have matched, according to how the attribute value was quoted. We decode
+    // before extracting the URL, so that any escaped quote delimiters are stripped with the literal ones below
+    var content = decodeHtmlEntities(meta[1] || meta[2] || meta[3] || '');
+    var url = content.match(/;\s*url\s*=\s*(.+)$/i);
+    // A refresh directive with no URL simply reloads the document, so it is not a redirect
+    return url ? url[1].replace(/^["']+|["']+$/g, '').trim() : null;
+}
 
 /**
  * Display the the given HTML article in the web page,
@@ -3058,6 +3098,27 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     // (duplicated because we sometimes bypass readArticle above)
     appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
+
+    // Handle HTML redirect stubs, i.e. articles whose only content is a <meta http-equiv="refresh"> pointing at the real
+    // article. In Restricted mode the URL in the meta is relative to the app, not to the ZIM, so if we let the browser
+    // follow it, the iframe navigates out of the app and we get a 404. Instead we neutralize the refresh and resolve the
+    // target to a ZIM URL ourselves, exactly as we do for a clicked link. Note that this function is only reached in
+    // Restricted mode: in ServiceWorker mode the URL resolves correctly within the ZIM, so the refresh is left to work
+    // natively [kiwix-js #1405]
+    var metaRedirectUrl = getMetaRedirectUrl(htmlArticle);
+    // Neutralize the refresh unconditionally: if we cannot resolve the target below, the browser must not follow it either
+    htmlArticle = htmlArticle.replace(/(<meta\b[^>]*?)http-equiv(\s*=\s*["']?refresh)/ig, '$1data-kiwix-refresh$2');
+    // We exclude Zimit archives, whose URLs need the dedicated transformations in parseAnchorsJQuery below: for those we
+    // simply display the stub, and the user can click the link it contains
+    if (metaRedirectUrl && selectedArchive.zimType !== 'zimit' && htmlRedirectHops < 5) {
+        htmlRedirectHops++;
+        anchorParameter = metaRedirectUrl.match(/#([^#;]+)$/);
+        anchorParameter = anchorParameter ? anchorParameter[1] : '';
+        // NB deriveZimUrlFromRelativeUrl strips any anchor and returns a decoded URL, which is what goToArticle expects
+        return goToArticle(uiUtil.deriveZimUrlFromRelativeUrl(metaRedirectUrl, appstate.baseUrl));
+    }
+    // We are displaying a real article, so reset the redirect counter
+    htmlRedirectHops = 0;
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
@@ -3575,10 +3636,14 @@ function goToArticle (path, download, contentType) {
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
+            // We did not reach an article, so any chain of HTML redirects ends here [kiwix-js #1405]
+            htmlRedirectHops = 0;
             uiUtil.spinnerDisplay(false);
             uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
                 translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
+            // We are downloading a file rather than displaying an article, so any chain of HTML redirects ends here
+            htmlRedirectHops = 0;
             download = true;
             selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
                 uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
@@ -3590,6 +3655,7 @@ function goToArticle (path, download, contentType) {
             readArticle(dirEntry);
         }
     }).catch(function (e) {
+        htmlRedirectHops = 0;
         uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
             translateUI.t('dialog-article-readerror-title') || 'Error reading article');
     });
