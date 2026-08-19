@@ -2836,7 +2836,7 @@ function handleClickOnReplayLink (ev, anchor) {
                         // If the document is in fact an html redirect, we need to follow it first till we get the underlying PDF document
                         if (/\bx?html\b/.test(mimetype)) {
                             selectedArchive.readUtf8File(dirEntry, function (fileDirEntry, data) {
-                                var redirectURL = data.match(/<meta[^>]*http-equiv="refresh"[^>]*content="[^;]*;url='?([^"']+)/i);
+                                var redirectURL = data.match(regexpMetaRedirect);
                                 if (redirectURL) {
                                     redirectURL = redirectURL[1];
                                     var contentUrl = pseudoNamespace + redirectURL.replace(/^[^/]+\/\//, '');
@@ -3029,9 +3029,14 @@ var regexpDownloadLinks = /^.*?\.epub([?#]|$)|^.*?\.pdf([?#]|$)|^.*?\.odt([?#]|$
 var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
 // A regex to find and help transform assets in an article in a Zimit-based archive
 var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
+// A regex to extract the target URL from an HTML redirect stub, i.e. <meta http-equiv="refresh" content="0;url=...">
+// The lookahead allows the http-equiv and content attributes to appear in either order
+var regexpMetaRedirect = /<meta\b(?=[^>]*\bhttp-equiv\s*=\s*["']?refresh\b)[^>]*\bcontent\s*=\s*["'][^;"']*;\s*url\s*=\s*['"]?([^"'>]+)/i;
 
 // A string to hold any anchor parameter in clicked ZIM URLs (as we must strip these to find the article in the ZIM)
 var anchorParameter;
+// Counts consecutive HTML redirects we have followed, so that a circular chain of redirect stubs cannot loop forever
+var htmlRedirectHops = 0;
 
 /**
  * Display the the given HTML article in the web page,
@@ -3058,6 +3063,27 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // Calculate the current article's ZIM baseUrl to use when processing relative links
     // (duplicated because we sometimes bypass readArticle above)
     appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''))
+
+    // Handle HTML redirect stubs, i.e. articles whose only content is a <meta http-equiv="refresh"> pointing at the real
+    // article. In Restricted mode the URL in the meta is relative to the app, not to the ZIM, so if we let the browser
+    // follow it, the iframe navigates out of the app and we get a 404. Instead we neutralize the refresh and resolve the
+    // target to a ZIM URL ourselves, exactly as we do for a clicked link. Note that this function is only reached in
+    // Restricted mode: in ServiceWorker mode the URL resolves correctly within the ZIM, so the refresh is left to work
+    // natively [kiwix-js #1405]
+    var metaRedirect = htmlArticle.match(regexpMetaRedirect);
+    // Neutralize the refresh unconditionally: if we cannot resolve the target below, the browser must not follow it either
+    htmlArticle = htmlArticle.replace(/(<meta\b[^>]*?)http-equiv(\s*=\s*["']?refresh)/ig, '$1data-kiwix-refresh$2');
+    // We exclude Zimit archives, whose URLs need the dedicated transformations in parseAnchorsJQuery below: for those we
+    // simply display the stub, and the user can click the link it contains
+    if (metaRedirect && selectedArchive.zimType !== 'zimit' && htmlRedirectHops < 5) {
+        htmlRedirectHops++;
+        anchorParameter = metaRedirect[1].match(/#([^#;]+)$/);
+        anchorParameter = anchorParameter ? anchorParameter[1] : '';
+        // NB deriveZimUrlFromRelativeUrl strips any anchor and returns a decoded URL, which is what goToArticle expects
+        return goToArticle(uiUtil.deriveZimUrlFromRelativeUrl(metaRedirect[1], appstate.baseUrl));
+    }
+    // We are displaying a real article, so reset the redirect counter
+    htmlRedirectHops = 0;
 
     // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
@@ -3575,6 +3601,8 @@ function goToArticle (path, download, contentType) {
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
         if (dirEntry === null || dirEntry === undefined) {
+            // We did not reach an article, so any chain of HTML redirects ends here [kiwix-js #1405]
+            htmlRedirectHops = 0;
             uiUtil.spinnerDisplay(false);
             uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
                 translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
@@ -3590,6 +3618,7 @@ function goToArticle (path, download, contentType) {
             readArticle(dirEntry);
         }
     }).catch(function (e) {
+        htmlRedirectHops = 0;
         uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
             translateUI.t('dialog-article-readerror-title') || 'Error reading article');
     });
