@@ -4,13 +4,14 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Unreleased
+## Release Kiwix JS v4.4.0
 
 * FIX: Tooltips in French no longer show a literal "&nbsp;" before a colon
+* FIX: Follow HTML redirects in Restricted mode
 * DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI
 * DEV: Removed three translation keys left dead by the removal of the "deselect Developer Mode" dialogue in v4.3.4
 
-## Interim update Kiwix JS v4.3.4
+### Interim update Kiwix JS v4.3.4
 
 * SECURITY: The security prompt regarding the source of an archive now appears consistently in ServiceWorkerLocal mode
 * FIX: The content injection mode is now checked against the modes the app actually supports, so an unrecognised value can no longer leave the app in an invalid state
@@ -21,7 +22,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * DEV: Added unit tests covering the trust setting across the content injection modes, and the validation of the mode value itself
 * DEV: Added e2e tests, run in IE Mode, covering the app's recovery from ServiceWorker mode in a browser that cannot support it
 
-## Interim update Kiwix JS v4.3.3
+### Interim update Kiwix JS v4.3.3
 
 * SECURITY: Settings supplied in the app's URL are no longer saved permanently, apart from the few the app passes between its own windows, and source verification can now only be changed in Configuration
 * SECURITY: `noPrompts`, which suppresses dialogues for the automated test suite, now opens an unverified archive in Restricted mode rather than in ServiceWorker mode
@@ -38,7 +39,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * DEV: Added unit tests covering which settings may be supplied in the app's URL, and which of these are validated, refused, or applied for one page load only
 * DEV: E2E tests no longer rely on `noPrompts` to get past source verification, and two ineffective `await`s on checkbox state are fixed
 
-## Interim update Kiwix JS v4.3.2
+### Interim update Kiwix JS v4.3.2
 
 * CRITICAL UPDATE: Fix failure of Service Worker to discover remote PWA in Chromium extensions
 * ENHACEMENT: Prevent glaring white flash on startup by pre-applying dark theme
