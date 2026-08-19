@@ -6,8 +6,8 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Unreleased
 
-* FIX: Corrected French typography around punctuation: tooltips no longer show a literal "&nbsp;" before a colon (tooltips are set as plain text, so the entity was never decoded), and the Developer Mode label now has a non-breaking space before its exclamation mark
-* DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI, its tooltip and the contributor documentation (same functionality, and the underlying `appCache` setting is unchanged)
+* FIX: Tooltips in French no longer show a literal "&nbsp;" before a colon
+* DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI
 * DEV: Removed three translation keys left dead by the removal of the "deselect Developer Mode" dialogue in v4.3.4
 
 ## Interim update Kiwix JS v4.3.4
