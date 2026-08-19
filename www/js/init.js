@@ -84,7 +84,7 @@ var params = {};
  * WARNING: Only change these parameters if you know what you are doing
  */
 // The current version number of this app
-params['appVersion'] = '4.3.3'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+params['appVersion'] = '4.4.0'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
 // The PWA server (for use with the browser extensions in ServiceWorker mode)
 params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
 // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
@@ -104,7 +104,7 @@ params['showUIAnimations'] = getSetting('showUIAnimations') === true;
 params['maxSearchResultsSize'] = getSetting('maxSearchResultsSize') || 25;
 // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
 params['assetsCache'] = getSetting('assetsCache') !== false;
-// Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
+// Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless Developer Mode is set in Expert settings)
 params['appCache'] = getSetting('appCache') !== false;
 // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
 params['appTheme'] = getSetting('appTheme') || 'light'; // Currently implemented: light|dark_wikimediaNative|auto_wikimediaNative|dark_invert|dark_mwInvert
@@ -302,10 +302,6 @@ function isTrustedContext () {
         }, 3000);
     }
 })();
-
-// Since contentInjectionMode can be overriden when returning from remote PWA to extension (for example), we have to prevent an infinite loop
-// with code that warns the user to turn off the App Cache bypass in jQuery mode. Note that to turn OFF the bypass, we have to set the VALUE to true
-params.appCache = params.contentInjectionMode === 'jquery' ? true : params.appCache;
 
 /**
  * Set the State and UI settings associated with parameters defined above

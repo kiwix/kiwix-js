@@ -3,6 +3,7 @@ import { Options } from 'selenium-webdriver/ie.js';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 // import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import tonedear from '../../spec/tonedear.e2e.spec.js';
+import serviceWorkerUnavailable from '../../spec/serviceworker-unavailable.e2e.spec.js';
 
 async function loadIEModeDriver () {
     const ieOptions = new Options();
@@ -22,3 +23,5 @@ console.log(' ');
 await legacyRayCharles.runTests(await loadIEModeDriver(), ['jquery']);
 // await gutenbergRo.runTests(await loadIEModeDriver(), ['jquery']);
 await tonedear.runTests(await loadIEModeDriver(), ['jquery']);
+// This one runs last because it clears the Settings Store, which the browser profile shares with the specs above
+await serviceWorkerUnavailable.runTests(await loadIEModeDriver());
