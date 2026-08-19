@@ -1,7 +1,7 @@
 /**
  * appcache-restricted-mode.e2e.spec.js : Tests that the AppCache bypass is usable in Restricted mode
  *
- * The app used to refuse to switch to Restricted mode while "Bypass AppCache" was set, bouncing the user
+ * The app used to refuse to switch to Restricted mode while "Developer Mode" was set, bouncing the user
  * back to ServiceWorker mode, and the setting could not be turned off from Restricted mode either. That
  * block was removed in kiwix-js #1465: Restricted mode does not stop the Service Worker running, it only
  * stops it intercepting requests for ZIM assets, so the app's own code is still served from APP_CACHE,

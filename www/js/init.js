@@ -104,7 +104,7 @@ params['showUIAnimations'] = getSetting('showUIAnimations') === true;
 params['maxSearchResultsSize'] = getSetting('maxSearchResultsSize') || 25;
 // Turns caching of assets on or off and deletes the cache (it defaults to true unless explicitly turned off in UI)
 params['assetsCache'] = getSetting('assetsCache') !== false;
-// Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless the bypass option is set in Expert Settings)
+// Turns caching of the PWA's code on or off and deletes the cache (it defaults to true unless Developer Mode is set in Expert settings)
 params['appCache'] = getSetting('appCache') !== false;
 // A parameter to set the app theme and, if necessary, the CSS theme for article content (defaults to 'light')
 params['appTheme'] = getSetting('appTheme') || 'light'; // Currently implemented: light|dark_wikimediaNative|auto_wikimediaNative|dark_invert|dark_mwInvert

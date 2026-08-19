@@ -1029,7 +1029,7 @@ function getAssetsCacheAttributes () {
 function refreshCacheStatus () {
     // Update radio buttons and checkbox
     document.getElementById('cachedAssetsModeRadio' + (params.assetsCache ? 'True' : 'False')).checked = true;
-    // Change app's background colour if the bypass appCacche setting is enabled, as a visible warning
+    // Change app's background colour if Developer Mode (the appCache bypass) is enabled, as a visible warning
     const docElement = document.documentElement;
     if (params.appCache) {
         docElement.style.removeProperty('background');
