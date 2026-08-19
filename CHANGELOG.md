@@ -4,16 +4,20 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Unreleased
+
+* FIX: Corrected French typography around punctuation: tooltips no longer show a literal "&nbsp;" before a colon (tooltips are set as plain text, so the entity was never decoded), and the Developer Mode label now has a non-breaking space before its exclamation mark
+* DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI, its tooltip and the contributor documentation (same functionality, and the underlying `appCache` setting is unchanged)
+* DEV: Removed three translation keys left dead by the removal of the "deselect Developer Mode" dialogue in v4.3.4
+
 ## Interim update Kiwix JS v4.3.4
 
 * SECURITY: The security prompt regarding the source of an archive now appears consistently in ServiceWorkerLocal mode
 * FIX: The content injection mode is now checked against the modes the app actually supports, so an unrecognised value can no longer leave the app in an invalid state
 * FIX: Users who had already chosen ServiceWorkerLocal mode are no longer shown the mode-change alert they had answered before
 * FIX: In browsers without the ServiceWorker API (e.g. IE11), the "ServiceWorker API not available" dialogue no longer reappears indefinitely when the app starts in ServiceWorker mode: the app now warns once and drops back to Restricted mode
-* FIX: The "Developer Mode" setting (previously called "Bypass AppCache") no longer blocks a switch to Restricted mode, and can now be turned off from Restricted mode: the Service Worker still serves the app's own code in that mode, so the setting applies there too
+* FIX: The "Developer Mode" setting no longer blocks a switch to Restricted mode, and can now be turned off from Restricted mode: the Service Worker still serves the app's own code in that mode, so the setting applies there too
 * FIX: The "Developer Mode" setting is now shown in every mode in which it does something, including Restricted mode and ServiceWorkerLocal mode, and is hidden only in browsers with no ServiceWorker API, where it has no effect
-* FIX: French tooltips no longer show a literal "&nbsp;" before a colon: tooltips are set as plain text, so the entity was never decoded
-* DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI, its tooltip and the contributor documentation (same functionality, and the underlying `appCache` setting is unchanged)
 * DEV: Added unit tests covering the trust setting across the content injection modes, and the validation of the mode value itself
 * DEV: Added e2e tests, run in IE Mode, covering the app's recovery from ServiceWorker mode in a browser that cannot support it
 

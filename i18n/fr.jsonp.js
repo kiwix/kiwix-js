@@ -116,7 +116,7 @@ document.localeJson = {
       "configure-expert-hideexternallinkwarning-tip": "Si cette option est cochée, les liens vers des sites externes s'ouvriront dans un nouvel onglet sans confirmation.",
       "configure-expert-disabledragdrop": "<strong>Désactiver le glisser-déposer</strong> (si cela provoque des anomalies)",
       "configure-expert-disabledragdrop-tip": "Cette option désactive la fonctionnalité de glisser-déposer des fichiers ZIM pour les charger dans l'application. Il n'est pas recommandé de désactiver cette fonctionnalité.",
-      "configure-expert-bypassappcache": "<strong>Mode développeur</strong> (<i>désactive l'utilisation hors ligne de cette application !</i>)",
+      "configure-expert-bypassappcache": "<strong>Mode développeur</strong> (<i>désactive l'utilisation hors ligne de cette application&nbsp;!</i>)",
       "configure-expert-bypassappcache-tip": "Le Mode développeur contourne l'AppCache de l'application elle-même, afin que vous voyiez toujours la dernière version de votre code. AVERTISSEMENT : Laisser cette option cochée empêchera l'utilisation hors ligne de la PWA. Le paramètre effacera tous les caches de l'API de Cache, mais le cache des actifs sera utilisé à moins qu'il ne soit également désactivé ci-dessus. Il facilite le développement de nouveaux codes dans la PWA.",
       "configure-expert-useLibzim-tip": "Utilise la version sélectionnée de libzim pour accéder au contenu du ZIM (mode ServiceWorker uniquement).",
       "configure-expert-useLibzim": "Utiliser libzim pour charger ZIM",
