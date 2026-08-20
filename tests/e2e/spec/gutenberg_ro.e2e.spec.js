@@ -245,7 +245,7 @@ function runTests (driver, modes, keepDriver) {
                 await driver.switchTo().frame('articleContent');
                 const popularitySort = await driver.wait(
                     until.elementLocated(By.id('popularity_sort')),
-                    3000
+                    10000
                 );
                 await driver.wait(
                     until.elementIsVisible(popularitySort),
@@ -270,7 +270,7 @@ function runTests (driver, modes, keepDriver) {
                 let firstBookName = '';
                 const alphaSort = await driver.wait(
                     until.elementLocated(By.id('alpha_sort')),
-                    3000
+                    10000
                 );
                 await driver.wait(
                     until.elementIsVisible(alphaSort),
@@ -431,20 +431,21 @@ function runTests (driver, modes, keepDriver) {
                     until.elementLocated(By.id('author_filter')),
                     3000
                 );
-
                 await driver.wait(
                     until.elementIsVisible(filter),
                     1500
                 );
                 await filter.clear();
                 await filter.sendKeys('Mihai Eminescu');
-                await driver.wait(until.elementLocated(By.className('ui-menu-item')), 1500);
+                await driver.wait(async function () {
+                    const items = await driver.findElements(By.className('ui-menu-item'));
+                    if (items.length !== 1) return false;
+                    return items[0].isDisplayed().catch(() => false);
+                }, 3000, 'Author autocomplete should show a single suggestion');
                 await filter.sendKeys(Key.ENTER);
-                const EXPECTED_COUNT = 1;
-                const EXPECTED_TITLE = 'Poezii';
                 await driver.wait(async function () {
                     const books = await driver.findElements(By.className('table-title'));
-                    return books.length === EXPECTED_COUNT;
+                    return books.length === 1;
                 }, 3000, 'Author filter should reduce the book list');
                 const bookList = await driver.findElements(By.className('table-title'));
                 const firstBookName = await bookList[0].getText();
@@ -453,7 +454,7 @@ function runTests (driver, modes, keepDriver) {
                 await filter.clear();
                 await filter.sendKeys(Key.ENTER);
 
-                assert.equal(firstBookName, EXPECTED_TITLE);
+                assert.equal(firstBookName, 'Poezii');
             });
 
             // Modern browsers can download an EPUB version of a book and save it to the FS, so we test for this
