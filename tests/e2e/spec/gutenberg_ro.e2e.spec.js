@@ -243,7 +243,15 @@ function runTests (driver, modes, keepDriver) {
                 // We switch to default Content and back to Iframe in case we are retrying the test
                 await driver.switchTo().defaultContent();
                 await driver.switchTo().frame('articleContent');
-                await driver.wait(until.elementIsVisible(driver.findElement(By.id('popularity_sort')))).click();
+                const popularitySort = await driver.wait(
+                    until.elementLocated(By.id('popularity_sort')),
+                    10000
+                );
+                await driver.wait(
+                    until.elementIsVisible(popularitySort),
+                    1500
+                );
+                await popularitySort.click();
                 await driver.sleep(500);
                 // get the text of first result and check if it is the same as expected
                 const firstBookName = await driver.wait(until.elementLocated(By.xpath('//*[@id="books_table"]/tbody/tr[1]/td[1]/div[2]/div/div/span[2]')), 4000).getText();
@@ -260,7 +268,15 @@ function runTests (driver, modes, keepDriver) {
                 await driver.switchTo().defaultContent();
                 await driver.switchTo().frame('articleContent');
                 let firstBookName = '';
-                await driver.wait(until.elementIsVisible(driver.findElement(By.id('alpha_sort')))).click();
+                const alphaSort = await driver.wait(
+                    until.elementLocated(By.id('alpha_sort')),
+                    10000
+                );
+                await driver.wait(
+                    until.elementIsVisible(alphaSort),
+                    1500
+                );
+                await alphaSort.click();
                 await driver.sleep(4000);
 
                 const bookList = await driver.wait(until.elementsLocated(By.className('table-title')), 1500)
@@ -387,7 +403,17 @@ function runTests (driver, modes, keepDriver) {
                     console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
                     this.skip();
                 }
-                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
+                const filter = await driver.wait(
+                    until.elementLocated(By.id('author_filter')),
+                    3000
+                );
+                await driver.wait(
+                    until.elementIsVisible(filter),
+                    1500
+                );
+                await filter.clear();
                 await filter.sendKeys('Mihai Eminescu');
                 const searchList = await driver.wait(until.elementsLocated(By.className('ui-menu-item')), 1500);
                 assert.equal(searchList.length, 1);
@@ -399,13 +425,36 @@ function runTests (driver, modes, keepDriver) {
                     this.skip();
                 }
                 // search by author name and press enter to apply the filter
-                const filter = await driver.wait(until.elementIsVisible(driver.findElement(By.id('author_filter'))), 1500);
+                await driver.switchTo().defaultContent();
+                await driver.switchTo().frame('articleContent');
+                const filter = await driver.wait(
+                    until.elementLocated(By.id('author_filter')),
+                    3000
+                );
+                await driver.wait(
+                    until.elementIsVisible(filter),
+                    1500
+                );
+                await filter.clear();
+                await filter.sendKeys('Mihai Eminescu');
+                await driver.wait(async function () {
+                    const items = await driver.findElements(By.className('ui-menu-item'));
+                    if (items.length !== 1) return false;
+                    return items[0].isDisplayed().catch(() => false);
+                }, 3000, 'Author autocomplete should show a single suggestion');
                 await filter.sendKeys(Key.ENTER);
-                const searchList = await driver.wait(until.elementsLocated(By.xpath('//*[@id="books_table"]/tbody')));
+                await driver.wait(async function () {
+                    const books = await driver.findElements(By.className('table-title'));
+                    return books.length === 1;
+                }, 3000, 'Author filter should reduce the book list');
+                const bookList = await driver.findElements(By.className('table-title'));
+                const firstBookName = await bookList[0].getText();
+
                 // revert whatever was typed in the search box and press enter to remove filter
                 await filter.clear();
                 await filter.sendKeys(Key.ENTER);
-                assert.equal(searchList.length, 1);
+
+                assert.equal(firstBookName, 'Poezii');
             });
 
             // Modern browsers can download an EPUB version of a book and save it to the FS, so we test for this
