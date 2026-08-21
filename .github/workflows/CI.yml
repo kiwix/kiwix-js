@@ -99,14 +99,14 @@ jobs:
         
       - name: BrowserStack environment setup
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: browserstack/github-actions/setup-env@master
+        uses: browserstack/github-actions/setup-env@1ab56d9521ce20f4651bb5d9f3ef39c5ba54805a # master @ 2026-06-19, past v1.0.4
         with:
           username:  ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       
       - name: BrowserStack local tunnel setup
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: browserstack/github-actions/setup-local@master
+        uses: browserstack/github-actions/setup-local@1ab56d9521ce20f4651bb5d9f3ef39c5ba54805a # master @ 2026-06-19, past v1.0.4
         with:
           local-testing: start
           local-identifier: random
@@ -164,7 +164,7 @@ jobs:
           
       - name: Stop BrowserStackLocal
         if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: browserstack/github-actions/setup-local@master
+        uses: browserstack/github-actions/setup-local@1ab56d9521ce20f4651bb5d9f3ef39c5ba54805a # master @ 2026-06-19, past v1.0.4
         with:
           local-testing: stop
 
