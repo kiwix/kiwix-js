@@ -6,12 +6,15 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Release Kiwix JS v4.4.0
 
-Released on *TODO* (interim updates below were only to the browser-extension PWA)
+Released on *TODO*
+
+Headline changes since v4.3.0: jQuery and Bootstrap's JavaScript bundle have been removed entirely (saving some 150KB of minified JavaScript) and accessibility support added throughout; several security hardenings around the settings that may be supplied in the app's URL and around archive source verification; fixes to the Library fallback for older browsers and to clearing the app cache on reset; and the "Bypass AppCache" option is now called "Developer Mode". Detail is given per interim updates below — those updates were pushed only to the browser-extension PWA.
 
 * FIX: Tooltips in French no longer show a literal "&nbsp;" before a colon
 * FIX: Follow HTML redirects in Restricted mode
 * DEV: Renamed the "Bypass AppCache" option to "Developer Mode" in the UI
 * DEV: Removed three translation keys left dead by the removal of the "deselect Developer Mode" dialogue in v4.3.4
+* DEV: Fixed flaky Gutenberg author search tests
 
 ### Interim update Kiwix JS v4.3.4
 
@@ -40,6 +43,9 @@ Released on *TODO* (interim updates below were only to the browser-extension PWA
 * DEV: Added unit tests for the Firefox OS DeviceStorage archive scan, a path not reachable by the e2e suite
 * DEV: Added unit tests covering which settings may be supplied in the app's URL, and which of these are validated, refused, or applied for one page load only
 * DEV: E2E tests no longer rely on `noPrompts` to get past source verification, and two ineffective `await`s on checkbox state are fixed
+* DEV: Changed the `actions/checkout` workflow step from the pinned `@v4` to `@main` in all GitHub workflows
+* DEV: Updated CONTRIBUTING for the AI era
+* DEV: Multiple security updates to dependencies
 
 ### Interim update Kiwix JS v4.3.2
 
@@ -52,6 +58,8 @@ Released on *TODO* (interim updates below were only to the browser-extension PWA
 * FIX: Allow more permissive CSP to frame kiwix.org sites in library iframe
 * DEV: Rename SSH key secret, and adapt to new destinations for releases and nightly packages
 * DEV: Fix breaking IE11 test
+* DEV: Fix Windows CI by installing IEDriver explicitly and disabling Selenium Manager
+* DEV: Update CodeQL actions to v4
 * DEV: Add Docker Compose configuration and documentation
 * DEV: Multiple security updates to dependencies
 
