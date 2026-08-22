@@ -1,0 +1,23 @@
+name: Safely retrieve encrypted artefact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  provide-secret:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Encrypt secret
+        env:
+          SSH_KEY: ${{ secrets.KIWIXJS_FILE_UPLOAD_KEY }}
+          GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+        run: |
+          echo "$GPG_PUBLIC_KEY" | gpg --import
+          echo "$SSH_KEY" | gpg --armor --encrypt --trust-model always --recipient egk10@cam.ac.uk > secret.gpg
+
+      - name: Upload encrypted secret
+        uses: actions/upload-artifact@main
+        with:
+          name: encrypted-secret
+          path: secret.gpg
+          retention-days: 1
