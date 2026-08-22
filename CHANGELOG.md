@@ -8,7 +8,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 Released on 2026-08-22
 
-Headline changes since v4.3.0: jQuery and Bootstrap's JavaScript bundle have been removed entirely (saving some 150KB of minified JavaScript) and accessibility support added throughout; several security hardenings around the settings that may be supplied in the app's URL and around archive source verification; fixes to the Library fallback for older browsers and to clearing the app cache on reset; and the "Bypass AppCache" option is now called "Developer Mode". Detail is given per interim updates below — those updates were pushed only to the browser-extension PWA.
+Headline changes since v4.3.0: jQuery and Bootstrap's JavaScript bundle have been removed entirely (saving some 150KB of minified JavaScript) and accessibility support added throughout; several security hardenings around the settings that may be supplied in the app's URL and around archive source verification; fixes to the Library fallback for older browsers and to clearing the app cache on reset; and the "Bypass AppCache" option is now called "Developer Mode". Detail is given per interim update below — those updates were pushed only to the browser-extension PWA.
 
 * FIX: Tooltips in French no longer show a literal "&nbsp;" before a colon
 * FIX: Follow HTML redirects in Restricted mode
