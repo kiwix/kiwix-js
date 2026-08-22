@@ -41,7 +41,7 @@ jobs:
     name: Deploy browser extension to Docker and/or GitHub Pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v7
       - name: Modify version in source files
         env:
           INPUT_VERSION: ${{ inputs.version }}
@@ -79,7 +79,7 @@ jobs:
       # Restart live webapp only if we pushed an image to registry
       - name: Restart live webapp
         if: inputs.target == 'docker' || github.event_name == 'release'
-        uses: actions-hub/kubectl@master
+        uses: actions-hub/kubectl@v1.36.4
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:

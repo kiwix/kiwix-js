@@ -1,0 +1,11 @@
+version: 2
+updates:
+  # Keep the actions used by our workflows up to date, so that pinned refs
+  # do not go stale. See https://github.com/kiwix/kiwix-js/issues/1478
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Bump"
