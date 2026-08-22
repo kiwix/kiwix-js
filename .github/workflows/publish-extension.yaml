@@ -64,7 +64,7 @@ jobs:
       # Publish to docker only if explicitly requested or we are releasing
       - name: Build and push to docker
         if: inputs.target == 'docker' || github.event_name == 'release'
-        uses: openzim/docker-publish-action@v8
+        uses: openzim/docker-publish-action@v10
         with:
           image-name: kiwix/kiwix-moz-extension
           credentials: |
