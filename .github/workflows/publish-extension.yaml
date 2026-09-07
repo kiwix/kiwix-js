@@ -79,7 +79,7 @@ jobs:
       # Restart live webapp only if we pushed an image to registry
       - name: Restart live webapp
         if: inputs.target == 'docker' || github.event_name == 'release'
-        uses: actions-hub/kubectl@v1.36.4
+        uses: actions-hub/kubectl@v1.37.0
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         with:
