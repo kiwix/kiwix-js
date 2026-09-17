@@ -12,12 +12,14 @@
  *
  * "|" in titles is common in real archives, e.g. inline LaTeX using "|" for absolute value
  * (Stack Exchange sites such as hsm.stackexchange.com) or "<Page title> | <Site name>" titles
- * produced by Zimit (e.g. tonedear.com). The url is unaffected because it is serialized before
- * title, so navigation still works; the visible symptom is a title truncated at the first "|".
- * Confirmed against real directory entries extracted from those two archives.
+ * produced by Zimit (e.g. tonedear.com — the same "Contact | Ear Training" title below can also
+ * be found in our own tests/zims/tonedear test archive). The url is unaffected because it is
+ * serialized before title, so navigation still works; the visible symptom is a title truncated
+ * at the first "|". Confirmed against real directory entries extracted from those two archives.
  */
 
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import zimDirEntry from '../../../www/js/lib/zimDirEntry.js';
 
 const DirEntry = zimDirEntry.DirEntry;
@@ -106,9 +108,12 @@ describe('DirEntry stringId round trip (real-world "|" titles)', function () {
     });
 
     it('does not throw on a malformed percent-encoded sequence and falls back to the raw text', function () {
+        const warnStub = sinon.stub(console, 'warn');
         const malformedStringId = '100|0|C|10|1|%ZZmalformed|plain title|false|undefined';
-        expect(function () { DirEntry.fromStringId(fakeZimFile, malformedStringId); }).to.not.throw();
-        const parsed = DirEntry.fromStringId(fakeZimFile, malformedStringId);
+        let parsed;
+        expect(function () { parsed = DirEntry.fromStringId(fakeZimFile, malformedStringId); }).to.not.throw();
         expect(parsed.url).to.equal('%ZZmalformed');
+        expect(warnStub.called).to.equal(true);
+        warnStub.restore();
     });
 });

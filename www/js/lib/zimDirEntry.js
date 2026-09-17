@@ -40,6 +40,11 @@ function safeDecode (str) {
     try {
         return decodeURIComponent(str);
     } catch (err) {
+        // Cheap defensive guard rather than a real recovery path: these ids are never persisted,
+        // they only live in the dirEntryId attribute of the article list, which is rebuilt on
+        // every search, so every id reaching fromStringId() was produced by the
+        // encodeURIComponent() call in toStringId() above, and decodeURIComponent() cannot fail
+        // on that input in practice.
         console.warn('Could not decode DirEntry field, using raw value:', err);
         return str;
     }
