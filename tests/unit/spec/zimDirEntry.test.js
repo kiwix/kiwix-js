@@ -109,11 +109,14 @@ describe('DirEntry stringId round trip (real-world "|" titles)', function () {
 
     it('does not throw on a malformed percent-encoded sequence and falls back to the raw text', function () {
         const warnStub = sinon.stub(console, 'warn');
-        const malformedStringId = '100|0|C|10|1|%ZZmalformed|plain title|false|undefined';
-        let parsed;
-        expect(function () { parsed = DirEntry.fromStringId(fakeZimFile, malformedStringId); }).to.not.throw();
-        expect(parsed.url).to.equal('%ZZmalformed');
-        expect(warnStub.called).to.equal(true);
-        warnStub.restore();
+        try {
+            const malformedStringId = '100|0|C|10|1|%ZZmalformed|plain title|false|undefined';
+            let parsed;
+            expect(function () { parsed = DirEntry.fromStringId(fakeZimFile, malformedStringId); }).to.not.throw();
+            expect(parsed.url).to.equal('%ZZmalformed');
+            expect(warnStub.called).to.equal(true);
+        } finally {
+            warnStub.restore(); // Always runs, pass or fail, so later tests still see real warnings
+        }
     });
 });
