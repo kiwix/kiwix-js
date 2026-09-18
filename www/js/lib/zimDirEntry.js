@@ -35,16 +35,35 @@ function DirEntry (zimfile, dirEntryData) {
     this.title = dirEntryData.title;
 }
 
+function safeDecode (str) {
+    if (!str) return '';
+    try {
+        return decodeURIComponent(str);
+    } catch (err) {
+        // Cheap defensive guard rather than a real recovery path: these ids are never persisted,
+        // they only live in the dirEntryId attribute of the article list, which is rebuilt on
+        // every search, so every id reaching fromStringId() was produced by the
+        // encodeURIComponent() call in toStringId() above, and decodeURIComponent() cannot fail
+        // on that input in practice.
+        console.warn('Could not decode DirEntry field, using raw value:', err);
+        return str;
+    }
+}
+
 /**
  * Serialize some attributes of a DirEntry, to be able to store them in a HTML tag attribute,
  * and retrieve them later.
+ *
+ * url and title are percent-encoded so that a literal "|" inside either of them cannot be
+ * mistaken for the field separator (see https://github.com/kiwix/kiwix-js/issues/1491).
  *
  * @returns {String}
  */
 DirEntry.prototype.toStringId = function () {
     // @todo also store isRedirect and redirectTarget
     return this.offset + '|' + this.mimetypeInteger + '|' + this.namespace + '|' + this.cluster + '|' +
-            this.blob + '|' + this.url + '|' + this.title + '|' + this.redirect + '|' + this.redirectTarget;
+            this.blob + '|' + encodeURIComponent(this.url || '') + '|' + encodeURIComponent(this.title || '') + '|' +
+            this.redirect + '|' + this.redirectTarget;
 };
 
 /**
@@ -77,8 +96,8 @@ DirEntry.fromStringId = function (zimfile, stringId) {
     data.namespace = idParts[2];
     data.cluster = parseInt(idParts[3], 10);
     data.blob = parseInt(idParts[4], 10);
-    data.url = idParts[5];
-    data.title = idParts[6];
+    data.url = safeDecode(idParts[5]);
+    data.title = safeDecode(idParts[6]);
     data.redirect = (idParts[7] === 'true');
     data.redirectTarget = idParts[8];
     return new DirEntry(zimfile, data);
