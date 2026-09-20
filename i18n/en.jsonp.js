@@ -130,6 +130,7 @@ document.localeJson = {
       "api-messagechannel-unavailable": "MessageChannel API: unavailable",
       "api-serviceworker-available-registered": "ServiceWorker API: available, and registered",
       "api-serviceworker-available-unregistered": "ServiceWorker API: available, but not registered",
+      "api-serviceworker-available-registering": "ServiceWorker API: available, trying to register it...",
       "api-serviceworker-unavailable": "ServiceWorker API: unavailable",
       "api-cookie": "Cookie",
       "api-localstorage": "Local Storage",
