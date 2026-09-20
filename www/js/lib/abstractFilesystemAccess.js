@@ -146,8 +146,8 @@ function updateZimDropdownOptions (files, selectedFile) {
     document.getElementById('chooseArchiveFromLocalStorage').style.display = '';
     document.getElementById('numberOfFilesCount').style.display = '';
     document.getElementById('fileCountDisplay').style.display = '';
-    document.getElementById('numberOfFilesCount').innerText = count.toString();
-    document.getElementById('fileCountDisplay').innerText = translateUI.t('configure-select-file-numbers');
+    document.getElementById('numberOfFilesCount').textContent = count.toString();
+    document.getElementById('fileCountDisplay').textContent = translateUI.t('configure-select-file-numbers');
 }
 
 /**
