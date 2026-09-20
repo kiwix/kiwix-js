@@ -202,7 +202,6 @@ document.localeJson = {
       "dialog-scanstorage-fxos-error-message": "Si está usando el simulador de Firefox OS, por favor, ponga los archivos en un directorio \"fake-sdcard\" dentro de su perfil de Firefox (p.ej.: ~/.mozilla/firefox/xxxx.default/extensions/fxos_2_x_simulator@mozilla.org/profile/fake-sdcard/wikipedia_en_ray_charles_2015-06.zim)",
       "dialog-scanstorage-fxos-error-title": "Error al escanear almacenamiento",
       "dialog-server-access-check": "Verificando acceso al servidor...",
-      "dialog-server-access-check-failed": "¡El servidor no está accesible actualmente!<br/><br/>(Kiwix necesita acceso una vez al servidor para almacenar en caché la PWA).<br/>Por favor, inténtelo de nuevo cuando tenga una conexión a Internet estable.",
       "dialog-serviceworker-registration-failure-title": "No se pudo registrar el Service Worker",
       "dialog-serviceworker-registration-failure-message": "El Service Worker no se pudo registrar correctamente. Reactivando el modo Restringido... Mensaje de error:",
       "dialog-serviceworker-registration-failure-fileprotocol": "<br/><br/>Parece que está accediendo a kiwix-js con el protocolo file://. Debe abrirlo con un servidor web: ya sea uno local (http://localhost/...) o uno remoto (pero necesita una conexión segura en este caso, p.ej.: https://webserver.org/...)",
