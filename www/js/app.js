@@ -788,26 +788,28 @@ async function verifyLoadedArchive (archive) {
     const metadataBox = document.createElement('div');
     metadataBox.id = 'modal-archive-metadata-container';
 
+    // Untrusted archive metadata is deliberately written with textContent/plain-text to prevent markup injection
     const verifyName = document.createElement('p');
     verifyName.id = 'confirm-archive-name';
     verifyName.classList.add('archive-metadata');
-    verifyName.innerText = metadataLabels.name + (archive.name || '-');
+    verifyName.textContent = metadataLabels.name + (archive.name || '-');
 
     const verifyCreator = document.createElement('p');
     verifyCreator.id = 'confirm-archive-creator';
-    verifyCreator.classList.add('archive-metadata')
-    verifyCreator.innerText = metadataLabels.creator + (archive.creator || '-');
+    verifyCreator.classList.add('archive-metadata');
+    verifyCreator.textContent = metadataLabels.creator + (archive.creator || '-');
 
     const verifyPublisher = document.createElement('p');
     verifyPublisher.id = 'confirm-archive-publisher';
     verifyPublisher.classList.add('archive-metadata');
-    verifyPublisher.innerText = metadataLabels.publisher + (archive.publisher || '-');
+    verifyPublisher.textContent = metadataLabels.publisher + (archive.publisher || '-');
 
     const verifyScraper = document.createElement('p');
     verifyScraper.id = 'confirm-archive-scraper';
     verifyScraper.classList.add('archive-metadata');
-    verifyScraper.innerText = metadataLabels.scraper + (archive.scraper || '-');
+    verifyScraper.textContent = metadataLabels.scraper + (archive.scraper || '-');
 
+    // innerHTML is used here because the warning translation may contain markup
     const verifyWarning = document.createElement('p');
     verifyWarning.id = 'modal-archive-metadata-warning';
     verifyWarning.innerHTML = translateUI.t('dialog-metadata-warning') || 'Warning: above data can be spoofed!';
@@ -967,6 +969,8 @@ function refreshAPIStatus () {
         // Update PWA origin
         var pwaOriginStatusDiv = document.getElementById('pwaOriginStatus');
         pwaOriginStatusDiv.className = 'apiAvailable';
+        // innerHTML is used here because api-pwa-origin-label contains &nbsp; (an HTML entity);
+        // window.location.origin contains no markup so this concatenation is safe
         pwaOriginStatusDiv.innerHTML = (translateUI.t('api-pwa-origin-label') || 'PWA Origin:') + ' ' + window.location.origin;
         // Add a warning colour to the API Status Panel if any of the above tests failed
         apiStatusPanel.classList.add(apiPanelClass);
@@ -1281,7 +1285,9 @@ function setContentInjectionMode (value) {
             }
             if (!isServiceWorkerReady()) {
                 var serviceWorkerStatus = document.getElementById('serviceWorkerStatus');
-                serviceWorkerStatus.textContent = 'ServiceWorker API available : trying to register it...';
+                // DEV: this is a transient status message set while the ServiceWorker is registering;
+                // it uses the translation system so it can be translated (falls back to English)
+                serviceWorkerStatus.textContent = translateUI.t('api-serviceworker-available-registering') || 'ServiceWorker API available: trying to register it...';
                 if (navigator.serviceWorker.controller) {
                     console.log('Active Service Worker found, no need to register');
                     serviceWorkerRegistration = true;
