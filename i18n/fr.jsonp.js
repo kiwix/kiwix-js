@@ -140,7 +140,7 @@ document.localeJson = {
       "api-error-uninitialized_feminine": "Pas définie",
       "api-decompressor-error-loading-part1": "Erreur lors du chargement du décompresseur",
       "api-decompressor-error-loading-part2": "!",
-      "api-decompressor-label": "API de décompression&nbsp;:",
+      "api-decompressor-label": "API de décompression :",
       "api-pwa-origin-label": "Origine PWA&nbsp;:",
       "api-searchprovider-label": "Moteur de recherche :",
       "api-searchprovider-title": "Titre",

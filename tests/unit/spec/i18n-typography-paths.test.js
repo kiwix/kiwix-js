@@ -38,8 +38,10 @@ const plainTextKeys = [
     'api-messagechannel-unavailable',
     'api-serviceworker-available-registered',
     'api-serviceworker-available-unregistered',
+    'api-serviceworker-available-registering',
     'api-serviceworker-unavailable',
     'api-storage-used-label',
+    'api-decompressor-label',
     'api-searchprovider-label',
     'spinner-caching',
     'dialog-metadata-name',
@@ -52,7 +54,6 @@ const htmlPathKeysWithPunctuation = [
     'configure-expert-enablecontenttheme',
     'about-app-para1',
     'about-step4',
-    'api-decompressor-label',
     'api-pwa-origin-label',
     'dialog-invalid-zim-message',
     'dialog-launchlocal-message',
@@ -141,7 +142,7 @@ describe('i18n typography and DOM path encoding guard (issue #1474)', function (
     describe('DOM sink rendering behavior', function () {
         it('renders HTML-path translations decoded without literal &nbsp; in textContent', function () {
             const div = document.createElement('div');
-            div.innerHTML = frTranslations['api-decompressor-label'];
+            div.innerHTML = frTranslations['api-pwa-origin-label'];
             expect(div.textContent).to.include('\u00A0:');
             expect(div.textContent).to.not.include('&nbsp;');
         });
