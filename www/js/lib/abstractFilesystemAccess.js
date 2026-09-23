@@ -192,20 +192,45 @@ async function refreshCachedDirectoryAccess () {
 }
 
 /**
+ * Checks whether a candidate filename matches the base name of a ZIM archive,
+ * matching either the standalone archive (<baseName>.zim) or a split part (<baseName>.zim[a-z]{2}).
+ *
+ * @param {string} candidateFilename The filename to check
+ * @param {string} baseName The base archive name without the .zim or .zim[a-z]{2} extension
+ * @returns {boolean} True if the candidate filename is part of the archive
+ */
+function isMatchingZimPart (candidateFilename, baseName) {
+    if (!baseName || !candidateFilename) {
+        return false;
+    }
+    const lowerCandidate = candidateFilename.toLowerCase();
+    const lowerBase = baseName.toLowerCase();
+    const expectedPrefix = lowerBase + '.zim';
+    if (lowerCandidate === expectedPrefix) {
+        return true;
+    }
+    if (lowerCandidate.startsWith(expectedPrefix)) {
+        const suffix = lowerCandidate.slice(expectedPrefix.length);
+        return /^[a-z]{2}$/i.test(suffix);
+    }
+    return false;
+}
+
+/**
  * Opens the File System API to select a directory
  * @returns {Promise<Array<File>>} Previously selected file if available in selected folder
  */
 async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
     const fileNames = [];
-    const previousZimFile = []
+    const previousZimFile = [];
     const lastZimName = settingsStore.getItem('previousZimFileName') || '';
     const lastZimNameWithoutExtension = lastZimName.replace(/\.zim\w?\w?$/i, '');
-    // Iterate over all files in directory, store an array of ZIM files, and get the previously selectee ZIM file if it exists
+    // Iterate over all files in directory, store an array of ZIM files, and get the previously selected ZIM file if it exists
     for await (const entry of handle.values()) {
         if (entry.kind === 'file' && /\.zim\w?\w?$/i.test(entry.name)) {
             fileNames.push(entry.name);
-            if (!entry.name.indexOf(lastZimNameWithoutExtension)) {
+            if (isMatchingZimPart(entry.name, lastZimNameWithoutExtension)) {
                 previousZimFile.push(await entry.getFile());
             }
         }
@@ -256,10 +281,9 @@ function getSelectedZimFromCache (selectedFilename) {
             }
             if (fileOrDirHandle.kind === 'directory') {
                 const files = [];
+                const filenameWithoutExtension = (selectedFilename || '').replace(/\.zim\w?\w?$/i, '');
                 for await (const entry of fileOrDirHandle.values()) {
-                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w?\w?$/i, '');
-                    // const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
-                    if (!entry.name.indexOf(filenameWithoutExtension)) {
+                    if (isMatchingZimPart(entry.name, filenameWithoutExtension)) {
                         files.push(await entry.getFile());
                     }
                 }
@@ -284,11 +308,10 @@ function getSelectedZimFromCache (selectedFilename) {
  * @returns {Array<File>} The selected Files Object from webkitFileList
  */
 function getSelectedZimFromWebkitList (fileList, filename) {
-    const filenameWithoutExtension = filename.replace(/\.zim\w?\w?$/i, '');
+    const filenameWithoutExtension = (filename || '').replace(/\.zim\w?\w?$/i, '');
     const files = [];
     for (const file of fileList) {
-        // If the file.name begins with the filenameWithoutExtension, then it matches (may match mutliple split ZIM files)
-        if (!file.name.indexOf(filenameWithoutExtension)) {
+        if (isMatchingZimPart(file.name, filenameWithoutExtension)) {
             files.push(file);
         }
     }
@@ -319,7 +342,7 @@ function loadPreviousZimFile () {
 function selectDirectoryFromPickerViaWebkit (fileList) {
     const zimFiles = [];
     const filenames = [];
-    const previousZimFile = []
+    const previousZimFile = [];
     const lastFilename = settingsStore.getItem('previousZimFileName') || '';
     const filenameWithoutExtension = lastFilename.replace(/\.zim\w?\w?$/i, '');
     for (const file of fileList) {
@@ -329,8 +352,7 @@ function selectDirectoryFromPickerViaWebkit (fileList) {
         if (/^[^/]+\/[^/]+\.zim\w?\w?$/i.test(file.webkitRelativePath)) {
             zimFiles.push(file);
             filenames.push(file.name);
-            // If the file.name begins with the filenameWithoutExtension...
-            if (filenameWithoutExtension && !file.name.indexOf(filenameWithoutExtension)) {
+            if (isMatchingZimPart(file.name, filenameWithoutExtension)) {
                 previousZimFile.push(file);
             }
         }
@@ -430,6 +452,7 @@ async function getFilesFromReader (reader) {
 }
 
 export default {
+    isMatchingZimPart: isMatchingZimPart,
     StorageFirefoxOS: StorageFirefoxOS,
     updateZimDropdownOptions: updateZimDropdownOptions,
     selectDirectoryFromPickerViaFileSystemApi: selectDirectoryFromPickerViaFileSystemApi,
