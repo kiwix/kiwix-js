@@ -230,7 +230,7 @@ function getDefaultLanguageAndTranslateApp () {
     // DEV: Be sure to add supported language codes here
     // TODO: Add a supported languages object elsewhere and use it here
     if (!params.overrideBrowserLanguage) {
-        if (/^en|es|fr$/.test(defaultBrowserLanguage.base)) {
+        if (/^(?:en|es|fr)$/.test(defaultBrowserLanguage.base)) {
             console.log('Supported default browser language is: ' + defaultBrowserLanguage.base + ' (' + defaultBrowserLanguage.locale + ')');
         } else {
             console.warn('Unsupported browser language! ' + defaultBrowserLanguage.base + ' (' + defaultBrowserLanguage.locale + ')');
