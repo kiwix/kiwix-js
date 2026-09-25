@@ -853,24 +853,36 @@ function exportOPFSEntry (name) {
 }
 
 /**
- * Deletes an entry from the OPFS file system
+ * Deletes an entry (and any split parts) from the OPFS file system
  *
  * @param {String} name The filename of the entry to delete
+ * @returns {Promise} A Promise that resolves when the matching entries have been deleted
  */
 function deleteOPFSEntry (name) {
     if (navigator && navigator.storage && 'getDirectory' in navigator.storage) {
         return navigator.storage.getDirectory().then(function (dirHandle) {
             return iterateOPFSEntries().then(function (entries) {
-                var baseName = name.replace(/\.zim[^.]*$/i, '');
+                var baseName = (name || '').replace(/\.zim(?:[a-z]{2})?$/i, '');
+                if (!baseName) {
+                    return Promise.resolve();
+                }
+                var expectedPrefix = baseName.toLowerCase() + '.zim';
+                var deletePromises = [];
                 entries.forEach(function (entry) {
-                    if (~entry.indexOf(baseName)) {
-                        return dirHandle.removeEntry(entry).then(function () {
+                    var lowerEntry = entry.toLowerCase();
+                    var isMatch = lowerEntry === expectedPrefix ||
+                        (lowerEntry.startsWith(expectedPrefix) && /^[a-z]{2}$/i.test(lowerEntry.slice(expectedPrefix.length)));
+                    if (isMatch) {
+                        var deletePromise = dirHandle.removeEntry(entry).then(function () {
                             console.log('Deleted ' + entry + ' from OPFS');
-                            populateOPFSStorageQuota();
                         }).catch(function (err) {
                             console.error('Unable to delete ' + entry + ' from OPFS', err);
                         });
+                        deletePromises.push(deletePromise);
                     }
+                });
+                return Promise.all(deletePromises).then(function () {
+                    populateOPFSStorageQuota();
                 });
             }).catch(function (err) {
                 console.error('Unable to get directory from OPFS', err);
@@ -879,6 +891,7 @@ function deleteOPFSEntry (name) {
             console.error('Unable to get directory from OPFS', err);
         });
     }
+    return Promise.resolve();
 }
 
 /**
