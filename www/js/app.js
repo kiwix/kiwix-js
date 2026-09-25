@@ -1724,8 +1724,8 @@ function handleArchiveListChange () {
         // Convert FileList to array for IE11 compatibility
         var filesArray = Array.from(archiveFiles.files);
         for (var i = 0; i < filesArray.length; i++) {
-            // Match files that start with the base name (handles split archives)
-            if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+            // Match files that belong to the archive (handles split archives)
+            if (abstractFilesystemAccess.isMatchingZimPart(filesArray[i].name, filenameWithoutExtension)) {
                 selectedFiles.push(filesArray[i]);
             }
         }
@@ -1922,7 +1922,7 @@ function useLegacyFilePicker () {
             // Convert FileList to array for IE11 compatibility
             var filesArray = Array.from(e.target.files);
             for (var i = 0; i < filesArray.length; i++) {
-                if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                if (abstractFilesystemAccess.isMatchingZimPart(filesArray[i].name, filenameWithoutExtension)) {
                     selectedFiles.push(filesArray[i]);
                 }
             }
