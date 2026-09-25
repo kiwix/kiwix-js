@@ -54,8 +54,22 @@ www-ghdeploy
 /scripts/secret_files.tar.gz
 /reports/
 
-/dist/
-/node_modules*/
+/node_modules/*
+!/node_modules/@fortawesome
+/node_modules/@fortawesome/*
+!/node_modules/@fortawesome/fontawesome-free
+/node_modules/@fortawesome/fontawesome-free/*
+!/node_modules/@fortawesome/fontawesome-free/js
+/node_modules/@fortawesome/fontawesome-free/js/*
+!/node_modules/@fortawesome/fontawesome-free/js/all.js
+!/node_modules/bootstrap
+/node_modules/bootstrap/*
+!/node_modules/bootstrap/dist
+/node_modules/bootstrap/dist/*
+!/node_modules/bootstrap/dist/css
+/node_modules/bootstrap/dist/css/*
+!/node_modules/bootstrap/dist/css/bootstrap.min.*
+
 
 #Visual Studio
 /.vs/
