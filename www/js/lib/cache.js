@@ -861,7 +861,7 @@ function exportOPFSEntry (name) {
 function deleteOPFSEntry (name) {
     if (navigator && navigator.storage && 'getDirectory' in navigator.storage) {
         return navigator.storage.getDirectory().then(function (dirHandle) {
-            return iterateOPFSEntries().then(function (entries) {
+            return iterateAsyncDirEntries(dirHandle.entries(), [], true).then(function (entries) {
                 var baseName = (name || '').replace(/\.zim(?:[a-z]{2})?$/i, '');
                 if (!baseName) {
                     return Promise.resolve();
@@ -869,14 +869,15 @@ function deleteOPFSEntry (name) {
                 var expectedPrefix = baseName.toLowerCase() + '.zim';
                 var deletePromises = [];
                 entries.forEach(function (entry) {
-                    var lowerEntry = entry.toLowerCase();
+                    var entryName = entry.name;
+                    var lowerEntry = entryName.toLowerCase();
                     var isMatch = lowerEntry === expectedPrefix ||
                         (lowerEntry.startsWith(expectedPrefix) && /^[a-z]{2}$/i.test(lowerEntry.slice(expectedPrefix.length)));
                     if (isMatch) {
-                        var deletePromise = dirHandle.removeEntry(entry).then(function () {
-                            console.log('Deleted ' + entry + ' from OPFS');
+                        var deletePromise = dirHandle.removeEntry(entryName).then(function () {
+                            console.log('Deleted ' + entryName + ' from OPFS');
                         }).catch(function (err) {
-                            console.error('Unable to delete ' + entry + ' from OPFS', err);
+                            console.error('Unable to delete ' + entryName + ' from OPFS', err);
                         });
                         deletePromises.push(deletePromise);
                     }
