@@ -282,7 +282,16 @@ ZIMArchive.prototype.setZimType = function () {
 ZIMArchive.prototype.getMainPageDirEntry = function (callback) {
     if (this.isReady()) {
         var mainPageUrlIndex = this.file.mainPage;
-        this.file.dirEntryByUrlIndex(mainPageUrlIndex).then(callback);
+        if (mainPageUrlIndex === 0xffffffff || mainPageUrlIndex === undefined || mainPageUrlIndex >= this.file.entryCount) {
+            callback(null);
+            return;
+        }
+        this.file.dirEntryByUrlIndex(mainPageUrlIndex).then(callback).catch(function (err) {
+            console.error('Error retrieving main page directory entry:', err);
+            callback(null);
+        });
+    } else {
+        callback(null);
     }
 };
 
@@ -567,7 +576,14 @@ ZIMArchive.prototype.callLibzimWorker = function (parameters) {
  * @param {callbackDirEntry} callback
  */
 ZIMArchive.prototype.resolveRedirect = function (dirEntry, callback) {
-    this.file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(callback);
+    if (this.isReady() && dirEntry && dirEntry.redirectTarget !== undefined && dirEntry.redirectTarget < this.file.entryCount) {
+        this.file.dirEntryByUrlIndex(dirEntry.redirectTarget).then(callback).catch(function (err) {
+            console.error('Error resolving redirect:', err);
+            callback(null);
+        });
+    } else {
+        callback(null);
+    }
 };
 
 /**
@@ -659,10 +675,21 @@ ZIMArchive.prototype.getDirEntryByPath = function (path) {
  * @param {callbackDirEntry} callback
  */
 ZIMArchive.prototype.getRandomDirEntry = function (callback) {
-    // Prefer an article-only (v1) title pointer list, if available
-    var articleCount = this.file.articleCount || this.file.entryCount;
-    var index = Math.floor(Math.random() * articleCount);
-    this.file.dirEntryByTitleIndex(index).then(callback);
+    if (this.isReady()) {
+        // Prefer an article-only (v1) title pointer list, if available
+        var articleCount = this.file.articleCount || this.file.entryCount;
+        if (!articleCount || articleCount <= 0) {
+            callback(null);
+            return;
+        }
+        var index = Math.floor(Math.random() * articleCount);
+        this.file.dirEntryByTitleIndex(index).then(callback).catch(function (err) {
+            console.error('Error retrieving random directory entry:', err);
+            callback(null);
+        });
+    } else {
+        callback(null);
+    }
 };
 
 /**
@@ -710,6 +737,10 @@ ZIMArchive.prototype.addMetadataToZIMFile = function (key) {
  */
 ZIMArchive.prototype.setZimitMetadata = function () {
     var that = this;
+    if (!this.isReady() || this.file.mainPage === 0xffffffff || this.file.mainPage === undefined || this.file.mainPage >= this.file.entryCount) {
+        console.warn('Zimit main page not found in this archive!');
+        return Promise.resolve();
+    }
     // Get the landing page
     return this.file.dirEntryByUrlIndex(this.file.mainPage).then(function (dirEntry) {
         var findRedirectTarget = dirEntry.redirect ? function (dirEntry) {
