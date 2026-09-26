@@ -159,7 +159,7 @@ ZIMFile.prototype._readSplitSlice = function (begin, end) {
         }
     }
     if (readRequests.length === 0) {
-        return Promise.resolve(new Uint8Array(0).buffer);
+        return Promise.resolve(new Uint8Array(0));
     } else if (readRequests.length === 1) {
         return readRequests[0];
     } else {
@@ -223,6 +223,9 @@ ZIMFile.prototype.dirEntry = function (offset) {
  */
 ZIMFile.prototype.dirEntryByUrlIndex = function (index) {
     var that = this;
+    if (index === undefined || index === null || index < 0 || (that.entryCount && index >= that.entryCount)) {
+        return Promise.reject(new Error('Invalid URL pointer index: ' + index));
+    }
     return that._readInteger(that.urlPtrPos + index * 8, 8).then(function (dirEntryPos) {
         return that.dirEntry(dirEntryPos);
     });
@@ -235,6 +238,10 @@ ZIMFile.prototype.dirEntryByUrlIndex = function (index) {
  */
 ZIMFile.prototype.dirEntryByTitleIndex = function (index) {
     var that = this;
+    var maxIndex = that.articleCount || that.entryCount;
+    if (index === undefined || index === null || index < 0 || (maxIndex && index >= maxIndex)) {
+        return Promise.reject(new Error('Invalid Title pointer index: ' + index));
+    }
     // Use v1 title pointerlist if available, or fall back to legacy v0 list
     var ptrList = that.articlePtrPos || that.titlePtrPos;
     return that._readInteger(ptrList + index * 4, 4).then(function (urlIndex) {
@@ -277,7 +284,7 @@ ZIMFile.prototype.blob = function (cluster, blob, meta) {
                         return that._readSlice(offsetStart, size);
                     }
                 } else {
-                    return Promise.resolve(new Uint8Array(0).buffer);
+                    return Promise.resolve(new Uint8Array(0));
                 }
             };
             // If only metadata were requested and the cluster is compressed, return null (this is probably a ZIM format error)
@@ -292,7 +299,7 @@ ZIMFile.prototype.blob = function (cluster, blob, meta) {
             } else if (compressionType[0] === 5) {
                 decompressor = new zstd.Decompressor(plainBlobReader);
             } else {
-                return new Uint8Array(); // unsupported compression type
+                return Promise.resolve(new Uint8Array(0)); // unsupported compression type
             }
             return decompressor.readSliceSingleThread(blob * 4, 8, false).then(function (data) {
                 var blobOffset = readInt(data, 0, 4);
@@ -321,6 +328,7 @@ ZIMFile.prototype.blob = function (cluster, blob, meta) {
  */
 ZIMFile.prototype.setListings = function (listings) {
     var that = this;
+    var legacyArticlePromise = Promise.resolve();
     // If we are in a legacy ZIM archive, we need to calculate the true article count (of entries in the A namespace)
     // This effectively emulates the v1 article pointerlist
     if (this.minorVersion === 0) {
@@ -339,7 +347,7 @@ ZIMFile.prototype.setListings = function (listings) {
                 return index;
             });
         };
-        getArticleIndexByOrdinal('first').then(function (idxFirstArticle) {
+        legacyArticlePromise = getArticleIndexByOrdinal('first').then(function (idxFirstArticle) {
             return getArticleIndexByOrdinal('last').then(function (idxLastArticle) {
                 // Technically idxLastArticle points to the entry after the last article in the 'A' namespace,
                 // We subtract the first from the last to get the number of entries in the 'A' namespace
@@ -347,6 +355,8 @@ ZIMFile.prototype.setListings = function (listings) {
                 that.articleCount = idxLastArticle - idxFirstArticle;
                 console.debug('Calculated article count is: ' + that.articleCount);
             });
+        }).catch(function (err) {
+            console.warn('Error calculating legacy article count:', err);
         });
     }
     var highestListingVersion = 0;
@@ -401,7 +411,9 @@ ZIMFile.prototype.setListings = function (listings) {
             console.warn('There was an error accessing a Directory Listing', err);
         });
     };
-    return listingAccessor(listings.pop());
+    return legacyArticlePromise.then(function () {
+        return listingAccessor(listings.pop());
+    });
 };
 
 /**

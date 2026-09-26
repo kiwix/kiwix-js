@@ -315,4 +315,52 @@ describe('Zim random and main articles', function () {
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.getTitleOrUrl()).to.equal('Summary');
     });
+
+    it('getMainPageDirEntry returns null when archive has no main page (0xffffffff)', async function () {
+        const originalMainPage = localZimArchive.file.mainPage;
+        localZimArchive.file.mainPage = 0xffffffff;
+        try {
+            const dirEntry = await new Promise(resolve => {
+                localZimArchive.getMainPageDirEntry(resolve);
+            });
+            expect(dirEntry).to.be.null;
+        } finally {
+            localZimArchive.file.mainPage = originalMainPage;
+        }
+    });
+
+    it('getMainPageDirEntry returns null when main page index is out of bounds', async function () {
+        const originalMainPage = localZimArchive.file.mainPage;
+        localZimArchive.file.mainPage = localZimArchive.file.entryCount + 100;
+        try {
+            const dirEntry = await new Promise(resolve => {
+                localZimArchive.getMainPageDirEntry(resolve);
+            });
+            expect(dirEntry).to.be.null;
+        } finally {
+            localZimArchive.file.mainPage = originalMainPage;
+        }
+    });
+
+    it('getMainPageDirEntry and getRandomDirEntry safely handle unready archives', async function () {
+        const mockUnreadyArchive = Object.create(localZimArchive);
+        mockUnreadyArchive.file = null;
+        const mainResult = await new Promise(resolve => {
+            mockUnreadyArchive.getMainPageDirEntry(resolve);
+        });
+        const randomResult = await new Promise(resolve => {
+            mockUnreadyArchive.getRandomDirEntry(resolve);
+        });
+        expect(mainResult).to.be.null;
+        expect(randomResult).to.be.null;
+    });
+
+    it('getRandomDirEntry returns null when entry/article count is zero', async function () {
+        const mockEmptyArchive = Object.create(localZimArchive);
+        mockEmptyArchive.file = Object.assign({}, localZimArchive.file, { articleCount: 0, entryCount: 0 });
+        const randomResult = await new Promise(resolve => {
+            mockEmptyArchive.getRandomDirEntry(resolve);
+        });
+        expect(randomResult).to.be.null;
+    });
 });
