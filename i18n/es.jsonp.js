@@ -17,7 +17,7 @@ document.localeJson = {
       "home-btn-top": "Arriba",
       "home-prefix-placeholder": "Buscar...",
       "home-prefix-label": "Buscar artículos",
-      "home-prefix-help": "Escriba el principio de un título de artículo para ver las sugerencias correspondientes, o pulse el botón de búsqueda con el campo vacío para listar los títulos.",
+      "home-prefix-help": "Escriba el principio de un título de artículo para ver las sugerencias correspondientes, o pulse el botón de búsqueda con el campo vacío para mostrar la lista de títulos.",
       "home-prefix-tip": "Puede buscar en el contenido de su archivo ZIM usando este campo de búsqueda. Sugerirá títulos de artículos que **empiezan** con las letras que escriba.",
       "configure": "Configurar",
       "configure-title": "Configuración",
