@@ -3120,8 +3120,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     // We are displaying a real article, so reset the redirect counter
     htmlRedirectHops = 0;
 
-    // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened
-    htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="default-src \'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io \'unsafe-inline\' \'unsafe-eval\';"></meta>\n    ');
+    // Add CSP to prevent external scripts and content - note that any existing CSP can only be hardened, not loosened.
+    // Restricted mode runs no inline script, so, as in article.html, it allows inline code only for styles (ZIM scripts run only in SW mode)
+    var cspSources = '\'self\' data: file: blob: about: chrome-extension: moz-extension: https://browser-extension.kiwix.org https://kiwix.github.io';
+    var csp = 'default-src ' + cspSources + '; style-src ' + cspSources + ' \'unsafe-inline\'; script-src \'self\' file: chrome-extension: moz-extension: \'unsafe-eval\';';
+    htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="' + csp + '"></meta>\n    ');
 
     // Transform as many Zimit-style URLs as possible to their ZIM equivalents
     if (selectedArchive.zimType === 'zimit') {

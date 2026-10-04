@@ -4,6 +4,10 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Interim update Kiwix JS v4.4.1
+
+* SECURITY: Tightened the Content Security Policy applied to articles displayed in Restricted mode
+
 ## Release Kiwix JS v4.4.0
 
 Released on 2026-08-22
