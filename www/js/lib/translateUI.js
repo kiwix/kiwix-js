@@ -86,6 +86,10 @@ function translateApp (languageCode) {
         });
         document.getElementById('prefix').setAttribute('placeholder',
             translateString('home-prefix-placeholder') || 'Search...');
+        document.getElementById('prefix').setAttribute('aria-label',
+            translateString('home-prefix-label') || 'Search articles');
+        document.getElementById('formArticleSearch').setAttribute('aria-label',
+            translateString('home-prefix-label') || 'Search articles');
     }).catch(function (err) {
         console.error('Error translating the UI', err);
         throw err;
