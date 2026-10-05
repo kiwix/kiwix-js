@@ -7,6 +7,12 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 ## Interim update Kiwix JS v4.4.1
 
 * SECURITY: Tightened the Content Security Policy applied to articles displayed in Restricted mode
+* SECURITY: Published advisory [GHSA-37j3-jm4x-gjmv](https://github.com/kiwix/kiwix-js/security/advisories/GHSA-37j3-jm4x-gjmv) for the issues fixed in v4.3.3 and v4.3.4 below
+* ENHANCEMENT: The search field now has a description for screen readers
+* FIX: A "|" in an article's title no longer truncates the title when its directory entry is read back
+* FIX: Browser languages whose codes merely contain "en", "es" or "fr" (e.g. Estonian) no longer cause a translation error on startup
+* FIX: Spelling of "adresse" in the French About page
+* DEV: Updates to development dependencies and GitHub workflow actions
 
 ## Release Kiwix JS v4.4.0
 
@@ -35,7 +41,7 @@ Headline changes since v4.3.0: jQuery and Bootstrap's JavaScript bundle have bee
 
 ### Interim update Kiwix JS v4.3.3
 
-* SECURITY: Settings supplied in the app's URL are no longer saved permanently, apart from the few the app passes between its own windows
+* SECURITY: Settings supplied in the app's URL are no longer saved permanently, apart from the few the app passes between its own windows ([GHSA-37j3-jm4x-gjmv](https://github.com/kiwix/kiwix-js/security/advisories/GHSA-37j3-jm4x-gjmv))
 * SECURITY: `noPrompts`, which suppresses dialogues for the automated test suite, now opens an unverified archive in Restricted mode rather than in ServiceWorker mode
 * FIX: The Library no longer reports "All library servers are currently unreachable" in browsers that cannot run the modern library (e.g. IE11)
 * FIX: Refreshed the emergency list of download mirrors, removing dead and redirecting entries and adding those currently advertised by the Kiwix catalogue
