@@ -2615,6 +2615,21 @@ function articleLoadedSW (iframeArticleContent) {
         // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
+        // In ServiceWorker mode the iframe has its own session history, so going back or forward to the landing page does not pass through
+        // goToMainArticle() or goToArticle(): we have to work out from the loaded URL whether this is the landing page
+        if (selectedArchive.zimType !== 'zimit') {
+            try {
+                var zimRootInUrl = '/' + encodeURI(selectedArchive.file.name) + '/';
+                var loadedPath = iframeWindow.location.pathname;
+                var rootPos = loadedPath.indexOf(zimRootInUrl);
+                if (~rootPos) {
+                    params.isLandingPage = decodeURIComponent(loadedPath.substring(rootPos + zimRootInUrl.length)) === selectedArchive.landingPageUrl;
+                }
+            } catch (e) {
+                // Malformed URI or inaccessible location: leave the flag as it is
+                console.debug('Unable to determine whether the loaded article is the landing page', e);
+            }
+        }
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
@@ -2632,7 +2647,8 @@ function articleLoadedSW (iframeArticleContent) {
             document.getElementById('prefix').value = '';
         };
     }
-    params.isLandingPage = false;
+    // Replay (zimit) pages are not identified by their URL above, so we cannot say they are the landing page
+    if (selectedArchive.zimType === 'zimit') params.isLandingPage = false;
 };
 
 /**
@@ -3284,7 +3300,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
             };
         }
-        params.isLandingPage = false;
+        // Keep the flag in step with the article actually displayed
+        params.isLandingPage = dirEntry.namespace + '/' + dirEntry.url === selectedArchive.landingPageUrl;
     };
 
     // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -3652,7 +3669,9 @@ function goToArticle (path, download, contentType) {
                 uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
             });
         } else {
-            params.isLandingPage = false;
+            // The landing page is stored in the browser history like any other article, so navigating back or forward to it
+            // (onpopstate) arrives here: compare with the path recorded by goToMainArticle() so that the flag stays correct
+            params.isLandingPage = path === selectedArchive.landingPageUrl;
             var activeContent = document.getElementById('activeContent');
             if (activeContent) activeContent.style.display = 'none';
             readArticle(dirEntry);

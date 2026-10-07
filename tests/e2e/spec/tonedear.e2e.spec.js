@@ -167,6 +167,26 @@ function runTests (driver, modes, keepDriver) {
                 await driver.sleep(1000);
             });
 
+            it('Restore landing page state with browser history in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {
+                if (!serviceWorkerAPI && mode === 'serviceworker') {
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
+                    return;
+                }
+
+                // We are on a non-landing article, so the flag must have been cleared
+                assert.strictEqual(await driver.executeScript('return params.isLandingPage;'), false);
+                await driver.navigate().back();
+                await driver.wait(async function () {
+                    return await driver.executeScript('return params.isLandingPage;');
+                }, 5000, 'params.isLandingPage was not restored after navigating back to the landing page');
+                await driver.navigate().forward();
+                await driver.wait(async function () {
+                    return !(await driver.executeScript('return params.isLandingPage;'));
+                }, 5000, 'params.isLandingPage was not cleared after navigating forward to an article');
+                // Wait for the article to finish loading
+                await driver.sleep(1000);
+            });
+
             it('Verify Android and iOS store images in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {
                 if (!serviceWorkerAPI && mode === 'jquery') {
                     // Restricted mode test for data URIs
