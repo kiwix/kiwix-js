@@ -243,16 +243,28 @@ function base64DecToArr (sBase64, nBlocksSize) {
  * @returns {Uint8Array} A Uint8Array with the converted buffer
  */
 function dataURItoUint8Array (dataURI) {
-    var parsedString = dataURI.match(/^data:([^,]*),(.*)/i);
-    if (parsedString && /base64/i.test(parsedString[1])) {
+    if (typeof dataURI !== 'string' || !dataURI) {
+        return new Uint8Array(0);
+    }
+    var parsedString = dataURI.match(/^data:([^,]*),([\s\S]*)/i);
+    if (!parsedString) {
+        return new Uint8Array(0);
+    }
+    if (/base64/i.test(parsedString[1])) {
         return base64DecToArr(parsedString[2]);
     } else {
-        var byteString = decodeURI(parsedString[2]);
-        var ab = [];
-        for (var i = 0; i < byteString.length; i++) {
-            ab[i] = byteString.charCodeAt(i);
+        var byteString;
+        try {
+            byteString = decodeURIComponent(parsedString[2]);
+        } catch (err) {
+            console.warn('Could not decode data URI, using raw value:', err);
+            byteString = parsedString[2];
         }
-        return new Uint8Array(ab);
+        var taBytes = new Uint8Array(byteString.length);
+        for (var i = 0; i < byteString.length; i++) {
+            taBytes[i] = byteString.charCodeAt(i);
+        }
+        return taBytes;
     }
 }
 

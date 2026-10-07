@@ -10,6 +10,7 @@ import zimDirEntry from '../../../www/js/lib/zimDirEntry.js';
 import util from '../../../www/js/lib/util.js';
 import uiUtil from '../../../www/js/lib/uiUtil.js';
 import utf8 from '../../../www/js/lib/utf8.js';
+import * as sinon from 'sinon';
 
 let localZimArchive;
 
@@ -104,6 +105,82 @@ describe('Utils', function () {
             const normalizedResult = decodeURIComponent(result).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             const normalizedExpected = baseUrl.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             expect(normalizedResult).to.equal(normalizedExpected);
+        });
+    });
+
+    describe('dataURItoUint8Array', function () {
+        it('Safely handles empty string', function () {
+            expect(util.dataURItoUint8Array('')).to.deep.equal(new Uint8Array(0));
+        });
+
+        it('Safely handles invalid URI', function () {
+            expect(util.dataURItoUint8Array('not-a-data-uri')).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array('http://example.com')).to.deep.equal(new Uint8Array(0));
+        });
+
+        it('Safely handles data URI with missing comma', function () {
+            expect(util.dataURItoUint8Array('data:text/plain')).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array('data:')).to.deep.equal(new Uint8Array(0));
+        });
+
+        it('Safely handles null, undefined, and non-string inputs', function () {
+            expect(util.dataURItoUint8Array(null)).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array(undefined)).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array(123)).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array({})).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array([])).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array(true)).to.deep.equal(new Uint8Array(0));
+        });
+
+        it('Correctly converts valid plain text data URI', function () {
+            const result = util.dataURItoUint8Array('data:text/plain,hello world');
+            const expected = new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]);
+            expect(result).to.deep.equal(expected);
+        });
+
+        it('Correctly decodes percent-encoded reserved characters in non-base64 data URI', function () {
+            const result = util.dataURItoUint8Array('data:text/plain,hello%2C%20world');
+            const expected = new Uint8Array([104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100]);
+            expect(result).to.deep.equal(expected);
+        });
+
+        it('Correctly decodes base64 data URI', function () {
+            const result = util.dataURItoUint8Array('data:text/plain;base64,aGVsbG8sIHdvcmxk');
+            const expected = new Uint8Array([104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100]);
+            expect(result).to.deep.equal(expected);
+        });
+
+        it('Does not throw on malformed percent encoding and falls back to raw text', function () {
+            const warnStub = sinon.stub(console, 'warn');
+            try {
+                let result;
+                expect(function () {
+                    result = util.dataURItoUint8Array('data:text/plain,%ZZmalformed');
+                }).to.not.throw();
+                const expected = new Uint8Array([37, 90, 90, 109, 97, 108, 102, 111, 114, 109, 101, 100]);
+                expect(result).to.deep.equal(expected);
+
+                let result2;
+                expect(function () {
+                    result2 = util.dataURItoUint8Array('data:text/plain,hello%');
+                }).to.not.throw();
+                expect(result2).to.deep.equal(new Uint8Array([104, 101, 108, 108, 111, 37]));
+
+                expect(warnStub.called).to.equal(true);
+            } finally {
+                warnStub.restore();
+            }
+        });
+
+        it('Preserves existing behavior for empty or valid inputs (regression)', function () {
+            expect(util.dataURItoUint8Array('data:,')).to.deep.equal(new Uint8Array(0));
+            expect(util.dataURItoUint8Array('data:text/plain;base64,')).to.deep.equal(new Uint8Array(0));
+
+            const htmlResult = util.dataURItoUint8Array('data:text/html;charset=utf-8,<h1>Hi</h1>');
+            expect(htmlResult).to.deep.equal(new Uint8Array([60, 104, 49, 62, 72, 105, 60, 47, 104, 49, 62]));
+
+            const binaryResult = util.dataURItoUint8Array('data:application/octet-stream;base64,AQIDBA==');
+            expect(binaryResult).to.deep.equal(new Uint8Array([1, 2, 3, 4]));
         });
     });
 });
