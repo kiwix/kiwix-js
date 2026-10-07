@@ -305,7 +305,9 @@ document.localeJson = {
       "alert-download-message": "<strong>Télécharger</strong> Si le téléchargement ne démarre pas, veuillez cliquer sur le lien suivant&nbsp;:",
       "spinner-caching": "Mise en cache :",
       "spinner-caching-assets": "Mise en cache...",
-      "spinner-loading": "Chargement"
+      "spinner-loading": "Chargement",
+      "search-status-first": "Premiers ",
+      "search-status-articles-found-refine": " articles trouvés (affinez votre recherche)."
     }
   }
 }

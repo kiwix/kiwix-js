@@ -305,7 +305,9 @@ document.localeJson = {
       "alert-download-message": "<strong>Descargar</strong> Si no se inicia la descarga, pulse el siguiente enlace:",
       "spinner-caching": "Almacenando",
       "spinner-caching-assets": "Almacenando activos...",
-      "spinner-loading": "Cargando"
+      "spinner-loading": "Cargando",
+      "search-status-first": "Primeros ",
+      "search-status-articles-found-refine": " artículos encontrados (refina tu búsqueda)."
     }
   }
 }
