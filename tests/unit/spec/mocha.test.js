@@ -106,6 +106,80 @@ describe('Utils', function () {
             expect(normalizedResult).to.equal(normalizedExpected);
         });
     });
+
+    it('Set the window title to the article title in browser context', function () {
+        // Unit tests run as http://localhost, which is browser context
+        const articleDoc = document.implementation.createHTMLDocument('  Ray Charles ');
+        uiUtil.setWindowTitle(articleDoc);
+        expect(document.title).to.equal('Ray Charles - Kiwix');
+        // Falls back to the app title if the article has no title
+        uiUtil.setWindowTitle(document.implementation.createHTMLDocument(''));
+        expect(document.title).to.equal('Kiwix');
+        uiUtil.setWindowTitle(null);
+        expect(document.title).to.equal('Kiwix');
+    });
+
+    it('Update the window title when the article changes its title', async function () {
+        // MutationObserver is not exposed globally in the NodeJS test environment
+        const addedObserver = typeof MutationObserver === 'undefined';
+        if (addedObserver) globalThis.MutationObserver = window.MutationObserver;
+        try {
+            const articleDoc = document.implementation.createHTMLDocument('Home');
+            uiUtil.setWindowTitle(articleDoc);
+            expect(document.title).to.equal('Home - Kiwix');
+            articleDoc.title = 'About';
+            // MutationObserver callbacks run asynchronously
+            await new Promise(resolve => setTimeout(resolve, 0));
+            expect(document.title).to.equal('About - Kiwix');
+            // Once another article is loaded, the old one is no longer watched
+            uiUtil.setWindowTitle(document.implementation.createHTMLDocument('Next'));
+            articleDoc.title = 'Stale';
+            await new Promise(resolve => setTimeout(resolve, 0));
+            expect(document.title).to.equal('Next - Kiwix');
+        } finally {
+            uiUtil.setWindowTitle(null);
+            if (addedObserver) delete globalThis.MutationObserver;
+        }
+    });
+
+    it('Leave the window title alone in app context', async function () {
+        const addedObserver = typeof MutationObserver === 'undefined';
+        if (addedObserver) globalThis.MutationObserver = window.MutationObserver;
+        const originalTitle = document.title;
+        document.title = 'Kiwix';
+        const articleDoc = document.implementation.createHTMLDocument('Ray Charles');
+        try {
+            // Packaged NW.js app (checked via window.nw elsewhere in this codebase)
+            window.nw = {};
+            uiUtil.setWindowTitle(articleDoc);
+            expect(document.title).to.equal('Kiwix');
+            articleDoc.title = 'Changed';
+            await new Promise(resolve => setTimeout(resolve, 0));
+            expect(document.title).to.equal('Kiwix');
+            delete window.nw;
+
+            // Packaged / mobile app via params.appType (set by kiwix-js-pwa)
+            params.appType = 'Electron|PWA|Windows';
+            uiUtil.setWindowTitle(articleDoc);
+            expect(document.title).to.equal('Kiwix');
+            delete params.appType;
+
+            // Installed PWA (display-mode: standalone)
+            window.matchMedia = function (query) {
+                return { matches: /display-mode:\s*standalone/.test(query), media: query, addListener: function () {}, removeListener: function () {} };
+            };
+            uiUtil.setWindowTitle(articleDoc);
+            expect(document.title).to.equal('Kiwix');
+            delete window.matchMedia;
+        } finally {
+            delete window.nw;
+            delete params.appType;
+            delete window.matchMedia;
+            document.title = originalTitle || 'Kiwix';
+            uiUtil.setWindowTitle(null);
+            if (addedObserver) delete globalThis.MutationObserver;
+        }
+    });
 });
 
 describe('ZIM initialization', function () {

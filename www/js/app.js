@@ -2607,6 +2607,7 @@ function articleLoadedSW (iframeArticleContent) {
         }
     }
     resizeIFrame();
+    uiUtil.setWindowTitle(iframeArticleContent.contentDocument);
 
     var iframeWindow = iframeArticleContent.contentWindow;
     if (iframeWindow) {
@@ -3262,6 +3263,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         uiUtil.applyAppTheme(params.appTheme);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
+        uiUtil.setWindowTitle(iframeContentDocument);
 
         // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
         loadNoScriptTags();
