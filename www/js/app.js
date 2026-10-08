@@ -3615,29 +3615,30 @@ function updateCacheStatus (title) {
 }
 
 /**
- * Changes the URL of the browser page, so that the user might go back to it
+ * Pushes the current article title or search term to the window's history state
+ * so that the user can navigate back and forward.
+ * The browser URL is updated with the page pathname (clearing any launch querystring)
+ * while deliberately omitting the title or search query from the URL to protect user privacy
+ * and prevent parameter corruption.
  *
- * @param {String} title
- * @param {String} titleSearch
+ * @param {String} title The title of the article to store (if storing an article)
+ * @param {String} titleSearch The title of the search (if storing a search)
  */
 function pushBrowserHistoryState (title, titleSearch) {
     var stateObj = {};
-    var urlParameters;
     var stateLabel;
     if (title && !(title === '')) {
         // Prevents creating a double history for the same page
         if (history.state && history.state.title === title) return;
         stateObj.title = title;
-        urlParameters = '?title=' + title;
         stateLabel = 'Wikipedia Article : ' + title;
     } else if (titleSearch && !(titleSearch === '')) {
         stateObj.titleSearch = titleSearch;
-        urlParameters = '?titleSearch=' + titleSearch;
         stateLabel = 'Wikipedia search : ' + titleSearch;
     } else {
         return;
     }
-    window.history.pushState(stateObj, stateLabel, urlParameters);
+    window.history.pushState(stateObj, stateLabel, window.location.pathname);
 }
 
 // Setup table of contents and display the list when the dropup button is clicked
