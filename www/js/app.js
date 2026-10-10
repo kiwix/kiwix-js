@@ -36,6 +36,7 @@ import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 import kiwixLibrary from './lib/kiwixLibrary.js';
+import util from './lib/util.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -1719,13 +1720,12 @@ function handleArchiveListChange () {
     // First check if files are available from legacy File API picker (archiveFiles.files)
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Files available from legacy File API - extract the selected archive
-        const filenameWithoutExtension = selectedValue.replace(/\.zim\w?\w?$/i, '');
         const selectedFiles = [];
         // Convert FileList to array for IE11 compatibility
         var filesArray = Array.from(archiveFiles.files);
         for (var i = 0; i < filesArray.length; i++) {
-            // Match files that start with the base name (handles split archives)
-            if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+            // Match files that belong to the archive (handles split archives)
+            if (util.isPartOfArchive(selectedValue, filesArray[i].name)) {
                 selectedFiles.push(filesArray[i]);
             }
         }
@@ -1917,12 +1917,11 @@ function useLegacyFilePicker () {
 
         // If user clicked an archive before selecting files (pendingSelectedArchive), load it now
         if (pendingSelectedArchive) {
-            const filenameWithoutExtension = pendingSelectedArchive.replace(/\.zim\w?\w?$/i, '');
             const selectedFiles = [];
             // Convert FileList to array for IE11 compatibility
             var filesArray = Array.from(e.target.files);
             for (var i = 0; i < filesArray.length; i++) {
-                if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                if (util.isPartOfArchive(pendingSelectedArchive, filesArray[i].name)) {
                     selectedFiles.push(filesArray[i]);
                 }
             }
