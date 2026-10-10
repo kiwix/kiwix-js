@@ -36,6 +36,7 @@ import settingsStore from './lib/settingsStore.js';
 import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 import kiwixLibrary from './lib/kiwixLibrary.js';
+import util from './lib/util.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -1719,13 +1720,12 @@ function handleArchiveListChange () {
     // First check if files are available from legacy File API picker (archiveFiles.files)
     if (archiveFiles.files && archiveFiles.files.length > 0) {
         // Files available from legacy File API - extract the selected archive
-        const filenameWithoutExtension = selectedValue.replace(/\.zim\w?\w?$/i, '');
         const selectedFiles = [];
         // Convert FileList to array for IE11 compatibility
         var filesArray = Array.from(archiveFiles.files);
         for (var i = 0; i < filesArray.length; i++) {
-            // Match files that start with the base name (handles split archives)
-            if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+            // Match files that belong to the archive (handles split archives)
+            if (util.isPartOfArchive(selectedValue, filesArray[i].name)) {
                 selectedFiles.push(filesArray[i]);
             }
         }
@@ -1917,12 +1917,11 @@ function useLegacyFilePicker () {
 
         // If user clicked an archive before selecting files (pendingSelectedArchive), load it now
         if (pendingSelectedArchive) {
-            const filenameWithoutExtension = pendingSelectedArchive.replace(/\.zim\w?\w?$/i, '');
             const selectedFiles = [];
             // Convert FileList to array for IE11 compatibility
             var filesArray = Array.from(e.target.files);
             for (var i = 0; i < filesArray.length; i++) {
-                if (!filesArray[i].name.indexOf(filenameWithoutExtension)) {
+                if (util.isPartOfArchive(pendingSelectedArchive, filesArray[i].name)) {
                     selectedFiles.push(filesArray[i]);
                 }
             }
@@ -3598,29 +3597,30 @@ function updateCacheStatus (title) {
 }
 
 /**
- * Changes the URL of the browser page, so that the user might go back to it
+ * Pushes the current article title or search term to the window's history state
+ * so that the user can navigate back and forward.
+ * The browser URL is updated with the page pathname (clearing any launch querystring)
+ * while deliberately omitting the title or search query from the URL to protect user privacy
+ * and prevent parameter corruption.
  *
- * @param {String} title
- * @param {String} titleSearch
+ * @param {String} title The title of the article to store (if storing an article)
+ * @param {String} titleSearch The title of the search (if storing a search)
  */
 function pushBrowserHistoryState (title, titleSearch) {
     var stateObj = {};
-    var urlParameters;
     var stateLabel;
     if (title && !(title === '')) {
         // Prevents creating a double history for the same page
         if (history.state && history.state.title === title) return;
         stateObj.title = title;
-        urlParameters = '?title=' + title;
         stateLabel = 'Wikipedia Article : ' + title;
     } else if (titleSearch && !(titleSearch === '')) {
         stateObj.titleSearch = titleSearch;
-        urlParameters = '?titleSearch=' + titleSearch;
         stateLabel = 'Wikipedia search : ' + titleSearch;
     } else {
         return;
     }
-    window.history.pushState(stateObj, stateLabel, urlParameters);
+    window.history.pushState(stateObj, stateLabel, window.location.pathname);
 }
 
 // Setup table of contents and display the list when the dropup button is clicked
