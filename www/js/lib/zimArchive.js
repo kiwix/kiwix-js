@@ -282,6 +282,7 @@ ZIMArchive.prototype.setZimType = function () {
 ZIMArchive.prototype.getMainPageDirEntry = function (callback) {
     if (this.isReady()) {
         var mainPageUrlIndex = this.file.mainPage;
+        if (mainPageUrlIndex >= this.file.entryCount) return callback(null);
         this.file.dirEntryByUrlIndex(mainPageUrlIndex).then(callback);
     }
 };
