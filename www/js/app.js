@@ -110,6 +110,9 @@ const archiveFiles = document.getElementById('archiveFiles');
 // Unique identifier of the article expected to be displayed
 appstate.expectedArticleURLToBeDisplayed = '';
 
+// True while a landing page load was not an explicit request for Home (e.g. restored from history), so that no warning is shown
+appstate.landingPageRestored = false;
+
 // Platform and API detection - performed once at startup to avoid repeated checks
 const isFirefoxOsDeviceStorageAvailable = navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function';
 const isMobileDevice = /Android/i.test(navigator.userAgent) ||
@@ -1157,6 +1160,7 @@ function handleMessageChannelByLibzim (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     const title = event.data.title;
+    flagLandingPageRequest(title);
     const messagePort = event.ports[0];
     selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title, follow: true }).then(function (ret) {
         if (ret === null) {
@@ -1575,7 +1579,7 @@ window.onpopstate = function (event) {
             articleContent.removeChild(articleContent.firstChild);
         }
         if (title && !(title === '')) {
-            goToArticle(title);
+            goToArticle(title, false, null, isLandingPagePath(title));
         } else if (titleSearch && titleSearch !== '') {
             document.getElementById('prefix').value = titleSearch;
             if (titleSearch !== appstate.search.prefix) {
@@ -2615,7 +2619,7 @@ function articleLoadedSW (iframeArticleContent) {
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
-        if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
+        if (!params.hideActiveContentWarning && params.isLandingPage && !appstate.landingPageRestored && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
         }
         // Reset UI when the article is unloaded
@@ -2632,6 +2636,7 @@ function articleLoadedSW (iframeArticleContent) {
         };
     }
     params.isLandingPage = false;
+    appstate.landingPageRestored = false;
 };
 
 /**
@@ -2930,6 +2935,8 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
+    // In ServiceWorker mode, history navigation happens in the iframe, so it reaches us only as a request for content
+    flagLandingPageRequest(title);
     if (appstate.isReplayWorkerAvailable) {
         // Zimit ZIMs store assets with the querystring, so we need to add it. ReplayWorker handles encoding.
         title = title + event.data.search;
@@ -3085,7 +3092,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     }
 
     // Display Bootstrap warning alert if the landing page contains active content
-    if (!params.hideActiveContentWarning && params.isLandingPage) {
+    if (!params.hideActiveContentWarning && params.isLandingPage && !appstate.landingPageRestored) {
         if (regexpActiveContent.test(htmlArticle) || /zimit/.test(selectedArchive.zimType)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
@@ -3284,6 +3291,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             };
         }
         params.isLandingPage = false;
+        appstate.landingPageRestored = false;
     };
 
     // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -3634,7 +3642,7 @@ uiUtil.setUpTOC();
  *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
-function goToArticle (path, download, contentType) {
+function goToArticle (path, download, contentType, isLandingPage) {
     uiUtil.spinnerDisplay(true);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
@@ -3652,7 +3660,9 @@ function goToArticle (path, download, contentType) {
                 uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
             });
         } else {
-            params.isLandingPage = false;
+            // Only a history restoration of the landing page (see onpopstate) is a landing page request here
+            params.isLandingPage = !!isLandingPage;
+            appstate.landingPageRestored = !!isLandingPage;
             var activeContent = document.getElementById('activeContent');
             if (activeContent) activeContent.style.display = 'none';
             readArticle(dirEntry);
@@ -3695,6 +3705,27 @@ function goToRandomArticle () {
             translateUI.t('dialog-archive-notset-title') || 'No archive selected').then(function () {
             document.getElementById('btnConfigure').click();
         });
+    }
+}
+
+/**
+ * Checks whether a ZIM path is the archive's landing page, as recorded when Home was last requested. For classic Zimit archives,
+ * the page stored in the history and requested by the ServiceWorker is the start page that the landing page redirects to
+ * @param {String} path The namespace and URL of the article
+ * @returns {Boolean} True if the path is that of the landing page
+ */
+function isLandingPagePath (path) {
+    return !!selectedArchive && (path === selectedArchive.landingPageUrl || path === selectedArchive.zimitStartPage);
+}
+
+/**
+ * Marks a ServiceWorker request for the landing page as a landing page load. If the flag is already set, the user explicitly asked for Home
+ * @param {String} path The namespace and URL of the requested article
+ */
+function flagLandingPageRequest (path) {
+    if (!params.isLandingPage && isLandingPagePath(path)) {
+        params.isLandingPage = true;
+        appstate.landingPageRestored = true;
     }
 }
 
