@@ -2295,7 +2295,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     if (stillSearching) {
         message = 'Searching [' + reportingSearch.type + ']... found: ' + nbDirEntry;
     } else if (nbDirEntry >= params.maxSearchResultsSize) {
-        message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
+        message = (translateUI.t('search-status-first') || 'First ') + params.maxSearchResultsSize + (translateUI.t('search-status-articles-found-refine') || ' articles found (refine your search).');
     } else {
         message = 'Finished. ' + (nbDirEntry || 'No') + ' articles found' + (
             reportingSearch.type === 'basic' ? ': try fewer words for full search.' : '.'
