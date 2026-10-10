@@ -32,6 +32,8 @@ import translateUI from './translateUI.js';
 const header = document.getElementById('top');
 const footer = document.getElementById('footer');
 const activeContent = document.getElementById('activeContent');
+// The app's own title, shown when there is no article title to display
+const appTitle = document.title || 'Kiwix';
 let articleContainer = document.getElementById('articleContent');
 
 /**
@@ -846,6 +848,67 @@ function checkServerIsAccessible (imageSrc, onSuccess, onError) {
     image.onload = onSuccess;
     image.onerror = onError;
     image.src = imageSrc;
+}
+
+// Watches the title of the displayed article for changes made without reloading the page
+let articleTitleObserver = null;
+
+/**
+ * True when running as a plain web page in a browser tab. In app contexts (browser extensions,
+ * NW.js / Electron / UWP / Android / iOS packaged apps, and installed PWAs) the window title
+ * should stay as the app name; see #280.
+ * Uses the same signals this codebase already relies on elsewhere (extension protocols,
+ * window.nw, params.appType from kiwix-js-pwa, and display-mode: standalone).
+ * @returns {Boolean}
+ */
+function isBrowserContext () {
+    if (/^(moz|chrome)-extension:/i.test(window.location.protocol)) {
+        return false;
+    }
+    if (window.nw) {
+        return false;
+    }
+    // params.appType is set by kiwix-js-pwa (getAppType); not present in the plain browser build
+    if (typeof params !== 'undefined' && params.appType &&
+            /(^|\|)(UWP|Electron|Android|iOS)(\||$)/.test(params.appType)) {
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+        return false;
+    }
+    if (window.navigator && window.navigator.standalone) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Sets the window (or tab) title to the title of the displayed article, followed by the app's title,
+ * so that tabs, bookmarks and browser history entries can be told apart. Falls back to the app's
+ * title if the article doesn't have one. Only runs in browser context (see isBrowserContext and
+ * #280); in app context the title is left alone and no watcher is installed. Some archives
+ * (e.g. Zimit) change the title without reloading the page, so in browser context we keep
+ * watching it until the next article is loaded.
+ * @param {Document} articleDoc The document of the displayed article
+ */
+function setWindowTitle (articleDoc) {
+    // Always drop any previous watcher first so we never leak observers across articles or contexts
+    if (articleTitleObserver) {
+        articleTitleObserver.disconnect();
+        articleTitleObserver = null;
+    }
+    if (!isBrowserContext()) {
+        return;
+    }
+    var updateTitle = function () {
+        var articleTitle = articleDoc && articleDoc.title ? articleDoc.title.trim() : '';
+        document.title = articleTitle && articleTitle !== appTitle ? articleTitle + ' - ' + appTitle : appTitle;
+    };
+    updateTitle();
+    if (articleDoc && articleDoc.head && typeof MutationObserver !== 'undefined') {
+        articleTitleObserver = new MutationObserver(updateTitle);
+        articleTitleObserver.observe(articleDoc.head, { childList: true, subtree: true, characterData: true });
+    }
 }
 
 /**
@@ -1942,5 +2005,6 @@ export default {
     handleTitleClick: handleTitleClick,
     createSnippetElements: createSnippetElements,
     toggleSnippet: toggleSnippet,
-    attachArticleListEventListeners: attachArticleListEventListeners
+    attachArticleListEventListeners: attachArticleListEventListeners,
+    setWindowTitle: setWindowTitle
 };
