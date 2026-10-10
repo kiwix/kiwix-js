@@ -106,6 +106,42 @@ describe('Utils', function () {
             expect(normalizedResult).to.equal(normalizedExpected);
         });
     });
+
+    it('Convert dataURI to Uint8Array (base64, percent-encoded, and edge cases)', function () {
+        // Base64 dataURI
+        const b64DataURI = 'data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==';
+        const b64Arr = util.dataURItoUint8Array(b64DataURI);
+        const b64Str = String.fromCharCode.apply(null, b64Arr);
+        expect(b64Str).to.equal('Hello, world!');
+
+        // Non-base64 percent-encoded dataURI containing reserved characters (%2C, %20)
+        const percentDataURI = 'data:text/plain,hello%2C%20world';
+        const percentArr = util.dataURItoUint8Array(percentDataURI);
+        const percentStr = String.fromCharCode.apply(null, percentArr);
+        expect(percentStr).to.equal('hello, world');
+        expect(percentArr.length).to.equal(12);
+
+        // Percent escapes decoded directly to raw bytes without UTF-8 character conversion
+        const octetURI1 = 'data:application/octet-stream,%C3%A9';
+        const octetArr1 = util.dataURItoUint8Array(octetURI1);
+        expect(Array.from(octetArr1)).to.deep.equal([195, 169]);
+
+        const octetURI2 = 'data:application/octet-stream,%C3%A9%FF';
+        const octetArr2 = util.dataURItoUint8Array(octetURI2);
+        expect(Array.from(octetArr2)).to.deep.equal([195, 169, 255]);
+
+        // Invalid or empty inputs should return empty Uint8Array without throwing
+        expect(util.dataURItoUint8Array('')).to.be.instanceOf(Uint8Array);
+        expect(util.dataURItoUint8Array('').length).to.equal(0);
+        expect(util.dataURItoUint8Array('not-a-data-uri').length).to.equal(0);
+        expect(util.dataURItoUint8Array(null).length).to.equal(0);
+        expect(util.dataURItoUint8Array(undefined).length).to.equal(0);
+
+        // Malformed percent encoding should not throw
+        const malformedDataURI = 'data:text/plain,%E0%A4';
+        expect(() => util.dataURItoUint8Array(malformedDataURI)).to.not.throw();
+        expect(util.dataURItoUint8Array(malformedDataURI)).to.be.instanceOf(Uint8Array);
+    });
 });
 
 describe('ZIM initialization', function () {
