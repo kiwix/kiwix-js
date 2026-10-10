@@ -112,6 +112,21 @@ describe('ZIM initialization', function () {
     it('Set archive as ready', function () {
         expect(localZimArchive.isReady()).to.be.true;
     });
+
+    it('_readSplitSlice returns a Uint8Array on empty and non-empty slices', async function () {
+        const emptySlice = await localZimArchive.file._readSplitSlice(0, 0);
+        expect(emptySlice).to.be.instanceOf(Uint8Array);
+        expect(emptySlice.length).to.equal(0);
+        expect(typeof emptySlice.subarray).to.equal('function');
+
+        const nonRangeSlice = await localZimArchive.file._readSplitSlice(100000000000, 100000000000);
+        expect(nonRangeSlice).to.be.instanceOf(Uint8Array);
+        expect(nonRangeSlice.length).to.equal(0);
+
+        const regularSlice = await localZimArchive.file._readSplitSlice(0, 4);
+        expect(regularSlice).to.be.instanceOf(Uint8Array);
+        expect(regularSlice.length).to.equal(4);
+    });
 });
 
 describe('ZIM metadata', function () {

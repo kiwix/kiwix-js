@@ -159,7 +159,7 @@ ZIMFile.prototype._readSplitSlice = function (begin, end) {
         }
     }
     if (readRequests.length === 0) {
-        return Promise.resolve(new Uint8Array(0).buffer);
+        return Promise.resolve(new Uint8Array(0));
     } else if (readRequests.length === 1) {
         return readRequests[0];
     } else {
@@ -168,7 +168,7 @@ ZIMFile.prototype._readSplitSlice = function (begin, end) {
             var concatenated = new Uint8Array(end - begin);
             var offset = 0;
             arrays.forEach(function (item) {
-                concatenated.set(new Uint8Array(item), offset);
+                concatenated.set(item, offset);
                 offset += item.byteLength;
             });
             return concatenated;
@@ -277,7 +277,7 @@ ZIMFile.prototype.blob = function (cluster, blob, meta) {
                         return that._readSlice(offsetStart, size);
                     }
                 } else {
-                    return Promise.resolve(new Uint8Array(0).buffer);
+                    return Promise.resolve(new Uint8Array(0));
                 }
             };
             // If only metadata were requested and the cluster is compressed, return null (this is probably a ZIM format error)
