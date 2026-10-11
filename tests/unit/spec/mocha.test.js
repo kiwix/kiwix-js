@@ -315,4 +315,30 @@ describe('Zim random and main articles', function () {
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.getTitleOrUrl()).to.equal('Summary');
     });
+
+    it('getMainPageDirEntry returns null when archive has no main page (0xffffffff)', async function () {
+        const originalMainPage = localZimArchive.file.mainPage;
+        localZimArchive.file.mainPage = 0xffffffff;
+        try {
+            const dirEntry = await new Promise(resolve => {
+                localZimArchive.getMainPageDirEntry(resolve);
+            });
+            expect(dirEntry).to.be.null;
+        } finally {
+            localZimArchive.file.mainPage = originalMainPage;
+        }
+    });
+
+    it('getMainPageDirEntry returns null when main page index equals entryCount', async function () {
+        const originalMainPage = localZimArchive.file.mainPage;
+        localZimArchive.file.mainPage = localZimArchive.file.entryCount;
+        try {
+            const dirEntry = await new Promise(resolve => {
+                localZimArchive.getMainPageDirEntry(resolve);
+            });
+            expect(dirEntry).to.be.null;
+        } finally {
+            localZimArchive.file.mainPage = originalMainPage;
+        }
+    });
 });
