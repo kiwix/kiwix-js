@@ -2293,13 +2293,26 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     var message;
     if (stillSearching) {
-        message = 'Searching [' + reportingSearch.type + ']... found: ' + nbDirEntry;
+        message = (translateUI.t('search-status-searching') || 'Searching [$1]... found: $2')
+            .replace('$1', reportingSearch.type)
+            .replace('$2', nbDirEntry);
     } else if (nbDirEntry >= params.maxSearchResultsSize) {
-        message = (translateUI.t('search-status-first') || 'First ') + params.maxSearchResultsSize + (translateUI.t('search-status-articles-found-refine') || ' articles found (refine your search).');
+        message = (translateUI.t('search-status-first-multiple') || 'First $1 articles found (refine your search).')
+            .replace('$1', params.maxSearchResultsSize);
     } else {
-        message = 'Finished. ' + (nbDirEntry || 'No') + ' articles found' + (
-            reportingSearch.type === 'basic' ? ': try fewer words for full search.' : '.'
-        );
+        if (nbDirEntry === 0) {
+            message = translateUI.t('search-status-finished-zero') || 'Finished. 0 articles found';
+        } else if (nbDirEntry === 1) {
+            message = translateUI.t('search-status-finished-one') || 'Finished. 1 article found';
+        } else {
+            message = (translateUI.t('search-status-finished-multiple') || 'Finished. $1 articles found')
+                .replace('$1', nbDirEntry);
+        }
+        if (reportingSearch.type === 'basic') {
+            message += translateUI.t('search-status-basic-ending') || ': try fewer words for full search.';
+        } else {
+            message += '.';
+        }
     }
 
     articleListHeaderMessageDiv.textContent = message;

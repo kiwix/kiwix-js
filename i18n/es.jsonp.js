@@ -306,8 +306,12 @@ document.localeJson = {
       "spinner-caching": "Almacenando",
       "spinner-caching-assets": "Almacenando activos...",
       "spinner-loading": "Cargando",
-      "search-status-first": "Primeros ",
-      "search-status-articles-found-refine": " artículos encontrados (refina tu búsqueda)."
+      "search-status-searching": "Buscando [$1]... encontrados: $2",
+      "search-status-first-multiple": "Los $1 primeros artículos encontrados (refinar la búsqueda).",
+      "search-status-finished-zero": "Finalizado. 0 artículos encontrados",
+      "search-status-finished-one": "Finalizado. 1 artículo encontrado",
+      "search-status-finished-multiple": "Finalizado. $1 artículos encontrados",
+      "search-status-basic-ending": ": intenta usar menos palabras para la búsqueda de texto completo."
     }
   }
 }
