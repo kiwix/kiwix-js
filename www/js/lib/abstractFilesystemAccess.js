@@ -28,6 +28,7 @@
 import cache from './cache.js';
 import translateUI from './translateUI.js';
 import settingsStore from './settingsStore.js';
+import util from './util.js';
 
 /**
  * The maximum size of the dropdown for the zim file selection
@@ -198,14 +199,13 @@ async function refreshCachedDirectoryAccess () {
 async function selectDirectoryFromPickerViaFileSystemApi () {
     const handle = await window.showDirectoryPicker();
     const fileNames = [];
-    const previousZimFile = []
+    const previousZimFile = [];
     const lastZimName = settingsStore.getItem('previousZimFileName') || '';
-    const lastZimNameWithoutExtension = lastZimName.replace(/\.zim\w?\w?$/i, '');
-    // Iterate over all files in directory, store an array of ZIM files, and get the previously selectee ZIM file if it exists
+    // Iterate over all files in directory, store an array of ZIM files, and get the previously selected ZIM file if it exists
     for await (const entry of handle.values()) {
         if (entry.kind === 'file' && /\.zim\w?\w?$/i.test(entry.name)) {
             fileNames.push(entry.name);
-            if (!entry.name.indexOf(lastZimNameWithoutExtension)) {
+            if (util.isPartOfArchive(lastZimName, entry.name)) {
                 previousZimFile.push(await entry.getFile());
             }
         }
@@ -257,9 +257,7 @@ function getSelectedZimFromCache (selectedFilename) {
             if (fileOrDirHandle.kind === 'directory') {
                 const files = [];
                 for await (const entry of fileOrDirHandle.values()) {
-                    const filenameWithoutExtension = selectedFilename.replace(/\.zim\w?\w?$/i, '');
-                    // const regex = new RegExp(`\\${filenameWithoutExtension}.zim\\w\\w$`, 'i');
-                    if (!entry.name.indexOf(filenameWithoutExtension)) {
+                    if (util.isPartOfArchive(selectedFilename, entry.name)) {
                         files.push(await entry.getFile());
                     }
                 }
@@ -284,11 +282,9 @@ function getSelectedZimFromCache (selectedFilename) {
  * @returns {Array<File>} The selected Files Object from webkitFileList
  */
 function getSelectedZimFromWebkitList (fileList, filename) {
-    const filenameWithoutExtension = filename.replace(/\.zim\w?\w?$/i, '');
     const files = [];
     for (const file of fileList) {
-        // If the file.name begins with the filenameWithoutExtension, then it matches (may match mutliple split ZIM files)
-        if (!file.name.indexOf(filenameWithoutExtension)) {
+        if (util.isPartOfArchive(filename, file.name)) {
             files.push(file);
         }
     }
@@ -319,9 +315,8 @@ function loadPreviousZimFile () {
 function selectDirectoryFromPickerViaWebkit (fileList) {
     const zimFiles = [];
     const filenames = [];
-    const previousZimFile = []
+    const previousZimFile = [];
     const lastFilename = settingsStore.getItem('previousZimFileName') || '';
-    const filenameWithoutExtension = lastFilename.replace(/\.zim\w?\w?$/i, '');
     for (const file of fileList) {
         // Only add ZIM files in top directory to the filenames array. To do this, we must exclude ZIM files that contain more than one '/' in their path.
         // This is because most browsers using this API will return the full path of the file including the directory it is in (but Chromium < 72 will not return the full path, so
@@ -329,8 +324,7 @@ function selectDirectoryFromPickerViaWebkit (fileList) {
         if (/^[^/]+\/[^/]+\.zim\w?\w?$/i.test(file.webkitRelativePath)) {
             zimFiles.push(file);
             filenames.push(file.name);
-            // If the file.name begins with the filenameWithoutExtension...
-            if (filenameWithoutExtension && !file.name.indexOf(filenameWithoutExtension)) {
+            if (util.isPartOfArchive(lastFilename, file.name)) {
                 previousZimFile.push(file);
             }
         }
