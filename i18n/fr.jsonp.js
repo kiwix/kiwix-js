@@ -308,10 +308,10 @@ document.localeJson = {
       "spinner-loading": "Chargement",
       "search-status-searching": "Recherche en cours [$1]... trouvés : $2",
       "search-status-first-multiple": "Les $1 premiers articles trouvés (affiner la recherche).",
-      "search-status-finished-zero": "Terminé. 0 article trouvé",
+      "search-status-finished-zero": "Terminé. Aucun article trouvé",
       "search-status-finished-one": "Terminé. 1 article trouvé",
       "search-status-finished-multiple": "Terminé. $1 articles trouvés",
-      "search-status-basic-ending": " : essayez avec moins de mots pour la recherche de texte intégral."
+      "search-status-basic-ending": " : essayez avec moins de mots pour une recherche plus complète."
     }
   }
 }

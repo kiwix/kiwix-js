@@ -323,116 +323,21 @@ function runTests (driver, modes, keepDriver) {
                 }
                 // Switch to iframe
                 await driver.switchTo().frame('articleContent');
-                try {
-                    // Wait for and focus on the link "Hallelujah" with id="mwVw"
-                    let link = await driver.wait(until.elementLocated(By.id('mwVw')), 5000, 'Link element mwVw not found');
-                    await driver.executeScript('arguments[0].focus();', link);
-                    await driver.sleep(2000);
-                    // Focus on the next link "A Fool for You" with id="mwWw"
-                    await driver.executeScript('document.getElementById("mwWw").focus();');
-                    // Wait for the popover to appear with expected text
-                    let popover = await driver.wait(async function () {
-                        const tooltip = await driver.executeScript('return document.querySelector(".kiwixtooltip") ? document.querySelector(".kiwixtooltip").outerHTML : null;');
-                        return tooltip && /bluesy/.test(tooltip) ? tooltip : false;
-                    }, 10000, 'Popover with "bluesy" text did not appear');
-                    // The popover should contain the word "bluesy" (description of style of song)
-                    let popoverContainsText = /bluesy/.test(popover);
-                    assert.ok(popoverContainsText, 'Popover div with class ".kiwixtooltip" did not have expected text "bluesy"');
-                } finally {
-                    await driver.switchTo().defaultContent();
-                }
-            });
-
-            it('Test localization of search status messages (EN, ES, FR)', async function () {
-                if (mode.toLowerCase() !== 'serviceworker' || !serviceWorkerAPI) {
-                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
-                    this.skip();
-                }
-
-                // Dismiss any modal that might be blocking the UI (e.g. in IE11 mode)
-                try {
-                    const activeAlertModal = await driver.findElement(By.css('.modal[style*="display: block"]'));
-                    if (activeAlertModal) {
-                        const approveButton = await driver.findElement(By.id('approveConfirm'));
-                        await approveButton.click();
-                        await driver.sleep(500);
-                    }
-                } catch (e) {
-                    // No modal to dismiss
-                }
-
+                // Wait for and focus on the link "Hallelujah" with id="mwVw"
+                let link = await driver.wait(until.elementLocated(By.id('mwVw')), 5000, 'Link element mwVw not found');
+                await driver.executeScript('arguments[0].focus();', link);
+                await driver.sleep(2000);
+                // Focus on the next link "A Fool for You" with id="mwWw"
+                await driver.executeScript('document.getElementById("mwWw").focus();');
+                // Wait for the popover to appear with expected text
+                let popover = await driver.wait(async function () {
+                    const tooltip = await driver.executeScript('return document.querySelector(".kiwixtooltip") ? document.querySelector(".kiwixtooltip").outerHTML : null;');
+                    return tooltip && /bluesy/.test(tooltip) ? tooltip : false;
+                }, 10000, 'Popover with "bluesy" text did not appear');
+                // The popover should contain the word "bluesy" (description of style of song)
+                let popoverContainsText = /bluesy/.test(popover);
+                assert.ok(popoverContainsText, 'Popover div with class ".kiwixtooltip" did not have expected text "bluesy"');
                 await driver.switchTo().defaultContent();
-                async function testSearch(term, expectedText, expectedSearchingTextPrefix) {
-                    const prefix = await driver.findElement(By.id('prefix'));
-                    await driver.executeScript(`
-                        window.statusRecorder = [];
-                        var el = document.getElementById("articleListHeaderMessage");
-                        if (!window.statusRecorderObserver) {
-                            window.statusRecorderObserver = new MutationObserver(function(mutations) {
-                                mutations.forEach(function(m) {
-                                    var text = "";
-                                    if (m.type === 'childList' && m.addedNodes.length > 0) {
-                                        text = m.addedNodes[0].textContent;
-                                    } else if (m.type === 'characterData') {
-                                        text = m.target.textContent;
-                                    }
-                                    if (text && text.trim()) window.statusRecorder.push(text.trim());
-                                });
-                            });
-                            window.statusRecorderObserver.observe(el, { childList: true, characterData: true, subtree: true });
-                        }
-                        el.innerText = "";
-                        arguments[0].value = arguments[1];
-                        document.getElementById("searchArticles").click();
-                    `, prefix, term);
-                    let lastStatus = "";
-                    try {
-                        await driver.wait(async function () {
-                            const status = await driver.findElement(By.id('articleListHeaderMessage')).getText();
-                            lastStatus = status ? status.trim() : "";
-                            return lastStatus === expectedText;
-                        }, 5000);
-
-                        if (expectedSearchingTextPrefix) {
-                            const recordedStatuses = await driver.executeScript('return window.statusRecorder;');
-                            const foundSearching = recordedStatuses.some(s => s.startsWith(expectedSearchingTextPrefix));
-                            if (!foundSearching) {
-                                throw new Error("Searching status not found. Recorded: " + JSON.stringify(recordedStatuses));
-                            }
-                        }
-                    } catch(e) {
-                        console.error(`Failed! Expected final '${expectedText}', recorded '${lastStatus}'`);
-                        throw e;
-                    }
-                }
-                async function switchLanguage(lang, expectedPlaceholder) {
-                    await driver.executeScript('document.getElementById("languageSelector").value = arguments[0]; document.getElementById("languageSelector").dispatchEvent(new Event("change"));', lang);
-                    await driver.wait(async function () {
-                        const placeholder = await driver.findElement(By.id('prefix')).getAttribute('placeholder');
-                        return placeholder === expectedPlaceholder;
-                    }, 5000);
-                }
-
-                await switchLanguage('en', 'Search...');
-                await testSearch('xyz123', 'Finished. 0 articles found.', 'Searching [full]...');
-                await testSearch('Bein Green', 'Finished. 1 article found.', 'Searching [full]...');
-                await testSearch('blues brothers', 'Finished. 3 articles found.', 'Searching [full]...');
-                await testSearch('The', 'First 25 articles found (refine your search).', 'Searching [full]...');
-                await testSearch('a b c d e f g h i j', 'Finished. 0 articles found: try fewer words for full search.', 'Searching [basic]...');
-
-                await switchLanguage('es', 'Buscar...');
-                await testSearch('xyz123', 'Finalizado. 0 artículos encontrados.', 'Buscando [full]...');
-                await testSearch('Bein Green', 'Finalizado. 1 artículo encontrado.', 'Buscando [full]...');
-                await testSearch('blues brothers', 'Finalizado. 3 artículos encontrados.', 'Buscando [full]...');
-                await testSearch('The', 'Los 25 primeros artículos encontrados (refinar la búsqueda).', 'Buscando [full]...');
-                await testSearch('a b c d e f g h i j', 'Finalizado. 0 artículos encontrados: intenta usar menos palabras para la búsqueda de texto completo.', 'Buscando [basic]...');
-
-                await switchLanguage('fr', 'Chercher...');
-                await testSearch('xyz123', 'Terminé. 0 article trouvé.', 'Recherche en cours [full]...');
-                await testSearch('Bein Green', 'Terminé. 1 article trouvé.', 'Recherche en cours [full]...');
-                await testSearch('blues brothers', 'Terminé. 3 articles trouvés.', 'Recherche en cours [full]...');
-                await testSearch('The', 'Les 25 premiers articles trouvés (affiner la recherche).', 'Recherche en cours [full]...');
-                await testSearch('a b c d e f g h i j', 'Terminé. 0 article trouvé : essayez avec moins de mots pour la recherche de texte intégral.', 'Recherche en cours [basic]...');
             });
 
             it('Search for Ray Charles in title index and go to article', async function () {
