@@ -114,6 +114,12 @@ describe('Utils', function () {
         const b64Str = String.fromCharCode.apply(null, b64Arr);
         expect(b64Str).to.equal('Hello, world!');
 
+        // Line-wrapped base64 dataURIs (\n, and \r\n with indentation) should decode to the same bytes
+        const wrappedLF = 'data:text/plain;base64,SGVsbG8s\nIHdvcmxk\nIQ==';
+        const wrappedCRLF = 'data:text/plain;base64,SGVsbG8s\r\n    IHdvcmxk\r\n    IQ==';
+        expect(Array.from(util.dataURItoUint8Array(wrappedLF))).to.deep.equal(Array.from(b64Arr));
+        expect(Array.from(util.dataURItoUint8Array(wrappedCRLF))).to.deep.equal(Array.from(b64Arr));
+
         // Non-base64 percent-encoded dataURI containing reserved characters (%2C, %20)
         const percentDataURI = 'data:text/plain,hello%2C%20world';
         const percentArr = util.dataURItoUint8Array(percentDataURI);

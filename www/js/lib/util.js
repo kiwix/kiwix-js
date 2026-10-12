@@ -263,13 +263,14 @@ function dataURItoUint8Array (dataURI) {
     if (typeof dataURI !== 'string') {
         return new Uint8Array(0);
     }
-    var parsedString = dataURI.match(/^data:([^,]*),(.*)/i);
+    var parsedString = dataURI.match(/^data:([^,]*),([\s\S]*)/i);
     if (!parsedString) {
         return new Uint8Array(0);
     }
     if (/base64/i.test(parsedString[1])) {
         return base64DecToArr(parsedString[2]);
     } else {
+        // unescape is deliberate: it yields raw octets, whereas decodeURIComponent would interpret them as UTF-8
         var byteString = unescape(parsedString[2]);
         var taBytes = new Uint8Array(byteString.length);
         for (var i = 0; i < byteString.length; i++) {
