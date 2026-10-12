@@ -296,15 +296,15 @@ function runTests (driver, modes, keepDriver) {
                 } catch (e) {
                     // Handle cases where the frame or element is not accessible
                     await driver.switchTo().defaultContent();
-
+                    
                     // Wait for the iframe to be available before switching to it
                     await driver.wait(until.elementLocated(By.id('articleContent')), 5000);
                     await driver.switchTo().frame('articleContent');
-
+                    
                     // Wait for the target element to be available within the iframe
                     const element = await driver.wait(until.elementLocated(By.id('mwYw')), 5000);
                     elementText = await element.getText();
-
+                    
                     // Switch back to default content
                     await driver.switchTo().defaultContent();
                 }
