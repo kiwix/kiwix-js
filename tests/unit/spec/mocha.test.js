@@ -107,6 +107,84 @@ describe('Utils', function () {
         });
     });
 
+    it('Set the window title to the article title in browser context', function () {
+        // Unit tests run as http://localhost, which is browser context
+        const articleDoc = document.implementation.createHTMLDocument('  Ray Charles ');
+        uiUtil.setWindowTitle(articleDoc);
+        expect(document.title).to.equal('Ray Charles - Kiwix');
+        // Falls back to the app title if the article has no title
+        uiUtil.setWindowTitle(document.implementation.createHTMLDocument(''));
+        expect(document.title).to.equal('Kiwix');
+        uiUtil.setWindowTitle(null);
+        expect(document.title).to.equal('Kiwix');
+    });
+
+    it('Update the window title when the article changes its title', async function () {
+        // MutationObserver is not exposed globally in the NodeJS test environment
+        const addedObserver = typeof MutationObserver === 'undefined';
+        if (addedObserver) globalThis.MutationObserver = window.MutationObserver;
+        try {
+            const articleDoc = document.implementation.createHTMLDocument('Home');
+            uiUtil.setWindowTitle(articleDoc);
+            expect(document.title).to.equal('Home - Kiwix');
+            articleDoc.title = 'About';
+            // MutationObserver callbacks run asynchronously
+            await new Promise(resolve => setTimeout(resolve, 0));
+            expect(document.title).to.equal('About - Kiwix');
+            // Once another article is loaded, the old one is no longer watched
+            uiUtil.setWindowTitle(document.implementation.createHTMLDocument('Next'));
+            articleDoc.title = 'Stale';
+            await new Promise(resolve => setTimeout(resolve, 0));
+            expect(document.title).to.equal('Next - Kiwix');
+        } finally {
+            uiUtil.setWindowTitle(null);
+            if (addedObserver) delete globalThis.MutationObserver;
+        }
+    });
+
+    it('Leave the window title alone in packaged apps and the installed PWA', async function () {
+        const addedObserver = typeof MutationObserver === 'undefined';
+        if (addedObserver) globalThis.MutationObserver = window.MutationObserver;
+        const originalTitle = document.title;
+        document.title = 'Kiwix';
+        const articleDoc = document.implementation.createHTMLDocument('Ray Charles');
+        try {
+            // Packaged apps in this repo: Firefox OS (app:) and Ubuntu Touch (loads ./www/index.html locally)
+            const realWindow = globalThis.window;
+            ['app:', 'file:'].forEach(function (protocol) {
+                globalThis.window = new Proxy(realWindow, {
+                    get: function (target, prop) {
+                        if (prop === 'location') return { protocol: protocol };
+                        const value = Reflect.get(target, prop, target);
+                        return typeof value === 'function' ? value.bind(target) : value;
+                    }
+                });
+                try {
+                    uiUtil.setWindowTitle(articleDoc);
+                } finally {
+                    globalThis.window = realWindow;
+                }
+                expect(document.title).to.equal('Kiwix');
+            });
+            articleDoc.title = 'Changed';
+            await new Promise(resolve => setTimeout(resolve, 0));
+            expect(document.title).to.equal('Kiwix');
+
+            // Installed PWA (display-mode: standalone)
+            window.matchMedia = function (query) {
+                return { matches: /display-mode:\s*standalone/.test(query), media: query, addListener: function () {}, removeListener: function () {} };
+            };
+            uiUtil.setWindowTitle(articleDoc);
+            expect(document.title).to.equal('Kiwix');
+            delete window.matchMedia;
+        } finally {
+            delete window.matchMedia;
+            document.title = originalTitle || 'Kiwix';
+            uiUtil.setWindowTitle(null);
+            if (addedObserver) delete globalThis.MutationObserver;
+        }
+    });
+
     it('Convert dataURI to Uint8Array (base64, percent-encoded, and edge cases)', function () {
         // Base64 dataURI
         const b64DataURI = 'data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==';
