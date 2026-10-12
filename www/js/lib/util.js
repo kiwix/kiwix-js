@@ -111,6 +111,23 @@ function endsWith (str, suffix) {
 }
 
 /**
+ * Checks whether a file name belongs to the archive that the user picked. If the picked name is that of a split
+ * archive part (e.g. foo.zimaa), the candidate must have the same base name and a two-character split suffix
+ * (foo.zimaa, foo.zimab ...); otherwise the candidate must be the picked file itself. The names are compared
+ * literally, so characters that are special in a regular expression (. + ( ) [ ] etc.) are safe in file names
+ * @param {String} archiveName The name of the picked file
+ * @param {String} candidateName The name of a file in the same folder
+ * @returns {Boolean} True if the candidate is a part of the picked archive
+ */
+function isPartOfArchive (archiveName, candidateName) {
+    var split = /^(.*\.zim)\w\w$/i.exec(archiveName);
+    if (!split) return candidateName === archiveName;
+    var base = split[1];
+    return candidateName.length === base.length + 2 && candidateName.indexOf(base) === 0 &&
+        /^\w\w$/.test(candidateName.substring(base.length));
+}
+
+/**
  * Read a float encoded in 2 bytes
  * @param {Array} byteArray
  * @param {Integer} firstIndex
@@ -238,21 +255,28 @@ function base64DecToArr (sBase64, nBlocksSize) {
 }
 
 /**
- Converts a dataURI to Uint8Array
+ * Converts a dataURI to Uint8Array
  * @param {String} dataURI The data URI to convert
  * @returns {Uint8Array} A Uint8Array with the converted buffer
  */
 function dataURItoUint8Array (dataURI) {
-    var parsedString = dataURI.match(/^data:([^,]*),(.*)/i);
-    if (parsedString && /base64/i.test(parsedString[1])) {
+    if (typeof dataURI !== 'string') {
+        return new Uint8Array(0);
+    }
+    var parsedString = dataURI.match(/^data:([^,]*),([\s\S]*)/i);
+    if (!parsedString) {
+        return new Uint8Array(0);
+    }
+    if (/base64/i.test(parsedString[1])) {
         return base64DecToArr(parsedString[2]);
     } else {
-        var byteString = decodeURI(parsedString[2]);
-        var ab = [];
+        // unescape is deliberate: it yields raw octets, whereas decodeURIComponent would interpret them as UTF-8
+        var byteString = unescape(parsedString[2]);
+        var taBytes = new Uint8Array(byteString.length);
         for (var i = 0; i < byteString.length; i++) {
-            ab[i] = byteString.charCodeAt(i);
+            taBytes[i] = byteString.charCodeAt(i);
         }
-        return new Uint8Array(ab);
+        return taBytes;
     }
 }
 
@@ -333,6 +357,7 @@ export default {
     removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
     dataURItoUint8Array: dataURItoUint8Array,
     endsWith: endsWith,
+    isPartOfArchive: isPartOfArchive,
     readFloatFrom4Bytes: readFloatFrom4Bytes,
     readFileSlice: readFileSlice,
     binarySearch: binarySearch,
