@@ -142,27 +142,33 @@ describe('Utils', function () {
         }
     });
 
-    it('Leave the window title alone in app context', async function () {
+    it('Leave the window title alone in packaged apps and the installed PWA', async function () {
         const addedObserver = typeof MutationObserver === 'undefined';
         if (addedObserver) globalThis.MutationObserver = window.MutationObserver;
         const originalTitle = document.title;
         document.title = 'Kiwix';
         const articleDoc = document.implementation.createHTMLDocument('Ray Charles');
         try {
-            // Packaged NW.js app (checked via window.nw elsewhere in this codebase)
-            window.nw = {};
-            uiUtil.setWindowTitle(articleDoc);
-            expect(document.title).to.equal('Kiwix');
+            // Packaged apps in this repo: Firefox OS (app:) and Ubuntu Touch (loads ./www/index.html locally)
+            const realWindow = globalThis.window;
+            ['app:', 'file:'].forEach(function (protocol) {
+                globalThis.window = new Proxy(realWindow, {
+                    get: function (target, prop) {
+                        if (prop === 'location') return { protocol: protocol };
+                        const value = Reflect.get(target, prop, target);
+                        return typeof value === 'function' ? value.bind(target) : value;
+                    }
+                });
+                try {
+                    uiUtil.setWindowTitle(articleDoc);
+                } finally {
+                    globalThis.window = realWindow;
+                }
+                expect(document.title).to.equal('Kiwix');
+            });
             articleDoc.title = 'Changed';
             await new Promise(resolve => setTimeout(resolve, 0));
             expect(document.title).to.equal('Kiwix');
-            delete window.nw;
-
-            // Packaged / mobile app via params.appType (set by kiwix-js-pwa)
-            params.appType = 'Electron|PWA|Windows';
-            uiUtil.setWindowTitle(articleDoc);
-            expect(document.title).to.equal('Kiwix');
-            delete params.appType;
 
             // Installed PWA (display-mode: standalone)
             window.matchMedia = function (query) {
@@ -172,8 +178,6 @@ describe('Utils', function () {
             expect(document.title).to.equal('Kiwix');
             delete window.matchMedia;
         } finally {
-            delete window.nw;
-            delete params.appType;
             delete window.matchMedia;
             document.title = originalTitle || 'Kiwix';
             uiUtil.setWindowTitle(null);

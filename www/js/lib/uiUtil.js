@@ -854,23 +854,14 @@ function checkServerIsAccessible (imageSrc, onSuccess, onError) {
 let articleTitleObserver = null;
 
 /**
- * True when running as a plain web page in a browser tab. In app contexts (browser extensions,
- * NW.js / Electron / UWP / Android / iOS packaged apps, and installed PWAs) the window title
- * should stay as the app name; see #280.
- * Uses the same signals this codebase already relies on elsewhere (extension protocols,
- * window.nw, params.appType from kiwix-js-pwa, and display-mode: standalone).
+ * True when the window title should follow the displayed article: a plain browser tab or a browser
+ * extension (which also runs in an ordinary tab). The packaged apps in this repo (Firefox OS on app:,
+ * Ubuntu Touch loading ./www/index.html locally) and the installed PWA keep the app name as the
+ * window title; see #280.
  * @returns {Boolean}
  */
 function isBrowserContext () {
-    if (/^(moz|chrome)-extension:/i.test(window.location.protocol)) {
-        return false;
-    }
-    if (window.nw) {
-        return false;
-    }
-    // params.appType is set by kiwix-js-pwa (getAppType); not present in the plain browser build
-    if (typeof params !== 'undefined' && params.appType &&
-            /(^|\|)(UWP|Electron|Android|iOS)(\||$)/.test(params.appType)) {
+    if (!/^(https?|moz-extension|chrome-extension):$/i.test(window.location.protocol)) {
         return false;
     }
     if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
