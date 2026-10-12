@@ -788,8 +788,9 @@ async function verifyLoadedArchive (archive) {
     const metadataBox = document.createElement('div');
     metadataBox.id = 'modal-archive-metadata-container';
 
-    // DEV: The metadata below is read from the archive and can be spoofed, so it is deliberately written as text only. Do not
-    // switch these four assignments to innerHTML for consistency with verifyWarning, which needs it only to decode entities such as &nbsp; [kiwix-js #1474]
+    // DEV: The metadata below is read from the archive and can be spoofed, so it is deliberately set as text only. It is then escaped
+    // when verificationBody.outerHTML serialises it, which is what makes it safe to pass to systemAlert. Do not switch these four assignments
+    // to innerHTML for consistency with verifyWarning, which needs it only to decode entities such as &nbsp; [kiwix-js #1474]
     const verifyName = document.createElement('p');
     verifyName.id = 'confirm-archive-name';
     verifyName.classList.add('archive-metadata');
