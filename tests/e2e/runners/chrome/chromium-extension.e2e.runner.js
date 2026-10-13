@@ -66,58 +66,122 @@ function findFilesRecursively (dir, pattern) {
 /**
  * Resolves a compatible Chrome for Testing or Chromium binary that permits `--load-extension`.
  * Starting in Chrome 137+, consumer-branded Google Chrome builds ignore `--load-extension`.
- * @returns {string | null} Path to compatible browser binary, or null to rely on default resolution
+ * @returns {string | null} Path to compatible browser binary, or null if none could be resolved
  */
 function resolveCompatibleChromeBinary () {
+    const home = process.env.HOME || process.env.USERPROFILE || '';
+
     // 1. Explicit environment variables (local or CI override)
     for (const envVar of ['CHROME_BIN', 'CHROME_PATH', 'CHROMIUM_BIN', 'PUPPETEER_EXECUTABLE_PATH']) {
-        if (process.env[envVar] && fs.existsSync(process.env[envVar])) {
-            return process.env[envVar];
+        if (process.env[envVar]) {
+            if (fs.existsSync(process.env[envVar])) {
+                console.log(`[Chrome Runner] Using browser from ${envVar}: ${process.env[envVar]}`);
+                return process.env[envVar];
+            } else {
+                console.warn(`[Chrome Runner] Environment variable ${envVar} is set to "${process.env[envVar]}", but no file exists at that path.`);
+            }
         }
     }
 
-    // 2. Look for cached Chrome for Testing binaries in ~/.cache/selenium/chrome/
-    const home = process.env.HOME || process.env.USERPROFILE || '';
+    // 2. Standard system locations for Chromium or Chrome for Testing
+    const systemCandidates = [];
+    if (process.platform === 'linux') {
+        systemCandidates.push(
+            '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
+            '/snap/bin/chromium',
+            '/usr/local/bin/chromium',
+            '/usr/bin/google-chrome-for-testing'
+        );
+        for (const cmd of ['which chromium', 'which chromium-browser']) {
+            try {
+                const resolved = cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+                if (resolved && fs.existsSync(resolved)) {
+                    systemCandidates.push(resolved);
+                }
+            } catch {
+                // Ignore lookup errors
+            }
+        }
+    } else if (process.platform === 'darwin') {
+        systemCandidates.push(
+            '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+            '/Applications/Chromium.app/Contents/MacOS/Chromium',
+            path.join(home, 'Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing'),
+            path.join(home, 'Applications/Chromium.app/Contents/MacOS/Chromium')
+        );
+    } else if (process.platform === 'win32') {
+        const localAppData = process.env.LOCALAPPDATA || '';
+        const programFiles = process.env.PROGRAMFILES || '';
+        const programFilesX86 = process.env['PROGRAMFILES(X86)'] || '';
+        systemCandidates.push(
+            path.join(localAppData, 'Chromium', 'Application', 'chrome.exe'),
+            path.join(programFiles, 'Chromium', 'Application', 'chrome.exe'),
+            path.join(programFilesX86, 'Chromium', 'Application', 'chrome.exe')
+        );
+    }
+
+    for (const candidate of systemCandidates) {
+        if (candidate && fs.existsSync(candidate)) {
+            console.log(`[Chrome Runner] Found system browser binary: ${candidate}`);
+            return candidate;
+        }
+    }
+
+    // 3. Look for cached Chrome for Testing binaries in ~/.cache/selenium/chrome/
     const seleniumChromeCache = path.join(home, '.cache', 'selenium', 'chrome');
     const cachedBinaries = findFilesRecursively(seleniumChromeCache, /Google Chrome for Testing$|^chrome$/i);
     if (cachedBinaries.length > 0) {
+        console.log(`[Chrome Runner] Found cached Chrome for Testing: ${cachedBinaries[0]}`);
         return cachedBinaries[0];
     }
 
-    // 3. Fallback: ask selenium-manager to provision Chrome for Testing if available
+    // 4. Fallback: ask selenium-manager to provision Chrome for Testing if available
     const platformDir = process.platform === 'darwin' ? 'macos' : process.platform === 'win32' ? 'windows' : 'linux';
     const smBinaryName = process.platform === 'win32' ? 'selenium-manager.exe' : 'selenium-manager';
     const smPath = path.resolve('node_modules', 'selenium-webdriver', 'bin', platformDir, smBinaryName);
     if (fs.existsSync(smPath)) {
         try {
+            fs.chmodSync(smPath, 0o755);
+        } catch {
+            // Ignore chmod errors
+        }
+        try {
+            console.log('[Chrome Runner] Invoking Selenium Manager to provision Chrome for Testing...');
             const smOutput = cp.execSync(
-                `"${smPath}" --browser chrome --browser-version stable --force-browser-download --output json`,
-                { encoding: 'utf8', timeout: 60000 }
+                `"${smPath}" --browser chrome --skip-browser-in-path --force-browser-download --output json`,
+                { encoding: 'utf8', timeout: 120000, stdio: ['ignore', 'pipe', 'pipe'] }
             );
             const smJson = JSON.parse(smOutput);
             if (smJson?.result?.browser_path && fs.existsSync(smJson.result.browser_path)) {
+                console.log(`[Chrome Runner] Selenium Manager provisioned Chrome: ${smJson.result.browser_path}`);
                 return smJson.result.browser_path;
             }
-        } catch {
-            // Ignore error and fall back to default
+        } catch (err) {
+            console.warn(`[Chrome Runner] Selenium Manager provisioning failed: ${err.message}`);
         }
     }
 
+    console.warn('[Chrome Runner] No compatible Chrome for Testing or Chromium binary could be resolved on the system.');
     return null;
 }
 
 async function loadChromiumExtensionDriver () {
     const options = new Options();
     const compatibleBinary = resolveCompatibleChromeBinary();
-    if (compatibleBinary) {
-        options.setBinaryPath(compatibleBinary);
-    } else {
-        options.setBrowserVersion('stable');
+    if (!compatibleBinary) {
+        throw new Error(
+            'Cannot run Chrome extension E2E tests: no compatible Chrome for Testing or Chromium binary could be resolved. ' +
+            'Consumer-branded Google Chrome builds ignore --load-extension. ' +
+            'Please install Chromium or Chrome for Testing, or set CHROME_BIN to a compatible browser binary.'
+        );
     }
+    options.setBinaryPath(compatibleBinary);
 
     if (process.env.GITHUB_ACTIONS || process.env.CI || process.env.HEADLESS !== 'false') {
         options.addArguments('--headless=new');
     }
+    options.addArguments(`--disable-extensions-except=${stagingDir}`);
     options.addArguments(`--load-extension=${stagingDir}`);
     options.addArguments('--no-sandbox');
     options.addArguments('--disable-dev-shm-usage');
@@ -130,10 +194,20 @@ async function loadChromiumExtensionDriver () {
 
     // Verify the extension is genuinely loaded in the browser (Requirement 4)
     try {
-        const targets = await driver.sendAndGetDevToolsCommand('Target.getTargets');
-        const extensionLoaded = targets.targetInfos?.some(t =>
-            t.url && t.url.includes(`chrome-extension://${FIXED_EXTENSION_ID}`)
-        );
+        let extensionLoaded = false;
+        const startTime = Date.now();
+        // Poll for up to 10 seconds to allow the background service worker to initialize
+        while (Date.now() - startTime < 10000) {
+            const targets = await driver.sendAndGetDevToolsCommand('Target.getTargets');
+            if (targets.targetInfos?.some(t =>
+                t.url && t.url.includes(`chrome-extension://${FIXED_EXTENSION_ID}`)
+            )) {
+                extensionLoaded = true;
+                break;
+            }
+            await new Promise(r => setTimeout(r, 250));
+        }
+
         if (!extensionLoaded) {
             await driver.quit();
             throw new Error(

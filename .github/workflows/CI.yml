@@ -99,10 +99,31 @@ jobs:
       - name: Test Library CSP headers
         run: npm run test-library-headers
 
+      - name: Diagnostic check for Chrome and Chromium binaries (Linux)
+        run: |
+          echo "=== Locating browser binaries ==="
+          which chromium || true
+          which chromium-browser || true
+          which google-chrome || true
+          which google-chrome-for-testing || true
+          ls -la /usr/bin/chromium* 2>/dev/null || true
+          ls -la /snap/bin/chromium* 2>/dev/null || true
+          echo "=== Locating drivers ==="
+          which chromedriver || true
+          echo "CHROMEWEBDRIVER=$CHROMEWEBDRIVER"
+
       - name: End-to-end tests on Chrome Extension (Linux)
         env:
           GITHUB_ACTION: ${{ github.event_name }}
-        run: npm run test-e2e-extension-chrome
+        run: |
+          if command -v chromium >/dev/null 2>&1; then
+            export CHROME_BIN="$(command -v chromium)"
+            echo "Using discovered Chromium: $CHROME_BIN"
+          elif [ -f /usr/bin/chromium ]; then
+            export CHROME_BIN="/usr/bin/chromium"
+            echo "Using system Chromium: $CHROME_BIN"
+          fi
+          npm run test-e2e-extension-chrome
 
       - name: End-to-end tests on Firefox Extension (Linux)
         env:
