@@ -1,68 +1,29 @@
-# Docker troubleshooting
+﻿# Docker troubleshooting
 
-This guide covers common troubleshooting steps for running Kiwix JS with Docker.
+## Container status and logs
 
-## Check whether the container is running
+Use the official Docker documentation for checking [container status](https://docs.docker.com/reference/cli/docker/container/ls/) and viewing [container logs](https://docs.docker.com/reference/cli/docker/container/logs/).
 
-To check whether the Kiwix JS container is running:
+The `kiwix-js` container runs Nginx to serve static files. `docker compose logs kiwix-js` shows Nginx startup notices and HTTP access/error lines, not application errors. Check the browser's DevTools console for application errors.
 
-```bash
-docker ps
-```
+For host port changes, see the [Docker instructions in the main README](../README.md#self-hosting-with-docker) and [`docker-compose.yml`](../docker-compose.yml).
 
-If it is not listed, check stopped containers:
+## Restricted mode over a LAN
 
-```bash
-docker ps -a
-```
+When accessed from another machine over plain HTTP (for example, `http://192.168.x.x:8080`), browsers do not enable Service Workers for that origin. Kiwix JS therefore falls back to Restricted mode. Serve it over HTTPS, for example through a reverse proxy, if intranet users need more than Wikipedia and static sites.
 
-## Check container logs
+## Offline access
 
-If Kiwix JS does not start correctly or is not available in the browser, inspect the container logs:
+The server root redirects to `/current/www/index.html`, which is outside the Service Worker's scope and will not work offline. Bookmark or install the PWA from `/current/www/index.html` instead. See the redirect in [`index.nginx.html`](index.nginx.html).
 
-```bash
-docker logs <container-name>
-```
+## Updates show an old version
 
-When using Docker Compose, you can view the Kiwix JS service logs with:
+The `latest` image tag is not pulled automatically. From the repository directory, run `docker compose pull && docker compose up -d`. When Service Workers are available (on localhost or over HTTPS), close and relaunch the app to replace the browser's cached copy.
 
-```bash
-docker compose logs kiwix-js
-```
+## ZIM archives
 
-These logs can help identify startup or configuration problems.
+ZIM files cannot be supplied by mounting a volume into this container. Select them through the browser's file picker on the machine running the browser, or use a network share.See the [ZIM archive note in the main README](../README.md#self-hosting-with-docker).
 
-## Resolve a host port conflict
+## Supported platform
 
-The default Docker configuration maps host port `8080` to the container port `80`:
-
-```text
-8080:80
-```
-
-If host port `8080` is already in use, change the host port while keeping the container port as `80`.
-
-For Docker Compose, change the port mapping in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "8081:80"
-```
-
-Then access Kiwix JS at:
-
-```text
-http://localhost:8081
-```
-
-For a container started directly with `docker run`, use a different host port:
-
-```bash
-docker run -d -p 8081:80 ghcr.io/kiwix/kiwix-moz-extension:latest
-```
-
-Then access Kiwix JS at:
-
-```text
-http://localhost:8081
-```
+The published image currently supports `linux/amd64` only; ARM hosts are not supported by this image.
