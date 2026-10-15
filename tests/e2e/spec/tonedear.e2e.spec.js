@@ -192,6 +192,10 @@ function runTests (driver, modes, keepDriver) {
                 await driver.wait(async function () {
                     return !(await driver.executeScript('return params.isLandingPage;'));
                 }, 5000, 'params.isLandingPage was not cleared after the landing page loaded');
+                // Only an explicit request for Home shows the active content warning, not restoring the landing page from history. Any warning
+                // is shown before the load completes, so we check now: the test setup loads the archive twice, and in some browsers the second
+                // request for Home can arrive a few seconds later
+                assert.strictEqual(await driver.executeScript('return document.getElementById("activeContent").style.display;'), 'none');
                 await driver.wait(async function () {
                     await driver.switchTo().frame('articleContent');
                     try {
@@ -201,8 +205,6 @@ function runTests (driver, modes, keepDriver) {
                         await driver.switchTo().defaultContent();
                     }
                 }, 5000, 'The landing page did not load');
-                // Only an explicit request for Home shows the active content warning, not restoring the landing page from history
-                assert.strictEqual(await driver.executeScript('return document.getElementById("activeContent").style.display;'), 'none');
                 // Going forward to the article must not set the flag
                 await driver.executeScript('window.landingPageFlagSet = false;');
                 await driver.findElement(By.id('btnForward')).click();
@@ -218,6 +220,60 @@ function runTests (driver, modes, keepDriver) {
                 assert.strictEqual(await driver.executeScript('return params.isLandingPage;'), false);
                 // Restore the plain property
                 await driver.executeScript('var value = params.isLandingPage; delete params.isLandingPage; params.isLandingPage = value; delete window.landingPageFlagSet;');
+            });
+
+            it('Keep explicit Home requests distinct from other landing page requests in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {
+                if (!serviceWorkerAPI && mode === 'serviceworker') {
+                    console.log('\x1b[33m%s\x1b[0m', '    - Following test skipped:');
+                    return;
+                }
+                const articleIsDisplayed = async function () {
+                    await driver.switchTo().frame('articleContent');
+                    try {
+                        return (await driver.findElements(By.css('img[alt="Get it on Google Play"]'))).length > 0;
+                    } finally {
+                        await driver.switchTo().defaultContent();
+                    }
+                };
+                // Record every time the flag is set to true, as in the previous test
+                await driver.executeScript(
+                    'var value = params.isLandingPage; window.landingPageFlagSet = false;' +
+                    'Object.defineProperty(params, "isLandingPage", { configurable: true, enumerable: true,' +
+                    'get: function () { return value; }, set: function (v) { if (v) window.landingPageFlagSet = true; value = v; } });'
+                );
+                if (mode === 'jquery') {
+                    // Pressing Home while a Back to the landing page is still loading is an explicit request for Home, so it must show the active
+                    // content warning (this Zimit archive always triggers it in Restricted mode). We wait for the Back to start loading the landing
+                    // page before pressing Home, because the browser may otherwise only process the Back after Home has finished
+                    await driver.findElement(By.id('btnBack')).click();
+                    await driver.wait(async function () {
+                        return await driver.executeScript('return window.landingPageFlagSet;');
+                    }, 5000, 'params.isLandingPage was not set when navigating back to the landing page');
+                    await driver.findElement(By.id('btnHomeBottom')).click();
+                    await driver.wait(async function () {
+                        return await driver.executeScript('return document.getElementById("activeContent").style.display;') !== 'none';
+                    }, 5000, 'The active content warning was not shown after pressing Home during a Back to the landing page');
+                } else {
+                    // A request for the landing page from another tab does not load anything into the app, so it must not set the flag
+                    const landingPageUrl = await driver.executeScript('return document.getElementById("articleContent").contentWindow.location.href.replace(/[^/]*$/, "");');
+                    const appWindow = await driver.getWindowHandle();
+                    await driver.switchTo().newWindow('tab');
+                    await driver.get(landingPageUrl);
+                    await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000, 'The landing page did not load in the new tab');
+                    await driver.close();
+                    await driver.switchTo().window(appWindow);
+                    assert.strictEqual(await driver.executeScript('return window.landingPageFlagSet;'), false);
+                    assert.strictEqual(await driver.executeScript('return params.isLandingPage;'), false);
+                }
+                // Restore the plain property
+                await driver.executeScript('var value = params.isLandingPage; delete params.isLandingPage; params.isLandingPage = value; delete window.landingPageFlagSet;');
+                // Return to the article for the following test
+                if (!(await articleIsDisplayed())) {
+                    await driver.switchTo().frame('articleContent');
+                    await (await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000)).click();
+                    await driver.switchTo().defaultContent();
+                    await driver.wait(articleIsDisplayed, 5000, 'The article did not load');
+                }
             });
 
             it('Verify Android and iOS store images in ' + (mode === 'jquery' ? 'Restricted' : 'ServiceWorker') + ' mode', async function () {

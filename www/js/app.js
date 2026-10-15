@@ -113,6 +113,9 @@ appstate.expectedArticleURLToBeDisplayed = '';
 // True while a landing page load was not an explicit request for Home (e.g. restored from history), so that no warning is shown
 appstate.landingPageRestored = false;
 
+// Number of landing page requests made so far, so that the completion of an earlier load cannot clear the flags of a later request
+appstate.landingPageRequests = 0;
+
 // Platform and API detection - performed once at startup to avoid repeated checks
 const isFirefoxOsDeviceStorageAvailable = navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function';
 const isMobileDevice = /Android/i.test(navigator.userAgent) ||
@@ -1160,7 +1163,7 @@ function handleMessageChannelByLibzim (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     const title = event.data.title;
-    flagLandingPageRequest(title);
+    flagLandingPageRequest(title, event.data);
     const messagePort = event.ports[0];
     selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title, follow: true }).then(function (ret) {
         if (ret === null) {
@@ -2936,7 +2939,7 @@ function handleMessageChannelMessage (event) {
     // The ServiceWorker asks for some content
     var title = event.data.title;
     // In ServiceWorker mode, history navigation happens in the iframe, so it reaches us only as a request for content
-    flagLandingPageRequest(title);
+    flagLandingPageRequest(title, event.data);
     if (appstate.isReplayWorkerAvailable) {
         // Zimit ZIMs store assets with the querystring, so we need to add it. ReplayWorker handles encoding.
         title = title + event.data.search;
@@ -3090,6 +3093,8 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
         return;
     }
+    // Note the landing page requests made so far, so that we can tell on load whether a new one was made meanwhile
+    var landingPageRequests = appstate.landingPageRequests;
 
     // Display Bootstrap warning alert if the landing page contains active content
     if (!params.hideActiveContentWarning && params.isLandingPage && !appstate.landingPageRestored) {
@@ -3290,8 +3295,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
             };
         }
-        params.isLandingPage = false;
-        appstate.landingPageRestored = false;
+        // Clear the flags, unless the landing page was requested while this article was loading (e.g. Home pressed during a Back), in which
+        // case they belong to that request, which has yet to be displayed
+        if (appstate.landingPageRequests === landingPageRequests) {
+            params.isLandingPage = false;
+            appstate.landingPageRestored = false;
+        }
     };
 
     // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -3661,8 +3670,12 @@ function goToArticle (path, download, contentType, isLandingPage) {
             });
         } else {
             // Only a history restoration of the landing page (see onpopstate) is a landing page request here
-            params.isLandingPage = !!isLandingPage;
-            appstate.landingPageRestored = !!isLandingPage;
+            if (isLandingPage) {
+                setLandingPageRequest(true);
+            } else {
+                params.isLandingPage = false;
+                appstate.landingPageRestored = false;
+            }
             var activeContent = document.getElementById('activeContent');
             if (activeContent) activeContent.style.display = 'none';
             readArticle(dirEntry);
@@ -3719,14 +3732,28 @@ function isLandingPagePath (path) {
 }
 
 /**
- * Marks a ServiceWorker request for the landing page as a landing page load. If the flag is already set, the user explicitly asked for Home
- * @param {String} path The namespace and URL of the requested article
+ * Marks the load now starting as a request for the landing page. An explicit request for Home always clears appstate.landingPageRestored, so
+ * that nothing left over from an earlier load can suppress the active content warning, and a restoration from history cannot override a request
+ * for Home that is still loading
+ * @param {Boolean} restored True if the landing page is being restored (e.g. from history) rather than explicitly requested with Home
  */
-function flagLandingPageRequest (path) {
-    if (!params.isLandingPage && isLandingPagePath(path)) {
-        params.isLandingPage = true;
-        appstate.landingPageRestored = true;
-    }
+function setLandingPageRequest (restored) {
+    appstate.landingPageRestored = restored && (appstate.landingPageRestored || !params.isLandingPage);
+    params.isLandingPage = true;
+    appstate.landingPageRequests++;
+}
+
+/**
+ * Marks a ServiceWorker request for the landing page as a landing page load, unless it comes from another window or tab, which loads nothing
+ * into the app's iframe. Such a request is a top-level navigation (destination 'document'). We cannot instead require requestingFrameType to
+ * be 'nested', because Firefox does not report the requesting client of a navigation, and classic Zimit pages are requested by the Replay
+ * worker without a fetch event, so in both cases requestingFrameType is 'unknown' even for the app's own iframe
+ * @param {String} path The namespace and URL of the requested article
+ * @param {Object} data The data of the ServiceWorker's message, including requestingFrameType and requestDestination
+ */
+function flagLandingPageRequest (path, data) {
+    if (data.requestingFrameType === 'top-level' || data.requestDestination === 'document') return;
+    if (isLandingPagePath(path)) setLandingPageRequest(true);
 }
 
 function goToMainArticle () {
@@ -3738,7 +3765,7 @@ function goToMainArticle () {
             document.getElementById('welcomeText').style.display = '';
         } else {
             var setMainPage = function (dirEntry) {
-                params.isLandingPage = true;
+                setLandingPageRequest(false);
                 selectedArchive.landingPageUrl = dirEntry.namespace + '/' + dirEntry.url;
                 readArticle(dirEntry);
             }
