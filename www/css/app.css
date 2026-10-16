@@ -73,10 +73,6 @@
     margin-right: 4px;
 }
 
-#articleList {
-    margin-bottom: 12px !important;
-}
-
 #top, #articleContent, #footer, article {
     transition: transform 0.3s ease;
 }
