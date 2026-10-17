@@ -98,6 +98,8 @@ document.localeJson = {
       "configure-performance-searchrange-help": "default 25, higher values increase search time",
       "configure-previews": "<b>Show a popover preview of <i>Wikipedia / Wkivoyage</i> articles</b> when hovering over links (<i>limited functionality in Restricted Mode</i>)",
       "configure-previews-tip": "Shows a small popup preview of Wikipedia and Wikivoyage articles when the pointer is hovered over an article link. Turn this off if it is too slow or interferes wtih display of articles on small-screen devices.",
+      "configure-widearticlewidth": "<b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)",
+      "configure-widearticlewidth-tip": "Recent Wikipedia archives limit the article text to a narrow column on wide screens. Enable this to let articles use the full width of the window, like the 'Wide' option on Wikipedia.",
       "configure-compatibility-panel-header": "Content injection mode",
       "configure-compatibility-see": "See",
       "configure-compatibility-modeslink": "About (Technical Information)",

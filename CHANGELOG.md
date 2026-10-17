@@ -9,6 +9,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * SECURITY: Tightened the Content Security Policy applied to articles displayed in Restricted mode
 * SECURITY: Published advisory [GHSA-37j3-jm4x-gjmv](https://github.com/kiwix/kiwix-js/security/advisories/GHSA-37j3-jm4x-gjmv) for the issues fixed in v4.3.3 and v4.3.4 below
 * ENHANCEMENT: The search field now has a description for screen readers
+* ENHANCEMENT: New option in Configuration to let recent Wikipedia articles use the full window width on wide screens
 * FIX: A "|" in an article's title no longer truncates the title when its directory entry is read back
 * FIX: Browser languages whose codes merely contain "en", "es" or "fr" (e.g. Estonian) no longer cause a translation error on startup
 * FIX: Spelling of "adresse" in the French About page
