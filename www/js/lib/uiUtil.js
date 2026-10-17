@@ -769,7 +769,7 @@ var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\
 // A regex to find the Zimit prefix in a Zimit-based article
 var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
 // A regex to find and help transform assets in an article in a Zimit-based archive
-var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\4|\?|#))+[^>])([^>]*>)/ig;
+var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>"'\s<\\](?!\4|\?|#))*[^>"'\s<\\])((?:\?[^>"'\s\\]*)?(?:#[^>"'\s\\]*)?\4[^>]*>)/ig;
 
 /**
  * Resolves a relative image or asset URL to a ZIM URL given a base URL and archive parameters.
@@ -848,16 +848,27 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
 
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, attrName, equals, quote, relAssetUrl, blockClose) {
             var assetUrl = relAssetUrl;
-            // Remove google analytics and other analytics files that cause stall
-            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
+            // Filter analytics resources to prevent stall and collapse vulnerabilities
+            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) {
+                return '<!-- analytics removed -->';
+            }
+            // Validate that the URL does not contain dangerous characters or script tags
+            if (/[<>"'\s\\`]/.test(relAssetUrl) || /<script/i.test(relAssetUrl)) {
+                return match;
+            }
             // For root-relative links, we need to add the zimitPrefix
             assetUrl = assetUrl.replace(/^\/(?!\/)/, dirNamespace + '/' + zimitPrefix + '/');
             // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
             assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
             // For fully relative links, we have to remove any '..' if we are in root directory
             if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirNamespace + '/' + zimitPrefix + '/');
+            // Ensure rewritten assetUrl contains no unencoded quotes or HTML delimiters
+            if (/[<>"'\s\\`]/.test(assetUrl) || /<script/i.test(assetUrl)) {
+                return match;
+            }
             return blockStart + attrName + equals + assetUrl + blockClose;
         });
+        htmlArticle = htmlArticle.replace(/<!-- analytics removed --><\/script>/g, '<!-- analytics removed -->');
 
         // Deal with image srcsets
         htmlArticle = htmlArticle.replace(/<img\b[^>]+srcset=["']([^"']+)/ig, function (match, srcset) {

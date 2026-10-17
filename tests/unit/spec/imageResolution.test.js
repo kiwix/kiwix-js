@@ -203,6 +203,57 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
                 assert.include(transformed, 'href="C/A/example.com/index.html"');
             });
 
+            it('neutralizes analytics script tags and prevents collapse into script tags', function () {
+                const html = '<sc<script src="https://www.google-analytics.com/analytics.js">ript>alert(1)</script>';
+                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                    dirEntry: zimitDirEntry,
+                    zimType: 'zimit',
+                    zimitPrefix: 'example.com',
+                    fileName: 'test.zim',
+                    indexRoot: ''
+                });
+                assert.notInclude(transformed, '<script>');
+                assert.notInclude(transformed, 'google-analytics.com');
+            });
+
+            it('prevents script tag injection in Zimit URL attributes', function () {
+                const html = '<a href="/test<script>alert(1)</script>">Link</a>';
+                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                    dirEntry: zimitDirEntry,
+                    zimType: 'zimit',
+                    zimitPrefix: 'example.com',
+                    fileName: 'test.zim',
+                    indexRoot: ''
+                });
+                assert.notInclude(transformed, 'href="C/A/example.com/test<script');
+                assert.notInclude(transformed, 'C/A/example.com/test<script>');
+            });
+
+            it('prevents attribute breakout injection in Zimit link URLs', function () {
+                const html = '<a href="/test\\" onfocus=\\"alert(2)\\">Link2</a>';
+                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                    dirEntry: zimitDirEntry,
+                    zimType: 'zimit',
+                    zimitPrefix: 'example.com',
+                    fileName: 'test.zim',
+                    indexRoot: ''
+                });
+                assert.notInclude(transformed, 'href="C/A/example.com/test\\" onfocus');
+            });
+
+            it('safely handles percent-encoded script tags in Zimit URLs', function () {
+                const html = '<a href="/test%3Cscript%3Ealert(1)%3C/script%3E">Link</a>';
+                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                    dirEntry: zimitDirEntry,
+                    zimType: 'zimit',
+                    zimitPrefix: 'example.com',
+                    fileName: 'test.zim',
+                    indexRoot: ''
+                });
+                assert.include(transformed, 'href="C/A/example.com/test%3Cscript%3Ealert(1)%3C/script%3E"');
+                assert.notInclude(transformed, '<script>');
+            });
+
             it('resolves zimit2 archives using standard relative base URL rather than classic zimit prefix', function () {
                 const zimit2Entry = {
                     namespace: 'C',
