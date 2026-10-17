@@ -119,6 +119,23 @@ async function verifyLibraryIframeContent (driver, expectedTarget, timeoutMs = 3
 }
 
 /**
+ * Validates that a URL points to the expected Kiwix PWA server host.
+ * Uses the built-in WHATWG URL API to parse the URL and validate the exact hostname,
+ * guarding against incomplete URL substring sanitization.
+ * @param {string} urlString The URL to validate
+ * @returns {boolean} True if the URL is valid, uses http/https, and its hostname is browser-extension.kiwix.org
+ */
+function isExpectedPwaUrl (urlString) {
+    if (!urlString || typeof urlString !== 'string') return false;
+    try {
+        const parsed = new URL(urlString);
+        return (parsed.protocol === 'https:' || parsed.protocol === 'http:') && parsed.hostname === 'browser-extension.kiwix.org';
+    } catch {
+        return false;
+    }
+}
+
+/**
  * Runs Test 1: Firefox extension Library test.
  * @param {WebDriver} driver Selenium WebDriver instance
  * @param {string} extensionUrl Full moz-extension:// URL to index.html
@@ -212,7 +229,7 @@ function runChromeTests (driver, extensionUrl, keepDriver = false) {
             // Wait for browser to navigate to PWA server (https://browser-extension.kiwix.org/)
             await driver.wait(async () => {
                 const currentUrl = await driver.getCurrentUrl();
-                return currentUrl.includes('browser-extension.kiwix.org');
+                return isExpectedPwaUrl(currentUrl);
             }, 30000, 'Timed out waiting for browser to navigate to https://browser-extension.kiwix.org');
 
             // Wait for remote PWA page to settle
@@ -235,7 +252,37 @@ function runChromeTests (driver, extensionUrl, keepDriver = false) {
     });
 }
 
+if (typeof describe !== 'undefined') {
+    describe('PWA Navigation URL Validation [CodeQL incomplete-url-substring-sanitization]', function () {
+        it('accepts genuine PWA server URLs with browser-extension.kiwix.org hostname', function () {
+            assert.strictEqual(isExpectedPwaUrl('https://browser-extension.kiwix.org'), true);
+            assert.strictEqual(isExpectedPwaUrl('https://browser-extension.kiwix.org/'), true);
+            assert.strictEqual(isExpectedPwaUrl('https://browser-extension.kiwix.org/current/www/index.html?mode=serviceworker'), true);
+            assert.strictEqual(isExpectedPwaUrl('http://browser-extension.kiwix.org/current/'), true);
+        });
+
+        it('rejects deceptive URLs with attacker hostname and kiwix path', function () {
+            assert.strictEqual(isExpectedPwaUrl('https://attacker.example/browser-extension.kiwix.org'), false);
+            assert.strictEqual(isExpectedPwaUrl('https://attacker.example/path?target=browser-extension.kiwix.org'), false);
+        });
+
+        it('rejects deceptive URLs with kiwix subdomain under attacker domain', function () {
+            assert.strictEqual(isExpectedPwaUrl('https://browser-extension.kiwix.org.attacker.example/'), false);
+            assert.strictEqual(isExpectedPwaUrl('https://browser-extension.kiwix.org.evil.com/current/'), false);
+        });
+
+        it('rejects non-http/https protocols and invalid inputs', function () {
+            assert.strictEqual(isExpectedPwaUrl('javascript:alert(1)'), false);
+            assert.strictEqual(isExpectedPwaUrl('data:text/html,browser-extension.kiwix.org'), false);
+            assert.strictEqual(isExpectedPwaUrl(''), false);
+            assert.strictEqual(isExpectedPwaUrl(null), false);
+            assert.strictEqual(isExpectedPwaUrl(undefined), false);
+        });
+    });
+}
+
 export default {
     runFirefoxTests,
-    runChromeTests
+    runChromeTests,
+    isExpectedPwaUrl
 };
