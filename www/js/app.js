@@ -2301,7 +2301,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
             .replace('$1', params.maxSearchResultsSize);
     } else {
         if (nbDirEntry === 0) {
-            message = translateUI.t('search-status-finished-zero') || 'No articles found';
+            message = translateUI.t('search-status-finished-zero') || 'Finished. No articles found';
         } else if (nbDirEntry === 1) {
             message = translateUI.t('search-status-finished-one') || 'Finished. 1 article found';
         } else {
