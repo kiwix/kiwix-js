@@ -305,7 +305,13 @@ document.localeJson = {
       "alert-download-message": "<strong>Descargar</strong> Si no se inicia la descarga, pulse el siguiente enlace:",
       "spinner-caching": "Almacenando",
       "spinner-caching-assets": "Almacenando activos...",
-      "spinner-loading": "Cargando"
+      "spinner-loading": "Cargando",
+      "search-status-searching": "Buscando [$1]... encontrados: $2",
+      "search-status-first-multiple": "Los $1 primeros artículos encontrados (refinar la búsqueda).",
+      "search-status-finished-zero": "Terminado. Ningún artículo encontrado",
+      "search-status-finished-one": "Terminado. 1 artículo encontrado",
+      "search-status-finished-multiple": "Terminado. $1 artículos encontrados",
+      "search-status-basic-ending": ": usar menos palabras para una búsqueda más completa."
     }
   }
 }

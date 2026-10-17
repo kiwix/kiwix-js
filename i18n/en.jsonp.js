@@ -305,7 +305,13 @@ document.localeJson = {
       "alert-download-message": "<strong>Download</strong> If the download does not begin, please tap the following link:",
       "spinner-caching": "Caching",
       "spinner-caching-assets": "Caching assets...",
-      "spinner-loading": "Loading"
+      "spinner-loading": "Loading",
+      "search-status-searching": "Searching [$1]... found: $2",
+      "search-status-first-multiple": "First $1 articles found (refine your search).",
+      "search-status-finished-zero": "Finished. No articles found",
+      "search-status-finished-one": "Finished. 1 article found",
+      "search-status-finished-multiple": "Finished. $1 articles found",
+      "search-status-basic-ending": ": try fewer words for full search."
     }
   }
 }
