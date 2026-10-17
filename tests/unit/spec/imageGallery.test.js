@@ -35,10 +35,46 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
             assert.equal(cleanCaption(raw), "Tom & Jerry \"Classic\" 'Special' <1>");
         });
 
+        it('decodes entities in a single pass without double unescaping', function () {
+            assert.equal(cleanCaption('&amp;lt;script&amp;gt;'), '&lt;script&gt;');
+            assert.equal(cleanCaption('&amp;amp;'), '&amp;');
+            assert.equal(cleanCaption('&lt;script&gt;'), '<script>');
+            assert.equal(cleanCaption('Tom &amp; Jerry'), 'Tom & Jerry');
+            assert.equal(cleanCaption('A&nbsp;B'), 'A B');
+        });
+
         it('handles null, undefined, or empty string gracefully', function () {
             assert.equal(cleanCaption(null), '');
             assert.equal(cleanCaption(undefined), '');
             assert.equal(cleanCaption(''), '');
+        });
+
+        it('handles nested and malformed HTML-like tags robustly', function () {
+            assert.equal(cleanCaption('<<script>script>alert(1)</script>'), 'alert(1)');
+            assert.equal(cleanCaption('<scr<script>ipt>alert(1)</script>'), 'alert(1)');
+            assert.equal(cleanCaption('<<<script>>>'), '<<>>');
+            assert.equal(cleanCaption('<b><i><em>deeply nested</em></i></b>'), 'deeply nested');
+        });
+
+        it('handles script-like text and unclosed tags without leaving script markup', function () {
+            assert.equal(cleanCaption('<script>alert("hello")</script>'), 'alert("hello")');
+            assert.equal(cleanCaption('<script alert(1)'), '');
+            assert.equal(cleanCaption('Portrait of Marie Curie <script'), 'Portrait of Marie Curie');
+        });
+
+        it('preserves ordinary text containing literal < and > characters without deletion', function () {
+            assert.equal(cleanCaption('Temperature > 0 degrees and Pressure < 100 kPa'), 'Temperature > 0 degrees and Pressure < 100 kPa');
+            assert.equal(cleanCaption('x <= y and a >= b'), 'x <= y and a >= b');
+            assert.equal(cleanCaption('Arrow: a -> b and Bitwise: a << 2'), 'Arrow: a -> b and Bitwise: a << 2');
+            assert.equal(cleanCaption('Compare: x < 5 and y > 3'), 'Compare: x < 5 and y > 3');
+        });
+
+        it('handles deeply nested inputs exceeding loop bounds without hanging or executing', function () {
+            var deepOnion = '<'.repeat(15) + 'script' + '>'.repeat(15);
+            var result = cleanCaption(deepOnion);
+            assert.isString(result);
+            assert.notInclude(result, '<script>');
+            assert.equal(cleanCaption('<b>'.repeat(25) + 'safe content' + '</b>'.repeat(25)), 'safe content');
         });
     });
 

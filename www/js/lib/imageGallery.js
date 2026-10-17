@@ -25,15 +25,29 @@ function cleanCaption (rawText) {
     if (!rawText || typeof rawText !== 'string') return '';
     // Replace block-level end tags and linebreaks with spaces
     var text = rawText.replace(/(?:<\/(?:p|div|li|tr|figure|figcaption)>|<br\b[^>]*>)/gi, ' ');
-    // Strip all remaining inline HTML tags
-    text = text.replace(/<[^>]*>/g, '');
-    // Replace non-breaking spaces and entity codes
-    text = text.replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'");
+    // Strip all remaining inline HTML tags, repeating to handle nested or malformed tags
+    // Bounded with explicit termination checks to guarantee completion
+    var prev = '';
+    var passes = 0;
+    while (text !== prev && passes < 10) {
+        prev = text;
+        text = text.replace(/<[a-zA-Z/!?][^<>]*>/g, '');
+        passes++;
+    }
+    // Remove any unclosed tag-like prefix or suffix (e.g. <script without matching >)
+    text = text.replace(/<[a-z/][^>]*$/gi, '');
+    // Replace non-breaking spaces and entity codes in a single pass to prevent double unescaping
+    var entityMap = {
+        '&nbsp;': ' ',
+        '&lt;': '<',
+        '&gt;': '>',
+        '&quot;': '"',
+        '&#39;': "'",
+        '&amp;': '&'
+    };
+    text = text.replace(/&(?:nbsp|amp|lt|gt|quot|#39);/g, function (entity) {
+        return entityMap[entity] || entity;
+    });
     // Remove space before punctuation introduced by tag stripping
     text = text.replace(/\s+([.,;:!?])/g, '$1');
     // Collapse whitespace

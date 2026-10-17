@@ -769,7 +769,7 @@ var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\
 // A regex to find the Zimit prefix in a Zimit-based article
 var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
 // A regex to find and help transform assets in an article in a Zimit-based archive
-var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
+var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\4|\?|#))+[^>])([^>]*>)/ig;
 
 /**
  * Resolves a relative image or asset URL to a ZIM URL given a base URL and archive parameters.
@@ -846,9 +846,7 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
         var dirNamespace = (dirEntry && dirEntry.namespace) || '';
         zimitPrefix = (dirNamespace === 'C' ? 'A/' : '') + zimitPrefix;
 
-        // eslint-disable-next-line no-unused-vars
-        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
-            var newBlock = match;
+        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, attrName, equals, quote, relAssetUrl, blockClose) {
             var assetUrl = relAssetUrl;
             // Remove google analytics and other analytics files that cause stall
             if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
@@ -858,8 +856,7 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
             assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
             // For fully relative links, we have to remove any '..' if we are in root directory
             if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirNamespace + '/' + zimitPrefix + '/');
-            newBlock = newBlock.replace(relAssetUrl, assetUrl);
-            return newBlock;
+            return blockStart + attrName + equals + assetUrl + blockClose;
         });
 
         // Deal with image srcsets

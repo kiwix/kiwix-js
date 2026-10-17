@@ -190,6 +190,19 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
                 assert.include(transformed, 'data-kiwixsrcset="C/A/example.com/pic-1x.jpg, C/A/example.com/pic-2x.jpg 2x"');
             });
 
+            it('rewrites target Zimit attribute without modifying preceding attributes with identical text', function () {
+                const html = '<a title="/index.html" href="/index.html">Home</a>';
+                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                    dirEntry: zimitDirEntry,
+                    zimType: 'zimit',
+                    zimitPrefix: 'example.com',
+                    fileName: 'test.zim',
+                    indexRoot: ''
+                });
+                assert.include(transformed, 'title="/index.html"');
+                assert.include(transformed, 'href="C/A/example.com/index.html"');
+            });
+
             it('resolves zimit2 archives using standard relative base URL rather than classic zimit prefix', function () {
                 const zimit2Entry = {
                     namespace: 'C',
