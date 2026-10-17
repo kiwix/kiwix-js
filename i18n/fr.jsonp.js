@@ -98,6 +98,8 @@ document.localeJson = {
       "configure-performance-searchrange-help": "par défaut 25, des valeurs plus élevées augmentent le temps de recherche",
       "configure-previews": "<b>Afficher un aperçu des articles <i>Wikipédia / Wikivoyage</i></b> en survolant les liens (<i>fonctionnalité limitée en Mode Restreint</i>)",
       "configure-previews-tip": "Affiche un petit aperçu en popup des articles de Wikipédia et Wikivoyage lorsque le pointeur est placé sur le lien d'article. Désactivez cette fonction si elle est trop lente ou si elle interfère avec l'affichage des articles sur les appareils à petit écran.",
+      "configure-widearticlewidth": "<b>Utiliser toute la largeur de la fenêtre pour les articles <i>Wikipédia</i></b> (<i>pour les archives Wikimedia récentes sur grand écran</i>)",
+      "configure-widearticlewidth-tip": "Les archives Wikipédia récentes limitent le texte des articles à une colonne étroite sur les grands écrans. Activez cette option pour que les articles utilisent toute la largeur de la fenêtre, comme l'option « Large » de Wikipédia.",
       "configure-compatibility-panel-header": "Mode d'injection de contenu",
       "configure-compatibility-see": "Voir",
       "configure-compatibility-modeslink": "Informations techniques",

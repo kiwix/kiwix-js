@@ -98,6 +98,8 @@ document.localeJson = {
       "configure-performance-searchrange-help": "por defecto 25, valores más altos aumentan el tiempo de búsqueda",
       "configure-previews": "<b>Mostrar vista previa de artículos de <i>Wikipedia / Wikivoyage</i></b> al pasar el cursor sobre los enlaces (<i>funcionalidad limitada en Modo Restringido</i>)",
       "configure-previews-tip": "Muestra una pequeña vista previa emergente de los artículos de Wikipedia y Wikivoyage cuando el puntero se pasa sobre un enlace de artículo. Desactivar si es demasiado lento o interfiere con la visualización de artículos en dispositivos de pantalla pequeña.",
+      "configure-widearticlewidth": "<b>Usar todo el ancho de la ventana para los artículos de <i>Wikipedia</i></b> (<i>para archivos recientes de Wikimedia en pantallas anchas</i>)",
+      "configure-widearticlewidth-tip": "Los archivos recientes de Wikipedia limitan el texto de los artículos a una columna estrecha en pantallas anchas. Active esta opción para que los artículos usen todo el ancho de la ventana, como la opción «Ancho» de Wikipedia.",
       "configure-compatibility-panel-header": "Modo de inyección de contenido",
       "configure-compatibility-see": "Ver",
       "configure-compatibility-modeslink": "Información técnica",
