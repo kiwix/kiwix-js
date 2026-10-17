@@ -400,26 +400,30 @@ async function handleFolderOrFileDropViaWebkit (event) {
  */
 async function getFilesFromReader (reader) {
     const files = [];
-    // eslint-disable-next-line no-unused-vars
-    const promise = new Promise(function (resolve, _reject) {
-        reader.readEntries(function (entries) {
-            resolve(entries);
-        });
-    });
-    const entries = await promise;
-
-    for (let index = 0; index < entries.length; index++) {
-        const fileOrDir = entries[index];
-        if (fileOrDir.isFile) {
-            // eslint-disable-next-line no-unused-vars
-            const filePromise = await new Promise(function (resolve, _reject) {
-                fileOrDir.file(function (file) {
-                    resolve(file);
-                });
+    // readEntries() returns the entries in batches (Chromium returns at most 100 per call), so we call it
+    // until it returns an empty array
+    let entries;
+    do {
+        // eslint-disable-next-line no-unused-vars
+        entries = await new Promise(function (resolve, _reject) {
+            reader.readEntries(function (entries) {
+                resolve(entries);
             });
-            files.push(filePromise);
+        });
+
+        for (let index = 0; index < entries.length; index++) {
+            const fileOrDir = entries[index];
+            if (fileOrDir.isFile) {
+                // eslint-disable-next-line no-unused-vars
+                const filePromise = await new Promise(function (resolve, _reject) {
+                    fileOrDir.file(function (file) {
+                        resolve(file);
+                    });
+                });
+                files.push(filePromise);
+            }
         }
-    }
+    } while (entries.length);
     return files;
 }
 
