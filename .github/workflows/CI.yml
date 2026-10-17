@@ -35,6 +35,8 @@ jobs:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
     steps:
       # Clone the repo and checkout the commit for which the workflow was triggered
       - uses: actions/checkout@v7
@@ -96,58 +98,92 @@ jobs:
           GITHUB_ACTION: ${{ github.event_name }}
         run: npm run test-e2e-firefox
 
+      - name: Test Library CSP headers
+        run: npm run test-library-headers
+
+      - name: Diagnostic check for Chrome and Chromium binaries (Linux)
+        run: |
+          echo "=== Locating browser binaries ==="
+          which chromium || true
+          which chromium-browser || true
+          which google-chrome || true
+          which google-chrome-for-testing || true
+          ls -la /usr/bin/chromium* 2>/dev/null || true
+          ls -la /snap/bin/chromium* 2>/dev/null || true
+          echo "=== Locating drivers ==="
+          which chromedriver || true
+          echo "CHROMEWEBDRIVER=$CHROMEWEBDRIVER"
+
+      - name: End-to-end tests on Chrome Extension (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: |
+          if command -v chromium >/dev/null 2>&1; then
+            export CHROME_BIN="$(command -v chromium)"
+            echo "Using discovered Chromium: $CHROME_BIN"
+          elif [ -f /usr/bin/chromium ]; then
+            export CHROME_BIN="/usr/bin/chromium"
+            echo "Using system Chromium: $CHROME_BIN"
+          fi
+          npm run test-e2e-extension-chrome
+
+      - name: End-to-end tests on Firefox Extension (Linux)
+        env:
+          GITHUB_ACTION: ${{ github.event_name }}
+        run: npm run test-e2e-extension-firefox
+
         
       - name: BrowserStack environment setup
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         uses: browserstack/github-actions/setup-env@1fad39ae4755588f7fc6854da6c3efba2bf5d08f # master @ 2026-06-19, past v1.0.4
         with:
           username:  ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
       
       - name: BrowserStack local tunnel setup
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         uses: browserstack/github-actions/setup-local@1fad39ae4755588f7fc6854da6c3efba2bf5d08f # master @ 2026-06-19, past v1.0.4
         with:
           local-testing: start
           local-identifier: random
 
       - name: Start server locally in background
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx http-server --silent -p 8099 &
 
       - name: Run BrowserStack tests on Firefox Legacy 56 / Win10
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha --no-config tests/e2e/runners/firefox/firefox56.bs.runner.js
 
       - name: Run BrowserStack tests on  Firefox 70 / Win10
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha --no-config tests/e2e/runners/firefox/firefox70.bs.runner.js
 
       - name: Run BrowserStack tests on Chrome 58 / Mojave
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha --no-config tests/e2e/runners/chrome/chrome58.bs.runner.js
 
       - name: Run BrowserStack tests on Chrome 60 / Mojave
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: npx mocha --no-config tests/e2e/runners/chrome/chrome60.bs.runner.js
 
       - name: Run BrowserStack tests on Safari 14 / Big Sur
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -155,7 +191,7 @@ jobs:
 
       # [DEV] Test on Edge18 are bit flaky, so we are retrying 2 times
       - name: Run BrowserStack tests on Edge Legacy 18 / Win10
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -163,7 +199,7 @@ jobs:
 
           
       - name: Stop BrowserStackLocal
-        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && env.BROWSERSTACK_USERNAME != ''
         uses: browserstack/github-actions/setup-local@1fad39ae4755588f7fc6854da6c3efba2bf5d08f # master @ 2026-06-19, past v1.0.4
         with:
           local-testing: stop
