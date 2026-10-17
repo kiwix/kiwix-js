@@ -37,6 +37,7 @@ import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 import kiwixLibrary from './lib/kiwixLibrary.js';
 import util from './lib/util.js';
+import imageGallery from './lib/imageGallery.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -226,6 +227,86 @@ document.getElementById('formArticleSearch').addEventListener('submit', function
     document.getElementById('searchArticles').click();
 });
 
+// Search view toggle: Articles | Images (Issue #277)
+var currentSearchView = 'articles';
+var lastSearchDirEntryArray = [];
+
+var btnSearchArticlesView = document.getElementById('btnSearchArticlesView');
+var btnSearchImagesView = document.getElementById('btnSearchImagesView');
+var articleListDiv = document.getElementById('articleList');
+var imageGalleryContainer = document.getElementById('imageGalleryContainer');
+
+function setSearchView (view) {
+    if (currentSearchView === view) return;
+    currentSearchView = view;
+    var articleContent = document.getElementById('articleContent');
+    if (view === 'images') {
+        if (btnSearchImagesView) btnSearchImagesView.classList.add('active');
+        if (btnSearchArticlesView) btnSearchArticlesView.classList.remove('active');
+        if (articleListDiv) articleListDiv.style.display = 'none';
+        if (imageGalleryContainer) imageGalleryContainer.style.display = '';
+        if (articleContent) articleContent.style.visibility = 'hidden';
+        if (lastSearchDirEntryArray && lastSearchDirEntryArray.length) {
+            imageGallery.loadImagesForSearch(lastSearchDirEntryArray, appstate.search, {
+                archive: selectedArchive,
+                zimType: selectedArchive ? selectedArchive.zimType : '',
+                fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
+            });
+        }
+    } else {
+        if (btnSearchArticlesView) btnSearchArticlesView.classList.add('active');
+        if (btnSearchImagesView) btnSearchImagesView.classList.remove('active');
+        if (imageGalleryContainer) imageGalleryContainer.style.display = 'none';
+        if (articleListDiv) articleListDiv.style.display = '';
+        if (articleContent) articleContent.style.visibility = '';
+    }
+}
+
+if (btnSearchArticlesView && btnSearchImagesView) {
+    btnSearchArticlesView.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        setSearchView('articles');
+    });
+    btnSearchArticlesView.addEventListener('click', function (e) {
+        e.preventDefault();
+        setSearchView('articles');
+    });
+    btnSearchImagesView.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        setSearchView('images');
+    });
+    btnSearchImagesView.addEventListener('click', function (e) {
+        e.preventDefault();
+        setSearchView('images');
+    });
+}
+
+var btnImageGalleryLoadMore = document.getElementById('btnImageGalleryLoadMore');
+if (btnImageGalleryLoadMore) {
+    btnImageGalleryLoadMore.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+    });
+}
+
+imageGallery.init({
+    container: imageGalleryContainer,
+    grid: document.getElementById('imageGalleryGrid'),
+    status: document.getElementById('imageGalleryStatus'),
+    loadMoreContainer: document.getElementById('imageGalleryLoadMore'),
+    loadMoreBtn: btnImageGalleryLoadMore,
+    onSelectArticle: function (dirEntryOrId) {
+        var articleContent = document.getElementById('articleContent');
+        if (articleContent) articleContent.style.visibility = '';
+        var articleListWithHeader = document.getElementById('articleListWithHeader');
+        if (articleListWithHeader) articleListWithHeader.style.display = 'none';
+        var id = typeof dirEntryOrId === 'string' ? dirEntryOrId : dirEntryOrId.toStringId();
+        findDirEntryFromDirEntryIdAndLaunchArticleRead(id);
+    },
+    getArchive: function () { return selectedArchive; },
+    getParams: function () { return params; },
+    getAppstate: function () { return appstate; }
+});
+
 function getDefaultLanguageAndTranslateApp () {
     var defaultBrowserLanguage = uiUtil.getBrowserLanguage();
     // DEV: Be sure to add supported language codes here
@@ -290,8 +371,13 @@ prefixElement.addEventListener('keydown', function (e) {
         // Hide the article list
         e.preventDefault();
         e.stopPropagation();
+        imageGallery.cancel();
         document.getElementById('articleListWithHeader').style.display = 'none';
-        document.getElementById('articleContent').focus();
+        var articleContent = document.getElementById('articleContent');
+        if (articleContent) {
+            articleContent.style.visibility = '';
+            articleContent.focus();
+        }
         keyPressHandled = true;
     }
     // Arrow-key selection code adapted from https://stackoverflow.com/a/14747926/9727685
@@ -356,6 +442,19 @@ prefixElement.addEventListener('keyup', function (e) {
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
 });
+// Reset gallery and restore article view if prefix input is cleared
+prefixElement.addEventListener('input', function () {
+    if (!this.value) {
+        imageGallery.cancel();
+        imageGallery.reset();
+        var searchViewToggle = document.getElementById('searchViewToggle');
+        if (searchViewToggle) searchViewToggle.style.display = 'none';
+        var articleListWithHeader = document.getElementById('articleListWithHeader');
+        if (articleListWithHeader) articleListWithHeader.style.display = 'none';
+        var articleContent = document.getElementById('articleContent');
+        if (articleContent) articleContent.style.visibility = '';
+    }
+});
 // Restore the search results if user goes back into prefix field
 prefixElement.addEventListener('focus', function () {
     if (document.getElementById('prefix').value !== '') {
@@ -367,16 +466,28 @@ prefixElement.addEventListener('focus', function () {
 });
 // Hide the search results if user moves out of prefix field
 prefixElement.addEventListener('blur', function () {
+    if (currentSearchView === 'images') {
+        return;
+    }
     if (!searchArticlesFocused) {
+        imageGallery.cancel();
         appstate.search.status = 'cancelled';
         region.style.overflowY = 'hidden';
         region.style.height = 'auto';
         uiUtil.spinnerDisplay(false);
         document.getElementById('articleListWithHeader').style.display = 'none';
+        var articleContent = document.getElementById('articleContent');
+        if (articleContent) articleContent.style.visibility = '';
     }
 });
 document.getElementById('btnRandomArticle').addEventListener('click', function (event) {
     event.preventDefault();
+    imageGallery.cancel();
+    imageGallery.reset();
+    var searchViewToggle = document.getElementById('searchViewToggle');
+    if (searchViewToggle) searchViewToggle.style.display = 'none';
+    var articleContent = document.getElementById('articleContent');
+    if (articleContent) articleContent.style.visibility = '';
     document.getElementById('prefix').value = '';
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
@@ -446,10 +557,14 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
+    imageGallery.reset();
+    var searchViewToggle = document.getElementById('searchViewToggle');
+    if (searchViewToggle) searchViewToggle.style.display = 'none';
     uiUtil.spinnerDisplay(false);
     // document.getElementById('articleContent').style.display = 'none';
     // Empty and purge the article contents
     var articleContent = document.getElementById('articleContent');
+    if (articleContent) articleContent.style.visibility = '';
     var articleContentDoc = articleContent ? articleContent.contentDocument : null;
     while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
     if (selectedArchive && selectedArchive.isReady()) {
@@ -2246,6 +2361,15 @@ function onKeyUpPrefix () {
         var prefix = document.getElementById('prefix').value;
         if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
             document.getElementById('searchArticles').click();
+        } else if (!prefix) {
+            imageGallery.cancel();
+            imageGallery.reset();
+            var searchViewToggle = document.getElementById('searchViewToggle');
+            if (searchViewToggle) searchViewToggle.style.display = 'none';
+            var articleListWithHeader = document.getElementById('articleListWithHeader');
+            if (articleListWithHeader) articleListWithHeader.style.display = 'none';
+            var articleContent = document.getElementById('articleContent');
+            if (articleContent) articleContent.style.visibility = '';
         }
     }, 500);
 }
@@ -2257,6 +2381,14 @@ function onKeyUpPrefix () {
  */
 function searchDirEntriesFromPrefix (prefix) {
     if (selectedArchive && selectedArchive.isReady()) {
+        imageGallery.cancel();
+        if (!prefix) {
+            imageGallery.reset();
+            var searchViewToggle = document.getElementById('searchViewToggle');
+            if (searchViewToggle) searchViewToggle.style.display = 'none';
+            var articleContent = document.getElementById('articleContent');
+            if (articleContent) articleContent.style.visibility = '';
+        }
         // Cancel the old search (zimArchive search object will receive this change)
         appstate.search.status = 'cancelled';
         // Initiate a new search object and point appstate.search to it (the zimArchive search object will continue to point to the old object)
@@ -2336,6 +2468,29 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     // Add event listeners to article links
     uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);
 
+    lastSearchDirEntryArray = dirEntryArray || [];
+    var searchViewToggle = document.getElementById('searchViewToggle');
+    if (searchViewToggle) {
+        searchViewToggle.style.display = (dirEntryArray && dirEntryArray.length) ? '' : 'none';
+    }
+
+    var galleryContainer = document.getElementById('imageGalleryContainer');
+    var articleContent = document.getElementById('articleContent');
+    if (currentSearchView === 'images') {
+        articleListDiv.style.display = 'none';
+        if (galleryContainer) galleryContainer.style.display = '';
+        if (articleContent) articleContent.style.visibility = 'hidden';
+        imageGallery.loadImagesForSearch(dirEntryArray, reportingSearch, {
+            archive: selectedArchive,
+            zimType: selectedArchive ? selectedArchive.zimType : '',
+            fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
+        });
+    } else {
+        articleListDiv.style.display = '';
+        if (galleryContainer) galleryContainer.style.display = 'none';
+        if (articleContent) articleContent.style.visibility = '';
+    }
+
     if (!stillSearching) uiUtil.spinnerDisplay(false);
     document.getElementById('articleListWithHeader').style.display = '';
 }
@@ -2388,6 +2543,10 @@ function readArticle (dirEntry) {
         uiUtil.spinnerDisplay(false);
         return;
     }
+
+    imageGallery.cleanup();
+    var articleContent = document.getElementById('articleContent');
+    if (articleContent) articleContent.style.visibility = '';
 
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
@@ -2518,7 +2677,8 @@ function filterClickEvent (event) {
         return;
     }
     // Remove any Kiwix Popovers that may be hanging around
-    popovers.removeKiwixPopoverDivs(event.target.ownerDocument);
+    var doc = event && event.target ? (event.target.ownerDocument || event.target) : null;
+    if (doc && doc.querySelectorAll) popovers.removeKiwixPopoverDivs(doc);
     if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
         // This prevents any popover from being displayed when the user clicks on a link
@@ -3003,14 +3163,6 @@ function handleMessageChannelMessage (event) {
 // Compile some regular expressions needed to modify links
 // Pattern to find a ZIM URL (with its namespace) - see https://wiki.openzim.org/wiki/ZIM_file_format#Namespaces
 var regexpZIMUrlWithNamespace = /^[./]*([-ABCIJMUVWX]\/.+)$/;
-// The case-insensitive regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces.
-// It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
-// (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
-// absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until any
-// querystring (? character) which (if it is exists) is captured with its contents in another group. The regex then tests for the end
-// of the URL with the opening delimiter (" or ', which is capture group \3) or a hash character (#). When the regex is used below, it
-// will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
-var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(\?.*?)?(?=\3|#)([\s\S]*?>)/ig;
 // Regex below tests the html of an article for active content [kiwix-js #466]
 // It inspects every <script> block in the html and matches in the following cases: 1) the script is of type "module"; 2) the script
 // loads a UI application called app.js, init.js, or other common scripts found in unsupported ZIMs; 3) the script block has inline
@@ -3023,10 +3175,6 @@ var regexpActiveContent = /<script\b(?:(?![^>]+src\b)|(?=[^>]*type=["']module["'
 // the link. This is currently the case for epub and pdf files in Project Gutenberg ZIMs -- add any further types you need
 // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
 var regexpDownloadLinks = /^.*?\.epub([?#]|$)|^.*?\.pdf([?#]|$)|^.*?\.odt([?#]|$)|^.*?\.zip([?#]|$)/i;
-// A regex to find the Zimit prefix in a Zimit-based article
-var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
-// A regex to find and help transform assets in an article in a Zimit-based archive
-var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
 // A regex to find an HTML redirect stub, i.e. <meta http-equiv="refresh" content="0;url=...">, capturing the content
 // attribute's value in whichever group matches the way it is quoted. The lookahead allows the two attributes to appear
 // in either order
@@ -3125,82 +3273,16 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     var csp = 'default-src ' + cspSources + '; style-src ' + cspSources + ' \'unsafe-inline\'; script-src \'self\' file: chrome-extension: moz-extension: \'unsafe-eval\';';
     htmlArticle = htmlArticle.replace(/(<head\b[^>]*>)\s*/, '$1\n    <meta http-equiv="Content-Security-Policy" content="' + csp + '"></meta>\n    ');
 
-    // Transform as many Zimit-style URLs as possible to their ZIM equivalents
-    if (selectedArchive.zimType === 'zimit') {
-        var rootDirectory = dirEntry.url === dirEntry.url.replace(/^((?:A\/)?[^/]+\/?).*/, '$1');
-        // Try to get the Zimit prefix from any canonical URL in the article
-        var zimitPrefix = htmlArticle.match(regexpGetZimitPrefix);
-        // If we couldn't get it, reconstruct it from the archive's zimitPrefix
-        zimitPrefix = zimitPrefix ? zimitPrefix[1] : selectedArchive.zimitPrefix.replace(/^\w\/([^/]+).*/, '$1');
-        zimitPrefix = (dirEntry.namespace === 'C' ? 'A/' : '') + zimitPrefix;
-        // eslint-disable-next-line no-unused-vars
-        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
-            var newBlock = match;
-            var assetUrl = relAssetUrl;
-            // console.log('Asset URL: ' + assetUrl);
-            // Remove google analytics and other analytics files that cause stall
-            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
-            // For root-relative links, we need to add the zimitPrefix
-            assetUrl = assetUrl.replace(/^\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
-            // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
-            assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
-            // For fully relative links, we have to remove any '..' if we are in root directory
-            if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
-            newBlock = newBlock.replace(relAssetUrl, assetUrl);
-            // console.debug('Transform: \n' + match + '\n -> ' + newBlock);
-            return newBlock;
-        });
-        // Deal with image srcsets
-        htmlArticle = htmlArticle.replace(/<img\b[^>]+srcset=["']([^"']+)/ig, function (match, srcset) {
-            var srcsetArr = srcset.split(',');
-            for (var i = 0; i < srcsetArr.length; i++) {
-                // For root-relative links, we need to add the zimitPrefix
-                srcsetArr[i] = srcsetArr[i].replace(/^\s*\/(?!\/)/, dirEntry.namespace + '/' + zimitPrefix + '/');
-                // Zimit prefix is in the URL for absolute URLs
-                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s*https?:)?\/\//i, dirEntry.namespace + '/' + (dirEntry.namespace === 'C' ? 'A/' : ''));
-                if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirEntry.namespace + '/' + zimitPrefix + '/');
-            }
-            match = match.replace(srcset, srcsetArr.join(', '));
-            match = match.replace(/srcset/i, 'data-kiwixsrcset');
-            return match;
-        });
-    }
-
-    // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
-    // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
-    // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
-    var newBlock;
-    var assetZIMUrlEnc;
-    var indexRoot = window.location.pathname.replace(/[^/]+$/, '') + encodeURI(selectedArchive.file.name) + '/';
-    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring, blockClose) {
-        // Don't process data URIs (yet)
-        if (/data:image/i.test(relAssetUrl)) return match;
-        // We need to save the query string if any for Zimit-style archives
-        querystring = querystring || '';
-        if (/zimit/.test(params.zimType)) {
-            assetZIMUrlEnc = relAssetUrl.replace(indexRoot, '');
-            assetZIMUrlEnc = assetZIMUrlEnc + querystring;
-        }
-        if (params.zimType !== 'zimit') {
-            // DEV: Note that deriveZimUrlFromRelativeUrl produces a *decoded* URL (and incidentally would remove any URI component
-            // if we had captured it). We therefore re-encode the URI with encodeURI (which does not encode forward slashes) instead
-            // of encodeURIComponent.
-            assetZIMUrlEnc = encodeURI(uiUtil.deriveZimUrlFromRelativeUrl(relAssetUrl, appstate.baseUrl));
-        }
-        newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
-        // Replace any srcset with data-kiwixsrcset
-        newBlock = newBlock.replace(/\bsrcset\s*=/, 'data-kiwixsrcset=');
-        return newBlock;
+    // Transform asset URLs for Restricted mode
+    htmlArticle = uiUtil.transformArticleHtmlForRestrictedMode(htmlArticle, {
+        baseUrl: appstate.baseUrl,
+        dirEntry: dirEntry,
+        archive: selectedArchive,
+        zimType: selectedArchive.zimType,
+        zimitPrefix: selectedArchive.zimitPrefix,
+        fileName: selectedArchive.file ? selectedArchive.file.name : '',
+        webpMachine: Boolean(webpMachine)
     });
-    // We also need to process data:image/webp if the browser needs the WebPMachine
-    if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
-    // Remove any empty media containers on page (they can cause layout issue in jQuery mode)
-    htmlArticle = htmlArticle.replace(/(<(audio|video)\b(?:[^<]|<(?!\/\2))+<\/\2>)/ig, function (p0) {
-        return /(?:src|data-kiwixurl)\s*=\s*["']/.test(p0) ? p0 : '';
-    });
-
-    // We also need to process data:image/webp if the browser needs the WebPMachine
-    if (webpMachine) htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
 
     // Extract any css classes from the html tag (they will be stripped when injected in iframe with .innerHTML)
     var htmlCSS = htmlArticle.match(/<html[^>]*class\s*=\s*["']\s*([^"']+)/i);
@@ -3402,82 +3484,97 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Make an array from the images that need to be processed
         var images = Array.prototype.slice.call(iframeArticleContent.contentDocument.querySelectorAll('img[data-kiwixurl]'));
         // This ensures cancellation of image extraction if the user navigates away from the page before extraction has finished
-        images.owner = appstate.expectedArticleURLToBeDisplayed;
-        // DEV: This self-invoking function is recursive, calling itself only when an image has been fully processed into a
-        // blob: or data: URI (or returns an error). This ensures that images are processed sequentially from the top of the
-        // DOM, making for a better user experience (because images above the fold are extracted first)
-        (function extractImage () {
-            if (!images.length || images.busy || images.owner !== appstate.expectedArticleURLToBeDisplayed) return;
-            images.busy = true;
-            // Extract the image at the top of the images array and remove it from the array
-            var image = images.shift();
+        var owner = appstate.expectedArticleURLToBeDisplayed;
+        var isCancelled = function () {
+            return owner !== appstate.expectedArticleURLToBeDisplayed;
+        };
+
+        // DEV: Process images sequentially from the top of the DOM, ensuring above-the-fold images
+        // are loaded first. Both primary images and srcset candidates are processed strictly
+        // sequentially to ensure WebP transcoding safety and deterministic order.
+        uiUtil.processSequentialQueue(images, function (image, nextImage) {
+            if (isCancelled()) return nextImage();
+
             // Get any data-kiwixsrcset
             var srcset = image.getAttribute('data-kiwixsrcset');
             var srcsetArr = [];
             if (srcset) {
-                // We need to get the array of images in the srcset
                 srcsetArr = srcset.split(',');
             }
+
+            function processSrcset (onSrcsetDone) {
+                if (!srcsetArr.length || isCancelled()) {
+                    return onSrcsetDone();
+                }
+                var srcsetResults = [];
+                image.srcset = '';
+                uiUtil.processSequentialQueue(srcsetArr, function (imgAndResolutionUrl, nextSrcset) {
+                    if (isCancelled()) return nextSrcset();
+                    var trimmed = imgAndResolutionUrl.trim();
+                    var urlMatch = trimmed.match(/^([^\s]+)(?:\s+([0-9.]+\w+))?$/);
+                    var rawUrl = urlMatch ? urlMatch[1] : trimmed;
+                    var resolution = (urlMatch && urlMatch[2]) ? urlMatch[2] : '';
+                    if (!rawUrl) return nextSrcset();
+                    var srcUrl = decodeURIComponent(rawUrl);
+                    selectedArchive.getDirEntryByPath(srcUrl).then(function (srcEntry) {
+                        if (isCancelled()) return nextSrcset();
+                        selectedArchive.readBinaryFile(srcEntry, function (fileDirEntry, content) {
+                            if (isCancelled()) return nextSrcset();
+                            var mimetype = srcEntry.getMimetype();
+                            var getUriPromise;
+                            if (webpMachine && /image\/webp/i.test(mimetype)) {
+                                getUriPromise = uiUtil.transcodeWebpToDataUri(content, isCancelled);
+                            } else {
+                                getUriPromise = uiUtil.getDataUriFromUint8Array(content, mimetype);
+                            }
+                            getUriPromise.then(function (dataUri) {
+                                if (!isCancelled()) {
+                                    srcsetResults.push(dataUri + (resolution ? ' ' + resolution : ''));
+                                    image.srcset = srcsetResults.join(', ');
+                                }
+                                nextSrcset();
+                            }).catch(function (e) {
+                                console.error('Could not get dataUri for image:' + srcUrl, e);
+                                nextSrcset();
+                            });
+                        });
+                    }).catch(function (e) {
+                        console.error('Could not find DirEntry for image:' + srcUrl, e);
+                        nextSrcset();
+                    });
+                }, {
+                    isCancelled: isCancelled,
+                    onComplete: onSrcsetDone
+                });
+            }
+
             // Get the image URL
             var imageUrl = image.getAttribute('data-kiwixurl');
             // Decode any WebP images that are encoded as dataURIs
             if (/^data:image\/webp/i.test(imageUrl)) {
-                uiUtil.feedNodeWithDataURI(image, 'src', imageUrl, 'image/webp');
-                images.busy = false;
-                extractImage();
+                uiUtil.feedNodeWithDataURI(image, 'src', imageUrl, 'image/webp', function () {
+                    processSrcset(nextImage);
+                }, isCancelled);
                 return;
             }
+
             var url = decodeURIComponent(imageUrl);
             selectedArchive.getDirEntryByPath(url).then(function (dirEntry) {
+                if (isCancelled()) return nextImage();
                 selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                    if (isCancelled()) return nextImage();
                     var mimetype = dirEntry.getMimetype();
                     uiUtil.feedNodeWithDataURI(image, 'src', content, mimetype, function () {
-                        images.busy = false;
-                        if (srcsetArr.length) {
-                            // We need to process each image in the srcset
-                            // Empty or make a new srcset
-                            image.srcset = '';
-                            var srcsetCount = srcsetArr.length;
-                            srcsetArr.forEach(function (imgAndResolutionUrl) {
-                                srcsetCount--;
-                                images.busy = true;
-                                // Get the url and the resolution from the srcset entry
-                                var urlMatch = imgAndResolutionUrl.match(/^\s*([^\s]+)\s+([0-9.]+\w+)\s*$/);
-                                var url = urlMatch ? urlMatch[1] : '';
-                                var resolution = urlMatch ? urlMatch[2] : '';
-                                selectedArchive.getDirEntryByPath(url).then(function (srcEntry) {
-                                    selectedArchive.readBinaryFile(srcEntry, function (fileDirEntry, content) {
-                                        var mimetype = srcEntry.getMimetype();
-                                        uiUtil.getDataUriFromUint8Array(content, mimetype).then(function (dataUri) {
-                                            // Add the dataUri to the srcset
-                                            image.srcset += (image.srcset ? ', ' : '') + dataUri + ' ' + resolution;
-                                            images.busy = false;
-                                            if (srcsetCount === 0) {
-                                                extractImage();
-                                            }
-                                        }).catch(function (e) {
-                                            console.error('Could not get dataUri for image:' + url, e);
-                                            images.busy = false;
-                                            if (srcsetCount === 0) extractImage();
-                                        });
-                                    });
-                                }).catch(function (e) {
-                                    console.error('Could not find DirEntry for image:' + url, e);
-                                    images.busy = false;
-                                    if (srcsetCount === 0) extractImage();
-                                });
-                            });
-                        } else {
-                            extractImage();
-                        }
-                    });
+                        processSrcset(nextImage);
+                    }, isCancelled);
                 });
             }).catch(function (e) {
                 console.error('could not find DirEntry for image:' + url, e);
-                images.busy = false;
-                extractImage();
+                nextImage();
             });
-        })();
+        }, {
+            isCancelled: isCancelled
+        });
     }
 
     function loadNoScriptTags () {
