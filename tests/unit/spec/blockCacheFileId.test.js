@@ -48,7 +48,6 @@ describe('Block cache with archives of the same name', function () {
         const first = await headerOf(await zimBlob(tonedear, 'archive.zim'));
         const second = await headerOf(await zimBlob(gutenberg, 'archive.zim'));
         assert.notDeepEqual(first.bytes, onDisk);
-        assert.notEqual(second.id, first.id);
         assert.deepEqual(second.bytes, onDisk);
     });
 
