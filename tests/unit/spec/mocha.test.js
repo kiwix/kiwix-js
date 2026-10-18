@@ -107,6 +107,13 @@ describe('Utils', function () {
         });
     });
 
+    it('Resolve nested relative ZIM URLs and ignore query strings and fragments', function () {
+        const url = '../../../I/im%C3%A1gen.png?size=large#preview';
+        const base = 'A/subdir1/subdir2/article.html';
+
+        expect(uiUtil.deriveZimUrlFromRelativeUrl(url, base)).to.equal('I/imágen.png');
+    });
+
     it('Convert dataURI to Uint8Array (base64, percent-encoded, and edge cases)', function () {
         // Base64 dataURI
         const b64DataURI = 'data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==';
