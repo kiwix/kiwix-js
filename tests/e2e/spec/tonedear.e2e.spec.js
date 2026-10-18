@@ -254,16 +254,30 @@ function runTests (driver, modes, keepDriver) {
                         return await driver.executeScript('return document.getElementById("activeContent").style.display;') !== 'none';
                     }, 5000, 'The active content warning was not shown after pressing Home during a Back to the landing page');
                 } else {
-                    // A request for the landing page from another tab does not load anything into the app, so it must not set the flag
+                    // A request for the landing page from another tab does not load anything into the app, so it must not set the flag. Browsers
+                    // that predate Request.destination (Chrome < 65) cannot tell such a request apart from one in the app's iframe, so we skip this
+                    // check there (an explicit Home still clears any stale state), and also where the driver lacks the W3C window commands
                     const landingPageUrl = await driver.executeScript('return document.getElementById("articleContent").contentWindow.location.href.replace(/[^/]*$/, "");');
-                    const appWindow = await driver.getWindowHandle();
-                    await driver.switchTo().newWindow('tab');
-                    await driver.get(landingPageUrl);
-                    await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000, 'The landing page did not load in the new tab');
-                    await driver.close();
-                    await driver.switchTo().window(appWindow);
-                    assert.strictEqual(await driver.executeScript('return window.landingPageFlagSet;'), false);
-                    assert.strictEqual(await driver.executeScript('return params.isLandingPage;'), false);
+                    let appWindow = null;
+                    if (await driver.executeScript('return typeof Request !== "undefined" && "destination" in Request.prototype;')) {
+                        try {
+                            appWindow = await driver.getWindowHandle();
+                            await driver.switchTo().newWindow('tab');
+                        } catch (e) {
+                            if (e.name !== 'UnsupportedOperationError') throw e;
+                            appWindow = null;
+                        }
+                    }
+                    if (appWindow) {
+                        await driver.get(landingPageUrl);
+                        await driver.wait(until.elementLocated(By.css('a[href="android-ios-ear-training-app"]')), 5000, 'The landing page did not load in the new tab');
+                        await driver.close();
+                        await driver.switchTo().window(appWindow);
+                        assert.strictEqual(await driver.executeScript('return window.landingPageFlagSet;'), false);
+                        assert.strictEqual(await driver.executeScript('return params.isLandingPage;'), false);
+                    } else {
+                        console.log('\x1b[33m%s\x1b[0m', '    - Request from another tab not tested: this browser or driver lacks Request.destination or window commands');
+                    }
                 }
                 // Restore the plain property
                 await driver.executeScript('var value = params.isLandingPage; delete params.isLandingPage; params.isLandingPage = value; delete window.landingPageFlagSet;');
