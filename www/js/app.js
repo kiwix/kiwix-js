@@ -2583,21 +2583,6 @@ function filterClickEvent (event) {
 };
 
 /**
- * Removes the max-width limit that the Vector 2022 skin applies to Wikimedia articles, if the user has enabled
- * this in Configuration. We switch the skin's own client preference class from limited (1) to full (0) width,
- * which is what the "Wide" option does on Wikipedia. In Restricted mode the class is moved from <html> to <body>.
- * @param {Document} doc The document of the loaded article
- */
-function applyArticleWidth (doc) {
-    if (!params.wideArticleWidth || !doc) return;
-    var limitedElements = doc.querySelectorAll('.vector-feature-limited-width-clientpref-1');
-    for (var i = 0; i < limitedElements.length; i++) {
-        limitedElements[i].classList.remove('vector-feature-limited-width-clientpref-1');
-        limitedElements[i].classList.add('vector-feature-limited-width-clientpref-0');
-    }
-}
-
-/**
  * Postprocessing required after the article contents are loaded
  * @param {HTMLIFrameElement} iframeArticleContent The iframe containing the article content
  */
@@ -2608,7 +2593,7 @@ function articleLoadedSW (iframeArticleContent) {
     uiUtil.spinnerDisplay(false);
     // Set the requested appTheme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
-    applyArticleWidth(iframeArticleContent.contentDocument);
+    uiUtil.applyArticleWidth(iframeArticleContent.contentDocument);
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
@@ -3283,7 +3268,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
         // Set the requested appTheme - applyAppTheme will handle fallbacks silently
         uiUtil.applyAppTheme(params.appTheme);
-        applyArticleWidth(iframeContentDocument);
+        uiUtil.applyArticleWidth(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 
