@@ -106,11 +106,75 @@ describe('Utils', function () {
             expect(normalizedResult).to.equal(normalizedExpected);
         });
     });
+
+    it('Resolve nested relative ZIM URLs and ignore query strings and fragments', function () {
+        const url = '../../../I/im%C3%A1gen.png?size=large#preview';
+        const base = 'A/subdir1/subdir2/article.html';
+
+        expect(uiUtil.deriveZimUrlFromRelativeUrl(url, base)).to.equal('I/imágen.png');
+    });
+
+    it('Convert dataURI to Uint8Array (base64, percent-encoded, and edge cases)', function () {
+        // Base64 dataURI
+        const b64DataURI = 'data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==';
+        const b64Arr = util.dataURItoUint8Array(b64DataURI);
+        const b64Str = String.fromCharCode.apply(null, b64Arr);
+        expect(b64Str).to.equal('Hello, world!');
+
+        // Line-wrapped base64 dataURIs (\n, and \r\n with indentation) should decode to the same bytes
+        const wrappedLF = 'data:text/plain;base64,SGVsbG8s\nIHdvcmxk\nIQ==';
+        const wrappedCRLF = 'data:text/plain;base64,SGVsbG8s\r\n    IHdvcmxk\r\n    IQ==';
+        expect(Array.from(util.dataURItoUint8Array(wrappedLF))).to.deep.equal(Array.from(b64Arr));
+        expect(Array.from(util.dataURItoUint8Array(wrappedCRLF))).to.deep.equal(Array.from(b64Arr));
+
+        // Non-base64 percent-encoded dataURI containing reserved characters (%2C, %20)
+        const percentDataURI = 'data:text/plain,hello%2C%20world';
+        const percentArr = util.dataURItoUint8Array(percentDataURI);
+        const percentStr = String.fromCharCode.apply(null, percentArr);
+        expect(percentStr).to.equal('hello, world');
+        expect(percentArr.length).to.equal(12);
+
+        // Percent escapes decoded directly to raw bytes without UTF-8 character conversion
+        const octetURI1 = 'data:application/octet-stream,%C3%A9';
+        const octetArr1 = util.dataURItoUint8Array(octetURI1);
+        expect(Array.from(octetArr1)).to.deep.equal([195, 169]);
+
+        const octetURI2 = 'data:application/octet-stream,%C3%A9%FF';
+        const octetArr2 = util.dataURItoUint8Array(octetURI2);
+        expect(Array.from(octetArr2)).to.deep.equal([195, 169, 255]);
+
+        // Invalid or empty inputs should return empty Uint8Array without throwing
+        expect(util.dataURItoUint8Array('')).to.be.instanceOf(Uint8Array);
+        expect(util.dataURItoUint8Array('').length).to.equal(0);
+        expect(util.dataURItoUint8Array('not-a-data-uri').length).to.equal(0);
+        expect(util.dataURItoUint8Array(null).length).to.equal(0);
+        expect(util.dataURItoUint8Array(undefined).length).to.equal(0);
+
+        // Malformed percent encoding should not throw
+        const malformedDataURI = 'data:text/plain,%E0%A4';
+        expect(() => util.dataURItoUint8Array(malformedDataURI)).to.not.throw();
+        expect(util.dataURItoUint8Array(malformedDataURI)).to.be.instanceOf(Uint8Array);
+    });
 });
 
 describe('ZIM initialization', function () {
     it('Set archive as ready', function () {
         expect(localZimArchive.isReady()).to.be.true;
+    });
+
+    it('_readSplitSlice returns a Uint8Array on empty and non-empty slices', async function () {
+        const emptySlice = await localZimArchive.file._readSplitSlice(0, 0);
+        expect(emptySlice).to.be.instanceOf(Uint8Array);
+        expect(emptySlice.length).to.equal(0);
+        expect(typeof emptySlice.subarray).to.equal('function');
+
+        const nonRangeSlice = await localZimArchive.file._readSplitSlice(100000000000, 100000000000);
+        expect(nonRangeSlice).to.be.instanceOf(Uint8Array);
+        expect(nonRangeSlice.length).to.equal(0);
+
+        const regularSlice = await localZimArchive.file._readSplitSlice(0, 4);
+        expect(regularSlice).to.be.instanceOf(Uint8Array);
+        expect(regularSlice.length).to.equal(4);
     });
 });
 
@@ -314,5 +378,31 @@ describe('Zim random and main articles', function () {
 
         expect(dirEntry).to.not.be.null;
         expect(dirEntry.getTitleOrUrl()).to.equal('Summary');
+    });
+
+    it('getMainPageDirEntry returns null when archive has no main page (0xffffffff)', async function () {
+        const originalMainPage = localZimArchive.file.mainPage;
+        localZimArchive.file.mainPage = 0xffffffff;
+        try {
+            const dirEntry = await new Promise(resolve => {
+                localZimArchive.getMainPageDirEntry(resolve);
+            });
+            expect(dirEntry).to.be.null;
+        } finally {
+            localZimArchive.file.mainPage = originalMainPage;
+        }
+    });
+
+    it('getMainPageDirEntry returns null when main page index equals entryCount', async function () {
+        const originalMainPage = localZimArchive.file.mainPage;
+        localZimArchive.file.mainPage = localZimArchive.file.entryCount;
+        try {
+            const dirEntry = await new Promise(resolve => {
+                localZimArchive.getMainPageDirEntry(resolve);
+            });
+            expect(dirEntry).to.be.null;
+        } finally {
+            localZimArchive.file.mainPage = originalMainPage;
+        }
     });
 });

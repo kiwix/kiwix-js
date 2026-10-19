@@ -13,7 +13,7 @@ To get started with Kiwix JS, download a free content archive ([Usage](#usage)),
 content of Wikipedia in your language, including images and audiovisual content, offline. Ideal for users with expensive, intermittent, slow, unreliable, or censored
 internet access. You can even load ZIM archives shared on a USB stick or external hard drive. No internet? No problem!
 
-Kiwix supports all content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), including full support for [Zimit content](https://youzim.it/) (based on
+Kiwix supports all content in the [OpenZIM format](https://wiki.openzim.org/wiki/OpenZIM), including full support for [Zimit content](https://zimit.kiwix.org/) (based on
 the Web Archive format), both Zimit Classic and Zimit v2.0. Note: Some content requires your browser to support Service Workers.
 
 [![Build Status: Continuous Integration](https://github.com/kiwix/kiwix-js/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/kiwix/kiwix-js/actions?query=branch%3Amain)
@@ -38,7 +38,7 @@ As mentioned above, the app requires at least one ZIM archive of offline content
 https://library.kiwix.org (this has a nice, graphical interface and a preview of each ZIM archive) or from https://download.kiwix.org/zim/ (a more basic list of archives).
 You have to download these separately, store them in your filesystem, and manually select them after starting the application (or you can drag-and-drop one into the app).
 
-**Zimit-based archives** (available from the "zimit" directory on https://download.kiwix.org/zim/, or made yourself with [youzim.it](https://youzim.it/)), are
+**Zimit-based archives** (available from the "zimit" directory on https://download.kiwix.org/zim/, or made yourself with [zimit.kiwix.org](https://zimit.kiwix.org/)), are
 fully compatible with this reader. For the best experience, you will need a modern browser and to allow the app to *run in [ServiceWorker mode](#some-technical-details) as an offline-first PWA*
 ([see below](#some-technical-details) for an explanation of what this means). If the app is running in any other mode, then only static content will be
 viewable (if at all). Our sister app https://pwa.kiwix.org has some further support for Zimit archives in older browsers.

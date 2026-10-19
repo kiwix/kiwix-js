@@ -201,12 +201,6 @@ function getCacheNames(callback) {
 
 // Deregisters all Service Workers and reboots the app
 function _reloadApp() {
-    var reboot = function () {
-        console.debug('Performing app reload...');
-        setTimeout(function () {
-            window.location.href = location.origin + location.pathname + uriParams
-        }, 300);
-    };
     // Blank the querystring, so that parameters are not set on reload
     var uriParams = '';
     if (~window.location.href.indexOf(params.PWAServer) && params.referrerExtensionURL) {
@@ -215,26 +209,37 @@ function _reloadApp() {
         uriParams = '?allowInternetAccess=true&contentInjectionMode=serviceworker';
         uriParams += '&referrerExtensionURL=' + encodeURIComponent(params.referrerExtensionURL);
     }
+    var rebooted = false;
+    var reboot = function () {
+        if (rebooted) return;
+        rebooted = true;
+        console.debug('Performing app reload...');
+        setTimeout(function () {
+            window.location.href = location.origin + location.pathname + uriParams;
+        }, 300);
+    };
     if (navigator && navigator.serviceWorker) {
+        // Fallback timer in case getRegistrations() or unregister() hangs
+        setTimeout(function () {
+            if (!rebooted) {
+                console.warn('Service Worker deregistration timed out, forcing app reload...');
+                reboot();
+            }
+        }, 3000);
         console.debug('Deregistering Service Workers...');
-        var cnt = 0;
         navigator.serviceWorker.getRegistrations().then(function (registrations) {
             if (!registrations.length) {
                 reboot();
                 return;
             }
-            cnt++;
-            registrations.forEach(function (registration) {
-                registration.unregister().then(function () {
-                    cnt--;
-                    if (!cnt) {
-                        console.debug('All Service Workers unregistered...');
-                        reboot();
-                    }
-                }).catch(function (err) {
+            var unregisterPromises = registrations.map(function (registration) {
+                return registration.unregister().catch(function (err) {
                     console.error(err);
-                    reboot();
                 });
+            });
+            Promise.all(unregisterPromises).then(function (results) {
+                console.debug('Deregistered ' + results.filter(Boolean).length + ' of ' + registrations.length + ' Service Worker registration(s)...');
+                reboot();
             });
         }).catch(function (err) {
             console.error(err);
