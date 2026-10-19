@@ -3745,14 +3745,15 @@ function setLandingPageRequest (restored) {
 
 /**
  * Marks a ServiceWorker request for the landing page as a landing page load, unless it comes from another window or tab, which loads nothing
- * into the app's iframe. Such a request is a top-level navigation (destination 'document'). We cannot instead require requestingFrameType to
- * be 'nested', because Firefox does not report the requesting client of a navigation, and classic Zimit pages are requested by the Replay
- * worker without a fetch event, so in both cases requestingFrameType is 'unknown' even for the app's own iframe
+ * into the app's iframe. Such a request is a top-level navigation (destination 'document'). We cannot use requestingFrameType for this: Firefox
+ * does not report the requesting client of a navigation, and classic Zimit pages are requested by the Replay worker without a fetch event, so
+ * both report 'unknown' even for the app's own iframe, while Edge Legacy reports the client that started the navigation, which is the app's own
+ * top-level window when it navigates the iframe (e.g. history.back() for Back)
  * @param {String} path The namespace and URL of the requested article
- * @param {Object} data The data of the ServiceWorker's message, including requestingFrameType and requestDestination
+ * @param {Object} data The data of the ServiceWorker's message, including requestDestination
  */
 function flagLandingPageRequest (path, data) {
-    if (data.requestingFrameType === 'top-level' || data.requestDestination === 'document') return;
+    if (data.requestDestination === 'document') return;
     if (isLandingPagePath(path)) setLandingPageRequest(true);
 }
 

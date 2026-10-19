@@ -264,7 +264,8 @@ function runTests (driver, modes, keepDriver) {
                             appWindow = await driver.getWindowHandle();
                             await driver.switchTo().newWindow('tab');
                         } catch (e) {
-                            if (e.name !== 'UnsupportedOperationError') throw e;
+                            // Old drivers report missing window commands in different ways (Chrome 60 and Edge Legacy)
+                            if (!/^(UnsupportedOperation|UnknownCommand)Error$/.test(e.name)) throw e;
                             appWindow = null;
                         }
                     }
