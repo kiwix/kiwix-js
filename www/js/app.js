@@ -236,29 +236,49 @@ var btnSearchImagesView = document.getElementById('btnSearchImagesView');
 var articleListDiv = document.getElementById('articleList');
 var imageGalleryContainer = document.getElementById('imageGalleryContainer');
 
-function setSearchView (view) {
-    if (currentSearchView === view) return;
-    currentSearchView = view;
+function updateSearchAndGalleryVisibility (options) {
+    options = options || {};
+    var articleListWithHeader = document.getElementById('articleListWithHeader');
     var articleContent = document.getElementById('articleContent');
+    var showResults = options.showResults !== undefined ? options.showResults : (articleListWithHeader && articleListWithHeader.style.display !== 'none');
+    var view = options.view || currentSearchView;
+
+    if (!showResults) {
+        if (articleListWithHeader) articleListWithHeader.style.display = 'none';
+        if (articleContent) articleContent.style.visibility = '';
+        return;
+    }
+
+    if (articleListWithHeader) articleListWithHeader.style.display = '';
+
     if (view === 'images') {
         if (btnSearchImagesView) btnSearchImagesView.classList.add('active');
         if (btnSearchArticlesView) btnSearchArticlesView.classList.remove('active');
         if (articleListDiv) articleListDiv.style.display = 'none';
         if (imageGalleryContainer) imageGalleryContainer.style.display = '';
         if (articleContent) articleContent.style.visibility = 'hidden';
-        if (lastSearchDirEntryArray && lastSearchDirEntryArray.length) {
-            imageGallery.loadImagesForSearch(lastSearchDirEntryArray, appstate.search, {
-                archive: selectedArchive,
-                zimType: selectedArchive ? selectedArchive.zimType : '',
-                fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
-            });
-        }
     } else {
         if (btnSearchArticlesView) btnSearchArticlesView.classList.add('active');
         if (btnSearchImagesView) btnSearchImagesView.classList.remove('active');
         if (imageGalleryContainer) imageGalleryContainer.style.display = 'none';
         if (articleListDiv) articleListDiv.style.display = '';
         if (articleContent) articleContent.style.visibility = '';
+    }
+}
+
+function setSearchView (view) {
+    if (currentSearchView === view) return;
+    currentSearchView = view;
+    if (view === 'articles') {
+        imageGallery.cancel();
+    }
+    updateSearchAndGalleryVisibility({ view: view, showResults: true });
+    if (view === 'images' && lastSearchDirEntryArray && lastSearchDirEntryArray.length) {
+        imageGallery.loadImagesForSearch(lastSearchDirEntryArray, appstate.search, {
+            archive: selectedArchive,
+            zimType: selectedArchive ? selectedArchive.zimType : '',
+            fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
+        });
     }
 }
 
@@ -295,10 +315,8 @@ imageGallery.init({
     loadMoreContainer: document.getElementById('imageGalleryLoadMore'),
     loadMoreBtn: btnImageGalleryLoadMore,
     onSelectArticle: function (dirEntryOrId) {
-        var articleContent = document.getElementById('articleContent');
-        if (articleContent) articleContent.style.visibility = '';
-        var articleListWithHeader = document.getElementById('articleListWithHeader');
-        if (articleListWithHeader) articleListWithHeader.style.display = 'none';
+        imageGallery.cleanup();
+        updateSearchAndGalleryVisibility({ showResults: false });
         var id = typeof dirEntryOrId === 'string' ? dirEntryOrId : dirEntryOrId.toStringId();
         findDirEntryFromDirEntryIdAndLaunchArticleRead(id);
     },
@@ -371,11 +389,14 @@ prefixElement.addEventListener('keydown', function (e) {
         // Hide the article list
         e.preventDefault();
         e.stopPropagation();
-        imageGallery.cancel();
-        document.getElementById('articleListWithHeader').style.display = 'none';
+        imageGallery.cleanup();
+        if (appstate.search) {
+            appstate.search.status = 'cancelled';
+            appstate.search.prefix = '';
+        }
+        updateSearchAndGalleryVisibility({ showResults: false });
         var articleContent = document.getElementById('articleContent');
         if (articleContent) {
-            articleContent.style.visibility = '';
             articleContent.focus();
         }
         keyPressHandled = true;
@@ -445,14 +466,10 @@ prefixElement.addEventListener('keyup', function (e) {
 // Reset gallery and restore article view if prefix input is cleared
 prefixElement.addEventListener('input', function () {
     if (!this.value) {
-        imageGallery.cancel();
-        imageGallery.reset();
+        imageGallery.cleanup();
         var searchViewToggle = document.getElementById('searchViewToggle');
         if (searchViewToggle) searchViewToggle.style.display = 'none';
-        var articleListWithHeader = document.getElementById('articleListWithHeader');
-        if (articleListWithHeader) articleListWithHeader.style.display = 'none';
-        var articleContent = document.getElementById('articleContent');
-        if (articleContent) articleContent.style.visibility = '';
+        updateSearchAndGalleryVisibility({ showResults: false });
     }
 });
 // Restore the search results if user goes back into prefix field
@@ -461,23 +478,21 @@ prefixElement.addEventListener('focus', function () {
         region.style.overflowY = 'auto';
         const footerHeight = document.getElementById('footer').getBoundingClientRect().height;
         region.style.height = window.innerHeight - footerHeight + 'px';
-        document.getElementById('articleListWithHeader').style.display = '';
+        updateSearchAndGalleryVisibility({ showResults: true });
     }
 });
 // Hide the search results if user moves out of prefix field
 prefixElement.addEventListener('blur', function () {
-    if (currentSearchView === 'images') {
-        return;
-    }
     if (!searchArticlesFocused) {
         imageGallery.cancel();
-        appstate.search.status = 'cancelled';
+        if (appstate.search) {
+            appstate.search.status = 'cancelled';
+            appstate.search.prefix = '';
+        }
         region.style.overflowY = 'hidden';
         region.style.height = 'auto';
         uiUtil.spinnerDisplay(false);
-        document.getElementById('articleListWithHeader').style.display = 'none';
-        var articleContent = document.getElementById('articleContent');
-        if (articleContent) articleContent.style.visibility = '';
+        updateSearchAndGalleryVisibility({ showResults: false });
     }
 });
 document.getElementById('btnRandomArticle').addEventListener('click', function (event) {
@@ -486,12 +501,10 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
     imageGallery.reset();
     var searchViewToggle = document.getElementById('searchViewToggle');
     if (searchViewToggle) searchViewToggle.style.display = 'none';
-    var articleContent = document.getElementById('articleContent');
-    if (articleContent) articleContent.style.visibility = '';
+    updateSearchAndGalleryVisibility({ showResults: false });
     document.getElementById('prefix').value = '';
     goToRandomArticle();
     document.getElementById('welcomeText').style.display = 'none';
-    document.getElementById('articleListWithHeader').style.display = 'none';
     uiUtil.toggleNavbar(false);
 });
 
@@ -561,12 +574,11 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     var searchViewToggle = document.getElementById('searchViewToggle');
     if (searchViewToggle) searchViewToggle.style.display = 'none';
     uiUtil.spinnerDisplay(false);
-    // document.getElementById('articleContent').style.display = 'none';
+    updateSearchAndGalleryVisibility({ showResults: false });
     // Empty and purge the article contents
     var articleContent = document.getElementById('articleContent');
-    if (articleContent) articleContent.style.visibility = '';
     var articleContentDoc = articleContent ? articleContent.contentDocument : null;
-    while (articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
+    while (articleContentDoc && articleContentDoc.firstChild) articleContentDoc.removeChild(articleContentDoc.firstChild);
     if (selectedArchive && selectedArchive.isReady()) {
         document.getElementById('welcomeText').style.display = 'none';
         goToMainArticle();
@@ -1683,7 +1695,8 @@ window.onpopstate = function (event) {
         uiUtil.spinnerDisplay(false);
         uiUtil.toggleNavbar(false);
         document.getElementById('configuration').style.display = 'none';
-        document.getElementById('articleListWithHeader').style.display = 'none';
+        imageGallery.cleanup();
+        updateSearchAndGalleryVisibility({ showResults: false });
         // Replacing $('#articleContent').contents().empty();
         var articleContent = document.getElementById('articleContent');
         while (articleContent.firstChild) {
@@ -2359,17 +2372,13 @@ function onKeyUpPrefix () {
     }
     window.timeoutKeyUpPrefix = window.setTimeout(function () {
         var prefix = document.getElementById('prefix').value;
-        if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
+        if (prefix && prefix.length > 0 && (prefix !== appstate.search.prefix || (appstate.search && appstate.search.status === 'cancelled'))) {
             document.getElementById('searchArticles').click();
         } else if (!prefix) {
-            imageGallery.cancel();
-            imageGallery.reset();
+            imageGallery.cleanup();
             var searchViewToggle = document.getElementById('searchViewToggle');
             if (searchViewToggle) searchViewToggle.style.display = 'none';
-            var articleListWithHeader = document.getElementById('articleListWithHeader');
-            if (articleListWithHeader) articleListWithHeader.style.display = 'none';
-            var articleContent = document.getElementById('articleContent');
-            if (articleContent) articleContent.style.visibility = '';
+            updateSearchAndGalleryVisibility({ showResults: false });
         }
     }, 500);
 }
@@ -2386,8 +2395,7 @@ function searchDirEntriesFromPrefix (prefix) {
             imageGallery.reset();
             var searchViewToggle = document.getElementById('searchViewToggle');
             if (searchViewToggle) searchViewToggle.style.display = 'none';
-            var articleContent = document.getElementById('articleContent');
-            if (articleContent) articleContent.style.visibility = '';
+            updateSearchAndGalleryVisibility({ showResults: false });
         }
         // Cancel the old search (zimArchive search object will receive this change)
         appstate.search.status = 'cancelled';
@@ -2474,25 +2482,16 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         searchViewToggle.style.display = (dirEntryArray && dirEntryArray.length) ? '' : 'none';
     }
 
-    var galleryContainer = document.getElementById('imageGalleryContainer');
-    var articleContent = document.getElementById('articleContent');
+    updateSearchAndGalleryVisibility({ view: currentSearchView, showResults: true });
     if (currentSearchView === 'images') {
-        articleListDiv.style.display = 'none';
-        if (galleryContainer) galleryContainer.style.display = '';
-        if (articleContent) articleContent.style.visibility = 'hidden';
         imageGallery.loadImagesForSearch(dirEntryArray, reportingSearch, {
             archive: selectedArchive,
             zimType: selectedArchive ? selectedArchive.zimType : '',
             fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
         });
-    } else {
-        articleListDiv.style.display = '';
-        if (galleryContainer) galleryContainer.style.display = 'none';
-        if (articleContent) articleContent.style.visibility = '';
     }
 
     if (!stillSearching) uiUtil.spinnerDisplay(false);
-    document.getElementById('articleListWithHeader').style.display = '';
 }
 
 /**
@@ -2545,8 +2544,7 @@ function readArticle (dirEntry) {
     }
 
     imageGallery.cleanup();
-    var articleContent = document.getElementById('articleContent');
-    if (articleContent) articleContent.style.visibility = '';
+    updateSearchAndGalleryVisibility({ showResults: false });
 
     // Reset search prefix to allow users to search the same string again if they want to
     appstate.search.prefix = '';
@@ -2677,8 +2675,7 @@ function filterClickEvent (event) {
         return;
     }
     // Remove any Kiwix Popovers that may be hanging around
-    var doc = event && event.target ? (event.target.ownerDocument || event.target) : null;
-    if (doc && doc.querySelectorAll) popovers.removeKiwixPopoverDivs(doc);
+    popovers.removeKiwixPopoverDivs(event.target.ownerDocument);
     if (params.contentInjectionMode === 'jquery' || !params.openExternalLinksInNewTabs && !clickedAnchor.newcontainer) return;
     if (clickedAnchor) {
         // This prevents any popover from being displayed when the user clicks on a link
@@ -2787,7 +2784,7 @@ function articleLoadedSW (iframeArticleContent) {
             var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
             while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
             while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-            document.getElementById('articleListWithHeader').style.display = 'none';
+            updateSearchAndGalleryVisibility({ showResults: false });
             document.getElementById('prefix').value = '';
         };
     }
@@ -3306,7 +3303,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         var articleListHeaderMessage = document.getElementById('articleListHeaderMessage');
         while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
-        document.getElementById('articleListWithHeader').style.display = 'none';
+        updateSearchAndGalleryVisibility({ showResults: false });
         document.getElementById('prefix').value = '';
 
         var iframeContentDocument = iframeArticleContent.contentDocument;

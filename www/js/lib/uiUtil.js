@@ -598,7 +598,7 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, 
     }
 
     // Decode WebP data if the browser does not support WebP and the mimeType is webp
-    if (webpMachine && /image\/webp/i.test(mimeType)) {
+    if (typeof webpMachine !== 'undefined' && webpMachine && /image\/webp/i.test(mimeType)) {
         // If we're dealing with a dataURI, first convert to Uint8Array
         if (/^data:/i.test(content)) {
             content = util.dataURItoUint8Array(content);
@@ -611,7 +611,7 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, 
             return webpMachine.decodeToCanvas(canvas, content);
         }).then(function () {
             if (!checkCancelled()) {
-                if (params.useCanvasElementsForWebpTranscoding) {
+                if (typeof params !== 'undefined' && params.useCanvasElementsForWebpTranscoding) {
                     // Replace images by canvas. This is necessary for some browsers with obsolete anti-fingerprinting protection, like IceCat 60.7
                     webpMachine.constructor.replaceImageWithCanvas(node, canvas);
                 } else {
@@ -625,13 +625,15 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, 
             if (callback) callback();
         });
     } else {
-        if (callback) callback(); // Calling back as soon as possible speeds up extraction
         // In browsers that support WebP natively, or for non-WebP images, we can simply convert the Uint8Array to a data URI
         getDataUriFromUint8Array(content, mimeType).then(function (dataUri) {
-            if (checkCancelled()) return;
-            node.setAttribute(nodeAttribute, dataUri);
+            if (!checkCancelled()) {
+                node.setAttribute(nodeAttribute, dataUri);
+            }
+            if (callback) callback();
         }).catch(function (err) {
             console.error('There was an error converting Uint8Array to data URI', err);
+            if (callback) callback();
         });
     }
 }
@@ -647,15 +649,21 @@ function getDataUriFromUint8Array (content, mimeType) {
     // See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
     // This native browser method is very fast: see https://stackoverflow.com/a/66046176/9727685
     return new Promise((resolve, reject) => {
-        var myReader = new FileReader();
-        myReader.onloadend = function () {
-            var url = myReader.result;
-            resolve(url);
-        };
-        myReader.onerror = function (err) {
-            reject(err);
-        };
-        myReader.readAsDataURL(new Blob([content], { type: mimeType }));
+        var FileReaderClass = typeof FileReader !== 'undefined' ? FileReader : (typeof window !== 'undefined' ? window.FileReader : null);
+        var BlobClass = (typeof window !== 'undefined' && window.Blob) ? window.Blob : (typeof Blob !== 'undefined' ? Blob : null);
+        if (FileReaderClass && BlobClass) {
+            var myReader = new FileReaderClass();
+            myReader.onloadend = function () {
+                var url = myReader.result;
+                resolve(url);
+            };
+            myReader.onerror = function (err) {
+                reject(err);
+            };
+            myReader.readAsDataURL(new BlobClass([content], { type: mimeType }));
+        } else {
+            resolve('');
+        }
     });
 }
 
@@ -769,7 +777,7 @@ var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\
 // A regex to find the Zimit prefix in a Zimit-based article
 var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
 // A regex to find and help transform assets in an article in a Zimit-based archive
-var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>"'\s<\\](?!\4|\?|#))*[^>"'\s<\\])((?:\?[^>"'\s\\]*)?(?:#[^>"'\s\\]*)?\4[^>]*>)/ig;
+var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
 
 /**
  * Resolves a relative image or asset URL to a ZIM URL given a base URL and archive parameters.
@@ -787,10 +795,39 @@ function resolveImageUrl (relUrl, baseUrl, options) {
         var indexRoot = options.indexRoot;
         if (typeof indexRoot !== 'string') {
             var fileName = options.fileName || (options.archive && options.archive.file && options.archive.file.name) || (options.archive && options.archive.name) || '';
-            var pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
-            indexRoot = pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/';
+            if (fileName) {
+                var pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+                indexRoot = pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/';
+            } else {
+                indexRoot = '';
+            }
         }
-        return relUrl.replace(indexRoot, '');
+        var url = (indexRoot && indexRoot !== '/') ? relUrl.replace(indexRoot, '') : relUrl;
+        // If already resolved to a canonical ZIM entry path (e.g. C/A/..., A/..., C/...), return directly
+        if (/^[A-Z]\//.test(url)) {
+            return url;
+        }
+        var dirEntry = options.dirEntry;
+        var dirNamespace = (dirEntry && dirEntry.namespace) || (baseUrl && baseUrl.replace(/\/.*$/, '')) || 'C';
+        // Handle protocol-relative // or absolute http(s)://
+        if (/^(?:https?:)?\/\//i.test(url)) {
+            return url.replace(/^(?:https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
+        }
+        // Handle root-relative /
+        if (/^\/(?!\/)/.test(url)) {
+            var zimitPrefix = options.zimitPrefix || (options.archive && options.archive.zimitPrefix) || '';
+            if (!zimitPrefix && baseUrl) {
+                var prefixMatch = baseUrl.match(/^(?:[A-Z]\/)?(?:A\/)?([^/]+)/);
+                if (prefixMatch) zimitPrefix = prefixMatch[1];
+            }
+            var prefix = dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : '') + (zimitPrefix ? zimitPrefix + '/' : '');
+            return (prefix + url.replace(/^\/+/, '')).replace(/\/+/g, '/');
+        }
+        // Handle relative URLs
+        if (baseUrl) {
+            return encodeURI(deriveZimUrlFromRelativeUrl(url, baseUrl));
+        }
+        return url;
     }
     return encodeURI(deriveZimUrlFromRelativeUrl(relUrl, baseUrl));
 }
@@ -846,29 +883,23 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
         var dirNamespace = (dirEntry && dirEntry.namespace) || '';
         zimitPrefix = (dirNamespace === 'C' ? 'A/' : '') + zimitPrefix;
 
-        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, attrName, equals, quote, relAssetUrl, blockClose) {
+        // eslint-disable-next-line no-unused-vars
+        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
+            // If the tag already possesses data-kiwixurl, do not re-process it
+            if (/\bdata-kiwixurl\s*=/i.test(match)) return match;
+            var newBlock = match;
             var assetUrl = relAssetUrl;
-            // Filter analytics resources to prevent stall and collapse vulnerabilities
-            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) {
-                return '<!-- analytics removed -->';
-            }
-            // Validate that the URL does not contain dangerous characters or script tags
-            if (/[<>"'\s\\`]/.test(relAssetUrl) || /<script/i.test(relAssetUrl)) {
-                return match;
-            }
+            // Remove google analytics and other analytics files that cause stall
+            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
             // For root-relative links, we need to add the zimitPrefix
             assetUrl = assetUrl.replace(/^\/(?!\/)/, dirNamespace + '/' + zimitPrefix + '/');
             // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
             assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
             // For fully relative links, we have to remove any '..' if we are in root directory
             if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirNamespace + '/' + zimitPrefix + '/');
-            // Ensure rewritten assetUrl contains no unencoded quotes or HTML delimiters
-            if (/[<>"'\s\\`]/.test(assetUrl) || /<script/i.test(assetUrl)) {
-                return match;
-            }
-            return blockStart + attrName + equals + assetUrl + blockClose;
+            newBlock = newBlock.replace(relAssetUrl, assetUrl);
+            return newBlock;
         });
-        htmlArticle = htmlArticle.replace(/<!-- analytics removed --><\/script>/g, '<!-- analytics removed -->');
 
         // Deal with image srcsets
         htmlArticle = htmlArticle.replace(/<img\b[^>]+srcset=["']([^"']+)/ig, function (match, srcset) {
@@ -890,8 +921,8 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
     // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
     // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
     htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring, blockClose) {
-        // Don't process data URIs (yet)
-        if (/data:image/i.test(relAssetUrl)) return match;
+        // Don't process data URIs (yet) and don't re-transform tags that already have data-kiwixurl
+        if (/data:image/i.test(relAssetUrl) || /\bdata-kiwixurl\s*=/i.test(match)) return match;
         // We need to save the query string if any for Zimit-style archives
         querystring = querystring || '';
         var assetZIMUrlEnc = resolveImageUrl(relAssetUrl, baseUrl, {

@@ -10,49 +10,18 @@
 
 'use strict';
 
-/* global params, webpMachine */
-
 import uiUtil from './uiUtil.js';
 import translateUI from './translateUI.js';
 
 /**
- * Strips HTML tags and normalizes entities to produce safe plain text for captions.
+ * Tidies whitespace for captions extracted from the DOM.
  *
- * @param {String} rawText HTML or text string
+ * @param {String} rawText Extracted text string
  * @returns {String} Normalized plain text
  */
 function cleanCaption (rawText) {
     if (!rawText || typeof rawText !== 'string') return '';
-    // Replace block-level end tags and linebreaks with spaces
-    var text = rawText.replace(/(?:<\/(?:p|div|li|tr|figure|figcaption)>|<br\b[^>]*>)/gi, ' ');
-    // Strip all remaining inline HTML tags, repeating to handle nested or malformed tags
-    // Bounded with explicit termination checks to guarantee completion
-    var prev = '';
-    var passes = 0;
-    while (text !== prev && passes < 10) {
-        prev = text;
-        text = text.replace(/<[a-zA-Z/!?][^<>]*>/g, '');
-        passes++;
-    }
-    // Remove any unclosed tag-like prefix or suffix (e.g. <script without matching >)
-    text = text.replace(/<[a-z/][^>]*$/gi, '');
-    // Replace non-breaking spaces and entity codes in a single pass to prevent double unescaping
-    var entityMap = {
-        '&nbsp;': ' ',
-        '&lt;': '<',
-        '&gt;': '>',
-        '&quot;': '"',
-        '&#39;': "'",
-        '&amp;': '&'
-    };
-    text = text.replace(/&(?:nbsp|amp|lt|gt|quot|#39);/g, function (entity) {
-        return entityMap[entity] || entity;
-    });
-    // Remove space before punctuation introduced by tag stripping
-    text = text.replace(/\s+([.,;:!?])/g, '$1');
-    // Collapse whitespace
-    text = text.replace(/\s+/g, ' ').trim();
-    return text;
+    return rawText.replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -133,6 +102,19 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
     }
     baseUrl = baseUrl || '';
 
+    // Ensure asset URLs are transformed according to archive type (Zimit1/Zimit2/standard).
+    // transformArticleHtmlForRestrictedMode safely handles standard ZIM, classic Zimit 1,
+    // Zimit 2, mixed HTML, and is idempotent for already-transformed tags.
+    htmlArticle = uiUtil.transformArticleHtmlForRestrictedMode(htmlArticle, {
+        dirEntry: dirEntry,
+        baseUrl: baseUrl,
+        archive: options.archive,
+        zimType: options.zimType || (options.archive && options.archive.zimType),
+        zimitPrefix: options.zimitPrefix || (options.archive && options.archive.zimitPrefix),
+        fileName: options.fileName || (options.archive && options.archive.file && options.archive.file.name),
+        indexRoot: options.indexRoot
+    });
+
     var articleTitle = (dirEntry && (dirEntry.title || (typeof dirEntry.getTitleOrUrl === 'function' && dirEntry.getTitleOrUrl()))) || '';
     var articleUrl = (dirEntry && dirEntry.url) || '';
     var extracted = [];
@@ -149,7 +131,7 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
 
             for (var i = 0; i < imgElements.length; i++) {
                 var imgNode = imgElements[i];
-                var rawSrc = imgNode.getAttribute('src') || imgNode.getAttribute('data-kiwixurl') || '';
+                var rawSrc = imgNode.getAttribute('data-kiwixurl') || imgNode.getAttribute('src') || '';
                 if (!rawSrc) continue;
 
                 var className = imgNode.className || '';
@@ -169,7 +151,7 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
                 }
 
                 // Resolve image URL against explicit baseUrl without touching global state
-                var resolvedUrl = uiUtil.resolveImageUrl(rawSrc, baseUrl, options);
+                var resolvedUrl = imgNode.getAttribute('data-kiwixurl') || uiUtil.resolveImageUrl(rawSrc, baseUrl, options);
                 if (!resolvedUrl || seenUrlsInArticle.has(resolvedUrl)) {
                     continue;
                 }
@@ -217,69 +199,11 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
             return extracted;
         // eslint-disable-next-line no-unused-vars
         } catch (e) {
-            // Fall back to regex parsing if DOMParser throws
+            return [];
         }
     }
 
-    // Fallback regex parsing (for environments without DOMParser)
-    var imgRegex = /<img\b([^>]*?)>/gi;
-    var match;
-    while ((match = imgRegex.exec(htmlArticle)) !== null) {
-        var tagAttrs = match[1];
-        var srcMatch = tagAttrs.match(/(?:src|data-kiwixurl)\s*=\s*(["'])(.+?)\1/i);
-        if (!srcMatch) continue;
-        var src = srcMatch[2];
-
-        var classMatch = tagAttrs.match(/class\s*=\s*(["'])(.+?)\1/i);
-        var cls = classMatch ? classMatch[2] : '';
-
-        var altMatch = tagAttrs.match(/alt\s*=\s*(["'])(.+?)\1/i);
-        var altText = altMatch ? altMatch[2] : '';
-
-        var titleMatch = tagAttrs.match(/title\s*=\s*(["'])(.+?)\1/i);
-        var titleText = titleMatch ? titleMatch[2] : '';
-
-        var widthMatch = tagAttrs.match(/width\s*=\s*(["']?)(\d+)\1?/i);
-        var w = widthMatch ? widthMatch[2] : '';
-
-        var heightMatch = tagAttrs.match(/height\s*=\s*(["']?)(\d+)\1?/i);
-        var h = heightMatch ? heightMatch[2] : '';
-
-        if (!filterJunkImage({
-            src: src,
-            className: cls,
-            alt: altText,
-            width: w,
-            height: h
-        })) {
-            continue;
-        }
-
-        var resolved = uiUtil.resolveImageUrl(src, baseUrl, options);
-        if (!resolved || seenUrlsInArticle.has(resolved)) {
-            continue;
-        }
-        seenUrlsInArticle.add(resolved);
-
-        var cap = '';
-        if (altText && !/\.(?:jpe?g|png|gif|svg|webp)$/i.test(altText.trim())) {
-            cap = cleanCaption(altText);
-        } else if (titleText) {
-            cap = cleanCaption(titleText);
-        }
-
-        extracted.push({
-            url: resolved,
-            rawSrc: src,
-            caption: cap,
-            alt: cleanCaption(altText),
-            dirEntry: dirEntry,
-            articleTitle: articleTitle,
-            articleUrl: articleUrl
-        });
-    }
-
-    return extracted;
+    return [];
 }
 
 /**
@@ -287,6 +211,7 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
  * cancellation, and rendering pipeline.
  */
 var imageGallery = {
+    activeSearch: null,
     searchId: 0,
     searchPrefix: '',
     isExtracting: false,
@@ -295,8 +220,8 @@ var imageGallery = {
     processedDirEntries: new Set(),
     seenImageUrls: new Set(),
     pendingDirEntries: [],
+    pendingImages: [],
     renderedImageCount: 0,
-    galleryBlobUrls: [],
 
     container: null,
     grid: null,
@@ -309,7 +234,8 @@ var imageGallery = {
     getAppstate: null,
     options: {},
 
-    BATCH_SIZE: 10,
+    TARGET_BATCH_IMAGES: 15,
+    BATCH_SIZE: 15,
 
     /**
      * Initialize gallery UI bindings and callbacks.
@@ -328,6 +254,9 @@ var imageGallery = {
 
         var that = this;
         if (this.loadMoreBtn) {
+            this.loadMoreBtn.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+            });
             this.loadMoreBtn.addEventListener('click', function () {
                 that.loadMore();
             });
@@ -335,19 +264,40 @@ var imageGallery = {
     },
 
     /**
-     * Resets all search and gallery state and revokes any gallery-owned blob URLs.
+     * Checks whether processing for the given search object (or active search) is cancelled.
+     */
+    isCancelled: function (searchObj) {
+        if (this.cancelled) return true;
+        var search = searchObj || this.activeSearch;
+        if (!search) return true;
+        if (search.status === 'cancelled') return true;
+        if (this.activeSearch && search !== this.activeSearch) return true;
+        if (typeof this.getAppstate === 'function') {
+            var appstate = this.getAppstate();
+            if (appstate && appstate.search) {
+                if (appstate.search !== search || appstate.search.status === 'cancelled') {
+                    return true;
+                }
+            }
+        }
+        return false;
+    },
+
+    /**
+     * Resets all search and gallery state.
      */
     reset: function () {
         this.cancel();
+        this.cancelled = false;
         this.searchId++;
         this.searchPrefix = '';
+        this.activeSearch = null;
         this.isExtracting = false;
-        this.cancelled = false;
         this.processedDirEntries = new Set();
         this.seenImageUrls = new Set();
         this.pendingDirEntries = [];
+        this.pendingImages = [];
         this.renderedImageCount = 0;
-        this.revokeGalleryBlobUrls();
 
         if (this.grid) {
             this.grid.innerHTML = '';
@@ -367,26 +317,13 @@ var imageGallery = {
     cancel: function () {
         this.cancelled = true;
         this.searchId++;
-        this.isExtracting = false;
-    },
-
-    /**
-     * Revokes only blob URLs created and owned by the gallery.
-     */
-    revokeGalleryBlobUrls: function () {
-        if (this.galleryBlobUrls && this.galleryBlobUrls.length) {
-            for (var i = 0; i < this.galleryBlobUrls.length; i++) {
-                try {
-                    if (typeof window !== 'undefined' && window.URL && typeof window.URL.revokeObjectURL === 'function') {
-                        window.URL.revokeObjectURL(this.galleryBlobUrls[i]);
-                    }
-                // eslint-disable-next-line no-unused-vars
-                } catch (e) {
-                    // Ignore errors during revocation
-                }
-            }
-            this.galleryBlobUrls = [];
+        if (this.activeSearch && typeof this.activeSearch === 'object') {
+            this.activeSearch.status = 'cancelled';
         }
+        this.activeSearch = null;
+        this.pendingImages = [];
+        this.pendingDirEntries = [];
+        this.isExtracting = false;
     },
 
     /**
@@ -394,7 +331,6 @@ var imageGallery = {
      */
     cleanup: function () {
         this.cancel();
-        this.revokeGalleryBlobUrls();
     },
 
     /**
@@ -402,23 +338,30 @@ var imageGallery = {
      * Avoids duplicate processing across interim and final search callbacks.
      */
     loadImagesForSearch: function (dirEntryArray, reportingSearch, options) {
-        if (!dirEntryArray || !reportingSearch) return;
+        if (!dirEntryArray || !reportingSearch) return Promise.resolve();
         if (reportingSearch.status === 'cancelled') {
-            this.cancel();
-            return;
+            return Promise.resolve();
+        }
+        if (typeof this.getAppstate === 'function') {
+            var appstate = this.getAppstate();
+            if (appstate && appstate.search && (appstate.search !== reportingSearch || appstate.search.status === 'cancelled')) {
+                return Promise.resolve();
+            }
         }
 
-        var prefix = reportingSearch.prefix || '';
-        if (prefix !== this.searchPrefix) {
+        if (this.activeSearch !== reportingSearch || this.cancelled) {
             this.reset();
-            this.searchPrefix = prefix;
+            this.activeSearch = reportingSearch;
+            this.searchPrefix = reportingSearch.prefix || '';
+        } else if (this.isCancelled(reportingSearch)) {
+            return Promise.resolve();
         }
 
         this.options = options || {};
 
         var newEntries = uiUtil.filterUnprocessedDirEntries(dirEntryArray, this.processedDirEntries);
         if (!newEntries.length && this.isExtracting) {
-            return;
+            return Promise.resolve();
         }
 
         this.pendingDirEntries = this.pendingDirEntries.concat(newEntries);
@@ -430,21 +373,22 @@ var imageGallery = {
     },
 
     /**
-     * Processes pending articles in batches.
+     * Processes pending articles in batches until ~10-20 images are found or entries are exhausted.
+     * Performs sequential archive reads for both HTML and binary image files.
      */
     processQueue: function () {
-        if (this.cancelled || this.isExtracting) return Promise.resolve();
-        if (!this.pendingDirEntries.length) {
+        if (this.isExtracting || this.isCancelled()) return Promise.resolve();
+        if (!this.pendingDirEntries.length && !this.pendingImages.length) {
             this.updateStatusAndControls();
             return Promise.resolve();
         }
 
         this.isExtracting = true;
-        var currentSearchId = this.searchId;
+        var currentSearch = this.activeSearch;
         var that = this;
 
         var checkCancelled = function () {
-            return that.cancelled || currentSearchId !== that.searchId;
+            return that.isCancelled(currentSearch);
         };
 
         if (this.status && this.renderedImageCount === 0) {
@@ -452,44 +396,69 @@ var imageGallery = {
             this.status.style.display = '';
         }
 
-        var batch = this.pendingDirEntries.splice(0, this.BATCH_SIZE);
         var imagesFoundInBatch = 0;
+        var targetBatchImages = this.BATCH_IMAGE_LIMIT || (this.BATCH_SIZE !== 15 ? this.BATCH_SIZE : (this.TARGET_BATCH_IMAGES || 15));
 
-        return uiUtil.processSequentialQueue(batch, function (dirEntry, nextEntry) {
-            if (checkCancelled()) {
-                return nextEntry();
-            }
-
-            that.loadAndExtractArticle(dirEntry, that.options, checkCancelled, function (err, images) {
+        return new Promise(function (resolve) {
+            function step () {
                 if (checkCancelled()) {
-                    return nextEntry();
+                    that.isExtracting = false;
+                    resolve();
+                    return;
                 }
-                if (!err && images && images.length) {
-                    for (var i = 0; i < images.length; i++) {
-                        var imgItem = images[i];
-                        if (!that.seenImageUrls.has(imgItem.url)) {
-                            that.seenImageUrls.add(imgItem.url);
-                            that.renderImageCard(imgItem, checkCancelled);
+
+                if (imagesFoundInBatch >= targetBatchImages) {
+                    that.isExtracting = false;
+                    that.updateStatusAndControls();
+                    resolve();
+                    return;
+                }
+
+                if (that.pendingImages.length > 0) {
+                    var imgItem = that.pendingImages.shift();
+                    that.renderImageCard(imgItem, checkCancelled, function (err) {
+                        if (checkCancelled()) {
+                            that.isExtracting = false;
+                            resolve();
+                            return;
+                        }
+                        if (!err) {
                             imagesFoundInBatch++;
                             that.renderedImageCount++;
                         }
-                    }
+                        step();
+                    });
+                    return;
                 }
-                nextEntry();
-            });
-        }, {
-            isCancelled: checkCancelled,
-            onComplete: function () {
-                that.isExtracting = false;
-                if (checkCancelled()) return;
 
-                // If no images found in this batch but more articles remain, auto-process next batch
-                if (imagesFoundInBatch === 0 && that.pendingDirEntries.length > 0) {
-                    that.processQueue();
-                } else {
-                    that.updateStatusAndControls();
+                if (that.pendingDirEntries.length > 0) {
+                    var dirEntry = that.pendingDirEntries.shift();
+                    that.loadAndExtractArticle(dirEntry, that.options, checkCancelled, function (err, images) {
+                        if (checkCancelled()) {
+                            that.isExtracting = false;
+                            resolve();
+                            return;
+                        }
+                        if (!err && images && images.length) {
+                            for (var i = 0; i < images.length; i++) {
+                                var candidate = images[i];
+                                if (!that.seenImageUrls.has(candidate.url)) {
+                                    that.seenImageUrls.add(candidate.url);
+                                    that.pendingImages.push(candidate);
+                                }
+                            }
+                        }
+                        step();
+                    });
+                    return;
                 }
+
+                that.isExtracting = false;
+                that.updateStatusAndControls();
+                resolve();
             }
+
+            step();
         });
     },
 
@@ -497,7 +466,7 @@ var imageGallery = {
      * User-facing "Load more" trigger.
      */
     loadMore: function () {
-        if (this.isExtracting || !this.pendingDirEntries.length) return Promise.resolve();
+        if (this.isExtracting || this.isCancelled() || (!this.pendingDirEntries.length && !this.pendingImages.length)) return Promise.resolve();
         if (this.loadMoreContainer) {
             this.loadMoreContainer.style.display = 'none';
         }
@@ -508,9 +477,9 @@ var imageGallery = {
      * Updates visibility of "Load more" button and empty state status.
      */
     updateStatusAndControls: function () {
-        if (this.cancelled) return;
+        if (this.isCancelled()) return;
 
-        if (this.pendingDirEntries.length > 0) {
+        if (this.pendingDirEntries.length > 0 || this.pendingImages.length > 0) {
             if (this.loadMoreContainer) {
                 this.loadMoreContainer.style.display = '';
             }
@@ -536,34 +505,52 @@ var imageGallery = {
      * Reads article HTML from archive (resolving redirects if needed) and extracts images.
      */
     loadAndExtractArticle: function (dirEntry, options, checkCancelled, callback) {
+        options = options || this.options || {};
         var archive = options.archive || (this.getArchive ? this.getArchive() : null);
         if (!archive || !dirEntry) {
             return callback(new Error('Archive or DirEntry missing'));
         }
+        if (!options.archive) {
+            options = Object.assign({}, options, { archive: archive });
+        }
 
         function readEntry (entryToRead) {
             if (checkCancelled()) return callback(new Error('Cancelled'));
-            archive.readUtf8File(entryToRead, function (fileEntry, html) {
-                if (checkCancelled()) return callback(new Error('Cancelled'));
-                try {
-                    var images = extractImagesFromArticleHtml(html, entryToRead, options);
-                    callback(null, images);
-                } catch (e) {
-                    callback(e);
+            try {
+                var readPromise = archive.readUtf8File(entryToRead, function (fileEntry, html) {
+                    if (checkCancelled()) return callback(new Error('Cancelled'));
+                    try {
+                        var images = extractImagesFromArticleHtml(html, entryToRead, options);
+                        callback(null, images);
+                    } catch (e) {
+                        callback(e);
+                    }
+                });
+                if (readPromise && typeof readPromise.catch === 'function') {
+                    readPromise.catch(function (err) {
+                        callback(err);
+                    });
                 }
-            }).catch(function (err) {
+            } catch (err) {
                 callback(err);
-            });
+            }
         }
 
         if (typeof dirEntry.isRedirect === 'function' && dirEntry.isRedirect()) {
-            archive.resolveRedirect(dirEntry, function (targetEntry) {
-                if (checkCancelled()) return callback(new Error('Cancelled'));
-                if (!targetEntry) return callback(new Error('Redirect could not be resolved'));
-                readEntry(targetEntry);
-            }).catch(function (err) {
+            try {
+                var redirectPromise = archive.resolveRedirect(dirEntry, function (targetEntry) {
+                    if (checkCancelled()) return callback(new Error('Cancelled'));
+                    if (!targetEntry) return callback(new Error('Redirect could not be resolved'));
+                    readEntry(targetEntry);
+                });
+                if (redirectPromise && typeof redirectPromise.catch === 'function') {
+                    redirectPromise.catch(function (err) {
+                        callback(err);
+                    });
+                }
+            } catch (err) {
                 callback(err);
-            });
+            }
         } else {
             readEntry(dirEntry);
         }
@@ -572,9 +559,12 @@ var imageGallery = {
     /**
      * Renders a single image card safely using DOM methods and textContent.
      */
-    renderImageCard: function (imgItem, checkCancelled) {
+    renderImageCard: function (imgItem, checkCancelled, callback) {
         var that = this;
-        if (!this.grid || checkCancelled()) return;
+        if (!this.grid || checkCancelled()) {
+            if (callback) callback();
+            return;
+        }
 
         var card = document.createElement('a');
         card.href = '#';
@@ -621,41 +611,18 @@ var imageGallery = {
 
         this.grid.appendChild(card);
 
-        this.loadImageSource(img, card, imgItem.url, checkCancelled);
+        this.loadImageSource(img, card, imgItem.url, checkCancelled, callback);
     },
 
     /**
-     * Loads the image binary data or assigns SW URL based on content injection mode.
-     * Uses serialized WebP transcoding if webpMachine is active.
+     * Loads the image binary data and feeds via shared uiUtil.feedNodeWithDataURI.
+     * Uses one unified pipeline in all modes, honouring WebP transcoding and canvas configurations.
      */
     loadImageSource: function (imgNode, cardNode, resolvedUrl, checkCancelled, callback) {
-        var that = this;
         var archive = this.options.archive || (this.getArchive ? this.getArchive() : null);
-        var paramsObj = this.getParams ? this.getParams() : (typeof params !== 'undefined' ? params : {});
-        var contentMode = (paramsObj && paramsObj.contentInjectionMode) || 'jquery';
-        var isWebpMachineActive = Boolean(typeof webpMachine !== 'undefined' && webpMachine);
-
-        var isSwMode = contentMode === 'serviceworker' || contentMode === 'serviceworkerlocal';
 
         var cleanPath = (resolvedUrl || '').replace(/^\//, '').replace(/#.*$/, '');
 
-        // SW Mode: use service-worker URL unless WebP transcoding is required
-        if (isSwMode && archive && archive.file && archive.file.name && (!isWebpMachineActive || !/\.webp(?:\?.*)?$/i.test(cleanPath))) {
-            var swUrl = '../' + encodeURI(archive.file.name) + '/' + cleanPath;
-            imgNode.src = swUrl;
-            imgNode.onload = function () {
-                if (callback) callback(null);
-            };
-            imgNode.onerror = function () {
-                if (cardNode && cardNode.parentNode) {
-                    cardNode.parentNode.removeChild(cardNode);
-                }
-                if (callback) callback(new Error('Image failed to load in SW mode'));
-            };
-            return;
-        }
-
-        // Restricted Mode (or WebP with webpMachine active):
         if (!archive || typeof archive.getDirEntryByPath !== 'function') {
             if (callback) callback(new Error('No archive available'));
             return;
@@ -664,6 +631,9 @@ var imageGallery = {
         var decodedPath = decodeURIComponent(cleanPath);
         archive.getDirEntryByPath(decodedPath).then(function (entry) {
             if (checkCancelled()) {
+                if (cardNode && cardNode.parentNode) {
+                    cardNode.parentNode.removeChild(cardNode);
+                }
                 if (callback) callback(new Error('Cancelled'));
                 return;
             }
@@ -674,55 +644,34 @@ var imageGallery = {
                 if (callback) callback(new Error('Image not found in archive'));
                 return;
             }
-            archive.readBinaryFile(entry, function (fileEntry, content) {
-                if (checkCancelled()) {
-                    if (callback) callback(new Error('Cancelled'));
-                    return;
-                }
-                var mimeType = (typeof entry.getMimetype === 'function' ? entry.getMimetype() : '') || 'image/jpeg';
-
-                if (isWebpMachineActive && /image\/webp/i.test(mimeType)) {
-                    uiUtil.transcodeWebpToDataUri(content, checkCancelled).then(function (dataUri) {
-                        if (!checkCancelled()) {
-                            imgNode.src = dataUri;
-                            if (callback) callback(null);
+            try {
+                var readPromise = archive.readBinaryFile(entry, function (fileEntry, content) {
+                    if (checkCancelled()) {
+                        if (cardNode && cardNode.parentNode) {
+                            cardNode.parentNode.removeChild(cardNode);
                         }
-                    }).catch(function (err) {
+                        if (callback) callback(new Error('Cancelled'));
+                        return;
+                    }
+                    var mimeType = (typeof entry.getMimetype === 'function' ? entry.getMimetype() : '') || 'image/jpeg';
+                    uiUtil.feedNodeWithDataURI(imgNode, 'src', content, mimeType, function () {
+                        if (callback) callback(null);
+                    }, checkCancelled);
+                });
+                if (readPromise && typeof readPromise.catch === 'function') {
+                    readPromise.catch(function (err) {
+                        if (cardNode && cardNode.parentNode) {
+                            cardNode.parentNode.removeChild(cardNode);
+                        }
                         if (callback) callback(err);
                     });
-                } else {
-                    try {
-                        var blob = new Blob([content], { type: mimeType });
-                        var blobUrl = (typeof window !== 'undefined' && window.URL && typeof window.URL.createObjectURL === 'function')
-                            ? window.URL.createObjectURL(blob)
-                            : '';
-                        if (blobUrl) {
-                            that.galleryBlobUrls.push(blobUrl);
-                            if (!checkCancelled()) {
-                                imgNode.src = blobUrl;
-                                if (callback) callback(null);
-                            }
-                            return;
-                        }
-                    // eslint-disable-next-line no-unused-vars
-                    } catch (e) {
-                        // Ignore and fall through to data URI
-                    }
-
-                    if (typeof FileReader !== 'undefined') {
-                        uiUtil.getDataUriFromUint8Array(content, mimeType).then(function (dataUri) {
-                            if (!checkCancelled()) {
-                                imgNode.src = dataUri;
-                                if (callback) callback(null);
-                            }
-                        }).catch(function (err) {
-                            if (callback) callback(err);
-                        });
-                    } else if (callback) {
-                        callback(null);
-                    }
                 }
-            });
+            } catch (readErr) {
+                if (cardNode && cardNode.parentNode) {
+                    cardNode.parentNode.removeChild(cardNode);
+                }
+                if (callback) callback(readErr);
+            }
         }).catch(function (err) {
             if (cardNode && cardNode.parentNode) {
                 cardNode.parentNode.removeChild(cardNode);

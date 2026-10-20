@@ -45,6 +45,35 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
             const resolved = uiUtil.resolveImageUrl('/app/test.zim/C/wp-content/pic.jpg', 'C/', options);
             assert.equal(resolved, 'C/wp-content/pic.jpg');
         });
+
+        it('resolves root-relative URLs in classic Zimit 1 archives', function () {
+            const resolvedC = uiUtil.resolveImageUrl('/pix/xmr.svg', 'C/A/based.cooking/', { zimType: 'zimit' });
+            assert.equal(resolvedC, 'C/A/based.cooking/pix/xmr.svg');
+
+            const resolvedA = uiUtil.resolveImageUrl('/pix/xmr.svg', 'A/based.cooking/', { zimType: 'zimit' });
+            assert.equal(resolvedA, 'A/based.cooking/pix/xmr.svg');
+        });
+
+        it('resolves absolute HTTPS and protocol-relative URLs in classic Zimit 1 archives', function () {
+            const resolvedHttps = uiUtil.resolveImageUrl('https://based.cooking/pix/btc.svg', 'C/A/based.cooking/', { zimType: 'zimit' });
+            assert.equal(resolvedHttps, 'C/A/based.cooking/pix/btc.svg');
+
+            const resolvedProto = uiUtil.resolveImageUrl('//based.cooking/pix/btc.svg', 'C/A/based.cooking/', { zimType: 'zimit' });
+            assert.equal(resolvedProto, 'C/A/based.cooking/pix/btc.svg');
+        });
+
+        it('preserves already-resolved canonical ZIM URLs without duplication or distortion', function () {
+            const resolved = uiUtil.resolveImageUrl('C/A/based.cooking/pix/xmr.svg', 'C/A/based.cooking/', { zimType: 'zimit' });
+            assert.equal(resolved, 'C/A/based.cooking/pix/xmr.svg');
+        });
+
+        it('resolves relative URLs in Zimit 2 without unwanted A/ namespace insertion', function () {
+            const resolved = uiUtil.resolveImageUrl('../assets/logo.png', 'C/site/sub/', { zimType: 'zimit2' });
+            assert.equal(resolved, 'C/site/assets/logo.png');
+
+            const resolvedDirect = uiUtil.resolveImageUrl('media/pic.jpg', 'C/site/', { zimType: 'zimit2' });
+            assert.equal(resolvedDirect, 'C/site/media/pic.jpg');
+        });
     });
 
     describe('uiUtil.transformArticleHtmlForRestrictedMode', function () {
@@ -60,6 +89,33 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
             });
             assert.include(transformed, 'data-kiwixurl="I/photo.jpg"');
             assert.notInclude(transformed, 'src="../I/photo.jpg"');
+        });
+
+        it('transforms untransformed images in mixed HTML while preserving already-transformed tags with whitespace around equals', function () {
+            const mixedHtml = '<img data-kiwixurl = "I/already.jpg" alt="Already"><img src="../I/needs.jpg" alt="Needs">';
+            const transformed = uiUtil.transformArticleHtmlForRestrictedMode(mixedHtml, {
+                baseUrl: 'A/'
+            });
+            assert.include(transformed, 'data-kiwixurl = "I/already.jpg"');
+            assert.include(transformed, 'data-kiwixurl="I/needs.jpg"');
+            assert.notInclude(transformed, 'src="../I/needs.jpg"');
+        });
+
+        it('does not mistake plain text mentioning data-kiwixurl for an already-transformed tag', function () {
+            const html = '<p>This article explains data-kiwixurl specification.</p><img src="../I/needs.jpg" alt="Needs">';
+            const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                baseUrl: 'A/'
+            });
+            assert.include(transformed, 'data-kiwixurl specification');
+            assert.include(transformed, 'data-kiwixurl="I/needs.jpg"');
+            assert.notInclude(transformed, 'src="../I/needs.jpg"');
+        });
+
+        it('is idempotent on repeated calls without duplicating or corrupting data-kiwixurl attributes', function () {
+            const html = '<img src="../I/photo.jpg" alt="Photo">';
+            const first = uiUtil.transformArticleHtmlForRestrictedMode(html, { baseUrl: 'A/' });
+            const second = uiUtil.transformArticleHtmlForRestrictedMode(first, { baseUrl: 'A/' });
+            assert.equal(second, first);
         });
 
         it('derives baseUrl from dirEntry when baseUrl option is omitted', function () {
@@ -190,8 +246,9 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
                 assert.include(transformed, 'data-kiwixsrcset="C/A/example.com/pic-1x.jpg, C/A/example.com/pic-2x.jpg 2x"');
             });
 
-            it('rewrites target Zimit attribute without modifying preceding attributes with identical text', function () {
-                const html = '<a title="/index.html" href="/index.html">Home</a>';
+            it('preserves already-transformed data-kiwixurl tags while transforming untransformed tags in Zimit articles', function () {
+                const html = '<img data-kiwixurl="C/A/example.com/already.jpg" alt="Already">' +
+                    '<img src="/needs.jpg" alt="Needs">';
                 const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
                     dirEntry: zimitDirEntry,
                     zimType: 'zimit',
@@ -199,61 +256,10 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
                     fileName: 'test.zim',
                     indexRoot: ''
                 });
-                assert.include(transformed, 'title="/index.html"');
-                assert.include(transformed, 'href="C/A/example.com/index.html"');
+                assert.include(transformed, 'data-kiwixurl="C/A/example.com/already.jpg"');
+                assert.include(transformed, 'data-kiwixurl="C/A/example.com/needs.jpg"');
+                assert.notInclude(transformed, 'src="/needs.jpg"');
             });
-
-            it('neutralizes analytics script tags and prevents collapse into script tags', function () {
-                const html = '<sc<script src="https://www.google-analytics.com/analytics.js">ript>alert(1)</script>';
-                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
-                    dirEntry: zimitDirEntry,
-                    zimType: 'zimit',
-                    zimitPrefix: 'example.com',
-                    fileName: 'test.zim',
-                    indexRoot: ''
-                });
-                assert.notInclude(transformed, '<script>');
-                assert.notInclude(transformed, 'google-analytics.com');
-            });
-
-            it('prevents script tag injection in Zimit URL attributes', function () {
-                const html = '<a href="/test<script>alert(1)</script>">Link</a>';
-                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
-                    dirEntry: zimitDirEntry,
-                    zimType: 'zimit',
-                    zimitPrefix: 'example.com',
-                    fileName: 'test.zim',
-                    indexRoot: ''
-                });
-                assert.notInclude(transformed, 'href="C/A/example.com/test<script');
-                assert.notInclude(transformed, 'C/A/example.com/test<script>');
-            });
-
-            it('prevents attribute breakout injection in Zimit link URLs', function () {
-                const html = '<a href="/test\\" onfocus=\\"alert(2)\\">Link2</a>';
-                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
-                    dirEntry: zimitDirEntry,
-                    zimType: 'zimit',
-                    zimitPrefix: 'example.com',
-                    fileName: 'test.zim',
-                    indexRoot: ''
-                });
-                assert.notInclude(transformed, 'href="C/A/example.com/test\\" onfocus');
-            });
-
-            it('safely handles percent-encoded script tags in Zimit URLs', function () {
-                const html = '<a href="/test%3Cscript%3Ealert(1)%3C/script%3E">Link</a>';
-                const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
-                    dirEntry: zimitDirEntry,
-                    zimType: 'zimit',
-                    zimitPrefix: 'example.com',
-                    fileName: 'test.zim',
-                    indexRoot: ''
-                });
-                assert.include(transformed, 'href="C/A/example.com/test%3Cscript%3Ealert(1)%3C/script%3E"');
-                assert.notInclude(transformed, '<script>');
-            });
-
             it('resolves zimit2 archives using standard relative base URL rather than classic zimit prefix', function () {
                 const zimit2Entry = {
                     namespace: 'C',

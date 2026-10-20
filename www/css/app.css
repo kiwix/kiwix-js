@@ -73,6 +73,10 @@
     margin-right: 4px;
 }
 
+#articleList {
+    margin-bottom: 12px !important;
+}
+
 #top, #articleContent, #footer, article {
     transition: transform 0.3s ease;
 }
@@ -82,39 +86,12 @@
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    width: 100%;
-    max-width: 100% !important;
-    height: 100%;
     margin-left: auto;
     margin-right: auto;
     padding-left: 12px;
     padding-right: 12px;
     background: lightblue;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-}
-
-#searchResultsHeader {
-    flex-shrink: 0;
-    position: -webkit-sticky;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background: inherit;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    margin-bottom: 4px;
-}
-
-#articleList {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    margin-bottom: 12px !important;
+    z-index: 1;
 }
 
 /* Article list item followed by .snippet-container */
@@ -632,8 +609,6 @@ button {
 
 /* Image Gallery (Issue #277) */
 #imageGalleryContainer {
-    flex: 1 1 auto;
-    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 24px;
