@@ -1737,7 +1737,7 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
                         cb(entry, html);
                         return Promise.resolve();
                     },
-                    getDirEntryByPath: function (path) {
+                    getDirEntryByPath: function () {
                         return Promise.resolve({
                             getMimetype: () => 'image/jpeg'
                         });
