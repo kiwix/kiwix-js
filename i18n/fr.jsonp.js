@@ -72,6 +72,8 @@ document.localeJson = {
       "configure-display-apptheme-info": "[&nbsp;Afficher l'article avec le thème sélectionné&nbsp;]",
       "configure-display-widearticlewidth": "<b>Utiliser toute la largeur de la fenêtre pour les articles <i>Wikipédia</i></b> (<i>archives Wikimedia récentes, sur grand écran</i>)",
       "configure-display-widearticlewidth-tip": "Les archives Wikipédia récentes limitent le texte des articles à une colonne étroite sur les grands écrans. Activez cette option pour que les articles utilisent toute la largeur de la fenêtre, comme l'option « Large » de Wikipédia.",
+      "configure-display-articlezoom": "<b>Taille du texte des articles&nbsp;:</b>",
+      "configure-display-articlezoom-tip": "Agrandit ou réduit le texte et les images des articles, sans changer la taille des menus de l'application. Les articles sont remis en page pour tenir dans la fenêtre, comme lorsque vous zoomez dans un navigateur.",
       "configure-display-libzimsearchtype": "<b>Ajouter des extraits à la recherche en texte intégral libzim</b> (si disponible)",
       "configure-display-libzimsearchtype-tip": "Si coché, utilise la recherche en texte intégral libzim avec des aperçus d'extraits si disponibles, sinon obtient seulement les titres en texte intégral. Survolez, cliquez ou appuyez sur Entrée au clavier pour développer l'extrait.",
       "configure-language-selector-default": "Langue",
