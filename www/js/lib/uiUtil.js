@@ -46,7 +46,7 @@ function hideSlidingUIElements () {
     const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 8;
     const iframeHeight = parseFloat(articleElement.style.height.replace('px', ''));
     footer.style.transform = 'translateY(' + footerHeight + 'px)';
-    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    articleContainer.style.height = getArticleIframeHeight(iframeHeight + headerHeight);
     header.style.transform = 'translateY(-' + headerHeight + 'px)';
     articleElement.style.transform = 'translateY(-' + headerHeight + 'px)';
     hideActiveContentWarning();
@@ -65,7 +65,7 @@ function showSlidingUIElements () {
     articleElement.style.transform = 'translateY(-1px)';
     footer.style.transform = 'translateY(0)';
     articleElement.style.height = window.innerHeight - headerHeight + 'px';
-    articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+    articleContainer.style.height = getArticleIframeHeight(window.innerHeight - headerHeight);
 }
 
 let scrollThrottle = false;
@@ -1569,6 +1569,26 @@ function applyArticleWidth (doc) {
     }
 }
 
+/**
+ * Applies the article text size chosen in Configuration by zooming the article iframe. We zoom the iframe element
+ * rather than the article's own document, because this works like the browser's zoom for that frame: the article's
+ * viewport becomes narrower, so responsive layouts reflow instead of overflowing, text sized in px is scaled as well
+ * as text sized in em or rem, and the zoom is kept across navigation and applies to nested iframes (e.g. in Zimit)
+ */
+function applyArticleZoom () {
+    document.getElementById('articleContent').style.zoom = params.articleZoom === 100 ? '' : params.articleZoom / 100;
+}
+
+/**
+ * Gets the CSS height to set on the article iframe so that it fills the given height in the app's window,
+ * because CSS zoom scales the iframe's own height as well as its contents
+ * @param {Number} height The height in pixels that the iframe should fill in the app's window
+ * @returns {String} The height to set on the iframe, in px
+ */
+function getArticleIframeHeight (height) {
+    return height * 100 / params.articleZoom + 'px';
+}
+
 // Determines whether the user has requested a dark theme based on preference and browser settings
 function isDarkTheme (theme) {
     return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
@@ -1948,6 +1968,8 @@ export default {
     isDarkTheme: isDarkTheme,
     detectNativeZIMThemeSupport: detectNativeZIMThemeSupport,
     applyArticleWidth: applyArticleWidth,
+    applyArticleZoom: applyArticleZoom,
+    getArticleIframeHeight: getArticleIframeHeight,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,

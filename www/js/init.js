@@ -62,6 +62,8 @@
  * @property {string} libzimSearchType - A string indicating the type of search to use with libzim (currently 'search' or 'searchWithSnippets').
  * @property {boolean} showPopoverPreviews - A boolean indicating whether to show previews of ZIM links (currently only for Wikimedia archives)
  * @property {boolean} wideArticleWidth - A boolean indicating whether to remove the max-width limit on Wikimedia articles that use the Vector 2022 skin
+ * @property {boolean} isArticleZoomSupported - A boolean indicating whether the browser supports CSS zoom, which the article text size option uses
+ * @property {number} articleZoom - The article text size as a percentage (100 is the archive's own size)
  * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
@@ -170,6 +172,9 @@ params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets
 params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets a Boolean defaulting to true indicating whether to reopen the last opened zim file if possible
 params['showPopoverPreviews'] = getSetting('showPopoverPreviews') !== false; // Sets a Boolean defaulting to true indicating whether to show previews of article contents when hovering a ZIM link
 params['wideArticleWidth'] = getSetting('wideArticleWidth') === true; // Sets a Boolean defaulting to false indicating whether to remove the max-width limit on Wikimedia (Vector 2022) articles
+params['isArticleZoomSupported'] = !!(window.CSS && CSS.supports && CSS.supports('zoom', '2')); // Sets a Boolean indicating whether the browser supports CSS zoom, which the article text size option uses
+// Sets the article text size as a percentage, defaulting to 100. Only the values offered in Configuration are accepted
+params['articleZoom'] = params.isArticleZoomSupported && /^(?:75|90|110|125|150|175|200)$/.test(getSetting('articleZoom')) ? parseInt(getSetting('articleZoom'), 10) : 100;
 
 /**
  * Parameters that may be set from the querystring and written to the Settings Store. These are the keys
@@ -329,6 +334,9 @@ document.getElementById('enableSourceVerification').checked = getSetting('source
 document.getElementById('reopenLastArchiveCheck').checked = params.reopenLastArchive;
 document.getElementById('showPopoverPreviewsCheck').checked = params.showPopoverPreviews;
 document.getElementById('wideArticleWidthCheck').checked = params.wideArticleWidth;
+document.getElementById('articleZoomSelect').value = params.articleZoom;
+// If the browser supports CSS zoom, unhide the article text size option
+if (params.isArticleZoomSupported) document.getElementById('articleZoomDiv').style.display = '';
 // If the File System Access API is supported, unhide the reopenLastArchiveDiv
 if (params.isFileSystemApiSupported) document.getElementById('reopenLastArchiveDiv').style.display = '';
 

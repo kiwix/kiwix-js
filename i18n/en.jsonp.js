@@ -72,6 +72,8 @@ document.localeJson = {
       "configure-display-apptheme-info": "[&nbsp;Show article with applied theme&nbsp;]",
       "configure-display-widearticlewidth": "<b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)",
       "configure-display-widearticlewidth-tip": "Recent Wikipedia archives limit the article text to a narrow column on wide screens. Enable this to let articles use the full width of the window, like the 'Wide' option on Wikipedia.",
+      "configure-display-articlezoom": "<b>Article text size:</b>",
+      "configure-display-articlezoom-tip": "Makes the text and images of articles larger or smaller, without changing the size of the app's menus. Articles are laid out again to fit the window, as when you zoom in a browser.",
       "configure-display-libzimsearchtype": "<b>Add snippets to libzim fulltext search</b> (if available)",
       "configure-display-libzimsearchtype-tip": "If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.",
       "configure-language-selector-default": "Language",
