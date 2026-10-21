@@ -70,6 +70,8 @@ document.localeJson = {
       "configure-display-apptheme-mwinvert-description": "* Solution antérieure pour les ZIM de Wikimédia.",
       "configure-display-apptheme-wikimedianative-description": "* Utilise le thème sombre intégré du ZIM (pour les ZIM Wikimédia avec support de thème natif). Revient à l'inversion si non disponible.",
       "configure-display-apptheme-info": "[&nbsp;Afficher l'article avec le thème sélectionné&nbsp;]",
+      "configure-display-widearticlewidth": "<b>Utiliser toute la largeur de la fenêtre pour les articles <i>Wikipédia</i></b> (<i>archives Wikimedia récentes, sur grand écran</i>)",
+      "configure-display-widearticlewidth-tip": "Les archives Wikipédia récentes limitent le texte des articles à une colonne étroite sur les grands écrans. Activez cette option pour que les articles utilisent toute la largeur de la fenêtre, comme l'option « Large » de Wikipédia.",
       "configure-display-libzimsearchtype": "<b>Ajouter des extraits à la recherche en texte intégral libzim</b> (si disponible)",
       "configure-display-libzimsearchtype-tip": "Si coché, utilise la recherche en texte intégral libzim avec des aperçus d'extraits si disponibles, sinon obtient seulement les titres en texte intégral. Survolez, cliquez ou appuyez sur Entrée au clavier pour développer l'extrait.",
       "configure-language-selector-default": "Langue",

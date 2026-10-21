@@ -723,6 +723,14 @@ document.getElementById('showPopoverPreviewsCheck').addEventListener('change', f
     params.showPopoverPreviews = e.target.checked;
     settingsStore.setItem('showPopoverPreviews', params.showPopoverPreviews, Infinity);
 });
+document.getElementById('wideArticleWidthCheck').addEventListener('change', function (e) {
+    params.wideArticleWidth = e.target.checked;
+    settingsStore.setItem('wideArticleWidth', params.wideArticleWidth, Infinity);
+    // Reload the current article so that the change is applied
+    if (selectedArchive && appstate.expectedArticleURLToBeDisplayed) {
+        goToArticle(appstate.expectedArticleURLToBeDisplayed);
+    }
+});
 // Add event listeners to the About links in Configuration, so that they jump to the linked sections
 document.querySelectorAll('.aboutLinks').forEach(function (link) {
     link.addEventListener('click', function () {
@@ -2598,6 +2606,7 @@ function articleLoadedSW (iframeArticleContent) {
     uiUtil.spinnerDisplay(false);
     // Set the requested appTheme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
+    uiUtil.applyArticleWidth(iframeArticleContent.contentDocument);
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
@@ -3272,6 +3281,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
         // Set the requested appTheme - applyAppTheme will handle fallbacks silently
         uiUtil.applyAppTheme(params.appTheme);
+        uiUtil.applyArticleWidth(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 

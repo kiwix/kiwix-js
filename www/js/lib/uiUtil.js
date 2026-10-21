@@ -1554,6 +1554,21 @@ function applyNativeWikimediaTheme(doc, appTheme) {
     }
 }
 
+/**
+ * Removes the max-width limit that the Vector 2022 skin applies to Wikimedia articles, if the user has enabled
+ * this in Configuration. We switch the skin's own client preference class from limited (1) to full (0) width,
+ * which is what the "Wide" option does on Wikipedia. In Restricted mode the class is moved from <html> to <body>.
+ * @param {Document} doc The document of the loaded article
+ */
+function applyArticleWidth (doc) {
+    if (!params.wideArticleWidth || !doc) return;
+    var limitedElements = doc.querySelectorAll('.vector-feature-limited-width-clientpref-1');
+    for (var i = 0; i < limitedElements.length; i++) {
+        limitedElements[i].classList.remove('vector-feature-limited-width-clientpref-1');
+        limitedElements[i].classList.add('vector-feature-limited-width-clientpref-0');
+    }
+}
+
 // Determines whether the user has requested a dark theme based on preference and browser settings
 function isDarkTheme (theme) {
     return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
@@ -1932,6 +1947,7 @@ export default {
     applyAppTheme: applyAppTheme,
     isDarkTheme: isDarkTheme,
     detectNativeZIMThemeSupport: detectNativeZIMThemeSupport,
+    applyArticleWidth: applyArticleWidth,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,

@@ -70,6 +70,8 @@ document.localeJson = {
       "configure-display-apptheme-mwinvert-description": "* Legacy solution for Wikimedia ZIMs.",
       "configure-display-apptheme-wikimedianative-description": "* Uses the ZIM's built-in dark theme (for Wikimedia ZIMs with native theme support). Falls back to inversion if not available.",
       "configure-display-apptheme-info": "[&nbsp;Show article with applied theme&nbsp;]",
+      "configure-display-widearticlewidth": "<b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)",
+      "configure-display-widearticlewidth-tip": "Recent Wikipedia archives limit the article text to a narrow column on wide screens. Enable this to let articles use the full width of the window, like the 'Wide' option on Wikipedia.",
       "configure-display-libzimsearchtype": "<b>Add snippets to libzim fulltext search</b> (if available)",
       "configure-display-libzimsearchtype-tip": "If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.",
       "configure-language-selector-default": "Language",
