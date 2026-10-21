@@ -535,19 +535,6 @@ function queueWebpDecode (task) {
 }
 
 /**
- * Resets the WebP decode queue promise to an idle resolved state while ensuring
- * any in-flight decode is allowed to settle, preventing interference with active decodes.
- *
- * @returns {Promise} Promise resolving when the current queue settles
- */
-function resetWebpDecodeQueue () {
-    webpDecodeQueue = webpDecodeQueue.catch(function () {
-        return null;
-    });
-    return webpDecodeQueue;
-}
-
-/**
  * Transcodes a WebP image (Uint8Array or data: URI) into a PNG data: URI using webpMachine.
  * Guaranteed to be serialized via queueWebpDecode.
  *
@@ -2330,7 +2317,6 @@ export default {
     toggleSnippet: toggleSnippet,
     attachArticleListEventListeners: attachArticleListEventListeners,
     queueWebpDecode: queueWebpDecode,
-    resetWebpDecodeQueue: resetWebpDecodeQueue,
     transcodeWebpToDataUri: transcodeWebpToDataUri,
     processSequentialQueue: processSequentialQueue,
     filterUnprocessedDirEntries: filterUnprocessedDirEntries
