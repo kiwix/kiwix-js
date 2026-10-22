@@ -18,7 +18,7 @@ document.localeJson = {
       "home-prefix-placeholder": "Search...",
       "home-prefix-label": "Search articles",
       "home-prefix-help": "Type the start of an article title to see matching suggestions, or press the search button with an empty field to list titles.",
-      "home-prefix-tip": "You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type.",
+      "home-prefix-tip": "You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type. Press /, Home, or Ctrl/Cmd+K to focus search.",
       "configure": "Configure",
       "configure-title": "Configuration",
       "configure-about-usage-link": "About (Usage)",
