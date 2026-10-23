@@ -514,6 +514,56 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
     });
 }
 
+var webpDecodeQueue = Promise.resolve();
+
+/**
+ * Serializes WebP decoding operations to prevent concurrent decodeToCanvas calls
+ * on the single-threaded webpMachine instance.
+ *
+ * @param {Function} task A function returning a Promise that performs the WebP decode
+ * @returns {Promise} A Promise resolving to the task's result
+ */
+function queueWebpDecode (task) {
+    var nextPromise = webpDecodeQueue.then(function () {
+        return task();
+    });
+    // Ensure the queue chain remains alive and never permanently stalls if a task rejects
+    webpDecodeQueue = nextPromise.catch(function () {
+        return null;
+    });
+    return nextPromise;
+}
+
+/**
+ * Transcodes a WebP image (Uint8Array or data: URI) into a PNG data: URI using webpMachine.
+ * Guaranteed to be serialized via queueWebpDecode.
+ *
+ * @param {Uint8Array|String} content The WebP binary content or data URI
+ * @param {Function} isCancelled Optional cancellation check function
+ * @returns {Promise<String>} Resolves with the transcoded data: URI
+ */
+function transcodeWebpToDataUri (content, isCancelled) {
+    var checkCancelled = typeof isCancelled === 'function' ? isCancelled : function () { return false; };
+    if (checkCancelled()) {
+        return Promise.reject(new Error('Operation cancelled'));
+    }
+    if (/^data:/i.test(content)) {
+        content = util.dataURItoUint8Array(content);
+    }
+    var canvas = document.createElement('canvas');
+    return queueWebpDecode(function () {
+        if (checkCancelled()) {
+            return Promise.reject(new Error('Operation cancelled'));
+        }
+        return webpMachine.decodeToCanvas(canvas, content);
+    }).then(function () {
+        if (checkCancelled()) {
+            throw new Error('Operation cancelled');
+        }
+        return canvas.toDataURL();
+    });
+}
+
 /**
  * Creates a data: URI from the given content
  * The given attribute of the DOM node (nodeAttribute) is then set to this URI
@@ -522,41 +572,55 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
  *
  * @param {Object} node The node to which the URI should be added
  * @param {String} nodeAttribute The attribute to set to the URI
- * @param {Uint8Array} content The binary content to convert to a URI
+ * @param {Uint8Array|String} content The binary content to convert to a URI
  * @param {String} mimeType The MIME type of the content
  * @param {Function} callback An optional function to call to start processing the next item
+ * @param {Function} isCancelled An optional function returning true if the operation is cancelled
  */
-function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback) {
+function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, isCancelled) {
+    var checkCancelled = typeof isCancelled === 'function' ? isCancelled : function () { return false; };
+    if (checkCancelled()) {
+        if (callback) callback();
+        return;
+    }
+
     // Decode WebP data if the browser does not support WebP and the mimeType is webp
-    if (webpMachine && /image\/webp/i.test(mimeType)) {
+    if (typeof webpMachine !== 'undefined' && webpMachine && /image\/webp/i.test(mimeType)) {
         // If we're dealing with a dataURI, first convert to Uint8Array
         if (/^data:/i.test(content)) {
             content = util.dataURItoUint8Array(content);
         }
-        // DEV: Note that webpMachine is single threaded and will reject an image if it is busy
-        // However, the loadImagesJQuery() function in app.js is sequential (it waits for a callback
-        // before processing another image) so we do not need to queue WebP images here
         var canvas = document.createElement('canvas');
-        webpMachine.decodeToCanvas(canvas, content).then(function () {
-            if (callback) callback(); // Calling back as soon as possible speeds up extraction
-            if (params.useCanvasElementsForWebpTranscoding) {
-                // Replace images by canvas. This is necessary for some browsers with obsolete anti-fingerprinting protection, like IceCat 60.7
-                webpMachine.constructor.replaceImageWithCanvas(node, canvas);
-            } else {
-                // For standard browsers that have access to the canvas, we simply convert the canvas to a data URI
-                node.setAttribute(nodeAttribute, canvas.toDataURL());
+        queueWebpDecode(function () {
+            if (checkCancelled()) {
+                return Promise.resolve();
             }
+            return webpMachine.decodeToCanvas(canvas, content);
+        }).then(function () {
+            if (!checkCancelled()) {
+                if (typeof params !== 'undefined' && params.useCanvasElementsForWebpTranscoding) {
+                    // Replace images by canvas. This is necessary for some browsers with obsolete anti-fingerprinting protection, like IceCat 60.7
+                    webpMachine.constructor.replaceImageWithCanvas(node, canvas);
+                } else {
+                    // For standard browsers that have access to the canvas, we simply convert the canvas to a data URI
+                    node.setAttribute(nodeAttribute, canvas.toDataURL());
+                }
+            }
+            if (callback) callback();
         }).catch(function (err) {
             console.error('There was an error decoding image in WebpMachine', err);
             if (callback) callback();
         });
     } else {
-        if (callback) callback(); // Calling back as soon as possible speeds up extraction
         // In browsers that support WebP natively, or for non-WebP images, we can simply convert the Uint8Array to a data URI
         getDataUriFromUint8Array(content, mimeType).then(function (dataUri) {
-            node.setAttribute(nodeAttribute, dataUri);
+            if (!checkCancelled()) {
+                node.setAttribute(nodeAttribute, dataUri);
+            }
+            if (callback) callback();
         }).catch(function (err) {
             console.error('There was an error converting Uint8Array to data URI', err);
+            if (callback) callback();
         });
     }
 }
@@ -572,15 +636,21 @@ function getDataUriFromUint8Array (content, mimeType) {
     // See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
     // This native browser method is very fast: see https://stackoverflow.com/a/66046176/9727685
     return new Promise((resolve, reject) => {
-        var myReader = new FileReader();
-        myReader.onloadend = function () {
-            var url = myReader.result;
-            resolve(url);
-        };
-        myReader.onerror = function (err) {
-            reject(err);
-        };
-        myReader.readAsDataURL(new Blob([content], { type: mimeType }));
+        var FileReaderClass = typeof FileReader !== 'undefined' ? FileReader : (typeof window !== 'undefined' ? window.FileReader : null);
+        var BlobClass = (typeof window !== 'undefined' && window.Blob) ? window.Blob : (typeof Blob !== 'undefined' ? Blob : null);
+        if (FileReaderClass && BlobClass) {
+            var myReader = new FileReaderClass();
+            myReader.onloadend = function () {
+                var url = myReader.result;
+                resolve(url);
+            };
+            myReader.onerror = function (err) {
+                reject(err);
+            };
+            myReader.readAsDataURL(new BlobClass([content], { type: mimeType }));
+        } else {
+            resolve('');
+        }
     });
 }
 
@@ -680,6 +750,305 @@ function deriveZimUrlFromRelativeUrl (url, base) {
     };
     var zimUrl = deriveZimUrl(url, dummy + base);
     return decodeURIComponent(zimUrl.pathname.replace(/^\//, ''));
+}
+
+// Compile regular expressions needed to modify asset tags and links in Restricted mode
+// The case-insensitive regex below finds images, scripts, stylesheets and tracks with ZIM-type metadata and image namespaces.
+// It first searches for <img, <script, <link, etc., then scans forward to find, on a word boundary, either src=["'] or href=["']
+// (ignoring any extra whitespace), and it then tests the path of the URL with a non-capturing negative lookahead (?!...) that excludes
+// absolute URIs with protocols that conform to RFC 3986 (e.g. 'http:', 'data:'). It then captures the whole of the URL up until any
+// querystring (? character) which (if it exists) is captured with its contents in another group. The regex then tests for the end
+// of the URL with the opening delimiter (" or ', which is capture group \3) or a hash character (#). When the regex is used below, it
+// will be further processed to calculate the ZIM URL from the relative path. This regex can cope with legitimate single quote marks (') in the URL.
+var regexpTagsWithZimUrl = /(<(?:img|script|link|track)\b[^>]*?\s)(?:src|href)(\s*=\s*(["']))(?![a-z][a-z0-9+.-]+:)(.+?)(\?.*?)?(?=\3|#)([\s\S]*?>)/ig;
+// A regex to find the Zimit prefix in a Zimit-based article
+var regexpGetZimitPrefix = /link\s+rel=["']canonical["']\s+href="https?:\/\/([^/"]+)/i;
+// A regex to find and help transform assets in an article in a Zimit-based archive
+var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s;])(?:src\b|href|url)\s*(=\s*(["']))(?=[./]+|https?)((?:[^>](?!\3|\?|#))+[^>])([^>]*>)/ig;
+
+/**
+ * Resolves a relative image or asset URL to a ZIM URL given a base URL and archive parameters.
+ *
+ * @param {String} relUrl The relative asset URL
+ * @param {String} baseUrl The base ZIM URL of the article (e.g. "A/dir/")
+ * @param {Object} [options] Optional archive options (zimType, indexRoot, fileName)
+ * @returns {String} The resolved and encoded ZIM URL
+ */
+function resolveImageUrl (relUrl, baseUrl, options) {
+    if (!relUrl) return '';
+    options = options || {};
+    var zimType = options.zimType || (options.archive && options.archive.zimType) || '';
+    if (zimType === 'zimit') {
+        var indexRoot = options.indexRoot;
+        if (typeof indexRoot !== 'string') {
+            var fileName = options.fileName || (options.archive && options.archive.file && options.archive.file.name) || (options.archive && options.archive.name) || '';
+            if (fileName) {
+                var pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+                indexRoot = pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/';
+            } else {
+                indexRoot = '';
+            }
+        }
+        var url = (indexRoot && indexRoot !== '/') ? relUrl.replace(indexRoot, '') : relUrl;
+        // If already resolved to a canonical ZIM entry path (e.g. C/A/..., A/..., C/...), return directly
+        if (/^[A-Z]\//.test(url)) {
+            return url;
+        }
+        var dirEntry = options.dirEntry;
+        var dirNamespace = (dirEntry && dirEntry.namespace) || (baseUrl && baseUrl.replace(/\/.*$/, '')) || 'C';
+        // Handle protocol-relative // or absolute http(s)://
+        if (/^(?:https?:)?\/\//i.test(url)) {
+            return url.replace(/^(?:https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
+        }
+        // Handle root-relative /
+        if (/^\/(?!\/)/.test(url)) {
+            var zimitPrefix = options.zimitPrefix || (options.archive && options.archive.zimitPrefix) || '';
+            if (!zimitPrefix && baseUrl) {
+                var prefixMatch = baseUrl.match(/^(?:[A-Z]\/)?(?:A\/)?([^/]+)/);
+                if (prefixMatch) zimitPrefix = prefixMatch[1];
+            }
+            var prefix = dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : '') + (zimitPrefix ? zimitPrefix + '/' : '');
+            return (prefix + url.replace(/^\/+/, '')).replace(/\/+/g, '/');
+        }
+        // Handle relative URLs
+        if (baseUrl) {
+            return encodeURI(deriveZimUrlFromRelativeUrl(url, baseUrl));
+        }
+        return url;
+    }
+    return encodeURI(deriveZimUrlFromRelativeUrl(relUrl, baseUrl));
+}
+
+/**
+ * Transforms an article's HTML for Restricted (jQuery/iframe) mode by rewriting asset URLs
+ * (relative links, Zimit prefixes, srcset attributes, WebP data URIs) to data-kiwixurl/data-kiwixsrcset.
+ *
+ * @param {String} htmlArticle The HTML content of the article to transform
+ * @param {Object} options Configuration options:
+ *   - baseUrl {String}: The base ZIM URL of the article (e.g. "A/dir/"). Derived from dirEntry if omitted.
+ *   - dirEntry {DirEntry}: The DirEntry representing the article (optional if baseUrl is provided)
+ *   - archive {Object}: The archive object (e.g. selectedArchive)
+ *   - zimType {String}: The ZIM type (e.g. 'zimit' or 'open')
+ *   - zimitPrefix {String}: The Zimit prefix if known
+ *   - fileName {String}: The archive filename for indexRoot calculation
+ *   - indexRoot {String}: The indexRoot override (optional)
+ *   - webpMachine {Boolean}: Whether webpMachine is enabled and WebP data URIs should be transformed
+ * @returns {String} The transformed HTML with data-kiwixurl / data-kiwixsrcset attributes
+ */
+function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
+    if (!htmlArticle) return '';
+    options = options || {};
+
+    var dirEntry = options.dirEntry;
+    var baseUrl = options.baseUrl;
+    if (!baseUrl && dirEntry) {
+        var ns = dirEntry.namespace || '';
+        var entryUrl = dirEntry.url || '';
+        baseUrl = encodeURI(ns + '/' + entryUrl.replace(/[^/]+$/, ''));
+    }
+    baseUrl = baseUrl || '';
+
+    var archive = options.archive || {};
+    var zimType = options.zimType || archive.zimType || (typeof params !== 'undefined' && params.zimType) || '';
+    var isClassicZimit = zimType === 'zimit';
+    var archiveZimitPrefix = options.zimitPrefix || archive.zimitPrefix || '';
+    var fileName = options.fileName || (archive.file && archive.file.name) || archive.name || '';
+    var indexRoot = options.indexRoot;
+    if (typeof indexRoot !== 'string') {
+        var pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+        indexRoot = pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/';
+    }
+    var webpMachineActive = Boolean(options.webpMachine);
+
+    // Transform as many Zimit-style URLs as possible to their ZIM equivalents
+    if (isClassicZimit) {
+        var dirEntryUrl = dirEntry ? dirEntry.url : '';
+        var rootDirectory = dirEntryUrl === dirEntryUrl.replace(/^((?:A\/)?[^/]+\/?).*/, '$1');
+        // Try to get the Zimit prefix from any canonical URL in the article
+        var zimitPrefixMatch = htmlArticle.match(regexpGetZimitPrefix);
+        var zimitPrefix = zimitPrefixMatch ? zimitPrefixMatch[1] : (archiveZimitPrefix ? archiveZimitPrefix.replace(/^\w\/([^/]+).*/, '$1') : '');
+        var dirNamespace = (dirEntry && dirEntry.namespace) || '';
+        zimitPrefix = (dirNamespace === 'C' ? 'A/' : '') + zimitPrefix;
+
+        // eslint-disable-next-line no-unused-vars
+        htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
+            var newBlock = match;
+            var assetUrl = relAssetUrl;
+            // Remove google analytics and other analytics files that cause stall
+            if (/analytics|typepad.*stats|googleads|doubleclick|syndication/i.test(assetUrl)) return '';
+            // For root-relative links, we need to add the zimitPrefix
+            assetUrl = assetUrl.replace(/^\/(?!\/)/, dirNamespace + '/' + zimitPrefix + '/');
+            // For Zimit assets that begin with https: or // the zimitPrefix is derived from the URL
+            assetUrl = assetUrl.replace(/^(?:https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
+            // For fully relative links, we have to remove any '..' if we are in root directory
+            if (rootDirectory) assetUrl = assetUrl.replace(/^(\.\.\/?)+/, dirNamespace + '/' + zimitPrefix + '/');
+            newBlock = newBlock.replace(relAssetUrl, assetUrl);
+            return newBlock;
+        });
+
+        // Deal with image srcsets
+        htmlArticle = htmlArticle.replace(/<img\b[^>]+srcset=["']([^"']+)/ig, function (match, srcset) {
+            var srcsetArr = srcset.split(',');
+            for (var i = 0; i < srcsetArr.length; i++) {
+                // For root-relative links, we need to add the zimitPrefix
+                srcsetArr[i] = srcsetArr[i].replace(/^\s*\/(?!\/)/, dirNamespace + '/' + zimitPrefix + '/');
+                // Zimit prefix is in the URL for absolute URLs
+                srcsetArr[i] = srcsetArr[i].replace(/^(?:\s*https?:)?\/\//i, dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : ''));
+                if (rootDirectory) srcsetArr[i] = srcsetArr[i].replace(/^(\.\.\/?)+/, dirNamespace + '/' + zimitPrefix + '/');
+            }
+            match = match.replace(srcset, srcsetArr.join(', '));
+            match = match.replace(/srcset/i, 'data-kiwixsrcset');
+            return match;
+        });
+    }
+
+    // Replaces ZIM-style URLs of img, script, link and media tags with a data-kiwixurl to prevent 404 errors [kiwix-js #272 #376]
+    // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
+    // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
+    htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring, blockClose) {
+        // Don't process data URIs (yet)
+        if (/data:image/i.test(relAssetUrl)) return match;
+        // We need to save the query string if any for Zimit-style archives
+        querystring = querystring || '';
+        var assetZIMUrlEnc = resolveImageUrl(relAssetUrl, baseUrl, {
+            zimType: zimType,
+            indexRoot: indexRoot
+        });
+        if (isClassicZimit && querystring) {
+            assetZIMUrlEnc = assetZIMUrlEnc + querystring;
+        }
+        var newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
+        // Replace any srcset with data-kiwixsrcset
+        newBlock = newBlock.replace(/\bsrcset\s*=/, 'data-kiwixsrcset=');
+        return newBlock;
+    });
+
+    // We also need to process data:image/webp if the browser needs the WebPMachine
+    if (webpMachineActive) {
+        htmlArticle = htmlArticle.replace(/(<img\b[^>]*?\s)src(\s*=\s*["'])(?=data:image\/webp)([^"']+)/ig, '$1data-kiwixurl$2$3');
+    }
+
+    // Remove any empty media containers on page (they can cause layout issue in jQuery mode)
+    htmlArticle = htmlArticle.replace(/(<(audio|video)\b(?:[^<]|<(?!\/\2))+<\/\2>)/ig, function (p0) {
+        return /(?:src|data-kiwixurl)\s*=\s*["']/.test(p0) ? p0 : '';
+    });
+
+    return htmlArticle;
+}
+
+/**
+ * Processes an array of items sequentially, waiting for each item's asynchronous
+ * processing to complete before starting the next. Supports cancellation, error resilience,
+ * and completion notification.
+ *
+ * @param {Array} items Array of items to process
+ * @param {Function} processItem Function(item, next, index) called for each item.
+ *                              Invokes next(err) or returns a Promise when done.
+ * @param {Object} options Configuration options:
+ *   - isCancelled {Function|Object}: Returns true if processing should be cancelled, or an object with status: 'cancelled'.
+ *   - search {Object}: An optional search object whose status === 'cancelled' indicates cancellation.
+ *   - onComplete {Function}: Called when all items have been processed or when cancelled.
+ *   - onError {Function}: Called when an item encounters an error (processing continues to next item).
+ * @returns {Promise} Resolves when all items are processed or processing is cancelled.
+ */
+function processSequentialQueue (items, processItem, options) {
+    options = options || {};
+    var isCancelled;
+    if (typeof options.isCancelled === 'function') {
+        isCancelled = options.isCancelled;
+    } else if (options.isCancelled && typeof options.isCancelled === 'object') {
+        isCancelled = function () { return options.isCancelled.status === 'cancelled'; };
+    } else if (options.search && typeof options.search === 'object') {
+        isCancelled = function () { return options.search.status === 'cancelled'; };
+    } else {
+        isCancelled = function () { return false; };
+    }
+
+    var onComplete = typeof options.onComplete === 'function' ? options.onComplete : null;
+    var onError = typeof options.onError === 'function' ? options.onError : null;
+
+    return new Promise(function (resolve) {
+        if (!items || !items.length || isCancelled()) {
+            if (onComplete) onComplete();
+            resolve();
+            return;
+        }
+
+        var queue = items.slice();
+        var index = 0;
+
+        function runNext () {
+            if (isCancelled() || queue.length === 0) {
+                if (onComplete) onComplete();
+                resolve();
+                return;
+            }
+
+            var item = queue.shift();
+            var currentIndex = index++;
+            var nextCalled = false;
+
+            function next (err) {
+                if (nextCalled) return;
+                nextCalled = true;
+                if (err && onError) {
+                    try {
+                        onError(err, item, currentIndex);
+                    } catch (e) {
+                        console.error('Error in processSequentialQueue onError handler', e);
+                    }
+                }
+                runNext();
+            }
+
+            try {
+                var ret = processItem(item, next, currentIndex);
+                if (ret && typeof ret.then === 'function') {
+                    ret.then(function () {
+                        next();
+                    }).catch(function (err) {
+                        next(err);
+                    });
+                }
+            } catch (err) {
+                next(err);
+            }
+        }
+
+        runNext();
+    });
+}
+
+/**
+ * Filters an array of DirEntry objects, returning only those that have not yet been processed,
+ * and adds newly seen entries to the tracking set.
+ *
+ * @param {Array} dirEntryArray Array of DirEntry objects
+ * @param {Set|Object} processedSet A Set (or Object map) tracking processed entry IDs
+ * @returns {Array} Array of DirEntry objects that have not been processed yet
+ */
+function filterUnprocessedDirEntries (dirEntryArray, processedSet) {
+    if (!dirEntryArray || !dirEntryArray.length) return [];
+    if (!processedSet) return dirEntryArray.slice();
+
+    var isSet = typeof processedSet.has === 'function' && typeof processedSet.add === 'function';
+    var newEntries = [];
+
+    for (var i = 0; i < dirEntryArray.length; i++) {
+        var entry = dirEntryArray[i];
+        if (!entry) continue;
+        var id = entry.toStringId ? entry.toStringId() : (entry.url || String(i));
+        var alreadyProcessed = isSet ? processedSet.has(id) : Boolean(processedSet[id]);
+        if (!alreadyProcessed) {
+            if (isSet) {
+                processedSet.add(id);
+            } else {
+                processedSet[id] = true;
+            }
+            newEntries.push(entry);
+        }
+    }
+    return newEntries;
 }
 
 /**
@@ -1933,6 +2302,8 @@ export default {
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
     replaceCSSLinkWithInlineCSS: replaceCSSLinkWithInlineCSS,
     deriveZimUrlFromRelativeUrl: deriveZimUrlFromRelativeUrl,
+    resolveImageUrl: resolveImageUrl,
+    transformArticleHtmlForRestrictedMode: transformArticleHtmlForRestrictedMode,
     setUpTOC: setUpTOC,
     toggleNavbar: toggleNavbar,
     removeUrlParameters: removeUrlParameters,
@@ -1958,5 +2329,9 @@ export default {
     handleTitleClick: handleTitleClick,
     createSnippetElements: createSnippetElements,
     toggleSnippet: toggleSnippet,
-    attachArticleListEventListeners: attachArticleListEventListeners
+    attachArticleListEventListeners: attachArticleListEventListeners,
+    queueWebpDecode: queueWebpDecode,
+    transcodeWebpToDataUri: transcodeWebpToDataUri,
+    processSequentialQueue: processSequentialQueue,
+    filterUnprocessedDirEntries: filterUnprocessedDirEntries
 };

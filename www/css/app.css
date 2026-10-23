@@ -607,3 +607,95 @@ button {
     
 }
 
+/* Image Gallery (Issue #277) */
+#imageGalleryContainer {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+}
+
+.image-gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.image-gallery-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 180px;
+    margin: 4px;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    text-decoration: none !important;
+    color: inherit;
+    box-sizing: border-box;
+}
+
+.image-gallery-card:hover,
+.image-gallery-card:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    outline: none;
+}
+
+.image-gallery-thumb-container {
+    width: 100%;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.image-gallery-thumb {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.image-gallery-caption {
+    width: 100%;
+    margin-top: 6px;
+    font-size: 0.82rem;
+    line-height: 1.25;
+    color: #495057;
+    text-align: center;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Image Gallery Dark Theme */
+.dark .image-gallery-card {
+    background-color: #2b2b2b;
+    border-color: #444444;
+    color: #e0e0e0;
+}
+
+.dark .image-gallery-card:hover,
+.dark .image-gallery-card:focus {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    border-color: #666666;
+}
+
+.dark .image-gallery-thumb-container {
+    background-color: #1e1e1e;
+}
+
+.dark .image-gallery-caption {
+    color: #b0b0b0;
+}
+

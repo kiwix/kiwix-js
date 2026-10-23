@@ -358,6 +358,13 @@ describe('ZIM directory entry search and read', function () {
         expect(article.length).to.equal(157186);
         expect(article.indexOf('the only true genius in show business')).to.equal(5535);
         expect(article.indexOf('Random Access Memories')).to.equal(154107);
+
+        const transformed = uiUtil.transformArticleHtmlForRestrictedMode(article, {
+            dirEntry: dirEntry,
+            archive: localZimArchive
+        });
+        expect(transformed).to.have.string('data-kiwixurl="I/m/');
+        expect(transformed).to.not.have.string('src="../I/');
     });
 });
 
