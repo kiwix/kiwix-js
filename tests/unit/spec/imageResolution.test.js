@@ -5,7 +5,7 @@
  * Verifies that:
  * - Relative URLs are correctly resolved against explicit article base URLs.
  * - Zimit-specific transformations (canonical prefix, root-relative, protocol-relative, analytics removal) work as expected.
- * - Restricted-mode HTML transformation rewrites assets and is idempotent on repeated calls.
+ * - Restricted-mode HTML transformation rewrites assets in a single pass.
  * - Characterization output on multi-asset documents matches expected targets.
  * - Sequential queue execution, WebP decode serialization, and entry deduplication operate safely.
  */
@@ -48,19 +48,7 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
             assert.notInclude(transformed, 'src="../I/photo.jpg"');
         });
 
-        it('transforms untransformed images in mixed HTML while preserving already-transformed tags, and is idempotent on repeated calls', function () {
-            const mixedHtml = '<img data-kiwixurl = "I/already.jpg" src="blob:already" alt="Done">' +
-                '<img src="../I/needed.jpg" alt="Needed">';
-            const transformed1 = uiUtil.transformArticleHtmlForRestrictedMode(mixedHtml, { baseUrl: 'A/' });
-            assert.include(transformed1, 'data-kiwixurl = "I/already.jpg"');
-            assert.include(transformed1, 'data-kiwixurl="I/needed.jpg"');
-
-            // Repeated transformation must not duplicate or distort data-kiwixurl attributes
-            const transformed2 = uiUtil.transformArticleHtmlForRestrictedMode(transformed1, { baseUrl: 'A/' });
-            assert.equal(transformed2, transformed1);
-        });
-
-        it('does not mistake plain text mentioning data-kiwixurl for an already-transformed tag', function () {
+        it('preserves plain text containing data-kiwixurl while transforming tags', function () {
             const html = '<p>The tag uses data-kiwixurl for offline reading.</p>' +
                 '<img src="../I/diagram.png" alt="Diagram">';
             const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, { baseUrl: 'A/' });

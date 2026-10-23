@@ -872,8 +872,6 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
 
         // eslint-disable-next-line no-unused-vars
         htmlArticle = htmlArticle.replace(regexpZimitHtmlLinks, function (match, blockStart, equals, quote, relAssetUrl, blockClose) {
-            // If the tag already possesses data-kiwixurl, do not re-process it
-            if (/\bdata-kiwixurl\s*=/i.test(match)) return match;
             var newBlock = match;
             var assetUrl = relAssetUrl;
             // Remove google analytics and other analytics files that cause stall
@@ -908,8 +906,8 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
     // This replacement also processes the URL relative to the page's ZIM URL so that we can find the ZIM URL of the asset
     // with the correct namespace (this works for old-style -,I,J namespaces and for new-style C namespace)
     htmlArticle = htmlArticle.replace(regexpTagsWithZimUrl, function (match, blockStart, equals, quote, relAssetUrl, querystring, blockClose) {
-        // Don't process data URIs (yet) and don't re-transform tags that already have data-kiwixurl
-        if (/data:image/i.test(relAssetUrl) || /\bdata-kiwixurl\s*=/i.test(match)) return match;
+        // Don't process data URIs (yet)
+        if (/data:image/i.test(relAssetUrl)) return match;
         // We need to save the query string if any for Zimit-style archives
         querystring = querystring || '';
         var assetZIMUrlEnc = resolveImageUrl(relAssetUrl, baseUrl, {
