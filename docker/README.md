@@ -1,4 +1,4 @@
-﻿# Docker troubleshooting
+# Docker troubleshooting
 
 ## Container status and logs
 
@@ -14,7 +14,7 @@ When accessed from another machine over plain HTTP (for example, `http://192.168
 
 ## Offline access
 
-The server root redirects to `/current/www/index.html`, which is outside the Service Worker's scope and will not work offline. Bookmark or install the PWA from `/current/www/index.html` instead. See the redirect in [`index.nginx.html`](index.nginx.html).
+The server root redirects to `/current/www/index.html`, but the server root is outside the Service Worker's scope and will not work offline. Bookmark or install the PWA from `/current/www/index.html` instead. See the redirect in [`index.nginx.html`](index.nginx.html).
 
 ## Updates show an old version
 
@@ -22,7 +22,7 @@ The `latest` image tag is not pulled automatically. From the repository director
 
 ## ZIM archives
 
-ZIM files cannot be supplied by mounting a volume into this container. Select them through the browser's file picker on the machine running the browser, or use a network share.See the [ZIM archive note in the main README](../README.md#self-hosting-with-docker).
+ZIM files cannot be supplied by mounting a volume into this container. Select them through the browser's file picker on the machine running the browser, or use a network share. See the [ZIM archive note in the main README](../README.md#self-hosting-with-docker).
 
 ## Supported platform
 
