@@ -143,13 +143,14 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     countName: 'fullTextIndexSize'
                 }
             ]).then(function () {
-                that.libzimReady = null;
+                that.libzimReady = 'unavailable';
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                 // In case of a split ZIM, It will not be loaded properly by libzim if libzim is enabled
                 var isSplitZim = /\.zima.$/i.test(that.file._files[0].name);
                 if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
                     !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron')) || params.useLibzim) {
+                    that.libzimReady = 'pending';
                     var libzimReaderType = params.libzimMode;
                     if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
                     console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
