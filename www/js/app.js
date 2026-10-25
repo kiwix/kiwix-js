@@ -79,7 +79,13 @@ const articleContainer = document.getElementById('articleContent');
 const articleWindow = articleContainer.contentWindow;
 const region = document.getElementById('search-article');
 
-switchHomeKeyToFocusSearchBar();
+listenForSearchShortcuts(window);
+if (articleWindow) listenForSearchShortcuts(articleWindow);
+if (articleContainer) {
+    articleContainer.addEventListener('load', function () {
+        listenForSearchShortcuts(articleContainer.contentWindow);
+    });
+}
 
 // We check here if we have to warn the user that we switched to ServiceWorkerMode
 // This is only needed if the ServiceWorker mode is available, or we are in an Extension that supports Service Workers
@@ -764,16 +770,71 @@ function resetCssCache () {
     if (selectedArchive) selectedArchive.cssCache = new Map();
 }
 
-// focus search bar (#prefix) if Home key is pressed
-function focusPrefixOnHomeKey (event) {
-    // check if home key is pressed
-    if (event.key === 'Home') {
-        // wait to prevent interference with scrolling (default action)
-        setTimeout(function () {
-            document.getElementById('prefix').focus();
-        }, 0);
+// Focus search bar (#prefix) and show UI elements if hidden
+function focusSearchBar () {
+    uiUtil.showSlidingUIElements();
+    var prefix = document.getElementById('prefix');
+    if (prefix) {
+        prefix.focus();
+        if (prefix.setSelectionRange) {
+            prefix.setSelectionRange(prefix.value.length, prefix.value.length);
+        }
     }
 }
+
+// Keydown listener for search shortcuts
+function handleSearchShortcutsKeyDown (e) {
+    // Focus the prefix if user types a / (but not in an input or other selectable field)
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !/(input|textarea|select)/i.test(e.target.tagName) &&
+        !e.target.isContentEditable && e.target.getAttribute('role') !== 'textbox') {
+        e.preventDefault();
+        e.stopPropagation();
+        focusSearchBar();
+    }
+    // Ctrl-K / Cmd-K for search bar (modern app convention)
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && !/(input|textarea)/i.test(e.target.tagName)) {
+        e.preventDefault();
+        e.stopPropagation();
+        focusSearchBar();
+    }
+    // Home key for search bar (semantic "start here")
+    if (params.useHomeKeyToFocusSearchBar && e.key === 'Home' && !e.ctrlKey && !e.metaKey && !/(input|textarea|select)/i.test(e.target.tagName) &&
+        !e.target.isContentEditable && e.target.getAttribute('role') !== 'textbox') {
+        e.preventDefault();
+        e.stopPropagation();
+        focusSearchBar();
+    }
+}
+
+// Keyup listener for search shortcuts
+function handleSearchShortcutsKeyUp (e) {
+    // Ctrl-L / Alt-D / Cmd-L for search bar (address bar analogy) - only fires if browser doesn't handle it (e.g., in PWA/Electron mode)
+    if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') || (e.altKey && e.key.toLowerCase() === 'd')) {
+        if (!/(input|textarea)/i.test(e.target.tagName)) {
+            focusSearchBar();
+        }
+    }
+}
+
+// Listen to key presses for search shortcuts
+function listenForSearchShortcuts (controlWindow) {
+    if (!controlWindow) return;
+    try {
+        if (controlWindow.document) {
+            var replayIframe = controlWindow.document.getElementById('replay_iframe');
+            if (replayIframe && replayIframe.contentWindow) {
+                controlWindow = replayIframe.contentWindow;
+            }
+        }
+        controlWindow.removeEventListener('keyup', handleSearchShortcutsKeyUp);
+        controlWindow.removeEventListener('keydown', handleSearchShortcutsKeyDown, true);
+        controlWindow.addEventListener('keyup', handleSearchShortcutsKeyUp);
+        controlWindow.addEventListener('keydown', handleSearchShortcutsKeyDown, true);
+    } catch (err) {
+        console.warn('Unable to attach search shortcut listeners to window', err);
+    }
+}
+
 
 /**
  * Verifies the given archive and switches contentInjectionMode accourdingly
@@ -859,29 +920,7 @@ async function verifyLoadedArchive (archive) {
 
 // switch on/off the feature to use Home Key to focus search bar
 function switchHomeKeyToFocusSearchBar () {
-    var iframeContentWindow = document.getElementById('articleContent').contentWindow;
-    // Test whether iframe is accessible (because if not, we do not want to throw an error at this point, before we can tell the user what is wrong)
-    var isIframeAccessible = true;
-    try {
-        iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-    } catch (err) {
-        console.error('The iframe is probably not accessible', err);
-        isIframeAccessible = false;
-    }
-    if (!isIframeAccessible) return;
-    // when the feature is in active state
-    if (params.useHomeKeyToFocusSearchBar) {
-        // Handle Home key press inside window(outside iframe) to focus #prefix
-        window.addEventListener('keydown', focusPrefixOnHomeKey);
-        // only for initial empty iFrame loaded using `src` attribute
-        // in any other case listener gets removed on reloading of iFrame content
-        iframeContentWindow.addEventListener('keydown', focusPrefixOnHomeKey);
-    } else {
-        // When the feature is not active, remove event listener for window (outside iframe)
-        window.removeEventListener('keydown', focusPrefixOnHomeKey);
-        // if feature is deactivated and no zim content is loaded yet
-        iframeContentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
-    }
+    // Note: The search shortcut listeners check params.useHomeKeyToFocusSearchBar dynamically
 }
 
 /**
@@ -2634,8 +2673,7 @@ function articleLoadedSW (iframeArticleContent) {
 
     var iframeWindow = iframeArticleContent.contentWindow;
     if (iframeWindow) {
-        // Configure home key press to focus #prefix only if the feature is in active state
-        if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
+        listenForSearchShortcuts(iframeWindow);
         // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
@@ -3304,11 +3342,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
             anchorParameter = '';
         }
         if (iframeArticleContent.contentWindow) {
-            // Configure home key press to focus #prefix only if the feature is in active state
-            if (params.useHomeKeyToFocusSearchBar) { iframeArticleContent.contentWindow.addEventListener('keydown', focusPrefixOnHomeKey); }
+            listenForSearchShortcuts(iframeArticleContent.contentWindow);
             // when unloaded remove eventListener to avoid memory leaks
             iframeArticleContent.contentWindow.onunload = function () {
-                iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
+                iframeArticleContent.contentWindow.removeEventListener('keyup', handleSearchShortcutsKeyUp);
+                iframeArticleContent.contentWindow.removeEventListener('keydown', handleSearchShortcutsKeyDown, true);
             };
         }
         params.isLandingPage = false;
