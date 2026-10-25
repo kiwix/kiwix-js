@@ -537,14 +537,17 @@ function isFileAccessError (err) {
  */
 function fileAccessErrorMessage (err) {
     // The error text can include a file path (e.g. from Node's fs in Electron), so it must be escaped before it is inserted as HTML
-    var systemMessage = '<p>[System error message: ' + util.escapeHtml(err && err.message || err) + ']</p>';
+    var systemMessage = '<p>[' + (translateUI.t('dialog-fileaccess-systemerror-label') || 'System error message:') + ' ' +
+        util.escapeHtml(err && err.message || err) + ']</p>';
     if (err && /^(NoModificationAllowedError|NotReadableError)$/.test(err.name)) {
-        return '<p>The browser was refused access to your archive by the operating system. This is usually a permission ' +
+        return (translateUI.t('dialog-fileaccess-denied-message') ||
+            '<p>The browser was refused access to your archive by the operating system. This is usually a permission ' +
             'setting, not a problem with the archive itself.</p><p>Please check that this browser is allowed to access files ' +
             'and folders on this device. On a managed or shared computer, an administrator or browser policy may be blocking ' +
-            'access to local files.</p>' + systemMessage;
+            'access to local files.</p>') + systemMessage;
     }
-    return '<p>We could not find your archive! Is the location or file still available? Try picking the file or folder again.</p>' +
+    return (translateUI.t('dialog-fileaccess-notfound-message') ||
+        '<p>We could not find your archive! Is the location or file still available? Try picking the file or folder again.</p>') +
         systemMessage;
 }
 

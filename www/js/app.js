@@ -2850,7 +2850,8 @@ function handleClickOnReplayLink (ev, anchor) {
                                         uiUtil.spinnerDisplay(false);
                                     });
                                 } else {
-                                    return uiUtil.systemAlert('We could not find a PDF document at ' + util.escapeHtml(zimUrl), 'PDF not found');
+                                    return uiUtil.systemAlert((translateUI.t('dialog-pdf-notfound-message') || 'We could not find a PDF document at') + ' ' + util.escapeHtml(zimUrl),
+                                        translateUI.t('dialog-pdf-notfound-title') || 'PDF not found');
                                 }
                             });
                         };
@@ -2925,7 +2926,8 @@ function handleClickOnReplayLink (ev, anchor) {
             }
         }).catch(function (err) {
             console.error('Error getting dirEntry for ' + zimUrl, err);
-            uiUtil.systemAlert('There was an error looking up ' + util.escapeHtml(zimUrl), 'Error reading direcotry entry!');
+            uiUtil.systemAlert((translateUI.t('dialog-direntry-error-message') || 'There was an error looking up') + ' ' + util.escapeHtml(zimUrl),
+                translateUI.t('dialog-direntry-error-title') || 'Error reading directory entry');
         });
     }
 }
