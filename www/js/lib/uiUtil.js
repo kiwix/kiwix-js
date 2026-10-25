@@ -515,6 +515,40 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
 }
 
 /**
+ * Tests whether an error was raised because the archive file itself could not be accessed (e.g. it has been moved, renamed
+ * or deleted, or the OS has denied access to it), as opposed to an error in reading or decoding its contents
+ *
+ * @param {Error} err The error to test
+ * @returns {Boolean} True if the error is a file access error
+ */
+function isFileAccessError (err) {
+    return !!err && (/^(NotFoundError|NotReadableError|NoModificationAllowedError)$/.test(err.name) ||
+        /^(ENOENT|EACCES|EPERM)$/.test(err.code));
+}
+
+/**
+ * Returns an HTML message for systemAlert explaining why a picked archive file or folder could not be read. Chromium reports
+ * an operating-system denial of access as NoModificationAllowedError (while listing a folder) or NotReadableError (while
+ * reading a file), so for these we point the user to the OS or administrator permissions rather than suggesting the archive
+ * has gone missing
+ *
+ * @param {Error} err The error thrown when the file or folder was accessed
+ * @returns {String} The message, formatted as HTML
+ */
+function fileAccessErrorMessage (err) {
+    // The error text can include a file path (e.g. from Node's fs in Electron), so it must be escaped before it is inserted as HTML
+    var systemMessage = '<p>[System error message: ' + util.escapeHtml(err && err.message || err) + ']</p>';
+    if (err && /^(NoModificationAllowedError|NotReadableError)$/.test(err.name)) {
+        return '<p>The browser was refused access to your archive by the operating system. This is usually a permission ' +
+            'setting, not a problem with the archive itself.</p><p>Please check that this browser is allowed to access files ' +
+            'and folders on this device. On a managed or shared computer, an administrator or browser policy may be blocking ' +
+            'access to local files.</p>' + systemMessage;
+    }
+    return '<p>We could not find your archive! Is the location or file still available? Try picking the file or folder again.</p>' +
+        systemMessage;
+}
+
+/**
  * Creates a data: URI from the given content
  * The given attribute of the DOM node (nodeAttribute) is then set to this URI
  *
@@ -1928,6 +1962,8 @@ export default {
     showSlidingUIElements: showSlidingUIElements,
     scroller: scroller,
     systemAlert: systemAlert,
+    isFileAccessError: isFileAccessError,
+    fileAccessErrorMessage: fileAccessErrorMessage,
     feedNodeWithDataURI: feedNodeWithDataURI,
     getDataUriFromUint8Array: getDataUriFromUint8Array,
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,

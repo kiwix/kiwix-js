@@ -163,10 +163,28 @@ function readFileSlice (file, begin, end) {
             reader.addEventListener('load', function (e) {
                 resolve(new Uint8Array(e.target.result));
             });
-            reader.addEventListener('error', reject);
-            reader.addEventListener('abort', reject);
+            // Reject with the reader's DOMException (e.g. NotReadableError) rather than the ProgressEvent, which has no name or message
+            var rejectWithReaderError = function (e) {
+                reject(reader.error || e);
+            };
+            reader.addEventListener('error', rejectWithReaderError);
+            reader.addEventListener('abort', rejectWithReaderError);
         });
     }
+}
+
+/**
+ * Escapes the characters that are significant in HTML, so that a string can be safely inserted into markup
+ * @param {String} str The string to escape
+ * @returns {String} The escaped string
+ */
+function escapeHtml (str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 /**
@@ -353,6 +371,7 @@ function getJSONPObject (url) {
 }
 
 export default {
+    escapeHtml: escapeHtml,
     allCaseFirstLetters: allCaseFirstLetters,
     removeDuplicateStringsInSmallArray: removeDuplicateStringsInSmallArray,
     dataURItoUint8Array: dataURItoUint8Array,
