@@ -15,9 +15,11 @@ import abstractFilesystemAccess from '../../../www/js/lib/abstractFilesystemAcce
  * Builds a drop event for a folder whose reader returns its entries in batches, as a browser does
  * @param {String[]} names The names of the files in the folder
  * @param {Number} batchSize The largest number of entries returned by one call to readEntries()
+ * @param {Error} error Optional error with which every call to readEntries() after the first batch fails. As in a browser, the
+ *     error is only reported to an error callback, and is lost if none was given
  * @returns {Object} An object with the parts of a DragEvent that the drop handler uses
  */
-function folderDropEvent (names, batchSize) {
+function folderDropEvent (names, batchSize, error) {
     const entries = names.map(function (name) {
         return {
             isFile: true,
@@ -28,7 +30,11 @@ function folderDropEvent (names, batchSize) {
     });
     let position = 0;
     const reader = {
-        readEntries: function (callback) {
+        readEntries: function (callback, errorCallback) {
+            if (error && position > 0) {
+                if (errorCallback) setTimeout(function () { errorCallback(error); }, 0);
+                return;
+            }
             const batch = entries.slice(position, position + batchSize);
             position += batch.length;
             setTimeout(function () { callback(batch); }, 0);
@@ -87,5 +93,13 @@ describe('Dropping a folder (webkitGetAsEntry)', function () {
     it('handles an empty folder', async function () {
         const result = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(folderDropEvent([], 100));
         assert.deepEqual(result.files, []);
+    });
+
+    it('rejects with the browser\'s error, instead of never finishing, when the folder cannot be read', async function () {
+        const error = new DOMException('A requested file or directory could not be found', 'NotFoundError');
+        let rejection = null;
+        await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(folderDropEvent(zimNames(150), 100, error))
+            .catch(function (err) { rejection = err; });
+        assert.strictEqual(rejection, error);
     });
 });

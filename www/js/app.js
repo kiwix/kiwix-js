@@ -2068,6 +2068,9 @@ async function handleFileDrop (packet) {
     // Reset drag flag
     isDraggingFiles = false;
     var files = packet.dataTransfer.files;
+    // Remember how the file selectors are displayed, so that we can restore them if the drop cannot be read
+    var selectorIds = ['selectInstructions', 'fileSelectionButtonContainer', 'downloadInstruction', 'selectorsDisplay'];
+    var previousDisplay = selectorIds.map(function (id) { return document.getElementById(id).style.display; });
     document.getElementById('selectInstructions').style.display = 'none';
     document.getElementById('fileSelectionButtonContainer').style.display = 'none';
     document.getElementById('downloadInstruction').style.display = 'none';
@@ -2078,12 +2081,26 @@ async function handleFileDrop (packet) {
     // call the `setLocalArchiveFromFileList`
     let loadZim = true;
 
-    // No previous file will be loaded in case of FileSystemApi
-    if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet);
-    else if (params.isWebkitDirApiSupported) {
-        const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet);
-        loadZim = ret.loadZim;
-        webKitFileList = ret.files;
+    try {
+        // No previous file will be loaded in case of FileSystemApi
+        if (params.isFileSystemApiSupported) loadZim = await abstractFilesystemAccess.handleFolderOrFileDropViaFileSystemAPI(packet);
+        else if (params.isWebkitDirApiSupported) {
+            const ret = await abstractFilesystemAccess.handleFolderOrFileDropViaWebkit(packet);
+            loadZim = ret.loadZim;
+            webKitFileList = ret.files;
+        }
+    } catch (err) {
+        // The dropped file or folder could not be read, e.g. because the folder was moved or the drive was disconnected while
+        // it was being read. We show the file selectors again so that the user can pick the archive, and tell them what went
+        // wrong. Any error text is escaped, because systemAlert renders its message as HTML
+        console.error('Error reading the dropped file or folder', err);
+        selectorIds.forEach(function (id, i) {
+            document.getElementById(id).style.display = previousDisplay[i];
+        });
+        uiUtil.systemAlert(uiUtil.isFileAccessError(err) ? uiUtil.fileAccessErrorMessage(err)
+            : (translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + '&nbsp;: ' + util.escapeHtml(err && err.message || err),
+        translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
+        return;
     }
     if (loadZim) setLocalArchiveFromFileList(files);
 }

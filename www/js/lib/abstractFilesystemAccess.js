@@ -396,7 +396,8 @@ async function handleFolderOrFileDropViaWebkit (event) {
 /**
  * Gets the files from the FileSystemReader
  * @param {FileSystemDirectoryReader} reader The FileSystemReader to get files from
- * @returns {Promise<Array<File>>} The files from the reader
+ * @returns {Promise<Array<File>>} The files from the reader, or a rejection with the browser's error if the folder or one of
+ *     its files cannot be read (e.g. if the folder is moved or the drive is disconnected while it is being read)
  */
 async function getFilesFromReader (reader) {
     const files = [];
@@ -404,21 +405,19 @@ async function getFilesFromReader (reader) {
     // until it returns an empty array
     let entries;
     do {
-        // eslint-disable-next-line no-unused-vars
-        entries = await new Promise(function (resolve, _reject) {
+        entries = await new Promise(function (resolve, reject) {
             reader.readEntries(function (entries) {
                 resolve(entries);
-            });
+            }, reject);
         });
 
         for (let index = 0; index < entries.length; index++) {
             const fileOrDir = entries[index];
             if (fileOrDir.isFile) {
-                // eslint-disable-next-line no-unused-vars
-                const filePromise = await new Promise(function (resolve, _reject) {
+                const filePromise = await new Promise(function (resolve, reject) {
                     fileOrDir.file(function (file) {
                         resolve(file);
-                    });
+                    }, reject);
                 });
                 files.push(filePromise);
             }
