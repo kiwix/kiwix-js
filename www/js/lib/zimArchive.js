@@ -200,9 +200,14 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
         var fileArray = [].slice.call(fileList);
         // The constructor has been called with an array of File/Blob parameter
         createZimfile(fileArray).catch(function (err) {
-            // Usually the browser could not read the file (e.g. the OS denied it access), which would otherwise go unreported
+            // Usually the browser could not read the file (e.g. it has been moved, or the OS denied it access), which would otherwise
+            // go unreported. Any other error (e.g. a truncated or corrupt file) is reported as such, so that the user is not wrongly
+            // told to pick the archive again
             console.error('Error reading archive file', err);
-            callbackError(uiUtil.fileAccessErrorMessage(err), translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
+            callbackError(uiUtil.isFileAccessError(err) ? uiUtil.fileAccessErrorMessage(err)
+                : (translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + util.escapeHtml(fileArray[0] && fileArray[0].name) +
+                '&nbsp;: ' + util.escapeHtml(err && err.message || err),
+            translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
         });
     } else {
         if (/.*zim..$/.test(path)) {
