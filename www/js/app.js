@@ -723,6 +723,14 @@ document.getElementById('showPopoverPreviewsCheck').addEventListener('change', f
     params.showPopoverPreviews = e.target.checked;
     settingsStore.setItem('showPopoverPreviews', params.showPopoverPreviews, Infinity);
 });
+document.getElementById('wideArticleWidthCheck').addEventListener('change', function (e) {
+    params.wideArticleWidth = e.target.checked;
+    settingsStore.setItem('wideArticleWidth', params.wideArticleWidth, Infinity);
+    // Reload the current article so that the change is applied
+    if (selectedArchive && appstate.expectedArticleURLToBeDisplayed) {
+        goToArticle(appstate.expectedArticleURLToBeDisplayed);
+    }
+});
 // Add event listeners to the About links in Configuration, so that they jump to the linked sections
 document.querySelectorAll('.aboutLinks').forEach(function (link) {
     link.addEventListener('click', function () {
@@ -789,6 +797,9 @@ async function verifyLoadedArchive (archive) {
     const metadataBox = document.createElement('div');
     metadataBox.id = 'modal-archive-metadata-container';
 
+    // DEV: The metadata below is read from the archive and can be spoofed, so it is deliberately set as text only. It is then escaped
+    // when verificationBody.outerHTML serialises it, which is what makes it safe to pass to systemAlert. Do not switch these four assignments
+    // to innerHTML for consistency with verifyWarning, which needs it only to decode entities such as &nbsp; [kiwix-js #1474]
     const verifyName = document.createElement('p');
     verifyName.id = 'confirm-archive-name';
     verifyName.classList.add('archive-metadata');
@@ -2293,13 +2304,26 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     var message;
     if (stillSearching) {
-        message = 'Searching [' + reportingSearch.type + ']... found: ' + nbDirEntry;
+        message = (translateUI.t('search-status-searching') || 'Searching [$1]... found: $2')
+            .replace('$1', reportingSearch.type)
+            .replace('$2', nbDirEntry);
     } else if (nbDirEntry >= params.maxSearchResultsSize) {
-        message = 'First ' + params.maxSearchResultsSize + ' articles found (refine your search).';
+        message = (translateUI.t('search-status-first-multiple') || 'First $1 articles found (refine your search).')
+            .replace('$1', params.maxSearchResultsSize);
     } else {
-        message = 'Finished. ' + (nbDirEntry || 'No') + ' articles found' + (
-            reportingSearch.type === 'basic' ? ': try fewer words for full search.' : '.'
-        );
+        if (nbDirEntry === 0) {
+            message = translateUI.t('search-status-finished-zero') || 'Finished. No articles found';
+        } else if (nbDirEntry === 1) {
+            message = translateUI.t('search-status-finished-one') || 'Finished. 1 article found';
+        } else {
+            message = (translateUI.t('search-status-finished-multiple') || 'Finished. $1 articles found')
+                .replace('$1', nbDirEntry);
+        }
+        if (reportingSearch.type === 'basic') {
+            message += translateUI.t('search-status-basic-ending') || ': try fewer words for full search.';
+        } else {
+            message += '.';
+        }
     }
 
     articleListHeaderMessageDiv.textContent = message;
@@ -2585,6 +2609,7 @@ function articleLoadedSW (iframeArticleContent) {
     uiUtil.spinnerDisplay(false);
     // Set the requested appTheme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
+    uiUtil.applyArticleWidth(iframeArticleContent.contentDocument);
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
@@ -2828,7 +2853,8 @@ function handleClickOnReplayLink (ev, anchor) {
                                         uiUtil.spinnerDisplay(false);
                                     });
                                 } else {
-                                    return uiUtil.systemAlert('We could not find a PDF document at ' + zimUrl, 'PDF not found');
+                                    return uiUtil.systemAlert((translateUI.t('dialog-pdf-notfound-message') || 'We could not find a PDF document at') + ' ' + util.escapeHtml(zimUrl),
+                                        translateUI.t('dialog-pdf-notfound-title') || 'PDF not found');
                                 }
                             });
                         };
@@ -2903,7 +2929,8 @@ function handleClickOnReplayLink (ev, anchor) {
             }
         }).catch(function (err) {
             console.error('Error getting dirEntry for ' + zimUrl, err);
-            uiUtil.systemAlert('There was an error looking up ' + zimUrl, 'Error reading direcotry entry!');
+            uiUtil.systemAlert((translateUI.t('dialog-direntry-error-message') || 'There was an error looking up') + ' ' + util.escapeHtml(zimUrl),
+                translateUI.t('dialog-direntry-error-title') || 'Error reading directory entry');
         });
     }
 }
@@ -3259,6 +3286,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
 
         // Set the requested appTheme - applyAppTheme will handle fallbacks silently
         uiUtil.applyAppTheme(params.appTheme);
+        uiUtil.applyArticleWidth(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
 
@@ -3642,7 +3670,7 @@ function goToArticle (path, download, contentType) {
             // We did not reach an article, so any chain of HTML redirects ends here [kiwix-js #1405]
             htmlRedirectHops = 0;
             uiUtil.spinnerDisplay(false);
-            uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + path,
+            uiUtil.systemAlert((translateUI.t('dialog-article-notfound-message') || 'Article with the following URL was not found in the archive:') + ' ' + util.escapeHtml(path),
                 translateUI.t('dialog-article-notfound-title') || 'Error: article not found');
         } else if (download || /\/(epub|pdf|zip|.*opendocument|.*officedocument|tiff|mp4|webm|mpeg|mp3|octet-stream)\b/i.test(mimetype)) {
             // We are downloading a file rather than displaying an article, so any chain of HTML redirects ends here
@@ -3659,8 +3687,11 @@ function goToArticle (path, download, contentType) {
         }
     }).catch(function (e) {
         htmlRedirectHops = 0;
-        uiUtil.systemAlert((translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:' + ' ' + path + ' : ' + e),
-            translateUI.t('dialog-article-readerror-title') || 'Error reading article');
+        // Tell the user, e.g. if the archive's folder has been renamed since it was loaded. Any ZIM-derived path or error
+        // text is escaped before it is inserted, because systemAlert renders its message as HTML
+        uiUtil.systemAlert(uiUtil.isFileAccessError(e) ? uiUtil.fileAccessErrorMessage(e)
+            : (translateUI.t('dialog-article-readerror-message') || 'Error reading article with url:') + ' ' + util.escapeHtml(path) + ' : ' + util.escapeHtml(e && e.message || e),
+        translateUI.t('dialog-article-readerror-title') || 'Error reading article');
     });
 }
 

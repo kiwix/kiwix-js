@@ -70,6 +70,8 @@ document.localeJson = {
       "configure-display-apptheme-mwinvert-description": "* Legacy solution for Wikimedia ZIMs.",
       "configure-display-apptheme-wikimedianative-description": "* Uses the ZIM's built-in dark theme (for Wikimedia ZIMs with native theme support). Falls back to inversion if not available.",
       "configure-display-apptheme-info": "[&nbsp;Show article with applied theme&nbsp;]",
+      "configure-display-widearticlewidth": "<b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)",
+      "configure-display-widearticlewidth-tip": "Recent Wikipedia archives limit the article text to a narrow column on wide screens. Enable this to let articles use the full width of the window, like the 'Wide' option on Wikipedia.",
       "configure-display-libzimsearchtype": "<b>Add snippets to libzim fulltext search</b> (if available)",
       "configure-display-libzimsearchtype-tip": "If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.",
       "configure-language-selector-default": "Language",
@@ -164,6 +166,8 @@ document.localeJson = {
       "dialog-blocked-fileprotocol": "<p>You seem to be opening kiwix-js with the file:// protocol, which is blocked by your browser for security reasons.</p><p>The easiest way to run it is to download and run it as a browser extension (from the vendor store).</p><p>Or else you can open it through a web server: either through a local one (http://localhost/...) or through a remote one (but you will need a secure connection, e.g.: https://webserver/...)</p><p>Another option is to force your browser to accept that (but you'll open a security breach): on Chrome, you can start it with --allow-file-access-from-files command-line argument; on Firefox, you can set privacy.file_unique_origin to false in about:config</p>",
       "dialog-devicestrage-error-title": "Error: no matching storage",
       "dialog-devicestorage-error-message": "Unable to find which device storage corresponds to directory",
+      "dialog-direntry-error-message": "There was an error looking up",
+      "dialog-direntry-error-title": "Error reading directory entry",
       "dialog-disabledragdrop-title": "Reload app",
       "dialog-disabledragdrop-message": "<p>We will now attempt to reload the app to apply the new setting.</p><p>(If you cancel, then the setting will only be applied when you next start the app.)</p>",
       "dialog-error-title": "Error!",
@@ -171,6 +175,9 @@ document.localeJson = {
       "dialog-file-notset-title": "Archive not ready",
       "dialog-fielhandle-fail-message": "We were unable to retrieve a file handle for the selected archive. Please pick the file or folder again.",
       "dialog-fielhandle-fail-title": "Error retrieving archive",
+      "dialog-fileaccess-denied-message": "<p>The browser was refused access to your archive by the operating system. This is usually a permission setting, not a problem with the archive itself.</p><p>Please check that this browser is allowed to access files and folders on this device. On a managed or shared computer, an administrator or browser policy may be blocking access to local files.</p>",
+      "dialog-fileaccess-notfound-message": "<p>We could not find your archive! Is the location or file still available? Try picking the file or folder again.</p>",
+      "dialog-fileaccess-systemerror-label": "System error message:",
       "dialog-focussearchbarcheck-message": "Please note that this setting focuses the search bar when you go to a ZIM landing page, disabling sliding away of header and footer on that page (only).",
       "dialog-invalid-archivelocation-title": "Error: invalid archive files location",
       "dialog-invalid-archivelocation-message": "It looks like you have put some archive files at the root of your sdcard (or internal storage). Please move them to a subdirectory",
@@ -191,6 +198,8 @@ document.localeJson = {
       "dialog-metadata-scraper": "Scraper: ",
       "dialog-old-android": "You seem to be using an Android device with DeviceStorage API. That must be a quite old Firefox version because this API has been removed in 2016. Be aware that there was a bug on Firefox, that prevents finding Wikipedia archives in a SD-card (at least on some devices). Please put the archive in the internal storage if the application can't find it.",
       "dialog-other-language-message": "We are working hard to bring you more languages! If you are interested in helping to translate the interface to your language, please create an issue on our GitHub. Thank you!",
+      "dialog-pdf-notfound-message": "We could not find a PDF document at",
+      "dialog-pdf-notfound-title": "PDF not found",
       "dialog-open-externalurl-message": "<p>Do you want to open this external link?",
       "dialog-open-externalurl-newtab": "(in a new tab)",
       "dialog-open-externalurl-title": "Opening external link",
@@ -305,7 +314,13 @@ document.localeJson = {
       "alert-download-message": "<strong>Download</strong> If the download does not begin, please tap the following link:",
       "spinner-caching": "Caching",
       "spinner-caching-assets": "Caching assets...",
-      "spinner-loading": "Loading"
+      "spinner-loading": "Loading",
+      "search-status-searching": "Searching [$1]... found: $2",
+      "search-status-first-multiple": "First $1 articles found (refine your search).",
+      "search-status-finished-zero": "Finished. No articles found",
+      "search-status-finished-one": "Finished. 1 article found",
+      "search-status-finished-multiple": "Finished. $1 articles found",
+      "search-status-basic-ending": ": try fewer words for full search."
     }
   }
 }

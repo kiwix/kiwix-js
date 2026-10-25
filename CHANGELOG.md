@@ -6,6 +6,8 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Unreleased
 
+* ENHANCEMENT: When an archive cannot be read, the error now explains the likely cause (e.g. the file has been moved, or the operating system denied access to it)
+* FIX: Paths, URLs and error messages shown in alert dialogs are now always displayed as plain text
 * FIX: The link to the Zimit service in About now points to zimit.kiwix.org, as the old youzim.it domain is being retired
 
 ## Interim update Kiwix JS v4.4.1
@@ -13,6 +15,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * SECURITY: Tightened the Content Security Policy applied to articles displayed in Restricted mode
 * SECURITY: Published advisory [GHSA-37j3-jm4x-gjmv](https://github.com/kiwix/kiwix-js/security/advisories/GHSA-37j3-jm4x-gjmv) for the issues fixed in v4.3.3 and v4.3.4 below
 * ENHANCEMENT: The search field now has a description for screen readers
+* ENHANCEMENT: New option in Configuration to let recent Wikipedia articles use the full window width on wide screens
 * FIX: A "|" in an article's title no longer truncates the title when its directory entry is read back
 * FIX: Browser languages whose codes merely contain "en", "es" or "fr" (e.g. Estonian) no longer cause a translation error on startup
 * FIX: Spelling of "adresse" in the French About page

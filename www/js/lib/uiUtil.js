@@ -515,6 +515,43 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
 }
 
 /**
+ * Tests whether an error was raised because the archive file itself could not be accessed (e.g. it has been moved, renamed
+ * or deleted, or the OS has denied access to it), as opposed to an error in reading or decoding its contents
+ *
+ * @param {Error} err The error to test
+ * @returns {Boolean} True if the error is a file access error
+ */
+function isFileAccessError (err) {
+    return !!err && (/^(NotFoundError|NotReadableError|NoModificationAllowedError)$/.test(err.name) ||
+        /^(ENOENT|EACCES|EPERM)$/.test(err.code));
+}
+
+/**
+ * Returns an HTML message for systemAlert explaining why a picked archive file or folder could not be read. Chromium reports
+ * an operating-system denial of access as NoModificationAllowedError (while listing a folder) or NotReadableError (while
+ * reading a file), so for these we point the user to the OS or administrator permissions rather than suggesting the archive
+ * has gone missing
+ *
+ * @param {Error} err The error thrown when the file or folder was accessed
+ * @returns {String} The message, formatted as HTML
+ */
+function fileAccessErrorMessage (err) {
+    // The error text can include a file path (e.g. from Node's fs in Electron), so it must be escaped before it is inserted as HTML
+    var systemMessage = '<p>[' + (translateUI.t('dialog-fileaccess-systemerror-label') || 'System error message:') + ' ' +
+        util.escapeHtml(err && err.message || err) + ']</p>';
+    if (err && /^(NoModificationAllowedError|NotReadableError)$/.test(err.name)) {
+        return (translateUI.t('dialog-fileaccess-denied-message') ||
+            '<p>The browser was refused access to your archive by the operating system. This is usually a permission ' +
+            'setting, not a problem with the archive itself.</p><p>Please check that this browser is allowed to access files ' +
+            'and folders on this device. On a managed or shared computer, an administrator or browser policy may be blocking ' +
+            'access to local files.</p>') + systemMessage;
+    }
+    return (translateUI.t('dialog-fileaccess-notfound-message') ||
+        '<p>We could not find your archive! Is the location or file still available? Try picking the file or folder again.</p>') +
+        systemMessage;
+}
+
+/**
  * Creates a data: URI from the given content
  * The given attribute of the DOM node (nodeAttribute) is then set to this URI
  *
@@ -1554,6 +1591,21 @@ function applyNativeWikimediaTheme(doc, appTheme) {
     }
 }
 
+/**
+ * Removes the max-width limit that the Vector 2022 skin applies to Wikimedia articles, if the user has enabled
+ * this in Configuration. We switch the skin's own client preference class from limited (1) to full (0) width,
+ * which is what the "Wide" option does on Wikipedia. In Restricted mode the class is moved from <html> to <body>.
+ * @param {Document} doc The document of the loaded article
+ */
+function applyArticleWidth (doc) {
+    if (!params.wideArticleWidth || !doc) return;
+    var limitedElements = doc.querySelectorAll('.vector-feature-limited-width-clientpref-1');
+    for (var i = 0; i < limitedElements.length; i++) {
+        limitedElements[i].classList.remove('vector-feature-limited-width-clientpref-1');
+        limitedElements[i].classList.add('vector-feature-limited-width-clientpref-0');
+    }
+}
+
 // Determines whether the user has requested a dark theme based on preference and browser settings
 function isDarkTheme (theme) {
     return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
@@ -1683,7 +1735,8 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
     if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
-    message += '</p><p style="word-break:break-all;">' + href + '</p>';
+    // The URL is shown as text: it is escaped for display only, and the original is opened below
+    message += '</p><p style="word-break:break-all;">' + util.escapeHtml(href) + '</p>';
     systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
             window.open(href, target);
@@ -1913,6 +1966,8 @@ export default {
     showSlidingUIElements: showSlidingUIElements,
     scroller: scroller,
     systemAlert: systemAlert,
+    isFileAccessError: isFileAccessError,
+    fileAccessErrorMessage: fileAccessErrorMessage,
     feedNodeWithDataURI: feedNodeWithDataURI,
     getDataUriFromUint8Array: getDataUriFromUint8Array,
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
@@ -1932,6 +1987,7 @@ export default {
     applyAppTheme: applyAppTheme,
     isDarkTheme: isDarkTheme,
     detectNativeZIMThemeSupport: detectNativeZIMThemeSupport,
+    applyArticleWidth: applyArticleWidth,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,

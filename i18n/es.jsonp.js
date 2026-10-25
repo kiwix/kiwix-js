@@ -70,6 +70,8 @@ document.localeJson = {
       "configure-display-apptheme-mwinvert-description": "* Solución anterior para ZIMs de Wikimedia.",
       "configure-display-apptheme-wikimedianative-description": "* Utiliza el tema oscuro integrado del ZIM (para ZIMs de Wikimedia con soporte de tema nativo). Se revierte a la inversión si no está disponible.",
       "configure-display-apptheme-info": "[&nbsp;Mostrar artículo con tema seleccionado&nbsp;]",
+      "configure-display-widearticlewidth": "<b>Usar todo el ancho de la ventana para los artículos de <i>Wikipedia</i></b> (<i>para archivos recientes de Wikimedia en pantallas grandes</i>)",
+      "configure-display-widearticlewidth-tip": "Los archivos recientes de Wikipedia limitan el texto de los artículos a una columna estrecha en pantallas grandes. Active esta opción para que los artículos usen todo el ancho de la ventana, como la opción \"Ancho\" de Wikipedia.",
       "configure-display-libzimsearchtype": "<b>Agregar fragmentos a la búsqueda de texto completo libzim</b> (si están disponibles)",
       "configure-display-libzimsearchtype-tip": "Si está marcado, usa la búsqueda de texto completo libzim con vistas previas de fragmentos si están disponibles, de lo contrario solo obtiene títulos de texto completo. Pase el cursor, haga clic o presione enter en el teclado para expandir el fragmento.",
       "configure-language-selector-default": "Idioma",
@@ -164,6 +166,8 @@ document.localeJson = {
       "dialog-blocked-fileprotocol": "<p>Parece que está abriendo kiwix-js con el protocolo file://, lo cual está bloqueado por su navegador por razones de seguridad.</p><p>La forma más fácil de ejecutar esta aplicación es en forma de una extensión (se puede obtenir gratis de la tienda de extensiones de su navegador).</p><p>O bien puede abrirlo a través de un servidor web: ya sea a través de uno local (http://localhost/...) o a través de uno remoto (pero necesitará una conexión segura, p.ej.: https://webserver/...)</p><p>Otra opción es forzar a su navegador a que lo acepte (pero abrirá una brecha de seguridad): en Chrome/Edge, puede iniciarlo con el argumento de línea de comandos --allow-file-access-from-files; en Firefox, puede cambiar la opción privacy.file_unique_origin a falso en about:config</p>",
       "dialog-devicestrage-error-title": "Error: nignún almacenamiento correspondiente",
       "dialog-devicestorage-error-message": "No se encuentra un almacenamiento que corresponda al directorio",
+      "dialog-direntry-error-message": "Se produjo un error al buscar",
+      "dialog-direntry-error-title": "Error al leer la entrada de directorio",
       "dialog-disabledragdrop-title": "Reiniciar la aplicación",
       "dialog-disabledragdrop-message": "<p>Ahora intentaremos volver a cargar la aplicación para activar el nuevo ajuste.</p><p>(Si cancela, el ajuste sólo se aplicará la próxima vez que reinicie la aplicación.)</p>",
       "dialog-error-title": "¡Error!",
@@ -171,6 +175,9 @@ document.localeJson = {
       "dialog-file-notset-title": "Archivo no listo",
       "dialog-fielhandle-fail-message": "No pudimos recuperar un identificador para el archivo seleccionado. Por favor, seleccione el archivo o la carpeta de nuevo.",
       "dialog-fielhandle-fail-title": "Error al recuperar el archivo",
+      "dialog-fileaccess-denied-message": "<p>El sistema operativo le negó al navegador el acceso a su archivo. Por lo general, esto se debe a una configuración de permisos, no a un problema con el archivo en sí.</p><p>Por favor, verifique que su navegador tenga permiso para acceder a archivos y carpetas en este dispositivo. En una computadora administrada o compartida, es posible que un administrador o una política del navegador esté bloqueando el acceso a los archivos locales.</p>",
+      "dialog-fileaccess-notfound-message": "<p>¡No se pudo encontrar el archivo! ¿Sigue disponible en la misma ubicación? Intente seleccionar el archivo o la carpeta de nuevo.</p>",
+      "dialog-fileaccess-systemerror-label": "Mensaje de error del sistema:",
       "dialog-focussearchbarcheck-message": "Tenga en cuenta que esta configuración enfoca la barra de búsqueda cuando abre la página de inicio de un archivo, y por eso desactiva el deslizamiento del encabezado y pie en esta página (únicamente).",
       "dialog-invalid-archivelocation-title": "Error: ubicación de archivos no válida",
       "dialog-invalid-archivelocation-message": "Parece que ha puesto algunos archivos de archivo en la raíz de su tarjeta SD (o almacenamiento interno). Por favor, muévalos a un subdirectorio",
@@ -194,6 +201,8 @@ document.localeJson = {
       "dialog-open-externalurl-newtab": "(en una nueva pestaña)",
       "dialog-open-externalurl-title": "Abriendo vínculo externo",
       "dialog-other-language-message": "¡Estamos trabajando duro para traerle más idiomas! Si está interesad@ en ayudar a traducir la interfaz a su idioma, por favor, cree un tiquete en nuestro GitHub. ¡Gracias!",
+      "dialog-pdf-notfound-message": "No se pudo encontrar un documento PDF en",
+      "dialog-pdf-notfound-title": "PDF no encontrado",
       "dialog-randomarticle-error-message": "Error al buscar un artículo aleatorio",
       "dialog-readsplitzim-error-message": "Error al leer archivos en ZIM dividido",
       "dialog-readzim-error-title": "Error al leer archivo(s)",
@@ -305,7 +314,13 @@ document.localeJson = {
       "alert-download-message": "<strong>Descargar</strong> Si no se inicia la descarga, pulse el siguiente enlace:",
       "spinner-caching": "Almacenando",
       "spinner-caching-assets": "Almacenando activos...",
-      "spinner-loading": "Cargando"
+      "spinner-loading": "Cargando",
+      "search-status-searching": "Buscando [$1]... encontrados: $2",
+      "search-status-first-multiple": "Los $1 primeros artículos encontrados (refinar la búsqueda).",
+      "search-status-finished-zero": "Terminado. Ningún artículo encontrado",
+      "search-status-finished-one": "Terminado. 1 artículo encontrado",
+      "search-status-finished-multiple": "Terminado. $1 artículos encontrados",
+      "search-status-basic-ending": ": usar menos palabras para una búsqueda más completa."
     }
   }
 }
