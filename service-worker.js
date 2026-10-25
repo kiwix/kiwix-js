@@ -583,6 +583,10 @@ function fetchUrlFromZIM (urlObjectOrString, range, event/*, expectedHeaders*/) 
 
         // console.debug('[SW] Asking app.js for ' + titleWithNameSpace + ' from ' + zimName + '...');
 
+        // The destination of the request ('iframe' for a navigation inside a frame, 'document' for a top-level navigation such as a new tab).
+        // Unlike requestingFrameType, this is also available for navigations in Firefox, which does not report the requesting client for them.
+        var requestDestination = event && event.request ? event.request.destination : '';
+
         // Get the requesting client's frameType if available
         // This tells us whether the fetch request came from an iframe ('nested'), a top-level window ('top-level'),
         // or another context. We pass this info to the app so it knows whether to hide the articleContainer
@@ -683,7 +687,8 @@ function fetchUrlFromZIM (urlObjectOrString, range, event/*, expectedHeaders*/) 
                         search: uriComponent,
                         anchorTarget: anchorTarget,
                         zimFileName: zimName,
-                        requestingFrameType: requestingFrameType
+                        requestingFrameType: requestingFrameType,
+                        requestDestination: requestDestination
                     }, [messageChannel.port2]);
                 });
             });

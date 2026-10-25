@@ -110,6 +110,12 @@ const archiveFiles = document.getElementById('archiveFiles');
 // Unique identifier of the article expected to be displayed
 appstate.expectedArticleURLToBeDisplayed = '';
 
+// True while a landing page load was not an explicit request for Home (e.g. restored from history), so that no warning is shown
+appstate.landingPageRestored = false;
+
+// Number of landing page requests made so far, so that the completion of an earlier load cannot clear the flags of a later request
+appstate.landingPageRequests = 0;
+
 // Platform and API detection - performed once at startup to avoid repeated checks
 const isFirefoxOsDeviceStorageAvailable = navigator.getDeviceStorages && typeof navigator.getDeviceStorages === 'function';
 const isMobileDevice = /Android/i.test(navigator.userAgent) ||
@@ -1168,6 +1174,7 @@ function handleMessageChannelByLibzim (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     const title = event.data.title;
+    flagLandingPageRequest(title, event.data);
     const messagePort = event.ports[0];
     selectedArchive.callLibzimWorker({ action: 'getEntryByPath', path: title, follow: true }).then(function (ret) {
         if (ret === null) {
@@ -1586,7 +1593,7 @@ window.onpopstate = function (event) {
             articleContent.removeChild(articleContent.firstChild);
         }
         if (title && !(title === '')) {
-            goToArticle(title);
+            goToArticle(title, false, null, isLandingPagePath(title));
         } else if (titleSearch && titleSearch !== '') {
             document.getElementById('prefix').value = titleSearch;
             if (titleSearch !== appstate.search.prefix) {
@@ -2640,7 +2647,7 @@ function articleLoadedSW (iframeArticleContent) {
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
         // If we are in a zimit2 ZIM and params.serviceWorkerLocal is true, and it's a landing page, then we should display a warning
-        if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
+        if (!params.hideActiveContentWarning && params.isLandingPage && !appstate.landingPageRestored && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
         }
         // Reset UI when the article is unloaded
@@ -2657,6 +2664,7 @@ function articleLoadedSW (iframeArticleContent) {
         };
     }
     params.isLandingPage = false;
+    appstate.landingPageRestored = false;
 };
 
 /**
@@ -2955,6 +2963,8 @@ function handleMessageChannelMessage (event) {
     // We received a message from the ServiceWorker
     // The ServiceWorker asks for some content
     var title = event.data.title;
+    // In ServiceWorker mode, history navigation happens in the iframe, so it reaches us only as a request for content
+    flagLandingPageRequest(title, event.data);
     if (appstate.isReplayWorkerAvailable) {
         // Zimit ZIMs store assets with the querystring, so we need to add it. ReplayWorker handles encoding.
         title = title + event.data.search;
@@ -3108,9 +3118,11 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
     if (!isDirEntryExpectedToBeDisplayed(dirEntry)) {
         return;
     }
+    // Note the landing page requests made so far, so that we can tell on load whether a new one was made meanwhile
+    var landingPageRequests = appstate.landingPageRequests;
 
     // Display Bootstrap warning alert if the landing page contains active content
-    if (!params.hideActiveContentWarning && params.isLandingPage) {
+    if (!params.hideActiveContentWarning && params.isLandingPage && !appstate.landingPageRestored) {
         if (regexpActiveContent.test(htmlArticle) || /zimit/.test(selectedArchive.zimType)) {
             // Exempted scripts: active content warning will not be displayed if any listed script is in the html [kiwix-js #889]
             if (!/<script\b[^'"]+['"][^'"]*?mooc\.js/i.test(htmlArticle)) {
@@ -3309,7 +3321,12 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
                 iframeArticleContent.contentWindow.removeEventListener('keydown', focusPrefixOnHomeKey);
             };
         }
-        params.isLandingPage = false;
+        // Clear the flags, unless the landing page was requested while this article was loading (e.g. Home pressed during a Back), in which
+        // case they belong to that request, which has yet to be displayed
+        if (appstate.landingPageRequests === landingPageRequests) {
+            params.isLandingPage = false;
+            appstate.landingPageRestored = false;
+        }
     };
 
     // Load the blank article to clear the iframe (NB iframe onload event runs *after* this)
@@ -3660,7 +3677,7 @@ uiUtil.setUpTOC();
  *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
  * @param {String} contentType The mimetype of the downloadable file, if known
  */
-function goToArticle (path, download, contentType) {
+function goToArticle (path, download, contentType, isLandingPage) {
     uiUtil.spinnerDisplay(true);
     selectedArchive.getDirEntryByPath(path).then(function (dirEntry) {
         var mimetype = contentType || dirEntry ? dirEntry.getMimetype() : '';
@@ -3678,7 +3695,13 @@ function goToArticle (path, download, contentType) {
                 uiUtil.displayFileDownloadAlert(path, download, mimetype, content);
             });
         } else {
-            params.isLandingPage = false;
+            // Only a history restoration of the landing page (see onpopstate) is a landing page request here
+            if (isLandingPage) {
+                setLandingPageRequest(true);
+            } else {
+                params.isLandingPage = false;
+                appstate.landingPageRestored = false;
+            }
             var activeContent = document.getElementById('activeContent');
             if (activeContent) activeContent.style.display = 'none';
             readArticle(dirEntry);
@@ -3724,6 +3747,42 @@ function goToRandomArticle () {
     }
 }
 
+/**
+ * Checks whether a ZIM path is the archive's landing page, as recorded when Home was last requested. For classic Zimit archives,
+ * the page stored in the history and requested by the ServiceWorker is the start page that the landing page redirects to
+ * @param {String} path The namespace and URL of the article
+ * @returns {Boolean} True if the path is that of the landing page
+ */
+function isLandingPagePath (path) {
+    return !!selectedArchive && (path === selectedArchive.landingPageUrl || path === selectedArchive.zimitStartPage);
+}
+
+/**
+ * Marks the load now starting as a request for the landing page. An explicit request for Home always clears appstate.landingPageRestored, so
+ * that nothing left over from an earlier load can suppress the active content warning, and a restoration from history cannot override a request
+ * for Home that is still loading
+ * @param {Boolean} restored True if the landing page is being restored (e.g. from history) rather than explicitly requested with Home
+ */
+function setLandingPageRequest (restored) {
+    appstate.landingPageRestored = restored && (appstate.landingPageRestored || !params.isLandingPage);
+    params.isLandingPage = true;
+    appstate.landingPageRequests++;
+}
+
+/**
+ * Marks a ServiceWorker request for the landing page as a landing page load, unless it comes from another window or tab, which loads nothing
+ * into the app's iframe. Such a request is a top-level navigation (destination 'document'). We cannot use requestingFrameType for this: Firefox
+ * does not report the requesting client of a navigation, and classic Zimit pages are requested by the Replay worker without a fetch event, so
+ * both report 'unknown' even for the app's own iframe, while Edge Legacy reports the client that started the navigation, which is the app's own
+ * top-level window when it navigates the iframe (e.g. history.back() for Back)
+ * @param {String} path The namespace and URL of the requested article
+ * @param {Object} data The data of the ServiceWorker's message, including requestDestination
+ */
+function flagLandingPageRequest (path, data) {
+    if (data.requestDestination === 'document') return;
+    if (isLandingPagePath(path)) setLandingPageRequest(true);
+}
+
 function goToMainArticle () {
     document.getElementById('searchingArticles').style.display = '';
     selectedArchive.getMainPageDirEntry(function (dirEntry) {
@@ -3733,7 +3792,7 @@ function goToMainArticle () {
             document.getElementById('welcomeText').style.display = '';
         } else {
             var setMainPage = function (dirEntry) {
-                params.isLandingPage = true;
+                setLandingPageRequest(false);
                 selectedArchive.landingPageUrl = dirEntry.namespace + '/' + dirEntry.url;
                 readArticle(dirEntry);
             }
