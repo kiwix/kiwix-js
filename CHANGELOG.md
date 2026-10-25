@@ -12,6 +12,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * FIX: Opening a different archive with the same file name in the same session no longer shows data from the archive opened before it
 * FIX: Paths, URLs and error messages shown in alert dialogs are now always displayed as plain text
 * FIX: When an archive is picked from a folder, other archives whose names merely begin with the same text (e.g. `wiki.zim` and `wikipedia.zim`) are no longer grouped with it as parts of a split archive
+* FIX: Dropping a folder with more than 100 entries onto the app no longer leaves archives out of the list in Chromium browsers without the File System Access API (e.g. when the app is opened over plain http on a local network)
 * FIX: Archives without a main page no longer cause the app to read part of the archive header as if it were the main article
 * FIX: Resetting the app now waits for every Service Worker to be deregistered before reloading
 * FIX: The search status message is now translated into Spanish and French
@@ -19,7 +20,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 * FIX: WebP images supplied as data URIs that are not base64-encoded are now decoded correctly in browsers that need the WebP polyfill
 * FIX: The link to the Zimit service in About now points to zimit.kiwix.org, as the old youzim.it domain is being retired
 * DEV: Empty reads in the ZIM file reader now return a Uint8Array consistently
-* DEV: Added unit tests for split archive matching, archives without a main page, data URI decoding, relative ZIM URL resolution and the block cache
+* DEV: Added unit tests for split archive matching, archives without a main page, data URI decoding, relative ZIM URL resolution, the block cache and folder drops
 * DEV: Added a Docker troubleshooting guide
 * DEV: Updates to development dependencies
 
