@@ -1732,7 +1732,8 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
     if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
-    message += '</p><p style="word-break:break-all;">' + href + '</p>';
+    // The URL is shown as text: it is escaped for display only, and the original is opened below
+    message += '</p><p style="word-break:break-all;">' + util.escapeHtml(href) + '</p>';
     systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
             window.open(href, target);
