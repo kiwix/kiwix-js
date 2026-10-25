@@ -199,21 +199,30 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
         // We need to convert the FileList into an Array
         var fileArray = [].slice.call(fileList);
         // The constructor has been called with an array of File/Blob parameter
-        createZimfile(fileArray);
+        createZimfile(fileArray).catch(function (err) {
+            // Usually the browser could not read the file (e.g. it has been moved, or the OS denied it access), which would otherwise
+            // go unreported. Any other error (e.g. a truncated or corrupt file) is reported as such, so that the user is not wrongly
+            // told to pick the archive again
+            console.error('Error reading archive file', err);
+            callbackError(uiUtil.isFileAccessError(err) ? uiUtil.fileAccessErrorMessage(err)
+                : (translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + util.escapeHtml(fileArray[0] && fileArray[0].name) +
+                '&nbsp;: ' + util.escapeHtml(err && err.message || err),
+            translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
+        });
     } else {
         if (/.*zim..$/.test(path)) {
             // split archive
             that._searchArchiveParts(storage, path.slice(0, -2)).then(function (fileArray) {
                 createZimfile(fileArray);
             }).catch(function (error) {
-                callbackError((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + path + '&nbsp;: ' + error,
+                callbackError((translateUI.t('dialog-readsplitzim-error-message') || 'Error reading files in split archive') + ' ' + util.escapeHtml(path) + '&nbsp;: ' + util.escapeHtml(error),
                     translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
             });
         } else {
             storage.get(path).then(function (file) {
                 createZimfile([file]);
             }).catch(function (error) {
-                callbackError((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + path + '&nbsp;: ' + error,
+                callbackError((translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + util.escapeHtml(path) + '&nbsp;: ' + util.escapeHtml(error),
                     translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
             });
         }

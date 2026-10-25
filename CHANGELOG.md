@@ -6,6 +6,8 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ## Unreleased
 
+* ENHANCEMENT: When an archive cannot be read, the error now explains the likely cause (e.g. the file has been moved, or the operating system denied access to it)
+* FIX: Paths, URLs and error messages shown in alert dialogs are now always displayed as plain text
 * FIX: The link to the Zimit service in About now points to zimit.kiwix.org, as the old youzim.it domain is being retired
 
 ## Interim update Kiwix JS v4.4.1
