@@ -4,18 +4,30 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
-## Unreleased
+## Interim update Kiwix JS v4.4.2
 
+* ENHANCEMENT: New option in Configuration to let recent Wikipedia articles use the full window width on wide screens
 * ENHANCEMENT: When an archive cannot be read, the error now explains the likely cause (e.g. the file has been moved, or the operating system denied access to it)
+* ENHANCEMENT: Article titles and search terms are no longer written into the browser's address bar and history
+* FIX: Opening a different archive with the same file name in the same session no longer shows data from the archive opened before it
 * FIX: Paths, URLs and error messages shown in alert dialogs are now always displayed as plain text
+* FIX: When an archive is picked from a folder, other archives whose names merely begin with the same text (e.g. `wiki.zim` and `wikipedia.zim`) are no longer grouped with it as parts of a split archive
+* FIX: Archives without a main page no longer cause the app to read part of the archive header as if it were the main article
+* FIX: Resetting the app now waits for every Service Worker to be deregistered before reloading
+* FIX: The search status message is now translated into Spanish and French
+* FIX: French translations now use a non-breaking space before high punctuation throughout, so that a colon, question mark or exclamation mark can no longer be stranded at the start of a line
+* FIX: WebP images supplied as data URIs that are not base64-encoded are now decoded correctly in browsers that need the WebP polyfill
 * FIX: The link to the Zimit service in About now points to zimit.kiwix.org, as the old youzim.it domain is being retired
+* DEV: Empty reads in the ZIM file reader now return a Uint8Array consistently
+* DEV: Added unit tests for split archive matching, archives without a main page, data URI decoding, relative ZIM URL resolution and the block cache
+* DEV: Added a Docker troubleshooting guide
+* DEV: Updates to development dependencies
 
 ## Interim update Kiwix JS v4.4.1
 
 * SECURITY: Tightened the Content Security Policy applied to articles displayed in Restricted mode
 * SECURITY: Published advisory [GHSA-37j3-jm4x-gjmv](https://github.com/kiwix/kiwix-js/security/advisories/GHSA-37j3-jm4x-gjmv) for the issues fixed in v4.3.3 and v4.3.4 below
 * ENHANCEMENT: The search field now has a description for screen readers
-* ENHANCEMENT: New option in Configuration to let recent Wikipedia articles use the full window width on wide screens
 * FIX: A "|" in an article's title no longer truncates the title when its directory entry is read back
 * FIX: Browser languages whose codes merely contain "en", "es" or "fr" (e.g. Estonian) no longer cause a translation error on startup
 * FIX: Spelling of "adresse" in the French About page
