@@ -7,7 +7,7 @@
  * - Zimit-specific transformations (canonical prefix, root-relative, protocol-relative, analytics removal) work as expected.
  * - Restricted-mode HTML transformation rewrites assets in a single pass.
  * - Characterization output on multi-asset documents matches expected targets.
- * - Sequential queue execution, WebP decode serialization, and entry deduplication operate safely.
+ * - Sequential queue execution and WebP decode serialization operate safely.
  */
 
 import { assert } from 'chai';
@@ -22,6 +22,8 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
             assert.equal(uiUtil.resolveImageUrl('../I/imágen.png', 'A/'), 'I/im%C3%A1gen.png');
             assert.equal(uiUtil.resolveImageUrl('', 'A/'), '');
             assert.equal(uiUtil.resolveImageUrl(null, 'A/'), '');
+            assert.equal(uiUtil.resolveImageUrl('data:image/webp;base64,abc', 'A/'), '');
+            assert.equal(uiUtil.resolveImageUrl('data:image/png;base64,abc', 'A/'), '');
         });
 
         it('resolves root-relative, absolute HTTPS, and protocol-relative URLs in classic Zimit 1 archives', function () {
@@ -183,22 +185,6 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
             assert.deepEqual(res, ['t1', 't2', 't3']);
             assert.equal(maxConcurrency, 1, 'Concurrency must never exceed 1');
             assert.deepEqual(log, ['t1_start', 't1_end', 't2_start', 't2_end', 't3_start', 't3_end']);
-        });
-
-        it('uiUtil.filterUnprocessedDirEntries deduplicates DirEntries against a tracking Set', function () {
-            const processedSet = new Set(['entry-1']);
-            const entries = [
-                { toStringId: () => 'entry-1', title: 'A1' },
-                { toStringId: () => 'entry-2', title: 'A2' },
-                { toStringId: () => 'entry-3', title: 'A3' }
-            ];
-
-            const filtered = uiUtil.filterUnprocessedDirEntries(entries, processedSet);
-            assert.equal(filtered.length, 2);
-            assert.equal(filtered[0].title, 'A2');
-            assert.equal(filtered[1].title, 'A3');
-            assert.isTrue(processedSet.has('entry-2'));
-            assert.isTrue(processedSet.has('entry-3'));
         });
     });
 });

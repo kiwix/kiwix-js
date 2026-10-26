@@ -585,7 +585,7 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, 
     }
 
     // Decode WebP data if the browser does not support WebP and the mimeType is webp
-    if (typeof webpMachine !== 'undefined' && webpMachine && /image\/webp/i.test(mimeType)) {
+    if (webpMachine && /image\/webp/i.test(mimeType)) {
         // If we're dealing with a dataURI, first convert to Uint8Array
         if (/^data:/i.test(content)) {
             content = util.dataURItoUint8Array(content);
@@ -598,7 +598,7 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, 
             return webpMachine.decodeToCanvas(canvas, content);
         }).then(function () {
             if (!checkCancelled()) {
-                if (typeof params !== 'undefined' && params.useCanvasElementsForWebpTranscoding) {
+                if (params.useCanvasElementsForWebpTranscoding) {
                     // Replace images by canvas. This is necessary for some browsers with obsolete anti-fingerprinting protection, like IceCat 60.7
                     webpMachine.constructor.replaceImageWithCanvas(node, canvas);
                 } else {
@@ -612,15 +612,14 @@ function feedNodeWithDataURI (node, nodeAttribute, content, mimeType, callback, 
             if (callback) callback();
         });
     } else {
+        if (callback) callback(); // Calling back as soon as possible speeds up extraction
         // In browsers that support WebP natively, or for non-WebP images, we can simply convert the Uint8Array to a data URI
         getDataUriFromUint8Array(content, mimeType).then(function (dataUri) {
             if (!checkCancelled()) {
                 node.setAttribute(nodeAttribute, dataUri);
             }
-            if (callback) callback();
         }).catch(function (err) {
             console.error('There was an error converting Uint8Array to data URI', err);
-            if (callback) callback();
         });
     }
 }
@@ -636,21 +635,15 @@ function getDataUriFromUint8Array (content, mimeType) {
     // See https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
     // This native browser method is very fast: see https://stackoverflow.com/a/66046176/9727685
     return new Promise((resolve, reject) => {
-        var FileReaderClass = typeof FileReader !== 'undefined' ? FileReader : (typeof window !== 'undefined' ? window.FileReader : null);
-        var BlobClass = (typeof window !== 'undefined' && window.Blob) ? window.Blob : (typeof Blob !== 'undefined' ? Blob : null);
-        if (FileReaderClass && BlobClass) {
-            var myReader = new FileReaderClass();
-            myReader.onloadend = function () {
-                var url = myReader.result;
-                resolve(url);
-            };
-            myReader.onerror = function (err) {
-                reject(err);
-            };
-            myReader.readAsDataURL(new BlobClass([content], { type: mimeType }));
-        } else {
-            resolve('');
-        }
+        var myReader = new FileReader();
+        myReader.onloadend = function () {
+            var url = myReader.result;
+            resolve(url);
+        };
+        myReader.onerror = function (err) {
+            reject(err);
+        };
+        myReader.readAsDataURL(new Blob([content], { type: mimeType }));
     });
 }
 
@@ -775,7 +768,7 @@ var regexpZimitHtmlLinks = /(<(?:a|img|script|link|track|meta|iframe)\b[^>]*?[\s
  * @returns {String} The resolved and encoded ZIM URL
  */
 function resolveImageUrl (relUrl, baseUrl, options) {
-    if (!relUrl) return '';
+    if (!relUrl || /^data:/i.test(relUrl)) return '';
     options = options || {};
     var zimType = options.zimType || (options.archive && options.archive.zimType) || '';
     if (zimType === 'zimit') {
@@ -849,7 +842,7 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
     baseUrl = baseUrl || '';
 
     var archive = options.archive || {};
-    var zimType = options.zimType || archive.zimType || (typeof params !== 'undefined' && params.zimType) || '';
+    var zimType = options.zimType || archive.zimType || (params && params.zimType) || '';
     var isClassicZimit = zimType === 'zimit';
     var archiveZimitPrefix = options.zimitPrefix || archive.zimitPrefix || '';
     var fileName = options.fileName || (archive.file && archive.file.name) || archive.name || '';
@@ -1017,38 +1010,6 @@ function processSequentialQueue (items, processItem, options) {
 
         runNext();
     });
-}
-
-/**
- * Filters an array of DirEntry objects, returning only those that have not yet been processed,
- * and adds newly seen entries to the tracking set.
- *
- * @param {Array} dirEntryArray Array of DirEntry objects
- * @param {Set|Object} processedSet A Set (or Object map) tracking processed entry IDs
- * @returns {Array} Array of DirEntry objects that have not been processed yet
- */
-function filterUnprocessedDirEntries (dirEntryArray, processedSet) {
-    if (!dirEntryArray || !dirEntryArray.length) return [];
-    if (!processedSet) return dirEntryArray.slice();
-
-    var isSet = typeof processedSet.has === 'function' && typeof processedSet.add === 'function';
-    var newEntries = [];
-
-    for (var i = 0; i < dirEntryArray.length; i++) {
-        var entry = dirEntryArray[i];
-        if (!entry) continue;
-        var id = entry.toStringId ? entry.toStringId() : (entry.url || String(i));
-        var alreadyProcessed = isSet ? processedSet.has(id) : Boolean(processedSet[id]);
-        if (!alreadyProcessed) {
-            if (isSet) {
-                processedSet.add(id);
-            } else {
-                processedSet[id] = true;
-            }
-            newEntries.push(entry);
-        }
-    }
-    return newEntries;
 }
 
 /**
@@ -2316,6 +2277,5 @@ export default {
     attachArticleListEventListeners: attachArticleListEventListeners,
     queueWebpDecode: queueWebpDecode,
     transcodeWebpToDataUri: transcodeWebpToDataUri,
-    processSequentialQueue: processSequentialQueue,
-    filterUnprocessedDirEntries: filterUnprocessedDirEntries
+    processSequentialQueue: processSequentialQueue
 };

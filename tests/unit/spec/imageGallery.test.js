@@ -13,14 +13,76 @@
 
 import { assert } from 'chai';
 import '../js/init.js';
+import uiUtil from '../../../www/js/lib/uiUtil.js';
 import {
     cleanCaption,
     filterJunkImage,
     extractImagesFromArticleHtml,
+    filterUnprocessedDirEntries,
     imageGallery
 } from '../../../www/js/lib/imageGallery.js';
 
 describe('Image Gallery Extraction and Controller (Issue #277)', function () {
+    var originalFileReader;
+    var originalWebpMachine;
+
+    before(function () {
+        originalFileReader = globalThis.FileReader;
+        originalWebpMachine = globalThis.webpMachine;
+
+        if (!globalThis.FileReader) {
+            globalThis.FileReader = class MockFileReader {
+                constructor () {
+                    this.onloadend = null;
+                    this.onerror = null;
+                    this.result = null;
+                }
+
+                readAsDataURL (blob) {
+                    if (blob && typeof blob.arrayBuffer === 'function') {
+                        blob.arrayBuffer().then((buffer) => {
+                            var base64 = Buffer.from(buffer).toString('base64');
+                            var type = blob.type || 'application/octet-stream';
+                            this.result = 'data:' + type + ';base64,' + base64;
+                            if (typeof this.onloadend === 'function') {
+                                this.onloadend();
+                            }
+                        }).catch((err) => {
+                            if (typeof this.onerror === 'function') {
+                                this.onerror(err);
+                            }
+                        });
+                    } else {
+                        setTimeout(() => {
+                            this.result = 'data:application/octet-stream;base64,';
+                            if (typeof this.onloadend === 'function') {
+                                this.onloadend();
+                            }
+                        }, 0);
+                    }
+                }
+            };
+        }
+
+        if (globalThis.webpMachine === undefined) {
+            globalThis.webpMachine = null;
+        }
+    });
+
+    after(function () {
+        if (originalFileReader !== undefined) {
+            globalThis.FileReader = originalFileReader;
+        } else {
+            delete globalThis.FileReader;
+        }
+
+        if (originalWebpMachine !== undefined) {
+            globalThis.webpMachine = originalWebpMachine;
+        } else {
+            delete globalThis.webpMachine;
+        }
+    });
+
     describe('cleanCaption', function () {
         it('collapses extra whitespace, normalizes newlines/tabs, and handles null/undefined/empty gracefully', function () {
             assert.equal(cleanCaption('  A photo of Albert Einstein in 1921.   '), 'A photo of Albert Einstein in 1921.');
@@ -41,14 +103,15 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
     });
 
     describe('filterJunkImage', function () {
-        it('rejects math formulas, UI icons, tiny dimensions, empty src, and non-WebP data URIs', function () {
+        it('rejects math formulas, UI icons, tiny dimensions, empty src, and data URIs', function () {
             // Missing or empty src
             assert.isFalse(filterJunkImage({}));
             assert.isFalse(filterJunkImage({ src: '' }));
 
-            // Non-WebP data URIs
+            // Data URIs (inline spacers, base64 icons, or placeholders)
             assert.isFalse(filterJunkImage({ src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==' }));
             assert.isFalse(filterJunkImage({ src: 'data:image/jpeg;base64,/9j/4AAQSkZJRg==' }));
+            assert.isFalse(filterJunkImage({ src: 'data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAQCdASoBAAEAAQAcJaACdLoB+AA=' }));
 
             // Math formulas
             assert.isFalse(filterJunkImage({ src: '../math/formula123.svg' }));
@@ -66,13 +129,18 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
             assert.isFalse(filterJunkImage({ src: '../I/wide_flat.jpg', width: 200, height: 10 }));
         });
 
-        it('accepts legitimate article images and WebP data URIs', function () {
-            assert.isTrue(filterJunkImage({ src: 'data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAQCdASoBAAEAAQAcJaACdLoB+AA=' }));
+        it('accepts legitimate article images including WebP archive files', function () {
             assert.isTrue(filterJunkImage({
                 src: '../I/RayCharles_Piano.jpg',
                 width: 300,
                 height: 250,
                 alt: 'Ray Charles playing piano'
+            }));
+            assert.isTrue(filterJunkImage({
+                src: '../I/RayCharles_Cover.webp',
+                width: 300,
+                height: 250,
+                alt: 'Ray Charles album cover in WebP'
             }));
             assert.isTrue(filterJunkImage({
                 src: '../I/Scientific_Diagram.svg',
@@ -136,6 +204,39 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
             var images = extractImagesFromArticleHtml(html, mockDirEntry);
             assert.equal(images.length, 1, 'Duplicate image URL within the same article must be deduplicated');
         });
+
+        it('extracts WebP archive images while ignoring inline data URIs', function () {
+            var html = '<figure>' +
+                '  <img src="../I/Photo.webp" width="400" height="300" alt="WebP Photo">' +
+                '  <figcaption>A WebP photo in archive</figcaption>' +
+                '</figure>' +
+                '<div>' +
+                '  <img src="data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAQCdASoBAAEAAQAcJaACdLoB+AA=" alt="Inline WebP">' +
+                '</div>';
+
+            var images = extractImagesFromArticleHtml(html, mockDirEntry);
+            assert.equal(images.length, 1);
+            assert.equal(images[0].url, 'I/Photo.webp');
+            assert.equal(images[0].caption, 'A WebP photo in archive');
+        });
+    });
+
+    describe('filterUnprocessedDirEntries', function () {
+        it('deduplicates DirEntries against a tracking Set', function () {
+            var processedSet = new Set(['entry-1']);
+            var entries = [
+                { toStringId: () => 'entry-1', title: 'A1' },
+                { toStringId: () => 'entry-2', title: 'A2' },
+                { toStringId: () => 'entry-3', title: 'A3' }
+            ];
+
+            var filtered = filterUnprocessedDirEntries(entries, processedSet);
+            assert.equal(filtered.length, 2);
+            assert.equal(filtered[0].title, 'A2');
+            assert.equal(filtered[1].title, 'A3');
+            assert.isTrue(processedSet.has('entry-2'));
+            assert.isTrue(processedSet.has('entry-3'));
+        });
     });
 
     describe('imageGallery Controller', function () {
@@ -164,7 +265,7 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
         });
 
         afterEach(function () {
-            imageGallery.cleanup();
+            imageGallery.cancel();
         });
 
         it('renders image cards safely using DOM methods and textContent', function () {
@@ -217,7 +318,6 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
             };
             imageGallery.getArchive = function () { return mockArchive; };
             imageGallery.TARGET_BATCH_IMAGES = 15;
-            imageGallery.BATCH_SIZE = 15;
 
             var entry = { namespace: 'A', url: 'LongArticle.html', isRedirect: () => false, toStringId: () => 'A/LongArticle.html' };
             var search = { prefix: 'long', status: 'final' };
@@ -325,8 +425,8 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
                     var caption = cards[0].querySelector('.image-gallery-caption');
                     assert.equal(caption.textContent, 'New');
 
-                    // Verify cleanup resets state and cancels extraction
-                    imageGallery.cleanup();
+                    // Verify cancel resets state and stops extraction
+                    imageGallery.cancel();
                     assert.isTrue(imageGallery.cancelled);
                     assert.isNull(imageGallery.activeSearch);
                     resolve();
@@ -363,6 +463,7 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
                     // User opens article or presses Escape -> cancel() is called
                     imageGallery.cancel();
                     assert.isTrue(imageGallery.cancelled);
+                    assert.equal(search1.status, 'final', 'Gallery cancel() must not mutate search1.status');
 
                     // User repeats the same search
                     var search2 = { prefix: 'repeat', status: 'final' };
@@ -375,6 +476,24 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
                     }, 50);
                 }, 50);
             });
+        });
+
+        it('cancels gallery operations without modifying the search object status', function () {
+            var searchObj = { prefix: 'test', status: 'final' };
+            var mockArchive = {
+                readUtf8File: function () { return Promise.resolve(); },
+                getDirEntryByPath: function () { return Promise.resolve(null); },
+                readBinaryFile: function () { return Promise.resolve(); }
+            };
+            imageGallery.getArchive = function () { return mockArchive; };
+
+            imageGallery.loadImagesForSearch([], searchObj, { archive: mockArchive });
+            assert.equal(imageGallery.activeSearch, searchObj);
+
+            imageGallery.cancel();
+            assert.isTrue(imageGallery.cancelled, 'Gallery must be marked cancelled internally');
+            assert.isNull(imageGallery.activeSearch, 'Gallery activeSearch must be cleared');
+            assert.equal(searchObj.status, 'final', 'searchObj.status must not be mutated to cancelled');
         });
 
         it('recovers from failed archive reads and missing images without stalling subsequent images', async function () {
@@ -408,6 +527,12 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
 
             var cards = grid.querySelectorAll('.image-gallery-card');
             assert.equal(cards.length, 2, 'Missing image card should be pruned; good image cards must render');
+        });
+
+        it('converts binary content to data URI via uiUtil.getDataUriFromUint8Array', async function () {
+            var data = new Uint8Array([1, 2, 3]);
+            var dataUri = await uiUtil.getDataUriFromUint8Array(data, 'image/jpeg');
+            assert.equal(dataUri, 'data:image/jpeg;base64,AQID');
         });
     });
 });

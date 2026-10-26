@@ -36,8 +36,8 @@ function filterJunkImage (attrs) {
     var src = attrs.src || attrs.rawSrc || '';
     if (!src) return false;
 
-    // Reject non-WebP data URIs (e.g. inline spacer gifs or base64 icons)
-    if (/^data:(?!image\/webp)/i.test(src)) {
+    // Reject data URIs (e.g. inline spacer gifs, icons, or base64 placeholders)
+    if (/^data:/i.test(src)) {
         return false;
     }
 
@@ -104,7 +104,7 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
 
     // Ensure asset URLs are transformed according to archive type (Zimit1/Zimit2/standard).
     // transformArticleHtmlForRestrictedMode safely handles standard ZIM, classic Zimit 1,
-    // Zimit 2, mixed HTML, and is idempotent for already-transformed tags.
+    // Zimit 2, and mixed HTML in a single pass.
     htmlArticle = uiUtil.transformArticleHtmlForRestrictedMode(htmlArticle, {
         dirEntry: dirEntry,
         baseUrl: baseUrl,
@@ -207,13 +207,44 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
 }
 
 /**
+ * Filters an array of DirEntry objects, returning only those that have not yet been processed,
+ * and adds newly seen entries to the tracking set.
+ *
+ * @param {Array} dirEntryArray Array of DirEntry objects
+ * @param {Set|Object} processedSet A Set (or Object map) tracking processed entry IDs
+ * @returns {Array} Array of DirEntry objects that have not been processed yet
+ */
+function filterUnprocessedDirEntries (dirEntryArray, processedSet) {
+    if (!dirEntryArray || !dirEntryArray.length) return [];
+    if (!processedSet) return dirEntryArray.slice();
+
+    var isSet = typeof processedSet.has === 'function' && typeof processedSet.add === 'function';
+    var newEntries = [];
+
+    for (var i = 0; i < dirEntryArray.length; i++) {
+        var entry = dirEntryArray[i];
+        if (!entry) continue;
+        var id = entry.toStringId ? entry.toStringId() : (entry.url || String(i));
+        var alreadyProcessed = isSet ? processedSet.has(id) : Boolean(processedSet[id]);
+        if (!alreadyProcessed) {
+            if (isSet) {
+                processedSet.add(id);
+            } else {
+                processedSet[id] = true;
+            }
+            newEntries.push(entry);
+        }
+    }
+    return newEntries;
+}
+
+/**
  * ImageGallery controller managing the gallery state, pagination,
  * cancellation, and rendering pipeline.
  */
 var imageGallery = {
     activeSearch: null,
     searchId: 0,
-    searchPrefix: '',
     isExtracting: false,
     cancelled: false,
 
@@ -230,12 +261,10 @@ var imageGallery = {
     loadMoreBtn: null,
     onSelectArticle: null,
     getArchive: null,
-    getParams: null,
     getAppstate: null,
     options: {},
 
     TARGET_BATCH_IMAGES: 15,
-    BATCH_SIZE: 15,
 
     /**
      * Initialize gallery UI bindings and callbacks.
@@ -249,7 +278,6 @@ var imageGallery = {
         this.loadMoreBtn = config.loadMoreBtn || null;
         this.onSelectArticle = config.onSelectArticle || null;
         this.getArchive = config.getArchive || null;
-        this.getParams = config.getParams || null;
         this.getAppstate = config.getAppstate || null;
 
         var that = this;
@@ -290,7 +318,6 @@ var imageGallery = {
         this.cancel();
         this.cancelled = false;
         this.searchId++;
-        this.searchPrefix = '';
         this.activeSearch = null;
         this.isExtracting = false;
         this.processedDirEntries = new Set();
@@ -317,9 +344,6 @@ var imageGallery = {
     cancel: function () {
         this.cancelled = true;
         this.searchId++;
-        if (this.activeSearch && typeof this.activeSearch === 'object') {
-            this.activeSearch.status = 'cancelled';
-        }
         this.activeSearch = null;
         this.pendingImages = [];
         this.pendingDirEntries = [];
@@ -352,14 +376,13 @@ var imageGallery = {
         if (this.activeSearch !== reportingSearch || this.cancelled) {
             this.reset();
             this.activeSearch = reportingSearch;
-            this.searchPrefix = reportingSearch.prefix || '';
         } else if (this.isCancelled(reportingSearch)) {
             return Promise.resolve();
         }
 
         this.options = options || {};
 
-        var newEntries = uiUtil.filterUnprocessedDirEntries(dirEntryArray, this.processedDirEntries);
+        var newEntries = filterUnprocessedDirEntries(dirEntryArray, this.processedDirEntries);
         if (!newEntries.length && this.isExtracting) {
             return Promise.resolve();
         }
@@ -385,10 +408,11 @@ var imageGallery = {
 
         this.isExtracting = true;
         var currentSearch = this.activeSearch;
+        var currentSearchId = this.searchId;
         var that = this;
 
         var checkCancelled = function () {
-            return that.isCancelled(currentSearch);
+            return that.searchId !== currentSearchId || that.isCancelled(currentSearch);
         };
 
         if (this.status && this.renderedImageCount === 0) {
@@ -397,7 +421,7 @@ var imageGallery = {
         }
 
         var imagesFoundInBatch = 0;
-        var targetBatchImages = this.BATCH_IMAGE_LIMIT || (this.BATCH_SIZE !== 15 ? this.BATCH_SIZE : (this.TARGET_BATCH_IMAGES || 15));
+        var targetBatchImages = this.TARGET_BATCH_IMAGES || 15;
 
         return new Promise(function (resolve) {
             function step () {
@@ -685,6 +709,7 @@ export {
     cleanCaption,
     filterJunkImage,
     extractImagesFromArticleHtml,
+    filterUnprocessedDirEntries,
     imageGallery
 };
 
