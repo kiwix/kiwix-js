@@ -44,57 +44,25 @@ function stageChromeExtension () {
 }
 
 /**
- * Searches a directory recursively for files matching a test predicate.
- * @param {string} dir Directory path
- * @param {RegExp} pattern Regex to match against file basenames
- * @returns {string[]} Array of matching full paths
- */
-function findFilesRecursively (dir, pattern) {
-    let results = [];
-    if (!fs.existsSync(dir)) return results;
-    try {
-        const entries = fs.readdirSync(dir, { withFileTypes: true });
-        for (const entry of entries) {
-            const fullPath = path.join(dir, entry.name);
-            if (entry.isDirectory()) {
-                results = results.concat(findFilesRecursively(fullPath, pattern));
-            } else if (pattern.test(entry.name)) {
-                results.push(fullPath);
-            }
-        }
-    } catch {
-        // Ignore permission or read errors
-    }
-    return results;
-}
-
-/**
- * Resolves a compatible Chrome for Testing or Chromium binary that permits `--load-extension`.
- * Starting in Chrome 137+, consumer-branded Google Chrome builds ignore `--load-extension`.
+ * Resolves a Chromium-based browser suitable for loading extensions.
  *
  * Resolution order:
- * 1. CHROMIUM_BIN — explicit, unambiguous user override.
- * 2. Standard system locations, including /usr/bin/chromium.
- * 3. which chromium lookup.
- * 4. Generic CHROME_BIN and CHROME_PATH environment variables.
- * 5. Selenium Manager as the final fallback.
+ * 1. CHROMIUM_BIN — explicit override.
+ * 2. Standard system locations and `which chromium`.
+ * 3. CHROME_BIN and CHROME_PATH environment variables.
+ * 4. Selenium Manager as the final fallback.
  *
- * @returns {string | null} Path to compatible browser binary, or null if none could be resolved
+ * @returns {string | null} Path to a compatible browser, or null if none could be resolved
  */
 function resolveCompatibleChromeBinary () {
-    const home = process.env.HOME || process.env.USERPROFILE || '';
-
-    // 1. Explicit CHROMIUM_BIN override (unambiguous local or CI override)
     if (process.env.CHROMIUM_BIN) {
         if (fs.existsSync(process.env.CHROMIUM_BIN)) {
             console.log(`[Chrome Runner] Using browser from CHROMIUM_BIN: ${process.env.CHROMIUM_BIN}`);
             return process.env.CHROMIUM_BIN;
-        } else {
-            console.warn(`[Chrome Runner] Environment variable CHROMIUM_BIN is set to "${process.env.CHROMIUM_BIN}", but no file exists at that path.`);
         }
+        console.warn(`[Chrome Runner] CHROMIUM_BIN is set to "${process.env.CHROMIUM_BIN}", but no file exists at that path.`);
     }
 
-    // 2 & 3. Standard system locations (including /usr/bin/chromium) and which chromium lookup
     const systemCandidates = [];
     if (process.platform === 'linux') {
         systemCandidates.push(
@@ -107,11 +75,9 @@ function resolveCompatibleChromeBinary () {
         for (const cmd of ['which chromium', 'which chromium-browser']) {
             try {
                 const resolved = cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-                if (resolved && fs.existsSync(resolved)) {
-                    systemCandidates.push(resolved);
-                }
+                if (resolved && fs.existsSync(resolved)) systemCandidates.push(resolved);
             } catch {
-                // Ignore lookup errors
+                // Ignore lookup errors.
             }
         }
     } else if (process.platform === 'darwin') {
@@ -119,15 +85,11 @@ function resolveCompatibleChromeBinary () {
             '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
             '/Applications/Chromium.app/Contents/MacOS/Chromium'
         );
-        for (const cmd of ['which chromium']) {
-            try {
-                const resolved = cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-                if (resolved && fs.existsSync(resolved)) {
-                    systemCandidates.push(resolved);
-                }
-            } catch {
-                // Ignore lookup errors
-            }
+        try {
+            const resolved = cp.execSync('which chromium', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+            if (resolved && fs.existsSync(resolved)) systemCandidates.push(resolved);
+        } catch {
+            // Ignore lookup errors.
         }
     } else if (process.platform === 'win32') {
         const localAppData = process.env.LOCALAPPDATA || '';
@@ -147,27 +109,16 @@ function resolveCompatibleChromeBinary () {
         }
     }
 
-    // 4. Generic CHROME_BIN and CHROME_PATH environment variables
-    for (const envVar of ['CHROME_BIN', 'CHROME_PATH', 'PUPPETEER_EXECUTABLE_PATH']) {
+    for (const envVar of ['CHROME_BIN', 'CHROME_PATH']) {
         if (process.env[envVar]) {
             if (fs.existsSync(process.env[envVar])) {
                 console.log(`[Chrome Runner] Using browser from ${envVar}: ${process.env[envVar]}`);
                 return process.env[envVar];
-            } else {
-                console.warn(`[Chrome Runner] Environment variable ${envVar} is set to "${process.env[envVar]}", but no file exists at that path.`);
             }
+            console.warn(`[Chrome Runner] ${envVar} is set to "${process.env[envVar]}", but no file exists at that path.`);
         }
     }
 
-    // 5. Look for cached Chrome for Testing binaries in ~/.cache/selenium/chrome/
-    const seleniumChromeCache = path.join(home, '.cache', 'selenium', 'chrome');
-    const cachedBinaries = findFilesRecursively(seleniumChromeCache, /Google Chrome for Testing$|^chrome$/i);
-    if (cachedBinaries.length > 0) {
-        console.log(`[Chrome Runner] Found cached Chrome for Testing: ${cachedBinaries[0]}`);
-        return cachedBinaries[0];
-    }
-
-    // Fallback: ask selenium-manager to provision Chrome for Testing if available
     const platformDir = process.platform === 'darwin' ? 'macos' : process.platform === 'win32' ? 'windows' : 'linux';
     const smBinaryName = process.platform === 'win32' ? 'selenium-manager.exe' : 'selenium-manager';
     const smPath = path.resolve('node_modules', 'selenium-webdriver', 'bin', platformDir, smBinaryName);
@@ -175,10 +126,10 @@ function resolveCompatibleChromeBinary () {
         try {
             fs.chmodSync(smPath, 0o755);
         } catch {
-            // Ignore chmod errors
+            // Ignore chmod errors.
         }
         try {
-            console.log('[Chrome Runner] Invoking Selenium Manager to provision Chrome for Testing...');
+            console.log('[Chrome Runner] Invoking Selenium Manager as the final browser fallback...');
             const smOutput = cp.execSync(
                 `"${smPath}" --browser chrome --skip-browser-in-path --force-browser-download --output json`,
                 { encoding: 'utf8', timeout: 120000, stdio: ['ignore', 'pipe', 'pipe'] }
@@ -193,7 +144,7 @@ function resolveCompatibleChromeBinary () {
         }
     }
 
-    console.warn('[Chrome Runner] No compatible Chrome for Testing or Chromium binary could be resolved on the system.');
+    console.warn('[Chrome Runner] No compatible Chromium-based browser could be resolved.');
     return null;
 }
 
