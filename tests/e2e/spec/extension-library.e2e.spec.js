@@ -211,9 +211,12 @@ function runChromeTests (driver, extensionUrl, keepDriver = false) {
                 return Boolean(currentUrl && /^https?:\/\/browser-extension\.kiwix\.org(?:\/|$)/.test(currentUrl));
             }, 30000, 'Timed out waiting for browser to navigate to https://browser-extension.kiwix.org');
 
-            // Wait for remote PWA page to settle
+            // Wait for remote PWA page and Service Worker to settle
             await driver.wait(until.elementLocated(By.id('btnLibrary')), 15000);
-            await driver.sleep(1500);
+            await driver.wait(async () => {
+                return await driver.executeScript('return Boolean(navigator.serviceWorker && navigator.serviceWorker.controller);');
+            }, 20000, 'Timed out waiting for Service Worker to control page');
+            await driver.sleep(1000);
 
             // Ensure Configuration section is active, then click Browse ZIM Library
             await ensureConfigurationVisible(driver);
