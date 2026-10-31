@@ -62,6 +62,7 @@
  * @property {string} libzimSearchType - A string indicating the type of search to use with libzim (currently 'search' or 'searchWithSnippets').
  * @property {boolean} showPopoverPreviews - A boolean indicating whether to show previews of ZIM links (currently only for Wikimedia archives)
  * @property {boolean} wideArticleWidth - A boolean indicating whether to remove the max-width limit on Wikimedia articles that use the Vector 2022 skin
+ * @property {boolean} recordArticleHistory - A boolean indicating whether to keep a list of the articles recently visited in the loaded archive
  * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
@@ -170,6 +171,7 @@ params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets
 params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets a Boolean defaulting to true indicating whether to reopen the last opened zim file if possible
 params['showPopoverPreviews'] = getSetting('showPopoverPreviews') !== false; // Sets a Boolean defaulting to true indicating whether to show previews of article contents when hovering a ZIM link
 params['wideArticleWidth'] = getSetting('wideArticleWidth') === true; // Sets a Boolean defaulting to false indicating whether to remove the max-width limit on Wikimedia (Vector 2022) articles
+params['recordArticleHistory'] = getSetting('recordArticleHistory') === true; // Sets a Boolean defaulting to false (for privacy) indicating whether to keep a list of recently visited articles
 
 /**
  * Parameters that may be set from the querystring and written to the Settings Store. These are the keys
@@ -329,6 +331,7 @@ document.getElementById('enableSourceVerification').checked = getSetting('source
 document.getElementById('reopenLastArchiveCheck').checked = params.reopenLastArchive;
 document.getElementById('showPopoverPreviewsCheck').checked = params.showPopoverPreviews;
 document.getElementById('wideArticleWidthCheck').checked = params.wideArticleWidth;
+document.getElementById('recordArticleHistoryCheck').checked = params.recordArticleHistory;
 // If the File System Access API is supported, unhide the reopenLastArchiveDiv
 if (params.isFileSystemApiSupported) document.getElementById('reopenLastArchiveDiv').style.display = '';
 
