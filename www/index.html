@@ -593,6 +593,13 @@
                                         <span data-i18n="configure-display-widearticlewidth"><b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)</span>
                                     </label>
                                 </div>
+                                <div class="checkbox">
+                                    <label data-i18n-tip="configure-display-articlehistory-tip" title="Keeps a list of the last 50 articles you opened in the loaded archive, on this device only. Click in the empty search box to see it. The list is deleted when you open a different archive or turn this off.">
+                                        <input type="checkbox" name="recordArticleHistory" id="recordArticleHistoryCheck">
+                                        <span data-i18n="configure-display-articlehistory"><b>Remember recently visited articles</b> (<i>shown when you click in the empty search box</i>)</span>
+                                    </label>
+                                    <button type="button" class="btn btn-light btn-sm" id="btnClearArticleHistory" data-i18n="configure-display-articlehistory-clear">Clear history</button>
+                                </div>
                                 <div class="checkbox" id="libzimSearchTypeCheckBox">
                                     <label data-i18n-tip="configure-display-libzimsearchtype-tip" title="If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.">
                                         <input type="checkbox" name="libzimSearchType" id="libzimSearchType" checked>
