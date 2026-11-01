@@ -30,6 +30,7 @@ import util from './util.js';
 import uiUtil from './uiUtil.js';
 import utf8 from './utf8.js';
 import translateUI from './translateUI.js';
+import libzimWorkerManager from './libzimWorkerManager.js';
 
 /**
  * ZIM Archive
@@ -58,11 +59,6 @@ import translateUI from './translateUI.js';
  */
 
 /**
- * @param {Worker} LZ A Web Worker to run the libzim Web Assembly binary
- */
-var LZ;
-
-/**
  * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
  * This constructor can also be used with a single File parameter.
  *
@@ -85,6 +81,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             that.addMetadataToZIMFile('Name'),
             that.addMetadataToZIMFile('Language')
         ]).then(function () {
+            if (!libzimWorkerManager.isActive(that)) return;
             console.debug('ZIMArchive ready, metadata will be added in the background');
             // Add non-time-critical metadata to archive in background so as not to delay opening of the archive
             // DEV: Note that it does not make sense to extract illustration (icon) metadata here. Instead, if you implement use of the illustration
@@ -104,6 +101,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
             // Note that the test below catches both zimit and zimit2 types
             if (/zimit/.test(that.zimType)) {
                 return that.setZimitMetadata().then(function () {
+                    if (!libzimWorkerManager.isActive(that)) return;
                     callbackReady(that);
                 });
             } else {
@@ -115,8 +113,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
     var createZimfile = function (fileArray) {
         return zimfile.fromFileArray(fileArray).then(function (file) {
             that.file = file;
-            // Clear the previous libzimWoker
-            LZ = null;
+            libzimWorkerManager.setArchive(that);
             // Set a global parameter to report the search provider type
             params.searchProvider = 'title';
             // File has been created, but we need to add any Listings which extend the archive metadata
@@ -143,6 +140,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     countName: 'fullTextIndexSize'
                 }
             ]).then(function () {
+                if (!libzimWorkerManager.isActive(that)) return;
                 that.libzimReady = null;
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                 // In case of a split ZIM, It will not be loaded properly by libzim if libzim is enabled
@@ -153,8 +151,8 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     var libzimReaderType = params.libzimMode;
                     if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
                     console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
-                    LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
-                    that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
+                    libzimWorkerManager.initialize(that, that.file._files, 'js/lib/libzim-' + libzimReaderType + '.js').then(function () {
+                        if (!libzimWorkerManager.isActive(that)) return;
                         that.libzimReady = 'ready';
                         // If user is using libzim for reading the file, we have delayed the callback till now
                         if (params.useLibzim) whenZimReady();
@@ -162,6 +160,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         // Update the API panel
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {
+                        if (!libzimWorkerManager.isActive(that)) return;
                         uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
                         console.error('The libzim worker could not be instantiated!', err);
                         that.libzimReady = 'error';
@@ -319,17 +318,33 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
     // NB duplicates are removed before processing search array
     var startArray = [];
     var dirEntries = [];
+    var fullTextSearchPending = this.file.fullTextIndex && libzimWorkerManager.hasWorker(this);
+    var fullTextSearchSucceeded = false;
+    var titleSearchComplete = false;
     search.scanCount = 0;
+
+    function completeSearchIfReady () {
+        if (!titleSearchComplete || fullTextSearchPending || search.status === 'cancelled') return;
+        if (fullTextSearchSucceeded) search.type = 'fulltext';
+        search.status = 'complete';
+        callback(dirEntries, search);
+    }
+
     // Launch a full-text search if possible
-    if (LZ) {
+    if (fullTextSearchPending) {
         that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
             // If user initiated a new search, cancel this one
             // In particular, do not set the search status back to 'complete'
             // as that would cause outdated results to unexpectedly pop up
             if (search.status === 'cancelled') return callback([], search);
+            fullTextSearchSucceeded = true;
             dirEntries = fullTextDirEntries;
-            search.status = 'complete';
-            callback(dirEntries, search);
+            fullTextSearchPending = false;
+            completeSearchIfReady();
+        }).catch(function (error) {
+            fullTextSearchPending = false;
+            console.warn('Libzim full-text search failed; continuing with title search.', error);
+            completeSearchIfReady();
         });
     }
     // Ensure a search is done on the string exactly as typed
@@ -361,10 +376,13 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
         // If user has initiated a new search, cancel this one
         if (search.status === 'cancelled') return callback([], search);
         if (prefixVariants.length === 0 || dirEntries.length >= search.size) {
-            // We have found all the title-search entries we are going to get, so indicate search type if we're still searching
-            if (LZ && search.status !== 'complete') search.type = 'fulltext';
-            else search.status = 'complete';
-            return callback(dirEntries, search);
+            titleSearchComplete = true;
+            if (fullTextSearchPending) {
+                search.status = 'interim';
+                if (!noInterim) callback(dirEntries, search);
+                return;
+            }
+            return completeSearchIfReady();
         }
         // Dynamically populate list of articles
         search.status = 'interim';
@@ -479,6 +497,7 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
     var resultsNeeded = params.maxSearchResultsSize;
     var searchType = params.libzimSearchType || 'search';
     return this.callLibzimWorker({ action: searchType, text: search.prefix, numResults: resultsNeeded }).then(function (returned) {
+        if (returned && returned.error) throw new Error(returned.error);
         if (returned) {
             var dirEntryPaths = [];
             var fullTextPaths = [];
@@ -536,24 +555,8 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
  * @returns {Promise}
  */
 ZIMArchive.prototype.callLibzimWorker = function (parameters) {
-    return new Promise(function (resolve, reject) {
-        console.debug('Calling libzim WebWorker with parameters', parameters);
-        var tmpMessageChannel = new MessageChannel();
-        // var t0 = performance.now();
-        tmpMessageChannel.port1.onmessage = function (event) {
-            // var t1 = performance.now();
-            // var readTime = Math.round(t1 - t0);
-            // console.debug("Response given by the WebWorker in " + readTime + " ms", event.data);
-            resolve(event.data);
-        };
-        tmpMessageChannel.port1.onerror = function (event) {
-            // var t1 = performance.now();
-            // var readTime = Math.round(t1 - t0);
-            // console.error("Error sent by the WebWorker in " + readTime + " ms", event.data);
-            reject(event.data);
-        };
-        LZ.postMessage(parameters, [tmpMessageChannel.port2]);
-    });
+    console.debug('Calling libzim WebWorker with parameters', parameters);
+    return libzimWorkerManager.call(this, parameters);
 };
 
 /**
