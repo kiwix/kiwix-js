@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { describe, it, beforeEach, afterEach } from 'mocha';
 import libzimWorkerManager from '../../../www/js/lib/libzimWorkerManager.js';
 import zimArchiveModule from '../../../www/js/lib/zimArchive.js';
 

@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { describe, it } from 'mocha';
 import kiwixApiBrowser from '../../../www/js/lib/kiwixApiBrowser.js';
 
 describe('kiwixApiBrowser', function () {
