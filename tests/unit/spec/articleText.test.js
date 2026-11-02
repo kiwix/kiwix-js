@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { describe, it, beforeEach, afterEach } from 'mocha';
 import articleText from '../../../www/js/lib/articleText.js';
 
 describe('articleText', function () {
@@ -36,14 +37,16 @@ describe('articleText', function () {
         expect(extracted.text).to.equal(preformatted + '\nAfter');
     });
 
-    it('chooses a sensible article container and removes executable or non-content nodes', function () {
-        const html = '<body><nav>Navigation noise</nav><div id="content"><article><p>Keep this.</p><script>drop()</script><style>.x{}</style><noscript>fallback</noscript><iframe>frame</iframe><table><tr><td>Keep table</td></tr></table></article></div></body>';
+    it('selects article content and removes scripts and navigation while preserving data tables', function () {
+        const html = '<body><nav>Outside navigation</nav><article>' +
+            '<div class="navbox"><table><tr><td>Inside navigation</td></tr></table></div>' +
+            '<p>Keep this.</p><script>drop()</script><style>.x{}</style><noscript>fallback</noscript><iframe>frame</iframe>' +
+            '<table class="infobox"><tr><th>Population</th><td>100</td></tr></table></article></body>';
         const extracted = articleText.extractHtmlArticle(html);
 
         expect(extracted.text).to.contain('Keep this.');
-        expect(extracted.text).to.contain('Keep table');
-        expect(extracted.text).to.not.contain('Navigation noise');
-        expect(extracted.text).to.not.match(/drop\(\)|fallback|frame|\.x\{\}/);
+        expect(extracted.text).to.contain('Population | 100');
+        expect(extracted.text).to.not.match(/navigation|drop\(\)|fallback|frame|\.x\{\}/);
     });
 
     it('builds ordered heading sections with existing and generated unique ids', function () {
@@ -51,9 +54,9 @@ describe('articleText', function () {
         const extracted = articleText.extractHtmlArticle(html);
 
         expect(extracted.sections).to.deep.equal([
-            { id: 'history', title: 'History', level: 2, text: 'History\nFirst part.\nEarly years\nDetails.' },
-            { id: 'section-early-years', title: 'Early years', level: 3, text: 'Early years\nDetails.' },
-            { id: 'history-2', title: 'History', level: 2, text: 'History\nSecond part.' }
+            { id: 'history', title: 'History', level: 2, text: 'History\nFirst part.\nEarly years\nDetails.', images: [] },
+            { id: 'section-early-years', title: 'Early years', level: 3, text: 'Early years\nDetails.', images: [] },
+            { id: 'history-2', title: 'History', level: 2, text: 'History\nSecond part.', images: [] }
         ]);
     });
 
@@ -64,27 +67,35 @@ describe('articleText', function () {
             .to.deep.equal(['section-history-2', 'section-history']);
     });
 
-    it('collects archive, external, and embedded image metadata', function () {
-        const html = '<article><figure><img src="I/local.jpg" alt="Local"><figcaption>Local caption</figcaption></figure>' +
-            '<img src="https://images.example/external.png" alt="Remote"><img src="data:image/png;base64,AA==" alt="Inline"></article>';
-        const extracted = articleText.extractHtmlArticle(html);
-
-        expect(extracted.images).to.deep.equal([
-            { path: 'I/local.jpg', alt: 'Local', caption: 'Local caption', source: 'archive', isExternal: false, isEmbedded: false },
-            { path: 'https://images.example/external.png', alt: 'Remote', caption: '', source: 'external', isExternal: true, isEmbedded: false },
-            { path: '', alt: 'Inline', caption: '', source: 'embedded', isExternal: false, isEmbedded: true }
-        ]);
-    });
-
-    it('resolves relative image references against the resolved article path and omits embedded payloads', function () {
-        const html = '<article><img src="../I/local.jpg"><img src="data:image/png;base64,SECRET"></article>';
+    it('resolves article images and returns external and embedded metadata without payloads', function () {
+        const html = '<article><figure><img src="../I/local.jpg" alt="Local"><figcaption>Local caption</figcaption></figure>' +
+            '<img src="https://images.example/external.png" alt="Remote"><img src="data:image/png;base64,SECRET" alt="Inline"></article>';
         const extracted = articleText.extractHtmlArticle(html, 'A/redirected/final.html');
 
         expect(extracted.images).to.deep.equal([
-            { path: 'A/I/local.jpg', alt: '', caption: '', source: 'archive', isExternal: false, isEmbedded: false },
-            { path: '', alt: '', caption: '', source: 'embedded', isExternal: false, isEmbedded: true }
+            { path: 'A/I/local.jpg', alt: 'Local', caption: 'Local caption', source: 'archive', isExternal: false, isEmbedded: false },
+            { path: 'https://images.example/external.png', alt: 'Remote', caption: '', source: 'external', isExternal: true, isEmbedded: false },
+            { path: '', alt: 'Inline', caption: '', source: 'embedded', isExternal: false, isEmbedded: true }
         ]);
         expect(JSON.stringify(extracted)).to.not.contain('SECRET');
+    });
+
+    it('deduplicates identical images while retaining section-specific descriptions', function () {
+        const html = '<article><h2>One</h2><img src="same.jpg"><img src="same.jpg">' +
+            '<h2>Two</h2><figure><img src="same.jpg" alt="Described"><figcaption>Second caption</figcaption></figure>' +
+            '<figure><img src="same.jpg" alt="Described"><figcaption>Second caption</figcaption></figure><img src="two.jpg"></article>';
+        const extracted = articleText.extractHtmlArticle(html, 'A/page.html');
+
+        expect(extracted.images).to.have.length(3);
+        expect(extracted.sections[0].images).to.deep.equal([
+            { path: 'A/same.jpg', alt: '', caption: '', source: 'archive', isExternal: false, isEmbedded: false }
+        ]);
+        expect(extracted.sections[1].images.map(function (image) {
+            return { path: image.path, alt: image.alt, caption: image.caption };
+        })).to.deep.equal([
+            { path: 'A/same.jpg', alt: 'Described', caption: 'Second caption' },
+            { path: 'A/two.jpg', alt: '', caption: '' }
+        ]);
     });
 
     it('handles content types explicitly and keeps plain text out of the HTML parser', function () {

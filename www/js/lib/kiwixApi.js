@@ -263,7 +263,8 @@ function createKiwixApi (options) {
 				var maxChars = params.maxChars === undefined ? 10000 : params.maxChars;
 				if (offset > articleText.length) return makeError(ERROR_CODES.INVALID_ARGUMENT, 'offset exceeds the article text length');
 				var end = Math.min(offset + maxChars, articleText.length);
-				var images = article && Array.isArray(article.images) ? article.images.map(function (image) {
+				var articleImages = params.section !== undefined ? selectedSection.images : article && article.images;
+				var images = Array.isArray(articleImages) ? articleImages.map(function (image) {
 					var imagePath = image && typeof image.path === 'string' ? image.path : '';
 					var isEmbedded = !!(image && image.isEmbedded) || /^data:/i.test(imagePath);
 					var isExternal = !!(image && image.isExternal);

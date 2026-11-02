@@ -26,6 +26,7 @@ import utf8 from './utf8.js';
 var HTML_TYPES = ['text/html', 'application/xhtml+xml'];
 var TEXT_TYPES = ['text/plain'];
 var REMOVED_ELEMENTS = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'IFRAME', 'OBJECT', 'EMBED'];
+var REMOVED_SELECTORS = ['nav', '[role="navigation"]', '.navbox', '.navigation', '.navbar', '.mw-navigation', '.mw-editsection', '.toc'];
 var BLOCK_ELEMENTS = [
     'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'CAPTION', 'DD', 'DETAILS', 'DIV', 'DL', 'DT', 'FIELDSET',
     'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'LI', 'MAIN',
@@ -51,6 +52,11 @@ function hasElement (element, names) {
 function cleanDocument (document) {
     REMOVED_ELEMENTS.forEach(function (tagName) {
         Array.prototype.slice.call(document.getElementsByTagName(tagName.toLowerCase())).forEach(function (element) {
+            if (element.parentNode) element.parentNode.removeChild(element);
+        });
+    });
+    REMOVED_SELECTORS.forEach(function (selector) {
+        Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function (element) {
             if (element.parentNode) element.parentNode.removeChild(element);
         });
     });
@@ -81,7 +87,7 @@ function appendText (parts, text) {
 
 function appendPreformattedText (parts, text) {
     if (parts.length && parts[parts.length - 1] !== '\n') parts.push('\n');
-    parts.push('\u0001' + text + '\u0002');
+    parts.push({ preformatted: true, text: text });
     parts.push('\n');
 }
 
@@ -94,14 +100,33 @@ function updateBuffers (buffers, method, value) {
 }
 
 function cleanExtractedText (parts) {
-    return parts.join('').split(/(\u0001[\s\S]*?\u0002)/).map(function (part) {
-        if (part.charAt(0) === '\u0001' && part.charAt(part.length - 1) === '\u0002') return part;
+    var chunks = parts.map(function (part) {
+        if (typeof part !== 'string') return part;
         return part
             .replace(/ {2,}/g, ' ')
             .replace(/[ \t]+\n/g, '\n')
             .replace(/\n[ \t]+/g, '\n')
             .replace(/\n{3,}/g, '\n\n');
-    }).join('').trim().replace(/[\u0001\u0002]/g, '');
+    });
+    var firstTextChunk = chunks.findIndex(function (chunk) { return typeof chunk === 'string'; });
+    var firstPreChunk = chunks.findIndex(function (chunk) { return typeof chunk !== 'string'; });
+    var lastTextChunk = -1;
+    var lastPreChunk = -1;
+    for (var i = chunks.length - 1; i >= 0; i--) {
+        if (typeof chunks[i] !== 'string' && lastPreChunk === -1) lastPreChunk = i;
+        if (typeof chunks[i] === 'string' && lastTextChunk === -1) {
+            lastTextChunk = i;
+        }
+    }
+    if (firstTextChunk !== -1 && (firstPreChunk === -1 || firstTextChunk < firstPreChunk)) {
+        chunks[firstTextChunk] = chunks[firstTextChunk].replace(/^\s+/, '');
+    }
+    if (lastTextChunk !== -1 && (lastPreChunk === -1 || lastTextChunk > lastPreChunk)) {
+        chunks[lastTextChunk] = chunks[lastTextChunk].replace(/\s+$/, '');
+    }
+    return chunks.map(function (chunk) {
+        return typeof chunk === 'string' ? chunk : chunk.text;
+    }).join('');
 }
 
 function headingLevel (element) {
@@ -113,12 +138,14 @@ function slugify (text) {
     return slug || 'section';
 }
 
-function extractContentInOrder (container) {
+function extractContentInOrder (container, articlePath) {
     var usedIds = Object.create(null);
     var authoredIds = Object.create(null);
     var sections = [];
     var activeSections = [];
     var articleParts = [];
+    var images = [];
+    var seenImages = Object.create(null);
     Array.prototype.forEach.call(container.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]'), function (heading) {
         authoredIds[heading.id] = true;
     });
@@ -137,6 +164,39 @@ function extractContentInOrder (container) {
         return id;
     }
 
+    function imageMetadata (image) {
+        var figure = image.parentElement;
+        while (figure && figure.tagName !== 'FIGURE') figure = figure.parentElement;
+        var caption = figure && figure.querySelector('figcaption');
+        var rawPath = image.getAttribute('src') || '';
+        var isExternal = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(rawPath) && !/^data:/i.test(rawPath);
+        var isEmbedded = /^data:/i.test(rawPath);
+        var path = isEmbedded ? '' : isExternal ? rawPath : resolveArchiveImagePath(rawPath, articlePath);
+        var source = isExternal ? 'external' : isEmbedded ? 'embedded' : 'archive';
+        var metadata = {
+            path: path,
+            alt: image.getAttribute('alt') || '',
+            caption: caption ? (caption.textContent || '').replace(/[\t\r\n\f ]+/g, ' ').trim() : '',
+            source: source,
+            isExternal: isExternal,
+            isEmbedded: isEmbedded
+        };
+        return { key: JSON.stringify(metadata), metadata: metadata };
+    }
+
+    function addImage (image) {
+        var result = imageMetadata(image);
+        var imageRecord = seenImages[result.key];
+        if (!imageRecord) {
+            imageRecord = { key: result.key, metadata: result.metadata };
+            seenImages[result.key] = imageRecord;
+            images.push(imageRecord);
+        }
+        activeSections.forEach(function (section) {
+            if (!section.images.some(function (item) { return item.key === imageRecord.key; })) section.images.push(imageRecord);
+        });
+    }
+
     function walk (node) {
         if (node.nodeType === 3) {
             var text = node.nodeValue || '';
@@ -145,6 +205,7 @@ function extractContentInOrder (container) {
             return;
         }
         if (node.nodeType !== 1 || hasElement(node, REMOVED_ELEMENTS)) return;
+        if (node.tagName === 'IMG') addImage(node);
 
         if (node.tagName === 'PRE') {
             appendPreformattedText(articleParts, node.textContent || '');
@@ -160,7 +221,8 @@ function extractContentInOrder (container) {
                 id: uniqueSectionId(node, title),
                 title: title,
                 level: level,
-                parts: []
+                parts: [],
+                images: []
             };
             sections.push(section);
             activeSections.push(section);
@@ -195,12 +257,14 @@ function extractContentInOrder (container) {
     walk(container);
     return {
         text: cleanExtractedText(articleParts),
+        images: images.map(function (image) { return image.metadata; }),
         sections: sections.map(function (section) {
             return {
                 id: section.id,
                 title: section.title,
                 level: section.level,
-                text: cleanExtractedText(section.parts) || section.title
+                text: cleanExtractedText(section.parts) || section.title,
+                images: section.images.map(function (image) { return image.metadata; })
             };
         })
     };
@@ -219,37 +283,17 @@ function resolveArchiveImagePath (imagePath, articlePath) {
     return segments.join('/');
 }
 
-function getImageMetadata (container, articlePath) {
-    return Array.prototype.map.call(container.querySelectorAll('img'), function (image) {
-        var figure = image.parentElement;
-        while (figure && figure.tagName !== 'FIGURE') figure = figure.parentElement;
-        var caption = figure && figure.querySelector('figcaption');
-        var rawPath = image.getAttribute('src') || '';
-        var isExternal = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(rawPath) && !/^data:/i.test(rawPath);
-        var isEmbedded = /^data:/i.test(rawPath);
-        var path = isEmbedded ? '' : isExternal ? rawPath : resolveArchiveImagePath(rawPath, articlePath);
-        return {
-            path: path,
-            alt: image.getAttribute('alt') || '',
-            caption: caption ? (caption.textContent || '').replace(/[\t\r\n\f ]+/g, ' ').trim() : '',
-            source: isExternal ? 'external' : isEmbedded ? 'embedded' : 'archive',
-            isExternal: isExternal,
-            isEmbedded: isEmbedded
-        };
-    });
-}
-
 function extractHtmlArticle (html, articlePath) {
     if (typeof html !== 'string') throw new TypeError('HTML article extraction expects a string');
     if (typeof DOMParser !== 'function') throw new Error('DOMParser is unavailable');
     var document = new DOMParser().parseFromString(html, 'text/html');
     cleanDocument(document);
     var container = chooseArticleContainer(document);
-    var extracted = extractContentInOrder(container);
+    var extracted = extractContentInOrder(container, articlePath);
     return {
         text: extracted.text,
         sections: extracted.sections,
-        images: getImageMetadata(container, articlePath)
+        images: extracted.images
     };
 }
 
