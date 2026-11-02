@@ -5,6 +5,7 @@ var INIT_TIMEOUT_MS = 120000;
 var activeArchive = null;
 var worker = null;
 var initPromise = null;
+var workerState = 'inactive';
 var pendingRequests = new Set();
 
 function makeWorkerError (code, message, cause) {
@@ -33,11 +34,12 @@ function rejectPendingRequests (error) {
     });
 }
 
-function clearWorker (error, expectedWorker) {
+function clearWorker (error, expectedWorker, nextState) {
     if (expectedWorker && worker !== expectedWorker) return;
     var oldWorker = worker;
     worker = null;
     initPromise = null;
+    workerState = nextState || (activeArchive ? 'not-initialized' : 'inactive');
     rejectPendingRequests(error);
     if (oldWorker) oldWorker.terminate();
 }
@@ -78,7 +80,7 @@ function sendMessage (targetWorker, parameters, timeoutMs) {
 var libzimWorkerManager = {
     setArchive: function (archive) {
         if (activeArchive !== archive) {
-            clearWorker(makeWorkerError('ARCHIVE_CHANGED', 'The active archive changed'));
+            clearWorker(makeWorkerError('ARCHIVE_CHANGED', 'The active archive changed'), null, archive ? 'not-initialized' : 'inactive');
             activeArchive = archive;
         }
     },
@@ -89,14 +91,21 @@ var libzimWorkerManager = {
         }
         if (initPromise) return initPromise;
 
-        var currentWorker = new Worker(workerUrl);
+        workerState = 'initializing';
+        var currentWorker;
+        try {
+            currentWorker = new Worker(workerUrl);
+        } catch (error) {
+            workerState = 'error';
+            return Promise.reject(makeWorkerError('WORKER_ERROR', 'Could not create libzim worker', error));
+        }
         worker = currentWorker;
         currentWorker.onerror = function (event) {
             var error = makeWorkerError('WORKER_ERROR', event.message || 'Libzim worker failed', event.error);
-            clearWorker(error, currentWorker);
+            clearWorker(error, currentWorker, 'error');
         };
         currentWorker.onmessageerror = function (event) {
-            clearWorker(makeWorkerError('WORKER_ERROR', 'Could not read libzim worker message', event), currentWorker);
+            clearWorker(makeWorkerError('WORKER_ERROR', 'Could not read libzim worker message', event), currentWorker, 'error');
         };
 
         var currentInitPromise = sendMessage(currentWorker, { action: 'init', files: files }, INIT_TIMEOUT_MS)
@@ -104,10 +113,11 @@ var libzimWorkerManager = {
                 if (activeArchive !== archive || worker !== currentWorker) {
                     throw makeWorkerError('ARCHIVE_CHANGED', 'The active archive changed during libzim initialization');
                 }
+                workerState = 'ready';
                 return response;
             })
             .catch(function (error) {
-                clearWorker(error, currentWorker);
+                clearWorker(error, currentWorker, 'error');
                 throw error;
             });
         initPromise = currentInitPromise;
@@ -136,9 +146,13 @@ var libzimWorkerManager = {
         return activeArchive === archive && !!worker;
     },
 
+    getState: function (archive) {
+        return activeArchive === archive ? workerState : 'inactive';
+    },
+
     terminate: function (archive) {
         if (archive && activeArchive !== archive) return;
-        clearWorker(makeWorkerError('ARCHIVE_CHANGED', 'Libzim worker terminated'));
+        clearWorker(makeWorkerError('ARCHIVE_CHANGED', 'Libzim worker terminated'), null, 'inactive');
         activeArchive = null;
     }
 };

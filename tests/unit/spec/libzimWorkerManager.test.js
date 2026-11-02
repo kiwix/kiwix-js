@@ -61,6 +61,20 @@ describe('libzimWorkerManager archive switching', function () {
         expect(currentWorker.actions).to.deep.equal(['init', 'ping']);
     });
 
+    it('tracks not-initialized, initializing, and ready states for the active archive', async function () {
+        const archive = {};
+        libzimWorkerManager.setArchive(archive);
+        expect(libzimWorkerManager.getState(archive)).to.equal('not-initialized');
+
+        const init = libzimWorkerManager.initialize(archive, [], 'state-worker.js');
+        expect(libzimWorkerManager.getState(archive)).to.equal('initializing');
+        workers[0].finishInitialization();
+        await init;
+
+        expect(libzimWorkerManager.getState(archive)).to.equal('ready');
+        expect(libzimWorkerManager.getState({})).to.equal('inactive');
+    });
+
     it('does not send a queued old-archive call to the replacement worker', async function () {
         const oldArchive = {};
         const currentArchive = {};

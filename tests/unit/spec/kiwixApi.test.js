@@ -121,8 +121,26 @@ describe('kiwixApi', function () {
         });
         const result = await api.getArticle({ path: 'A/Article.html' });
 
-        expect(result.data.images).to.deep.equal([{ path: 'I/image.jpg', alt: 'Cover', caption: 'An image' }]);
+        expect(result.data.images).to.deep.equal([{ path: 'I/image.jpg', alt: 'Cover', caption: 'An image', source: 'archive', isExternal: false, isEmbedded: false }]);
         expect(result.data.textExtractionMayBeImperfect).to.equal(true);
+    });
+
+    it('never includes embedded image data payloads in the API response', async function () {
+        const api = createApi({
+            callWorker: function () { return { content: new Uint8Array([1]), mimetype: 'text/html' }; },
+            extractArticle: function () {
+                return {
+                    text: 'Article',
+                    images: [{ path: 'data:image/png;base64,SECRET', alt: 'Inline', caption: 'Data image' }]
+                };
+            }
+        });
+        const result = await api.getArticle({ path: 'A/Article.html' });
+
+        expect(result.data.images).to.deep.equal([{
+            path: '', alt: 'Inline', caption: 'Data image', source: 'embedded', isExternal: false, isEmbedded: true
+        }]);
+        expect(JSON.stringify(result)).to.not.contain('SECRET');
     });
 
     it('paginates article text and reports total length and continuation', async function () {
@@ -224,6 +242,27 @@ describe('kiwixApi', function () {
         expect(result.data.path).to.equal('A/New.html');
         expect(result.data.redirectedFrom).to.equal('A/Old.html');
         expect(result.data.text).to.equal('Destination article');
+    });
+
+    it('passes the resolved article path to the extractor after redirects', async function () {
+        let extractedPath;
+        const api = createApi({
+            callWorker: function (message) {
+                if (message.path === 'A/Old.html') return { isRedirect: true, redirectPath: 'A/Folder/New.html' };
+                return { isRedirect: false, content: new Uint8Array([1]), mimetype: 'text/html' };
+            },
+            extractArticle: function (content, mimetype, articlePath) {
+                extractedPath = articlePath;
+                return {
+                    text: 'Article',
+                    images: [{ path: '../I/photo.jpg', alt: 'Photo', source: 'archive' }]
+                };
+            }
+        });
+        const result = await api.getArticle({ path: 'A/Old.html' });
+
+        expect(extractedPath).to.equal('A/Folder/New.html');
+        expect(result.data.path).to.equal('A/Folder/New.html');
     });
 
     it('returns REDIRECT_LOOP for cyclic redirect paths', async function () {

@@ -26,6 +26,8 @@ var ERROR_CODES = {
 	NO_ZIM_LOADED: 'NO_ZIM_LOADED',
 	FULLTEXT_UNAVAILABLE: 'FULLTEXT_UNAVAILABLE',
 	NOT_FOUND: 'NOT_FOUND',
+	UNSUPPORTED_ARCHIVE: 'UNSUPPORTED_ARCHIVE',
+	UNSUPPORTED_CONTENT_TYPE: 'UNSUPPORTED_CONTENT_TYPE',
 	REDIRECT_LOOP: 'REDIRECT_LOOP',
 	WORKER_TIMEOUT: 'WORKER_TIMEOUT',
 	WORKER_ERROR: 'WORKER_ERROR',
@@ -243,7 +245,7 @@ function createKiwixApi (options) {
 		return fetchEntry(params.path, []).then(function (entry) {
 			var response = entry.response;
 			if (typeof extractArticle !== 'function') return makeError(ERROR_CODES.INTERNAL_ERROR, 'Article extraction is unavailable');
-			return Promise.resolve(extractArticle(response.content, response.mimetype)).then(function (article) {
+			return Promise.resolve(extractArticle(response.content, response.mimetype, entry.path)).then(function (article) {
 				if (!isCurrent()) throw { code: 'ARCHIVE_CHANGED', message: 'The loaded archive changed during article extraction' };
 				var articleText = typeof article === 'string' ? article : article && article.text;
 				var sections = article && Array.isArray(article.sections) ? article.sections : [];
@@ -262,10 +264,16 @@ function createKiwixApi (options) {
 				if (offset > articleText.length) return makeError(ERROR_CODES.INVALID_ARGUMENT, 'offset exceeds the article text length');
 				var end = Math.min(offset + maxChars, articleText.length);
 				var images = article && Array.isArray(article.images) ? article.images.map(function (image) {
+					var imagePath = image && typeof image.path === 'string' ? image.path : '';
+					var isEmbedded = !!(image && image.isEmbedded) || /^data:/i.test(imagePath);
+					var isExternal = !!(image && image.isExternal);
 					return {
-						path: image && typeof image.path === 'string' ? image.path : '',
+						path: isEmbedded ? '' : imagePath,
 						alt: image && typeof image.alt === 'string' ? image.alt : '',
-						caption: image && typeof image.caption === 'string' ? image.caption : ''
+						caption: image && typeof image.caption === 'string' ? image.caption : '',
+						source: isEmbedded ? 'embedded' : isExternal ? 'external' : image && typeof image.source === 'string' ? image.source : 'archive',
+						isExternal: isExternal,
+						isEmbedded: isEmbedded
 					};
 				}) : [];
 				var data = {
@@ -307,7 +315,7 @@ function createKiwixApi (options) {
 			if (!validateObject(info)) return makeError(ERROR_CODES.INTERNAL_ERROR, 'Archive info bridge returned an invalid response');
 			var state = getLibzimState();
 			if (state === null || state === undefined || state === 'pending') state = 'initializing';
-			if (['initializing', 'ready', 'error', 'unavailable'].indexOf(state) === -1) state = 'unavailable';
+			if (['not-initialized', 'initializing', 'ready', 'error', 'inactive', 'unavailable'].indexOf(state) === -1) state = 'unavailable';
 			return {
 				ok: true,
 				data: Object.assign({}, info, {
