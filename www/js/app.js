@@ -37,6 +37,7 @@ import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 import kiwixLibrary from './lib/kiwixLibrary.js';
 import kiwixApiBrowser from './lib/kiwixApiBrowser.js';
+import libzimWorkerManager from './lib/libzimWorkerManager.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -67,9 +68,7 @@ var selectedArchive = null;
 window.kiwixApi = kiwixApiBrowser.createKiwixApiBrowser({
     getSelectedArchive: function () { return selectedArchive; },
     getWorkerUrl: function () {
-        var libzimReaderType = params.libzimMode;
-        if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
-        return 'js/lib/libzim-' + libzimReaderType + '.js';
+        return libzimWorkerManager.getWorkerConfig(params.libzimMode).url;
     }
 });
 

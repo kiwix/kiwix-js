@@ -175,6 +175,26 @@ describe('kiwixApi', function () {
         expect(result.error.code).to.equal('NOT_FOUND');
     });
 
+    it('preserves extraction errors for empty pages and meta-refresh redirects', async function () {
+        const redirectApi = createArticleApi(null, {
+            extractArticle: function () {
+                const error = new Error('render required');
+                error.code = 'CONTENT_REQUIRES_RENDERING';
+                throw error;
+            }
+        });
+        const emptyApi = createArticleApi(null, {
+            extractArticle: function () {
+                const error = new Error('no text');
+                error.code = 'NO_EXTRACTABLE_TEXT';
+                throw error;
+            }
+        });
+
+        expect((await redirectApi.getArticle({ path: 'A/Redirect.html' })).error.code).to.equal('CONTENT_REQUIRES_RENDERING');
+        expect((await emptyApi.getArticle({ path: 'A/Empty.html' })).error.code).to.equal('NO_EXTRACTABLE_TEXT');
+    });
+
     it('follows redirects explicitly and returns the destination and original path', async function () {
         const calls = [];
         const api = createApi({

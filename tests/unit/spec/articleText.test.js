@@ -107,4 +107,34 @@ describe('articleText', function () {
         expect(function () { articleText.extractArticleContent(new Uint8Array([0]), 'application/pdf'); })
             .to.throw('Unsupported article content type');
     });
+
+    it('requires rendering for an empty HTML body redirected by meta refresh', function () {
+        let error;
+        try {
+            articleText.extractHtmlArticle('<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta HTTP-EQUIV="ReFrEsH" content="0;URL=index.html#learn"></head><body></body></html>');
+        } catch (caught) {
+            error = caught;
+        }
+
+        expect(error).to.be.instanceOf(Error);
+        expect(error.code).to.equal('CONTENT_REQUIRES_RENDERING');
+    });
+
+    it('returns NO_EXTRACTABLE_TEXT for empty pages without a meta-refresh redirect', function () {
+        let error;
+        try {
+            articleText.extractHtmlArticle('<html><head><meta http-equiv="refresh" content="5"></head><body><script>run()</script></body></html>');
+        } catch (caught) {
+            error = caught;
+        }
+
+        expect(error).to.be.instanceOf(Error);
+        expect(error.code).to.equal('NO_EXTRACTABLE_TEXT');
+    });
+
+    it('preserves successful extraction when a text-bearing page contains meta refresh', function () {
+        const extracted = articleText.extractHtmlArticle('<html><head><meta http-equiv="refresh" content="0;url=next.html"></head><body><article><p>Readable article content.</p></article></body></html>');
+
+        expect(extracted.text).to.equal('Readable article content.');
+    });
 });

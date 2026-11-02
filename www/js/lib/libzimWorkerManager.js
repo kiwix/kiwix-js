@@ -49,7 +49,6 @@ function sendMessage (targetWorker, parameters, timeoutMs) {
         var channel = new MessageChannel();
         var request = {
             port: channel.port1,
-            worker: targetWorker,
             reject: reject,
             settled: false,
             timer: null
@@ -78,6 +77,12 @@ function sendMessage (targetWorker, parameters, timeoutMs) {
 }
 
 var libzimWorkerManager = {
+    getWorkerConfig: function (mode) {
+        var type = mode;
+        if (type === 'default') type = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
+        return { type: type, url: 'js/lib/libzim-' + type + '.js' };
+    },
+
     setArchive: function (archive) {
         if (activeArchive !== archive) {
             clearWorker(makeWorkerError('ARCHIVE_CHANGED', 'The active archive changed'), null, archive ? 'not-initialized' : 'inactive');
@@ -87,7 +92,7 @@ var libzimWorkerManager = {
 
     initialize: function (archive, files, workerUrl) {
         if (activeArchive !== archive) {
-            return Promise.reject(new Error('Cannot initialize libzim for an inactive archive'));
+            return Promise.reject(makeWorkerError('ARCHIVE_CHANGED', 'Cannot initialize libzim for an inactive archive'));
         }
         if (initPromise) return initPromise;
 

@@ -290,6 +290,23 @@ function extractHtmlArticle (html, articlePath) {
     cleanDocument(document);
     var container = chooseArticleContainer(document);
     var extracted = extractContentInOrder(container, articlePath);
+    if (!extracted.text.trim()) {
+        var metaElements = document.getElementsByTagName('meta');
+        var hasMetaRefreshTarget = false;
+        for (var metaIndex = 0; metaIndex < metaElements.length; metaIndex++) {
+            var metaElement = metaElements[metaIndex];
+            if (/^refresh$/i.test(metaElement.getAttribute('http-equiv') || '') &&
+                /(?:^|;)\s*url\s*=\s*(['"]?)[^;'"\s]+\1/i.test(metaElement.getAttribute('content') || '')) {
+                hasMetaRefreshTarget = true;
+                break;
+            }
+        }
+        var error = new Error(hasMetaRefreshTarget
+            ? 'The article redirects through a meta refresh and requires browser rendering'
+            : 'The article contains no extractable text');
+        error.code = hasMetaRefreshTarget ? 'CONTENT_REQUIRES_RENDERING' : 'NO_EXTRACTABLE_TEXT';
+        throw error;
+    }
     return {
         text: extracted.text,
         sections: extracted.sections,
@@ -301,19 +318,17 @@ function extractArticleContent (content, mimetype, articlePath) {
     var type = normalizeContentType(mimetype);
     if (HTML_TYPES.indexOf(type) !== -1) return extractHtmlArticle(decodeArticleContent(content), articlePath);
     if (TEXT_TYPES.indexOf(type) !== -1) {
-        return { text: decodeArticleContent(content).trim(), sections: [], images: [] };
+        var text = decodeArticleContent(content).trim();
+        if (!text) {
+            var error = new Error('The article contains no extractable text');
+            error.code = 'NO_EXTRACTABLE_TEXT';
+            throw error;
+        }
+        return { text: text, sections: [], images: [] };
     }
-    var error = new Error('Unsupported article content type: ' + (type || 'unknown'));
-    error.code = 'UNSUPPORTED_CONTENT_TYPE';
-    throw error;
-}
-
-/*
- * Keep decoding bytes separate from DOM extraction. The HTML extractor accepts
- * only an HTML string, so it remains independently testable and reusable.
- */
-function getArticleText (content, mimetype, articlePath) {
-    return extractArticleContent(content, mimetype, articlePath);
+    var unsupportedTypeError = new Error('Unsupported article content type: ' + (type || 'unknown'));
+    unsupportedTypeError.code = 'UNSUPPORTED_CONTENT_TYPE';
+    throw unsupportedTypeError;
 }
 
 /*
@@ -330,6 +345,6 @@ function getArticleContentType (mimetype) {
 export default {
     decodeArticleContent: decodeArticleContent,
     extractHtmlArticle: extractHtmlArticle,
-    extractArticleContent: getArticleText,
+    extractArticleContent: extractArticleContent,
     getArticleContentType: getArticleContentType
 };

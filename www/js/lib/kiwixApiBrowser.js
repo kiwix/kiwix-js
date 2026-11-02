@@ -36,8 +36,8 @@ function getArchiveInfo (archive) {
         date: archive.date || '',
         counter: archive.counter || '',
         zimType: archive.zimType || '',
-        articleCount: archive.file.articleCount || null,
-        entryCount: archive.file.entryCount || null
+        articleCount: archive.file.articleCount == null ? null : archive.file.articleCount,
+        entryCount: archive.file.entryCount == null ? null : archive.file.entryCount
     };
 }
 

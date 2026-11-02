@@ -148,10 +148,10 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
                     !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron')) || params.useLibzim) {
-                    var libzimReaderType = params.libzimMode;
-                    if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
+                    var workerConfig = libzimWorkerManager.getWorkerConfig(params.libzimMode);
+                    var libzimReaderType = workerConfig.type;
                     console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
-                    libzimWorkerManager.initialize(that, that.file._files, 'js/lib/libzim-' + libzimReaderType + '.js').then(function () {
+                    libzimWorkerManager.initialize(that, that.file._files, workerConfig.url).then(function () {
                         if (!libzimWorkerManager.isActive(that)) return;
                         that.libzimReady = 'ready';
                         // If user is using libzim for reading the file, we have delayed the callback till now
