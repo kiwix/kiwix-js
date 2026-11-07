@@ -114,7 +114,7 @@
                         <div class="row">
                             <span class="col-9">
                                 <span class="input-group">
-                                    <input type="search" data-i18n-tip="home-prefix-tip" title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type." id="prefix" placeholder="Search..." class="form-control" autocomplete="off" aria-label="Search articles" aria-describedby="prefixHelp" />
+                                    <input type="search" data-i18n-tip="home-prefix-tip" title="You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type. Press /, Home, or Ctrl/Cmd+K to focus search." id="prefix" placeholder="Search..." class="form-control" autocomplete="off" aria-label="Search articles" aria-describedby="prefixHelp" />
                                     <button type="button" data-i18n-tip="home-search" title="Search" class="btn btn-outline-secondary" id="searchArticles"><i class="fas fa-search"></i></button>
                                 </span>
                                 <span id="prefixHelp" class="sr-only" data-i18n="home-prefix-help">Type the start of an article title to see matching suggestions, or press the search button with an empty field to list titles.</span>
@@ -232,6 +232,11 @@
                         <b>Title search</b> matches the <b>start</b> of an article title, so if you search for 'France' you will get 'France (country)', 'France (disambiguation)',
                         'France (film)', etc. This kind of search tries to be <b>case-insensitive</b>, but the number of case variants tried is necessarily limited.
                         If not enough results are returned, you can increase the maximum number of search results using the slider in Configuration.
+                    </p>
+                    <p>
+                        <i>You can quickly access the search bar using keyboard shortcuts</i>: press the <b>Home</b> key, the <b>/</b> key (forward slash), <b>Ctrl+K</b> (or <b>Cmd+K</b> on Mac) 
+                        to focus the search field from anywhere in the app. In PWA or Electron contexts, you can also use the traditional browser address bar shortcuts <b>Ctrl+L</b>
+                        (or <b>Cmd+L</b>) and <b>Alt+D</b>.
                     </p>
                     <p data-i18n="about-search-para3">
                         <b>Alphabetical search:</b> If you type a letter of the alphabet in the search box (upper case may be most useful), it will show an alphabetical list of
