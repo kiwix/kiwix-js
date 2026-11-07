@@ -806,8 +806,21 @@
 
                 <!-- List of articles matching the typed prefix -->
                 <div id="articleListWithHeader" style="display: none;" class="container">
-                    <span id="articleListHeaderMessage" aria-live="polite"></span>
+                    <div id="searchResultsHeader" class="d-flex align-items-center justify-content-between mb-2">
+                        <span id="articleListHeaderMessage" aria-live="polite"></span>
+                        <div id="searchViewToggle" class="btn-group btn-group-sm" role="group" aria-label="Search view toggle" style="display: none;">
+                            <button id="btnSearchArticlesView" type="button" class="btn btn-outline-primary active" data-i18n="search-toggle-articles">Articles</button>
+                            <button id="btnSearchImagesView" type="button" class="btn btn-outline-primary" data-i18n="search-toggle-images">Images</button>
+                        </div>
+                    </div>
                     <div id="articleList" class="list-group" role="listbox">
+                    </div>
+                    <div id="imageGalleryContainer" style="display: none;" role="region" aria-label="Image search results">
+                        <div id="imageGalleryGrid" class="image-gallery-grid"></div>
+                        <div id="imageGalleryStatus" class="image-gallery-status text-center py-2" style="display: none;"></div>
+                        <div id="imageGalleryLoadMore" class="text-center my-3" style="display: none;">
+                            <button id="btnImageGalleryLoadMore" type="button" class="btn btn-outline-primary btn-sm" data-i18n="search-gallery-load-more">Load more images</button>
+                        </div>
                     </div>
                 </div>
                 <!-- Bootstrap alert box -->
