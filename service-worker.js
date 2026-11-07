@@ -138,6 +138,7 @@ const precacheFiles = [
     'www/js/theme-init.js',
     'www/js/lib/abstractFilesystemAccess.js',
     'www/js/lib/arrayFromPolyfill.js',
+    'www/js/lib/articleHistory.js',
     'www/js/lib/filecache.js',
     'www/js/lib/cache.js',
     'www/js/lib/kiwixLibrary.js',
