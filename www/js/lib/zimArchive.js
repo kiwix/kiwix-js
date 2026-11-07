@@ -342,10 +342,13 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
             callback(dirEntries, search);
         });
     }
-    // Ensure a search is done on the string exactly as typed
-    startArray.push(search.prefix);
+    // No title starts with whitespace, so drop any that was typed or pasted in front of the search text. Trailing
+    // whitespace is kept because it limits matches to a whole word. A search made only of whitespace is left as typed.
+    var typedPrefix = /\S/.test(search.prefix) ? search.prefix.replace(/^\s+/, '') : search.prefix;
+    // Ensure a search is done on the string as typed (minus any leading whitespace)
+    startArray.push(typedPrefix);
     // Normalize any spacing and make string all lowercase
-    var prefix = search.prefix.replace(/\s+/g, ' ').toLocaleLowerCase();
+    var prefix = typedPrefix.replace(/\s+/g, ' ').toLocaleLowerCase();
     // Add lowercase string with initial uppercase (this is a very common pattern)
     startArray.push(prefix.replace(/^./, function (m) {
         return m.toLocaleUpperCase();

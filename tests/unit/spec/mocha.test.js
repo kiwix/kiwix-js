@@ -278,6 +278,15 @@ describe('ZIM directory entry search and read', function () {
         expect(dirEntryList[0].getTitleOrUrl()).to.equal('Blues Brothers (film)');
     });
 
+    it('FindDirEntriesWithPrefix ignores leading whitespace in " \\tblues brothers"', async function () {
+        const dirEntryList = await new Promise(resolve => {
+            localZimArchive.findDirEntriesWithPrefix({ prefix: ' \tblues brothers', size: 5 }, resolve, true);
+        });
+
+        expect(dirEntryList).to.have.length(3);
+        expect(dirEntryList[0].getTitleOrUrl()).to.equal('Blues Brothers (film)');
+    });
+
     it('Redirect article "(The Night Time Is) The Right Time" to "Night Time Is the Right Time"', async function () {
         const dirEntry = await localZimArchive.getDirEntryByPath('A/(The_Night_Time_Is)_The_Right_Time.html');
         expect(dirEntry).to.not.be.null;
