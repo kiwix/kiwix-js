@@ -36,11 +36,18 @@ import zimArchive from './zimArchive.js';
 function loadArchiveFromDeviceStorage (storage, path, callbackReady, callbackError) {
     return new zimArchive.ZIMArchive(storage, path, callbackReady, callbackError);
 }
+
+/**
+ * @callback callbackFileReadError
+ * @param {Error|DOMException} error The raw error raised when reading the archive
+ * @param {String} fileName The name of the first selected archive file
+ */
+
 /**
  * Create a ZIMArchive from Files
  * @param {Array.<File>} files
  * @param {callbackZIMArchive} callbackReady
- * @param {callbackZIMArchive} callbackError
+ * @param {callbackFileReadError} callbackError Called when reading the archive fails
  * @returns {ZIMArchive}
  */
 function loadArchiveFromFiles (files, callbackReady, callbackError) {

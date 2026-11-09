@@ -3,6 +3,7 @@ import { Options } from 'selenium-webdriver/chrome.js';
 import legacyRayCharles from '../../spec/legacy-ray_charles.e2e.spec.js';
 import gutenbergRo from '../../spec/gutenberg_ro.e2e.spec.js';
 import tonedearTests from '../../spec/tonedear.e2e.spec.js';
+import archiveLoadErrors from '../../spec/archive-load-errors.e2e.spec.js';
 import paths from '../../paths.js';
 
 /* global process */
@@ -29,4 +30,5 @@ const driver_for_ray_charles = await loadChromiumDriver();
 
 await legacyRayCharles.runTests(driver_for_ray_charles);
 await gutenbergRo.runTests(driver_for_gutenberg);
+archiveLoadErrors.runTests(driver_for_tonedear, ['jquery', 'serviceworker'], true);
 await tonedearTests.runTests(driver_for_tonedear);
