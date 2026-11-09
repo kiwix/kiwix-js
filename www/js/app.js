@@ -2143,6 +2143,7 @@ function setLocalArchiveFromFileList (files) {
     }
     zimArchiveLoader.loadArchiveFromFiles(files, archiveReadyCallback, function (err, fileName) {
         // callbackError which is called in case of an error. The archive passes back the raw error, so we word it here
+        selectFired = false; // Reset on error
         uiUtil.systemAlert(uiUtil.isFileAccessError(err) ? uiUtil.fileAccessErrorMessage(err)
             : (translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + util.escapeHtml(fileName) +
             '&nbsp;: ' + util.escapeHtml(err && err.message || err),
