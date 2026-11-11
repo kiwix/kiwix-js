@@ -356,6 +356,11 @@ prefixElement.addEventListener('keyup', function (e) {
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
 });
+// Pasting from the context menu fires no keyup, so start the search from the paste event too.
+// The pasted text is not yet in the field when this fires, but onKeyUpPrefix reads it after its timeout.
+prefixElement.addEventListener('paste', function (e) {
+    if (selectedArchive && selectedArchive.isReady()) onKeyUpPrefix(e);
+});
 // Restore the search results if user goes back into prefix field
 prefixElement.addEventListener('focus', function () {
     if (document.getElementById('prefix').value !== '') {
