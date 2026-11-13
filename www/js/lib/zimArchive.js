@@ -486,7 +486,7 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
     var that = this;
     // We give ourselves an overhead in caclulating the results needed, because full-text search will return some results already found
     // var resultsNeeded = Math.floor(params.maxSearchResultsSize - dirEntries.length / 2);
-    var resultsNeeded = params.maxSearchResultsSize;
+    var resultsNeeded = search.size || params.maxSearchResultsSize;
     var searchType = params.libzimSearchType || 'search';
     return this.callLibzimWorker({ action: searchType, text: search.prefix, numResults: resultsNeeded }).then(function (returned) {
         if (returned) {
