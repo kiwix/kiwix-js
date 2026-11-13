@@ -363,32 +363,6 @@ function runTests (driver, modes, keepDriver) {
                 assert.equal(searchListCount, 1);
             });
 
-            it('Search results can be extended with Show more results', async function () {
-                await driver.switchTo().defaultContent();
-                const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
-                await searchBox.clear();
-                // Lower the limit so that the 4 books starting with this prefix exceed it
-                await driver.executeScript('params.maxSearchResultsSize = 2;');
-                await searchBox.sendKeys('Poezii');
-                // A search that hits the limit must offer a "Show more results" item as the last option
-                // (the full-text part of the search can take a few seconds to complete)
-                const showMore = await driver.wait(until.elementLocated(By.id('showMoreResults')), 30000);
-                await driver.wait(until.elementIsVisible(showMore), 3000);
-                const countArticles = async () => (await driver.findElements(By.css('#articleList a[dirEntryId]'))).length;
-                const initialCount = await countArticles();
-                // Click the item, and check that more results are listed and that the box keeps the focus (so the list stays open)
-                await driver.actions().move({ origin: showMore }).press().release().perform();
-                await driver.wait(async function () {
-                    return (await countArticles()) > initialCount;
-                }, 10000, 'More results should be added to the list');
-                assert.ok((await countArticles()) > initialCount);
-                const focusedId = await driver.executeScript('return document.activeElement.id;');
-                assert.equal(focusedId, 'prefix');
-                // Revert whatever was typed in the search box, and the limit
-                await searchBox.clear();
-                await driver.executeScript('params.maxSearchResultsSize = 25;');
-            });
-
             // Loads the universal HTML view of the selected book
             it('Viewing HTML view', async function () {
                 await driver.switchTo().defaultContent();
@@ -422,6 +396,33 @@ function runTests (driver, modes, keepDriver) {
                 // if title is not loaded in next 4 seconds then return empty string and fail test
                 const mainTitle = await driver.wait(until.elementLocated(By.xpath('//*[@class="main_title"]/h1')), 4000).getText();
                 assert.equal(mainTitle, 'Project Gutenberg Library');
+            });
+
+            // This test is placed after 'Navigating back' because searching adds browser history entries, which that test counts on
+            it('Search results can be extended with Show more results', async function () {
+                await driver.switchTo().defaultContent();
+                const searchBox = await driver.wait(until.elementIsVisible(driver.findElement(By.id('prefix'))), 1500);
+                await searchBox.clear();
+                // Lower the limit so that the 4 books starting with this prefix exceed it
+                await driver.executeScript('params.maxSearchResultsSize = 2;');
+                await searchBox.sendKeys('Poezii');
+                // A search that hits the limit must offer a "Show more results" item as the last option
+                // (the full-text part of the search can take a few seconds to complete)
+                const showMore = await driver.wait(until.elementLocated(By.id('showMoreResults')), 30000);
+                await driver.wait(until.elementIsVisible(showMore), 3000);
+                const countArticles = async () => (await driver.findElements(By.css('#articleList a[dirEntryId]'))).length;
+                const initialCount = await countArticles();
+                // Click the item, and check that more results are listed and that the box keeps the focus (so the list stays open)
+                await driver.actions().move({ origin: showMore }).press().release().perform();
+                await driver.wait(async function () {
+                    return (await countArticles()) > initialCount;
+                }, 10000, 'More results should be added to the list');
+                assert.ok((await countArticles()) > initialCount);
+                const focusedId = await driver.executeScript('return document.activeElement.id;');
+                assert.equal(focusedId, 'prefix');
+                // Revert whatever was typed in the search box, and the limit
+                await searchBox.clear();
+                await driver.executeScript('params.maxSearchResultsSize = 25;');
             });
 
             it('Author search Autocomplete', async function () {
