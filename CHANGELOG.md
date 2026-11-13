@@ -7,6 +7,8 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 ## Unreleased
 
 * ENHANCEMENT: New option in Configuration to make the text of articles larger or smaller
+* ENHANCEMENT: Full-text search now works in browsers without Atomic Operations (e.g. Safari on iOS) when they can run the WebAssembly build of libzim
+* FIX: If the full-text search engine fails to load, the app now falls back to title search instead of waiting for it indefinitely
 
 ### Interim update Kiwix JS v4.4.2
 

@@ -164,9 +164,10 @@ There are [versions of this app](https://kiwix.github.io/kiwix-js-pwa/app) that 
 frameworks like Electron, which do have the capability of remembering the chosen archive between app launches.
 
 The app has fast title search, and slower full-text search for ZIM archives that have a full-text index, thanks to the
-[openzim/javascript-libzim](https://github.com/openzim/javascript-libzim) project. Currently, full-text searching only works in browsers
-that support [Atomic Operations](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics), which means
-recent desktop versions of Chromium and Firefox. There is also support in Safari on iOS 15+.
+[openzim/javascript-libzim](https://github.com/openzim/javascript-libzim) project. Full-text searching works in browsers that
+support WebAssembly with bulk memory operations, which includes recent versions of Chromium, Firefox and Safari (including on iOS). In
+older browsers without these, the app falls back to an ASM.js build, which needs
+[Atomic Operations](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics).
 
 ## Licence
 
