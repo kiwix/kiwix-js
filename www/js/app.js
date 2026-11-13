@@ -308,7 +308,9 @@ prefixElement.addEventListener('keydown', function (e) {
         if (!activeElement) return;
         // If user presses Enter or Right arrow, read the dirEntry or open snippet
         if (/Enter|Right|Left/.test(e.key)) {
-            if (/Enter/.test(e.key) && activeElement.classList.contains('hover') && !activeElement.classList.contains('snippet-container')) {
+            if (/Enter/.test(e.key) && activeElement.id === 'showMoreResults' && activeElement.classList.contains('hover')) {
+                showMoreResults();
+            } else if (/Enter/.test(e.key) && activeElement.classList.contains('hover') && !activeElement.classList.contains('snippet-container')) {
                 var dirEntryId = activeElement.getAttribute('dirEntryId');
                 findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
             } else if (activeElement.classList.contains('snippet-container')) {
@@ -2282,8 +2284,10 @@ function onKeyUpPrefix () {
  * Search the index for DirEntries with title that start with the given prefix (implemented
  * with a binary search inside the index file)
  * @param {String} prefix The string that must appear at the start of any title searched for
+ * @param {Number} [size] The maximum number of results to return (defaults to params.maxSearchResultsSize)
+ * @param {Object} [more] If set, this search extends the one that is already displayed: {previousCount, scrollTop}
  */
-function searchDirEntriesFromPrefix (prefix) {
+function searchDirEntriesFromPrefix (prefix, size, more) {
     if (selectedArchive && selectedArchive.isReady()) {
         // Cancel the old search (zimArchive search object will receive this change)
         appstate.search.status = 'cancelled';
@@ -2291,7 +2295,7 @@ function searchDirEntriesFromPrefix (prefix) {
         // DEV: Technical explanation: the appstate.search is a pointer to an underlying object assigned in memory, and we are here defining a new object
         // in memory {prefix: prefix, status: 'init', .....}, and pointing appstate.search to it; the old search object that was passed to selectedArchive
         // (zimArchive.js) continues to exist in the scope of the functions initiated by the previous search until all Promises have returned
-        appstate.search = { prefix: prefix, status: 'init', type: '', size: params.maxSearchResultsSize };
+        appstate.search = { prefix: prefix, status: 'init', type: '', size: size || params.maxSearchResultsSize, more: more };
         var activeContent = document.getElementById('activeContent');
         if (activeContent) activeContent.style.display = 'none';
         selectedArchive.findDirEntriesWithPrefix(appstate.search, populateListOfArticles);
@@ -2305,6 +2309,24 @@ function searchDirEntriesFromPrefix (prefix) {
             document.getElementById('btnConfigure').click();
         });
     }
+}
+
+/**
+ * Ask for the next batch of results for the current search, keeping the results already shown in place
+ */
+function showMoreResults () {
+    var prefix = document.getElementById('prefix').value;
+    var showMore = document.getElementById('showMoreResults');
+    if (!prefix || !showMore || !selectedArchive || !selectedArchive.isReady()) return;
+    // Ignore repeated activations while the extra results are being fetched
+    if (showMore.getAttribute('aria-disabled') === 'true') return;
+    showMore.setAttribute('aria-disabled', 'true');
+    showMore.textContent = translateUI.t('search-show-more-loading') || 'Loading more results...';
+    document.getElementById('searchingArticles').style.display = '';
+    searchDirEntriesFromPrefix(prefix, appstate.search.size + params.maxSearchResultsSize, {
+        previousCount: document.querySelectorAll('#articleList a[dirEntryId]').length,
+        scrollTop: region.scrollTop
+    });
 }
 
 /**
@@ -2324,9 +2346,9 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         message = (translateUI.t('search-status-searching') || 'Searching [$1]... found: $2')
             .replace('$1', reportingSearch.type)
             .replace('$2', nbDirEntry);
-    } else if (nbDirEntry >= params.maxSearchResultsSize) {
+    } else if (nbDirEntry >= reportingSearch.size) {
         message = (translateUI.t('search-status-first-multiple') || 'First $1 articles found (refine your search).')
-            .replace('$1', params.maxSearchResultsSize);
+            .replace('$1', reportingSearch.size);
     } else {
         if (nbDirEntry === 0) {
             message = translateUI.t('search-status-finished-zero') || 'Finished. No articles found';
@@ -2347,7 +2369,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
 
     var articleListDiv = document.getElementById('articleList');
     var articleListDivHtml = '';
-    var listLength = dirEntryArray.length < params.maxSearchResultsSize ? dirEntryArray.length : params.maxSearchResultsSize;
+    var listLength = dirEntryArray.length < reportingSearch.size ? dirEntryArray.length : reportingSearch.size;
     var dirEntry;
     // Build only the article links first
     for (var i = 0; i < listLength; i++) {
@@ -2359,13 +2381,19 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
             title = '<strong>' + title + '</strong>';
         }
         let classAttribute = 'list-group-item';
-        if (i === 0) {
+        // When extending a search, the keyboard selection moves to the first of the new results
+        if (i === (reportingSearch.more ? reportingSearch.more.previousCount : 0)) {
             classAttribute += ' hover';
         }
         articleListDivHtml += '<a href="#" dirEntryId="' + dirEntryStringId +
             '" class="' + classAttribute + '" role="option">' + title + '</a>';
     }
-
+    // If the search was limited by the maximum number of results, offer to fetch the next batch
+    var canShowMore = !stillSearching && nbDirEntry >= reportingSearch.size;
+    if (canShowMore) {
+        articleListDivHtml += '<a href="#" id="showMoreResults" class="list-group-item show-more-results" role="option">' +
+            (translateUI.t('search-show-more') || 'Show more results') + '</a>';
+    }
 
     // Set the innerHTML once
     articleListDiv.innerHTML = articleListDivHtml;
@@ -2377,7 +2405,19 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     // Add event listeners to article links
     uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);
 
-    if (!stillSearching) uiUtil.spinnerDisplay(false);
+    if (canShowMore) {
+        document.getElementById('showMoreResults').addEventListener('mousedown', function (e) {
+            // Keep the focus in the search box, or else its blur event would close the list
+            e.preventDefault();
+            showMoreResults();
+        });
+    }
+
+    if (!stillSearching) {
+        uiUtil.spinnerDisplay(false);
+        // The list was rebuilt while the extra results arrived, so put the user back where they were
+        if (reportingSearch.more) region.scrollTop = reportingSearch.more.scrollTop;
+    }
     document.getElementById('articleListWithHeader').style.display = '';
 }
 

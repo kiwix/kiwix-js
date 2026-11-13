@@ -320,7 +320,9 @@ document.localeJson = {
       "search-status-finished-zero": "Terminado. Ningún artículo encontrado",
       "search-status-finished-one": "Terminado. 1 artículo encontrado",
       "search-status-finished-multiple": "Terminado. $1 artículos encontrados",
-      "search-status-basic-ending": ": usar menos palabras para una búsqueda más completa."
+      "search-status-basic-ending": ": usar menos palabras para una búsqueda más completa.",
+      "search-show-more": "Mostrar más resultados",
+      "search-show-more-loading": "Cargando más resultados..."
     }
   }
 }
