@@ -515,6 +515,43 @@ function systemAlert (message, label, isConfirm, declineConfirmLabel, approveCon
 }
 
 /**
+ * Tests whether an error was raised because the archive file itself could not be accessed (e.g. it has been moved, renamed
+ * or deleted, or the OS has denied access to it), as opposed to an error in reading or decoding its contents
+ *
+ * @param {Error} err The error to test
+ * @returns {Boolean} True if the error is a file access error
+ */
+function isFileAccessError (err) {
+    return !!err && (/^(NotFoundError|NotReadableError|NoModificationAllowedError)$/.test(err.name) ||
+        /^(ENOENT|EACCES|EPERM)$/.test(err.code));
+}
+
+/**
+ * Returns an HTML message for systemAlert explaining why a picked archive file or folder could not be read. Chromium reports
+ * an operating-system denial of access as NoModificationAllowedError (while listing a folder) or NotReadableError (while
+ * reading a file), so for these we point the user to the OS or administrator permissions rather than suggesting the archive
+ * has gone missing
+ *
+ * @param {Error} err The error thrown when the file or folder was accessed
+ * @returns {String} The message, formatted as HTML
+ */
+function fileAccessErrorMessage (err) {
+    // The error text can include a file path (e.g. from Node's fs in Electron), so it must be escaped before it is inserted as HTML
+    var systemMessage = '<p>[' + (translateUI.t('dialog-fileaccess-systemerror-label') || 'System error message:') + ' ' +
+        util.escapeHtml(err && err.message || err) + ']</p>';
+    if (err && /^(NoModificationAllowedError|NotReadableError)$/.test(err.name)) {
+        return (translateUI.t('dialog-fileaccess-denied-message') ||
+            '<p>The browser was refused access to your archive by the operating system. This is usually a permission ' +
+            'setting, not a problem with the archive itself.</p><p>Please check that this browser is allowed to access files ' +
+            'and folders on this device. On a managed or shared computer, an administrator or browser policy may be blocking ' +
+            'access to local files.</p>') + systemMessage;
+    }
+    return (translateUI.t('dialog-fileaccess-notfound-message') ||
+        '<p>We could not find your archive! Is the location or file still available? Try picking the file or folder again.</p>') +
+        systemMessage;
+}
+
+/**
  * Creates a data: URI from the given content
  * The given attribute of the DOM node (nodeAttribute) is then set to this URI
  *
@@ -1570,23 +1607,43 @@ function applyArticleWidth (doc) {
 }
 
 /**
- * Applies the article text size chosen in Configuration by zooming the article iframe. We zoom the iframe element
+ * Applies the article text size chosen in Configuration. If the browser supports CSS zoom, we zoom the article iframe
  * rather than the article's own document, because this works like the browser's zoom for that frame: the article's
  * viewport becomes narrower, so responsive layouts reflow instead of overflowing, text sized in px is scaled as well
- * as text sized in em or rem, and the zoom is kept across navigation and applies to nested iframes (e.g. in Zimit)
+ * as text sized in em or rem, and the zoom is kept across navigation and applies to nested iframes (e.g. in Zimit).
+ * Otherwise (e.g. Firefox before version 126) we fall back to setting a percentage font-size on the article's root element
  */
 function applyArticleZoom () {
-    document.getElementById('articleContent').style.zoom = params.articleZoom === 100 ? '' : params.articleZoom / 100;
+    const iframe = document.getElementById('articleContent');
+    if (params.isArticleZoomSupported) {
+        iframe.style.zoom = params.articleZoom === 100 ? '' : params.articleZoom / 100;
+    } else {
+        // The article may not be loaded yet or may be cross-origin, in which case it is handled when it loads
+        try {
+            applyArticleFontSize(iframe.contentDocument);
+        } catch { /* ignore */ }
+    }
+}
+
+/**
+ * Fallback for browsers without CSS zoom: sets the article text size as a percentage font-size on the root element of
+ * the article's document. The document is replaced on every navigation, so this must be called each time an article loads.
+ * It does nothing if CSS zoom is supported, because then the iframe itself is zoomed
+ * @param {Document} doc The article's document
+ */
+function applyArticleFontSize (doc) {
+    if (params.isArticleZoomSupported || !doc || !doc.documentElement) return;
+    doc.documentElement.style.fontSize = params.articleZoom === 100 ? '' : params.articleZoom + '%';
 }
 
 /**
  * Gets the CSS height to set on the article iframe so that it fills the given height in the app's window,
- * because CSS zoom scales the iframe's own height as well as its contents
+ * because CSS zoom scales the iframe's own height as well as its contents (the fallback does not zoom the iframe)
  * @param {Number} height The height in pixels that the iframe should fill in the app's window
  * @returns {String} The height to set on the iframe, in px
  */
 function getArticleIframeHeight (height) {
-    return height * 100 / params.articleZoom + 'px';
+    return (params.isArticleZoomSupported ? height * 100 / params.articleZoom : height) + 'px';
 }
 
 // Determines whether the user has requested a dark theme based on preference and browser settings
@@ -1718,7 +1775,8 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
     if (target === '_blank') {
         message += ' ' + (translateUI.t('dialog-open-externalurl-newtab') || '(in a new tab)');
     }
-    message += '</p><p style="word-break:break-all;">' + href + '</p>';
+    // The URL is shown as text: it is escaped for display only, and the original is opened below
+    message += '</p><p style="word-break:break-all;">' + util.escapeHtml(href) + '</p>';
     systemAlert(message, translateUI.t('dialog-open-externalurl-title') || 'Opening external link', true, null, null, null, null, true).then(function (response) {
         if (response) {
             window.open(href, target);
@@ -1948,6 +2006,8 @@ export default {
     showSlidingUIElements: showSlidingUIElements,
     scroller: scroller,
     systemAlert: systemAlert,
+    isFileAccessError: isFileAccessError,
+    fileAccessErrorMessage: fileAccessErrorMessage,
     feedNodeWithDataURI: feedNodeWithDataURI,
     getDataUriFromUint8Array: getDataUriFromUint8Array,
     determineCanvasElementsWorkaround: determineCanvasElementsWorkaround,
@@ -1969,6 +2029,7 @@ export default {
     detectNativeZIMThemeSupport: detectNativeZIMThemeSupport,
     applyArticleWidth: applyArticleWidth,
     applyArticleZoom: applyArticleZoom,
+    applyArticleFontSize: applyArticleFontSize,
     getArticleIframeHeight: getArticleIframeHeight,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,

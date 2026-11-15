@@ -117,6 +117,8 @@ docker run -d -p 8080:80 ghcr.io/kiwix/kiwix-moz-extension:latest
 
 Then open `http://localhost:8080` in your browser. With `docker compose`, you can omit `-d` to run in the foreground and view logs. You can also change the host port in [`docker-compose.yml`](docker-compose.yml).
 
+For troubleshooting common Docker issues, see the [Docker troubleshooting guide](docker/README.md).
+
 **Important notes:**
 
 - ZIM archives must still be selected manually through the application's file picker. Because Kiwix JS is a web application, it uses browser APIs to access local files, so archives must be available on the machine where the browser is running or via a network mount. If you need to serve ZIM archives over a local network, consider using [kiwix-serve](https://github.com/kiwix/kiwix-tools).

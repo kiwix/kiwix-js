@@ -396,30 +396,33 @@ async function handleFolderOrFileDropViaWebkit (event) {
 /**
  * Gets the files from the FileSystemReader
  * @param {FileSystemDirectoryReader} reader The FileSystemReader to get files from
- * @returns {Promise<Array<File>>} The files from the reader
+ * @returns {Promise<Array<File>>} The files from the reader, or a rejection with the browser's error if the folder or one of
+ *     its files cannot be read (e.g. if the folder is moved or the drive is disconnected while it is being read)
  */
 async function getFilesFromReader (reader) {
     const files = [];
-    // eslint-disable-next-line no-unused-vars
-    const promise = new Promise(function (resolve, _reject) {
-        reader.readEntries(function (entries) {
-            resolve(entries);
+    // readEntries() returns the entries in batches (Chromium returns at most 100 per call), so we call it
+    // until it returns an empty array
+    let entries;
+    do {
+        entries = await new Promise(function (resolve, reject) {
+            reader.readEntries(function (entries) {
+                resolve(entries);
+            }, reject);
         });
-    });
-    const entries = await promise;
 
-    for (let index = 0; index < entries.length; index++) {
-        const fileOrDir = entries[index];
-        if (fileOrDir.isFile) {
-            // eslint-disable-next-line no-unused-vars
-            const filePromise = await new Promise(function (resolve, _reject) {
-                fileOrDir.file(function (file) {
-                    resolve(file);
+        for (let index = 0; index < entries.length; index++) {
+            const fileOrDir = entries[index];
+            if (fileOrDir.isFile) {
+                const filePromise = await new Promise(function (resolve, reject) {
+                    fileOrDir.file(function (file) {
+                        resolve(file);
+                    }, reject);
                 });
-            });
-            files.push(filePromise);
+                files.push(filePromise);
+            }
         }
-    }
+    } while (entries.length);
     return files;
 }
 
