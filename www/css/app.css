@@ -99,6 +99,17 @@
     padding-bottom: 5px;
 }
 
+/* Last item of a truncated result list, which fetches the next batch of results */
+#articleList a.show-more-results {
+    text-align: center;
+    font-weight: bold;
+}
+
+#articleList a.show-more-results[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: progress;
+}
+
 #articleList a:hover, #articleList a.hover, div.snippet-header.hover {
     background: lightblue;
 }

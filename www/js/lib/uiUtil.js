@@ -1903,6 +1903,8 @@ function attachArticleListEventListeners(findDirEntryCallback, appstate) {
     // We have to use mousedown below instead of click as otherwise the prefix blur event fires first
     // and prevents this event from firing; note that touch also triggers mousedown
     document.querySelectorAll('#articleList a, .snippet-container').forEach(function (element) {
+        // The 'Show more results' item is wired up in app.js
+        if (element.id === 'showMoreResults') return;
         element.addEventListener('mousedown', function (e) {
             if (element.classList.contains('snippet-container')) {
                 // Handle snippet toggle
