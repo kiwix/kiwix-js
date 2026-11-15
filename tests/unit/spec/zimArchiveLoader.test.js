@@ -135,3 +135,27 @@ describe('zimArchiveLoader.scanForArchives', function () {
         expect(errorCallbackCount).to.equal(1);
     });
 });
+
+describe('zimArchiveLoader.loadArchiveFromFiles', function () {
+    it('Pass the raw error and the file name to the error callback when the file cannot be read', async function () {
+        const readError = new DOMException('The requested file could not be read', 'NotReadableError');
+        // A File-like object whose contents cannot be read, e.g. because the OS denied access to it
+        const unreadableFile = {
+            name: 'unreadable.zim',
+            size: 1024,
+            lastModified: 0,
+            slice: function () {
+                return { arrayBuffer: function () { return Promise.reject(readError); } };
+            }
+        };
+        const args = await new Promise(function (resolve) {
+            zimArchiveLoader.loadArchiveFromFiles([unreadableFile], function () {
+                resolve(null);
+            }, function () {
+                resolve(Array.from(arguments));
+            });
+        });
+        // The archive should not word the message itself: that is left to the UI
+        expect(args).to.deep.equal([readError, 'unreadable.zim']);
+    });
+});
