@@ -46,7 +46,7 @@ function hideSlidingUIElements () {
     const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom) + 8;
     const iframeHeight = parseFloat(articleElement.style.height.replace('px', ''));
     footer.style.transform = 'translateY(' + footerHeight + 'px)';
-    articleContainer.style.height = iframeHeight + headerHeight + 'px';
+    articleContainer.style.height = getArticleIframeHeight(iframeHeight + headerHeight);
     header.style.transform = 'translateY(-' + headerHeight + 'px)';
     articleElement.style.transform = 'translateY(-' + headerHeight + 'px)';
     hideActiveContentWarning();
@@ -65,7 +65,7 @@ function showSlidingUIElements () {
     articleElement.style.transform = 'translateY(-1px)';
     footer.style.transform = 'translateY(0)';
     articleElement.style.height = window.innerHeight - headerHeight + 'px';
-    articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+    articleContainer.style.height = getArticleIframeHeight(window.innerHeight - headerHeight);
 }
 
 let scrollThrottle = false;
@@ -1606,6 +1606,49 @@ function applyArticleWidth (doc) {
     }
 }
 
+/**
+ * Applies the article text size chosen in Configuration. If the browser supports CSS zoom, we zoom the article iframe
+ * rather than the article's own document, because this works like the browser's zoom for that frame: the article's
+ * viewport becomes narrower, so responsive layouts reflow instead of overflowing, text sized in px is scaled as well
+ * as text sized in em or rem, and the zoom is kept across navigation and applies to nested iframes (e.g. in Zimit).
+ * Otherwise (e.g. Firefox before version 126, or IE11, whose zoom doesn't reflow the article) we fall back to setting a percentage font-size on the article's root element
+ */
+function applyArticleZoom () {
+    const iframe = document.getElementById('articleContent');
+    if (params.isArticleZoomSupported) {
+        iframe.style.zoom = params.articleZoom === 100 ? '' : params.articleZoom / 100;
+    } else {
+        // The article may not be loaded yet or may be cross-origin, in which case it is handled when it loads
+        try {
+            var doc = iframe.contentDocument;
+            // Classic Zimit archives show the article in a nested iframe in ServiceWorker mode
+            var replay = doc && doc.getElementById('replay_iframe');
+            applyArticleFontSize(replay && replay.contentDocument ? replay.contentDocument : doc);
+        } catch { /* ignore */ }
+    }
+}
+
+/**
+ * Fallback for browsers without CSS zoom: sets the article text size as a percentage font-size on the root element of
+ * the article's document. The document is replaced on every navigation, so this must be called each time an article loads.
+ * It does nothing if CSS zoom is supported, because then the iframe itself is zoomed
+ * @param {Document} doc The article's document
+ */
+function applyArticleFontSize (doc) {
+    if (params.isArticleZoomSupported || !doc || !doc.documentElement) return;
+    doc.documentElement.style.fontSize = params.articleZoom === 100 ? '' : params.articleZoom + '%';
+}
+
+/**
+ * Gets the CSS height to set on the article iframe so that it fills the given height in the app's window,
+ * because CSS zoom scales the iframe's own height as well as its contents (the fallback does not zoom the iframe)
+ * @param {Number} height The height in pixels that the iframe should fill in the app's window
+ * @returns {String} The height to set on the iframe, in px
+ */
+function getArticleIframeHeight (height) {
+    return (params.isArticleZoomSupported ? height * 100 / params.articleZoom : height) + 'px';
+}
+
 // Determines whether the user has requested a dark theme based on preference and browser settings
 function isDarkTheme (theme) {
     return /^auto/.test(theme) ? !!window.matchMedia('(prefers-color-scheme:dark)').matches : theme.replace(/_.*$/, '') === 'dark';
@@ -1988,6 +2031,9 @@ export default {
     isDarkTheme: isDarkTheme,
     detectNativeZIMThemeSupport: detectNativeZIMThemeSupport,
     applyArticleWidth: applyArticleWidth,
+    applyArticleZoom: applyArticleZoom,
+    applyArticleFontSize: applyArticleFontSize,
+    getArticleIframeHeight: getArticleIframeHeight,
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,

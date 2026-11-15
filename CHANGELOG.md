@@ -6,6 +6,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 
 ### Interim update Kiwix JS v4.4.2
 
+* ENHANCEMENT: New option in Configuration to make the text of articles larger or smaller
 * ENHANCEMENT: New option in Configuration to let recent Wikipedia articles use the full window width on wide screens
 * ENHANCEMENT: When an archive cannot be read, the error now explains the likely cause (e.g. the file has been moved, or the operating system denied access to it)
 * ENHANCEMENT: Article titles and search terms are no longer written into the browser's address bar and history
