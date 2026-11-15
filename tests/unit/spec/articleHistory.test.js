@@ -33,7 +33,6 @@ describe('Article history', function () {
         params.keyPrefix = 'kiwixjs-';
         params.recordArticleHistory = true;
         localStorage.removeItem(storedKey);
-        articleHistory.setArchive('none.zim');
         articleHistory.setArchive('ray_charles.zim');
     });
 
@@ -72,19 +71,52 @@ describe('Article history', function () {
         assert.deepEqual(articleHistory.getEntries().map(e => e.path), ['A/Ray_Charles']);
     });
 
-    it('deletes the list when a different archive is opened', function () {
+    it('keeps a separate list for each archive and shows only the list of the loaded archive', function () {
         articleHistory.record('A/Ray_Charles', 'Ray Charles');
         articleHistory.setArchive('gutenberg_ro.zim');
         assert.lengthOf(articleHistory.getEntries(), 0);
-        assert.isNull(localStorage.getItem(storedKey));
+        articleHistory.record('A/Carte', 'Carte');
+        assert.deepEqual(articleHistory.getEntries().map(e => e.path), ['A/Carte']);
+        articleHistory.setArchive('ray_charles.zim');
+        assert.deepEqual(articleHistory.getEntries().map(e => e.path), ['A/Ray_Charles']);
     });
 
-    it('deletes the list from storage when cleared', function () {
+    it('keeps the lists of at most ' + articleHistory.maxArchives + ' archives, dropping the least recently used', function () {
+        const realNow = Date.now;
+        let now = 1000;
+        Date.now = () => now++;
+        try {
+            for (let i = 0; i < articleHistory.maxArchives; i++) {
+                articleHistory.setArchive('archive_' + i + '.zim');
+                articleHistory.record('A/Article', 'Article');
+            }
+            // Use the oldest list again, so that archive_1 becomes the least recently used
+            articleHistory.setArchive('archive_0.zim');
+            articleHistory.record('A/Another', 'Another');
+            articleHistory.setArchive('newest.zim');
+            articleHistory.record('A/Article', 'Article');
+            articleHistory.setArchive('archive_1.zim');
+            assert.lengthOf(articleHistory.getEntries(), 0);
+            articleHistory.setArchive('archive_0.zim');
+            assert.lengthOf(articleHistory.getEntries(), 2);
+            articleHistory.setArchive('newest.zim');
+            assert.lengthOf(articleHistory.getEntries(), 1);
+            assert.equal(Object.keys(JSON.parse(localStorage.getItem(storedKey)).archives).length, articleHistory.maxArchives);
+        } finally {
+            Date.now = realNow;
+        }
+    });
+
+    it('deletes the lists of all archives from storage when cleared', function () {
         articleHistory.record('A/Ray_Charles', 'Ray Charles');
+        articleHistory.setArchive('gutenberg_ro.zim');
+        articleHistory.record('A/Carte', 'Carte');
         assert.isNotNull(localStorage.getItem(storedKey));
         articleHistory.clear();
         assert.lengthOf(articleHistory.getEntries(), 0);
         assert.isNull(localStorage.getItem(storedKey));
+        articleHistory.setArchive('ray_charles.zim');
+        assert.lengthOf(articleHistory.getEntries(), 0);
     });
 
     it('keeps the list only in memory when localStorage is not in use', function () {

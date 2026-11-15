@@ -2212,7 +2212,7 @@ async function archiveReadyCallback (archive) {
             await verifyLoadedArchive(archive);
         }
     }
-    // Keep the list of recently visited articles if the same archive was reopened, or else delete it
+    // Use the list of recently visited articles that belongs to this archive
     articleHistory.setArchive(archive.file.name);
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
     // It will be defined as false or true when the first article is loaded
@@ -2294,8 +2294,9 @@ function onKeyUpPrefix () {
         var prefix = document.getElementById('prefix').value;
         if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
             document.getElementById('searchArticles').click();
-        } else if (prefix === '' && document.activeElement === prefixElement) {
-            // The user has deleted the search text, so we cancel any search and show the recently visited articles instead
+        } else if (params.recordArticleHistory && prefix === '' && document.activeElement === prefixElement && articleHistory.getEntries().length) {
+            // The user has turned history on and has deleted the search text, so we cancel any search and show the recently visited articles instead.
+            // With history off, or with nothing to show, the search results stay available until a new search is started
             appstate.search.status = 'cancelled';
             appstate.search.prefix = '';
             uiUtil.spinnerDisplay(false);
@@ -2679,7 +2680,6 @@ function articleLoadedSW (iframeArticleContent) {
     if (iframeWindow) {
         // Configure home key press to focus #prefix only if the feature is in active state
         if (params.useHomeKeyToFocusSearchBar) { iframeWindow.onkeydown = focusPrefixOnHomeKey; }
-        recordVisitedArticle(getZimPathFromArticleWindow(iframeWindow), iframeArticleContent.contentDocument);
         // Add event listeners to iframe window to check for links to external resources and for actions that trigger popovers
         iframeWindow.onclick = filterClickEvent;
         attachPopoverTriggerEvents(iframeWindow);
@@ -3055,6 +3055,9 @@ function handleMessageChannelMessage (event) {
                         // Calculate the current article's ZIM baseUrl to use when attaching popovers
                         appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
                         appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+                        // Every navigation passes through here, whether in our iframe or in a new tab or window opened by the user,
+                        // and the dirEntry gives the ZIM URL whatever the archive type, so this is where we record the visit
+                        recordVisitedArticle(dirEntry);
                     }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
@@ -3333,7 +3336,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         uiUtil.applyArticleWidth(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
-        recordVisitedArticle(dirEntry.namespace + '/' + dirEntry.url, iframeContentDocument, dirEntry.getTitleOrUrl());
+        recordVisitedArticle(dirEntry);
 
         // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
         loadNoScriptTags();
@@ -3697,37 +3700,16 @@ function pushBrowserHistoryState (title, titleSearch) {
 }
 
 /**
- * Gets the ZIM path (including the namespace) of the article loaded in the given window in ServiceWorker mode,
- * from the window's URL, which has the form [...]/<ZIM file name>/<namespace>/<url>
- * @param {Window} win The window of the article iframe
- * @returns {String|null} The ZIM path, or null if it could not be determined
+ * Adds an article to the list of recently visited articles for the loaded archive (if the user has turned this on).
+ * The landing page is not added, because the Home button already opens it. The path recorded is the ZIM URL that locates
+ * the dirEntry (the namespace plus the URL), which is valid in any mode and for any type of archive
+ * @param {DirEntry} dirEntry The directory entry of the article that is being displayed
  */
-function getZimPathFromArticleWindow (win) {
-    var pathname;
-    try {
-        pathname = decodeURIComponent(win.location.pathname);
-    } catch (e) {
-        console.warn('Could not decode the URL of the article', e);
-        return null;
-    }
-    var zimRoot = '/' + selectedArchive.file.name + '/';
-    var index = pathname.indexOf(zimRoot);
-    if (index === -1) return null;
-    var path = pathname.substring(index + zimRoot.length);
-    return /^[-ABCIJMUVWX]\/./.test(path) ? path : null;
-}
-
-/**
- * Adds the loaded article to the list of recently visited articles (if the user has turned this on). The landing page
- * is not added, because the Home button already opens it.
- * @param {String} path The ZIM path of the article, including the namespace
- * @param {Document} doc The document of the article, from which the title is read
- * @param {String} fallbackTitle A title to use if the document has none
- */
-function recordVisitedArticle (path, doc, fallbackTitle) {
-    if (!params.recordArticleHistory || !path || params.isLandingPage || selectedArchive.landingPageUrl === path) return;
-    var title = doc && doc.title ? doc.title.trim() : '';
-    articleHistory.record(path, title || fallbackTitle);
+function recordVisitedArticle (dirEntry) {
+    if (!params.recordArticleHistory || !dirEntry) return;
+    var path = dirEntry.namespace + '/' + dirEntry.url;
+    if (params.isLandingPage || selectedArchive.landingPageUrl === path) return;
+    articleHistory.record(path, dirEntry.getTitleOrUrl());
 }
 
 /**
