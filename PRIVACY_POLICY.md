@@ -2,9 +2,12 @@
 
 ## Short version
 
-Kiwix JS works offline, and does not collect or record any of your personal data. It only remembers
-your browsing history for the duration of a session (for the purpose of returning to previously
-viewed pages). This history is lost on exiting the app and is not recorded in any way.
+Kiwix JS works offline, and does not collect or record any of your personal data. By default it only
+remembers your browsing history for the duration of a session (for the purpose of returning to
+previously viewed pages), and this history is lost on exiting the app. If you turn on the optional
+setting to remember recently visited articles in Configuration, the app also keeps a list of the
+titles of the articles you open in each archive. This list is stored only on your device, and it is
+deleted when you turn the setting off or clear the history.
 
 ## Longer version
 

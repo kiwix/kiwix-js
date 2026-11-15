@@ -37,6 +37,7 @@ import abstractFilesystemAccess from './lib/abstractFilesystemAccess.js';
 import translateUI from './lib/translateUI.js';
 import kiwixLibrary from './lib/kiwixLibrary.js';
 import util from './lib/util.js';
+import articleHistory from './lib/articleHistory.js';
 
 if (params.abort) {
     // If the app was loaded only to pass a message from the remote code, then we exit immediately
@@ -308,7 +309,9 @@ prefixElement.addEventListener('keydown', function (e) {
         if (!activeElement) return;
         // If user presses Enter or Right arrow, read the dirEntry or open snippet
         if (/Enter|Right|Left/.test(e.key)) {
-            if (/Enter/.test(e.key) && activeElement.classList.contains('hover') && !activeElement.classList.contains('snippet-container')) {
+            if (/Enter/.test(e.key) && activeElement.classList.contains('hover') && activeElement.hasAttribute('data-history-path')) {
+                goToHistoryEntry(activeElement.getAttribute('data-history-path'));
+            } else if (/Enter/.test(e.key) && activeElement.classList.contains('hover') && !activeElement.classList.contains('snippet-container')) {
                 var dirEntryId = activeElement.getAttribute('dirEntryId');
                 findDirEntryFromDirEntryIdAndLaunchArticleRead(decodeURIComponent(dirEntryId));
             } else if (activeElement.classList.contains('snippet-container')) {
@@ -356,13 +359,15 @@ prefixElement.addEventListener('keyup', function (e) {
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
 });
-// Restore the search results if user goes back into prefix field
+// Restore the search results if user goes back into prefix field, or show the recently visited articles if it is empty
 prefixElement.addEventListener('focus', function () {
     if (document.getElementById('prefix').value !== '') {
         region.style.overflowY = 'auto';
         const footerHeight = document.getElementById('footer').getBoundingClientRect().height;
         region.style.height = window.innerHeight - footerHeight + 'px';
         document.getElementById('articleListWithHeader').style.display = '';
+    } else {
+        showArticleHistory();
     }
 });
 // Hide the search results if user moves out of prefix field
@@ -722,6 +727,15 @@ document.getElementById('titleSearchRange').addEventListener('input', function (
 document.getElementById('showPopoverPreviewsCheck').addEventListener('change', function (e) {
     params.showPopoverPreviews = e.target.checked;
     settingsStore.setItem('showPopoverPreviews', params.showPopoverPreviews, Infinity);
+});
+document.getElementById('recordArticleHistoryCheck').addEventListener('change', function (e) {
+    params.recordArticleHistory = e.target.checked;
+    settingsStore.setItem('recordArticleHistory', params.recordArticleHistory, Infinity);
+    // For privacy, turning history off also deletes the list that has been kept so far
+    if (!params.recordArticleHistory) articleHistory.clear();
+});
+document.getElementById('btnClearArticleHistory').addEventListener('click', function () {
+    articleHistory.clear();
 });
 document.getElementById('wideArticleWidthCheck').addEventListener('change', function (e) {
     params.wideArticleWidth = e.target.checked;
@@ -2198,6 +2212,8 @@ async function archiveReadyCallback (archive) {
             await verifyLoadedArchive(archive);
         }
     }
+    // Use the list of recently visited articles that belongs to this archive
+    articleHistory.setArchive(archive.file.name);
     // When a new ZIM is loaded, we turn this flag to null, so that we don't get false positive attempts to use the Worker
     // It will be defined as false or true when the first article is loaded
     appstate.isReplayWorkerAvailable = null;
@@ -2278,6 +2294,13 @@ function onKeyUpPrefix () {
         var prefix = document.getElementById('prefix').value;
         if (prefix && prefix.length > 0 && prefix !== appstate.search.prefix) {
             document.getElementById('searchArticles').click();
+        } else if (params.recordArticleHistory && prefix === '' && document.activeElement === prefixElement && articleHistory.getEntries().length) {
+            // The user has turned history on and has deleted the search text, so we cancel any search and show the recently visited articles instead.
+            // With history off, or with nothing to show, the search results stay available until a new search is started
+            appstate.search.status = 'cancelled';
+            appstate.search.prefix = '';
+            uiUtil.spinnerDisplay(false);
+            showArticleHistory();
         }
     }, 500);
 }
@@ -3032,6 +3055,9 @@ function handleMessageChannelMessage (event) {
                         // Calculate the current article's ZIM baseUrl to use when attaching popovers
                         appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
                         appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
+                        // Every navigation passes through here, whether in our iframe or in a new tab or window opened by the user,
+                        // and the dirEntry gives the ZIM URL whatever the archive type, so this is where we record the visit
+                        recordVisitedArticle(dirEntry);
                     }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
@@ -3310,6 +3336,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         uiUtil.applyArticleWidth(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
+        recordVisitedArticle(dirEntry);
 
         // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
         loadNoScriptTags();
@@ -3670,6 +3697,64 @@ function pushBrowserHistoryState (title, titleSearch) {
         return;
     }
     window.history.pushState(stateObj, stateLabel, window.location.pathname);
+}
+
+/**
+ * Adds an article to the list of recently visited articles for the loaded archive (if the user has turned this on).
+ * The landing page is not added, because the Home button already opens it. The path recorded is the ZIM URL that locates
+ * the dirEntry (the namespace plus the URL), which is valid in any mode and for any type of archive
+ * @param {DirEntry} dirEntry The directory entry of the article that is being displayed
+ */
+function recordVisitedArticle (dirEntry) {
+    if (!params.recordArticleHistory || !dirEntry) return;
+    var path = dirEntry.namespace + '/' + dirEntry.url;
+    if (params.isLandingPage || selectedArchive.landingPageUrl === path) return;
+    articleHistory.record(path, dirEntry.getTitleOrUrl());
+}
+
+/**
+ * Shows the list of recently visited articles in place of the search results, if the user has turned this on
+ * and the list is not empty
+ */
+function showArticleHistory () {
+    var entries = articleHistory.getEntries();
+    if (!params.recordArticleHistory || !entries.length || !selectedArchive || !selectedArchive.isReady()) return;
+    var articleList = document.getElementById('articleList');
+    while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
+    document.getElementById('articleListHeaderMessage').textContent = translateUI.t('search-status-history') || 'Recently visited articles';
+    entries.forEach(function (entry, i) {
+        var link = document.createElement('a');
+        link.href = '#';
+        link.className = 'list-group-item' + (i === 0 ? ' hover' : '');
+        link.setAttribute('role', 'option');
+        link.setAttribute('data-history-path', entry.path);
+        // We use a text node so that a title from the ZIM is never interpreted as HTML
+        link.appendChild(document.createTextNode(entry.title));
+        var time = document.createElement('small');
+        time.className = 'text-muted float-right';
+        time.textContent = new Date(entry.time).toLocaleString();
+        link.appendChild(time);
+        // We have to use mousedown instead of click, as otherwise the blur event of the search box hides the list first
+        link.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            goToHistoryEntry(entry.path);
+        });
+        articleList.appendChild(link);
+    });
+    region.style.overflowY = 'auto';
+    const footerHeight = document.getElementById('footer').getBoundingClientRect().height;
+    region.style.height = window.innerHeight - footerHeight + 'px';
+    document.getElementById('articleListWithHeader').style.display = '';
+}
+
+/**
+ * Opens an article from the list of recently visited articles
+ * @param {String} path The ZIM path of the article
+ */
+function goToHistoryEntry (path) {
+    document.getElementById('articleListWithHeader').style.display = 'none';
+    document.getElementById('articleContent').contentWindow.focus();
+    goToArticle(path);
 }
 
 // Setup table of contents and display the list when the dropup button is clicked
