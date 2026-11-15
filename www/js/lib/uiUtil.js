@@ -1611,7 +1611,7 @@ function applyArticleWidth (doc) {
  * rather than the article's own document, because this works like the browser's zoom for that frame: the article's
  * viewport becomes narrower, so responsive layouts reflow instead of overflowing, text sized in px is scaled as well
  * as text sized in em or rem, and the zoom is kept across navigation and applies to nested iframes (e.g. in Zimit).
- * Otherwise (e.g. Firefox before version 126) we fall back to setting a percentage font-size on the article's root element
+ * Otherwise (e.g. Firefox before version 126, or IE11, whose zoom doesn't reflow the article) we fall back to setting a percentage font-size on the article's root element
  */
 function applyArticleZoom () {
     const iframe = document.getElementById('articleContent');
@@ -1620,7 +1620,10 @@ function applyArticleZoom () {
     } else {
         // The article may not be loaded yet or may be cross-origin, in which case it is handled when it loads
         try {
-            applyArticleFontSize(iframe.contentDocument);
+            var doc = iframe.contentDocument;
+            // Classic Zimit archives show the article in a nested iframe in ServiceWorker mode
+            var replay = doc && doc.getElementById('replay_iframe');
+            applyArticleFontSize(replay && replay.contentDocument ? replay.contentDocument : doc);
         } catch { /* ignore */ }
     }
 }

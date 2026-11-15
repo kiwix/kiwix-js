@@ -62,7 +62,7 @@
  * @property {string} libzimSearchType - A string indicating the type of search to use with libzim (currently 'search' or 'searchWithSnippets').
  * @property {boolean} showPopoverPreviews - A boolean indicating whether to show previews of ZIM links (currently only for Wikimedia archives)
  * @property {boolean} wideArticleWidth - A boolean indicating whether to remove the max-width limit on Wikimedia articles that use the Vector 2022 skin
- * @property {boolean} isArticleZoomSupported - A boolean indicating whether the browser supports CSS zoom, which the article text size option uses (if not, a font-size is set on the article's root element instead)
+ * @property {boolean} isArticleZoomSupported - A boolean indicating whether the browser supports CSS zoom, which the article text size option uses (if not, or in IE11, a font-size is set on the article's root element instead)
  * @property {number} articleZoom - The article text size as a percentage (100 is the archive's own size)
  * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
@@ -172,7 +172,7 @@ params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets
 params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets a Boolean defaulting to true indicating whether to reopen the last opened zim file if possible
 params['showPopoverPreviews'] = getSetting('showPopoverPreviews') !== false; // Sets a Boolean defaulting to true indicating whether to show previews of article contents when hovering a ZIM link
 params['wideArticleWidth'] = getSetting('wideArticleWidth') === true; // Sets a Boolean defaulting to false indicating whether to remove the max-width limit on Wikimedia (Vector 2022) articles
-params['isArticleZoomSupported'] = 'zoom' in document.documentElement.style; // Sets a Boolean indicating whether the browser supports CSS zoom (including IE11's non-standard version), which the article text size option uses. Without it we set a font-size on the article instead
+params['isArticleZoomSupported'] = 'zoom' in document.documentElement.style && !document.documentMode; // Sets a Boolean indicating whether the browser supports CSS zoom, which the article text size option uses. IE11 has a non-standard zoom that doesn't lay the article out again in the zoomed iframe, so (like browsers without zoom) it gets a font-size on the article instead
 // Sets the article text size as a percentage, defaulting to 100. Only the values offered in Configuration are accepted
 params['articleZoom'] = /^(?:75|90|110|125|150|175|200)$/.test(getSetting('articleZoom')) ? parseInt(getSetting('articleZoom'), 10) : 100;
 
