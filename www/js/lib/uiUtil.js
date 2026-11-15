@@ -216,7 +216,11 @@ function HeadingsTOC (articleDoc) {
     * @returns {void}
 */
 function setUpTOC () {
-    const innerDoc = articleContainer ? (articleContainer.contentDocument || articleContainer.contentWindow.document) : null;
+    let innerDoc = articleContainer ? (articleContainer.contentDocument || articleContainer.contentWindow.document) : null;
+
+    // In ServiceWorker mode, a classic Zimit article is shown by the ReplayWorker in a nested iframe, so the headings are in there
+    const replayIframe = innerDoc && innerDoc.getElementById('replay_iframe');
+    if (replayIframe && replayIframe.contentDocument) innerDoc = replayIframe.contentDocument;
 
     if (!innerDoc) {
         console.warn('null articleContainer');
