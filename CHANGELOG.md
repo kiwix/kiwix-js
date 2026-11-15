@@ -4,6 +4,11 @@ Please note that this application has changed its name over time.
 It was first called "Evopedia" (and was using the file format of Evopedia).
 Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it was renamed "Kiwix JS".
 
+## Unreleased
+
+* FIX: Headings that contain angle brackets (e.g. `Uppercase<StringType>` in DevDocs archives) are now shown in full in the Table of Contents
+* FIX: The Table of Contents now shows for classic Zimit archives in ServiceWorker mode, where the article is displayed in a nested iframe
+
 ### Interim update Kiwix JS v4.4.2
 
 * ENHANCEMENT: New option in Configuration to let recent Wikipedia articles use the full window width on wide screens
