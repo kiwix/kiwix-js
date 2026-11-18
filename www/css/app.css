@@ -20,7 +20,7 @@
  * along with Kiwix (file LICENSE-GPLv3.txt).  If not, see <http://www.gnu.org/licenses/>
  */
 
-[role=region] {
+section[role=region] {
     top: 0;
     right: 0;
     bottom: 0;
@@ -28,19 +28,19 @@
     position: fixed;
     overflow-x: hidden;
 }
-[role=region] > header {
+section[role=region] > header {
      margin-bottom: 12px;
      text-align: center;
 }
-[role=region] > header > h1 {
+section[role=region] > header > h1 {
     margin: 0;
     text-shadow: 0 1px 1px rgba(0,0,0,.4);
 }
-[role=region] > .view-content {
+section[role=region] > .view-content {
     margin: 0;
     position: relative; /*Fixes #250 Random button display bug in W10M */
 }
-[role=region] > footer {
+section[role=region] > footer {
     background: rgba(0,0,0,.2);
     right: 0;
     bottom: 0;
@@ -48,7 +48,7 @@
     position: fixed;
     text-align: center;
 }
-[role=region] > footer > menu[role=toolbar] {
+section[role=region] > footer > menu[role=toolbar] {
     margin: 0;
     padding: 0;
 }
@@ -539,7 +539,7 @@ button {
         margin-top: 2px !important;
         margin-bottom: 0 !important;
     }
-    [role=region] > header {
+    section[role=region] > header {
         margin-bottom: 0 !important;
     }
 
@@ -605,5 +605,80 @@ button {
         height: 32px;
     }
     
+}
+
+/* Image Gallery (Issue #277) */
+#imageGalleryContainer {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 24px;
+}
+
+.image-gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.image-gallery-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 180px;
+    margin: 4px;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    text-decoration: none !important;
+    color: inherit;
+    box-sizing: border-box;
+}
+
+.image-gallery-card:hover,
+.image-gallery-card:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-color: #6c757d;
+    outline: none;
+}
+
+.image-gallery-thumb-container {
+    width: 100%;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.image-gallery-thumb {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.image-gallery-caption {
+    width: 100%;
+    margin-top: 6px;
+    font-size: 0.82rem;
+    line-height: 1.25;
+    color: #495057;
+    text-align: center;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 

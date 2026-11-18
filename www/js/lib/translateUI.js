@@ -84,6 +84,12 @@ function translateApp (languageCode) {
                 element.title = currentLanguage[key];
             }
         });
+        document.querySelectorAll('[data-i18n-aria-label]').forEach(function (element) {
+            var key = element.dataset.i18nAriaLabel;
+            if (!fallback || exists(key)) {
+                element.setAttribute('aria-label', currentLanguage[key]);
+            }
+        });
         document.getElementById('prefix').setAttribute('placeholder',
             translateString('home-prefix-placeholder') || 'Search...');
         document.getElementById('prefix').setAttribute('aria-label',
