@@ -120,90 +120,78 @@ function extractImagesFromArticleHtml (htmlArticle, dirEntry, options) {
     var extracted = [];
     var seenUrlsInArticle = new Set();
 
-    // Check for DOMParser in globalThis or window
-    var DOMParserClass = typeof DOMParser !== 'undefined' ? DOMParser : (typeof window !== 'undefined' ? window.DOMParser : null);
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(htmlArticle, 'text/html');
+    var imgElements = doc.querySelectorAll('img');
 
-    if (DOMParserClass) {
-        try {
-            var parser = new DOMParserClass();
-            var doc = parser.parseFromString(htmlArticle, 'text/html');
-            var imgElements = doc.querySelectorAll('img');
+    for (var i = 0; i < imgElements.length; i++) {
+        var imgNode = imgElements[i];
+        var rawSrc = imgNode.getAttribute('data-kiwixurl') || imgNode.getAttribute('src') || '';
+        if (!rawSrc) continue;
 
-            for (var i = 0; i < imgElements.length; i++) {
-                var imgNode = imgElements[i];
-                var rawSrc = imgNode.getAttribute('data-kiwixurl') || imgNode.getAttribute('src') || '';
-                if (!rawSrc) continue;
+        var className = imgNode.className || '';
+        var alt = imgNode.getAttribute('alt') || '';
+        var title = imgNode.getAttribute('title') || '';
+        var width = imgNode.getAttribute('width') || '';
+        var height = imgNode.getAttribute('height') || '';
 
-                var className = imgNode.className || '';
-                var alt = imgNode.getAttribute('alt') || '';
-                var title = imgNode.getAttribute('title') || '';
-                var width = imgNode.getAttribute('width') || '';
-                var height = imgNode.getAttribute('height') || '';
-
-                if (!filterJunkImage({
-                    src: rawSrc,
-                    className: className,
-                    alt: alt,
-                    width: width,
-                    height: height
-                })) {
-                    continue;
-                }
-
-                // Resolve image URL against explicit baseUrl without touching global state
-                var resolvedUrl = imgNode.getAttribute('data-kiwixurl') || uiUtil.resolveImageUrl(rawSrc, baseUrl, options);
-                if (!resolvedUrl || seenUrlsInArticle.has(resolvedUrl)) {
-                    continue;
-                }
-                seenUrlsInArticle.add(resolvedUrl);
-
-                // Extract caption from closest figure/thumb/infobox or fallback to alt/title
-                var caption = '';
-                var fig = typeof imgNode.closest === 'function' ? imgNode.closest('figure') : null;
-                if (fig) {
-                    var figcap = fig.querySelector('figcaption');
-                    if (figcap) caption = cleanCaption(figcap.textContent);
-                }
-                if (!caption) {
-                    var thumb = typeof imgNode.closest === 'function' ? imgNode.closest('.thumb') : null;
-                    if (thumb) {
-                        var thumbcap = thumb.querySelector('.thumbcaption');
-                        if (thumbcap) caption = cleanCaption(thumbcap.textContent);
-                    }
-                }
-                if (!caption) {
-                    var infobox = typeof imgNode.closest === 'function' ? imgNode.closest('.infobox, table') : null;
-                    if (infobox) {
-                        var infocap = infobox.querySelector('.infobox-caption');
-                        if (infocap) caption = cleanCaption(infocap.textContent);
-                    }
-                }
-                if (!caption) {
-                    if (alt && !/\.(?:jpe?g|png|gif|svg|webp)$/i.test(alt.trim())) {
-                        caption = cleanCaption(alt);
-                    } else if (title) {
-                        caption = cleanCaption(title);
-                    }
-                }
-
-                extracted.push({
-                    url: resolvedUrl,
-                    rawSrc: rawSrc,
-                    caption: caption,
-                    alt: cleanCaption(alt),
-                    dirEntry: dirEntry,
-                    articleTitle: articleTitle,
-                    articleUrl: articleUrl
-                });
-            }
-            return extracted;
-        // eslint-disable-next-line no-unused-vars
-        } catch (e) {
-            return [];
+        if (!filterJunkImage({
+            src: rawSrc,
+            className: className,
+            alt: alt,
+            width: width,
+            height: height
+        })) {
+            continue;
         }
-    }
 
-    return [];
+        // Resolve image URL against explicit baseUrl without touching global state
+        var resolvedUrl = imgNode.getAttribute('data-kiwixurl') || uiUtil.resolveImageUrl(rawSrc, baseUrl, options);
+        if (!resolvedUrl || seenUrlsInArticle.has(resolvedUrl)) {
+            continue;
+        }
+        seenUrlsInArticle.add(resolvedUrl);
+
+        // Extract caption from closest figure/thumb/infobox or fallback to alt/title
+        var caption = '';
+        var fig = uiUtil.closestElement(imgNode, 'figure');
+        if (fig) {
+            var figcap = fig.querySelector('figcaption');
+            if (figcap) caption = cleanCaption(figcap.textContent);
+        }
+        if (!caption) {
+            var thumb = uiUtil.closestElement(imgNode, '.thumb');
+            if (thumb) {
+                var thumbcap = thumb.querySelector('.thumbcaption');
+                if (thumbcap) caption = cleanCaption(thumbcap.textContent);
+            }
+        }
+        if (!caption) {
+            var infobox = uiUtil.closestElement(imgNode, '.infobox, table');
+            if (infobox) {
+                var infocap = infobox.querySelector('.infobox-caption');
+                if (infocap) caption = cleanCaption(infocap.textContent);
+            }
+        }
+        if (!caption) {
+            if (alt && !/\.(?:jpe?g|png|gif|svg|webp)$/i.test(alt.trim())) {
+                caption = cleanCaption(alt);
+            } else if (title) {
+                caption = cleanCaption(title);
+            }
+        }
+
+        extracted.push({
+            url: resolvedUrl,
+            rawSrc: rawSrc,
+            caption: caption,
+            alt: cleanCaption(alt),
+            dirEntry: dirEntry,
+            articleTitle: articleTitle,
+            articleUrl: articleUrl
+        });
+    }
+    return extracted;
 }
 
 /**
@@ -348,6 +336,9 @@ var imageGallery = {
         this.pendingImages = [];
         this.pendingDirEntries = [];
         this.isExtracting = false;
+        if (this.status && this.renderedImageCount === 0) {
+            this.status.style.display = 'none';
+        }
     },
 
     /**

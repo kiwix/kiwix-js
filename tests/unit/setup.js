@@ -14,7 +14,8 @@ import * as sinon from 'sinon';
 
 // Initialize params before anything else
 globalThis.params = {
-    sourceVerification: false
+    sourceVerification: false,
+    zimType: ''
 };
 
 // Create JSDOM instance
@@ -135,6 +136,7 @@ globalThis.Node = window.Node;
 globalThis.location = window.location;
 globalThis.history = window.history;
 globalThis.Element = window.Element;
+globalThis.DOMParser = window.DOMParser;
 
 // Mock webpHero
 globalThis.webpHero = {

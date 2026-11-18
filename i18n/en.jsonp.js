@@ -21,6 +21,8 @@ document.localeJson = {
       "home-prefix-tip": "You can search the contents of your ZIM archive using this search field. It will suggest article titles **starting** with the letters you type.",
       "search-toggle-articles": "Articles",
       "search-toggle-images": "Images",
+      "search-view-toggle-label": "Search view toggle",
+      "search-gallery-region-label": "Image search results",
       "search-gallery-load-more": "Load more images",
       "search-gallery-no-images": "No images found for this search.",
       "search-gallery-loading": "Loading images...",

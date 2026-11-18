@@ -166,6 +166,18 @@ function resizeIFrame () {
             // Hide the scrollbar of Configure / About
             region.style.overflowY = 'hidden';
         }
+        if (currentSearchView === 'images' && imageGalleryContainer && imageGalleryContainer.style.display !== 'none') {
+            var searchHeader = document.getElementById('searchResultsHeader');
+            var footer = document.getElementById('footer');
+            if (searchHeader && footer) {
+                var headerBottom = searchHeader.getBoundingClientRect().bottom;
+                var footerTop = footer.getBoundingClientRect().top;
+                var avail = Math.floor(footerTop - headerBottom);
+                if (avail > 60) {
+                    imageGalleryContainer.style.height = avail + 'px';
+                }
+            }
+        }
     // IE cannot retrieve computed headerStyles till the next paint, so we wait a few ticks even if UI animations are disabled
     }, params.showUIAnimations ? 400 : 100);
 
@@ -240,22 +252,49 @@ function updateSearchAndGalleryVisibility (options) {
     options = options || {};
     var articleListWithHeader = document.getElementById('articleListWithHeader');
     var articleContent = document.getElementById('articleContent');
+    var searchViewToggle = document.getElementById('searchViewToggle');
     var showResults = options.showResults !== undefined ? options.showResults : (articleListWithHeader && articleListWithHeader.style.display !== 'none');
     var view = options.view || currentSearchView;
+    var prefix = document.getElementById('prefix') ? document.getElementById('prefix').value : '';
+    var hasResults = Boolean(lastSearchDirEntryArray && lastSearchDirEntryArray.length);
 
     if (!showResults) {
         if (articleListWithHeader) articleListWithHeader.style.display = 'none';
         if (articleContent) articleContent.style.visibility = '';
+        if (searchViewToggle) searchViewToggle.style.display = 'none';
         return;
     }
 
     if (articleListWithHeader) articleListWithHeader.style.display = '';
 
+    // Search toggle is shown ONLY when there is a non-empty prefix search and results exist
+    if (searchViewToggle) {
+        searchViewToggle.style.display = (prefix && prefix.length > 0 && hasResults) ? '' : 'none';
+    }
+
+    // Empty search prefix (e.g. listing all titles) always uses articles view
+    if (!prefix || prefix.length === 0) {
+        view = 'articles';
+        currentSearchView = 'articles';
+    }
+
     if (view === 'images') {
         if (btnSearchImagesView) btnSearchImagesView.classList.add('active');
         if (btnSearchArticlesView) btnSearchArticlesView.classList.remove('active');
         if (articleListDiv) articleListDiv.style.display = 'none';
-        if (imageGalleryContainer) imageGalleryContainer.style.display = '';
+        if (imageGalleryContainer) {
+            imageGalleryContainer.style.display = '';
+            var searchHeader = document.getElementById('searchResultsHeader');
+            var footer = document.getElementById('footer');
+            if (searchHeader && footer) {
+                var headerBottom = searchHeader.getBoundingClientRect().bottom;
+                var footerTop = footer.getBoundingClientRect().top;
+                var avail = Math.floor(footerTop - headerBottom);
+                if (avail > 60) {
+                    imageGalleryContainer.style.height = avail + 'px';
+                }
+            }
+        }
         if (articleContent) articleContent.style.visibility = 'hidden';
     } else {
         if (btnSearchArticlesView) btnSearchArticlesView.classList.add('active');
@@ -269,16 +308,15 @@ function updateSearchAndGalleryVisibility (options) {
 function setSearchView (view) {
     if (currentSearchView === view) return;
     currentSearchView = view;
-    if (view === 'articles') {
-        imageGallery.cancel();
-    }
     updateSearchAndGalleryVisibility({ view: view, showResults: true });
     if (view === 'images' && lastSearchDirEntryArray && lastSearchDirEntryArray.length) {
-        imageGallery.loadImagesForSearch(lastSearchDirEntryArray, appstate.search, {
-            archive: selectedArchive,
-            zimType: selectedArchive ? selectedArchive.zimType : '',
-            fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
-        });
+        if (imageGallery.renderedImageCount === 0 || imageGallery.cancelled || imageGallery.activeSearch !== appstate.search) {
+            imageGallery.loadImagesForSearch(lastSearchDirEntryArray, appstate.search, {
+                archive: selectedArchive,
+                zimType: selectedArchive ? selectedArchive.zimType : '',
+                fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
+            });
+        }
     }
 }
 
@@ -388,7 +426,6 @@ prefixElement.addEventListener('keydown', function (e) {
         // Hide the article list
         e.preventDefault();
         e.stopPropagation();
-        imageGallery.cancel();
         updateSearchAndGalleryVisibility({ showResults: false });
         var articleContent = document.getElementById('articleContent');
         if (articleContent) {
@@ -462,8 +499,8 @@ prefixElement.addEventListener('keyup', function (e) {
 prefixElement.addEventListener('input', function () {
     if (!this.value) {
         imageGallery.cancel();
-        var searchViewToggle = document.getElementById('searchViewToggle');
-        if (searchViewToggle) searchViewToggle.style.display = 'none';
+        imageGallery.reset();
+        lastSearchDirEntryArray = [];
         updateSearchAndGalleryVisibility({ showResults: false });
     }
 });
@@ -474,15 +511,22 @@ prefixElement.addEventListener('focus', function () {
         const footerHeight = document.getElementById('footer').getBoundingClientRect().height;
         region.style.height = window.innerHeight - footerHeight + 'px';
         updateSearchAndGalleryVisibility({ showResults: true });
+        if (currentSearchView === 'images' && lastSearchDirEntryArray && lastSearchDirEntryArray.length) {
+            if (imageGallery.cancelled || imageGallery.renderedImageCount === 0 || imageGallery.activeSearch !== appstate.search) {
+                imageGallery.loadImagesForSearch(lastSearchDirEntryArray, appstate.search, {
+                    archive: selectedArchive,
+                    zimType: selectedArchive ? selectedArchive.zimType : '',
+                    fileName: selectedArchive && selectedArchive.file ? selectedArchive.file.name : ''
+                });
+            } else if (!imageGallery.isExtracting && (imageGallery.pendingImages.length || imageGallery.pendingDirEntries.length) && imageGallery.renderedImageCount < imageGallery.TARGET_BATCH_IMAGES) {
+                imageGallery.processQueue();
+            }
+        }
     }
 });
 // Hide the search results if user moves out of prefix field
 prefixElement.addEventListener('blur', function () {
     if (!searchArticlesFocused) {
-        imageGallery.cancel();
-        if (appstate.search) {
-            appstate.search.status = 'cancelled';
-        }
         region.style.overflowY = 'hidden';
         region.style.height = 'auto';
         uiUtil.spinnerDisplay(false);
@@ -493,8 +537,7 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
     event.preventDefault();
     imageGallery.cancel();
     imageGallery.reset();
-    var searchViewToggle = document.getElementById('searchViewToggle');
-    if (searchViewToggle) searchViewToggle.style.display = 'none';
+    lastSearchDirEntryArray = [];
     updateSearchAndGalleryVisibility({ showResults: false });
     document.getElementById('prefix').value = '';
     goToRandomArticle();
@@ -565,8 +608,7 @@ document.getElementById('btnHome').addEventListener('click', function (event) {
     while (articleList.firstChild) articleList.removeChild(articleList.firstChild);
     while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
     imageGallery.reset();
-    var searchViewToggle = document.getElementById('searchViewToggle');
-    if (searchViewToggle) searchViewToggle.style.display = 'none';
+    lastSearchDirEntryArray = [];
     uiUtil.spinnerDisplay(false);
     updateSearchAndGalleryVisibility({ showResults: false });
     // Empty and purge the article contents
@@ -2370,8 +2412,8 @@ function onKeyUpPrefix () {
             document.getElementById('searchArticles').click();
         } else if (!prefix) {
             imageGallery.cancel();
-            var searchViewToggle = document.getElementById('searchViewToggle');
-            if (searchViewToggle) searchViewToggle.style.display = 'none';
+            imageGallery.reset();
+            lastSearchDirEntryArray = [];
             updateSearchAndGalleryVisibility({ showResults: false });
         }
     }, 500);
@@ -2387,8 +2429,7 @@ function searchDirEntriesFromPrefix (prefix) {
         imageGallery.cancel();
         if (!prefix) {
             imageGallery.reset();
-            var searchViewToggle = document.getElementById('searchViewToggle');
-            if (searchViewToggle) searchViewToggle.style.display = 'none';
+            lastSearchDirEntryArray = [];
             updateSearchAndGalleryVisibility({ showResults: false });
         }
         // Cancel the old search (zimArchive search object will receive this change)
@@ -2471,11 +2512,6 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);
 
     lastSearchDirEntryArray = dirEntryArray || [];
-    var searchViewToggle = document.getElementById('searchViewToggle');
-    if (searchViewToggle) {
-        searchViewToggle.style.display = (dirEntryArray && dirEntryArray.length) ? '' : 'none';
-    }
-
     updateSearchAndGalleryVisibility({ view: currentSearchView, showResults: true });
     if (currentSearchView === 'images') {
         imageGallery.loadImagesForSearch(dirEntryArray, reportingSearch, {

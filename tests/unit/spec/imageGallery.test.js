@@ -534,5 +534,251 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
             var dataUri = await uiUtil.getDataUriFromUint8Array(data, 'image/jpeg');
             assert.equal(dataUri, 'data:image/jpeg;base64,AQID');
         });
+
+        describe('Search Lifecycle, Cancellation, and Resumption (Phase 1)', function () {
+            function createMockArchive (articlesMap) {
+                return {
+                    readUtf8File: function (entry, cb) {
+                        var html = articlesMap[entry.url] || '';
+                        cb(entry, html);
+                        return Promise.resolve();
+                    },
+                    getDirEntryByPath: function (path) {
+                        return Promise.resolve({
+                            getMimetype: () => (/\.svg$/i.test(path) ? 'image/svg+xml' : 'image/jpeg'),
+                            url: path
+                        });
+                    },
+                    readBinaryFile: function (entry, cb) {
+                        cb(entry, new Uint8Array([1, 2, 3]));
+                        return Promise.resolve();
+                    }
+                };
+            }
+
+            it('Search "Paris", switch to Images, wait for the first batch, press Escape, and return', async function () {
+                var imgHtml = '';
+                for (var i = 1; i <= 20; i++) {
+                    imgHtml += '<figure><img src="../I/Paris_' + i + '.jpg" width="200" height="200"><figcaption>Paris ' + i + '</figcaption></figure>';
+                }
+                var mockArchive = createMockArchive({ 'Paris.html': imgHtml });
+                imageGallery.getArchive = function () { return mockArchive; };
+                imageGallery.TARGET_BATCH_IMAGES = 15;
+
+                var entry = { namespace: 'A', url: 'Paris.html', isRedirect: () => false, toStringId: () => 'A/Paris.html' };
+                var searchParis = { prefix: 'Paris', status: 'final' };
+
+                // Search "Paris" and switch to Images
+                await imageGallery.loadImagesForSearch([entry], searchParis, { archive: mockArchive });
+
+                var initialCards = grid.querySelectorAll('.image-gallery-card');
+                assert.equal(initialCards.length, 15, 'First batch must contain 15 cards');
+
+                // User presses Escape: hides search/gallery UI without mutating search or cancelling gallery
+                container.style.display = 'none';
+                assert.equal(searchParis.status, 'final', 'Escape must never mutate search object status');
+                assert.isFalse(imageGallery.isCancelled(), 'Escape must not cancel imageGallery state');
+
+                // User returns to search box: UI is restored
+                container.style.display = '';
+
+                // Completed results must be preserved, not wiped or duplicated
+                var cardsAfterReturn = grid.querySelectorAll('.image-gallery-card');
+                assert.equal(cardsAfterReturn.length, 15, 'Cards must remain intact after returning');
+                assert.equal(imageGallery.activeSearch, searchParis, 'activeSearch must remain linked');
+            });
+
+            it('Search "Paris", switch to Images, click outside search box (blur), then focus it again', async function () {
+                var imgHtml = '<figure><img src="../I/Paris_Eiffel.jpg" width="300" height="200"><figcaption>Eiffel Tower</figcaption></figure>';
+                var mockArchive = createMockArchive({ 'Paris.html': imgHtml });
+                imageGallery.getArchive = function () { return mockArchive; };
+
+                var entry = { namespace: 'A', url: 'Paris.html', isRedirect: () => false, toStringId: () => 'A/Paris.html' };
+                var searchParis = { prefix: 'Paris', status: 'final' };
+
+                await imageGallery.loadImagesForSearch([entry], searchParis, { archive: mockArchive });
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 1);
+
+                // User blurs search box: hides results without cancelling
+                container.style.display = 'none';
+                assert.equal(searchParis.status, 'final', 'Blur must not set search status to cancelled');
+                assert.isFalse(imageGallery.isCancelled(), 'Blur must not cancel imageGallery');
+
+                // User focuses search box again
+                container.style.display = '';
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 1, 'Existing cards must be preserved on focus');
+            });
+
+            it('Leave before the first image batch completes and return', async function () {
+                var slowReadResolve;
+                var mockArchive = {
+                    readUtf8File: function (entry, cb) {
+                        return new Promise(function (resolve) {
+                            slowReadResolve = function () {
+                                cb(entry, '<figure><img src="../I/Slow_1.jpg" width="200" height="200"><figcaption>Slow 1</figcaption></figure>');
+                                resolve();
+                            };
+                        });
+                    },
+                    getDirEntryByPath: function (path) {
+                        return Promise.resolve({ getMimetype: () => 'image/jpeg', url: path });
+                    },
+                    readBinaryFile: function (entry, cb) {
+                        cb(entry, new Uint8Array([1, 2, 3]));
+                        return Promise.resolve();
+                    }
+                };
+                imageGallery.getArchive = function () { return mockArchive; };
+
+                var entry = { namespace: 'A', url: 'Slow.html', isRedirect: () => false, toStringId: () => 'A/Slow.html' };
+                var search = { prefix: 'slow', status: 'interim' };
+
+                // Start loading images (in flight)
+                var loadPromise = imageGallery.loadImagesForSearch([entry], search, { archive: mockArchive });
+
+                // User leaves before read completes
+                container.style.display = 'none';
+
+                // Now read completes while user is away
+                slowReadResolve();
+                await loadPromise;
+
+                // User returns: container visible, extraction finished cleanly
+                container.style.display = '';
+                var cards = grid.querySelectorAll('.image-gallery-card');
+                assert.equal(cards.length, 1, 'Card rendered cleanly upon return');
+                assert.equal(status.style.display, 'none', 'Status indicator must not be stuck visible');
+            });
+
+            it('Switch Images -> Articles -> Images while full-text search is pending', async function () {
+                var mockArchive = createMockArchive({
+                    'Art1.html': '<figure><img src="../I/Img1.jpg" width="200" height="200"><figcaption>Img 1</figcaption></figure>'
+                });
+                imageGallery.getArchive = function () { return mockArchive; };
+
+                var entry = { namespace: 'A', url: 'Art1.html', isRedirect: () => false, toStringId: () => 'A/Art1.html' };
+                var search = { prefix: 'test', status: 'interim' };
+
+                // User switches to Articles view (gallery hidden)
+                container.style.display = 'none';
+
+                // Search finishes while on Articles view, delivering search results
+                search.status = 'final';
+
+                // User switches back to Images view
+                container.style.display = '';
+                await imageGallery.loadImagesForSearch([entry], search, { archive: mockArchive });
+
+                var cards = grid.querySelectorAll('.image-gallery-card');
+                assert.equal(cards.length, 1, 'Gallery must display extracted images after switching back');
+            });
+
+            it('Open an article from the gallery and return to the same search', async function () {
+                var mockArchive = createMockArchive({
+                    'Article.html': '<figure><img src="../I/Photo.jpg" width="200" height="200"><figcaption>Photo</figcaption></figure>'
+                });
+                imageGallery.getArchive = function () { return mockArchive; };
+
+                var selectedEntry = null;
+                imageGallery.onSelectArticle = function (entry) {
+                    selectedEntry = entry;
+                    imageGallery.cancel();
+                };
+
+                var entry = { namespace: 'A', url: 'Article.html', isRedirect: () => false, toStringId: () => 'A/Article.html' };
+                var search1 = { prefix: 'same', status: 'final' };
+
+                await imageGallery.loadImagesForSearch([entry], search1, { archive: mockArchive });
+                var card = grid.querySelector('.image-gallery-card');
+                assert.isNotNull(card);
+
+                // User clicks card to open article
+                card.click();
+                assert.equal(selectedEntry, entry);
+                assert.isTrue(imageGallery.isCancelled(), 'Gallery must be cancelled when navigating to article');
+                assert.equal(search1.status, 'final', 'Search object must not be mutated');
+
+                // User returns to the same search (e.g. clicks search or types same prefix)
+                var search2 = { prefix: 'same', status: 'final' };
+                await imageGallery.loadImagesForSearch([entry], search2, { archive: mockArchive });
+
+                assert.isFalse(imageGallery.isCancelled(), 'Cancelled state must be cleared for returned search');
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 1, 'Clean rendering of cards for returned search');
+            });
+
+            it('Load More after returning', async function () {
+                var imgHtml = '';
+                for (var i = 1; i <= 25; i++) {
+                    imgHtml += '<figure><img src="../I/Item_' + i + '.jpg" width="200" height="200"><figcaption>Item ' + i + '</figcaption></figure>';
+                }
+                var mockArchive = createMockArchive({ 'Items.html': imgHtml });
+                imageGallery.getArchive = function () { return mockArchive; };
+                imageGallery.TARGET_BATCH_IMAGES = 15;
+
+                var entry = { namespace: 'A', url: 'Items.html', isRedirect: () => false, toStringId: () => 'A/Items.html' };
+                var search = { prefix: 'items', status: 'final' };
+
+                await imageGallery.loadImagesForSearch([entry], search, { archive: mockArchive });
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 15);
+                assert.equal(loadMoreContainer.style.display, '', 'Load more button visible');
+
+                // User temporarily leaves and returns
+                container.style.display = 'none';
+                container.style.display = '';
+
+                // Click Load More
+                await imageGallery.loadMore();
+
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 25, 'All 25 cards loaded after returning and clicking Load More');
+                assert.equal(loadMoreContainer.style.display, 'none', 'Load more hidden when pending images exhausted');
+            });
+
+            it('Start a genuinely different search and ensure old results cannot leak into it', async function () {
+                var slowParisResolve;
+                var mockArchive = {
+                    readUtf8File: function (entry, cb) {
+                        if (entry.url === 'Paris.html') {
+                            return new Promise(function (resolve) {
+                                slowParisResolve = function () {
+                                    cb(entry, '<figure><img src="../I/Paris_Leak.jpg" width="200" height="200"><figcaption>Paris</figcaption></figure>');
+                                    resolve();
+                                };
+                            });
+                        }
+                        cb(entry, '<figure><img src="../I/London_Good.jpg" width="200" height="200"><figcaption>London</figcaption></figure>');
+                        return Promise.resolve();
+                    },
+                    getDirEntryByPath: function (path) {
+                        return Promise.resolve({ getMimetype: () => 'image/jpeg', url: path });
+                    },
+                    readBinaryFile: function (entry, cb) {
+                        cb(entry, new Uint8Array([1, 2, 3]));
+                        return Promise.resolve();
+                    }
+                };
+                imageGallery.getArchive = function () { return mockArchive; };
+
+                var parisEntry = { namespace: 'A', url: 'Paris.html', isRedirect: () => false, toStringId: () => 'A/Paris.html' };
+                var londonEntry = { namespace: 'A', url: 'London.html', isRedirect: () => false, toStringId: () => 'A/London.html' };
+
+                var searchParis = { prefix: 'Paris', status: 'final' };
+                var searchLondon = { prefix: 'London', status: 'final' };
+
+                // Start Paris search (pending)
+                imageGallery.loadImagesForSearch([parisEntry], searchParis, { archive: mockArchive });
+
+                // User starts genuinely different search "London"
+                await imageGallery.loadImagesForSearch([londonEntry], searchLondon, { archive: mockArchive });
+
+                // Now slow Paris read finishes
+                slowParisResolve();
+                await new Promise(function (resolve) { setTimeout(resolve, 30); });
+
+                var cards = grid.querySelectorAll('.image-gallery-card');
+                assert.equal(cards.length, 1, 'Only London cards must exist');
+                var caption = cards[0].querySelector('.image-gallery-caption');
+                assert.equal(caption.textContent, 'London', 'Old Paris results must not leak into London search');
+            });
+        });
     });
 });

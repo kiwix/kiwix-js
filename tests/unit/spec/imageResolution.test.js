@@ -101,6 +101,45 @@ describe('Shared Image and Asset URL Resolution (Issue #277)', function () {
             assert.include(transformed, 'data-kiwixurl="C/A/example.com/img/valid.png"');
         });
 
+        it('restores upstream classic Zimit behavior removing indexRoot and preserving query string', function () {
+            const html = '<img src="/dist/www/archive.zim/C/A/site.com/pic.jpg?v=1" alt="Pic">' +
+                '<img src="images/relative.png?w=200" alt="Relative">';
+            const transformed = uiUtil.transformArticleHtmlForRestrictedMode(html, {
+                zimType: 'zimit',
+                indexRoot: '/dist/www/archive.zim/'
+            });
+            assert.include(transformed, 'data-kiwixurl="C/A/site.com/pic.jpg?v=1"');
+            assert.include(transformed, 'data-kiwixurl="images/relative.png?w=200"');
+        });
+
+        it('verifies classic Zimit 1 indexRoot fallback across real filename, absent filename, root-relative, and relative paths', function () {
+            const dirEntry = { namespace: 'C', url: 'classic.org/index.html' };
+            const sampleHtml =
+                '<link rel="canonical" href="https://classic.org/index.html">' +
+                '<img src="/assets/root_relative.png?query=true" alt="Root">' +
+                '<img src="sub/plain_relative.png?ver=2" alt="Plain">';
+
+            // Case A: Real archive filename
+            const withFileName = uiUtil.transformArticleHtmlForRestrictedMode(sampleHtml, {
+                dirEntry: dirEntry,
+                zimType: 'zimit',
+                fileName: 'classic_archive.zim'
+            });
+            // Root-relative URL is prefixed with zimit canonical prefix C/A/classic.org/ and retains query string
+            assert.include(withFileName, 'data-kiwixurl="C/A/classic.org/assets/root_relative.png?query=true"');
+            // Plain relative URL remains uncorrupted with query string preserved
+            assert.include(withFileName, 'data-kiwixurl="sub/plain_relative.png?ver=2"');
+
+            // Case B: Absent/empty filename (indexRoot safely falls back to empty string without stripping slashes)
+            const withoutFileName = uiUtil.transformArticleHtmlForRestrictedMode(sampleHtml, {
+                dirEntry: dirEntry,
+                zimType: 'zimit',
+                fileName: ''
+            });
+            assert.include(withoutFileName, 'data-kiwixurl="C/A/classic.org/assets/root_relative.png?query=true"');
+            assert.include(withoutFileName, 'data-kiwixurl="sub/plain_relative.png?ver=2"');
+        });
+
         it('resolves zimit2 and modern C/ namespace archives without unwanted classic Zimit prefix insertion', function () {
             const dirEntry = { namespace: 'C', url: 'site.org/page' };
             const html = '<img src="../assets/logo.png" alt="Logo">';

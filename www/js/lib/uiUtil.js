@@ -776,7 +776,7 @@ function resolveImageUrl (relUrl, baseUrl, options) {
         if (typeof indexRoot !== 'string') {
             var fileName = options.fileName || (options.archive && options.archive.file && options.archive.file.name) || (options.archive && options.archive.name) || '';
             if (fileName) {
-                var pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+                var pathname = window.location.pathname;
                 indexRoot = pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/';
             } else {
                 indexRoot = '';
@@ -802,10 +802,6 @@ function resolveImageUrl (relUrl, baseUrl, options) {
             }
             var prefix = dirNamespace + '/' + (dirNamespace === 'C' ? 'A/' : '') + (zimitPrefix ? zimitPrefix + '/' : '');
             return (prefix + url.replace(/^\/+/, '')).replace(/\/+/g, '/');
-        }
-        // Handle relative URLs
-        if (baseUrl) {
-            return encodeURI(deriveZimUrlFromRelativeUrl(url, baseUrl));
         }
         return url;
     }
@@ -842,14 +838,14 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
     baseUrl = baseUrl || '';
 
     var archive = options.archive || {};
-    var zimType = options.zimType || archive.zimType || (params && params.zimType) || '';
+    var zimType = options.zimType || archive.zimType || params.zimType || '';
     var isClassicZimit = zimType === 'zimit';
     var archiveZimitPrefix = options.zimitPrefix || archive.zimitPrefix || '';
     var fileName = options.fileName || (archive.file && archive.file.name) || archive.name || '';
     var indexRoot = options.indexRoot;
     if (typeof indexRoot !== 'string') {
-        var pathname = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
-        indexRoot = pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/';
+        var pathname = window.location.pathname;
+        indexRoot = fileName ? pathname.replace(/[^/]+$/, '') + encodeURI(fileName) + '/' : '';
     }
     var webpMachineActive = Boolean(options.webpMachine);
 
@@ -903,12 +899,11 @@ function transformArticleHtmlForRestrictedMode (htmlArticle, options) {
         if (/data:image/i.test(relAssetUrl)) return match;
         // We need to save the query string if any for Zimit-style archives
         querystring = querystring || '';
-        var assetZIMUrlEnc = resolveImageUrl(relAssetUrl, baseUrl, {
-            zimType: zimType,
-            indexRoot: indexRoot
-        });
-        if (isClassicZimit && querystring) {
-            assetZIMUrlEnc = assetZIMUrlEnc + querystring;
+        var assetZIMUrlEnc;
+        if (isClassicZimit) {
+            assetZIMUrlEnc = relAssetUrl.replace(indexRoot, '') + querystring;
+        } else {
+            assetZIMUrlEnc = encodeURI(deriveZimUrlFromRelativeUrl(relAssetUrl, baseUrl));
         }
         var newBlock = blockStart + 'data-kiwixurl' + equals + assetZIMUrlEnc + blockClose;
         // Replace any srcset with data-kiwixsrcset
@@ -2022,31 +2017,39 @@ function warnAndOpenExternalLinkInNewTab (event, clickedAnchor, archive) {
 }
 
 /**
+ * Finds the closest enclosing element matching a selector.
+ * Compatible with modern browsers and legacy browsers without Element.prototype.closest (e.g. IE11).
+ *
+ * @param {Element} element The starting DOM element
+ * @param {String} selector CSS selector to match
+ * @returns {Element|null} Closest matching enclosing element or null
+ */
+function closestElement (element, selector) {
+    if (!element || element.nodeType !== 1) return null;
+    if (typeof element.closest === 'function') {
+        return element.closest(selector);
+    }
+    // Fallback for legacy browsers such as IE11
+    var current = element;
+    while (current && current.nodeType === 1) {
+        var matches = current.matches || current.msMatchesSelector || current.webkitMatchesSelector;
+        if (matches && matches.call(current, selector)) {
+            return current;
+        }
+        current = current.parentElement || current.parentNode;
+    }
+    return null;
+}
+
+/**
  * Finds the closest <a> or <area> enclosing tag of an element.
  * Returns undefined if there isn't any.
  *
  * @param {Element} element The element to test
- * @returns {Element} closest enclosing anchor tag (if any)
+ * @returns {Element|undefined} closest enclosing anchor tag (if any)
  */
 function closestAnchorEnclosingElement (element) {
-    if (Element.prototype.closest) {
-        // Recent browsers support that natively. See https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
-        return element.closest('a,area');
-    } else {
-        // For other browsers, notably IE, we do that by hand (we did not manage to make polyfills work on IE11)
-        var currentElement = element;
-        while (currentElement.tagName !== 'A' && currentElement.tagName !== 'AREA') {
-            // If there is no parent Element, we did not find any enclosing A tag
-            if (!currentElement.parentElement) {
-                return;
-            } else {
-                // Else we try the next parent Element
-                currentElement = currentElement.parentElement;
-            }
-        }
-        // If we reach this line, it means the currentElement is the enclosing Anchor we're looking for
-        return currentElement;
-    }
+    return closestElement(element, 'a,area') || undefined;
 }
 
 /**
@@ -2267,6 +2270,7 @@ export default {
     reportAssemblerErrorToAPIStatusPanel: reportAssemblerErrorToAPIStatusPanel,
     reportSearchProviderToAPIStatusPanel: reportSearchProviderToAPIStatusPanel,
     warnAndOpenExternalLinkInNewTab: warnAndOpenExternalLinkInNewTab,
+    closestElement: closestElement,
     closestAnchorEnclosingElement: closestAnchorEnclosingElement,
     getBrowserLanguage: getBrowserLanguage,
     returnToCurrentPage: returnToCurrentPage,
