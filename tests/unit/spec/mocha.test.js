@@ -196,6 +196,52 @@ describe('Utils', function () {
         expect(withPath).to.contain('C:\\Archives &amp; &lt;ZIMs&gt;\\wiki.zim');
         expect(withPath).to.not.contain('<ZIMs>');
     });
+
+    it('Set the window title to the article title, following changes until the next article loads', async function () {
+        // The tests run on http://localhost, which is browser context
+        const articleDoc = document.implementation.createHTMLDocument('Ray Charles');
+        uiUtil.setWindowTitle(articleDoc);
+        expect(document.title).to.equal('Ray Charles - Kiwix');
+        articleDoc.title = 'Georgia on My Mind';
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(document.title).to.equal('Georgia on My Mind - Kiwix');
+        uiUtil.setWindowTitle(document.implementation.createHTMLDocument(''));
+        expect(document.title).to.equal('Kiwix');
+        articleDoc.title = 'Stale';
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(document.title).to.equal('Kiwix');
+        uiUtil.setWindowTitle(null);
+        expect(document.title).to.equal('Kiwix');
+    });
+
+    it('Set the window title only in browser context', async function () {
+        const realWindow = globalThis.window;
+        const contexts = [
+            { protocol: 'https:', browser: true },
+            { protocol: 'moz-extension:', browser: true },
+            { protocol: 'chrome-extension:', browser: true },
+            { protocol: 'app:', browser: false }, // Firefox OS
+            { protocol: 'file:', browser: false }, // Ubuntu Touch
+            { protocol: 'https:', standalone: true, browser: false } // Installed PWA
+        ];
+        try {
+            for (const { protocol, standalone, browser } of contexts) {
+                const articleDoc = document.implementation.createHTMLDocument('Ray Charles');
+                document.title = 'Kiwix';
+                globalThis.window = { location: { protocol }, matchMedia: query => ({ matches: !!standalone && /display-mode: standalone/.test(query) }) };
+                uiUtil.setWindowTitle(articleDoc);
+                globalThis.window = realWindow;
+                expect(document.title, protocol).to.equal(browser ? 'Ray Charles - Kiwix' : 'Kiwix');
+                // Changes to the article's title are followed only in browser context
+                articleDoc.title = 'Changed';
+                await new Promise(resolve => setTimeout(resolve, 0));
+                expect(document.title, protocol).to.equal(browser ? 'Changed - Kiwix' : 'Kiwix');
+            }
+        } finally {
+            globalThis.window = realWindow;
+            uiUtil.setWindowTitle(null);
+        }
+    });
 });
 
 describe('ZIM initialization', function () {
