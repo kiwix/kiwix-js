@@ -1205,7 +1205,7 @@ function setContentInjectionMode (value) {
     }
     params.contentInjectionMode = value;
     params.originalContentInjectionMode = null;
-    var message = '';
+    var message;
     if (value === 'jquery') {
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
@@ -3751,7 +3751,7 @@ function setLandingPageRequest (restored) {
  * @param {Object} data The data of the ServiceWorker's message, including requestDestination
  */
 function flagLandingPageRequest (path, data) {
-    if (data.requestDestination === 'document' && data.requestingFrameType === 'top-level') return;
+    if (data.requestDestination === 'document' && data.requestingFrameType !== 'top-level') return;
     if (isLandingPagePath(path)) setLandingPageRequest(true);
 }
 
