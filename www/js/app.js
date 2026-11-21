@@ -2334,11 +2334,7 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
             .replace('$1', reportingSearch.type)
             .replace('$2', nbDirEntry);
     } else if (nbDirEntry >= params.maxSearchResultsSize) {
-        var pendingFirstMessage = fullTextPending
-            ? translateUI.t('search-status-first-multiple-pending')
-            : null;
-        message = (pendingFirstMessage ||
-            translateUI.t('search-status-first-multiple') ||
+        message = (translateUI.t('search-status-first-multiple') ||
             'First $1 articles found (refine your search).')
             .replace('$1', params.maxSearchResultsSize);
     } else {
@@ -2355,15 +2351,12 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         } else {
             message += '.';
         }
-        if (fullTextPending) {
-            message += translateUI.t('search-status-pending-fulltext') ||
-                ' (pending full-text initialization)';
-        }
     }
 
-    if (stillSearching && fullTextPending) {
-        message += translateUI.t('search-status-pending-fulltext') ||
-            ' (pending full-text initialization)';
+    if (!stillSearching && fullTextPending) {
+        var pendingNote = translateUI.t('search-status-pending-fulltext') ||
+            '(full-text loading)';
+        message = message.replace(/\.$/, ' ' + pendingNote + '.');
     }
 
     articleListHeaderMessageDiv.textContent = message;
