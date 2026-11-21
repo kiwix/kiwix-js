@@ -143,27 +143,30 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     countName: 'fullTextIndexSize'
                 }
             ]).then(function () {
-                that.libzimReady = null;
+                that.libzimReady = 'unavailable';
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                 // In case of a split ZIM, It will not be loaded properly by libzim if libzim is enabled
                 var isSplitZim = /\.zima.$/i.test(that.file._files[0].name);
                 if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
                     !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron')) || params.useLibzim) {
+                    that.libzimReady = 'pending';
                     var libzimReaderType = params.libzimMode;
                     if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
                     console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
-                    that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
+                    that.libzimInitPromise = that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
                         that.libzimReady = 'ready';
                         // If user is using libzim for reading the file, we have delayed the callback till now
                         if (params.useLibzim) whenZimReady();
                         // The API panel reads this value when it is shown
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
+                        return true;
                     }).catch(function (err) {
                         params.searchProvider += ': ERROR';
                         console.error('The libzim worker could not be instantiated!', err);
                         that.libzimReady = 'error';
+                        return false;
                     });
                 } else {
                     // var message = 'Full text searching is not available because ';
@@ -327,11 +330,17 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
     search.scanCount = 0;
     // Launch a full-text search if possible
     if (LZ) {
-        that.findDirEntriesFromFullTextSearch(search, dirEntries).then(function (fullTextDirEntries) {
-            // If user initiated a new search, cancel this one
-            // In particular, do not set the search status back to 'complete'
-            // as that would cause outdated results to unexpectedly pop up
+        that.libzimInitPromise.then(function (isReady) {
+            if (search.status === 'cancelled') return null;
+            if (!isReady) {
+                search.status = 'complete';
+                callback(dirEntries, search);
+                return null;
+            }
+            return that.findDirEntriesFromFullTextSearch(search, dirEntries);
+        }).then(function (fullTextDirEntries) {
             if (search.status === 'cancelled') return callback([], search);
+            if (fullTextDirEntries === null) return;
             dirEntries = fullTextDirEntries;
             search.status = 'complete';
             callback(dirEntries, search);
@@ -367,7 +376,8 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
         if (search.status === 'cancelled') return callback([], search);
         if (prefixVariants.length === 0 || dirEntries.length >= search.size) {
             // We have found all the title-search entries we are going to get, so indicate search type if we're still searching
-            if (LZ && search.status !== 'complete') search.type = 'fulltext';
+            if (LZ && that.libzimReady === 'pending') search.status = 'complete';
+            else if (LZ && search.status !== 'complete') search.type = 'fulltext';
             else search.status = 'complete';
             return callback(dirEntries, search);
         }

@@ -1209,7 +1209,7 @@ function setContentInjectionMode (value) {
     }
     params.contentInjectionMode = value;
     params.originalContentInjectionMode = null;
-    var message = '';
+    var message;
     if (value === 'jquery') {
         if (params.referrerExtensionURL) {
             // We are in an extension, and the user may wish to revert to local code
@@ -2324,12 +2324,18 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     var nbDirEntry = dirEntryArray ? dirEntryArray.length : 0;
 
     var message;
+    var fullTextPending = selectedArchive &&
+        selectedArchive.file &&
+        selectedArchive.file.fullTextIndex &&
+        selectedArchive.libzimReady === 'pending';
+
     if (stillSearching) {
         message = (translateUI.t('search-status-searching') || 'Searching [$1]... found: $2')
             .replace('$1', reportingSearch.type)
             .replace('$2', nbDirEntry);
     } else if (nbDirEntry >= params.maxSearchResultsSize) {
-        message = (translateUI.t('search-status-first-multiple') || 'First $1 articles found (refine your search).')
+        message = (translateUI.t('search-status-first-multiple') ||
+            'First $1 articles found (refine your search).')
             .replace('$1', params.maxSearchResultsSize);
     } else {
         if (nbDirEntry === 0) {
@@ -2345,6 +2351,12 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
         } else {
             message += '.';
         }
+    }
+
+    if (!stillSearching && fullTextPending) {
+        var pendingNote = translateUI.t('search-status-pending-fulltext') ||
+            '(full-text loading)';
+        message = message.replace(/\.$/, ' ' + pendingNote + '.');
     }
 
     articleListHeaderMessageDiv.textContent = message;
@@ -2640,7 +2652,7 @@ function articleLoadedSW (iframeArticleContent) {
         appstate.contentHiddenFailsafe = null;
     }
     console.debug('<- Article unhidden ->');
-    
+
     // Deflect drag-and-drop of ZIM file on the iframe to Config
     if (!params.disableDragAndDrop) {
         var doc = iframeArticleContent.contentDocument ? iframeArticleContent.contentDocument.documentElement : null;
