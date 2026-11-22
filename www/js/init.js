@@ -61,6 +61,9 @@
  * @property {boolean} useLibzim - A boolean indicating whether to use the libzim to load zim files.
  * @property {string} libzimSearchType - A string indicating the type of search to use with libzim (currently 'search' or 'searchWithSnippets').
  * @property {boolean} showPopoverPreviews - A boolean indicating whether to show previews of ZIM links (currently only for Wikimedia archives)
+ * @property {boolean} wideArticleWidth - A boolean indicating whether to remove the max-width limit on Wikimedia articles that use the Vector 2022 skin
+ * @property {boolean} isArticleZoomSupported - A boolean indicating whether the browser supports CSS zoom, which the article text size option uses (if not, or in IE11, a font-size is set on the article's root element instead)
+ * @property {number} articleZoom - The article text size as a percentage (100 is the archive's own size)
  * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
@@ -84,7 +87,7 @@ var params = {};
  * WARNING: Only change these parameters if you know what you are doing
  */
 // The current version number of this app
-params['appVersion'] = '4.4.1'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
+params['appVersion'] = '4.4.2'; // **IMPORTANT** Ensure this is the same as the version number in service-worker.js
 // The PWA server (for use with the browser extensions in ServiceWorker mode)
 params['PWAServer'] = 'https://browser-extension.kiwix.org/current/'; // Include final slash!
 // params['PWAServer'] = 'https://kiwix.github.io/kiwix-js/'; // DEV: Uncomment this line for testing code on GitHub Pages
@@ -168,6 +171,10 @@ params['libzimSearchType'] = getSetting('libzimSearchType') || 'searchWithSnippe
 params['previousZimFileName'] = getSetting('previousZimFileName') || ''; // Sets the name of the last opened zim file
 params['reopenLastArchive'] = getSetting('reopenLastArchive') !== false; // Sets a Boolean defaulting to true indicating whether to reopen the last opened zim file if possible
 params['showPopoverPreviews'] = getSetting('showPopoverPreviews') !== false; // Sets a Boolean defaulting to true indicating whether to show previews of article contents when hovering a ZIM link
+params['wideArticleWidth'] = getSetting('wideArticleWidth') === true; // Sets a Boolean defaulting to false indicating whether to remove the max-width limit on Wikimedia (Vector 2022) articles
+params['isArticleZoomSupported'] = 'zoom' in document.documentElement.style && !document.documentMode; // Sets a Boolean indicating whether the browser supports CSS zoom, which the article text size option uses. IE11 has a non-standard zoom that doesn't lay the article out again in the zoomed iframe, so (like browsers without zoom) it gets a font-size on the article instead
+// Sets the article text size as a percentage, defaulting to 100. Only the values offered in Configuration are accepted
+params['articleZoom'] = /^(?:75|90|110|125|150|175|200)$/.test(getSetting('articleZoom')) ? parseInt(getSetting('articleZoom'), 10) : 100;
 
 /**
  * Parameters that may be set from the querystring and written to the Settings Store. These are the keys
@@ -326,6 +333,8 @@ document.getElementById('appVersion').textContent = 'Kiwix ' + params.appVersion
 document.getElementById('enableSourceVerification').checked = getSetting('sourceVerification') === null ? true : getSetting('sourceVerification');
 document.getElementById('reopenLastArchiveCheck').checked = params.reopenLastArchive;
 document.getElementById('showPopoverPreviewsCheck').checked = params.showPopoverPreviews;
+document.getElementById('wideArticleWidthCheck').checked = params.wideArticleWidth;
+document.getElementById('articleZoomSelect').value = params.articleZoom;
 // If the File System Access API is supported, unhide the reopenLastArchiveDiv
 if (params.isFileSystemApiSupported) document.getElementById('reopenLastArchiveDiv').style.display = '';
 

@@ -107,6 +107,13 @@ describe('Utils', function () {
         });
     });
 
+    it('Resolve nested relative ZIM URLs and ignore query strings and fragments', function () {
+        const url = '../../../I/im%C3%A1gen.png?size=large#preview';
+        const base = 'A/subdir1/subdir2/article.html';
+
+        expect(uiUtil.deriveZimUrlFromRelativeUrl(url, base)).to.equal('I/imágen.png');
+    });
+
     it('Convert dataURI to Uint8Array (base64, percent-encoded, and edge cases)', function () {
         // Base64 dataURI
         const b64DataURI = 'data:text/plain;base64,SGVsbG8sIHdvcmxkIQ==';
@@ -147,6 +154,47 @@ describe('Utils', function () {
         const malformedDataURI = 'data:text/plain,%E0%A4';
         expect(() => util.dataURItoUint8Array(malformedDataURI)).to.not.throw();
         expect(util.dataURItoUint8Array(malformedDataURI)).to.be.instanceOf(Uint8Array);
+    });
+
+    it('Escape HTML-significant characters and handle empty input', function () {
+        expect(util.escapeHtml('Tom & Jerry <b>"quoted"</b> l\'amore')).to.equal('Tom &amp; Jerry &lt;b&gt;&quot;quoted&quot;&lt;/b&gt; l&#39;amore');
+        // An existing entity must be escaped once only, so it is displayed literally rather than garbled
+        expect(util.escapeHtml('&lt;')).to.equal('&amp;lt;');
+        expect(util.escapeHtml('A/Paris.html')).to.equal('A/Paris.html');
+        expect(util.escapeHtml(404)).to.equal('404');
+        expect(util.escapeHtml(null)).to.equal('');
+        expect(util.escapeHtml(undefined)).to.equal('');
+    });
+
+    it('Distinguish file-access errors from other errors and explain them appropriately', function () {
+        const accessErrors = [
+            new DOMException('A requested file or directory could not be found', 'NotFoundError'),
+            new DOMException('The requested file could not be read', 'NotReadableError'),
+            new DOMException('The request is not allowed', 'NoModificationAllowedError'),
+            Object.assign(new Error('no such file or directory'), { code: 'ENOENT' }),
+            Object.assign(new Error('permission denied'), { code: 'EACCES' }),
+            Object.assign(new Error('operation not permitted'), { code: 'EPERM' })
+        ];
+        accessErrors.forEach(err => {
+            expect(uiUtil.isFileAccessError(err), err.name + ' ' + (err.code || '')).to.be.true;
+        });
+        [new Error('Unexpected end of data'), new RangeError('Offset is outside the bounds of the DataView'),
+            new DOMException('Aborted', 'AbortError'), 'some error', null, undefined].forEach(err => {
+            expect(uiUtil.isFileAccessError(err), String(err)).to.be.false;
+        });
+
+        // An OS denial of access points the user to permissions, while a missing file asks the user to pick it again
+        const denied = uiUtil.fileAccessErrorMessage(new DOMException('The requested file could not be read', 'NotReadableError'));
+        expect(denied).to.contain('refused access');
+        expect(denied).to.not.contain('could not find your archive');
+        const missing = uiUtil.fileAccessErrorMessage(new DOMException('A requested file or directory could not be found', 'NotFoundError'));
+        expect(missing).to.contain('could not find your archive');
+        expect(missing).to.not.contain('refused access');
+
+        // The system error text (which may contain a file path) is included, escaped
+        const withPath = uiUtil.fileAccessErrorMessage(Object.assign(new Error("ENOENT: no such file, open 'C:\\Archives & <ZIMs>\\wiki.zim'"), { code: 'ENOENT' }));
+        expect(withPath).to.contain('C:\\Archives &amp; &lt;ZIMs&gt;\\wiki.zim');
+        expect(withPath).to.not.contain('<ZIMs>');
     });
 });
 
@@ -224,6 +272,15 @@ describe('ZIM directory entry search and read', function () {
     it('FindDirEntriesWithPrefix "blues brothers"', async function () {
         const dirEntryList = await new Promise(resolve => {
             localZimArchive.findDirEntriesWithPrefix({ prefix: 'blues brothers', size: 5 }, resolve, true);
+        });
+
+        expect(dirEntryList).to.have.length(3);
+        expect(dirEntryList[0].getTitleOrUrl()).to.equal('Blues Brothers (film)');
+    });
+
+    it('FindDirEntriesWithPrefix ignores leading whitespace in " \\tblues brothers"', async function () {
+        const dirEntryList = await new Promise(resolve => {
+            localZimArchive.findDirEntriesWithPrefix({ prefix: ' \tblues brothers', size: 5 }, resolve, true);
         });
 
         expect(dirEntryList).to.have.length(3);

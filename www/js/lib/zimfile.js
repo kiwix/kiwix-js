@@ -69,7 +69,8 @@ params.decompressorAPI = {
 var tempFileId = 0;
 
 /**
- * A Map to keep track of temporary File IDs
+ * A Map to keep track of temporary File IDs, keyed on the archive name and the size and last-modified time of each
+ * of its parts, so that a different archive with the same name does not get the same ID (and the same cached blocks)
  * @type {Map}
  */
 var fileIDs = new Map();
@@ -469,10 +470,13 @@ export default {
                 // Be careful because some file names may contain a path, e.g. when setting remote files as blobs in testing
                 zf.name = fileArray[0].name.replace(/^.*?([^/]+\.zim)\w?\w?$/i, '$1');
                 // Provide a temporary, per-session numeric ZIM ID used in filecache.js
-                zf.id = fileIDs.get(zf.name);
+                var fileKey = zf.name + fileArray.map(function (file) {
+                    return ':' + file.size + ':' + file.lastModified;
+                }).join('');
+                zf.id = fileIDs.get(fileKey);
                 if (zf.id === undefined) {
                     zf.id = tempFileId++;
-                    fileIDs.set(zf.name, zf.id);
+                    fileIDs.set(fileKey, zf.id);
                 }
                 // For a description of these values, see https://wiki.openzim.org/wiki/ZIM_file_format
                 zf.majorVersion = readInt(header, 4, 2); // Not currently used by this implementation

@@ -298,7 +298,7 @@
                         ServiceWorker Mode (<a href="#modes">see below</a>).
                     </p>
                     <p data-i18n="about-zim-format-para2">
-                        This application is now fully compatible with archives that are created by <b>Zimit</b> (<a href="https://youzim.it" target="_blank">https://youzim.it&nbsp;<img src="img/Icon_External_Link.png" /></a>)
+                        This application is now fully compatible with archives that are created by <b>Zimit</b> (<a href="https://zimit.kiwix.org" target="_blank">https://zimit.kiwix.org&nbsp;<img src="img/Icon_External_Link.png" /></a>)
                         using the Web Archive (WARC) format, so long as your browser supports ServiceWorker mode. If you can only use Restricted mode (or ServiceWorkerLocal), we do
                         our best to show you the static content of the requested article (no JavaScript can run in this mode). This will work for some basic static sites, but many will look broken.
                         Search for content in the usual way.
@@ -586,6 +586,27 @@
                                     <p data-i18n="configure-display-apptheme-mwinvert-description" id="mwInvert-help" class="appThemeInfo form-text text-muted">* Implements workarounds specific to Wikimedia ZIMs. Try generic option if there are display errors with recent ZIMs.</p>
                                     <p data-i18n="configure-display-apptheme-wikimedianative-description" id="wikimediaNative-help" class="appThemeInfo form-text text-muted">* Uses the ZIM's built-in dark theme (for Wikimedia ZIMs with native theme support). Falls back to inversion if not available.</p>
                                     <a data-i18n="configure-display-apptheme-info" id="viewArticle" class="appThemeInfo form-text" href="#">[&nbsp;Show article with applied theme&nbsp;]</a>
+                                </div>
+                                <div class="checkbox">
+                                    <label data-i18n-tip="configure-display-widearticlewidth-tip" title="Recent Wikipedia archives limit the article text to a narrow column on wide screens. Enable this to let articles use the full width of the window, like the 'Wide' option on Wikipedia.">
+                                        <input type="checkbox" name="wideArticleWidth" id="wideArticleWidthCheck">
+                                        <span data-i18n="configure-display-widearticlewidth"><b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)</span>
+                                    </label>
+                                </div>
+                                <div class="form-group" id="articleZoomDiv">
+                                    <label for="articleZoomSelect" data-i18n-tip="configure-display-articlezoom-tip" title="Makes the text of articles larger or smaller, without changing the size of the app's menus. In most browsers, images grow too and articles are laid out again to fit the window, as when you zoom.">
+                                        <span data-i18n="configure-display-articlezoom"><b>Article text size:</b></span>
+                                    </label>
+                                    <select class="form-control" id="articleZoomSelect">
+                                        <option value="75">75%</option>
+                                        <option value="90">90%</option>
+                                        <option value="100">100%</option>
+                                        <option value="110">110%</option>
+                                        <option value="125">125%</option>
+                                        <option value="150">150%</option>
+                                        <option value="175">175%</option>
+                                        <option value="200">200%</option>
+                                    </select>
                                 </div>
                                 <div class="checkbox" id="libzimSearchTypeCheckBox">
                                     <label data-i18n-tip="configure-display-libzimsearchtype-tip" title="If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.">
