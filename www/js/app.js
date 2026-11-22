@@ -1137,6 +1137,9 @@ function initServiceWorkerMessaging () {
                 if (params.useLibzim) handleMessageChannelByLibzim(event);
                 else handleMessageChannelMessage(event);
             }
+        } else if (event.data.action === 'documentNavigation') {
+            // The user has opened a page in a new tab or window, which articleLoadedSW() doesn't see
+            if (params.recordArticleHistory && selectedArchive) recordVisitedArticle(getZimUrlFromLocation(new URL(event.data.url)));
         } else if (event.data.msg_type) {
             // Messages received from the ReplayWorker
             if (event.data.msg_type === 'colAdded') {
@@ -2696,6 +2699,11 @@ function articleLoadedSW (iframeArticleContent) {
         if (!params.hideActiveContentWarning && params.isLandingPage && params.zimType === 'zimit2' && params.serviceWorkerLocal) {
             uiUtil.displayActiveContentWarning('ServiceWorkerLocal');
         }
+        // Record the visit from the document that has just loaded, which is never a frame embedded in the article. For classic Zimit, this is
+        // #replay_iframe: the ReplayWorker also keeps #articleContent's location in step with it, but it can do so after this has run
+        if (params.recordArticleHistory && !params.isLandingPage) {
+            recordVisitedArticle(getZimUrlFromLocation(iframeWindow.location), iframeArticleContent.contentDocument.title);
+        }
         // Reset UI when the article is unloaded
         iframeArticleContent.contentWindow.onunload = function () {
             iframeArticleContent.loader = false;
@@ -3064,9 +3072,6 @@ function handleMessageChannelMessage (event) {
                         // Calculate the current article's ZIM baseUrl to use when attaching popovers
                         appstate.baseUrl = encodeURI(dirEntry.namespace + '/' + dirEntry.url.replace(/[^/]+$/, ''));
                         appstate.expectedArticleURLToBeDisplayed = dirEntry.namespace + '/' + dirEntry.url;
-                        // Every navigation passes through here, whether in our iframe or in a new tab or window opened by the user,
-                        // and the dirEntry gives the ZIM URL whatever the archive type, so this is where we record the visit
-                        recordVisitedArticle(dirEntry);
                     }
                     // Ensure the article onload event gets attached to the right iframe
                     articleLoader();
@@ -3346,7 +3351,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         uiUtil.applyArticleFontSize(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
-        recordVisitedArticle(dirEntry);
+        if (!params.isLandingPage) recordVisitedArticle(dirEntry.namespace + '/' + dirEntry.url);
 
         // JavaScript is currently disabled, so we need to make the browser interpret noscript tags
         loadNoScriptTags();
@@ -3710,16 +3715,50 @@ function pushBrowserHistoryState (title, titleSearch) {
 }
 
 /**
- * Adds an article to the list of recently visited articles for the loaded archive (if the user has turned this on).
- * The landing page is not added, because the Home button already opens it. The path recorded is the ZIM URL that locates
- * the dirEntry (the namespace plus the URL), which is valid in any mode and for any type of archive
- * @param {DirEntry} dirEntry The directory entry of the article that is being displayed
+ * Gets the ZIM URL (namespace and url) of a document displayed in ServiceWorker mode from its location
+ * @param {Location|URL} location The location of the document
+ * @returns {String|null} The ZIM URL, or null if the document is not in the loaded archive
  */
-function recordVisitedArticle (dirEntry) {
-    if (!params.recordArticleHistory || !dirEntry) return;
-    var path = dirEntry.namespace + '/' + dirEntry.url;
-    if (params.isLandingPage || selectedArchive.landingPageUrl === path) return;
-    articleHistory.record(path, dirEntry.getTitleOrUrl());
+function getZimUrlFromLocation (location) {
+    var parts = /\/([^/]+)\/([-ABCIJMUVWX]\/.+)$/.exec(location.pathname);
+    if (!parts || !selectedArchive || decodeURIComponent(parts[1]) !== selectedArchive.file.name) return null;
+    if (selectedArchive.zimType !== 'zimit') return decodeURIComponent(parts[2]);
+    // Classic Zimit archives store their URLs encoded and with any querystring, as links to them are looked up in handleClickOnReplayLink().
+    // The document in #replay_iframe, and a link opened in a new tab from the browser's context menu, have the ReplayWorker's form
+    // (e.g. C/A/mp_/https://iep.utm.edu/), so we turn it into the ZIM URL form (C/A/iep.utm.edu/)
+    return parts[2].replace(/^((?:[-ABCIJMUVWX]\/)+)mp_\/[a-z]+:\/\//i, '$1') + location.search;
+}
+
+/**
+ * Adds an article to the list of recently visited articles for the loaded archive (if the user has turned this on).
+ * A redirect is recorded as its target, so that an article only appears once whichever backend loaded it, and only
+ * HTML documents are recorded. The archive's home page is not added, because the Home button already opens it
+ * @param {String} path The ZIM URL of the document the user navigated to
+ * @param {String} title Optional title of the displayed document (if empty, the title of the dirEntry is used)
+ */
+function recordVisitedArticle (path, title) {
+    if (!params.recordArticleHistory || !path) return;
+    var archive = selectedArchive;
+    archive.getDirEntryByPath(path).then(function (dirEntry) {
+        if (dirEntry && dirEntry.isRedirect()) {
+            return new Promise(function (resolve) {
+                archive.resolveRedirect(dirEntry, resolve);
+            });
+        }
+        return dirEntry;
+    }).then(function (dirEntry) {
+        // Check the user hasn't opened another archive in the meantime
+        if (!dirEntry || archive !== selectedArchive || !/\bx?html/i.test(dirEntry.getMimetype())) return;
+        var zimUrl = dirEntry.namespace + '/' + dirEntry.url;
+        // For classic Zimit archives, the main-page entry is only a loader page, so we also compare the real start page
+        var homePages = [archive.landingPageUrl, archive.zimitStartPage].map(function (url) {
+            return url ? url.replace(/\/$/, '') : url;
+        });
+        if (~homePages.indexOf(zimUrl.replace(/\/$/, ''))) return;
+        articleHistory.record(zimUrl, title || dirEntry.getTitleOrUrl());
+    }).catch(function (err) {
+        console.warn('Could not record the visit to ' + path, err);
+    });
 }
 
 /**
