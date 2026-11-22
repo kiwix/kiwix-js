@@ -7,6 +7,9 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 ## Unreleased
 
 * ENHANCEMENT: New option in Configuration to make the text of articles larger or smaller
+* FIX: Headings that contain angle brackets (e.g. `Uppercase<StringType>` in DevDocs archives) are now shown in full in the Table of Contents
+* FIX: The Table of Contents now shows for classic Zimit archives in ServiceWorker mode, where the article is displayed in a nested iframe
+* FIX: The Table of Contents no longer fails to open on a classic Zimit page reached by navigation before the page has been scrolled
 
 ### Interim update Kiwix JS v4.4.2
 

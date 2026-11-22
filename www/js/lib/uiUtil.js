@@ -216,7 +216,10 @@ function HeadingsTOC (articleDoc) {
     * @returns {void}
 */
 function setUpTOC () {
-    const innerDoc = articleContainer ? (articleContainer.contentDocument || articleContainer.contentWindow.document) : null;
+    // Don't read the document through articleContainer: scroller() may have left it pointing at a #replay_iframe that the
+    // ReplayWorker has since replaced, whose document is null (#1572). getArticleDocument() looks up the current article
+    // document each time, including the nested #replay_iframe used for classic Zimit articles in ServiceWorker mode
+    const innerDoc = getArticleDocument();
 
     if (!innerDoc) {
         console.warn('null articleContainer');
@@ -226,22 +229,23 @@ function setUpTOC () {
     const tableOfContents = new HeadingsTOC(innerDoc);
     const headings = tableOfContents.getHeadingObjects();
 
-    let dropupHtml = '';
-    headings.forEach(function (heading) {
-        if (/^h1$/i.test(heading.tagName)) {
-            dropupHtml += '<li class="toc-item-h1" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
-        } else if (/^h2$/i.test(heading.tagName)) {
-            dropupHtml += '<li class="toc-item-h2" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
-        } else if (/^h3$/i.test(heading.tagName)) {
-            dropupHtml += '<li class="toc-item-h3" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
-        } else if (/^h4$/i.test(heading.tagName)) {
-            dropupHtml += '<li class="toc-item-h4" ><a href="#" data-heading-id="' + heading.id + '">' + heading.textContent + '</a></li>';
-        }
-        // Skip smaller headings (if there are any) to avoid making list too long
-    });
     const ToCList = document.getElementById('ToCList');
     ToCList.style.maxHeight = ~~(window.innerHeight * 0.75) + 'px';
-    ToCList.innerHTML = dropupHtml;
+    ToCList.innerHTML = '';
+    headings.forEach(function (heading) {
+        // Skip smaller headings (if there are any) to avoid making list too long
+        if (!/^h[1-4]$/i.test(heading.tagName)) return;
+        // Build the entries with DOM methods rather than an HTML string, so that heading text such as
+        // "Uppercase<StringType>" is shown as typed, and is not parsed as markup in the app's document
+        const listItem = document.createElement('li');
+        listItem.className = 'toc-item-' + heading.tagName.toLowerCase();
+        const link = document.createElement('a');
+        link.href = '#';
+        link.dataset.headingId = heading.id;
+        link.textContent = heading.textContent;
+        listItem.appendChild(link);
+        ToCList.appendChild(listItem);
+    });
     Array.from(ToCList.getElementsByTagName('a'))
         .forEach(function (listElement) {
             listElement.addEventListener('click', function () {
