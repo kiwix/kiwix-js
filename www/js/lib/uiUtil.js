@@ -216,11 +216,10 @@ function HeadingsTOC (articleDoc) {
     * @returns {void}
 */
 function setUpTOC () {
-    let innerDoc = articleContainer ? (articleContainer.contentDocument || articleContainer.contentWindow.document) : null;
-
-    // In ServiceWorker mode, a classic Zimit article is shown by the ReplayWorker in a nested iframe, so the headings are in there
-    const replayIframe = innerDoc && innerDoc.getElementById('replay_iframe');
-    if (replayIframe && replayIframe.contentDocument) innerDoc = replayIframe.contentDocument;
+    // Don't read the document through articleContainer: scroller() may have left it pointing at a #replay_iframe that the
+    // ReplayWorker has since replaced, whose document is null (#1572). getArticleDocument() looks up the current article
+    // document each time, including the nested #replay_iframe used for classic Zimit articles in ServiceWorker mode
+    const innerDoc = getArticleDocument();
 
     if (!innerDoc) {
         console.warn('null articleContainer');
