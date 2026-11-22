@@ -357,6 +357,12 @@ prefixElement.addEventListener('keyup', function (e) {
         if (keyPressHandled) { keyPressHandled = false; } else { onKeyUpPrefix(e); }
     }
 });
+// Text can arrive without a keyup: a paste, cut, undo or redo from a menu, a spell-check suggestion,
+// voice typing or a mobile keyboard's suggestion strip. All of these fire input, so search from it too.
+// When typing fires both events, onKeyUpPrefix's shared timeout means only one search runs.
+prefixElement.addEventListener('input', function (e) {
+    if (selectedArchive && selectedArchive.isReady()) onKeyUpPrefix(e);
+});
 // Restore the search results if user goes back into prefix field
 prefixElement.addEventListener('focus', function () {
     if (document.getElementById('prefix').value !== '') {
