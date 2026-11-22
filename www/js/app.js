@@ -162,7 +162,7 @@ function resizeIFrame () {
         } else {
             // Get  header height *including* its bottom margin
             const headerHeight = parseFloat(headerStyles.height) + parseFloat(headerStyles.marginBottom);
-            articleContainer.style.height = window.innerHeight - headerHeight + 'px';
+            articleContainer.style.height = uiUtil.getArticleIframeHeight(window.innerHeight - headerHeight);
             // Hide the scrollbar of Configure / About
             region.style.overflowY = 'hidden';
         }
@@ -193,6 +193,7 @@ function resizeIFrame () {
 
 document.addEventListener('DOMContentLoaded', function () {
     getDefaultLanguageAndTranslateApp();
+    uiUtil.applyArticleZoom();
     resizeIFrame();
     abstractFilesystemAccess.loadPreviousZimFile();
 });
@@ -744,6 +745,13 @@ document.getElementById('wideArticleWidthCheck').addEventListener('change', func
     if (selectedArchive && appstate.expectedArticleURLToBeDisplayed) {
         goToArticle(appstate.expectedArticleURLToBeDisplayed);
     }
+});
+document.getElementById('articleZoomSelect').addEventListener('change', function (e) {
+    params.articleZoom = parseInt(e.target.value, 10);
+    settingsStore.setItem('articleZoom', params.articleZoom, Infinity);
+    // The zoom applies to the iframe itself, so there is no need to reload the article, but we have to resize the iframe
+    uiUtil.applyArticleZoom();
+    resizeIFrame();
 });
 // Add event listeners to the About links in Configuration, so that they jump to the linked sections
 document.querySelectorAll('.aboutLinks').forEach(function (link) {
@@ -2654,6 +2662,7 @@ function articleLoadedSW (iframeArticleContent) {
     // Set the requested appTheme - applyAppTheme will handle fallbacks silently
     uiUtil.applyAppTheme(params.appTheme);
     uiUtil.applyArticleWidth(iframeArticleContent.contentDocument);
+    uiUtil.applyArticleFontSize(iframeArticleContent.contentDocument);
     // Display the iframe content
     iframeArticleContent.style.display = '';
     articleContainer.style.display = '';
@@ -3334,6 +3343,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         // Set the requested appTheme - applyAppTheme will handle fallbacks silently
         uiUtil.applyAppTheme(params.appTheme);
         uiUtil.applyArticleWidth(iframeContentDocument);
+        uiUtil.applyArticleFontSize(iframeContentDocument);
         // Allow back/forward in browser history
         pushBrowserHistoryState(dirEntry.namespace + '/' + dirEntry.url);
         recordVisitedArticle(dirEntry);

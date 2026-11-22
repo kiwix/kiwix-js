@@ -72,6 +72,8 @@ document.localeJson = {
       "configure-display-apptheme-info": "[&nbsp;Show article with applied theme&nbsp;]",
       "configure-display-widearticlewidth": "<b>Use full window width for <i>Wikipedia</i> articles</b> (<i>for recent Wikimedia archives on wide screens</i>)",
       "configure-display-widearticlewidth-tip": "Recent Wikipedia archives limit the article text to a narrow column on wide screens. Enable this to let articles use the full width of the window, like the 'Wide' option on Wikipedia.",
+      "configure-display-articlezoom": "<b>Article text size:</b>",
+      "configure-display-articlezoom-tip": "Makes the text of articles larger or smaller, without changing the size of the app's menus. In most browsers, images grow too and articles are laid out again to fit the window, as when you zoom.",
       "configure-display-articlehistory": "<b>Remember recently visited articles</b> (<i>shown when you click in the empty search field</i>)",
       "configure-display-articlehistory-tip": "Keeps a list of the last 50 articles you opened in each archive, on this device only, for up to 10 archives. Click in the empty search field to see the list for the loaded archive. Turning this off, or clicking Clear history, deletes the lists for all archives.",
       "configure-display-articlehistory-clear": "Clear history",

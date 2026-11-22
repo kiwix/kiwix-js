@@ -72,6 +72,8 @@ document.localeJson = {
       "configure-display-apptheme-info": "[&nbsp;Mostrar artículo con tema seleccionado&nbsp;]",
       "configure-display-widearticlewidth": "<b>Usar todo el ancho de la ventana para los artículos de <i>Wikipedia</i></b> (<i>para archivos recientes de Wikimedia en pantallas grandes</i>)",
       "configure-display-widearticlewidth-tip": "Los archivos recientes de Wikipedia limitan el texto de los artículos a una columna estrecha en pantallas grandes. Active esta opción para que los artículos usen todo el ancho de la ventana, como la opción \"Ancho\" de Wikipedia.",
+      "configure-display-articlezoom": "<b>Tamaño del texto de los artículos:</b>",
+      "configure-display-articlezoom-tip": "Aumenta o reduce el texto de los artículos, sin cambiar el tamaño de los menús de la aplicación. En la mayoría de los navegadores, las imágenes también crecen y los artículos se reorganizan para ajustarse a la ventana, como cuando se hace zoom.",
       "configure-display-articlehistory": "<b>Recordar los artículos visitados recientemente</b> (<i>se muestran al hacer clic en el campo de búsqueda vacío</i>)",
       "configure-display-articlehistory-tip": "Guarda una lista de los 50 últimos artículos que se abrieron en cada archivo, solo en este dispositivo y para un máximo de 10 archivos. Haga clic en el campo de búsqueda vacío para ver la lista del archivo cargado. Al desactivar esta opción, o al hacer clic en Borrar historial, se borran las listas de todos los archivos.",
       "configure-display-articlehistory-clear": "Borrar historial",
