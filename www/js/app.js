@@ -3744,9 +3744,9 @@ function setLandingPageRequest (restored) {
 }
 
 /**
- * Marks a ServiceWorker request for the landing page as a landing page load, unless it comes from another window or tab, which loads nothing
- * into the app's iframe. A request is ignored only when both signals identify it as a top-level document navigation: some browsers report an
- * iframe navigation as a document destination, and older browsers may not provide a destination at all.
+ * Marks a ServiceWorker request for the landing page as a landing page load, unless it is a document navigation requested by a non-top-level
+ * client. Some browsers attribute an iframe history navigation to the app's top-level client, so those document requests must still be handled.
+ * When the destination is unavailable, the request is not filtered by this check.
  * @param {String} path The namespace and URL of the requested article
  * @param {Object} data The data of the ServiceWorker's message, including requestDestination
  */

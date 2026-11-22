@@ -173,6 +173,39 @@ function runTests (driver, modes, keepDriver) {
                     return;
                 }
 
+                if (mode === 'serviceworker') {
+                    await driver.executeScript(
+                        'window.landingPageNavigationDiagnostics = [];' +
+                        'navigator.serviceWorker.addEventListener("message", function (event) {' +
+                        'if (event.data && event.data.action === "askForContent") {' +
+                        'window.landingPageNavigationDiagnostics.push({' +
+                        'title: event.data.title,' +
+                        'requestDestination: event.data.requestDestination,' +
+                        'requestingFrameType: event.data.requestingFrameType' +
+                        '});' +
+                        '}' +
+                        '});'
+                    );
+                }
+
+                const waitWithNavigationDiagnostics = async function (condition, message) {
+                    try {
+                        return await driver.wait(condition, 5000, message);
+                    } catch (error) {
+                        const diagnostics = await driver.executeScript(
+                            'return window.landingPageNavigationDiagnostics || "Unavailable in the current page";'
+                        ).catch(function (diagnosticError) {
+                            return 'Unavailable: ' + diagnosticError.message;
+                        });
+                        const currentUrl = await driver.getCurrentUrl().catch(function (urlError) {
+                            return 'Unavailable: ' + urlError.message;
+                        });
+                        error.message += '\nServiceWorker navigation diagnostics: ' + JSON.stringify(diagnostics) +
+                            '\nCurrent URL: ' + currentUrl;
+                        throw error;
+                    }
+                };
+
                 // The flag is transient (true only while a landing page request is loading), so we record every time it is set
                 // to true rather than polling for it
                 await driver.executeScript(
@@ -185,13 +218,13 @@ function runTests (driver, modes, keepDriver) {
                 // Use the app's own Back and Forward buttons (history.back() in the top-level window): in ServiceWorker mode only the iframe
                 // navigates, and WebDriver's navigate().back() waits for a top-level page load, which hangs in Firefox
                 await driver.findElement(By.id('btnBack')).click();
-                await driver.wait(async function () {
+                await waitWithNavigationDiagnostics(async function () {
                     return await driver.executeScript('return window.landingPageFlagSet;');
-                }, 5000, 'params.isLandingPage was not set when navigating back to the landing page');
+                }, 'params.isLandingPage was not set when navigating back to the landing page');
                 // Wait for the landing page to finish loading, which clears the flag
-                await driver.wait(async function () {
+                await waitWithNavigationDiagnostics(async function () {
                     return !(await driver.executeScript('return params.isLandingPage;'));
-                }, 5000, 'params.isLandingPage was not cleared after the landing page loaded');
+                }, 'params.isLandingPage was not cleared after the landing page loaded');
                 // Only an explicit request for Home shows the active content warning, not restoring the landing page from history. Any warning
                 // is shown before the load completes, so we check now: the test setup loads the archive twice, and in some browsers the second
                 // request for Home can arrive a few seconds later
