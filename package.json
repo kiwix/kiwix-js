@@ -23,7 +23,10 @@
     "test-e2e-chrome": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/chrome/chromium.e2e.runner.js\"",
     "test-e2e-edge": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/edge/microsoftEdge.e2e.runner.js\"",
     "test-e2e-iemode": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/edge/ieMode.e2e.runner.js\"",
-    "test-e2e-a11y": "node tests/e2e/start-server-and-run-tests.js \"node ./tests/e2e/a11y-check.js\""
+    "test-e2e-a11y": "node tests/e2e/start-server-and-run-tests.js \"node ./tests/e2e/a11y-check.js\"",
+    "test-library-headers": "node tests/e2e/check-library-csp.js",
+    "test-e2e-extension-chrome": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/chrome/chromium-extension.e2e.runner.js\"",
+    "test-e2e-extension-firefox": "node tests/e2e/start-server-and-run-tests.js \"npx mocha --no-config ./tests/e2e/runners/firefox/firefox-extension.e2e.runner.js\""
   },
   "engines": {
     "node": ">=18.18.0"

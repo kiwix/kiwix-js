@@ -27,7 +27,6 @@
 import zimfile from './zimfile.js';
 import zimDirEntry from './zimDirEntry.js';
 import util from './util.js';
-import uiUtil from './uiUtil.js';
 import utf8 from './utf8.js';
 import translateUI from './translateUI.js';
 
@@ -69,7 +68,8 @@ var LZ;
  * @param {StorageFirefoxOS|Array<Blob>} storage Storage (in this case, the path must be given) or Array of Files (path parameter must be omitted)
  * @param {String} path The Storage path for an OS that requires this to be specified
  * @param {callbackZIMArchive} callbackReady The function to call when the archive is ready to use
- * @param {callbackZIMArchive} callbackError The function to call when an error occurs
+ * @param {callbackZIMArchive} callbackError The function to call when an error occurs. When reading from an Array of Files, it is
+ *     called with the raw error and the file name, so that the caller can decide how to display it
  */
 function ZIMArchive (storage, path, callbackReady, callbackError) {
     var that = this;
@@ -158,11 +158,10 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         that.libzimReady = 'ready';
                         // If user is using libzim for reading the file, we have delayed the callback till now
                         if (params.useLibzim) whenZimReady();
+                        // The API panel reads this value when it is shown
                         params.searchProvider = 'fulltext: ' + libzimReaderType;
-                        // Update the API panel
-                        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                     }).catch(function (err) {
-                        uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider + ': ERROR');
+                        params.searchProvider += ': ERROR';
                         console.error('The libzim worker could not be instantiated!', err);
                         that.libzimReady = 'error';
                     });
@@ -181,7 +180,6 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                     } else {
                         params.searchProvider += ': unknown';
                     }
-                    uiUtil.reportSearchProviderToAPIStatusPanel(params.searchProvider);
                 }
                 // Set the archive file type ('open', 'zimit' or 'zimit2')
                 return that.addMetadataToZIMFile('Scraper').then(function () {
@@ -202,12 +200,9 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
         createZimfile(fileArray).catch(function (err) {
             // Usually the browser could not read the file (e.g. it has been moved, or the OS denied it access), which would otherwise
             // go unreported. Any other error (e.g. a truncated or corrupt file) is reported as such, so that the user is not wrongly
-            // told to pick the archive again
+            // told to pick the archive again. We pass the raw error back, so that the UI can decide how to word and display it
             console.error('Error reading archive file', err);
-            callbackError(uiUtil.isFileAccessError(err) ? uiUtil.fileAccessErrorMessage(err)
-                : (translateUI.t('dialog-readzim-error-message') || 'Error reading ZIM file') + ' ' + util.escapeHtml(fileArray[0] && fileArray[0].name) +
-                '&nbsp;: ' + util.escapeHtml(err && err.message || err),
-            translateUI.t('dialog-readzim-error-title') || 'Error reading archive file(s)');
+            callbackError(err, fileArray[0] && fileArray[0].name);
         });
     } else {
         if (/.*zim..$/.test(path)) {
@@ -342,10 +337,13 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
             callback(dirEntries, search);
         });
     }
-    // Ensure a search is done on the string exactly as typed
-    startArray.push(search.prefix);
+    // No title starts with whitespace, so drop any that was typed or pasted in front of the search text. Trailing
+    // whitespace is kept because it limits matches to a whole word. A search made only of whitespace is left as typed.
+    var typedPrefix = /\S/.test(search.prefix) ? search.prefix.replace(/^\s+/, '') : search.prefix;
+    // Ensure a search is done on the string as typed (minus any leading whitespace)
+    startArray.push(typedPrefix);
     // Normalize any spacing and make string all lowercase
-    var prefix = search.prefix.replace(/\s+/g, ' ').toLocaleLowerCase();
+    var prefix = typedPrefix.replace(/\s+/g, ' ').toLocaleLowerCase();
     // Add lowercase string with initial uppercase (this is a very common pattern)
     startArray.push(prefix.replace(/^./, function (m) {
         return m.toLocaleUpperCase();
