@@ -380,7 +380,7 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
             assert.equal(grid.querySelectorAll('.image-gallery-card').length, 4);
         });
 
-        it('discards results from a replaced search and halts in-flight extraction on cleanup', function () {
+        it('discards results from a replaced search and halts in-flight extraction on cancel', function () {
             var pendingReadCb = null;
             var mockArchive = {
                 readUtf8File: function (entry, cb) {
@@ -778,6 +778,36 @@ describe('Image Gallery Extraction and Controller (Issue #277)', function () {
                 assert.equal(cards.length, 1, 'Only London cards must exist');
                 var caption = cards[0].querySelector('.image-gallery-caption');
                 assert.equal(caption.textContent, 'London', 'Old Paris results must not leak into London search');
+            });
+
+            it('Confirms imageGallery.cleanup is removed and cancel() handles all lifecycle cleanup', function () {
+                assert.isUndefined(imageGallery.cleanup, 'imageGallery.cleanup must be completely removed');
+                assert.isFunction(imageGallery.cancel, 'imageGallery.cancel must be present');
+                assert.isFunction(imageGallery.reset, 'imageGallery.reset must be present');
+            });
+
+            it('Clearing search prefix resets prefix tracking allowing repeated search of the same string (Scenario 6)', async function () {
+                var mockArchive = createMockArchive({
+                    'Paris.html': '<figure><img src="../I/Paris.jpg" width="200" height="200"><figcaption>Paris</figcaption></figure>'
+                });
+                imageGallery.getArchive = function () { return mockArchive; };
+
+                var parisEntry = { namespace: 'A', url: 'Paris.html', isRedirect: () => false, toStringId: () => 'A/Paris.html' };
+                var searchParis1 = { prefix: 'Paris', status: 'final' };
+
+                await imageGallery.loadImagesForSearch([parisEntry], searchParis1, { archive: mockArchive });
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 1);
+
+                // User clears the prefix input: cancel + reset gallery
+                imageGallery.cancel();
+                imageGallery.reset();
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 0, 'Grid cleared on reset');
+
+                // User searches for the exact same prefix again
+                var searchParis2 = { prefix: 'Paris', status: 'final' };
+                await imageGallery.loadImagesForSearch([parisEntry], searchParis2, { archive: mockArchive });
+
+                assert.equal(grid.querySelectorAll('.image-gallery-card').length, 1, 'Fresh search for same prefix renders cards correctly');
             });
         });
     });

@@ -502,6 +502,7 @@ prefixElement.addEventListener('input', function () {
         imageGallery.cancel();
         imageGallery.reset();
         lastSearchDirEntryArray = [];
+        if (appstate.search) appstate.search.prefix = '';
         updateSearchAndGalleryVisibility({ showResults: false });
     }
 });
@@ -539,6 +540,7 @@ document.getElementById('btnRandomArticle').addEventListener('click', function (
     imageGallery.cancel();
     imageGallery.reset();
     lastSearchDirEntryArray = [];
+    if (appstate.search) appstate.search.prefix = '';
     updateSearchAndGalleryVisibility({ showResults: false });
     document.getElementById('prefix').value = '';
     goToRandomArticle();
@@ -2454,6 +2456,7 @@ function onKeyUpPrefix () {
             imageGallery.cancel();
             imageGallery.reset();
             lastSearchDirEntryArray = [];
+            if (appstate.search) appstate.search.prefix = '';
             updateSearchAndGalleryVisibility({ showResults: false });
         }
     }, 500);
@@ -2470,6 +2473,7 @@ function searchDirEntriesFromPrefix (prefix) {
         if (!prefix) {
             imageGallery.reset();
             lastSearchDirEntryArray = [];
+            if (appstate.search) appstate.search.prefix = '';
             updateSearchAndGalleryVisibility({ showResults: false });
         }
         // Cancel the old search (zimArchive search object will receive this change)
@@ -2565,7 +2569,11 @@ function populateListOfArticles (dirEntryArray, reportingSearch) {
     uiUtil.attachArticleListEventListeners(findDirEntryFromDirEntryIdAndLaunchArticleRead, appstate);
 
     lastSearchDirEntryArray = dirEntryArray || [];
-    updateSearchAndGalleryVisibility({ view: currentSearchView, showResults: true });
+    var articleListWithHeader = document.getElementById('articleListWithHeader');
+    var isSearchActive = (document.activeElement === prefixElement) ||
+        searchArticlesFocused ||
+        (articleListWithHeader && articleListWithHeader.style.display !== 'none');
+    updateSearchAndGalleryVisibility({ view: currentSearchView, showResults: isSearchActive });
     if (currentSearchView === 'images') {
         imageGallery.loadImagesForSearch(dirEntryArray, reportingSearch, {
             archive: selectedArchive,
@@ -3392,6 +3400,7 @@ function displayArticleContentInIframe (dirEntry, htmlArticle) {
         while (articleListHeaderMessage.firstChild) articleListHeaderMessage.removeChild(articleListHeaderMessage.firstChild);
         updateSearchAndGalleryVisibility({ showResults: false });
         document.getElementById('prefix').value = '';
+        if (appstate.search) appstate.search.prefix = '';
 
         var iframeContentDocument = iframeArticleContent.contentDocument;
         if (!iframeContentDocument && window.location.protocol === 'file:') {

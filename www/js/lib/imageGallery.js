@@ -342,13 +342,6 @@ var imageGallery = {
     },
 
     /**
-     * Clean up resources when search is closed or navigating away.
-     */
-    cleanup: function () {
-        this.cancel();
-    },
-
-    /**
      * Ingests search result articles and triggers progressive image extraction.
      * Avoids duplicate processing across interim and final search callbacks.
      */
