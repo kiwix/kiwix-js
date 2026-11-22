@@ -268,8 +268,7 @@
 
                     <h4 data-i18n="about-privacy-short-title">Short version:</h4>
                     <p data-i18n="about-privacy-short-para1">
-                        Kiwix JS works offline, and does not collect or record any of your personal data. It only remembers your browsing history for the duration of a session
-                        (for the purpose of returning to previously viewed pages). This history is lost on exiting the app and is not recorded in any way.
+                        Kiwix JS works offline, and does not collect or record any of your personal data. By default it only remembers your browsing history for the duration of a session (for the purpose of returning to previously viewed pages), and this history is lost on exiting the app. If you turn on the optional setting to remember recently visited articles in Configuration, the app also keeps a list of the titles of the articles you open in each archive. This list is stored only on your device, and it is deleted when you turn the setting off or clear the history.
                     </p>
                     
                     <h4 data-i18n="about-privacy-long-title">Longer version:</h4>
@@ -607,6 +606,13 @@
                                         <option value="175">175%</option>
                                         <option value="200">200%</option>
                                     </select>
+                                </div>
+                                <div class="checkbox">
+                                    <label data-i18n-tip="configure-display-articlehistory-tip" title="Keeps a list of the last 50 articles you opened in each archive, on this device only, for up to 10 archives. Click in the empty search field to see the list for the loaded archive. Turning this off, or clicking Clear history, deletes the lists for all archives.">
+                                        <input type="checkbox" name="recordArticleHistory" id="recordArticleHistoryCheck">
+                                        <span data-i18n="configure-display-articlehistory"><b>Remember recently visited articles</b> (<i>shown when you click in the empty search field</i>)</span>
+                                    </label>
+                                    <button type="button" class="btn btn-light btn-sm" id="btnClearArticleHistory" data-i18n="configure-display-articlehistory-clear">Clear history</button>
                                 </div>
                                 <div class="checkbox" id="libzimSearchTypeCheckBox">
                                     <label data-i18n-tip="configure-display-libzimsearchtype-tip" title="If checked, uses libzim fulltext search with snippet previews if available, otherwise just gets fulltext titles. Hover, click or press enter on keyboard to expand the snippet.">

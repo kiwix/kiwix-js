@@ -64,6 +64,7 @@
  * @property {boolean} wideArticleWidth - A boolean indicating whether to remove the max-width limit on Wikimedia articles that use the Vector 2022 skin
  * @property {boolean} isArticleZoomSupported - A boolean indicating whether the browser supports CSS zoom, which the article text size option uses (if not, or in IE11, a font-size is set on the article's root element instead)
  * @property {number} articleZoom - The article text size as a percentage (100 is the archive's own size)
+ * @property {boolean} recordArticleHistory - A boolean indicating whether to keep a list of the articles recently visited in the loaded archive
  * @property {"wasm-dev" | 'wasm' | 'asm' | 'asm-dev' | 'default'} libzimMode - A value indicating which libzim mode is selected.
  * @property {DecompressorAPI} decompressorAPI
 
@@ -175,6 +176,7 @@ params['wideArticleWidth'] = getSetting('wideArticleWidth') === true; // Sets a 
 params['isArticleZoomSupported'] = 'zoom' in document.documentElement.style && !document.documentMode; // Sets a Boolean indicating whether the browser supports CSS zoom, which the article text size option uses. IE11 has a non-standard zoom that doesn't lay the article out again in the zoomed iframe, so (like browsers without zoom) it gets a font-size on the article instead
 // Sets the article text size as a percentage, defaulting to 100. Only the values offered in Configuration are accepted
 params['articleZoom'] = /^(?:75|90|110|125|150|175|200)$/.test(getSetting('articleZoom')) ? parseInt(getSetting('articleZoom'), 10) : 100;
+params['recordArticleHistory'] = getSetting('recordArticleHistory') === true; // Sets a Boolean defaulting to false (for privacy) indicating whether to keep a list of recently visited articles
 
 /**
  * Parameters that may be set from the querystring and written to the Settings Store. These are the keys
@@ -335,6 +337,7 @@ document.getElementById('reopenLastArchiveCheck').checked = params.reopenLastArc
 document.getElementById('showPopoverPreviewsCheck').checked = params.showPopoverPreviews;
 document.getElementById('wideArticleWidthCheck').checked = params.wideArticleWidth;
 document.getElementById('articleZoomSelect').value = params.articleZoom;
+document.getElementById('recordArticleHistoryCheck').checked = params.recordArticleHistory;
 // If the File System Access API is supported, unhide the reopenLastArchiveDiv
 if (params.isFileSystemApiSupported) document.getElementById('reopenLastArchiveDiv').style.display = '';
 

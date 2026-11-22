@@ -138,6 +138,7 @@ const precacheFiles = [
     'www/js/theme-init.js',
     'www/js/lib/abstractFilesystemAccess.js',
     'www/js/lib/arrayFromPolyfill.js',
+    'www/js/lib/articleHistory.js',
     'www/js/lib/filecache.js',
     'www/js/lib/cache.js',
     'www/js/lib/kiwixLibrary.js',
@@ -299,6 +300,15 @@ self.addEventListener('fetch', function (event) {
     // Select cache depending on request format
     var cache = /\.zim\//i.test(strippedUrl) ? ASSETS_CACHE : APP_CACHE;
     if (cache === ASSETS_CACHE && !fetchCaptureEnabled) return;
+    // Tell the app when the user opens a page of an archive in a new tab or window, so that it can add it to the recently visited articles.
+    // Only such top-level navigations have the destination 'document': the app's own iframe, and frames embedded in an article, have 'iframe'
+    if (cache === ASSETS_CACHE && event.request.mode === 'navigate' && event.request.destination === 'document') {
+        self.clients.matchAll().then(function (clientList) {
+            clientList.forEach(function (client) {
+                client.postMessage({ action: 'documentNavigation', url: rqUrl });
+            });
+        });
+    }
     // For APP_CACHE assets, we should ignore any querystring (whereas it should be conserved for ZIM assets,
     // especially .js assets, where it may be significant). Anchor targets are irreleveant in this context.
     if (cache === APP_CACHE) rqUrl = strippedUrl;

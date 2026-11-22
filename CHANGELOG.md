@@ -7,6 +7,7 @@ Then it was renamed to "Kiwix HTML5" (and used the ZIM file format). Finally it 
 ## Unreleased
 
 * ENHANCEMENT: New option in Configuration to make the text of articles larger or smaller
+* ENHANCEMENT: New option in Configuration (off by default) to remember the articles recently visited in each archive (a separate list for each of the last 10 archives used), which are listed when the user clicks in the empty search field. The privacy policy has been updated to explain this
 
 ### Interim update Kiwix JS v4.4.2
 
