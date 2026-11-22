@@ -3757,7 +3757,7 @@ function recordVisitedArticle (path, title) {
         if (~homePages.indexOf(zimUrl.replace(/\/$/, ''))) return;
         articleHistory.record(zimUrl, title || dirEntry.getTitleOrUrl());
     }).catch(function (err) {
-        console.warn('Could not record the visit to ' + path, err);
+        console.warn('Could not record the visit to', path, err);
     });
 }
 
