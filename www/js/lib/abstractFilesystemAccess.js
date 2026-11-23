@@ -44,7 +44,7 @@ function StorageFirefoxOS (storage) {
 /**
  * Access the given file.
  * @param {String} path absolute path to the file
- * @return {Promise} Promise which is resolved with a HTML5 file object and
+ * @returns {Promise<File>} Promise which is resolved with a HTML5 file object and
  *         rejected with an error message.
  */
 StorageFirefoxOS.prototype.get = function (path) {
@@ -62,7 +62,7 @@ var regexpZIMFileName = /\.zim(aa)?$/i;
 
 /**
  * Searches for archive files or directories.
- * @return {Promise} Promise which is resolved with an array of
+ * @returns {Promise<Array<string>>} Promise which is resolved with an array of
  *         paths and rejected with an error message.
  */
 StorageFirefoxOS.prototype.scanForArchives = function () {

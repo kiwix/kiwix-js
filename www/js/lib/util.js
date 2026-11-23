@@ -197,7 +197,8 @@ function escapeHtml (str) {
  * @param {Integer} end The end of the search window
  * @param {Function} query The query to run to test the current point in the window
  * @param {Boolean} lowerBound Determines the type of search
- * @returns {Promise} Promise for the lowest dirEntry that fulfils (or fails to fulfil) the query
+ * @returns {Promise<number|null>|number|null} A Promise for the matching or insertion index, or null if not found.
+ *     When the search window is empty, the index or null is returned directly.
  */
 function binarySearch (begin, end, query, lowerBound) {
     if (end <= begin) {
@@ -314,12 +315,15 @@ function dataURItoUint8Array (dataURI) {
  *
  * @type {Object} PromiseQueue
  * @property {Function} enqueue Queues a Promise Factory. Call this function repeatedly to queue Promises sequentially
- * @param {Function<Promise>} promiseFactory A Promise wrapped in an ordinary function
- * @returns {Promise} A Promise that resolves or rejects with the resolved/rejected value of the Promise Factory
  */
 var PromiseQueue = {
     _queue: [],
     _working: false,
+    /**
+     * @template T
+     * @param {function(): Promise<T>} promiseFactory A Promise wrapped in an ordinary function
+     * @returns {Promise<T>} A Promise that resolves or rejects with the resolved/rejected value of the Promise Factory
+     */
     enqueue: function (promiseFactory) {
         var that = this;
         return new Promise(function (resolve, reject) {

@@ -936,7 +936,7 @@ function iterateOPFSEntries () {
 /**
  * Gets the OPFS storage quota and populates the OPFSQuota panel
  *
- * @returns {Promise} A Promise that populates the OPFSQuota panel
+ * @returns {Promise<void>|undefined} A Promise that populates the OPFSQuota panel, or undefined if storage estimates are unavailable
  */
 function populateOPFSStorageQuota () {
     if (navigator && navigator.storage && ('estimate' in navigator.storage)) {
@@ -956,8 +956,8 @@ function populateOPFSStorageQuota () {
  * sempahor. The semaphor must be an object key of the app-wide assetsCache object.
  *
  * @param {String} semaphor The name of a semaphor key in the assetsCache object
- * @param {String|Object} value An optional value or object to pass in the resolved promise
- * @returns {Promise} A promise that resolves when assetsCache[semaphor] is true
+ * @param {String|Object} [value] An optional value or object to pass in the resolved promise
+ * @returns {Promise<String|Object|undefined>} A promise that resolves with value (or undefined if omitted) when assetsCache[semaphor] is true
  */
 function wait (semaphor, value) {
     var p = new Promise(function (resolve) {

@@ -228,7 +228,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
  * Searches the directory for all parts of a split archive.
  * @param {Storage} storage storage interface
  * @param {String} prefixPath path to the split files, missing the "aa" / "ab" / ... suffix.
- * @returns {Promise} that resolves to the array of file objects found.
+ * @returns {Promise<Array<File>>} that resolves to the array of file objects found.
  */
 ZIMArchive.prototype._searchArchiveParts = function (storage, prefixPath) {
     var fileArray = [];
@@ -280,8 +280,7 @@ ZIMArchive.prototype.setZimType = function () {
 
 /**
  * Looks for the DirEntry of the main page
- * @param {callbackDirEntry} callback
- * @returns {Promise} that resolves to the DirEntry
+ * @param {callbackDirEntry} callback Called with the main-page DirEntry, or null if there is no main page
  */
 ZIMArchive.prototype.getMainPageDirEntry = function (callback) {
     if (this.isReady()) {
@@ -477,7 +476,7 @@ ZIMArchive.prototype.findDirEntriesWithPrefixCaseSensitive = function (prefix, s
  *
  * @param {Object} search The appstate.search object
  * @param {Array} dirEntries The array of already found Directory Entries
- * @returns {Promise<callbackDirEntry>} The augmented array of Directory Entries with titles that correspond to search
+ * @returns {Promise<Array<DirEntry>>} The augmented array of Directory Entries with titles that correspond to search
  */
 ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEntries) {
     var cns = this.getContentNamespace();
@@ -541,7 +540,7 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
  * Calls the libzim Web Worker with the given parameters, and returns a Promise with its response
  *
  * @param {Object} parameters
- * @returns {Promise}
+ * @returns {Promise<Object|string|number>} The worker reply: content/search data, a status string, or an article count
  */
 ZIMArchive.prototype.callLibzimWorker = function (parameters) {
     return new Promise(function (resolve, reject) {
@@ -639,7 +638,7 @@ ZIMArchive.prototype.getUtf8FromData = function (data) {
 /**
  * Searches the URL pointer list of Directory Entries by pathname
  * @param {String} path The pathname of the DirEntry that is required (namespace + filename)
- * @return {Promise<DirEntry>} A Promise that resolves to a Directory Entry, or null if not found.
+ * @returns {Promise<DirEntry|null>} A Promise that resolves to a Directory Entry, or null if not found.
  */
 ZIMArchive.prototype.getDirEntryByPath = function (path) {
     var that = this;

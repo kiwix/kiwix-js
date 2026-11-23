@@ -49,7 +49,7 @@ function canExecuteCode () {
  * cannot distinguish that from an unreachable server (see checkUrlByImage below)
  * @param {String} url A URL to check
  * @param {Number} timeoutMs The number of milliseconds to wait before giving up on the server
- * @returns {Promise} A promise that resolves if the URL is reachable, or rejects with an error
+ * @returns {Promise<void>} A promise that resolves if the URL is reachable, or rejects with an error
  */
 function checkUrl (url, timeoutMs) {
     return new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ function checkUrl (url, timeoutMs) {
  * Access-Control-Allow-Origin header [kiwix-js #1461]
  * @param {String} url The URL of a small image on the server we wish to test
  * @param {Number} timeoutMs The number of milliseconds to wait before giving up on the server
- * @returns {Promise} A promise that resolves if the image loads, or rejects with an error
+ * @returns {Promise<void>} A promise that resolves if the image loads, or rejects with an error
  */
 function checkUrlByImage (url, timeoutMs) {
     return new Promise((resolve, reject) => {
@@ -114,7 +114,7 @@ function getOrigin (url) {
 
 /**
  * Checks that the alternative (file-index) library is reachable, using the most precise test available to us
- * @returns {Promise} A promise that resolves if the alternative library is reachable, or rejects with an error
+ * @returns {Promise<void>} A promise that resolves if the alternative library is reachable, or rejects with an error
  */
 function checkAltLibrary () {
     // Where we have been given a probe image on the same server, we must use it, because the mirrors that still
@@ -242,7 +242,7 @@ function updateStatus (frame, message) {
 /**
  * Initialize the iframe with the base template
  * @param {Objet} frame The iframe DOM object to initialize
- * @returns {Promise} A promise that resolves when the iframe is initialized
+ * @returns {Promise<void>} A promise that resolves when the iframe is initialized
  */
 function initializeFrame (frame) {
     return new Promise((resolve) => {

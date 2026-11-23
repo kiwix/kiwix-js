@@ -113,6 +113,7 @@ function Decompressor (reader, chunkSize) {
  * advance in the stream and may not overlap.
  * @param {Integer} offset
  * @param {Integer} length
+ * @returns {Promise<Int8Array>} A Promise for the decompressed bytes
  */
 Decompressor.prototype.readSlice = function (offset, length) {
     busy = true;
@@ -134,7 +135,7 @@ Decompressor.prototype.readSlice = function (offset, length) {
  * This function ensures that only one decompression runs at a time
  * @param {Integer} offset The file offset at which to begin reading compressed data
  * @param {Integer} length The amount of data to read
- * @returns {Promise} A Promise for the read data
+ * @returns {Promise<Int8Array>} A Promise for the read data
  */
 Decompressor.prototype.readSliceSingleThread = function (offset, length) {
     // Tests whether the decompressor is ready (initiated) and not busy
@@ -157,7 +158,7 @@ Decompressor.prototype.readSliceSingleThread = function (offset, length) {
  *
  * @param {Integer} offset
  * @param {Integer} length
- * @returns {Array}
+ * @returns {Promise<Int8Array>}
  */
 Decompressor.prototype._readLoop = function (offset, length) {
     var that = this;
@@ -197,7 +198,7 @@ Decompressor.prototype._readLoop = function (offset, length) {
 
 /**
  *
- * @returns {Promise}
+ * @returns {Promise<0>}
  */
 Decompressor.prototype._fillInBufferIfNeeded = function () {
     if (!xzdec._input_empty(this._decHandle)) {
