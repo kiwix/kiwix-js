@@ -319,6 +319,7 @@ document.localeJson = {
       "spinner-loading": "Loading",
       "search-status-searching": "Searching [$1]... found: $2",
       "search-status-first-multiple": "First $1 articles found (refine your search).",
+      "search-status-pending-fulltext": "(full-text loading)",
       "search-status-finished-zero": "Finished. No articles found",
       "search-status-finished-one": "Finished. 1 article found",
       "search-status-finished-multiple": "Finished. $1 articles found",
