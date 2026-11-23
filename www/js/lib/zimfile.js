@@ -249,7 +249,8 @@ ZIMFile.prototype.dirEntryByTitleIndex = function (index) {
  * @param {Integer} blob The blob number within the cluster
  * @param {Boolean} meta If true, and if the cluster is uncompressed, the function will return only the blob's metadata
  *        (its archive offset and its size), otherwise return null
- * @returns {Promise<Uint8Array>} A Promise for the BLOB's data
+ * @returns {Promise<Uint8Array|Int8Array|{ptr: number, size: number}|null|undefined>} A Promise for the BLOB's data,
+ *     metadata when requested, null if metadata is requested for a compressed cluster, or undefined after a logged decompression error
  */
 ZIMFile.prototype.blob = function (cluster, blob, meta) {
     var that = this;
@@ -318,7 +319,8 @@ ZIMFile.prototype.blob = function (cluster, blob, meta) {
  * In particular, it supports the v1 article pointerlist, which contains articles sorted by title, superseding the article
  * namespace ('A') in legazy ZIM archives.
  * @param {Array<DirListing>} listings An array of DirListing objects (see zimArchive.js for examples)
- * @returns {Promise} A promise that populates calculated entries in the ZIM file header
+ * @returns {Promise<null|undefined>|null} A promise that resolves to null after populating the ZIM file header,
+ *     or undefined after a logged error. Returns null directly if no listings need reading.
  */
 ZIMFile.prototype.setListings = function (listings) {
     var that = this;
@@ -413,7 +415,7 @@ ZIMFile.prototype.setListings = function (listings) {
  *      is to be extracted
  * @param {Integer} mimeListPos The offset in <file> at which the MIME type list is found
  * @param {Integer} urlPtrPos The offset of URL Pointer List in the archive
- * @returns {Promise} A promise for the MIME Type list as a Map
+ * @returns {Promise<Map<number, string>>} A promise for the MIME Type list as a Map
  */
 function readMimetypeMap (file, mimeListPos, urlPtrPos) {
     var typeMap = new Map();

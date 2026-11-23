@@ -76,7 +76,7 @@ DirEntry.prototype.isRedirect = function () {
 
 /**
  *
- * @returns {Promise}
+ * @returns {Promise<Uint8Array|Int8Array|undefined>} The entry's bytes, or undefined after a logged decompression error
  */
 DirEntry.prototype.readData = function () {
     return this._zimfile.blob(this.cluster, this.blob);

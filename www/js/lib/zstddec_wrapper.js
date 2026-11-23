@@ -161,7 +161,7 @@ function Decompressor (reader) {
  * until we reach <offset> in the decompressed byte stream
  * @param {Integer} offset Cluster offset (in decompressed stream) from which to start reading
  * @param {Integer} length Number of decompressed bytes to read
- * @returns {Promise<ArrayBuffer>} Promise for an ArrayBuffer with decoded data
+ * @returns {Promise<Int8Array|undefined>} A Promise for the decoded bytes, or undefined after a logged decompression error
  */
 Decompressor.prototype.readSlice = function (offset, length) {
     busy = true;
@@ -192,7 +192,7 @@ Decompressor.prototype.readSlice = function (offset, length) {
  * the decompressor is no longer busy
  * @param {Integer} offset The cluster offset (in decompressed stream) at which the requested blob resides
  * @param {Integer} length The number of decompressed bytes to read
- * @returns {Promise} A Promise for the readSlice() function
+ * @returns {Promise<Int8Array|undefined>} A Promise for the decoded bytes, or undefined after a logged decompression error
  */
 Decompressor.prototype.readSliceSingleThread = function (offset, length) {
     // Tests whether the decompressor is ready (initiated) and not busy
@@ -215,7 +215,7 @@ Decompressor.prototype.readSliceSingleThread = function (offset, length) {
  * The main loop for sending compressed data to the decompressor and retrieving decompressed bytes
  * Consecutive calls to readLoop may only advance in the stream and may not overlap
  * @param {Integer} offset The offset in the *decompressed* byte stream at which the requested blob resides
- * @returns {Promise<Int8Array>} A Promise for an Int8Array containing the requested blob's decompressed bytes
+ * @returns {Promise<Int8Array|undefined>} A Promise for the blob's decompressed bytes, or undefined after a logged decompression error
  */
 Decompressor.prototype._readLoop = function (offset) {
     var that = this;

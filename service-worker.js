@@ -718,7 +718,7 @@ function fromCache (cache, requestUrl) {
  * @param {String} cache The name of the cache to open
  * @param {Request|String} request The original Request object or the URL string requested
  * @param {Response} response The Response received from the server/ZIM
- * @returns {Promise} A Promise for the update action
+ * @returns {Promise<void>} A Promise for the update action
  */
 function updateCache (cache, request, response) {
     // Prevents use of Cache API if user has disabled it
