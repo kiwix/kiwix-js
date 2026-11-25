@@ -890,9 +890,8 @@ const appTitle = document.title || 'Kiwix';
 let articleTitleObserver = null;
 
 /**
- * Sets the window title to "Article title - Kiwix" in browser context (a browser tab or a browser extension), so that
- * tabs, bookmarks and history entries can be told apart. The packaged apps in this repo (Firefox OS on app:, Ubuntu Touch
- * on file:) and the installed PWA keep the app's own title [kiwix-js #280]
+ * Sets the window title to "Article title - Kiwix" in a browser tab or extension [kiwix-js #280]
+ * Packaged apps and the installed PWA keep the app's own title
  * @param {Document} doc The document of the loaded article
  */
 function setWindowTitle (doc) {
