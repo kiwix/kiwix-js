@@ -885,6 +885,31 @@ function checkServerIsAccessible (imageSrc, onSuccess, onError) {
     image.src = imageSrc;
 }
 
+// The app's own window title, and the observer that watches the displayed article's title
+const appTitle = document.title || 'Kiwix';
+let articleTitleObserver = null;
+
+/**
+ * Sets the window title to "Article title - Kiwix" in a browser tab or extension [kiwix-js #280]
+ * Packaged apps and the installed PWA keep the app's own title
+ * @param {Document} doc The document of the loaded article
+ */
+function setWindowTitle (doc) {
+    if (articleTitleObserver) articleTitleObserver.disconnect();
+    articleTitleObserver = null;
+    if (!/^(https?|moz-extension|chrome-extension):$/.test(window.location.protocol) ||
+        window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+    var updateTitle = function () {
+        document.title = doc && doc.title ? doc.title + ' - ' + appTitle : appTitle;
+    };
+    updateTitle();
+    // Some archives (e.g. Zimit) change the title without loading a new page
+    if (doc && doc.head && typeof MutationObserver !== 'undefined') {
+        articleTitleObserver = new MutationObserver(updateTitle);
+        articleTitleObserver.observe(doc.head, { childList: true, subtree: true, characterData: true });
+    }
+}
+
 /**
  * Show or hide the spinner together with a message
  * @param {Boolean} show True to show the spinner, false to hide it
@@ -2023,6 +2048,7 @@ export default {
     displayFileDownloadAlert: displayFileDownloadAlert,
     checkUpdateStatus: checkUpdateStatus,
     checkServerIsAccessible: checkServerIsAccessible,
+    setWindowTitle: setWindowTitle,
     spinnerDisplay: spinnerDisplay,
     isElementInView: isElementInView,
     removeAnimationClasses: removeAnimationClasses,

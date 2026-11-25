@@ -135,6 +135,7 @@ globalThis.Node = window.Node;
 globalThis.location = window.location;
 globalThis.history = window.history;
 globalThis.Element = window.Element;
+globalThis.MutationObserver = window.MutationObserver;
 
 // Mock webpHero
 globalThis.webpHero = {
