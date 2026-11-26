@@ -62,6 +62,12 @@ import translateUI from './translateUI.js';
 var LZ;
 
 /**
+ * The reject functions of calls to the libzim Web Worker that are still waiting for a response
+ * @type {Array<Function>}
+ */
+var pendingLibzimCalls = [];
+
+/**
  * Creates a ZIM archive object to access the ZIM file at the given path in the given storage.
  * This constructor can also be used with a single File parameter.
  *
@@ -147,13 +153,23 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                 // There is currently an exception thrown in the libzim wasm if we attempt to load a split ZIM archive, so we work around
                 // In case of a split ZIM, It will not be loaded properly by libzim if libzim is enabled
                 var isSplitZim = /\.zima.$/i.test(that.file._files[0].name);
-                if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && typeof Atomics !== 'undefined' &&
+                var libzimReaderType = getLibzimReaderType();
+                // The ASM build of libzim needs Atomics, but the WASM build does not
+                var hasNeededAtomics = typeof Atomics !== 'undefined' || /^wasm/.test(libzimReaderType);
+                if (that.file.fullTextIndex && (params.debugLibzimASM || !isSplitZim && hasNeededAtomics &&
                     // Note that Android and NWJS currently throw due to problems with Web Worker context
                     !/Android/.test(params.appType) && !(window.nw && that.file._files[0].readMode === 'electron')) || params.useLibzim) {
-                    var libzimReaderType = params.libzimMode;
-                    if (libzimReaderType === 'default') libzimReaderType = 'WebAssembly' in self ? 'wasm.dev' : 'asm.dev';
                     console.log('[DEBUG] Instantiating libzim ' + libzimReaderType + ' Web Worker...');
                     LZ = new Worker('js/lib/libzim-' + libzimReaderType + '.js');
+                    // If the worker script cannot be loaded or compiled, the error is raised on the Worker, not on the message
+                    // channels used by callLibzimWorker, so we must reject here any calls still waiting for the worker
+                    LZ.addEventListener('error', function (err) {
+                        if (that.libzimReady === 'ready') return;
+                        var message = err.message || 'The libzim worker could not be loaded';
+                        pendingLibzimCalls.splice(0).forEach(function (reject) {
+                            reject(message);
+                        });
+                    });
                     that.callLibzimWorker({ action: 'init', files: that.file._files }).then(function () {
                         that.libzimReady = 'ready';
                         // If user is using libzim for reading the file, we have delayed the callback till now
@@ -164,6 +180,9 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         params.searchProvider += ': ERROR';
                         console.error('The libzim worker could not be instantiated!', err);
                         that.libzimReady = 'error';
+                        // Carry on with title search only, as if libzim had never been started
+                        if (LZ) LZ.terminate();
+                        LZ = null;
                     });
                 } else {
                     // var message = 'Full text searching is not available because ';
@@ -171,7 +190,7 @@ function ZIMArchive (storage, path, callbackReady, callbackError) {
                         params.searchProvider += ': no_fulltext'; // message += 'this ZIM does not have a full-text index.';
                     } else if (isSplitZim) {
                         params.searchProvider += ': split_zim'; // message += 'the ZIM archive is split.';
-                    } else if (typeof Atomics === 'undefined') {
+                    } else if (!hasNeededAtomics) {
                         params.searchProvider += ': no_atomics'; // message += 'this browser does not support Atomic operations.';
                     } else if (/Android/.test(params.appType)) {
                         params.searchProvider += ': no_sharedArrayBuffer';
@@ -335,6 +354,15 @@ ZIMArchive.prototype.findDirEntriesWithPrefix = function (search, callback, noIn
             dirEntries = fullTextDirEntries;
             search.status = 'complete';
             callback(dirEntries, search);
+        }).catch(function (err) {
+            console.error('Full-text search failed', err);
+            if (search.status === 'cancelled') return;
+            // If the title search has already finished, it is waiting for this search, so we complete it with the title
+            // results; otherwise, now that LZ is unset, the title search will complete itself
+            if (search.type === 'fulltext') {
+                search.status = 'complete';
+                callback(dirEntries, search);
+            }
         });
     }
     // No title starts with whitespace, so drop any that was typed or pasted in front of the search text. Trailing
@@ -538,6 +566,30 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
 };
 
 /**
+ * A minimal WebAssembly module using memory.copy, to detect support for bulk memory operations, which the WASM
+ * builds of libzim use (Safari 14 and Edge Legacy, for example, have WebAssembly but not bulk memory)
+ */
+var BULK_MEMORY_TEST_MODULE = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 4, 1, 96, 0, 0, 3, 2, 1, 0, 5, 3, 1, 0, 1, 10, 14, 1, 12, 0, 65, 0, 65, 0, 65, 0, 252, 10, 0, 0, 11]);
+
+/**
+ * Gets the libzim build to load: the one selected in params.libzimMode, but with the ASM build in place of the
+ * WASM build if the browser cannot run the latter
+ *
+ * @returns {String} 'wasm', 'wasm.dev', 'asm' or 'asm.dev'
+ */
+function getLibzimReaderType () {
+    var supportsWasm = false;
+    try {
+        supportsWasm = typeof WebAssembly === 'object' && WebAssembly.validate(BULK_MEMORY_TEST_MODULE);
+    } catch (err) {
+        // Treat a browser that throws here as one without usable WebAssembly
+        console.debug('Could not test for WebAssembly bulk memory support', err);
+    }
+    var readerType = params.libzimMode === 'default' ? 'wasm.dev' : params.libzimMode;
+    return supportsWasm ? readerType : readerType.replace(/^wasm/, 'asm');
+}
+
+/**
  * Calls the libzim Web Worker with the given parameters, and returns a Promise with its response
  *
  * @param {Object} parameters
@@ -546,18 +598,25 @@ ZIMArchive.prototype.findDirEntriesFromFullTextSearch = function (search, dirEnt
 ZIMArchive.prototype.callLibzimWorker = function (parameters) {
     return new Promise(function (resolve, reject) {
         console.debug('Calling libzim WebWorker with parameters', parameters);
+        pendingLibzimCalls.push(reject);
+        var settle = function () {
+            var index = pendingLibzimCalls.indexOf(reject);
+            if (index !== -1) pendingLibzimCalls.splice(index, 1);
+        };
         var tmpMessageChannel = new MessageChannel();
         // var t0 = performance.now();
         tmpMessageChannel.port1.onmessage = function (event) {
             // var t1 = performance.now();
             // var readTime = Math.round(t1 - t0);
             // console.debug("Response given by the WebWorker in " + readTime + " ms", event.data);
+            settle();
             resolve(event.data);
         };
         tmpMessageChannel.port1.onerror = function (event) {
             // var t1 = performance.now();
             // var readTime = Math.round(t1 - t0);
             // console.error("Error sent by the WebWorker in " + readTime + " ms", event.data);
+            settle();
             reject(event.data);
         };
         LZ.postMessage(parameters, [tmpMessageChannel.port2]);
