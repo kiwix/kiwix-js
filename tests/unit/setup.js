@@ -135,6 +135,10 @@ globalThis.Node = window.Node;
 globalThis.location = window.location;
 globalThis.history = window.history;
 globalThis.Element = window.Element;
+// Node.js only has a global navigator from version 21, so use JSDOM's on older versions
+if (typeof globalThis.navigator === 'undefined') {
+    globalThis.navigator = window.navigator;
+}
 
 // Mock webpHero
 globalThis.webpHero = {
